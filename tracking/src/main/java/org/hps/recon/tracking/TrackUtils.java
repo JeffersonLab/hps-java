@@ -5,7 +5,6 @@ import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
@@ -52,10 +51,8 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixParamCalculator;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.fit.helicaltrack.HitUtils;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
@@ -98,6 +95,7 @@ public class TrackUtils {
         }
         return extrapPos;
     }
+
 
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
@@ -440,9 +438,11 @@ public class TrackUtils {
         boolean debug = false;
         // Hep3Vector B = new BasicHep3Vector(0, 0, -1);
         // WTrack wtrack = new WTrack(helfit, -1.0*bfield); //
+        if (Math.abs(point_on_plane.x() - helfit.xc()) > Math.abs(helfit.R()))
+            return null;
         Hep3Vector B = new BasicHep3Vector(0, 0, 1);
         WTrack wtrack = new WTrack(helfit, bfield); //
-        if (initial_s != 0)
+        if (initial_s != 0 && initial_s != Double.NaN)
             wtrack.setTrackParameters(wtrack.getHelixParametersAtPathLength(initial_s, B));
         if (debug)
             System.out.printf("getHelixPlaneIntercept:find intercept between plane defined by point on plane %s, unit vec %s, bfield %.3f, h=%s and WTrack \n%s \n", point_on_plane.toString(), unit_vec_normal_to_plane.toString(), bfield, B.toString(), wtrack.toString());
@@ -470,8 +470,10 @@ public class TrackUtils {
      */
     public static Hep3Vector getHelixPlaneIntercept(HelicalTrackFit helfit, HelicalTrackStripGbl strip, double bfield) {
         Hep3Vector point_on_plane = strip.origin();
+        if (Math.abs(point_on_plane.x() - helfit.xc()) > Math.abs(helfit.R()))
+            return null;
         Hep3Vector unit_vec_normal_to_plane = VecOp.cross(strip.u(), strip.v());// strip.w();
-        double s_origin = HelixUtils.PathToXPlane(helfit, strip.origin().x(), 0., 0).get(0);
+        double s_origin = HelixUtils.PathToXPlane(helfit, point_on_plane.x(), 0., 0).get(0);
         Hep3Vector intercept_point = getHelixPlaneIntercept(helfit, unit_vec_normal_to_plane, point_on_plane, bfield, s_origin);
         return intercept_point;
     }
@@ -766,160 +768,6 @@ public class TrackUtils {
 
         // return (Math.abs(distance) < tolerance);
         return GeomOp3D.intersects(trackPositionPoint, transformedSensorFace);
-    }
-
-    public static Map<String, Double> calculateTrackHitResidual(HelicalTrackHit hth, HelicalTrackFit track, boolean includeMS) {
-
-        boolean debug = false;
-        Map<String, Double> residuals = new HashMap<String, Double>();
-
-        Map<HelicalTrackHit, MultipleScatter> msmap = track.ScatterMap();
-        double msdrphi = 0;
-        double msdz = 0;
-
-        if (includeMS) {
-            msdrphi = msmap.get(hth).drphi();
-            msdz = msmap.get(hth).dz();
-        }
-
-        // Calculate the residuals that are being used in the track fit
-        // Start with the bendplane y
-        double drphi_res = hth.drphi();
-        double wrphi = Math.sqrt(drphi_res * drphi_res + msdrphi * msdrphi);
-        // This is the normal way to get s
-        double s_wrong = track.PathMap().get(hth);
-        // This is how I do it with HelicalTrackFits
-        double s = HelixUtils.PathToXPlane(track, hth.x(), 0, 0).get(0);
-        // System.out.printf("x %f s %f smap %f\n",hth.x(),s,s_wrong);
-        if (Double.isNaN(s)) {
-            double xc = track.xc();
-            double RC = track.R();
-            System.out.printf("calculateTrackHitResidual: s is NaN. p=%.3f RC=%.3f, x=%.3f, xc=%.3f\n", track.p(-0.491), RC, hth.x(), xc);
-            return residuals;
-        }
-
-        Hep3Vector posOnHelix = HelixUtils.PointOnHelix(track, s);
-        double resy = hth.y() - posOnHelix.y();
-        double erry = includeMS ? wrphi : drphi_res;
-
-        // Now the residual for the "measurement" direction z
-        double resz = hth.z() - posOnHelix.z();
-        double dz_res = HitUtils.zres(hth, msmap, track);
-        double dz_res2 = hth.getCorrectedCovMatrix().diagonal(2);
-
-        if (Double.isNaN(resy)) {
-            System.out.printf("calculateTrackHitResidual: resy is NaN. hit at %s posOnHelix=%s path=%.3f wrong_path=%.3f helix:\n%s\n", hth.getCorrectedPosition().toString(), posOnHelix.toString(), s, s_wrong, track.toString());
-            return residuals;
-        }
-
-        residuals.put("resy", resy);
-        residuals.put("erry", erry);
-        residuals.put("drphi", drphi_res);
-        residuals.put("msdrphi", msdrphi);
-
-        residuals.put("resz", resz);
-        residuals.put("errz", dz_res);
-        residuals.put("dz_res", Math.sqrt(dz_res2));
-        residuals.put("msdz", msdz);
-
-        if (debug) {
-            System.out.printf("calculateTrackHitResidual: HTH hit at (%f,%f,%f)\n", hth.x(), hth.y(), hth.z());
-            System.out.printf("calculateTrackHitResidual: helix params d0=%f phi0=%f R=%f z0=%f slope=%f chi2=%f/%f chi2tot=%f\n", track.dca(), track.phi0(), track.R(), track.z0(), track.slope(), track.chisq()[0], track.chisq()[1], track.chisqtot());
-            System.out.printf("calculateTrackHitResidual: => resz=%f resy=%f at s=%f\n", resz, resy, s);
-            // System.out.printf("calculateTrackHitResidual: resy=%f eresy=%f drphi=%f msdrphi=%f \n",resy,erry,drphi_res,msdrphi);
-            // System.out.printf("calculateTrackHitResidual: resz=%f eresz=%f dz_res=%f msdz=%f \n",resz,dz_res,Math.sqrt(dz_res2),msdz);
-        }
-
-        return residuals;
-    }
-
-    public static Map<String, Double> calculateLocalTrackHitResiduals(Track track, HelicalTrackHit hth, HelicalTrackStrip strip, double bFieldInZ) {
-        HelicalTrackStripGbl stripGbl = new HelicalTrackStripGbl(strip, true);
-        return calculateLocalTrackHitResiduals(track, hth, stripGbl, bFieldInZ);
-    }
-
-    public static Map<String, Double> calculateLocalTrackHitResiduals(Track track, HelicalTrackHit hth, HelicalTrackStripGbl strip, double bFieldInZ) {
-
-        SeedTrack st = (SeedTrack) track;
-        SeedCandidate seed = st.getSeedCandidate();
-        HelicalTrackFit _trk = seed.getHelix();
-        Map<HelicalTrackHit, MultipleScatter> msmap = seed.getMSMap();
-        double msdrdphi = msmap.get(hth).drphi();
-        double msdz = msmap.get(hth).dz();
-        return calculateLocalTrackHitResiduals(_trk, strip, msdrdphi, msdz, bFieldInZ);
-    }
-
-    public static Map<String, Double> calculateLocalTrackHitResiduals(HelicalTrackFit _trk, HelicalTrackStrip strip, double bFieldInZ) {
-        HelicalTrackStripGbl stripGbl = new HelicalTrackStripGbl(strip, true);
-        return calculateLocalTrackHitResiduals(_trk, stripGbl, 0.0, 0.0, bFieldInZ);
-    }
-
-    public static Map<String, Double> calculateLocalTrackHitResiduals(HelicalTrackFit _trk, HelicalTrackStripGbl strip, double msdrdphi, double msdz, double bFieldInZ) {
-
-        boolean debug = false;
-        boolean includeMS = true;
-
-        if (debug)
-            System.out.printf("calculateLocalTrackHitResiduals: for strip on sensor %s \n", ((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement().getName());
-
-        Hep3Vector u = strip.u();
-        Hep3Vector corigin = strip.origin();
-
-        // Find interception with plane that the strips belongs to
-        Hep3Vector trkpos = TrackUtils.getHelixPlaneIntercept(_trk, strip, Math.abs(bFieldInZ));
-
-        if (debug) {
-            System.out.printf("calculateLocalTrackHitResiduals: strip u %s origin %s \n", u.toString(), corigin.toString());
-            System.out.printf("calculateLocalTrackHitResiduals: found interception point with sensor at %s \n", trkpos.toString());
-        }
-
-        if (Double.isNaN(trkpos.x()) || Double.isNaN(trkpos.y()) || Double.isNaN(trkpos.z())) {
-            System.out.printf("calculateLocalTrackHitResiduals: failed to get interception point (%s) \n", trkpos.toString());
-            System.out.printf("calculateLocalTrackHitResiduals: track params\n%s\n", _trk.toString());
-            System.out.printf("calculateLocalTrackHitResiduals: track pT=%.3f chi2=[%.3f][%.3f] \n", _trk.pT(bFieldInZ), _trk.chisq()[0], _trk.chisq()[1]);
-            // trkpos = TrackUtils.getHelixPlaneIntercept(_trk, strip,
-            // bFieldInZ);
-            throw new RuntimeException();
-        }
-
-        double xint = trkpos.x();
-        double phi0 = _trk.phi0();
-        double R = _trk.R();
-        double s = HelixUtils.PathToXPlane(_trk, xint, 0, 0).get(0);
-        double phi = -s / R + phi0;
-
-        Hep3Vector mserr = new BasicHep3Vector(msdrdphi * Math.sin(phi), msdrdphi * Math.sin(phi), msdz);
-        double msuError = VecOp.dot(mserr, u);
-
-        Hep3Vector vdiffTrk = VecOp.sub(trkpos, corigin);
-        TrackerHitUtils thu = new TrackerHitUtils(debug);
-        Hep3Matrix trkToStrip = thu.getTrackToStripRotation(strip.getStrip());
-        Hep3Vector vdiff = VecOp.mult(trkToStrip, vdiffTrk);
-
-        double umc = vdiff.x();
-        double vmc = vdiff.y();
-        double wmc = vdiff.z();
-        double umeas = strip.umeas();
-        double uError = strip.du();
-        double vmeas = 0;
-        double vError = (strip.vmax() - strip.vmin()) / Math.sqrt(12);
-        double wmeas = 0;
-        double wError = 10.0 / Math.sqrt(12); // 0.001;
-
-        if (debug)
-            System.out.printf("calculateLocalTrackHitResiduals: vdiffTrk %s vdiff %s umc %f umeas %f du %f\n", vdiffTrk.toString(), vdiff.toString(), umc, umeas, umeas - umc);
-
-        Map<String, Double> res = new HashMap<String, Double>();
-        res.put("ures", umeas - umc);
-        res.put("ureserr", includeMS ? Math.sqrt(uError * uError + msuError * msuError) : uError);
-        res.put("vres", vmeas - vmc);
-        res.put("vreserr", vError);
-        res.put("wres", wmeas - wmc);
-        res.put("wreserr", wError);
-
-        res.put("vdiffTrky", vdiffTrk.y());
-
-        return res;
     }
 
     public static int[] getHitsInTopBottom(Track track) {
