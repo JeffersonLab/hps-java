@@ -945,18 +945,18 @@ public abstract class TupleDriver extends Driver {
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
         Hep3Vector theVtx = VecOp.mult(beamAxisRotation, theV0.getStartVertex().getPosition());
         if (storeCov) {
-                Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, theV0.getStartVertex().getCovMatrix()),
-                MatrixOp.transposed(beamAxisRotation));
-                
-                tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
-                tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
-                tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
-                tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
-                tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
-                tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
-                tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
-                tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
-                tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
+            Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, theV0.getStartVertex().getCovMatrix()),
+                    MatrixOp.transposed(beamAxisRotation));
+
+            tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
+            tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
+            tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
+            tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
+            tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
+            tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
+            tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
+            tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
+            tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
         }
         
         tupleMap.put(prefix+"PX/D", momRot.x());
