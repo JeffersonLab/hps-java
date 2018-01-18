@@ -1028,8 +1028,15 @@ public class TrackUtils {
     public static HelicalTrackFit getHTF(Track track) {
         if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
-        else
-            return getHTF(track.getTrackStates().get(0));
+        else {
+            double[] chisq = { track.getChi2(), 0 };
+            int[] ndf = { track.getNDF(), 0 };
+            TrackState ts = track.getTrackStates().get(0);
+            double par[] = ts.getParameters();
+            SymmetricMatrix cov = new SymmetricMatrix(5, ts.getCovMatrix(), true);
+            HelicalTrackFit htf = new HelicalTrackFit(par, cov, chisq, ndf, null, null);
+            return htf;
+        }
     }
 
     public static HelicalTrackFit getHTF(double par[]) {
