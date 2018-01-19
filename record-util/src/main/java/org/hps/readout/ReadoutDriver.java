@@ -23,7 +23,11 @@ import org.lcsim.util.Driver;
  * superclass constructor must be called, or the driver must be
  * manually declared via the method {@link
  * org.hps.readout.ReadoutDataManager#registerReadoutDriver(ReadoutDriver)
- * ReadoutDataManager.registerReadoutDriver(ReadoutDriver)}.</li>
+ * ReadoutDataManager.registerReadoutDriver(ReadoutDriver)}. Note
+ * that if the driver is a trigger driver, it must instead use the
+ * method {@link
+ * org.hps.readout.ReadoutDataManager#registerTrigger(ReadoutDriver)
+ * ReadoutDataManager.registerTrigger(ReadoutDriver)} instead.</li>
  * <li><b>Declare input collections:</b> All readout drivers must
  * specify which data collections they require as input. This is used
  * to correctly calculate the total time displacement of a driver by
