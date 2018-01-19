@@ -37,8 +37,10 @@ import org.lcsim.detector.solids.Box;
 import org.lcsim.detector.solids.GeomOp3D;
 import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.solids.Polygon3D;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.LCRelation;
@@ -1754,5 +1756,15 @@ public class TrackUtils {
             writer.println(point.x() + "  " + point.y() + "  " + point.z());
         }
         writer.close();
+    }
+    
+    //This method transforms vector from tracking detector frame to sensor frame
+    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor){
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+        if(electrodes == null){
+            electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
+            System.out.println("Charge Carrier is NULL");
+        }
+        return electrodes.getGlobalToLocal().transformed(trkpos);
     }
 }
