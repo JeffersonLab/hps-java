@@ -517,16 +517,18 @@ public class TrackUtils {
      * @param track
      * @return position at ECAL
      */
-    public static TrackState getTrackExtrapAtEcal(Track track, FieldMap fieldMap) {
+    public static BaseTrackState getTrackExtrapAtEcal(Track track, FieldMap fieldMap) {
         TrackState stateAtLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
         if (stateAtLast == null)
             return null;
         return getTrackExtrapAtEcal(stateAtLast, fieldMap);
     }
 
-    public static TrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap) {
+    public static BaseTrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap) {
         // extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap)
-        return extrapolateTrackUsingFieldMap(track, 700.0, BeamlineConstants.ECAL_FACE, 5.0, fieldMap);
+        BaseTrackState bts = extrapolateTrackUsingFieldMap(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN, BeamlineConstants.ECAL_FACE, 5.0, fieldMap);
+        bts.setLocation(TrackState.AtCalorimeter);
+        return bts;
     }
 
     /**
@@ -539,6 +541,16 @@ public class TrackUtils {
      */
     public static Hep3Vector extrapolateTrack(Track track, double z) {
         return extrapolateTrack(track.getTrackStates().get(0), z);
+    }
+
+    @Deprecated
+    public static Hep3Vector getTrackPositionAtEcal(Track track) {
+        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
+    }
+
+    @Deprecated
+    public static Hep3Vector getTrackPositionAtEcal(TrackState track) {
+        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
     }
 
     /**
@@ -1353,7 +1365,7 @@ public class TrackUtils {
      * Backward compatibility function for {@code extrapolateTrackUsingFieldMap}
      * .
      */
-    public static TrackState extrapolateTrackUsingFieldMap(Track track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) {
+    public static BaseTrackState extrapolateTrackUsingFieldMap(Track track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) {
         TrackState stateAtIP = null;
         for (TrackState state : track.getTrackStates())
             if (state.getLocation() == TrackState.AtIP)
@@ -1386,11 +1398,11 @@ public class TrackUtils {
      * the "Tracking" frame is used for the reference point coordinate
      * system.
      */
-    public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap) {
+    public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap) {
         return extrapolateTrackUsingFieldMap(track, startPositionX, endPosition, stepSize, 0.005, fieldMap);
     }
 
-    public static TrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
+    public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
         // Start by extrapolating the track to the approximate point where the
         // fringe field begins.
         Hep3Vector currentPosition = TrackUtils.extrapolateHelixToXPlane(track, startPositionX);
@@ -1398,8 +1410,6 @@ public class TrackUtils {
         double q = Math.signum(track.getOmega());
         double startPosition = currentPosition.x();
 
-        // start position: x along beam line (tracking frame!)
-        currentPosition = new BasicHep3Vector(startPosition, 0, 0);
         // Calculate the path length to the start position
         double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition, 0., 0).get(0);
 
@@ -1477,8 +1487,8 @@ public class TrackUtils {
         trackParameters[ParameterName.tanLambda.ordinal()] = tanLambda;
 
         // Create a track state at the extrapolation point
-        TrackState trackState = new BaseTrackState(trackParameters, bFieldY);
-        ((BaseTrackState) trackState).setReferencePoint(currentPosition.v());
+        BaseTrackState trackState = new BaseTrackState(trackParameters, bFieldY);
+        trackState.setReferencePoint(currentPosition.v());
 
         return trackState;
     }

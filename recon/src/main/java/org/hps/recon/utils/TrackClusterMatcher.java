@@ -45,7 +45,7 @@ public class TrackClusterMatcher {
     /**
      * Flag used to determine if plots are enabled/disabled
      */
-    boolean enablePlots = false;
+    boolean enablePlots = true;
 
     /**
      * Flag used to determine whether the analytic or field map extrapolator
@@ -149,28 +149,12 @@ public class TrackClusterMatcher {
     private static final double dxSigmTopElecGBL_hasL6_2016[] = {5.03375, 9.08728, -42.5864, 55.6423, -30.7765, 6.25259, };
     private static final double dxMeanTopPosiGBL_hasL6_2016[] = {18.9015, -87.8249, 172.68, -163.97, 76.083, -13.7529, };
     private static final double dxSigmTopPosiGBL_hasL6_2016[] = {21.8112, -80.8339, 144.335, -131.621, 59.7611, -10.7205, };
-    
-    /**
-     * Z position to start extrapolation from
-     */
-    double extStartPos = 700; // mm
-
-    /**
-     * The extrapolation step size
-     */
-    double stepSize = 5.; // mm
 
     private boolean snapToEdge = true;
     
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
-    
-
-    /**
-     * Constant denoting the index of the {@link TrackState} at the Ecal
-     */
-    private static final int ECAL_TRACK_STATE_INDEX = 1;
 
     /**
      * Constructor

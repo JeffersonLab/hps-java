@@ -1,8 +1,8 @@
 package org.hps.recon.tracking;
 
-import hep.physics.vec.BasicHep3Vector;
+//import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
+//import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,8 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
+
+//import org.lcsim.util.aida.AIDA;
 
 /**
  * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
@@ -65,7 +66,7 @@ public final class TrackDataDriver extends Driver {
 
     List<HpsSiSensor> sensors = null;
 
-    public AIDA aida = AIDA.defaultInstance();
+    //    public AIDA aida = AIDA.defaultInstance();
 
     /** Default constructor */
     public TrackDataDriver() {
@@ -245,13 +246,13 @@ public final class TrackDataDriver extends Driver {
                     //                    System.out.println();
                     TrackState stateEcal = TrackUtils.getTrackExtrapAtEcal(track, bFieldMap);
 
-                    TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP), 700, ecalPosition, 5.0, bFieldMap);
-                    System.out.printf("old intercept: %s \n", new BasicHep3Vector(stateEcalIP.getReferencePoint()).toString());
-                    System.out.printf("new intercept: %s \n", new BasicHep3Vector(stateEcal.getReferencePoint()).toString());
-                    Hep3Vector stateDiff = VecOp.sub(new BasicHep3Vector(stateEcalIP.getReferencePoint()), new BasicHep3Vector(stateEcal.getReferencePoint()));
-                    aida.histogram1D("extrap [old-new] x").fill(stateDiff.x());
-                    aida.histogram1D("extrap [old-new] y").fill(stateDiff.y());
-                    aida.histogram1D("extrap [old-new] z").fill(stateDiff.z());
+                    //TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP), BeamlineConstants.DIPOLE_EDGE_ENG_RUN, ecalPosition, 5.0, bFieldMap);
+                    //System.out.printf("old intercept: %s \n", new BasicHep3Vector(stateEcalIP.getReferencePoint()).toString());
+                    //System.out.printf("new intercept: %s \n", new BasicHep3Vector(stateEcal.getReferencePoint()).toString());
+                    //                    Hep3Vector stateDiff = VecOp.sub(new BasicHep3Vector(stateEcalIP.getReferencePoint()), new BasicHep3Vector(stateEcal.getReferencePoint()));
+                    //                    aida.histogram1D("extrap [old-new] x").fill(stateDiff.x());
+                    //                    aida.histogram1D("extrap [old-new] y").fill(stateDiff.y());
+                    //                    aida.histogram1D("extrap [old-new] z").fill(stateDiff.z());
 
                     if (stateEcal != null)
                         track.getTrackStates().add(stateEcal);
