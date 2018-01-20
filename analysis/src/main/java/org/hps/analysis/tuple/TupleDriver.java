@@ -575,8 +575,8 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(putMe2, extrapTrackXSensorTopStereo[nLay-lay]);
         putMe2 = String.format("%sTrkExtrpYSensorStereoTopL%d/D", prefix, 7-lay);
         tupleMap.put(putMe2, extrapTrackYSensorTopStereo[nLay-lay]);
-        putMe2 = String.format("%sTrkExtrpYSensorAxialBotL%d/D", prefix, 7-lay);
-        tupleMap.put(putMe2, extrapTrackYSensorBotAxial[nLay-lay]);
+        putMe2 = String.format("%sTrkExtrpXSensorAxialBotL%d/D", prefix, 7-lay);
+        tupleMap.put(putMe2, extrapTrackXSensorBotAxial[nLay-lay]);
         putMe2 = String.format("%sTrkExtrpYSensorAxialBotL%d/D", prefix, 7-lay);
         tupleMap.put(putMe2, extrapTrackYSensorBotAxial[nLay-lay]);
         putMe2 = String.format("%sTrkExtrpXSensorStereoBotL%d/D", prefix, 7-lay);
