@@ -457,6 +457,15 @@ public class ReadoutDataManager extends Driver {
 	 * @param productionDriver - The readout driver to register.
 	 */
 	public static final void registerReadoutDriver(ReadoutDriver productionDriver) {
+		// Trigger drivers are registered differently.
+		if(productionDriver instanceof TriggerDriver) {
+			System.err.println("Error: Attempted to register TriggerDriver \"" + productionDriver.getClass().getSimpleName() + "\" as a readout driver.");
+			System.err.println("       Trigger drivers are registered via the method \"registerTrigger(TriggerDriver)\".");
+			System.err.println("       Ignoring request.");
+			return;
+		}
+		
+		// Add the readout driver.
 		driverSet.add(productionDriver);
 		System.out.println("Registered driver: " + productionDriver.getClass().getSimpleName());
 	}
@@ -465,7 +474,7 @@ public class ReadoutDataManager extends Driver {
 	 * Registers a trigger driver with the data manager.
 	 * @param triggerDriver - The trigger driver to register.
 	 */
-	public static final void registerTrigger(ReadoutDriver triggerDriver) {
+	public static final void registerTrigger(TriggerDriver triggerDriver) {
 		// Get the total time displacement for the trigger driver.
 		double timeDisplacement = getTotalTimeDisplacement("", triggerDriver);
 		
@@ -474,6 +483,7 @@ public class ReadoutDataManager extends Driver {
 		
 		// Store the time displacement in the trigger driver map.
 		triggerTimeDisplacementMap.put(triggerDriver, timeDisplacement);
+		System.out.println("Registered trigger: " + triggerDriver.getClass().getSimpleName());
 	}
 	
 	/**
@@ -484,7 +494,7 @@ public class ReadoutDataManager extends Driver {
 	 * triggering driver is not registered as a trigger driver with
 	 * the data manager.
 	 */
-	public static final void sendTrigger(ReadoutDriver driver) {
+	static final void sendTrigger(TriggerDriver driver) {
 		// Check that the triggering driver is registered as a
 		// trigger driver.
 		if(!triggerTimeDisplacementMap.containsKey(driver)) {
