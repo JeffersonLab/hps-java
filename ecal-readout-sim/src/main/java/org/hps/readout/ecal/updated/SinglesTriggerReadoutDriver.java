@@ -3,8 +3,8 @@ package org.hps.readout.ecal.updated;
 import java.util.Collection;
 
 import org.hps.readout.ReadoutDataManager;
-import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
+import org.hps.readout.TriggerDriver;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -25,7 +25,7 @@ import hep.aida.IHistogram2D;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class SinglesTriggerReadoutDriver extends ReadoutDriver {
+public class SinglesTriggerReadoutDriver extends TriggerDriver {
 	
 	// ==============================================================
 	// ==== LCIO Collections ========================================
@@ -97,8 +97,8 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 	private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
 	
 	// TODO: This should probably be handled by the manager?
-	private static final int DEADTIME = 32 * 4;
-	private double lastTrigger = Double.NaN;
+	//private static final int DEADTIME = 32 * 4;
+	//private double lastTrigger = Double.NaN;
 	
 	@Override
 	public void detectorChanged(Detector detector) {
@@ -135,10 +135,10 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 		// Track whether or not a trigger was seen.
 		boolean triggered = false;
 		
-		// DEBUG :: Hack in deadtime.
-		if(!Double.isNaN(lastTrigger) && lastTrigger + DEADTIME >= ReadoutDataManager.getCurrentTime()) {
-			return;
-		}
+		// There is no need to perform the trigger cuts if the
+		// trigger is in dead time, as no trigger may be issued
+		// regardless of the outcome.
+		if(isInDeadTime()) { return; }
 		
 		// Plot the trigger distributions before trigger cuts are
 		// performed.
@@ -172,14 +172,9 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
             // DEBUG :: Output the triggering cluster.
 			triggerOutput.append(String.format("%n%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
 					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-			//writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-			//		cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
 			
 			// Note that a trigger occurred.
 			triggered = true;
-			
-			// DEBUG :: Hack in deadtime.
-			lastTrigger = ReadoutDataManager.getCurrentTime();
 			
 			// Populate the cut plots.
 			clusterSeedEnergy[WITH_CUTS].fill(TriggerModule.getValueClusterSeedEnergy(cluster));
@@ -188,9 +183,11 @@ public class SinglesTriggerReadoutDriver extends ReadoutDriver {
 			clusterDistribution[WITH_CUTS].fill(ixy.x, ixy.y);
 		}
 		
+		System.out.println("Checking trigger status for driver \"" + getClass().getSimpleName() + "\".");
 		if(triggered) {
 			writer.write(triggerOutput.toString());
-			ReadoutDataManager.sendTrigger(this);
+			System.out.println("Sending trigger.");
+			sendTrigger();
 		}
 	}
 	
