@@ -26,8 +26,8 @@ import org.lcsim.util.Driver;
  * ReadoutDataManager.registerReadoutDriver(ReadoutDriver)}. Note
  * that if the driver is a trigger driver, it must instead use the
  * method {@link
- * org.hps.readout.ReadoutDataManager#registerTrigger(ReadoutDriver)
- * ReadoutDataManager.registerTrigger(ReadoutDriver)} instead.</li>
+ * org.hps.readout.ReadoutDataManager#registerTrigger(TriggerDriver)
+ * ReadoutDataManager.registerTrigger(TriggerDriver)} instead.</li>
  * <li><b>Declare input collections:</b> All readout drivers must
  * specify which data collections they require as input. This is used
  * to correctly calculate the total time displacement of a driver by
@@ -96,7 +96,7 @@ import org.lcsim.util.Driver;
  * through the method {@link
  * org.hps.readout.ReadoutDataManager#checkCollectionStatus(String, double)
  * ReadoutDataManager.checkCollectionStatus(String, double)} for the
- * appropriate collection.
+ * appropriate collection.<br/><br/>
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
