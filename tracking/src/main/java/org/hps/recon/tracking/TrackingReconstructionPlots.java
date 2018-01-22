@@ -56,7 +56,7 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
 
-    private String trackCollectionName = "MatchedTracks";
+    private String trackCollectionName = "GBLTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
@@ -543,6 +543,10 @@ public class TrackingReconstructionPlots extends Driver {
 
             if (doMatchedClusterPlots)
                 doClustersOnTrack(trk, clusters);
+
+            double atLastHit = TrackStateUtils.getTrackStateAtLast(trk).getParameter(ParameterName.tanLambda.ordinal());
+            aida.histogram1D("tan(lambda) last ").fill(atLastHit);
+            aida.histogram1D("tan(lambda) diff ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.tanLambda.ordinal()) - atLastHit);
         }
 
         if (doElectronPositronPlots)
@@ -650,6 +654,8 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D trkphi = aida.histogram1D("sinphi ", 100, -0.2, 0.2);
         IHistogram1D trkomega = aida.histogram1D("omega ", 100, -0.001, 0.001);
         IHistogram1D trklam = aida.histogram1D("tan(lambda) ", 100, -0.1, 0.1);
+        IHistogram1D trklamlast = aida.histogram1D("tan(lambda) last ", 100, -0.1, 0.1);
+        IHistogram1D trklamdiff = aida.histogram1D("tan(lambda) diff ", 100, -0.05, 0.05);
         IHistogram1D trkz0 = aida.histogram1D("z0 ", 100, -4.0, 4.0);
 
         IHistogram1D toptrkd0 = aida.histogram1D("d0 Top", 100, -10.0, 10.0);

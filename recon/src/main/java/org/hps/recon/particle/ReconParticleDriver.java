@@ -351,8 +351,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void detectorChanged(Detector detector) {
-        matcher.enablePlots(false);
-
+        matcher.enablePlots(true);
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
         bField = detector.getFieldMap().getField(ip).y();
@@ -738,7 +737,8 @@ public abstract class ReconParticleDriver extends Driver {
 
     @Override
     protected void endOfData() {
-        // matcher.saveHistograms();
+        if (matcher.getPlotsEnabled())
+            matcher.saveHistograms();
     }
 
     
