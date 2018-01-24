@@ -205,7 +205,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     @Override
     public void process(EventHeader event) {
         super.process(event);
-
+        
         List<StripHit> stripHits = doSiSimulation();
 
         if (!noPileup) {
@@ -477,13 +477,18 @@ public class SimpleSvtReadout extends TriggerableDriver {
                         double meanNoise = 0;
                         StringBuffer signalBuffer = new StringBuffer("\t\t\t\tSample Pulse       :: [");
                         for (int sampleN = 0; sampleN < 6; sampleN++) {
+                            verboseWriter.write("\t\t\t\tSample " + (sampleN + 1));
+                            verboseWriter.write("\t\t\t\t\tSensor             :: " + ((HpsSiSensor) sensor).getName());
                             double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL;
+                            verboseWriter.write("\t\t\t\t\tSample Time        :: " + sampleTime);
                             shape.setParameters(channel, (HpsSiSensor) sensor);
                             double signalAtTime = hit.amplitude * shape.getAmplitudePeakNorm(sampleTime - hit.time);
+                            verboseWriter.write("\t\t\t\t\tSignal At Time     :: " + signalAtTime);
                             totalContrib += signalAtTime;
+                            verboseWriter.write("\t\t\t\t\tTotal Contribution :: " + totalContrib);
                             signal[sampleN] += signalAtTime;
                             meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
-                            //System.out.format("new value of signal[%d] = %f\n", sampleN, signal[sampleN]);
+                            verboseWriter.write("\t\t\t\t\tNoise on Sensor    :: " + ((HpsSiSensor) sensor).getNoise(channel, sampleN));
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
                             if(sampleN != 5) {
