@@ -660,12 +660,18 @@ public class SVTReadoutDriver extends ReadoutDriver {
                         // across all size samples.
                         StringBuffer signalBuffer = new StringBuffer("\t\t\t\tSample Pulse       :: [");
                         for(int sampleN = 0; sampleN < 6; sampleN++) {
+                            verboseWriter.write("\t\t\t\tSample " + (sampleN + 1));
+                            verboseWriter.write("\t\t\t\t\tSensor             :: " + ((HpsSiSensor) sensor).getName());
                             double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL;
+                            verboseWriter.write("\t\t\t\t\tSample Time        :: " + sampleTime);
                             shape.setParameters(channel, (HpsSiSensor) sensor);
                             double signalAtTime = hit.amplitude * shape.getAmplitudePeakNorm(sampleTime - hit.time);
+                            verboseWriter.write("\t\t\t\t\tSignal At Time     :: " + signalAtTime);
                             totalContrib += signalAtTime;
+                            verboseWriter.write("\t\t\t\t\tTotal Contribution :: " + totalContrib);
                             signal[sampleN] += signalAtTime;
                             meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
+                            verboseWriter.write("\t\t\t\t\tNoise on Sensor    :: " + ((HpsSiSensor) sensor).getNoise(channel, sampleN));
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
                             if(sampleN != 5) {
@@ -674,6 +680,8 @@ public class SVTReadoutDriver extends ReadoutDriver {
                         }
                         signalBuffer.append("]");
                         
+                        // TODO: Move this to the noise comparison below.
+                        meanNoise /= 6;
                         verboseWriter.write(signalBuffer.toString());
                         verboseWriter.write("\t\t\t\tTotal Contribution :: " + totalContrib);
                         verboseWriter.write("\t\t\t\tMean Noise         :: " + meanNoise);
@@ -682,7 +690,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                         // samples and compare it to the contribution
                         // from the hit. If it exceeds a the noise
                         // threshold, store it as a truth hit.
-                        meanNoise /= 6;
+                        //meanNoise /= 6;
                         if(totalContrib > 4.0 * meanNoise) {
                             simHits.addAll(hit.simHits);
                             verboseWriter.write("\t\t\t\tAdded hit.");
