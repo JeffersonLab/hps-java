@@ -41,6 +41,10 @@ public class ReadoutDataManager extends Driver {
 	 */
 	private static int readoutWindow = 200;
 	/**
+	 * Defines the name of the output file for the run.
+	 */
+	private static String outputFileName = null;
+	/**
 	 * Defines where the trigger time should occur within the default
 	 * readout window. For instance, a value of <code>t</code> means
 	 * that a period of time equal to <code>t</code> will be included
@@ -109,7 +113,11 @@ public class ReadoutDataManager extends Driver {
 	@Override
 	public void startOfData() {
 		// Instantiate the readout LCIO file.
-		try { outputWriter = new LCIOWriter(new File("C:\\cygwin64\\home\\Kyle\\newReadout.slcio")); }
+		if(outputFileName == null) {
+			throw new IllegalArgumentException("Error: Output file name not defined!");
+		}
+		//try { outputWriter = new LCIOWriter(new File("C:\\cygwin64\\home\\Kyle\\newReadout.slcio")); }
+		try { outputWriter = new LCIOWriter(new File(outputFileName)); }
 		catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException();
@@ -727,5 +735,23 @@ public class ReadoutDataManager extends Driver {
 			dependencySet.addAll(dependents);
 			validateDependencies(dependency, collectionData.getProductionDriver(), dependencySet);
 		}
+	}
+	
+	/**
+	 * Sets the output file name for the triggered data file.
+	 * @param filepath - The file path for the output file.
+	 */
+	public static final void setOutputFile(String filepath) {
+		outputFileName = filepath;
+	}
+	
+	/**
+	 * Sets the default size of the readout window, in units of
+	 * nanoseconds. Note that this can be overridden by specific
+	 * drivers.
+	 * @param nanoseconds - The length of the default readout window.
+	 */
+	public static final void setReadoutWindow(int nanoseconds) {
+		readoutWindow = nanoseconds;
 	}
 }
