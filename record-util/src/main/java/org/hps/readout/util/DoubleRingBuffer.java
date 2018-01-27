@@ -1,13 +1,16 @@
 package org.hps.readout.util;
 
 /**
- * Class <code>DoubleRingBUffer</code> is an implementation of {@link
- * org.hps.readout.ecal.updated.NumericRingBuffer NumericRingBuffer}
- * for doubles.
+ * Class <code>DoubleRingBuffer</code> is an implementation of {@link
+ * org.hps.readout.ecal.updated.RingBuffer RingBuffer} for doubles.
+ * Each buffer cell represents a double value, which can be modified
+ * through the method {@link
+ * org.hps.readout.util.RingBuffer#addToCell(int, Object)
+ * addToCell(int, Object)}.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class DoubleRingBuffer extends NumericRingBuffer<Double> {
+public class DoubleRingBuffer extends RingBuffer<Double, Double> {
 	/**
 	 * Instantiates a <code>DoubleRingBuffer</code> of the specified
 	 * size and initializes all values to zero.
@@ -33,11 +36,6 @@ public class DoubleRingBuffer extends NumericRingBuffer<Double> {
 		validatePosition(position);
 		array[(index + position) % array.length] += value;
 	}
-
-	@Override
-	protected void clearAll() {
-		setAll(0.0);
-	}
 	
 	@Override
 	public void clearValue() {
@@ -48,5 +46,15 @@ public class DoubleRingBuffer extends NumericRingBuffer<Double> {
 	public void clearValue(int position) {
 		validatePosition(position);
 		setValue(position, 0.0);
+	}
+
+	@Override
+	protected void clearAll() {
+		setAll(0.0);
+	}
+	
+	@Override
+	protected void instantiateBuffer() {
+		clearAll();
 	}
 }
