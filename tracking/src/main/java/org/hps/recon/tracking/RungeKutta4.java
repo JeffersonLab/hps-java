@@ -1,4 +1,4 @@
-package org.hps.recon.tracking.kalman;
+package org.hps.recon.tracking;
 
 import org.lcsim.constants.Constants;
 import org.lcsim.geometry.FieldMap;

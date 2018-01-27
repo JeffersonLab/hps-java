@@ -7,14 +7,13 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.tracking.kalman.IntersectionUtils;
+import org.hps.recon.tracking.IntersectionUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.FieldMap;
-
 
 /**
  * Utilities for retrieving TrackStates.

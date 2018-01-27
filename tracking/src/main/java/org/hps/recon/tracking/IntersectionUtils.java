@@ -1,4 +1,4 @@
-package org.hps.recon.tracking.kalman;
+package org.hps.recon.tracking;
 
 //import org.lcsim.detector.solids.Plane3D;
 import org.hps.recon.tracking.CoordinateTransformations;
