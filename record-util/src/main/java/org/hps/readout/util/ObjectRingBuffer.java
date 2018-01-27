@@ -12,11 +12,6 @@ import java.util.Set;
  * {@link org.hps.readout.util.RingBuffer#addToCell(int, Object)
  * addToCell(int, Object)} method simply adds the indicated object to
  * the set stored in the specified cell.
- * <br/><br/>
- * <b>Warning:</b> When getting a cell value, the underlying {@link
- * java.util.Set Set} object is returned. The <code>Set</code> object
- * should not be manipulated directly, or the ring buffer may behave
- * in an unexpected manner.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The type of object that is stored in each of the
