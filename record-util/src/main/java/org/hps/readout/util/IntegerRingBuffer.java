@@ -2,12 +2,15 @@ package org.hps.readout.util;
 
 /**
  * Class <code>IntegerRingBuffer</code> is an implementation of
- * {@link org.hps.readout.ecal.updated.NumericRingBuffer
- * NumericRingBuffer} for integers.
+ * {@link org.hps.readout.ecal.updated.RingBuffer RingBuffer} for
+ * integers. Each buffer cell represents a integer value, which can
+ * be modified through the method {@link
+ * org.hps.readout.util.RingBuffer#addToCell(int, Object)
+ * addToCell(int, Object)}.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class IntegerRingBuffer extends NumericRingBuffer<Integer> {
+public class IntegerRingBuffer extends RingBuffer<Integer, Integer> {
 	/**
 	 * Instantiates an <code>IntegerRingBuffer</code> of the
 	 * specified size and initializes all values to zero.
@@ -48,5 +51,10 @@ public class IntegerRingBuffer extends NumericRingBuffer<Integer> {
 	@Override
 	protected void clearAll() {
 		setAll(0);
+	}
+	
+	@Override
+	protected void instantiateBuffer() {
+		clearAll();
 	}
 }
