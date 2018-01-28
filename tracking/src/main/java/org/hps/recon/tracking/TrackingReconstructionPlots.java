@@ -2,7 +2,6 @@ package org.hps.recon.tracking;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-import hep.physics.vec.BasicHep3Vector;
 //import hep.aida.IProfile;
 import hep.physics.vec.Hep3Vector;
 
@@ -27,7 +26,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -56,7 +54,7 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
 
-    private String trackCollectionName = "GBLTracks";
+    private String trackCollectionName = "MatchedTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
@@ -70,7 +68,6 @@ public class TrackingReconstructionPlots extends Driver {
     private static Logger LOGGER = Logger.getLogger(TrackingReconstructionPlots.class.getName());
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
-    private FieldMap bFieldMap;
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -87,8 +84,6 @@ public class TrackingReconstructionPlots extends Driver {
 
         Hep3Vector fieldInTracker = TrackUtils.getBField(detector);
         this.bfield = Math.abs(fieldInTracker.y());
-
-        bFieldMap = detector.getFieldMap();
 
         setupPlots();
     }
@@ -366,7 +361,7 @@ public class TrackingReconstructionPlots extends Driver {
     }
 
     private void doClustersOnTrack(Track trk, List<Cluster> clusters) {
-        Hep3Vector posAtEcal = new BasicHep3Vector(TrackUtils.getTrackExtrapAtEcal(trk, bFieldMap).getReferencePoint());
+        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk);
         Cluster clust = findClosestCluster(posAtEcal, clusters);
         if (clust == null)
             return;
@@ -543,10 +538,6 @@ public class TrackingReconstructionPlots extends Driver {
 
             if (doMatchedClusterPlots)
                 doClustersOnTrack(trk, clusters);
-
-            double atLastHit = TrackStateUtils.getTrackStateAtLast(trk).getParameter(ParameterName.tanLambda.ordinal());
-            aida.histogram1D("tan(lambda) last ").fill(atLastHit);
-            aida.histogram1D("tan(lambda) diff ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.tanLambda.ordinal()) - atLastHit);
         }
 
         if (doElectronPositronPlots)
@@ -654,8 +645,6 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D trkphi = aida.histogram1D("sinphi ", 100, -0.2, 0.2);
         IHistogram1D trkomega = aida.histogram1D("omega ", 100, -0.001, 0.001);
         IHistogram1D trklam = aida.histogram1D("tan(lambda) ", 100, -0.1, 0.1);
-        IHistogram1D trklamlast = aida.histogram1D("tan(lambda) last ", 100, -0.1, 0.1);
-        IHistogram1D trklamdiff = aida.histogram1D("tan(lambda) diff ", 100, -0.05, 0.05);
         IHistogram1D trkz0 = aida.histogram1D("z0 ", 100, -4.0, 4.0);
 
         IHistogram1D toptrkd0 = aida.histogram1D("d0 Top", 100, -10.0, 10.0);

@@ -1,22 +1,26 @@
 package org.hps.recon.utils;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.ITree;
+import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.FieldMap;
-import org.lcsim.util.aida.AIDA;
 
 /**
  * Utility used to determine if a track and cluster are matched.
@@ -33,12 +37,15 @@ public class TrackClusterMatcher {
     FieldMap bFieldMap = null;
 
     // Plotting
-    private AIDA aida = AIDA.defaultInstance();
+    private ITree tree;
+    private IHistogramFactory histogramFactory;
+    private Map<String, IHistogram1D> plots1D;
+    private Map<String, IHistogram2D> plots2D;
 
     /**
      * Flag used to determine if plots are enabled/disabled
      */
-    boolean enablePlots = true;
+    boolean enablePlots = false;
 
     /**
      * Flag used to determine whether the analytic or field map extrapolator
@@ -142,12 +149,28 @@ public class TrackClusterMatcher {
     private static final double dxSigmTopElecGBL_hasL6_2016[] = {5.03375, 9.08728, -42.5864, 55.6423, -30.7765, 6.25259, };
     private static final double dxMeanTopPosiGBL_hasL6_2016[] = {18.9015, -87.8249, 172.68, -163.97, 76.083, -13.7529, };
     private static final double dxSigmTopPosiGBL_hasL6_2016[] = {21.8112, -80.8339, 144.335, -131.621, 59.7611, -10.7205, };
+    
+    /**
+     * Z position to start extrapolation from
+     */
+    double extStartPos = 700; // mm
+
+    /**
+     * The extrapolation step size
+     */
+    double stepSize = 5.; // mm
 
     private boolean snapToEdge = true;
     
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
+    
+
+    /**
+     * Constant denoting the index of the {@link TrackState} at the Ecal
+     */
+    private static final int ECAL_TRACK_STATE_INDEX = 1;
 
     /**
      * Constructor
@@ -166,10 +189,6 @@ public class TrackClusterMatcher {
         if (enablePlots == true) {
             this.bookHistograms();
         }
-    }
-    
-    public boolean getPlotsEnabled() {
-        return enablePlots;
     }
 
     /**
@@ -309,69 +328,6 @@ public class TrackClusterMatcher {
         }
         Hep3Vector tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
         tPos = CoordinateTransformations.transformVectorToDetector(tPos);
-        double deltaX = cPos.x() - tPos.x();
-        double deltaY = cPos.y() - tPos.y();
-        
-        if (enablePlots) {
-            if (track.getTrackStates().get(0).getTanLambda() > 0) {
-
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - top - all").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - top - all").fill(tPos.x(),
-                        tPos.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - top - all").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - top - all").fill(tPos.y(),
-                        tPos.y());
-
-            } else if (track.getTrackStates().get(0).getTanLambda() < 0) {
-
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - bottom - all").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - bottom - all").fill(tPos.x(),
-                        tPos.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - bottom - all").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - bottom - all").fill(tPos.y(),
-                        tPos.y());
-            }
-        }
-
-        boolean isOK = true;
-        // Check that dx and dy between the extrapolated track and cluster 
-        // positions is reasonable.  Different requirements are imposed on 
-        // top and bottom tracks in order to account for offsets.
-        if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaX > topClusterTrackMatchDeltaXHigh
-                || deltaX < topClusterTrackMatchDeltaXLow))
-                || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaX > bottomClusterTrackMatchDeltaXHigh
-                || deltaX < bottomClusterTrackMatchDeltaXLow))) {
-            isOK = false;
-        }
-
-        if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaY > topClusterTrackMatchDeltaYHigh
-                || deltaY < topClusterTrackMatchDeltaYLow))
-                || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaY > bottomClusterTrackMatchDeltaYHigh
-                || deltaY < bottomClusterTrackMatchDeltaYLow))) {
-            isOK = false;
-        }
-
-        if (enablePlots && isOK) {
-            if (track.getTrackStates().get(0).getTanLambda() > 0) {
-
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - top - matched").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - top - matched").fill(cPos.x(),
-                        tPos.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - top - matched").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - top - matched").fill(cPos.y(),
-                        tPos.y());
-
-            } else if (track.getTrackStates().get(0).getTanLambda() < 0) {
-
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - bottom - matched").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - bottom - matched").fill(cPos.x(),
-                        tPos.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - bottom - matched").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - bottom - matched").fill(cPos.y(),
-                        tPos.y());
-            }
-        }
-
 
         // whether it's a GBL track:
         final boolean isGBL = track.getType() >= 32;
@@ -566,22 +522,21 @@ public class TrackClusterMatcher {
         if (enablePlots) {
             if (track.getTrackStates().get(0).getTanLambda() > 0) {
 
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - top - all").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - top - all").fill(clusterPosition.x(),
+                plots1D.get("Ecal cluster x - track x @ Ecal - top - all").fill(deltaX);
+                plots2D.get("Ecal cluster x v track x @ Ecal - top - all").fill(clusterPosition.x(),
                         trackPosAtEcal.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - top - all").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - top - all").fill(clusterPosition.y(),
+                plots1D.get("Ecal cluster y - track y @ Ecal - top - all").fill(deltaY);
+                plots2D.get("Ecal cluster y v track y @ Ecal - top - all").fill(clusterPosition.y(),
                         trackPosAtEcal.y());
 
             } else if (track.getTrackStates().get(0).getTanLambda() < 0) {
 
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - bottom - all").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - bottom - all").fill(clusterPosition.x(),
+                plots1D.get("Ecal cluster x - track x @ Ecal - bottom - all").fill(deltaX);
+                plots2D.get("Ecal cluster x v track x @ Ecal - bottom - all").fill(clusterPosition.x(),
                         trackPosAtEcal.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - bottom - all").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - bottom - all").fill(clusterPosition.y(),
+                plots1D.get("Ecal cluster y - track y @ Ecal - bottom - all").fill(deltaY);
+                plots2D.get("Ecal cluster y v track y @ Ecal - bottom - all").fill(clusterPosition.y(),
                         trackPosAtEcal.y());
-                
             }
         }
 
@@ -605,20 +560,20 @@ public class TrackClusterMatcher {
         if (enablePlots) {
             if (track.getTrackStates().get(0).getTanLambda() > 0) {
 
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - top - matched").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - top - matched").fill(clusterPosition.x(),
+                plots1D.get("Ecal cluster x - track x @ Ecal - top - matched").fill(deltaX);
+                plots2D.get("Ecal cluster x v track x @ Ecal - top - matched").fill(clusterPosition.x(),
                         trackPosAtEcal.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - top - matched").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - top - matched").fill(clusterPosition.y(),
+                plots1D.get("Ecal cluster y - track y @ Ecal - top - matched").fill(deltaY);
+                plots2D.get("Ecal cluster y v track y @ Ecal - top - matched").fill(clusterPosition.y(),
                         trackPosAtEcal.y());
 
             } else if (track.getTrackStates().get(0).getTanLambda() < 0) {
 
-                aida.histogram1D("Ecal cluster x - track x @ Ecal - bottom - matched").fill(deltaX);
-                aida.histogram2D("Ecal cluster x v track x @ Ecal - bottom - matched").fill(clusterPosition.x(),
+                plots1D.get("Ecal cluster x - track x @ Ecal - bottom - matched").fill(deltaX);
+                plots2D.get("Ecal cluster x v track x @ Ecal - bottom - matched").fill(clusterPosition.x(),
                         trackPosAtEcal.x());
-                aida.histogram1D("Ecal cluster y - track y @ Ecal - bottom - matched").fill(deltaY);
-                aida.histogram2D("Ecal cluster y v track y @ Ecal - bottom - matched").fill(clusterPosition.y(),
+                plots1D.get("Ecal cluster y - track y @ Ecal - bottom - matched").fill(deltaY);
+                plots2D.get("Ecal cluster y v track y @ Ecal - bottom - matched").fill(clusterPosition.y(),
                         trackPosAtEcal.y());
             }
         }
@@ -632,46 +587,67 @@ public class TrackClusterMatcher {
      */
     private void bookHistograms() {
 
+        plots1D = new HashMap<String, IHistogram1D>();
+        plots2D = new HashMap<String, IHistogram2D>();
+
+        tree = IAnalysisFactory.create().createTreeFactory().create();
+        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
 
         //--- All tracks and clusters ---//
         //-------------------------------//
         //--- Top ---//
-        aida.histogram1D("Ecal cluster x - track x @ Ecal - top - all", 200, -200, 200);
+        plots1D.put("Ecal cluster x - track x @ Ecal - top - all",
+                histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - top - all", 200, -200, 200));
 
-        aida.histogram2D("Ecal cluster x v track x @ Ecal - top - all", 200, -200, 200, 200, -200, 200);
+        plots2D.put("Ecal cluster x v track x @ Ecal - top - all",
+                histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - top - all", 200, -200, 200, 200, -200, 200));
 
-        aida.histogram1D("Ecal cluster y - track y @ Ecal - top - all", 100, -100, 100);
+        plots1D.put("Ecal cluster y - track y @ Ecal - top - all",
+                histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - top - all", 100, -100, 100));
 
-        aida.histogram2D("Ecal cluster y v track y @ Ecal - top - all", 100, -100, 100, 100, -100, 100);
+        plots2D.put("Ecal cluster y v track y @ Ecal - top - all",
+                histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - top - all", 100, -100, 100, 100, -100, 100));
 
         //--- Bottom ---//
-        aida.histogram1D("Ecal cluster x - track x @ Ecal - bottom - all", 200, -200, 200);
+        plots1D.put("Ecal cluster x - track x @ Ecal - bottom - all",
+                histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - bottom - all", 200, -200, 200));
 
-        aida.histogram2D("Ecal cluster x v track x @ Ecal - bottom - all", 200, -200, 200, 200, -200, 200);
+        plots2D.put("Ecal cluster x v track x @ Ecal - bottom - all",
+                histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - bottom - all", 200, -200, 200, 200, -200, 200));
 
-        aida.histogram1D("Ecal cluster y - track y @ Ecal - bottom - all", 100, -100, 100);
+        plots1D.put("Ecal cluster y - track y @ Ecal - bottom - all",
+                histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - bottom - all", 100, -100, 100));
 
-        aida.histogram2D("Ecal cluster y v track y @ Ecal - bottom - all", 100, -100, 100, 100, -100, 100);
+        plots2D.put("Ecal cluster y v track y @ Ecal - bottom - all",
+                histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - bottom - all", 100, -100, 100, 100, -100, 100));
 
         //--- Matched tracks ---//
         //----------------------//
         //--- Top ---//
-        aida.histogram1D("Ecal cluster x - track x @ Ecal - top - matched", 200, -200, 200);
+        plots1D.put("Ecal cluster x - track x @ Ecal - top - matched",
+                histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - top - matched", 200, -200, 200));
 
-        aida.histogram2D("Ecal cluster x v track x @ Ecal - top - matched", 200, -200, 200, 200, -200, 200);
+        plots2D.put("Ecal cluster x v track x @ Ecal - top - matched",
+                histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - top - matched", 200, -200, 200, 200, -200, 200));
 
-        aida.histogram1D("Ecal cluster y - track y @ Ecal - top - matched", 100, -100, 100);
+        plots1D.put("Ecal cluster y - track y @ Ecal - top - matched",
+                histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - top - matched", 100, -100, 100));
 
-        aida.histogram2D("Ecal cluster y v track y @ Ecal - top - matched", 100, -100, 100, 100, -100, 100);
+        plots2D.put("Ecal cluster y v track y @ Ecal - top - matched",
+                histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - top - matched", 100, -100, 100, 100, -100, 100));
 
         //--- Bottom ---//
-        aida.histogram1D("Ecal cluster x - track x @ Ecal - bottom - matched", 200, -200, 200);
+        plots1D.put("Ecal cluster x - track x @ Ecal - bottom - matched",
+                histogramFactory.createHistogram1D("Ecal cluster x - track x @ Ecal - bottom - matched", 200, -200, 200));
 
-        aida.histogram2D("Ecal cluster x v track x @ Ecal - bottom - matched", 200, -200, 200, 200, -200, 200);
+        plots2D.put("Ecal cluster x v track x @ Ecal - bottom - matched",
+                histogramFactory.createHistogram2D("Ecal cluster x v track x @ Ecal - bottom - matched", 200, -200, 200, 200, -200, 200));
 
-        aida.histogram1D("Ecal cluster y - track y @ Ecal - bottom - matched", 100, -100, 100);
+        plots1D.put("Ecal cluster y - track y @ Ecal - bottom - matched",
+                histogramFactory.createHistogram1D("Ecal cluster y - track y @ Ecal - bottom - matched", 100, -100, 100));
 
-        aida.histogram2D("Ecal cluster y v track y @ Ecal - bottom - matched", 100, -100, 100, 100, -100, 100);
+        plots2D.put("Ecal cluster y v track y @ Ecal - bottom - matched",
+                histogramFactory.createHistogram2D("Ecal cluster y v track  @ Ecal - bottom - matched", 100, -100, 100, 100, -100, 100));
 
     }
 
@@ -679,26 +655,16 @@ public class TrackClusterMatcher {
      * Save the histograms to a ROO file
      */
     public void saveHistograms() {
-//        try {
-//            tree.commit();
-//        } catch (IOException e1) {
-//            // TODO Auto-generated catch block
-//            e1.printStackTrace();
-//        }
-//        String rootFile = "track_cluster_matching_plots.root";
+
+        String rootFile = "track_cluster_matching_plots.root";
+        RootFileStore store = new RootFileStore(rootFile);
         try {
-            aida.saveAs("track_cluster_matching_plots.aida");
-        } catch (IOException ex) {
-            Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
+            store.open();
+            store.add(tree);
+            store.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-//        RootFileStore store = new RootFileStore(rootFile);
-//        try {
-//            store.open();
-//            store.add(tree);
-//            store.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
     /**

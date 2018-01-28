@@ -20,11 +20,6 @@ public class TrackReconWithPlotsTest extends ReconTestSkeleton {
         aida = AIDA.defaultInstance();
         String aidaOutputName = "target/test-output/TestPlots_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
-
-        //        IHistogram1D xdiff = aida.histogram1D("extrap [old-new] x", 100, -1, 1);
-        //        IHistogram1D ydiff = aida.histogram1D("extrap [old-new] y", 100, -3, 3);
-        //        IHistogram1D zdiff = aida.histogram1D("extrap [old-new] z", 100, -20, 20);
-
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
         ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
