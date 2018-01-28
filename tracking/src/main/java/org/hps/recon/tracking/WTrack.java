@@ -25,7 +25,7 @@ public class WTrack {
     public HelicalTrackFit _htf = null;
     private double _bfield;
     private double _a;
-    public boolean _debug = false;
+    private boolean _debug = false;
     private final int max_iterations_intercept = 10;
     private final double epsilon_intercept = 1e-4;
 
@@ -68,10 +68,6 @@ public class WTrack {
         _debug = trk._debug;
     }
 
-    public WTrack(double bfield) {
-        _bfield = bfield;
-    }
-
     public void setTrackParameters(double[] params) {
         _parameters = params;
     }
@@ -90,8 +86,8 @@ public class WTrack {
 
     }
 
-    public void setCharge(int input) {
-        _a = -1 * Constants.fieldConversion * _bfield * input;
+    private int getCharge() {
+        return (int) Math.signum(_htf.R());
     }
 
     public Hep3Vector getP0() {

@@ -174,7 +174,6 @@ public class TrackStateUtils {
             if (!foundFirst)
                 first++;
             last++;
-
             if ((state.getLocation() == TrackState.AtFirstHit) || (state.getLocation() == -1)) {
                 foundFirst = true;
             }
