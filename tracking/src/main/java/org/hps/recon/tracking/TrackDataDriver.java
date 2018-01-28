@@ -173,7 +173,6 @@ public final class TrackDataDriver extends Driver {
                 trackResidualsX.clear();
                 trackResidualsY.clear();
                 stereoLayers.clear();
-                HpsSiSensor LastSensor = null;
 
                 // Change the position of a HelicalTrackHit to be the corrected
                 // one.

@@ -12,7 +12,6 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.geometry.FieldMap;
 
 /**
  * Utilities for retrieving TrackStates.
@@ -66,47 +65,6 @@ public class TrackStateUtils {
         if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer()))
             return getLocationAtSensor(TrackUtils.getHTF(ts), sensor, bfield);
         return null;
-    }
-
-    public static Hep3Vector getLocationAtSensorRK(TrackState ts, HpsSiSensor sensor, IntersectionUtils iu, Hep3Vector X0) {
-        if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer())) {
-            Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
-            if (point_on_plane == null)
-                return null;
-            Hep3Vector w = VecOp.unit(sensor.getGeometry().getLocalToGlobal().rotated(new BasicHep3Vector(0, 0, 1)));
-            int charge = -(int) Math.signum(TrackUtils.getR(ts));
-
-            Hep3Vector p = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(ts.getMomentum()));
-
-            return iu.rkIntersect(point_on_plane, w, X0, p, charge);
-        }
-        return null;
-    }
-
-    public static Hep3Vector getLocationAtSensorRK(Track trk, HpsSiSensor sensor, IntersectionUtils iu) {
-        TrackState ts = trk.getTrackStates().get(0);
-        if (ts == null)
-            return null;
-        if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer())) {
-            Hep3Vector point_on_plane = sensor.getGeometry().getPosition();
-            if (point_on_plane == null)
-                return null;
-            Hep3Vector w = VecOp.unit(sensor.getGeometry().getLocalToGlobal().rotated(new BasicHep3Vector(0, 0, 1)));
-            int charge = TrackUtils.getCharge(trk);
-
-            Hep3Vector p = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(ts.getMomentum()));
-            Hep3Vector x = new BasicHep3Vector(TrackUtils.getX0(ts), TrackUtils.getY0(ts), TrackUtils.getZ0(ts));
-
-            return iu.rkIntersect(point_on_plane, w, x, p, charge);
-        }
-        return null;
-    }
-
-    public static Hep3Vector getLocationAtSensorRK(Track trk, HpsSiSensor sensor, FieldMap bFieldMap) {
-        IntersectionUtils iu = new IntersectionUtils();
-        iu.setFieldmap(bFieldMap);
-
-        return getLocationAtSensorRK(trk, sensor, iu);
     }
 
     public static Hep3Vector getLocationAtSensor(HelicalTrackFit htf, HpsSiSensor sensor, double bfield) {
