@@ -7,7 +7,6 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.recon.tracking.IntersectionUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;

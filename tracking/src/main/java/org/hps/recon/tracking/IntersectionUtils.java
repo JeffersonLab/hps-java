@@ -1,10 +1,6 @@
 package org.hps.recon.tracking;
 
-//import org.lcsim.detector.solids.Plane3D;
-import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.WTrack;
 import org.lcsim.geometry.FieldMap;
-
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
