@@ -232,7 +232,9 @@ public class MakeGblTracks {
                 strip = new HelicalTrackStripGbl(makeDigiStrip(newHit), true);
             }
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
-            MultipleScattering.ScatterPoint temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
+            MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
+            if (temp == null)
+                temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
             GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
             if (stripData != null)
                 stripClusterDataList.add(stripData);
@@ -242,21 +244,18 @@ public class MakeGblTracks {
     }
 
     public static MultipleScattering.ScatterPoint getScatterPointGbl(HpsSiSensor sensor, HelicalTrackStripGbl strip, HelicalTrackFit htf, MultipleScattering _scattering, double _B) {
-        MultipleScattering.ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
-        MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
 
-        if (temp == null) {
+        MultipleScattering.ScatterPoint temp = null;
 
-            Hep3Vector pos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B));
-            if (pos == null) {
-                System.out.println("Can't find track intercept; aborting Track refit");
-                return null;
-            }
-            ScatterAngle scatAngle = new ScatterAngle((HelixUtils.PathToXPlane(htf, pos.x(), 0, 0).get(0)), GblUtils.estimateScatter(sensor, htf, _scattering, _B));
-            temp = new MultipleScattering.ScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement(), scatAngle);
-            temp.setPosition(pos);
-            temp.setDirection(HelixUtils.Direction(htf, scatAngle.PathLen()));
+        Hep3Vector pos = TrackUtils.getHelixPlaneIntercept(htf, strip, Math.abs(_B));
+        if (pos == null) {
+            System.out.println("Can't find track intercept; aborting Track refit");
+            return null;
         }
+        ScatterAngle scatAngle = new ScatterAngle((HelixUtils.PathToXPlane(htf, pos.x(), 0, 0).get(0)), GblUtils.estimateScatter(sensor, htf, _scattering, _B));
+        temp = new MultipleScattering.ScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement(), scatAngle);
+        temp.setPosition(pos);
+        temp.setDirection(HelixUtils.Direction(htf, scatAngle.PathLen()));
 
         return temp;
     }
