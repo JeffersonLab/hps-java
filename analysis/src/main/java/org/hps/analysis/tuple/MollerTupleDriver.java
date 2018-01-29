@@ -3,6 +3,8 @@ package org.hps.analysis.tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -17,6 +19,8 @@ import org.lcsim.event.TrackState;
 public class MollerTupleDriver extends TupleDriver {
 
     private final String unconstrainedV0CandidatesColName = "UnconstrainedMollerCandidates";
+    private final String beamspotConstrainedV0CandidatesColName = "BeamspotConstrainedMollerCandidates";
+    private final String targetConstrainedV0CandidatesColName = "TargetConstrainedMollerCandidates";
 
 //  track quality cuts
     private final double tupleTrkPCut = 0.9;
@@ -56,7 +60,12 @@ public class MollerTupleDriver extends TupleDriver {
         }
 
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
-
+        List<ReconstructedParticle> bsConstrainedV0List = event.get(ReconstructedParticle.class, beamspotConstrainedV0CandidatesColName);
+        List<ReconstructedParticle> tarConstrainedV0List = event.get(ReconstructedParticle.class, targetConstrainedV0CandidatesColName);
+        
+        Map<ReconstructedParticle, ReconstructedParticle> unc2bsc = correlateCollections(unConstrainedV0List, bsConstrainedV0List);
+        Map<ReconstructedParticle, ReconstructedParticle> unc2tar = correlateCollections(unConstrainedV0List, tarConstrainedV0List);
+        
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             if (isGBL != TrackType.isGBL(uncV0.getType())) {
                 continue;
@@ -70,21 +79,18 @@ public class MollerTupleDriver extends TupleDriver {
                 throw new RuntimeException("incorrect charge on v0 daughters");
             }
 
-            Track topTrack = top.getTracks().get(0);
-            Track botTrack = bot.getTracks().get(0);
 
-            TrackState topTSTweaked = fillParticleVariables(event, top, "top");
-            TrackState botTSTweaked = fillParticleVariables(event, bot, "bot");
+            fillParticleVariables(event, top, "top");
+            fillParticleVariables(event, bot, "bot");
 
-            List<BilliorTrack> billiorTracks = new ArrayList<BilliorTrack>();
-            billiorTracks.add(new BilliorTrack(topTSTweaked, topTrack.getChi2(), topTrack.getNDF()));
-            billiorTracks.add(new BilliorTrack(botTSTweaked, botTrack.getChi2(), botTrack.getNDF()));
-
+            
             double minPositiveIso = Math.min(tupleMap.get("topMinPositiveIso/D"), tupleMap.get("botMinPositiveIso/D"));
             double minNegativeIso = Math.min(Math.abs(tupleMap.get("topMinNegativeIso/D")), Math.abs(tupleMap.get("botMinNegativeIso/D")));
             double minIso = Math.min(minPositiveIso, minNegativeIso);
 
-            fillVertexVariables(event, billiorTracks, top, bot);
+            fillVertexVariables("unc", uncV0, true, true);
+            fillVertexVariables("bsc", unc2bsc.get(uncV0), false, true);
+            fillVertexVariables("tar", unc2tar.get(uncV0), false, true);
 
             tupleMap.put("minPositiveIso/D", minPositiveIso);
             tupleMap.put("minNegativeIso/D", minNegativeIso);

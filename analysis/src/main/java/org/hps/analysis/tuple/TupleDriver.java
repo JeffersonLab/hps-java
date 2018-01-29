@@ -23,15 +23,16 @@ import org.hps.analysis.MC.TrackTruthMatching;
 import org.hps.conditions.beam.BeamEnergy;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.HpsReconParticleDriver;
+import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLKinkData;
-import org.hps.recon.vertexing.BilliorTrack;
-import org.hps.recon.vertexing.BilliorVertex;
-import org.hps.recon.vertexing.BilliorVertexer;
+//import org.hps.recon.vertexing.BilliorTrack;
+//import org.hps.recon.vertexing.BilliorVertex;
+//import org.hps.recon.vertexing.BilliorVertexer;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -934,28 +935,34 @@ public abstract class TupleDriver extends Driver {
         }
     }
 
-    private void fillVertexVariablesHelper(String prefix, BilliorVertexer vtxFitter, List<BilliorTrack> billiorTracks,
-            ReconstructedParticle electron, ReconstructedParticle positron, boolean storeCov) {
-        int nEleClusters = electron.getClusters().size();
-        int nPosClusters = positron.getClusters().size();
+    String[] mollerParticleNames = {"Top", "Bot"};
+    String[] v0ParticleNames = {"Ele", "Pos"};
+    protected void fillVertexVariables(String prefix, ReconstructedParticle theV0, boolean storeCov, boolean isMoller) {
+        
 
-        BilliorVertex theVertex = vtxFitter.fitVertex(billiorTracks);
-        ReconstructedParticle theV0 = HpsReconParticleDriver.makeReconstructedParticle(electron, positron, theVertex);
+        ReconstructedParticle particle1 = theV0.getParticles().get(0); //v0:  electron,   moller:  top
+        ReconstructedParticle particle2 = theV0.getParticles().get(1); //v0:  positron,   moller:  bot
+        
+        
+        int nClusters1 = particle1.getClusters().size();
+        int nClusters2 = particle2.getClusters().size();
+        
+        
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
         Hep3Vector theVtx = VecOp.mult(beamAxisRotation, theV0.getStartVertex().getPosition());
         if (storeCov) {
             Matrix uncCov = MatrixOp.mult(MatrixOp.mult(beamAxisRotation, theV0.getStartVertex().getCovMatrix()),
                     MatrixOp.transposed(beamAxisRotation));
 
-            tupleMap.put("uncCovXX/D", uncCov.e(0, 0));
-            tupleMap.put("uncCovXY/D", uncCov.e(0, 1));
-            tupleMap.put("uncCovXZ/D", uncCov.e(0, 2));
-            tupleMap.put("uncCovYX/D", uncCov.e(1, 0));
-            tupleMap.put("uncCovYY/D", uncCov.e(1, 1));
-            tupleMap.put("uncCovYZ/D", uncCov.e(1, 2));
-            tupleMap.put("uncCovZX/D", uncCov.e(2, 0));
-            tupleMap.put("uncCovZY/D", uncCov.e(2, 1));
-            tupleMap.put("uncCovZZ/D", uncCov.e(2, 2));
+            tupleMap.put(prefix + "CovXX/D", uncCov.e(0, 0));
+            tupleMap.put(prefix + "CovXY/D", uncCov.e(0, 1));
+            tupleMap.put(prefix + "CovXZ/D", uncCov.e(0, 2));
+            tupleMap.put(prefix + "CovYX/D", uncCov.e(1, 0));
+            tupleMap.put(prefix + "CovYY/D", uncCov.e(1, 1));
+            tupleMap.put(prefix + "CovYZ/D", uncCov.e(1, 2));
+            tupleMap.put(prefix + "CovZX/D", uncCov.e(2, 0));
+            tupleMap.put(prefix + "CovZY/D", uncCov.e(2, 1));
+            tupleMap.put(prefix + "CovZZ/D", uncCov.e(2, 2));
         }
 
         tupleMap.put(prefix + "PX/D", momRot.x());
@@ -967,78 +974,82 @@ public abstract class TupleDriver extends Driver {
         tupleMap.put(prefix + "VZ/D", theVtx.z());
         tupleMap.put(prefix + "Chisq/D", theV0.getStartVertex().getChi2());
         tupleMap.put(prefix + "M/D", theV0.getMass());
-        tupleMap.put(prefix + "ElePX/D", theV0.getStartVertex().getParameters().get("p1X"));
-        tupleMap.put(prefix + "ElePY/D", theV0.getStartVertex().getParameters().get("p1Y"));
-        tupleMap.put(prefix + "ElePZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
+        
+        String particleNames[] = isMoller ? mollerParticleNames : v0ParticleNames;
+        
+        
+        tupleMap.put(prefix + particleNames[0] + "PX/D", theV0.getStartVertex().getParameters().get("p1X"));
+        tupleMap.put(prefix + particleNames[0] + "PY/D", theV0.getStartVertex().getParameters().get("p1Y"));
+        tupleMap.put(prefix + particleNames[0] + "PZ/D", theV0.getStartVertex().getParameters().get("p1Z"));
         tupleMap.put(
-                prefix + "EleP/D",
+                prefix + particleNames[0] + "P/D",
                 Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)));
-        tupleMap.put(prefix+"PosPX/D", theV0.getStartVertex().getParameters().get("p2X"));
-        tupleMap.put(prefix+"PosPY/D", theV0.getStartVertex().getParameters().get("p2Y"));
-        tupleMap.put(prefix+"PosPZ/D", theV0.getStartVertex().getParameters().get("p2Z"));
+        tupleMap.put(prefix+particleNames[1] + "PX/D", theV0.getStartVertex().getParameters().get("p2X"));
+        tupleMap.put(prefix+particleNames[1] + "PY/D", theV0.getStartVertex().getParameters().get("p2Y"));
+        tupleMap.put(prefix+particleNames[1] + "PZ/D", theV0.getStartVertex().getParameters().get("p2Z"));
         tupleMap.put(
-                prefix+"PosP/D",
+                prefix+particleNames[1] + "P/D",
                 Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
                         + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2)));
 
-        if (nEleClusters>0) {
+        if (nClusters1>0) {
             tupleMap.put(
-                    prefix+"EleWtP/D",
+                    prefix+particleNames[0] + "WtP/D",
                     MassCalculator.combinedMomentum(
-                            electron.getClusters().get(0),
-                            electron.getTracks().get(0),
+                            particle1.getClusters().get(0),
+                            particle1.getTracks().get(0),
                             Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                                     + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                                     + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2))));
 
-            if (nPosClusters>0) {
-                tupleMap.put(prefix+"PosWtP/D", MassCalculator.combinedMomentum(positron.getClusters().get(0), positron
+            if (nClusters2>0) {
+                tupleMap.put(prefix+particleNames[1] + "WtP/D", MassCalculator.combinedMomentum(particle2.getClusters().get(0), particle2
                         .getTracks().get(0), Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2))));
-                tupleMap.put(prefix+"WtM/D", MassCalculator.combinedMass(electron.getClusters().get(0), positron
+                tupleMap.put(prefix+"WtM/D", MassCalculator.combinedMass(particle1.getClusters().get(0), particle2
                         .getClusters().get(0), theV0));
             }
             else {
                 tupleMap.put(
-                        prefix+"PosWtP/D",
+                        prefix+particleNames[1] + "WtP/D",
                         Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2)));
                 tupleMap.put(prefix+"WtM/D",
-                        MassCalculator.combinedMass(electron.getClusters().get(0), positron.getTracks().get(0), theV0));
+                        MassCalculator.combinedMass(particle1.getClusters().get(0), particle2.getTracks().get(0), theV0));
             }
         }
-        if (nPosClusters > 0 && nEleClusters == 0) {// e+ has cluster, e- does not
+        if (nClusters2 > 0 && nClusters1 == 0) {// e+ has cluster, e- does not
 
             tupleMap.put(
-                    prefix+"PosWtP/D",
+                    prefix+particleNames[1] + "WtP/D",
                     MassCalculator.combinedMomentum(
-                            positron.getClusters().get(0),
-                            positron.getTracks().get(0),
+                            particle2.getClusters().get(0),
+                            particle2.getTracks().get(0),
                             Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                                     + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
                                     + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2))));
             tupleMap.put(
-                    prefix+"EleWtP/D",
+                    prefix+particleNames[0] + "WtP/D",
                     Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)));
             tupleMap.put(prefix+"WtM/D",
-                    MassCalculator.combinedMass(electron.getTracks().get(0), positron.getClusters().get(0), theV0));
+                    MassCalculator.combinedMass(particle1.getTracks().get(0), particle2.getClusters().get(0), theV0));
         }
-        if (nPosClusters == 0 && nEleClusters == 0) {
+        if (nClusters2 == 0 && nClusters1 == 0) {
 
             tupleMap.put(
-                    prefix+"EleWtP/D",
+                    prefix+particleNames[0] + "WtP/D",
                     Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)));
             tupleMap.put(
-                    prefix+"PosWtP/D",
+                    prefix+particleNames[1] + "WtP/D",
                     Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2)));
@@ -1046,7 +1057,7 @@ public abstract class TupleDriver extends Driver {
         }    
     }
 
-    protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks,
+   /* protected void fillVertexVariables(EventHeader event, List<BilliorTrack> billiorTracks,
             ReconstructedParticle electron, ReconstructedParticle positron) {
         fillVertexVariables(event, billiorTracks, electron, positron, true, true, true);
     }
@@ -1080,7 +1091,7 @@ public abstract class TupleDriver extends Driver {
             vtxFitter.doTargetConstraint(true);
             fillVertexVariablesHelper("vzc", vtxFitter, billiorTracks, electron, positron, false);
         }
-    }
+    }*/
 
     protected void addMCTridentVariables() {
         addMCParticleVariables("tri");
@@ -1815,5 +1826,28 @@ public abstract class TupleDriver extends Driver {
         else{
             tupleMap.put("posHasTruthMatch/I", (double) 0);
         }
+        
+    }
+    
+    /**
+     * find the v0 (or moller) candidate in one collection that 
+     * corresponds to the v0 (or moller) candidate in the other collection
+     * @param list1
+     * @param list2
+     * @return
+     */
+    protected Map<ReconstructedParticle, ReconstructedParticle> correlateCollections(
+            List<ReconstructedParticle> listFrom, List<ReconstructedParticle> listTo) {
+        Map<ReconstructedParticle, ReconstructedParticle> map = new HashMap();
+        
+        for(ReconstructedParticle p1 : listFrom){
+            for(ReconstructedParticle p2 : listTo){
+                if(p1.getParticles().get(0).getTracks().get(0) == p2.getParticles().get(0).getTracks().get(0)
+                        && p1.getParticles().get(1).getTracks().get(0) == p2.getParticles().get(1).getTracks().get(0))
+                    map.put(p1, p2);
+            }
+        }
+        
+        return map;
     }
 }

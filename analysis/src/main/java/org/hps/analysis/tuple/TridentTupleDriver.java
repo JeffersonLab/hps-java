@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 //import java.util.Map;
 //import java.util.Map.Entry;
+import java.util.Map;
 
 //import org.hps.analysis.MC.MCFullDetectorTruth;
 //import org.hps.analysis.MC.TrackTruthMatching;
@@ -30,6 +31,8 @@ import org.lcsim.event.TrackState;
 public class TridentTupleDriver extends TupleDriver {
 
     private final String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+    private final String beamspotConstrainedV0CandidatesColName = "BeamspotConstrainedV0Candidates";
+    private final String targetConstrainedV0CandidatesColName = "TargetConstrainedV0Candidates";
 
     private final double tupleTrkPCut = 0.9;
     private final double tupleMaxSumCut = 1.3;
@@ -83,7 +86,12 @@ public class TridentTupleDriver extends TupleDriver {
             return;
         }
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
-
+        List<ReconstructedParticle> bsConstrainedV0List = event.get(ReconstructedParticle.class, beamspotConstrainedV0CandidatesColName);
+        List<ReconstructedParticle> tarConstrainedV0List = event.get(ReconstructedParticle.class, targetConstrainedV0CandidatesColName);
+        
+        Map<ReconstructedParticle, ReconstructedParticle> unc2bsc = correlateCollections(unConstrainedV0List, bsConstrainedV0List);
+        Map<ReconstructedParticle, ReconstructedParticle> unc2tar = correlateCollections(unConstrainedV0List, tarConstrainedV0List);
+        
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             if (isGBL != TrackType.isGBL(uncV0.getType())) {
                 continue;
@@ -111,8 +119,11 @@ public class TridentTupleDriver extends TupleDriver {
             double minNegativeIso = Math.min(Math.abs(tupleMap.get("eleMinNegativeIso/D")), Math.abs(tupleMap.get("posMinNegativeIso/D")));
             double minIso = Math.min(minPositiveIso, minNegativeIso);
 
-            fillVertexVariables(event, billiorTracks, electron, positron);
-
+            fillVertexVariables("unc", uncV0, true, false);
+            fillVertexVariables("bsc", unc2bsc.get(uncV0), false, false);
+            fillVertexVariables("tar", unc2tar.get(uncV0), false, false);
+            
+            
             tupleMap.put("minPositiveIso/D", minPositiveIso);
             tupleMap.put("minNegativeIso/D", minNegativeIso);
             tupleMap.put("minIso/D", minIso);
@@ -134,4 +145,6 @@ public class TridentTupleDriver extends TupleDriver {
             }
         }
     }
+
+    
 }
