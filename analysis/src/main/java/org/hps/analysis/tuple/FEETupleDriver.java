@@ -8,7 +8,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 
-public class FEETupleDriver extends TupleDriver {
+public class FEETupleDriver extends TupleMaker {
 
     private final String finalStateParticlesColName = "FinalStateParticles";
     private final double tupleTrkPCut = 0.7;
@@ -52,11 +52,15 @@ public class FEETupleDriver extends TupleDriver {
             fillParticleVariables(event, fsp, "fsp");
 
             if (tupleWriter != null) {
-                boolean trkCut = tupleMap.get("fspP/D") > tupleTrkPCut * ebeam;
-                if (!cutTuple || (trkCut)) {
+                if (!cutTuple || (passesCuts())) {
                     writeTuple();
                 }
             }
         }
+    }
+
+    @Override
+    boolean passesCuts() {
+        return tupleMap.get("fspP/D") > tupleTrkPCut * ebeam;
     }
 }

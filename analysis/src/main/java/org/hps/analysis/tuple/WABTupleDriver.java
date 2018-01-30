@@ -9,7 +9,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 
-public class WABTupleDriver extends TupleDriver {
+public class WABTupleDriver extends TupleMaker {
 
     private final String finalStateParticlesColName = "FinalStateParticles";
     private final double tupleMinECut = 0.5;
@@ -29,19 +29,8 @@ public class WABTupleDriver extends TupleDriver {
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
         }
-        TIData triggerData = null;
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            for (GenericObject data : event.get(GenericObject.class, "TriggerBank")) {
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    triggerData = new TIData(data);
-                }
-            }
-        }
-
-        //check to see if this event is from the correct trigger (or "all");
-        if (triggerData != null && !matchTriggerType(triggerData)) {
+        if(checkTrigger(event) == null)
             return;
-        }
 
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         List<ReconstructedParticle> eleList = new ArrayList<ReconstructedParticle>();
@@ -64,13 +53,17 @@ public class WABTupleDriver extends TupleDriver {
                 fillParticleVariables(event, ele, "ele");
                 fillParticleVariables(event, pho, "pho");
 
-                if (tupleWriter != null) {
-                    boolean eCut = tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") > tupleMinECut * ebeam && tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") < tupleMaxECut * ebeam;
-                    if (!cutTuple || (eCut)) {
+                if (tupleWriter != null) { 
+                    if (!cutTuple || (passesCuts())) {
                         writeTuple();
                     }
                 }
             }
         }
+    }
+
+    @Override
+    boolean passesCuts() {
+        return tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") > tupleMinECut * ebeam && tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") < tupleMaxECut * ebeam;
     }
 }
