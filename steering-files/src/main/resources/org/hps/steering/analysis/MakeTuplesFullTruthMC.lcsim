@@ -14,29 +14,25 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
 
-        <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentTupleDriver">
+        <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentMCTupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <beamPosZ>0.0</beamPosZ>
-            <getMC>true</getMC>
         </driver>
         <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_moller.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <beamPosZ>0.0</beamPosZ>
         </driver>
         <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_fee.txt</tupleFile>
             <cutTuple>true</cutTuple>
-            <beamPosZ>0.0</beamPosZ>
         </driver>
-        <driver name="FullTruthTuple" type="org.hps.analysis.tuple.FullTruthTupleDriver">
+        <driver name="FullTruthTuple" type="org.hps.analysis.tuple.WABTridentFullTupleDriver">
             <nEcalHit>3</nEcalHit>
             <tupleFile>${outputFile}_fulltruth.txt</tupleFile>
         </driver>
