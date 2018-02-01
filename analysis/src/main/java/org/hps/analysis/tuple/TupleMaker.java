@@ -101,11 +101,16 @@ public abstract class TupleMaker extends Driver {
     List<ReconstructedParticle> tarConstrainedV0List = null;
     Map<ReconstructedParticle, ReconstructedParticle> unc2bsc = null;
     Map<ReconstructedParticle, ReconstructedParticle> unc2tar = null;
+    boolean cutTuple = true;
 
     abstract boolean passesCuts();
     
     public void setIsGBL(boolean isgbl) {
         this.isGBL = isgbl;
+    }
+    
+    public void setCutTuple(boolean input) {
+        cutTuple = input;
     }
 
 
@@ -177,10 +182,10 @@ public abstract class TupleMaker extends Driver {
             targetConstrainedV0CandidatesColName = null;
         }
         
+        triggerData = checkTrigger(event);
         if (triggerData == null)
             return false;
         
-        triggerData = checkTrigger(event);
         unConstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
 
         if (beamspotConstrainedV0CandidatesColName != null) {

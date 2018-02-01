@@ -1,10 +1,7 @@
 package org.hps.analysis.tuple;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
-import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 

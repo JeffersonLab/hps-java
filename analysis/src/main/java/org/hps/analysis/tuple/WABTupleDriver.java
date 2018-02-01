@@ -3,10 +3,7 @@ package org.hps.analysis.tuple;
 import java.util.ArrayList;
 import java.util.List;
 import org.hps.recon.tracking.TrackType;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 
 public class WABTupleDriver extends TupleMaker {
@@ -29,7 +26,8 @@ public class WABTupleDriver extends TupleMaker {
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
         }
-        if(checkTrigger(event) == null)
+        triggerData = checkTrigger(event);
+        if (triggerData == null)
             return;
 
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
@@ -53,7 +51,7 @@ public class WABTupleDriver extends TupleMaker {
                 fillParticleVariables(event, ele, "ele");
                 fillParticleVariables(event, pho, "pho");
 
-                if (tupleWriter != null) { 
+                if (tupleWriter != null) {
                     if (!cutTuple || (passesCuts())) {
                         writeTuple();
                     }
@@ -64,6 +62,11 @@ public class WABTupleDriver extends TupleMaker {
 
     @Override
     boolean passesCuts() {
+        // TODO Auto-generated method stub
+        if (tupleMap.get("eleP/D") == null)
+            return false;
+        if (tupleMap.get("phoClE/D") == null)
+            return false;
         return tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") > tupleMinECut * ebeam && tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") < tupleMaxECut * ebeam;
     }
 }

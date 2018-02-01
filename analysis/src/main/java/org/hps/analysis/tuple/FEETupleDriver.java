@@ -2,10 +2,7 @@ package org.hps.analysis.tuple;
 
 import java.util.List;
 import org.hps.recon.tracking.TrackType;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 
 public class FEETupleDriver extends TupleMaker {
@@ -26,19 +23,9 @@ public class FEETupleDriver extends TupleMaker {
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
         }
-        TIData triggerData = null;
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            for (GenericObject data : event.get(GenericObject.class, "TriggerBank")) {
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    triggerData = new TIData(data);
-                }
-            }
-        }
-
-        //check to see if this event is from the correct trigger (or "all");
-        if (triggerData != null && !matchTriggerType(triggerData)) {
+        triggerData = checkTrigger(event);
+        if (triggerData == null)
             return;
-        }
 
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
 
