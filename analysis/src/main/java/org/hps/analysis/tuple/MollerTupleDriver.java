@@ -29,6 +29,7 @@ public class MollerTupleDriver extends TupleMaker {
 
     @Override
     public void process(EventHeader event) {
+        this.setCandidatesColName("MollerCandidates");
         if (!setupCollections(event))
             return;
         

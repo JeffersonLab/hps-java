@@ -105,6 +105,10 @@ public abstract class TupleMaker extends Driver {
 
     abstract boolean passesCuts();
     
+    public void setCandidatesColName(String input) {
+        this.CandidatesColName = input;
+    }
+    
     public void setIsGBL(boolean isgbl) {
         this.isGBL = isgbl;
     }
@@ -276,6 +280,7 @@ public abstract class TupleMaker extends Driver {
 
         double minPositiveIso = 0;
         double minNegativeIso = 0;
+        
         if (isMoller) {
             ReconstructedParticle top = uncV0.getParticles().get(ReconParticleDriver.MOLLER_TOP);
             ReconstructedParticle bot = uncV0.getParticles().get(ReconParticleDriver.MOLLER_BOT);
@@ -304,19 +309,19 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put("minNegativeIso/D", minNegativeIso);
         tupleMap.put("minIso/D", minIso);
 
-        fillVertexVariables("unc", uncV0, false);
+        fillVertexVariables("unc", uncV0, isMoller);
         if (unc2bsc != null) {
             ReconstructedParticle temp = unc2bsc.get(uncV0);
             if (temp == null)
                 isOK = false;
             else
-                fillVertexVariables("bsc", temp, false);
+                fillVertexVariables("bsc", temp, isMoller);
         }
         if (unc2bsc != null) {
             ReconstructedParticle temp = unc2tar.get(uncV0);
             if (temp == null)
                 isOK = false;
-            fillVertexVariables("tar", temp, false);
+            fillVertexVariables("tar", temp, isMoller);
         }
 
         return isOK;
@@ -334,9 +339,9 @@ public abstract class TupleMaker extends Driver {
     }
 
     protected void addVertexVariables() {
-        addVertexVariables(true, true, true);
+        addVertexVariables(true, true);
     }
-    protected void addVertexVariables(boolean doBsc, boolean doTar, boolean doVzc) {
+    protected void addVertexVariables(boolean doBsc, boolean doTar) {
         String[] newVars = new String[] {"uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D", "uncVX/D", "uncVY/D", "uncVZ/D",
                 "uncChisq/D", "uncM/D", "uncCovXX/D", "uncCovXY/D", "uncCovXZ/D", "uncCovYX/D", "uncCovYY/D",
                 "uncCovYZ/D", "uncCovZX/D", "uncCovZY/D", "uncCovZZ/D", "uncElePX/D", "uncElePY/D", "uncElePZ/D",
@@ -353,12 +358,7 @@ public abstract class TupleMaker extends Driver {
                     "tarChisq/D", "tarM/D", "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D", "tarEleWtP/D", "tarPosWtP/D", "tarWtM/D"};
             tupleVariables.addAll(Arrays.asList(newVars3));
         }
-        if (doVzc) {
-            String[] newVars4 = new String[] {"vzcPX/D", "vzcPY/D", "vzcPZ/D", "vzcP/D", "vzcVX/D", "vzcVY/D", "vzcVZ/D",
-                    "vzcChisq/D", "vzcM/D", "vzcElePX/D", "vzcElePY/D", "vzcElePZ/D", "vzcPosPX/D", "vzcPosPY/D", "vzcPosPZ/D", "vzcEleP/D",
-                    "vzcPosP/D", "vzcEleWtP/D", "vzcPosWtP/D", "vzcWtM/D"};
-            tupleVariables.addAll(Arrays.asList(newVars4));
-        }
+
     }
 
     protected void addParticleVariables(String prefix) {
