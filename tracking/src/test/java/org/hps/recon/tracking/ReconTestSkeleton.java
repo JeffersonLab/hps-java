@@ -29,7 +29,7 @@ public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
-    protected long nEvents = 10;
+    protected long nEvents = 1;
     protected URL testURL;
     protected FileCache cache;
     protected Driver testTrackingDriver = null;
@@ -135,11 +135,7 @@ public class ReconTestSkeleton extends TestCase {
             add(mtc);
 
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
-
-            org.hps.recon.tracking.gbl.GBLOutputDriver gblout = new org.hps.recon.tracking.gbl.GBLOutputDriver();
-            gblout.setGblFileName("testGBL.txt");
-            add(gblout);
-
+            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
             add(new org.hps.recon.tracking.TrackDataDriver());
 
             add(new ReadoutCleanupDriver());
