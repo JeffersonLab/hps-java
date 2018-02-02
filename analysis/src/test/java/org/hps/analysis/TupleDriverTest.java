@@ -25,6 +25,7 @@ abstract public class TupleDriverTest extends TestCase {
     protected String lcioInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
     protected String txtOutputFileName = "target/test-output/out_fee.txt";
     protected Driver testTupleDriver = null;
+    protected boolean useEventFlagFilter = true;
 
     public void testIt() throws Exception {
 
@@ -44,8 +45,8 @@ abstract public class TupleDriverTest extends TestCase {
         manager.addConditionsListener(new SvtDetectorSetup());
         
         loop.add(new org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver());
-        
-        loop.add(new org.hps.recon.filtering.EventFlagFilter());
+        if (useEventFlagFilter)
+            loop.add(new org.hps.recon.filtering.EventFlagFilter());
         
         org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup rthss = new org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup();
         String[] readoutColl = { "SVTRawTrackerHits" };

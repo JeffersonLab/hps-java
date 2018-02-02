@@ -26,8 +26,7 @@ public class TridentMCTupleDriver extends MCTupleMaker {
     @Override
     public void process(EventHeader event) {
 
-        if (!setupCollections(event))
-            return;
+        setupCollections(event);
         
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
