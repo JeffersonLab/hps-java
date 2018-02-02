@@ -28,8 +28,7 @@ public class TridentFullTupleDriver extends FullTruthTupleMaker {
     @Override
     public void process(EventHeader event) {
 
-        if (!setupCollections(event))
-            return;
+        setupCollections(event);
         
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
