@@ -52,7 +52,9 @@ public class WABTupleDriver extends TupleMaker {
                 fillParticleVariables(event, pho, "pho");
 
                 if (tupleWriter != null) {
+
                     if (!cutTuple || (passesCuts())) {
+
                         writeTuple();
                     }
                 }
