@@ -65,7 +65,13 @@ public class WABTupleDriver extends TupleDriver {
                 fillParticleVariables(event, pho, "pho");
 
                 if (tupleWriter != null) {
-                    boolean eCut = tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") > tupleMinECut * ebeam && tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") < tupleMaxECut * ebeam;
+                    boolean eCut = true;
+                    if (tupleMap.get("eleP/D") == null)
+                        eCut = false;
+                    if (tupleMap.get("phoClE/D") == null)
+                        eCut = false;
+                    if (eCut == true)
+                        eCut = tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") > tupleMinECut * ebeam && tupleMap.get("eleP/D") + tupleMap.get("phoClE/D") < tupleMaxECut * ebeam;
                     if (!cutTuple || (eCut)) {
                         writeTuple();
                     }

@@ -76,79 +76,84 @@ public class TrackClusterMatcher {
      * 
      *  f = p0+e*(p1+e*(p2+e*(p3+e*(p4+e*p5))))
      */
-    private static final double dxMeanTopPosiGBL[] = { 6.67414,-9.57296, 5.70647, 27.4523,-28.1103,-9.11424 };
-    private static final double dxSigmTopPosiGBL[] = { 52.6437,-478.805, 1896.73,-3761.48, 3676.77,-1408.31 };
-    private static final double dxMeanBotPosiGBL[] = { 4.13802, 15.8887,-74.2844,-9.78944, 308.541,-287.668 };
-    private static final double dxSigmBotPosiGBL[] = { 37.6513,-294.851, 1002.15,-1639.08, 1228.02,-308.754 };
+    double dyMeanBotElecGBL_noL6_2015[] = {-7.17364, 51.9077, -149.155, 147.207, };
+    double dySigmBotElecGBL_noL6_2015[] = {13.7868, 9.41886, -156, 209.963, };
+    double dyMeanBotPosiGBL_noL6_2015[] = {11.2292, -165.876, 591.592, -601.435, };
+    double dySigmBotPosiGBL_noL6_2015[] = {5.1586, 79.949, -321.238, 313.925, };
+    double dyMeanTopElecGBL_noL6_2015[] = {6.33503, -64.1156, 204.924, -204.87, };
+    double dySigmTopElecGBL_noL6_2015[] = {29.3164, -130.8, 254.59, -178.537, };
+    double dyMeanTopPosiGBL_noL6_2015[] = {0.394555, 43.2088, -222.677, 252.737, };
+    double dySigmTopPosiGBL_noL6_2015[] = {20.4963, -47.4179, 3.31726, 54.2533, };
+    double dxMeanBotElecGBL_noL6_2015[] = {84.2526, -618.986, 1549.52, -1273.73, };
+    double dxSigmBotElecGBL_noL6_2015[] = {43.669, -207.526, 423.221, -317.005, };
+    double dxMeanBotPosiGBL_noL6_2015[] = {-81.5944, 593.329, -1440.75, 1144.2, };
+    double dxSigmBotPosiGBL_noL6_2015[] = {16.9999, 22.0071, -201.033, 214.312, };
+    double dxMeanTopElecGBL_noL6_2015[] = {70.2111, -490.225, 1170.85, -906.215, };
+    double dxSigmTopElecGBL_noL6_2015[] = {23.5848, -22.8375, -100.662, 162.045, };
+    double dxMeanTopPosiGBL_noL6_2015[] = {-106.445, 825.712, -2119.92, 1795.38, };
+    double dxSigmTopPosiGBL_noL6_2015[] = {31.8189, -120.106, 238.918, -212.629, };
+    double dyMeanBotElecGBL_hasL6_2015[] = {4.55098, -47.132, 164.208, -251.225, 138.445, };
+    double dySigmBotElecGBL_hasL6_2015[] = {-1.07979, 69.2823, -280.618, 427.443, -223.653, };
+    double dyMeanBotPosiGBL_hasL6_2015[] = {-6.61989, 45.9481, -134.208, 173.095, -85.3071, };
+    double dySigmBotPosiGBL_hasL6_2015[] = {14.5271, -66.9343, 155.271, -169.818, 71.0514, };
+    double dyMeanTopElecGBL_hasL6_2015[] = {-16.4252, 137.898, -421.075, 567.766, -281.956, };
+    double dySigmTopElecGBL_hasL6_2015[] = {12.6111, -58.7843, 142.594, -162.391, 71.1072, };
+    double dyMeanTopPosiGBL_hasL6_2015[] = {-2.72525, 23.3503, -71.8925, 105.965, -57.5752, };
+    double dySigmTopPosiGBL_hasL6_2015[] = {14.5742, -78.1711, 219.883, -297.48, 154.408, };
+    double dxMeanBotElecGBL_hasL6_2015[] = {-6.23259, 86.3158, -284.914, 379.255, -183.232, };
+    double dxSigmBotElecGBL_hasL6_2015[] = {23.6521, -135.592, 366.388, -461.049, 220.64, };
+    double dxMeanBotPosiGBL_hasL6_2015[] = {-11.6694, 78.7264, -226.947, 282.234, -122.858, };
+    double dxSigmBotPosiGBL_hasL6_2015[] = {19.2137, -86.8682, 183.822, -178.96, 65.566, };
+    double dxMeanTopElecGBL_hasL6_2015[] = {9.33562, -47.4252, 137.437, -169.957, 74.312, };
+    double dxSigmTopElecGBL_hasL6_2015[] = {16.6497, -76.1094, 179.447, -204.136, 89.8847, };
+    double dxMeanTopPosiGBL_hasL6_2015[] = {-10.195, 57.1086, -123.843, 128.667, -45.7468, };
+    double dxSigmTopPosiGBL_hasL6_2015[] = {23.3435, -118.887, 277.13, -296.727, 119.435, };
     
-    private static final double dxMeanTopElecGBL[] = {-1.6473,  5.58701, 25.3977,-17.1523,-121.025, 145.969 };
-    private static final double dxSigmTopElecGBL[] = { 48.7018,-423.599, 1592.66,-2959.99, 2668.97,-919.876 };
-    private static final double dxMeanBotElecGBL[] = {-6.63558, 83.7763,-460.451, 1275.63,-1702.83, 873.913 };
-    private static final double dxSigmBotElecGBL[] = { 47.0029,-411.784, 1586.52,-3083.37, 2985.58,-1145.53 };
+    /*edges of the fits*/
+    double pHigh_hasL6_2015 = .8;
+    double pHigh_noL6_2015 = .5;
+    double pLow_hasL6_2015 = .18;
+    double pLow_noL6_2015 = .18;
     
-    private static final double dyMeanTopPosiGBL[] = { 0.31245, 5.57585,-6.50267,-8.21688, 39.8607,-43.9661 };
-    private static final double dySigmTopPosiGBL[] = { 33.0213,-275.174, 1168.77,-2642.34, 3045.52,-1406.21 };
-    private static final double dyMeanBotPosiGBL[] = {-7.032,   74.9738,-383.972, 977.849,-1250.28, 637.75  };
-    private static final double dySigmBotPosiGBL[] = { 19.019, -83.9253, 133.813, 119.883,-546.951, 405.207 };
-    
-    private static final double dyMeanTopElecGBL[] = { 2.48498,-20.4101, 62.9689, 25.6386,-259.957, 207.145 };
-    private static final double dySigmTopElecGBL[] = { 8.65583, 120.676,-1166.43, 3811.72,-5383.19, 2787.42 };
-    private static final double dyMeanBotElecGBL[] = {-10.5228, 112.329,-489.761, 953.037,-829.96,  260.772 };
-    private static final double dySigmBotElecGBL[] = { 23.4856,-108.19,  158.7,   189.261,-682.034, 459.15  };
-
-    private static final double dxMeanTopPosiSeed[] ={ 11.6245,-28.5061, 13.0332, 59.9465,-21.1014,-63.6126 };
-    private static final double dxSigmTopPosiSeed[] ={ 61.5911,-540.596, 2077.22,-3973.22, 3704.45,-1332.07 };
-    private static final double dxMeanBotPosiSeed[] ={ 4.53394, 11.3773,-63.7127,-2.81629, 273.868,-264.709 };
-    private static final double dxSigmBotPosiSeed[] ={ 48.3163,-409.249, 1590.36,-3212.85, 3326.04,-1402.3  };
-    
-    private static final double dxMeanTopElecSeed[] ={ 2.14163,-20.8713, 76.3054,  34.894,-340.272,  295.24 };
-    private static final double dxSigmTopElecSeed[] ={ 48.585, -385.166, 1320.26,-2157.45, 1581.06,-366.012 };
-    private static final double dxMeanBotElecSeed[] ={-3.44302, 12.4687, 4.09878,-30.0057,-13.3151, 40.2707 };
-    private static final double dxSigmBotElecSeed[] ={ 48.4089,-385.494, 1341.37,-2271.52, 1814.02,-526.555 };
-
-    private static final double dyMeanTopPosiSeed[] ={-0.527741,10.4944, -18.242,-12.9155, 81.0116,-73.9773 };
-    private static final double dySigmTopPosiSeed[] ={ 37.3097, -357.55, 1607.03,-3709.55, 4282.36,-1957.91 };
-    private static final double dyMeanBotPosiSeed[] ={ 0.74392,-55.2003,  405.04,-1250.64, 1731.47,-887.262 };
-    private static final double dySigmBotPosiSeed[] ={ 25.5776,-199.731,  754.59,-1408.72, 1240.36,-400.912 };
-
-    private static final double dyMeanTopElecSeed[] ={ 2.85429,-24.0858, 69.0145, 34.1213,-297.752, 239.939 };
-    private static final double dySigmTopElecSeed[] ={ 19.9111,-53.2699,-261.915,  1593.2,-2774.01, 1605.54 };
-    private static final double dyMeanBotElecSeed[] ={-9.22963, 98.1346, -427.91, 840.225,-751.188, 250.792 };
-    private static final double dySigmBotElecSeed[] ={ 21.7909,-85.4757,-56.9423, 977.522,-1902.05, 1137.92 };
-
     // parameters for 2.3 GeV running.
-    private static final double dyMeanBotElecGBL_noL6_2016[] = {-45.0271, 263.389, -593.596, 637.131, -324.378, 62.5313, };
-    private static final double dySigmBotElecGBL_noL6_2016[] = {22.5155, -63.3324, 93.3737, -73.0256, 26.9909, -3.2845, };
-    private static final double dyMeanBotPosiGBL_noL6_2016[] = {74.5853, -460.349, 1065.47, -1172.94, 622.104, -128.197, };
-    private static final double dySigmBotPosiGBL_noL6_2016[] = {-28.913, 257.363, -666.667, 784.812, -432.658, 90.0893, };
-    private static final double dyMeanTopElecGBL_noL6_2016[] = {-16.4899, 88.8594, -190.81, 199.875, -103.301, 21.2986, };
-    private static final double dySigmTopElecGBL_noL6_2016[] = {17.2265, -24.8578, 2.5515, 17.8253, -12.5355, 2.70829, };
-    private static final double dyMeanTopPosiGBL_noL6_2016[] = {-60.9579, 403.992, -1021.69, 1241.67, -731.371, 167.807, };
-    private static final double dySigmTopPosiGBL_noL6_2016[] = {-3.34014, 99.79, -294.521, 365.686, -213.598, 48.5256, };
-    private static final double dxMeanBotElecGBL_noL6_2016[] = {77.2511, -392.82, 785.802, -761.2, 357.936, -65.273, };
-    private static final double dxSigmBotElecGBL_noL6_2016[] = {42.5778, -139.345, 209.232, -160.592, 61.9873, -9.46576, };
-    private static final double dxMeanBotPosiGBL_noL6_2016[] = {-81.9964, 373.662, -602.711, 407.369, -93.2641, -2.7378, };
-    private static final double dxSigmBotPosiGBL_noL6_2016[] = {-41.8225, 401.121, -1111.79, 1380.13, -794.998, 172.177, };
-    private static final double dxMeanTopElecGBL_noL6_2016[] = {99.5506, -531.817, 1108.59, -1105.95, 527.326, -95.7355, };
-    private static final double dxSigmTopElecGBL_noL6_2016[] = {48.6026, -181.788, 324.079, -303.356, 142.144, -25.862, };
-    private static final double dxMeanTopPosiGBL_noL6_2016[] = {-88.234, 426.614, -781.645, 667.716, -244.828, 23.4546, };
-    private static final double dxSigmTopPosiGBL_noL6_2016[] = {19.7422, 86.695, -556.05, 1019.35, -787.387, 222.154, };
-    private static final double dyMeanBotElecGBL_hasL6_2016[] = {-11.2893, 59.1031, -118.513, 109.064, -46.5272, 7.37959, };
-    private static final double dySigmBotElecGBL_hasL6_2016[] = {18.1299, -52.6839, 75.8313, -56.083, 20.4512, -2.85891, };
-    private static final double dyMeanBotPosiGBL_hasL6_2016[] = {1.91696, -13.7172, 27.286, -25.8358, 11.5746, -1.96679, };
-    private static final double dySigmBotPosiGBL_hasL6_2016[] = {11.0477, -13.5811, -1.95461, 17.2309, -12.5715, 2.79961, };
-    private static final double dyMeanTopElecGBL_hasL6_2016[] = {15.3608, -88.5014, 182.855, -172.404, 75.3262, -12.3228, };
-    private static final double dySigmTopElecGBL_hasL6_2016[] = {10.8315, -10.5199, -16.0859, 40.207, -28.2589, 6.65798, };
-    private static final double dyMeanTopPosiGBL_hasL6_2016[] = {-8.70329, 38.5923, -58.6007, 39.1284, -10.6633, 0.679792, };
-    private static final double dySigmTopPosiGBL_hasL6_2016[] = {0.632074, 32.2835, -78.8756, 77.0573, -33.9216, 5.56321, };
-    private static final double dxMeanBotElecGBL_hasL6_2016[] = {-23.2812, 106.509, -187.519, 161.879, -68.606, 11.3574, };
-    private static final double dxSigmBotElecGBL_hasL6_2016[] = {15.6636, -44.1506, 59.6105, -38.7918, 11.6611, -1.21741, };
-    private static final double dxMeanBotPosiGBL_hasL6_2016[] = {5.13843, -4.34642, -7.5459, 12.3376, -6.18021, 1.11868, };
-    private static final double dxSigmBotPosiGBL_hasL6_2016[] = {2.51144, 18.2242, -50.4872, 51.6848, -23.2671, 3.84415, };
-    private static final double dxMeanTopElecGBL_hasL6_2016[] = {-19.1931, 82.4696, -131.517, 101.329, -36.0044, 4.47723, };
-    private static final double dxSigmTopElecGBL_hasL6_2016[] = {5.03375, 9.08728, -42.5864, 55.6423, -30.7765, 6.25259, };
-    private static final double dxMeanTopPosiGBL_hasL6_2016[] = {18.9015, -87.8249, 172.68, -163.97, 76.083, -13.7529, };
-    private static final double dxSigmTopPosiGBL_hasL6_2016[] = {21.8112, -80.8339, 144.335, -131.621, 59.7611, -10.7205, };
+    double dyMeanBotElecGBL_noL6_2016[] = {-6.48114, 22.2464, -24.0258, 7.82766, };
+    double dySigmBotElecGBL_noL6_2016[] = {17.9252, -41.3164, 41.3304, -14.7517, };
+    double dyMeanBotPosiGBL_noL6_2016[] = {-11.7136, 34.6864, -32.7093, 10.1458, };
+    double dySigmBotPosiGBL_noL6_2016[] = {26.568, -77.1315, 91.2976, -37.8038, };
+    double dyMeanTopElecGBL_noL6_2016[] = {-7.89099, 32.4447, -44.7542, 20.3456, };
+    double dySigmTopElecGBL_noL6_2016[] = {17.7918, -36.6478, 29.4694, -8.06169, };
+    double dyMeanTopPosiGBL_noL6_2016[] = {-2.58173, 11.3186, -17.3132, 7.42765, };
+    double dySigmTopPosiGBL_noL6_2016[] = {-2.18936, 43.6352, -75.0924, 35.9227, };
+    double dxMeanBotElecGBL_noL6_2016[] = {42.964, -128.548, 140.918, -51.64, };
+    double dxSigmBotElecGBL_noL6_2016[] = {36.8183, -99.2736, 106.351, -39.844, };
+    double dxMeanBotPosiGBL_noL6_2016[] = {-46.6173, 157.474, -187.009, 73.96, };
+    double dxSigmBotPosiGBL_noL6_2016[] = {46.0317, -143.346, 172.54, -70.9532, };
+    double dxMeanTopElecGBL_noL6_2016[] = {30.9052, -90.09, 104.774, -41.15, };
+    double dxSigmTopElecGBL_noL6_2016[] = {8.16952, 29.1376, -77.9399, 44.8599, };
+    double dxMeanTopPosiGBL_noL6_2016[] = {-59.7332, 195.964, -218.42, 82.1346, };
+    double dxSigmTopPosiGBL_noL6_2016[] = {64.1991, -208.484, 247.029, -98.3336, };
+    double dyMeanBotElecGBL_hasL6_2016[] = {-6.28213, 33.3392, -61.5168, 45.574, -11.71, };
+    double dySigmBotElecGBL_hasL6_2016[] = {9.92401, -25.3032, 31.6691, -18.2118, 3.92029, };
+    double dyMeanBotPosiGBL_hasL6_2016[] = {5.01792, -23.2565, 35.5235, -23.1599, 5.40634, };
+    double dySigmBotPosiGBL_hasL6_2016[] = {0.815639, 17.5981, -37.0339, 27.7743, -7.11745, };
+    double dyMeanTopElecGBL_hasL6_2016[] = {3.23873, -23.9294, 51.0193, -40.8843, 11.0352, };
+    double dySigmTopElecGBL_hasL6_2016[] = {9.40385, -21.4277, 24.1184, -12.3961, 2.31535, };
+    double dyMeanTopPosiGBL_hasL6_2016[] = {-7.05313, 26.9298, -38.4908, 24.3693, -5.65434, };
+    double dySigmTopPosiGBL_hasL6_2016[] = {4.16791, 1.32443, -10.1539, 9.019, -2.38522, };
+    double dxMeanBotElecGBL_hasL6_2016[] = {-4.48925, 42.3, -72.9497, 50.2509, -12.4418, };
+    double dxSigmBotElecGBL_hasL6_2016[] = {11.4499, -27.7882, 36.0098, -22.508, 5.50197, };
+    double dxMeanBotPosiGBL_hasL6_2016[] = {-6.64995, 14.7855, -18.5416, 10.4191, -2.00325, };
+    double dxSigmBotPosiGBL_hasL6_2016[] = {7.49727, -6.337, -2.95785, 6.44046, -2.16203, };
+    double dxMeanTopElecGBL_hasL6_2016[] = {-4.53952, 45.9687, -80.7531, 58.3937, -15.0482, };
+    double dxSigmTopElecGBL_hasL6_2016[] = {11.0752, -25.3525, 30.0412, -16.6484, 3.52064, };
+    double dxMeanTopPosiGBL_hasL6_2016[] = {-13.2928, 37.9236, -45.849, 26.8323, -5.80805, };
+    double dxSigmTopPosiGBL_hasL6_2016[] = {9.36327, -16.2788, 14.5396, -5.60705, 0.705979, };
+    
+    /*edges of the fits*/
+    double pHigh_hasL6_2016 = 1.6;
+    double pHigh_noL6_2016 = 1.0;
+    double pLow_hasL6_2016 = .44;
+    double pLow_noL6_2016 = .44;
     
     /**
      * Z position to start extrapolation from
@@ -356,30 +361,30 @@ public class TrackClusterMatcher {
         if(use1pt05parameters){
             if (charge>0) {
                 if (isTopTrack) {
-                    dxMean = isGBL ? dxMeanTopPosiGBL : dxMeanTopPosiSeed;
-                    dxSigm = isGBL ? dxSigmTopPosiGBL : dxSigmTopPosiSeed;
-                    dyMean = isGBL ? dyMeanTopPosiGBL : dyMeanTopPosiSeed;
-                    dySigm = isGBL ? dySigmTopPosiGBL : dySigmTopPosiSeed;
+                    dxMean = !hasL6 ? dxMeanTopPosiGBL_noL6_2015 : dxMeanTopPosiGBL_hasL6_2015;
+                    dxSigm = !hasL6 ? dxSigmTopPosiGBL_noL6_2015 : dxSigmTopPosiGBL_hasL6_2015;
+                    dyMean = !hasL6 ? dyMeanTopPosiGBL_noL6_2015 : dyMeanTopPosiGBL_hasL6_2015;
+                    dySigm = !hasL6 ? dySigmTopPosiGBL_noL6_2015 : dySigmTopPosiGBL_hasL6_2015;
                 }
                 else {
-                    dxMean = isGBL ? dxMeanBotPosiGBL : dxMeanBotPosiSeed;
-                    dxSigm = isGBL ? dxSigmBotPosiGBL : dxSigmBotPosiSeed;
-                    dyMean = isGBL ? dyMeanBotPosiGBL : dyMeanBotPosiSeed;
-                    dySigm = isGBL ? dySigmBotPosiGBL : dySigmBotPosiSeed;
+                    dxMean = !hasL6 ? dxMeanBotPosiGBL_noL6_2015 : dxMeanBotPosiGBL_hasL6_2015;
+                    dxSigm = !hasL6 ? dxSigmBotPosiGBL_noL6_2015 : dxSigmBotPosiGBL_hasL6_2015;
+                    dyMean = !hasL6 ? dyMeanBotPosiGBL_noL6_2015 : dyMeanBotPosiGBL_hasL6_2015;
+                    dySigm = !hasL6 ? dySigmBotPosiGBL_noL6_2015 : dySigmBotPosiGBL_hasL6_2015;
                 }
             }
             else if (charge<0) {
                 if (isTopTrack) {
-                    dxMean = isGBL ? dxMeanTopElecGBL : dxMeanTopElecSeed;
-                    dxSigm = isGBL ? dxSigmTopElecGBL : dxSigmTopElecSeed;
-                    dyMean = isGBL ? dyMeanTopElecGBL : dyMeanTopElecSeed;
-                    dySigm = isGBL ? dySigmTopElecGBL : dySigmTopElecSeed;
+                    dxMean = !hasL6 ? dxMeanTopElecGBL_noL6_2015 : dxMeanTopElecGBL_hasL6_2015;
+                    dxSigm = !hasL6 ? dxSigmTopElecGBL_noL6_2015 : dxSigmTopElecGBL_hasL6_2015;
+                    dyMean = !hasL6 ? dyMeanTopElecGBL_noL6_2015 : dyMeanTopElecGBL_hasL6_2015;
+                    dySigm = !hasL6 ? dySigmTopElecGBL_noL6_2015 : dySigmTopElecGBL_hasL6_2015;
                 }
                 else {
-                    dxMean = isGBL ? dxMeanBotElecGBL : dxMeanBotElecSeed;
-                    dxSigm = isGBL ? dxSigmBotElecGBL : dxSigmBotElecSeed;
-                    dyMean = isGBL ? dyMeanBotElecGBL : dyMeanBotElecSeed;
-                    dySigm = isGBL ? dySigmBotElecGBL : dySigmBotElecSeed;
+                    dxMean = !hasL6 ? dxMeanBotElecGBL_noL6_2015 : dxMeanBotElecGBL_hasL6_2015;
+                    dxSigm = !hasL6 ? dxSigmBotElecGBL_noL6_2015 : dxSigmBotElecGBL_hasL6_2015;
+                    dyMean = !hasL6 ? dyMeanBotElecGBL_noL6_2015 : dyMeanBotElecGBL_hasL6_2015;
+                    dySigm = !hasL6 ? dySigmBotElecGBL_noL6_2015 : dySigmBotElecGBL_hasL6_2015;
                 }
             }
             else return Double.MAX_VALUE;
@@ -419,16 +424,27 @@ public class TrackClusterMatcher {
         else 
             return Double.MAX_VALUE; //this line is never executed.   
         
-        // Rafo's parameterization (with 1.05 GeV beam) isn't measured above 650 MeV/c but expected to be constant:
+
+        // Beyond the edges of the fits in momentum, assume that the parameters are constant:
         if(use1pt05parameters){
-            if (p > 0.65) p=0.65;
+            if (p > pHigh_hasL6_2015 && hasL6) 
+                p = pHigh_hasL6_2015;
+            else if (p > pHigh_noL6_2015 && !hasL6) 
+                p= pHigh_noL6_2015;
+            else if (p < pLow_hasL6_2015 && hasL6)
+                p = pLow_hasL6_2015;
+            else if (p < pLow_noL6_2015 && !hasL6)
+                p = pLow_noL6_2015;
         }
-        // Sebouh's parameterization (with 2.3 GeV) beam isn't measured above 1700 MeV/c (1000 MeV/c for non L6 tracks) but expected to be constant:
         if(use2pt3parameters){
-            if (p > 1.7 && hasL6) 
-                p=1.7;
-            if (p > 1.0 && !hasL6) 
-                p=1.0;
+            if (p > pHigh_hasL6_2016 && hasL6) 
+                p = pHigh_hasL6_2016;
+            else if (p > pHigh_noL6_2016 && !hasL6) 
+                p= pHigh_noL6_2016;
+            else if (p < pLow_hasL6_2016 && hasL6)
+                p = pLow_hasL6_2016;
+            else if (p < pLow_noL6_2016 && !hasL6)
+                p = pLow_noL6_2016;
         }
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
