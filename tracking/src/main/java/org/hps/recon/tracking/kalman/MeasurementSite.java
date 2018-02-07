@@ -98,8 +98,7 @@ class MeasurementSite {
             pS.toGlobal(X0).print("intersection in global coordinates");
             Plane pRot = m.p.toLocal(pS.Rot, pS.origin);
             double check = (X0.dif(pRot.X())).dot(pRot.T());
-            System.out.format("MeasurementSite.makePrediction: dot product of vector in plane with plane direction=%12.8e, should be zero\n",
-                                            check);
+            System.out.format("MeasurementSite.makePrediction: dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
         }
         Vec pMom = pS.Rot.inverseRotate(pS.getMom(phi));
         double ct = pMom.unitVec().dot(m.p.T());
@@ -141,55 +140,55 @@ class MeasurementSite {
         // MeasurementSite.makePrediction");
         // }
 
-        if (m.Layer >= 0) { // Not a dummy layer
-            aP.mPred = h(pS, phi);
-            H = new Vec(5, buildH(aP));
+        aP.mPred = h(pS, phi);
+        H = new Vec(5, buildH(aP));
 
-            // Loop over hits and find the one that is closest
-            int nHits = m.hits.size();
-            if (nHits > 0) {
-                double minResid = 999.;
-                int theHit = 0;
-                for (int i = 0; i < nHits; i++) {
-                    double residual = m.hits.get(i).v - aP.mPred;
-                    if (Math.abs(residual) < minResid) {
-                        theHit = i;
-                        minResid = Math.abs(residual);
-                    }
+        // Loop over hits and find the one that is closest
+        int nHits = m.hits.size();
+        if (nHits > 0) {
+            double minResid = 999.;
+            int theHit = 0;
+            for (int i = 0; i < nHits; i++) {
+                double residual = m.hits.get(i).v - aP.mPred;
+                if (Math.abs(residual) < minResid) {
+                    theHit = i;
+                    minResid = Math.abs(residual);
                 }
+            }
 
-                aP.r = m.hits.get(theHit).v - aP.mPred;
-                if (verbose) {
-                    System.out.format("MeasurementSite.makePrediction: selected hit=%d with minimum residual=%10.7f\n", theHit, minResid);
-                    System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi,
-                                                    aP.mPred);
-                    double phi2 = aP.planeIntersect(m.p); // This should always be zero
-                    double mPred2 = h(aP, phi2);
-                    System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2,
-                                                    mPred2);
-                }
+            aP.r = m.hits.get(theHit).v - aP.mPred;
+            if (verbose) {
+                System.out.format("MeasurementSite.makePrediction: selected hit=%d with minimum residual=%10.7f\n", theHit, minResid);
+                System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi, aP.mPred);
+                double phi2 = aP.planeIntersect(m.p); // This should always be zero
+                double mPred2 = h(aP, phi2);
+                System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
+            }
 
-                aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(H.leftMultiply(aP.C));
-                if (verbose) {
-                    H.print("H in MeasurementSite.makePrediction");
-                    Vec H2 = new Vec(5, buildH(pS));
-                    H2.print("H made using old statevector");
-                    aP.C.print("covariance");
-                    double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
-                    System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n",
-                                                    aP.R, exRes, m.hits.get(0).sigma);
-                }
+            aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(H.leftMultiply(aP.C)); // Can be negative if aP.C is not reasonable (e.g. huge)
+            if (verbose) {
+                H.print("H in MeasurementSite.makePrediction");
+                Vec H2 = new Vec(5, buildH(pS));
+                H2.print("H made using old statevector");
+                aP.C.print("covariance");
+                double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
+                System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n", aP.R, exRes,
+                                                m.hits.get(0).sigma);
+            }
 
+            if (aP.R > 0.) {
                 chi2inc = aP.r * aP.r / aP.R;
-                if (Math.abs(minResid) < mxResid) {
-                    hitID = theHit;
-                } else {
-                    chi2inc = 0.;
-                }
-                if (verbose) {
-                    System.out.format("MeasurementSite.makePrediction: chi2 increment=%12.5e, hitID=%d, theHit=%d, mxResid=%12.5e\n",
-                                                    chi2inc, hitID, theHit, mxResid);
-                }
+            } else {
+                chi2inc = 0.;
+            }
+            if (Math.abs(minResid) < mxResid) {
+                hitID = theHit;
+            } else {
+                chi2inc = 0.;
+            }
+            if (verbose) {
+                System.out.format("MeasurementSite.makePrediction: chi2 increment=%12.5e, hitID=%d, theHit=%d, mxResid=%12.5e\n", chi2inc, hitID, theHit,
+                                                mxResid);
             }
         }
 
@@ -210,7 +209,7 @@ class MeasurementSite {
         }
 
         // For dummy layers or layers with no hits just copy the predicted state
-        if (m.Layer < 0 || hitID < 0) {
+        if (hitID < 0) {
             aF = aP;
             filtered = true;
             return true;
@@ -229,8 +228,7 @@ class MeasurementSite {
         aF.mPred = h(aF, phiF);
         aF.r = hit.v - aF.mPred;
 
-        // Vec HF = new Vec(5, buildH(aF)); // No need to recalculate H from the
-        // filtered helix parameters
+        // Vec HF = new Vec(5, buildH(aF)); // No need to recalculate H from the filtered helix parameters
         // HF.print("filtered H");
         // H.print("predicted H");
         aF.R = V - H.dot(H.leftMultiply(aF.C));
@@ -245,30 +243,18 @@ class MeasurementSite {
     }
 
     // Produce the smoothed state vector for this site
-    boolean smooth(MeasurementSite nS, SquareMatrix Facc) {
+    boolean smooth(MeasurementSite nS) {
         // nS is the next site in the filtering chain (i.e. the previous site that was smoothed)
-        // Facc is the accumulated propagation matrix from dummy steps in between this Si layer and the next,
-        // used only to take into account large B field variations. It should be either null or a unit matrix
-        // if there were no intermediate dummy steps.
 
         if (smoothed || !filtered) {
             System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");
             this.print("in the wrong state for smoothing");
         }
 
-        if (m.Layer < 0 || hitID < 0) { // Skip dummy layer or a layer with no hit attached
-            this.aS = nS.aS;
-            this.aP = nS.aP;
-            smoothed = true;
+        this.aS = this.aF.smooth(nS.aS, nS.aP);
+        if (hitID < 0)
             return true;
-        }
 
-        this.aS = this.aF.smooth(nS.aS, nS.aP, Facc);
-
-        if (hitID < 0) {
-            System.out.format("MeasurementSite.smooth: hitID=%d", hitID);
-            this.print("buggy");
-        }
         Measurement hit = this.m.hits.get(hitID);
         double V = hit.sigma * hit.sigma;
         double phiS = this.hpi.planeIntersect(this.aS.a, this.aS.X0, this.aS.alpha, this.m.p.toLocal(this.aS.Rot, this.aS.origin));
@@ -313,8 +299,7 @@ class MeasurementSite {
         Vec rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
         if (verbose) {
             rLocal.print("MeasurementSite.h: local intersection");
-            System.out.format("MeasurementSite.h: phi=%12.5e, detector coordinate out of the plane = %10.7f, h=%10.7f\n", phi, rLocal.v[2],
-                                            rLocal.v[1]);
+            System.out.format("MeasurementSite.h: phi=%12.5e, detector coordinate out of the plane = %10.7f, h=%10.7f\n", phi, rLocal.v[2], rLocal.v[1]);
         }
         return rLocal.v[1];
     }
@@ -333,8 +318,7 @@ class MeasurementSite {
             // R.print("in buildH");
             // p.print("in buildH");
         }
-        Vec dxdphi = new Vec((alpha / S.a.v[2]) * Math.sin(S.a.v[1] + phi), -(alpha / S.a.v[2]) * Math.cos(S.a.v[1] + phi),
-                                        -(alpha / S.a.v[2]) * S.a.v[4]);
+        Vec dxdphi = new Vec((alpha / S.a.v[2]) * Math.sin(S.a.v[1] + phi), -(alpha / S.a.v[2]) * Math.cos(S.a.v[1] + phi), -(alpha / S.a.v[2]) * S.a.v[4]);
         double[][] dxda = new double[3][5];
         dxda[0][0] = Math.cos(S.a.v[1]);
         dxda[1][0] = Math.sin(S.a.v[1]);

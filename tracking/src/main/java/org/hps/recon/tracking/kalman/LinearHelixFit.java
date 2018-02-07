@@ -67,8 +67,7 @@ public class LinearHelixFit { // Simultaneous fit to a line in the non-bending p
         System.out.format("LinearHelixFit: i   y          v       v predicted     residual     sigmas       chi^2=%8.3f\n", chi2);
         for (int i = 0; i < N; i++) {
             double vPred = -evaluateLine(y[i]) * Math.cos(theta[i]) - evaluateParabola(y[i]) * Math.sin(theta[i]);
-            System.out.format("        %d   %10.7f   %10.7f   %10.7f   %10.7f   %10.7f\n", i, y[i], v[i], vPred, v[i] - vPred,
-                                            (v[i] - vPred) / s[i]);
+            System.out.format("        %d   %10.7f   %10.7f   %10.7f   %10.7f   %10.7f\n", i, y[i], v[i], vPred, v[i] - vPred, (v[i] - vPred) / s[i]);
         }
     }
 

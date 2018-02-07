@@ -91,16 +91,20 @@ class StateVector {
         System.out.format(">>>Dump of state vector %s %d  %d, B=%10.7f Tesla\n", s, kUp, kLow, B);
         origin.print("origin of local coordinates");
         Rot.print("from global to field coordinates");
-        X0.print("pivot point in local cooordinates");
+        X0.print("pivot point in local coordinates");
         this.toGlobal(X0).print("pivot point in global coordinates");
         a.print("helix parameters");
         helixErrors().print("helix parameter errors");
         C.print("for the helix covariance");
         if (F != null)
             F.print("for the propagator");
-        double sigmas = r / Math.sqrt(R);
-        System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r,
-                                        R, sigmas);
+        double sigmas;
+        if (R > 0.) {
+            sigmas = r / Math.sqrt(R);
+        } else {
+            sigmas = 0.;
+        }
+        System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r, R, sigmas);
         System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
     }
 
@@ -168,7 +172,7 @@ class StateVector {
         F = fRot.multiply(F);
 
         // Test the derivatives
-
+        /*
         if (verbose) {
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
             StateVector aPda = copy();
@@ -189,25 +193,26 @@ class StateVector {
                 System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact, delta);
             }
         }
+        */
 
         aPrime.kLow = newSite;
         aPrime.kUp = kUp;
 
         // Add the multiple scattering contribution for the silicon layer
         // sigmaMS is the rms of the projected scattering angle
-        double sigmaMS;
-        if (XL == 0.)
-            sigmaMS = 0.;
-        else {
+        SquareMatrix Ctot;
+        if (XL == 0.) {
+            Ctot = this.C;
+        } else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
-            sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
-            if (verbose)
+            double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+            if (verbose) {
                 System.out.format("StateVector.predict: momentum=%12.5e, sigmaMS=%12.5e\n", momentum, sigmaMS);
+            }
+            Ctot = this.C.sum(this.getQ(sigmaMS));
         }
-        SquareMatrix Ctot = this.C.sum(this.getQ(sigmaMS));
 
-        // Now propagate the multiple scattering matrix and covariance matrix to the new
-        // site
+        // Now propagate the multiple scattering matrix and covariance matrix to the new site
         aPrime.C = Ctot.similarity(F);
 
         return aPrime;
@@ -253,21 +258,12 @@ class StateVector {
     }
 
     // Create a smoothed state vector from the filtered state vector
-    StateVector smooth(StateVector snS, StateVector snP, SquareMatrix Facc) {
-        // Facc is the accumulated propagation matrix from dummy steps in between this Si layer and the next,
-        // used only to take into account large B field variations. It should be either null or a unit matrix
-        // if there were no intermediate dummy steps.
+    StateVector smooth(StateVector snS, StateVector snP) {
         if (verbose) {
-            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow,
-                                            kUp, snS.kLow, snS.kUp, snP.kLow, snP.kUp);
-            if (Facc != null) {
-                F.multiply(Facc).print("total propagation matrix");
-            }
+            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp, snS.kLow,
+                                            snS.kUp, snP.kLow, snP.kUp);
         }
-        StateVector sS = copy();
-        if (Facc != null) {
-            sS.F = F.multiply(Facc);
-        }
+        StateVector sS = this.copy();
 
         SquareMatrix CnInv = snP.C.invert();
         SquareMatrix A = (C.multiply(sS.F.transpose())).multiply(CnInv);
@@ -410,8 +406,7 @@ class StateVector {
         f[2][2] = 1.0;
         f[3][0] = (alpha / a.v[2]) * a.v[4] * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
         f[3][1] = (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4]
-                                        * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4] * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         f[3][3] = 1.0;
         f[3][4] = -(alpha / a.v[2]) * (aP.v[1] - a.v[1]);
         f[4][4] = 1.0;

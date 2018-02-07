@@ -5,8 +5,9 @@ import java.util.Iterator;
 
 // Description of a single silicon-strip module, and a container for its hits
 class SiModule {
-    int Layer; // Tracker layer number 0 through 5, -1 for a dummy layer
+    int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a non-uniform field
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
+                                 // A dummy layer will
     Plane p; // Orientation and offset of the detector measurement plane in global
              // coordinates (NOT rotated by the stereo angle)
              // The offset should be the location of the center of the detector in global
@@ -16,7 +17,7 @@ class SiModule {
     RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
     RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
     double stereo; // Stereo angle of the detectors in radians
-    double thickness; // Silicon thickness in mm
+    double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
     FieldMap Bfield;
 
     SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
@@ -39,8 +40,8 @@ class SiModule {
     }
 
     void print(String s) {
-        System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
-                                        s, Layer, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer,
+                                        stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         p.X().print("origin of Si layer coordinates in the global system");
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);
@@ -50,8 +51,8 @@ class SiModule {
             m.print(" ");
             Vec Bf = Bfield.getField(m.rGlobal);
             Vec tBf = Bf.unitVec();
-            System.out.format("            At the MC true location, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(),
-                                            tBf.v[0], tBf.v[1], tBf.v[2]);
+            System.out.format("            At the MC true location, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1],
+                                            tBf.v[2]);
         }
     }
 

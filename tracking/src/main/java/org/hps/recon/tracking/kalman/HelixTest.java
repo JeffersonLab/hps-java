@@ -31,6 +31,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         // Units are Tesla, GeV, mm
 
         int nTrials = 10000; // The number of test events to generate for fitting
+        int startModule = 9; // Where to start the Kalman filtering
+        int nIteration = 2; // Number of filter iterations
+        int numbLayers = 6; // Number of layers to use for the linear fit
         boolean cheat = false; // true to use the true helix parameters (smeared) for the starting guess
         boolean perfect = false;
         double thickness = 0.3; // Silicon thickness in mm
@@ -50,15 +53,15 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         Vec initialDirection = new Vec(Math.cos(Phi) * Math.sin(Theta), Math.sin(Phi) * Math.sin(Theta), Math.cos(Theta));
         initialDirection.print("initial particle direction");
         double[] drho = new double[nHelices]; // { -0., 0., 1. }; // Helix parameters
-        double drhoSigma = 0.3;   // 0.2  0.3
+        double drhoSigma = 0.3; // 0.2 0.3
         double[] dz = new double[nHelices]; // { 5.0, 1.0, 4.0 };
-        double dzSigma = 0.02;   // 0.2   0.02
+        double dzSigma = 0.02; // 0.2 0.02
         double[] phi0 = new double[nHelices]; // { 0.0, 0.04, 0.05 };
-        double phi0Sigma = 0.01;  // 0.0002   0.01
+        double phi0Sigma = 0.01; // 0.0002 0.01
         double[] tanl = new double[nHelices]; // { 0.1, 0.12, 0.13 };
-        double tanlSigma = 0.001;  // 0.0002, 0.001
+        double tanlSigma = 0.001; // 0.0002, 0.001
         double[] K = new double[nHelices];
-        double kError = 1.2;  // 0.02  1.2
+        double kError = 1.2; // 0.02 1.2
 
         // Tracking instrument description
         int nPlanes = 6;
@@ -158,7 +161,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             System.out.format("True starting helix %d is %10.6f %10.6f %10.6f %10.6f %10.6f\n", i, drho[i], phi0[i], K[i], dz[i], tanl[i]);
             helixMCtrue[i] = TkInitial[i].p.copy();
         }
-        double kSigma = K[0] * kError;  
+        double kSigma = K[0] * kError;
 
         // Print out a plot of just a simple helix
         file = new File(path + "helix1.gp");
@@ -509,6 +512,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(),
                                         ldt.getSecond(), ldt.getNano());
 
+        Vec[] helixSaved = new Vec[2 * nPlanes];
         Helix helixBegin = TkInitial[0].copy();
         helixBegin.print("helixBegin");
         TkInitial[0].print("TkInitial");
@@ -529,8 +533,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             ArrayList<SiModule> SiModules = new ArrayList<SiModule>(2 * nPlanes);
             for (int pln = 0; pln < nPlanes; pln++) {
                 Vec rInt1 = new Vec(0., location[pln], 0.);
-                if (verbose)
+                if (verbose) {
                     rInt1.print("  Plane first layer location=");
+                }
 
                 // Randomly tilt the measurement planes to mimic misalignment
                 RotMatrix Rt = new RotMatrix(phiR1[pln], thetaR1[pln], -phiR1[pln]);
@@ -606,8 +611,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     }
                     m1[pln] = rDet.v[1] + resolution * gran[0];
                     hRes.entry(resolution * gran[0]);
-                    if (verbose)
+                    if (verbose) {
                         System.out.format("       Measurement 1= %10.7f,  Truth=%10.7f\n", m1[pln], rDet.v[1]);
+                    }
                     Measurement thisM1 = new Measurement(m1[pln], resolution, rscat, rDet.v[1]);
                     thisSi.addMeasurement(thisM1);
 
@@ -621,6 +627,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     vhat = t1.cross(uhat);
                     RotMatrix Rtmp = new RotMatrix(uhat, vhat, t1);
                     Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
+                    helixSaved[2 * pln] = Tk[ih].p.copy();
                     Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
                     if (verbose) {
                         Tk[ih].print("scattered from the first layer of the detector plane");
@@ -695,6 +702,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     } else {
                         TkEnd = Tk[ih];
                     }
+                    helixSaved[2 * pln + 1] = Tk[ih].p.copy();
                 }
                 if (verbose)
                     printWriter2.format("EOD\n");
@@ -723,9 +731,8 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             }
 
             // Create a seed track from the first 3 or 4 layers
-            int frstLyr = 0;
-            int numbLayers = 6;
-            SeedTrack seed = new SeedTrack(SiModules, helixOrigin.v[1], frstLyr, numbLayers, verbose);
+            int frstLyr = Math.max(startModule - numbLayers + 1, 0);
+            SeedTrack seed = new SeedTrack(SiModules, location[frstLyr / 2], frstLyr, numbLayers, verbose);
             if (!seed.success) {
                 return;
             }
@@ -736,22 +743,27 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             Vec initialHelixGuess = seed.helixParams();
             SquareMatrix initialCovariance = seed.covariance();
             Vec GuessErrors = seed.errors();
-            Vec gErrVec = new Vec(initialHelixGuess.v[0] - drho[0], initialHelixGuess.v[1] - phi0[0], initialHelixGuess.v[2] - K[0],
-                                            initialHelixGuess.v[3] - dz[0], initialHelixGuess.v[4] - tanl[0]);
+
+            // For comparison, find the true helix in the B field frame at the first layer of the linear fit
+
+            Vec gErrVec = initialHelixGuess.dif(helixSaved[frstLyr]);
+            // new Vec(initialHelixGuess.v[0] - drho[0], initialHelixGuess.v[1] - phi0[0], initialHelixGuess.v[2] - K[0],
+            // initialHelixGuess.v[3] - dz[0], initialHelixGuess.v[4] - tanl[0]);
             double[] gErr = new double[5];
             for (int i = 0; i < 5; i++) {
                 gErr[i] = gErrVec.v[i] / GuessErrors.v[i];
             }
             if (verbose) {
-                System.out.format("Guess drho=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[0], drho[0], GuessErrors.v[0],
-                                                gErr[0]);
-                System.out.format("Guess phi0=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[1], phi0[0], GuessErrors.v[1],
-                                                gErr[1]);
-                System.out.format("Guess K=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[2], K[0], GuessErrors.v[2], gErr[2]);
-                System.out.format("Guess dz=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[3], dz[0], GuessErrors.v[3],
-                                                gErr[3]);
-                System.out.format("Guess tanl=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[4], tanl[0], GuessErrors.v[4],
-                                                gErr[4]);
+                System.out.format("Guess drho=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[0], helixSaved[frstLyr].v[0],
+                                                GuessErrors.v[0], gErr[0]);
+                System.out.format("Guess phi0=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[1], helixSaved[frstLyr].v[1],
+                                                GuessErrors.v[1], gErr[1]);
+                System.out.format("Guess K=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[2], helixSaved[frstLyr].v[2],
+                                                GuessErrors.v[2], gErr[2]);
+                System.out.format("Guess dz=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[3], helixSaved[frstLyr].v[3],
+                                                GuessErrors.v[3], gErr[3]);
+                System.out.format("Guess tanl=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[4], helixSaved[frstLyr].v[4],
+                                                GuessErrors.v[4], gErr[4]);
             }
             hEdrhoG.entry(gErr[0]);
             hEphi0G.entry(gErr[1]);
@@ -816,9 +828,11 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                 initialCovariance.print("initial covariance guess");
             }
             // Run the Kalman fit
-            int nIteration = 2;
-            KalmanTrackFit kF = new KalmanTrackFit(SiModules, 0, 1, nIteration, helixOrigin, initialHelixGuess, initialCovariance, Bstart, tBstart, fM, verbose);
-            if (!kF.success) continue;
+            KalmanTrackFit2 kF = new KalmanTrackFit2(SiModules, startModule, nIteration, new Vec(0., location[frstLyr / 2], 0.), initialHelixGuess,
+                                            initialCovariance, fM, verbose);
+            if (!kF.success) {
+                continue;
+            }
 
             ArrayList<MeasurementSite> sites = kF.sites;
             Iterator<MeasurementSite> itr = sites.iterator();
@@ -832,7 +846,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                         if (site.smoothed) {
                             hResidS0[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
                             hResidS2[siM.Layer].entry(site.aS.r);
-                            hResidS4[siM.Layer].entry(site.aS.mPred - site.m.hits.get(0).vTrue);
+                            if (site.hitID >= 0) {
+                                hResidS4[siM.Layer].entry(site.aS.mPred - site.m.hits.get(site.hitID).vTrue);
+                            }
                         }
                     } else {
                         if (site.filtered)
@@ -840,7 +856,9 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                         if (site.smoothed) {
                             hResidS1[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
                             hResidS3[siM.Layer].entry(site.aS.r);
-                            hResidS5[siM.Layer].entry(site.aS.mPred - site.m.hits.get(0).vTrue);
+                            if (site.hitID >= 0) {
+                                hResidS5[siM.Layer].entry(site.aS.mPred - site.m.hits.get(site.hitID).vTrue);
+                            }
                         }
                     }
                 }
@@ -849,88 +867,93 @@ public class HelixTest { // Main program for testing the Kalman fitting code
             hChi2.entry(kF.chi2s);
             hChi2f.entry(kF.chi2f);
 
-            if (kF.sites.get(kF.initialSite).aS != null && kF.sites.get(kF.finalSite).aS != null) {
-                if (verbose) {
-                    kF.fittedStateBegin().a.print("fitted helix parameters at the first layer");
-                    kF.fittedStateBegin().origin.print("fitted helix origin at first layer");
-                    helixBegin.p.print("actual helix parameters at the first layer");
-                    helixBegin.origin.print("origin of actual helix");
-                    helixBegin.X0.print("pivot of actual helix");
-                }
-                Vec newPivot = kF.fittedStateBegin().toLocal(helixBegin.origin.sum(helixBegin.X0));
-                Vec aF = kF.fittedStateBegin().pivotTransform(newPivot);
-                // now rotate to the original field frame
-                SquareMatrix fRot = new SquareMatrix(5);
-                RotMatrix Rcombo = helixBegin.R.multiply(kF.fittedStateBegin().Rot.invert());
-                aF = kF.fittedStateBegin().rotateHelix(aF, Rcombo, fRot);
-                if (verbose) {
-                    aF.print("final smoothed helix parameters at the track beginning");
-                    newPivot.print("final smoothed helix pivot");
-                }
-                Vec aFe = new Vec(5); // .fittedStateBegin().helixErrors(aF);
-                SquareMatrix aFC = kF.fittedStateBegin().covariancePivotTransform(aF);
-                aFC = aFC.similarity(fRot);
-                for (int i = 0; i < 5; i++) {
-                    aFe.v[i] = Math.sqrt(Math.max(0., aFC.M[i][i]));
-                }
-                if (verbose) {
-                    aFe.print("error estimates on the smoothed helix parameters");
-                    // aFC.print("helix parameters covariance");
-                    helixMCtrue[0].print("MC true helix at the track beginning");
-                }
-                Vec trueErr = aF.dif(helixBegin.p);
-                if (verbose) {
-                    for (int i = 0; i < 5; i++) {
-                        double diff = (trueErr.v[i]) / aFe.v[i];
-                        System.out.format("     Helix parameter %d after smoothing, error = %10.5f sigma\n", i, diff);
+            if (verbose) {
+                System.out.format("HelixTest: initial-site=%d, final-site=%d, # sites=%d\n", kF.initialSite, kF.finalSite, kF.sites.size());
+            }
+            if (kF.sites.size() > 0) {
+                if (kF.sites.get(kF.initialSite).aS != null && kF.sites.get(kF.finalSite).aS != null) {
+                    if (verbose) {
+                        kF.fittedStateBegin().a.print("fitted helix parameters at the first layer");
+                        kF.fittedStateBegin().origin.print("fitted helix origin at first layer");
+                        helixBegin.p.print("actual helix parameters at the first layer");
+                        helixBegin.origin.print("origin of actual helix");
+                        helixBegin.X0.print("pivot of actual helix");
                     }
-                }
-                hEdrhoS.entry(trueErr.v[0] / aFe.v[0]);
-                hEphi0S.entry(trueErr.v[1] / aFe.v[1]);
-                hEkS.entry(trueErr.v[2] / aFe.v[2]);
-                hEdzS.entry(trueErr.v[3] / aFe.v[3]);
-                hEtanlS.entry(trueErr.v[4] / aFe.v[4]);
-                double helixChi2 = trueErr.dot(trueErr.leftMultiply(aFC.invert()));
-                hChi2HelixS.entry(helixChi2);
-                if (verbose) {
-                    System.out.format("Full chi^2 of the smoothed helix parameters = %12.4e\n", helixChi2);
-                    TkEnd.print("MC true helix at the last detector plane");
-                    kF.fittedStateEnd().print("fitted state at the last detector plane");
-                }
-                newPivot = kF.fittedStateEnd().toLocal(TkEnd.R.inverseRotate(TkEnd.X0).sum(TkEnd.origin));
-                Vec eF = kF.fittedStateEnd().pivotTransform(newPivot);
-                Rcombo = TkEnd.R.multiply(kF.fittedStateEnd().Rot.invert());
-                eF = kF.fittedStateEnd().rotateHelix(eF, Rcombo, fRot);
-                if (verbose) {
-                    eF.print("final smoothed helix parameters at the track end");
-                    newPivot.print("new pivot at the track end");
-                }
-                SquareMatrix eFc = kF.fittedStateEnd().covariancePivotTransform(eF);
-                eFc = eFc.similarity(fRot);
-                Vec eFe = new Vec(5);
-                for (int i = 0; i < 5; i++) {
-                    eFe.v[i] = Math.sqrt(Math.max(0., eFc.M[i][i]));
-                }
-                Vec fH = TkEnd.p;
-                trueErr = eF.dif(fH);
-                if (verbose) {
-                    eFe.print("errors on the helix parameters");
-                    fH.print("MC true helix parameters at the last detector plane");
-                    for (int i = 0; i < 5; i++) {
-                        double diff = (trueErr.v[i]) / aFe.v[i];
-                        System.out.format("     Helix parameter %d, error = %10.5f sigma\n", i, diff);
+                    Vec newPivot = kF.fittedStateBegin().toLocal(helixBegin.origin.sum(helixBegin.X0));
+                    Vec aF = kF.fittedStateBegin().pivotTransform(newPivot);
+                    // now rotate to the original field frame
+                    SquareMatrix fRot = new SquareMatrix(5);
+                    RotMatrix Rcombo = helixBegin.R.multiply(kF.fittedStateBegin().Rot.invert());
+                    aF = kF.fittedStateBegin().rotateHelix(aF, Rcombo, fRot);
+                    if (verbose) {
+                        aF.print("final smoothed helix parameters at the track beginning");
+                        newPivot.print("final smoothed helix pivot");
                     }
+                    Vec aFe = new Vec(5); // .fittedStateBegin().helixErrors(aF);
+                    SquareMatrix aFC = kF.fittedStateBegin().covariancePivotTransform(aF);
+                    aFC = aFC.similarity(fRot);
+                    for (int i = 0; i < 5; i++) {
+                        aFe.v[i] = Math.sqrt(Math.max(0., aFC.M[i][i]));
+                    }
+                    if (verbose) {
+                        aFe.print("error estimates on the smoothed helix parameters");
+                        // aFC.print("helix parameters covariance");
+                        helixMCtrue[0].print("MC true helix at the track beginning");
+                    }
+                    Vec trueErr = aF.dif(helixBegin.p);
+                    if (verbose) {
+                        for (int i = 0; i < 5; i++) {
+                            double diff = (trueErr.v[i]) / aFe.v[i];
+                            System.out.format("     Helix parameter %d after smoothing, error = %10.5f sigma\n", i, diff);
+                        }
+                    }
+                    hEdrhoS.entry(trueErr.v[0] / aFe.v[0]);
+                    hEphi0S.entry(trueErr.v[1] / aFe.v[1]);
+                    hEkS.entry(trueErr.v[2] / aFe.v[2]);
+                    hEdzS.entry(trueErr.v[3] / aFe.v[3]);
+                    hEtanlS.entry(trueErr.v[4] / aFe.v[4]);
+                    double helixChi2 = trueErr.dot(trueErr.leftMultiply(aFC.invert()));
+                    hChi2HelixS.entry(helixChi2);
+                    if (verbose) {
+                        System.out.format("Full chi^2 of the smoothed helix parameters = %12.4e\n", helixChi2);
+                        TkEnd.print("MC true helix at the last detector plane");
+                        kF.fittedStateEnd().print("fitted state at the last detector plane");
+                    }
+                    newPivot = kF.fittedStateEnd().toLocal(TkEnd.R.inverseRotate(TkEnd.X0).sum(TkEnd.origin));
+                    Vec eF = kF.fittedStateEnd().pivotTransform(newPivot);
+                    Rcombo = TkEnd.R.multiply(kF.fittedStateEnd().Rot.invert());
+                    eF = kF.fittedStateEnd().rotateHelix(eF, Rcombo, fRot);
+                    if (verbose) {
+                        eF.print("final smoothed helix parameters at the track end");
+                        newPivot.print("new pivot at the track end");
+                    }
+                    SquareMatrix eFc = kF.fittedStateEnd().covariancePivotTransform(eF);
+                    eFc = eFc.similarity(fRot);
+                    Vec eFe = new Vec(5);
+                    for (int i = 0; i < 5; i++) {
+                        eFe.v[i] = Math.sqrt(Math.max(0., eFc.M[i][i]));
+                    }
+                    Vec fH = TkEnd.p;
+                    trueErr = eF.dif(fH);
+                    if (verbose) {
+                        eFe.print("errors on the helix parameters");
+                        fH.print("MC true helix parameters at the last detector plane");
+                        for (int i = 0; i < 5; i++) {
+                            double diff = (trueErr.v[i]) / aFe.v[i];
+                            System.out.format("     Helix parameter %d, error = %10.5f sigma\n", i, diff);
+                        }
+                    }
+                    hEdrho.entry(trueErr.v[0] / eFe.v[0]);
+                    hEphi0.entry(trueErr.v[1] / eFe.v[1]);
+                    hEk.entry(trueErr.v[2] / eFe.v[2]);
+                    hEdz.entry(trueErr.v[3] / eFe.v[3]);
+                    hEtanl.entry(trueErr.v[4] / eFe.v[4]);
+                    trueErr = eF.dif(fH);
+                    helixChi2 = trueErr.dot(trueErr.leftMultiply(eFc.invert()));
+                    if (verbose)
+                        System.out.format("Full chi^2 of the filtered helix parameters = %12.4e\n", helixChi2);
+                    hChi2Helix.entry(helixChi2);
                 }
-                hEdrho.entry(trueErr.v[0] / eFe.v[0]);
-                hEphi0.entry(trueErr.v[1] / eFe.v[1]);
-                hEk.entry(trueErr.v[2] / eFe.v[2]);
-                hEdz.entry(trueErr.v[3] / eFe.v[3]);
-                hEtanl.entry(trueErr.v[4] / eFe.v[4]);
-                trueErr = eF.dif(fH);
-                helixChi2 = trueErr.dot(trueErr.leftMultiply(eFc.invert()));
-                if (verbose)
-                    System.out.format("Full chi^2 of the filtered helix parameters = %12.4e\n", helixChi2);
-                hChi2Helix.entry(helixChi2);
             }
         }
 
