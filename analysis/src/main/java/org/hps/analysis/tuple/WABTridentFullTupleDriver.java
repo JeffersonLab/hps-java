@@ -1,33 +1,36 @@
 package org.hps.analysis.tuple;
 
-import java.util.Arrays;
 
 import org.lcsim.event.EventHeader;
 
-public class FullTruthTupleDriver extends TupleDriver {
+public class WABTridentFullTupleDriver extends FullTruthTupleMaker {
+
 
     @Override
     protected void setupVariables() {
         tupleVariables.clear();
         addEventVariables();
+        
         addFullMCTridentVariables();
         addFullMCWabVariables();
     }
     
-    protected void addEventVariables() {
-        String[] newVars = new String[] {"run/I", "event/I", "tupleevent/I"};
-        tupleVariables.addAll(Arrays.asList(newVars));
-    }
-
     @Override
     public void process(EventHeader event) {
 
         fillTruthEventVariables(event);
+        fillMCTridentVariables(event);
         fillMCFullTruthVariables(event);
         fillMCWabVariables(event);
 
         if (tupleWriter != null) {
             writeTuple();
         }
+    }
+
+
+    @Override
+    boolean passesCuts() {
+        return true;
     }
 }

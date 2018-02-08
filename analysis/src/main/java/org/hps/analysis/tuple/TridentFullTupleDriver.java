@@ -2,11 +2,11 @@ package org.hps.analysis.tuple;
 
 import java.util.Arrays;
 
+import org.hps.recon.particle.ReconParticleDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
-public class TridentTupleDriver extends TupleMaker {
-
+public class TridentFullTupleDriver extends FullTruthTupleMaker {
     private final double tupleTrkPCut = 0.9;
     private final double tupleMaxSumCut = 1.3;
     
@@ -17,6 +17,8 @@ public class TridentTupleDriver extends TupleMaker {
         addVertexVariables();
         addParticleVariables("ele");
         addParticleVariables("pos");
+        addMCTridentVariables();
+        addFullTruthVertexVariables();
 
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
@@ -26,12 +28,17 @@ public class TridentTupleDriver extends TupleMaker {
     @Override
     public void process(EventHeader event) {
 
-        if (!setupCollections(event))
-            return;
+        setupCollections(event);
         
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
             boolean isOK = fillBasicTuple(event, triggerData, uncV0, false);
+            fillMCTridentVariables(event);
+            
+            ReconstructedParticle electron = uncV0.getParticles().get(ReconParticleDriver.ELECTRON);
+            ReconstructedParticle positron = uncV0.getParticles().get(ReconParticleDriver.POSITRON);
+            fillFullVertexTruth(event,electron.getTracks().get(0),positron.getTracks().get(0));
+            
             if (tupleWriter != null && isOK) {
                 if (!cutTuple || (passesCuts())) {
                     writeTuple();
@@ -47,6 +54,4 @@ public class TridentTupleDriver extends TupleMaker {
         boolean sumCut = tupleMap.get("eleP/D") + tupleMap.get("posP/D") < tupleMaxSumCut * ebeam;
         return (trkCut && sumCut);
     }
-
-    
 }
