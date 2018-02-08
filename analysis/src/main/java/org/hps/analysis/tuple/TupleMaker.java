@@ -113,6 +113,9 @@ public abstract class TupleMaker extends Driver {
         cutTuple = input;
     }
 
+    public void setCandidatesColName(String input) {
+        this.CandidatesColName = input;
+    }
 
     public void setNLay(int nLay) {
         this.nLay = nLay;
