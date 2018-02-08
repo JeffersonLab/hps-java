@@ -15,7 +15,7 @@ public class FEETupleDriverTest extends TupleDriverTest {
          ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setTriggerType("all");
          ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setIsGBL(true);
          ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setCutTuple(true);
-         ((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setBeamPosZ(-5.0);
+         //((org.hps.analysis.tuple.FEETupleDriver)testTupleDriver).setBeamPosZ(-5.0);
          
          super.testIt();
     }
