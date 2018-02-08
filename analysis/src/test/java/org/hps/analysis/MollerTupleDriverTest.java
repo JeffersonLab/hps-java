@@ -13,7 +13,6 @@ public class MollerTupleDriverTest extends TupleDriverTest {
          ((org.hps.analysis.tuple.MollerTupleDriver)testTupleDriver).setTriggerType("all");
          ((org.hps.analysis.tuple.MollerTupleDriver)testTupleDriver).setIsGBL(true);
          ((org.hps.analysis.tuple.MollerTupleDriver)testTupleDriver).setCutTuple(true);
-         //((org.hps.analysis.tuple.MollerTupleDriver)testTupleDriver).setBeamPosZ(-5.0);
          
          super.testIt();
     }

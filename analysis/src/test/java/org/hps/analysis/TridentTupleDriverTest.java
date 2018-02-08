@@ -13,7 +13,6 @@ public class TridentTupleDriverTest extends TupleDriverTest {
          ((org.hps.analysis.tuple.TridentTupleDriver)testTupleDriver).setTriggerType("all");
          ((org.hps.analysis.tuple.TridentTupleDriver)testTupleDriver).setIsGBL(true);
          ((org.hps.analysis.tuple.TridentTupleDriver)testTupleDriver).setCutTuple(true);
-         //((org.hps.analysis.tuple.TridentTupleDriver)testTupleDriver).setBeamPosZ(-5.0);
          
          super.testIt();
     }
