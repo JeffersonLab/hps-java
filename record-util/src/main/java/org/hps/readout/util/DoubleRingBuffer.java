@@ -34,7 +34,7 @@ public class DoubleRingBuffer extends RingBuffer<Double, Double> {
 	@Override
 	public void addToCell(int position, Double value) {
 		validatePosition(position);
-		array[(index + position) % array.length] += value;
+		setValue(position, getValue(position) + value);
 	}
 	
 	@Override
