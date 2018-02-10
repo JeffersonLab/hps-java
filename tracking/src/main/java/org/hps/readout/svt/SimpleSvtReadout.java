@@ -84,23 +84,23 @@ public class SimpleSvtReadout extends TriggerableDriver {
     
     @Override
     public void endOfData() {
-    	inputWriter.close();
-    	outputWriter.close();
-    	verboseWriter.close();
-    	triggerWriter.close();
-    	super.endOfData();
+        inputWriter.close();
+        outputWriter.close();
+        verboseWriter.close();
+        triggerWriter.close();
+        super.endOfData();
     }
     
     @Override
     public void startOfData() {
-    	if(debug) {
-	    	inputWriter.initialize();
-	    	outputWriter.initialize();
-	    	verboseWriter.initialize();
-	    	triggerWriter.initialize();
-    	}
-    	verboseWriter.write("Test");
-    	super.startOfData();
+        if(debug) {
+            inputWriter.initialize();
+            outputWriter.initialize();
+            verboseWriter.initialize();
+            triggerWriter.initialize();
+        }
+        verboseWriter.write("Test");
+        super.startOfData();
     }
 
     public SimpleSvtReadout() {
@@ -113,7 +113,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
     }
     
     public void setDebug(boolean state) {
-    	debug = state;
+        debug = state;
     }
 
     public void setEnablePileupCut(boolean enablePileupCut) {
@@ -408,9 +408,9 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     @Override
     protected void processTrigger(EventHeader event) {
-    	verboseWriter.write("Running method ProcessTrigger(EventHeader).");
-    	verboseWriter.write("noPileup = " + noPileup);
-    	
+        verboseWriter.write("Running method ProcessTrigger(EventHeader).");
+        verboseWriter.write("noPileup = " + noPileup);
+        
         if (noPileup) {
             return;
         }
@@ -421,7 +421,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
         List<LCRelation> trueHitRelations = new ArrayList<LCRelation>();
         // Calculate time of first sample
         double firstSample = Math.floor((ClockSingleton.getTime() - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
-        		* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
+                * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
         
         
         outputWriter.write("> Event " + event.getEventNumber() + "; t = " + ClockSingleton.getTime());
@@ -436,9 +436,9 @@ public class SimpleSvtReadout extends TriggerableDriver {
         verboseWriter.write("\treadoutOffset                     :: " + readoutOffset);
         verboseWriter.write("\tfirstSample                       :: " + firstSample);
         verboseWriter.write("\tdouble firstSample = Math.floor((ClockSingleton.getTime() - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL) "
-        		+ "* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;");
+                + "* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;");
         verboseWriter.write(String.format("\tdouble %f = Math.floor((%f - %f - %f) / %f) * %f + %f;", firstSample, ClockSingleton.getTime(), readoutLatency,
-        		readoutOffset, HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, readoutOffset));
+                readoutOffset, HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, readoutOffset));
         
         triggerWriter.write(">" + ClockSingleton.getTime() + ";" + (firstSample * HPSSVTConstants.SAMPLING_INTERVAL) + ";" + (readoutLatency - readoutOffset));
         
@@ -448,11 +448,11 @@ public class SimpleSvtReadout extends TriggerableDriver {
             
             PriorityQueue<StripHit>[] hitQueues = hitMap.get(sensor);
             for (int channel = 0; channel < hitQueues.length; channel++) {
-            	
-            	verboseWriter.write("\t\tExamining channel " + channel + ".");
-            	
+                
+                verboseWriter.write("\t\tExamining channel " + channel + ".");
+                
                 if (!addNoise && (hitQueues[channel] == null || hitQueues[channel].isEmpty())) {
-                	verboseWriter.write("\t\t\tChannel is empty. Nothing to process...");
+                    verboseWriter.write("\t\t\tChannel is empty. Nothing to process...");
                     continue;
                 }
                 double[] signal = new double[6];
@@ -467,12 +467,12 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
                 if (hitQueues[channel] != null) {
                     for (StripHit hit : hitQueues[channel]) {
-                    	
-                    	processedHits.add(hit);
-                    	
-                    	verboseWriter.write(String.format("\t\t\tEvaluating hit with amplitude %f at time %f on channel %d.", hit.amplitude, hit.time,
-                    			((HpsSiSensor) sensor).makeChannelID(channel)));
-                    	
+                        
+                        processedHits.add(hit);
+                        
+                        verboseWriter.write(String.format("\t\t\tEvaluating hit with amplitude %f at time %f on channel %d.", hit.amplitude, hit.time,
+                                ((HpsSiSensor) sensor).makeChannelID(channel)));
+                        
                         double totalContrib = 0;
                         double meanNoise = 0;
                         StringBuffer signalBuffer = new StringBuffer("\t\t\t\tSample Pulse       :: [");
@@ -492,7 +492,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
                             if(sampleN != 5) {
-                            	signalBuffer.append("   ");
+                                signalBuffer.append("   ");
                             }
                         }
                         meanNoise /= 6;
@@ -508,7 +508,7 @@ public class SimpleSvtReadout extends TriggerableDriver {
                             simHits.addAll(hit.simHits);
                             verboseWriter.write("\t\t\t\tAdded hit.");
                         } else {
-                        	verboseWriter.write("\t\t\t\tIgnored hit.");
+                            verboseWriter.write("\t\t\t\tIgnored hit.");
                         }
                     }
                 }
@@ -533,15 +533,15 @@ public class SimpleSvtReadout extends TriggerableDriver {
         
         outputWriter.write("Input");
         for(StripHit hit : processedHits) {
-        	outputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
+            outputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
         }
         
         outputWriter.write("Output");
         for(RawTrackerHit hit : hits) {
-        	outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-        			hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
-        	triggerWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-        			hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
+            outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
+                    hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
+            triggerWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
+                    hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
         }
         
 
