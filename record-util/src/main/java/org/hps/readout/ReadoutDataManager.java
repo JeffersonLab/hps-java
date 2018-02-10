@@ -215,6 +215,7 @@ public class ReadoutDataManager extends Driver {
 					// If there are special collections, write them.
 					if(onTriggerData != null) {
 						for(LcsimSingleEventCollectionData<?> triggerData : onTriggerData) {
+							System.out.println("On-Trigger Collection: " + triggerData.getCollectionName());
 							storeCollection(triggerData, lcsimEvent);
 						}
 					}
@@ -550,6 +551,7 @@ public class ReadoutDataManager extends Driver {
 		// Throw an alert if the earliest requested time precedes the
 		// earliest buffered time, and similarly for the latest time.
 		LinkedList<TimedList<?>> dataLists = collectionData.getData();
+		/*
 		if(!dataLists.isEmpty()) {
 			if(startTime >= 0 && dataLists.getFirst().getTime() > startTime) {
 				System.err.println("Warning :: Requested data for collection \"" + collectionName + "\" from time [" + startTime
@@ -563,6 +565,7 @@ public class ReadoutDataManager extends Driver {
 			System.err.println("Warning :: Requested data for collection \"" + collectionName + "\" from time [" + startTime
 					+ ", " + endTime + ") when no data is buffered.");
 		}
+			*/
 		
 		// Iterate through the data and collect all entries that have
 		// an associated truth time within the given time range. The
