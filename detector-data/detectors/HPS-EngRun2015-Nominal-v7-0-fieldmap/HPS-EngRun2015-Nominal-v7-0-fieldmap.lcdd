@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-EngRun2015-Nominal-v7-0-fieldmap" />
-    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java/detector-data/detectors/HPS-EngRun2015-Nominal-v7-0-fieldmap/compact.xml" checksum="1814056602" />
+    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java/detector-data/detectors/HPS-EngRun2015-Nominal-v7-0-fieldmap/compact.xml" checksum="265067860" />
     <author name="NONE" />
     <comment>Copy of v6-fieldmap detector with inactive Si turned on.</comment>
   </header>
@@ -54,7 +54,9 @@
     <tracker name="Tracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
       <idspecref ref="TrackerHits" />
     </tracker>
-    <tracker name="TrackerHits_Inactive_det" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits_Inactive" />
+    <tracker name="TrackerHits_Inactive_det" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits_Inactive">
+      <idspecref ref="TrackerHits_Inactive" />
+    </tracker>
     <tracker name="ECalScoring" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsECal">
       <idspecref ref="TrackerHitsECal" />
       <hit_processor type="ScoringTrackerHitProcessor" />
@@ -88,7 +90,7 @@
       <color R="0.75" G="0.73" B="0.75" alpha="1.0" />
     </vis>
     <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
-      <color R="0.8" G="0.5" B="0.1" alpha="0.0" />
+      <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
     </vis>
     <vis name="BasePlateVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
       <color R="0.35" G="0.35" B="0.35" alpha="1.0" />
@@ -1484,7 +1486,7 @@
         <fraction n="1.0" ref="Vacuum" />
       </material>
       <material name="LeadTungstate">
-        <D value="8.28" unit="g/cm3" />
+        <D value="8.28" unit="g/cm3" type="density" />
         <composite n="1" ref="Pb" />
         <composite n="1" ref="W" />
         <composite n="4" ref="O" />

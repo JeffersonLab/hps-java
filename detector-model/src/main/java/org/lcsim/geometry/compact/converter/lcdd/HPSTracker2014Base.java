@@ -92,6 +92,9 @@ public abstract class HPSTracker2014Base extends LCDDSubdetector {
         if (this.inactiveSiReadoutName != null) {            
             Tracker tracker = new Tracker(this.inactiveSiReadoutName + "_det");
             tracker.setHitsCollection(this.inactiveSiReadoutName);
+            Element element = new Element("idspecref");
+            element.setAttribute("ref", this.inactiveSiReadoutName);
+            tracker.addContent(element);
             lcdd.addSensitiveDetector(tracker);
             this.inactiveSiTracker = tracker;
         }
