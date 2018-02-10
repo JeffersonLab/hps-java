@@ -16,11 +16,11 @@ public abstract class RingBuffer<T, V> implements Iterable<T> {
 	/**
 	 * The array containing the buffer data.
 	 */
-	protected T[] array;
+	private T[] array;
 	/**
 	 * The current position within the buffer.
 	 */
-	protected int index = 0;
+	private int index = 0;
 	
 	@SuppressWarnings("unchecked")
 	protected RingBuffer(int size, Class<T> numberType) {
@@ -154,7 +154,7 @@ public abstract class RingBuffer<T, V> implements Iterable<T> {
 	 */
 	protected final void validatePosition(int position) throws ArrayIndexOutOfBoundsException {
         if(position >= array.length || position <= -array.length) {
-            throw new ArrayIndexOutOfBoundsException();
+            throw new ArrayIndexOutOfBoundsException("Array index " + position + " is invalid for buffer size " + array.length + ".");
         }
 	}
 	
