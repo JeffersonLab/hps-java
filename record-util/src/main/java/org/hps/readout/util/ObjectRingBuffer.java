@@ -35,17 +35,17 @@ public class ObjectRingBuffer<T> extends RingBuffer<Set<T>, T> {
 	
 	@Override
 	public void addToCell(int position, T value) {
-		getValue(position).add(value);
+		super.getValue(position).add(value);
 	}
 
 	@Override
 	public void clearValue() {
-		getValue().clear();
+		super.getValue().clear();
 	}
 	
 	@Override
 	public void clearValue(int position) {
-		getValue(position).clear();
+		super.getValue(position).clear();
 	}
 	
 	// ==============================================================
@@ -149,6 +149,6 @@ public class ObjectRingBuffer<T> extends RingBuffer<Set<T>, T> {
 	
 	@Override
 	protected void instantiateBuffer() {
-		for(int i = 0; i < size(); i++) { setValue(i, new HashSet<T>()); }
+		for(int i = 0; i < size(); i++) { super.setValue(i, new HashSet<T>()); }
 	}
 }
