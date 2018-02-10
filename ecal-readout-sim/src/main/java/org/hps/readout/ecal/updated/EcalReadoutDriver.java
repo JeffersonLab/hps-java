@@ -30,10 +30,12 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
+import org.lcsim.event.base.BaseSimCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.lcio.LCIOConstants;
@@ -755,7 +757,55 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     @Override
     protected double getTimeNeededForLocalOutput() {
-        return readoutWindow - readoutOffset;
+        return (readoutWindow - readoutOffset) * 4.0;
+    }
+    
+    /**
+     * Clones an object of type {@link org.lcsim.event.CalorimeterHit
+     * CalorimeterHit} and returns a copy that is shifted in time by
+     * the specified amount.
+     * @param hit - The hit to clone.
+     * @param timeShift - The amount of time by which the hit should
+     * be shifted.
+     * @return Returns a time-shifted hit as an object of type {@link
+     * org.lcsim.event.CalorimeterHit CalorimeterHit}, unless the
+     * input hit was a {@link org.lcsim.event.SimCalorimeterHit
+     * SimCalorimeterHit} object, in which case the truth information
+     * will be retained.
+     */
+    private static final CalorimeterHit cloneHitToTime(CalorimeterHit hit, double timeShift) {
+        if(hit instanceof SimCalorimeterHit) {
+            // Cast the hit to a simulated calorimeter hit.
+            SimCalorimeterHit simHit = (SimCalorimeterHit) hit;
+            
+            // Create the necessary data objects to clone the
+            // hit.
+            int[] pdgs = new int[simHit.getMCParticleCount()];
+            float[] times = new float[simHit.getMCParticleCount()];
+            float[] energies = new float[simHit.getMCParticleCount()];
+            Object[] particles = new Object[simHit.getMCParticleCount()];
+            for(int i = 0; i < simHit.getMCParticleCount(); i++) {
+                particles[i] = simHit.getMCParticle(i);
+                pdgs[i] = simHit.getMCParticle(i).getPDGID();
+                
+                // Note -- despite returning the value for these
+                // methods as a double, they are actually stored
+                // internally as floats, so this case is always safe.
+                times[i] = (float) simHit.getContributedTime(i);
+                energies[i] = (float) simHit.getContributedEnergy(i);
+            }
+            
+            // Create the new hit and shift its time position.
+            BaseSimCalorimeterHit cloneHit = new BaseSimCalorimeterHit(simHit.getCellID(), simHit.getRawEnergy(), simHit.getTime(),
+                    particles, energies, times, pdgs, simHit.getMetaData());
+            cloneHit.shiftTime(timeShift);
+            
+            // Return the hit.
+            return cloneHit;
+        } else {
+            return new BaseCalorimeterHit(hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getEnergyError(), hit.getTime() + timeShift,
+                    hit.getCellID(), hit.getPositionVec(), hit.getType(), hit.getMetaData());
+        }
     }
     
     /**
@@ -1018,8 +1068,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
             // Hit times should be specified with respect to the
             // start of the readout window.
             for(CalorimeterHit hit : pipeline.getValue(-(readoutLatency - i - 1))) {
-                channelHits.add(new BaseCalorimeterHit(hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getEnergyError(), baseHitTime + hit.getTime(),
-                        hit.getCellID(), hit.getPositionVec(), hit.getType(), hit.getMetaData()));
+                channelHits.add(cloneHitToTime(hit, baseHitTime + hit.getTime()));
+                
+                //channelHits.add(new BaseCalorimeterHit(hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getEnergyError(), baseHitTime + hit.getTime(),
+                //        hit.getCellID(), hit.getPositionVec(), hit.getType(), hit.getMetaData()));
             }
             
             // Increment the base hit time.
