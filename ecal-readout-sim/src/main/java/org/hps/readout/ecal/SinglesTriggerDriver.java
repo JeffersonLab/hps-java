@@ -43,24 +43,24 @@ public class SinglesTriggerDriver extends TriggerDriver {
     private IHistogram2D clusterDistributionSingle = aida.histogram2D("Trigger Plots :: Cluster Seed Distribution (Passed Single Cuts)", 46, -23, 23, 11, -5.5, 5.5);
 
     private final Queue<List<Cluster>> clusterDelayQueue; //the length of this queue sets the trigger delay. Defaults to length 1 (zero delay).
-	
-	private boolean debug = true;
-	private final TempOutputWriter writer = new TempOutputWriter("triggers_old.log");
+    
+    private boolean debug = true;
+    private final TempOutputWriter writer = new TempOutputWriter("triggers_old.log");
 
     public SinglesTriggerDriver() {
         clusterDelayQueue = new LinkedList<List<Cluster>>();
         clusterDelayQueue.add(new ArrayList<Cluster>());
     }
-	
-	@Override
-	public void startOfData() {
-		if(debug) { writer.initialize(); }
-	}
     
-	@Override
-	public void endOfData() {
-		if(debug) { writer.close(); }
-	}
+    @Override
+    public void startOfData() {
+        if(debug) { writer.initialize(); }
+    }
+    
+    @Override
+    public void endOfData() {
+        if(debug) { writer.close(); }
+    }
 
     /**
      * Sets the trigger delay (units of 4-ns FADC clocks). Default of 0.
@@ -77,8 +77,8 @@ public class SinglesTriggerDriver extends TriggerDriver {
     @Override
     public void process(EventHeader event) {
         writer.write(">" + ClockSingleton.getTime());
-		writer.write("Input");
-		
+        writer.write("Input");
+        
         // Make sure that there are clusters in the event.
         if(event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the list of clusters.
@@ -89,10 +89,10 @@ public class SinglesTriggerDriver extends TriggerDriver {
             clusterDelayQueue.remove();
             
             // DEBUG :: Output the input clusters.
-    		for(Cluster cluster : clusterDelayQueue.peek()) {
-    			writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-    					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-    		}
+            for(Cluster cluster : clusterDelayQueue.peek()) {
+                writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
+                        cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
+            }
 
             // Iterate over the clusters.
             for(Cluster cluster : clusterList) {
@@ -122,8 +122,8 @@ public class SinglesTriggerDriver extends TriggerDriver {
      */
     @Override
     protected boolean triggerDecision(EventHeader event) {
-    	StringBuffer outputBuffer = new StringBuffer();
-		
+        StringBuffer outputBuffer = new StringBuffer();
+        
         // Track whether triggering cluster was seen.
         boolean passTrigger = false;
 
@@ -152,7 +152,7 @@ public class SinglesTriggerDriver extends TriggerDriver {
                 
                 // DEBUG :: Output the triggering cluster.
                 outputBuffer.append(String.format("%f;%f;%d;%d%n", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-    					cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
+                        cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
                 
                 // A trigger was seen. Note it.
                 passTrigger = true;
@@ -171,8 +171,8 @@ public class SinglesTriggerDriver extends TriggerDriver {
         }
         
         if(outputBuffer.length() != 0) {
-    		writer.write("Output");
-    		writer.write(outputBuffer.toString());
+            writer.write("Output");
+            writer.write(outputBuffer.toString());
         }
 
         // Return whether a triggering cluster was seen.
@@ -247,8 +247,8 @@ public class SinglesTriggerDriver extends TriggerDriver {
     public void setCuts(String cuts) {
         triggerModule.setCutValues(true, cuts);
     }
-	
-	public void setDebug(boolean state) {
-		debug = state;
-	}
+    
+    public void setDebug(boolean state) {
+        debug = state;
+    }
 }
