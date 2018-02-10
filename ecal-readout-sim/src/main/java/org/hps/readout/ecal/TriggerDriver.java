@@ -38,9 +38,9 @@ public abstract class TriggerDriver extends TriggerableDriver {
     private String lcioFile = null;
     LCIOWriter lcioWriter = null;
     private static final List<TriggerableDriver> triggerables = new ArrayList<TriggerableDriver>();
-	
-	
-	protected final TempOutputWriter writer = new TempOutputWriter("triggers_old.log");
+    
+    
+    protected final TempOutputWriter writer = new TempOutputWriter("triggers_old.log");
 
     public TriggerDriver() {
         triggerDelay = 50.0;
@@ -186,7 +186,7 @@ public abstract class TriggerDriver extends TriggerableDriver {
 
     @Override
     public void endOfData() {
-		writer.close();
+        writer.close();
         if (outputStream != null) {
             outputStream.printf("Trigger count: %d\n", numTriggers);
             outputStream.close();
