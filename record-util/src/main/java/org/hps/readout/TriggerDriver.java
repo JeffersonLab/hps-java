@@ -19,62 +19,62 @@ package org.hps.readout;
  * @see org.hps.readout.ReadoutDriver
  */
 public abstract class TriggerDriver extends ReadoutDriver {
-	/**
-	 * The amount of time that must pass after a trigger before a new
-	 * trigger can be issued, in units of nanoseconds.
-	 */
-	private double deadTime = 0.0;
-	/**
-	 * The last time at which a trigger was issued to the data
-	 * manager, in units of nanoseconds.
-	 */
-	private double lastTrigger = Double.NaN;
-	
-	/**
-	 * Checks whether the trigger is currently in dead time or not.
-	 * @return Returns <code>true</code> if the trigger is currently
-	 * in dead time, and <code>false</code> if it is not and a
-	 * trigger may be issued.
-	 */
-	protected boolean isInDeadTime() {
-		return !Double.isNaN(lastTrigger) && lastTrigger + deadTime >= ReadoutDataManager.getCurrentTime();
-	}
-	
-	/**
-	 * Gets the dead time for this trigger.
-	 * @return Returns the dead time in units of nanoseconds.
-	 */
-	protected double getDeadTime() {
-		return deadTime;
-	}
-	
-	/**
-	 * Gets the time at which the last trigger occurred.
-	 * @return Returns the last trigger time in units of nanoseconds,
-	 * or as {@link java.lang.Double#NaN Double.NaN} if no trigger
-	 * has occurred yet.
-	 */
-	protected double getLastTriggerTime() {
-		return lastTrigger;
-	}
-	
-	/**
-	 * Issues a trigger to the data manager so long as the trigger is
-	 * not presently in dead time.
-	 */
-	protected void sendTrigger() {
-		if(!isInDeadTime()) {
-			ReadoutDataManager.sendTrigger(this);
-			lastTrigger = ReadoutDataManager.getCurrentTime();
-		}
-	}
-	
-	/**
-	 * Sets the dead time for the trigger.
-	 * @param samples - The amount of time (in events) before another
-	 * trigger is allowed to occur.
-	 */
-	public void setDeadTime(int samples) {
-		deadTime = samples * ReadoutDataManager.getBeamBunchSize();
-	}
+    /**
+     * The amount of time that must pass after a trigger before a new
+     * trigger can be issued, in units of nanoseconds.
+     */
+    private double deadTime = 0.0;
+    /**
+     * The last time at which a trigger was issued to the data
+     * manager, in units of nanoseconds.
+     */
+    private double lastTrigger = Double.NaN;
+    
+    /**
+     * Checks whether the trigger is currently in dead time or not.
+     * @return Returns <code>true</code> if the trigger is currently
+     * in dead time, and <code>false</code> if it is not and a
+     * trigger may be issued.
+     */
+    protected boolean isInDeadTime() {
+        return !Double.isNaN(lastTrigger) && lastTrigger + deadTime >= ReadoutDataManager.getCurrentTime();
+    }
+    
+    /**
+     * Gets the dead time for this trigger.
+     * @return Returns the dead time in units of nanoseconds.
+     */
+    protected double getDeadTime() {
+        return deadTime;
+    }
+    
+    /**
+     * Gets the time at which the last trigger occurred.
+     * @return Returns the last trigger time in units of nanoseconds,
+     * or as {@link java.lang.Double#NaN Double.NaN} if no trigger
+     * has occurred yet.
+     */
+    protected double getLastTriggerTime() {
+        return lastTrigger;
+    }
+    
+    /**
+     * Issues a trigger to the data manager so long as the trigger is
+     * not presently in dead time.
+     */
+    protected void sendTrigger() {
+        if(!isInDeadTime()) {
+            ReadoutDataManager.sendTrigger(this);
+            lastTrigger = ReadoutDataManager.getCurrentTime();
+        }
+    }
+    
+    /**
+     * Sets the dead time for the trigger.
+     * @param samples - The amount of time (in events) before another
+     * trigger is allowed to occur.
+     */
+    public void setDeadTime(int samples) {
+        deadTime = samples * ReadoutDataManager.getBeamBunchSize();
+    }
 }
