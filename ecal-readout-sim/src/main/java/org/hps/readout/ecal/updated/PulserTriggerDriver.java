@@ -15,38 +15,38 @@ import org.lcsim.event.EventHeader;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class PulserTriggerDriver extends TriggerDriver {
-	private int eventCount = 0;
-	private int pulseRate = 100;
-	
-	@Override
-	public void process(EventHeader event) {
-		if(++eventCount == pulseRate) {
-			sendTrigger();
-			eventCount = 0;
-		}
-	}
-	
-	@Override
-	protected double getTimeDisplacement() {
-		return 0;
-	}
-	
-	@Override
-	protected double getTimeNeededForLocalOutput() {
-		return 0;
-	}
-	
-	@Override
-	public void setDeadTime(int value) {
-		throw new UnsupportedOperationException("Error: Pulser triggers do not support dead time.");
-	}
-	
-	/**
-	 * Sets the rate of the pulser. It will trigger every
-	 * <code>events</code> events.
-	 * @param events - The rate of the pulser in events.
-	 */
-	public void setRate(int events) {
-		pulseRate = events;
-	}
+    private int eventCount = 0;
+    private int pulseRate = 100;
+    
+    @Override
+    public void process(EventHeader event) {
+        if(++eventCount == pulseRate) {
+            sendTrigger();
+            eventCount = 0;
+        }
+    }
+    
+    @Override
+    protected double getTimeDisplacement() {
+        return 0;
+    }
+    
+    @Override
+    protected double getTimeNeededForLocalOutput() {
+        return 0;
+    }
+    
+    @Override
+    public void setDeadTime(int value) {
+        throw new UnsupportedOperationException("Error: Pulser triggers do not support dead time.");
+    }
+    
+    /**
+     * Sets the rate of the pulser. It will trigger every
+     * <code>events</code> events.
+     * @param events - The rate of the pulser in events.
+     */
+    public void setRate(int events) {
+        pulseRate = events;
+    }
 }
