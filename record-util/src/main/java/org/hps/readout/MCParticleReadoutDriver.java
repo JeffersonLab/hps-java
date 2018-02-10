@@ -11,14 +11,14 @@ import org.lcsim.event.MCParticle;
  * @see org.hps.readout.SLICDataReadoutDriver
  */
 public class MCParticleReadoutDriver extends SLICDataReadoutDriver<MCParticle> {
-	/**
-	 * Instantiate an instance of {@link
-	 * org.hps.readout.SLICDataReadoutDriver SLICDataReadoutDriver}
-	 * for objects of type {@link org.lcsim.event.MCParticle
-	 * MCParticle}. These do not require any special LCIO flags.
-	 */
-	public MCParticleReadoutDriver() {
-		super(MCParticle.class);
-		setCollectionName("MCParticle");
-	}
+    /**
+     * Instantiate an instance of {@link
+     * org.hps.readout.SLICDataReadoutDriver SLICDataReadoutDriver}
+     * for objects of type {@link org.lcsim.event.MCParticle
+     * MCParticle}. These do not require any special LCIO flags.
+     */
+    public MCParticleReadoutDriver() {
+        super(MCParticle.class);
+        setCollectionName("MCParticle");
+    }
 }
