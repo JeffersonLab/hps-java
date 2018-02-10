@@ -32,7 +32,7 @@ import org.lcsim.util.Driver;
  * The results are by default written to the <b>EcalCalHits</b> output collection.
  */
 public class EcalRawConverterDriver extends Driver {
-	private final TempOutputWriter writer = new TempOutputWriter("converted_hits_old.log");
+    private final TempOutputWriter writer = new TempOutputWriter("converted_hits_old.log");
 
     // To import database conditions
     private EcalConditions ecalConditions = null;
@@ -118,11 +118,11 @@ public class EcalRawConverterDriver extends Driver {
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
     }
-	
-	@Override
-	public void endOfData() {
-		if(debug) { writer.close(); }
-	}
+    
+    @Override
+    public void endOfData() {
+        if(debug) { writer.close(); }
+    }
 
     /**
      * Set to <code>true</code> to use pulse fitting instead of arithmetic integration:<br/>
@@ -454,9 +454,9 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-		writer.write("> Event " + event.getEventNumber() + " - ???");
-		writer.write("Input");
-		
+        writer.write("> Event " + event.getEventNumber() + " - ???");
+        writer.write("Input");
+        
         // Do not process the event if the DAQ configuration should be
         // used for value, but is not initialized.
         if(useDAQConfig && !ConfigurationManager.isInitialized()) {
@@ -550,12 +550,12 @@ public class EcalRawConverterDriver extends Driver {
                      * This is for FADC Mode-3 data:
                      */
                     List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
-            		
-            		// DEBUG :: Write the raw hits seen.
-            		for(RawCalorimeterHit hit : hits) {
-            			writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
-            		}
-            		
+                    
+                    // DEBUG :: Write the raw hits seen.
+                    for(RawCalorimeterHit hit : hits) {
+                        writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
+                    }
+                    
                     for (RawCalorimeterHit hit : hits) {
                         CalorimeterHit newHit;
                         newHit = converter.HitDtoA(event, hit, timeOffset);
@@ -570,10 +570,10 @@ public class EcalRawConverterDriver extends Driver {
                         }
                     }
                 }
-        		writer.write("Output");
-        		for(CalorimeterHit hit : newHits) {
-        			writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-        		}
+                writer.write("Output");
+                for(CalorimeterHit hit : newHits) {
+                    writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+                }
                 event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
         } else {
