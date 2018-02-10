@@ -73,8 +73,8 @@ public class SVTReadoutDriver extends ReadoutDriver {
     private String outputCollection = "SVTRawTrackerHits";
     private String relationCollection = "SVTTrueHitRelations";
     
-	private LcsimCollection<RawTrackerHit> trackerHitCollectionParams;
-	private LcsimCollection<LCRelation> truthCollectionParams;
+    private LcsimCollection<RawTrackerHit> trackerHitCollectionParams;
+    private LcsimCollection<LCRelation> truthCollectionParams;
     
     private final TempOutputWriter inputWriter = new TempOutputWriter("svt_input_hits_new.log");
     private final TempOutputWriter outputWriter = new TempOutputWriter("svt_output_hits_new.log");
@@ -252,15 +252,15 @@ public class SVTReadoutDriver extends ReadoutDriver {
     
     @Override
     public void process(EventHeader event) {
-    	super.process(event);
-    	
+        super.process(event);
+        
         // Generate the truth hits.
         List<StripHit> stripHits = doSiSimulation();
         
         
         inputWriter.write("> Event " + event.getEventNumber() + "; t = " + ReadoutDataManager.getCurrentTime());
         for(StripHit hit : stripHits) {
-        	inputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
+            inputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
         }
         
         // If pile-up is to be simulated, process the hits into hit
@@ -268,11 +268,11 @@ public class SVTReadoutDriver extends ReadoutDriver {
         // and are instead only handled at readout, as they are not
         // used downstream in the simulation.
         if(!noPileup) {
-        	//verboseWriter.write("Starting pile-up simulation...");
-        	
-        	// Process each of the truth hits.
+            //verboseWriter.write("Starting pile-up simulation...");
+            
+            // Process each of the truth hits.
             for(StripHit stripHit : stripHits) {
-            	// Get the sensor and channel for the truth hit.
+                // Get the sensor and channel for the truth hit.
                 SiSensor sensor = stripHit.sensor;
                 int channel = stripHit.channel;
                 
@@ -289,13 +289,13 @@ public class SVTReadoutDriver extends ReadoutDriver {
             // be used for pile-up simulation and should be removed
             // from the processing queues.
             for(SiSensor sensor : sensors) {
-            	// Get the processing queue for the current sensor.
+                // Get the processing queue for the current sensor.
                 PriorityQueue<StripHit>[] hitQueues = hitMap.get(sensor);
                 
                 // Check each hit to see if it is still in-time.
                 for(int i = 0; i < hitQueues.length; i++) {
                     if(hitQueues[i] != null) {
-                    	// Remove old hits.
+                        // Remove old hits.
                         while(!hitQueues[i].isEmpty() && hitQueues[i].peek().time < ReadoutDataManager.getCurrentTime() - (readoutLatency + pileupCutoff)) {
                             hitQueues[i].poll();
                         }
@@ -316,7 +316,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
             
             // Process each of the truth hits.
             for(StripHit stripHit : stripHits) {
-            	// Get the hit parameters.
+                // Get the hit parameters.
                 HpsSiSensor sensor = (HpsSiSensor) stripHit.sensor;
                 short[] samples = new short[6];
                 
@@ -352,8 +352,8 @@ public class SVTReadoutDriver extends ReadoutDriver {
             
             outputWriter.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime());
             for(RawTrackerHit hit : hits) {
-            	outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-            			hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
+                outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
+                        hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
             }
             
             // Output the processed hits to the LCIO stream.
@@ -363,33 +363,33 @@ public class SVTReadoutDriver extends ReadoutDriver {
     
     @Override
     public void startOfData() {
-    	// The output collection is only handled by the readout data
-    	// manager if no pile-up simulation is included. Otherwise,
-    	// the driver outputs its own collection at readout.
-    	if(noPileup) {
-    		LcsimCollection<RawTrackerHit> noPileUpCollectionParams = new LcsimCollection<RawTrackerHit>(outputCollection, this, RawTrackerHit.class, 0.0);
-    		noPileUpCollectionParams.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
-    		noPileUpCollectionParams.setReadoutName(readout);
-    		noPileUpCollectionParams.setWindowBefore(0);
-    		noPileUpCollectionParams.setWindowAfter(4.0);
-    		ReadoutDataManager.registerCollection(noPileUpCollectionParams);
-    	}
-    	
-    	// Define the LCSim on-trigger collection parameters.
-    	trackerHitCollectionParams = new LcsimCollection<RawTrackerHit>(outputCollection, this, RawTrackerHit.class, 0.0);
-    	trackerHitCollectionParams.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
-    	trackerHitCollectionParams.setReadoutName(readout);
-    	trackerHitCollectionParams.setPersistent(false);
-    	truthCollectionParams = new LcsimCollection<LCRelation>(relationCollection, this, LCRelation.class, 0.0);
-    	
-		// DEBUG :: Pass the writers to the superclass writer list.
-		writers.add(inputWriter);
-		writers.add(outputWriter);
-		writers.add(verboseWriter);
-		writers.add(triggerWriter);
-		
-		// Run the superclass method.
-		super.startOfData();
+        // The output collection is only handled by the readout data
+        // manager if no pile-up simulation is included. Otherwise,
+        // the driver outputs its own collection at readout.
+        if(noPileup) {
+            LcsimCollection<RawTrackerHit> noPileUpCollectionParams = new LcsimCollection<RawTrackerHit>(outputCollection, this, RawTrackerHit.class, 0.0);
+            noPileUpCollectionParams.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
+            noPileUpCollectionParams.setReadoutName(readout);
+            noPileUpCollectionParams.setWindowBefore(0);
+            noPileUpCollectionParams.setWindowAfter(4.0);
+            ReadoutDataManager.registerCollection(noPileUpCollectionParams);
+        }
+        
+        // Define the LCSim on-trigger collection parameters.
+        trackerHitCollectionParams = new LcsimCollection<RawTrackerHit>(outputCollection, this, RawTrackerHit.class, 0.0);
+        trackerHitCollectionParams.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
+        trackerHitCollectionParams.setReadoutName(readout);
+        trackerHitCollectionParams.setPersistent(false);
+        truthCollectionParams = new LcsimCollection<LCRelation>(relationCollection, this, LCRelation.class, 0.0);
+        
+        // DEBUG :: Pass the writers to the superclass writer list.
+        writers.add(inputWriter);
+        writers.add(outputWriter);
+        writers.add(verboseWriter);
+        writers.add(triggerWriter);
+        
+        // Run the superclass method.
+        super.startOfData();
     }
     
     /**
@@ -401,13 +401,13 @@ public class SVTReadoutDriver extends ReadoutDriver {
      * the detector response for the current event.
      */
     private List<StripHit> doSiSimulation() {
-    	// Create a list to store the simulated hit objects.
+        // Create a list to store the simulated hit objects.
         List<StripHit> stripHits = new ArrayList<StripHit>();
         
         // Process each of the SVT sensors.
         for(SiSensor sensor : sensors) {
             // Set the sensor to be used in the charge deposition
-        	// simulation.
+            // simulation.
             siSimulation.setSensor(sensor);
             
             // Perform the charge deposition simulation.
@@ -416,10 +416,10 @@ public class SVTReadoutDriver extends ReadoutDriver {
             // Iterate over all possible charge carriers.
             for(ChargeCarrier carrier : ChargeCarrier.values()) {
                 // If the sensor is capable of collecting the given
-            	// charge carrier, then obtain the electrode data for
-            	// the sensor.
+                // charge carrier, then obtain the electrode data for
+                // the sensor.
                 if(sensor.hasElectrodesOnSide(carrier)) {
-                	// Attempt to obtain electrode data.
+                    // Attempt to obtain electrode data.
                     SiElectrodeDataCollection electrodeDataCol = electrodeDataMap.get(carrier);
 
                     // If there is no electrode data available create
@@ -499,7 +499,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
      * passed, and <code>false</code> otherwise.
      */
     private boolean readoutCuts(RawTrackerHit hit) {
-    	// Perform each enabled cut.
+        // Perform each enabled cut.
         if(enableThresholdCut && !samplesAboveThreshold(hit)) {
             return false;
         } if(enablePileupCut && !pileupCut(hit)) {
@@ -547,8 +547,8 @@ public class SVTReadoutDriver extends ReadoutDriver {
      * cut is met and <code>false</code> if it is not.
      */
     private boolean samplesAboveThreshold(RawTrackerHit hit) {
-    	// Get the channel and sensor information for the hit.
-    	int channel = hit.getIdentifierFieldValue("strip");
+        // Get the channel and sensor information for the hit.
+        int channel = hit.getIdentifierFieldValue("strip");
         HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
         
         // Track the noise and pedestal for each sample.
@@ -573,12 +573,12 @@ public class SVTReadoutDriver extends ReadoutDriver {
     }
     
     @Override
-	protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
-    	verboseWriter.write("Running method ProcessTrigger(EventHeader).");
-    	verboseWriter.write("noPileup = " + noPileup);
-    	
-    	// No pile-up events are output on an event-by-event basis,
-    	// and as such, do not output anything at this stage.
+    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+        verboseWriter.write("Running method ProcessTrigger(EventHeader).");
+        verboseWriter.write("noPileup = " + noPileup);
+        
+        // No pile-up events are output on an event-by-event basis,
+        // and as such, do not output anything at this stage.
         if(noPileup) { return null; }
         
         // Create a list to hold the analog data
@@ -587,7 +587,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
         
         // Calculate time of first sample
         double firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
-        		* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
+                * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
         
         outputWriter.write("> Event 0; t = " + ReadoutDataManager.getCurrentTime());
         List<StripHit> processedHits = new ArrayList<StripHit>();
@@ -601,26 +601,26 @@ public class SVTReadoutDriver extends ReadoutDriver {
         verboseWriter.write("\treadoutOffset                     :: " + readoutOffset);
         verboseWriter.write("\tfirstSample                       :: " + firstSample);
         verboseWriter.write("\tdouble firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL) "
-        		+ "* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;");
+                + "* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;");
         verboseWriter.write(String.format("\tdouble %f = Math.floor(((%f + 256) - %f - %f) / %f) * %f + %f;", firstSample, triggerTime, readoutLatency,
-        		readoutOffset, HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, readoutOffset));
+                readoutOffset, HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, readoutOffset));
         
         triggerWriter.write(">" + triggerTime + ";" + (firstSample * HPSSVTConstants.SAMPLING_INTERVAL) + ";");
         
         for(SiSensor sensor : sensors) {
-        	// Get the hit queues for the current sensor.
+            // Get the hit queues for the current sensor.
             PriorityQueue<StripHit>[] hitQueues = hitMap.get(sensor);
             
             verboseWriter.write("\tGot hit queue for sensor " + sensor.getName() + ".");
             
             // Iterate over the hit queue channels.
             for(int channel = 0; channel < hitQueues.length; channel++) {
-            	verboseWriter.write("\t\tExamining channel " + channel + ".");
-            	
-            	// Unless noise should be added, there is nothing to
-            	// process on an empty hit queue. Skip it.
+                verboseWriter.write("\t\tExamining channel " + channel + ".");
+                
+                // Unless noise should be added, there is nothing to
+                // process on an empty hit queue. Skip it.
                 if(!addNoise && (hitQueues[channel] == null || hitQueues[channel].isEmpty())) {
-                	verboseWriter.write("\t\t\tChannel is empty. Nothing to process...");
+                    verboseWriter.write("\t\t\tChannel is empty. Nothing to process...");
                     continue;
                 }
                 
@@ -643,17 +643,17 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 // If there is data in the hit queues, process it.
                 if(hitQueues[channel] != null) {
                     for(StripHit hit : hitQueues[channel]) {
-                    	verboseWriter.write(String.format("\t\t\tEvaluating hit with amplitude %f at time %f on channel %d.", hit.amplitude, hit.time,
-                    			((HpsSiSensor) sensor).makeChannelID(channel)));
-                    	
-                    	
-                    	processedHits.add(hit);
-                    	
-                    	
-                    	
-                    	// Track the noise and contribution to the
-                    	// signal from the current hit.
-                    	double meanNoise = 0;
+                        verboseWriter.write(String.format("\t\t\tEvaluating hit with amplitude %f at time %f on channel %d.", hit.amplitude, hit.time,
+                                ((HpsSiSensor) sensor).makeChannelID(channel)));
+                        
+                        
+                        processedHits.add(hit);
+                        
+                        
+                        
+                        // Track the noise and contribution to the
+                        // signal from the current hit.
+                        double meanNoise = 0;
                         double totalContrib = 0;
                         
                         // Emulate the pulse response for the hit
@@ -675,7 +675,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
                             if(sampleN != 5) {
-                            	signalBuffer.append("   ");
+                                signalBuffer.append("   ");
                             }
                         }
                         signalBuffer.append("]");
@@ -695,7 +695,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                             simHits.addAll(hit.simHits);
                             verboseWriter.write("\t\t\t\tAdded hit.");
                         } else {
-                        	verboseWriter.write("\t\t\t\tIgnored hit.");
+                            verboseWriter.write("\t\t\t\tIgnored hit.");
                         }
                     }
                 }
@@ -715,7 +715,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 // Only tracker hits that pass the readout cuts may
                 // be passed through to readout.
                 if(readoutCuts(hit)) {
-                	// Add the hit to the readout hits collection.
+                    // Add the hit to the readout hits collection.
                     hits.add(hit);
                     
                     // Associate the truth hits with the raw hit and
@@ -731,15 +731,15 @@ public class SVTReadoutDriver extends ReadoutDriver {
         
         outputWriter.write("Input");
         for(StripHit hit : processedHits) {
-        	outputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
+            outputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
         }
         
         outputWriter.write("Output");
         for(RawTrackerHit hit : hits) {
-        	outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-        			hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
-        	triggerWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-        			hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
+            outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
+                    hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
+            triggerWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
+                    hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
         }
         
         
@@ -791,14 +791,14 @@ public class SVTReadoutDriver extends ReadoutDriver {
         }
     }
     
-	@Override
-	protected double getTimeDisplacement() {
-		return 0;
-	}
-	
-	@Override
-	protected double getTimeNeededForLocalOutput() {
-		// TODO: Probably should have some defined value - buffer seems to be filled enough from the ecal delay alone, though.
-		return 0;
-	}
+    @Override
+    protected double getTimeDisplacement() {
+        return 0;
+    }
+    
+    @Override
+    protected double getTimeNeededForLocalOutput() {
+        // TODO: Probably should have some defined value - buffer seems to be filled enough from the ecal delay alone, though.
+        return 0;
+    }
 }
