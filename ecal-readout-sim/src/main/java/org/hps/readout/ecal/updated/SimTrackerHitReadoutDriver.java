@@ -12,14 +12,14 @@ import org.lcsim.event.SimTrackerHit;
  * @see org.hps.readout.SLICDataReadoutDriver
  */
 public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTrackerHit> {
-	/**
-	 * Instantiate an instance of {@link
-	 * org.hps.readout.SLICDataReadoutDriver SLICDataReadoutDriver}
-	 * for objects of type {@link
-	 * org.lcsim.event.SimTrackerHit SimTrackerHit
-	 * SimCalorimeterHit} and set the appropriate LCIO flags.
-	 */
-	public SimTrackerHitReadoutDriver() {
-		super(SimTrackerHit.class, 0xc0000000);
-	}
+    /**
+     * Instantiate an instance of {@link
+     * org.hps.readout.SLICDataReadoutDriver SLICDataReadoutDriver}
+     * for objects of type {@link
+     * org.lcsim.event.SimTrackerHit SimTrackerHit
+     * SimCalorimeterHit} and set the appropriate LCIO flags.
+     */
+    public SimTrackerHitReadoutDriver() {
+        super(SimTrackerHit.class, 0xc0000000);
+    }
 }
