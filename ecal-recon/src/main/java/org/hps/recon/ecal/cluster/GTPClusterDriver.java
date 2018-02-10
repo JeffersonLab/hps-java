@@ -26,27 +26,27 @@ public class GTPClusterDriver extends ClusterDriver {
      * cluster objects. */
     private final GTPClusterer gtp;
     protected boolean debug = true;
-	
     
-	@Override
-	public void endOfData() {
-		super.endOfData();
-		if(debug) { gtp.closeWriters(); }
-	}
     
-	@Override
-	public void startOfData() {
-		super.startOfData();
-		if(debug) { gtp.initializeWriters(); }
-	}
-	
-	@Override
-	public void process(org.lcsim.event.EventHeader event) {
-		gtp.writeEventHeaders(event);
-		gtp.setEvent(event.getEventNumber());
-		super.process(event);
-	}
-	
+    @Override
+    public void endOfData() {
+        super.endOfData();
+        if(debug) { gtp.closeWriters(); }
+    }
+    
+    @Override
+    public void startOfData() {
+        super.startOfData();
+        if(debug) { gtp.initializeWriters(); }
+    }
+    
+    @Override
+    public void process(org.lcsim.event.EventHeader event) {
+        gtp.writeEventHeaders(event);
+        gtp.setEvent(event.getEventNumber());
+        super.process(event);
+    }
+    
     /**
      * Instantiates a new <code>GTPClusterer</code>, which will produce
      * clusters using the GTP algorithm in the 2-ns beam bunch scheme.
@@ -76,7 +76,7 @@ public class GTPClusterDriver extends ClusterDriver {
     }
     
     public void setDebug(boolean state) {
-    	debug = state;
+        debug = state;
     }
     
     /**
