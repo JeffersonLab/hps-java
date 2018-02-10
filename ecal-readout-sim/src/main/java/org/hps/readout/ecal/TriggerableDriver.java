@@ -38,6 +38,13 @@ public abstract class TriggerableDriver extends Driver {
     protected abstract void processTrigger(EventHeader event);
 
     protected void checkTrigger(EventHeader event) {
+        System.out.print("Driver " + this.getClass().getSimpleName() + " :: TimeStamp: ");
+        if(triggerTimestamps.peek() != null) {
+            System.out.println(triggerTimestamps.peek() + "; Clock: " + ClockSingleton.getTime());
+        } else {
+            System.out.println("NULL; Clock: " + ClockSingleton.getTime());
+        }
+        
         while (triggerTimestamps.peek() != null && ClockSingleton.getTime() >= triggerTimestamps.peek()) {
             processTrigger(event);
             triggerTimestamps.remove();
