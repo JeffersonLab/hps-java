@@ -101,97 +101,97 @@ import org.lcsim.util.Driver;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public abstract class ReadoutDriver extends Driver {
-	/**
-	 * Stores the names of the collections which this driver requires
-	 * as input.
-	 */
-	private final Set<String> dependencies = new HashSet<String>();
-	
-	// DEBUG
-	protected boolean debug = true;
-	protected java.util.List<TempOutputWriter> writers = new java.util.ArrayList<TempOutputWriter>();
-	
-	/**
-	 * Instantiates the readout driver.
-	 */
-	protected ReadoutDriver() {
-		ReadoutDataManager.registerReadoutDriver(this);
-	}
-	
-	@Override
-	public void endOfData() {
-		for(TempOutputWriter writer : writers) {
-			if(debug && writer != null) { writer.close(); }
-		}
-	}
-	
-	@Override
-	public void startOfData() {
-		// Set the debug status for each writer. If the writer should
-		// output anything, tell it to delete the file on exit.
-		if(debug) {
-			for(TempOutputWriter writer : writers) {
-				System.out.println(writer.toString());
-				writer.initialize();
-				writer.setEnabled(debug);
-			}
-		}
-	}
-	
-	/**
-	 * Specifies that the output of this readout driver depends on
-	 * the specified input collection.
-	 * @param collectionName - The name of the input collection.
-	 */
-	protected void addDependency(String collectionName) {
-		dependencies.add(collectionName);
-	}
-	
-	/**
-	 * Returns a {@link java.util.Collection Collection} of type
-	 * {@link java.lang.String String} containing the names of the
-	 * input collections used by this driver.
-	 * @return Returns a collection of <code>String</code> objects
-	 * representing the driver input collection names.
-	 */
-	protected Collection<String> getDependencies() {
-		return dependencies;
-	}
-	
-	/**
-	 * Generates a {@link java.util.Collection Collection} containing
-	 * any special output data produced by the driver that should be
-	 * included in triggered output.<br/><br/>
-	 * By default, this outputs <code>null</code>. Individual drivers
-	 * must override the method as needed.
-	 * @param triggerTime - The time at which the trigger occurred.
-	 * @return Returns a collection containing all special output
-	 * data.
-	 */
-	protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
-		return null;
-	}
-	
-	/**
-	 * Specifies the amount of simulation time that the driver needs
-	 * to produce its output. This indicates that the driver's
-	 * present output was generated based on input a time equal to
-	 * ({@link org.hps.readout.ReadoutDataManager#getCurrentTime()
-	 * getCurrentTime()} - <code>getTimeDisplacement()</code>).
-	 * @return Returns the time displacement of output data as a
-	 * <code>double</code>.
-	 */
-	protected abstract double getTimeDisplacement();
-	
-	/**
-	 * Specifies the amount of simulation time that the driver needs
-	 * to produce special on-trigger data.
-	 * @return Returns the time displacement of output data as a
-	 * <code>double</code>.
-	 */
-	protected abstract double getTimeNeededForLocalOutput();
-	
-	public void setDebug(boolean state) {
-		debug = state;
-	}
+    /**
+     * Stores the names of the collections which this driver requires
+     * as input.
+     */
+    private final Set<String> dependencies = new HashSet<String>();
+    
+    // DEBUG
+    protected boolean debug = true;
+    protected java.util.List<TempOutputWriter> writers = new java.util.ArrayList<TempOutputWriter>();
+    
+    /**
+     * Instantiates the readout driver.
+     */
+    protected ReadoutDriver() {
+        ReadoutDataManager.registerReadoutDriver(this);
+    }
+    
+    @Override
+    public void endOfData() {
+        for(TempOutputWriter writer : writers) {
+            if(debug && writer != null) { writer.close(); }
+        }
+    }
+    
+    @Override
+    public void startOfData() {
+        // Set the debug status for each writer. If the writer should
+        // output anything, tell it to delete the file on exit.
+        if(debug) {
+            for(TempOutputWriter writer : writers) {
+                System.out.println(writer.toString());
+                writer.initialize();
+                writer.setEnabled(debug);
+            }
+        }
+    }
+    
+    /**
+     * Specifies that the output of this readout driver depends on
+     * the specified input collection.
+     * @param collectionName - The name of the input collection.
+     */
+    protected void addDependency(String collectionName) {
+        dependencies.add(collectionName);
+    }
+    
+    /**
+     * Returns a {@link java.util.Collection Collection} of type
+     * {@link java.lang.String String} containing the names of the
+     * input collections used by this driver.
+     * @return Returns a collection of <code>String</code> objects
+     * representing the driver input collection names.
+     */
+    protected Collection<String> getDependencies() {
+        return dependencies;
+    }
+    
+    /**
+     * Generates a {@link java.util.Collection Collection} containing
+     * any special output data produced by the driver that should be
+     * included in triggered output.<br/><br/>
+     * By default, this outputs <code>null</code>. Individual drivers
+     * must override the method as needed.
+     * @param triggerTime - The time at which the trigger occurred.
+     * @return Returns a collection containing all special output
+     * data.
+     */
+    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+        return null;
+    }
+    
+    /**
+     * Specifies the amount of simulation time that the driver needs
+     * to produce its output. This indicates that the driver's
+     * present output was generated based on input a time equal to
+     * ({@link org.hps.readout.ReadoutDataManager#getCurrentTime()
+     * getCurrentTime()} - <code>getTimeDisplacement()</code>).
+     * @return Returns the time displacement of output data as a
+     * <code>double</code>.
+     */
+    protected abstract double getTimeDisplacement();
+    
+    /**
+     * Specifies the amount of simulation time that the driver needs
+     * to produce special on-trigger data.
+     * @return Returns the time displacement of output data as a
+     * <code>double</code>.
+     */
+    protected abstract double getTimeNeededForLocalOutput();
+    
+    public void setDebug(boolean state) {
+        debug = state;
+    }
 }
