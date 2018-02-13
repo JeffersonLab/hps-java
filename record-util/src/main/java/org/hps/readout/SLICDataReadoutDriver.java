@@ -89,8 +89,7 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
         
         // Register the handled collection with the data management
         // driver.
-        // TODO: Truth data should be handled by the SVT and ECal drivers more directly.
-        ReadoutDataManager.registerCollection(mcCollectionParams, true, 8.0, 32.0);
+        ReadoutDataManager.registerCollection(mcCollectionParams, true, getReadoutWindowBefore(), getReadoutWindowAfter());
         
         // DEBUG :: Pass the writer to the superclass writer list.
         writer = new TempOutputWriter(collectionName + ".log");
