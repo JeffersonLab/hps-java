@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hps.readout.util.LcsimSingleEventCollectionData;
+import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.lcsim.util.Driver;
 
 /**
@@ -168,7 +168,7 @@ public abstract class ReadoutDriver extends Driver {
      * @return Returns a collection containing all special output
      * data.
      */
-    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+    protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         return null;
     }
     
