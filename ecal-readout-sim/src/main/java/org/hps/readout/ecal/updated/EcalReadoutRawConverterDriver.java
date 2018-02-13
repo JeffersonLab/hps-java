@@ -10,7 +10,8 @@ import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
-import org.hps.readout.util.LcsimCollection;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.recon.ecal.EcalRawConverter;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -156,15 +157,15 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         
         // Define the LCSim collection parameters for this driver's
         // output.
-        LcsimCollection<CalorimeterHit> hitCollectionParams = new LcsimCollection<CalorimeterHit>(outputCollectionName,
-                this, CalorimeterHit.class, getTimeDisplacement());
-        hitCollectionParams.setFlags(flags);
-        hitCollectionParams.setPersistent(false);
+        LCIOCollectionFactory.setCollectionName(outputCollectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(flags);
+        LCIOCollection<CalorimeterHit> hitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(CalorimeterHit.class);
         
         // Set the dependencies for the driver and register its
         // output collections with the data management driver.
         addDependency(inputCollectionName);
-        ReadoutDataManager.registerCollection(hitCollectionParams);
+        ReadoutDataManager.registerCollection(hitCollectionParams, false);
         
         // DEBUG :: Pass the writer to the superclass writer list.
         writers.add(writer);
