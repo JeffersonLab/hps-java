@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 
@@ -63,11 +64,6 @@ public class ReadoutDataManager extends Driver {
      */
     private static double currentTime = 0.0;
     /**
-     * Tracks the collection with the largest time displacement. This
-     * is used to determine how large the data buffer needs to be.
-     */
-    private static String largestDisplacement = null;
-    /**
      * Tracks all registered readout drivers.
      */
     private static final Set<ReadoutDriver> driverSet = new HashSet<ReadoutDriver>();
@@ -90,21 +86,6 @@ public class ReadoutDataManager extends Driver {
      */
     private static LCIOWriter outputWriter = null;
     /**
-     * Tracks the largest amount of time that must be buffered before
-     * the trigger time for readout.
-     */
-    private static double bufferBefore = 0.0;
-    /**
-     * Tracks the largest amount of time that must be buffered after
-     * the trigger time for readout.
-     */
-    private static double bufferAfter = 0.0;
-    /**
-     * Tracks the largest amount of time that must be buffered to
-     * account for the time displacement of the trigger drivers.
-     */
-    private static double bufferTrigger = 0.0;
-    /**
      * Tracks the total amount of time that must be buffered to allow
      * for readout to occur.
      */
@@ -123,11 +104,68 @@ public class ReadoutDataManager extends Driver {
             throw new RuntimeException();
         }
         
+        // Get the total amount of time that the readout system must
+        // wait to make sure that all data has been safely buffered
+        // and exists to read out.
+        double longestBufferBefore = 0.0;
+        double longestBufferAfter = 0.0;
+        double longestLocalBuffer = 0.0;
+        double longestTimeDisplacement = 0.0;
+        double longestDisplacedAfter = 0.0;
+        double longestTriggerDisplacement = 0.0;
+        
+        System.out.println("Getting longest trigger time displacement...");
+        for(Entry<ReadoutDriver, Double> entry : triggerTimeDisplacementMap.entrySet()) {
+            System.out.printf("\t%-30s :: %.0f%n", entry.getKey().getClass().getSimpleName(), entry.getValue().doubleValue());
+            longestTriggerDisplacement = Math.max(longestTriggerDisplacement, entry.getValue().doubleValue());
+        }
+        System.out.println("Longest is: " + longestTriggerDisplacement);
+        System.out.println("\n");
+        
+        System.out.println("Getting longest driver collection buffers...");
+        for(ManagedLCIOData<?> data : collectionMap.values()) {
+            double before = Double.isNaN(data.getCollectionParameters().getWindowBefore()) ? 0.0 : data.getCollectionParameters().getWindowBefore();
+            double after = Double.isNaN(data.getCollectionParameters().getWindowAfter()) ? 0.0 : data.getCollectionParameters().getWindowAfter();
+            double displacement = data.getCollectionParameters().getProductionDriver().getTimeDisplacement();
+            double local = data.getCollectionParameters().getProductionDriver().getTimeNeededForLocalOutput();
+            
+            System.out.println("\t" + data.getCollectionParameters().getCollectionName());
+            System.out.printf("\t\t%-20s :: %.0f%n", "Buffer Before", before);
+            System.out.printf("\t\t%-20s :: %.0f%n", "Buffer After", after);
+            System.out.printf("\t\t%-20s :: %.0f%n", "Local Buffer", local);
+            System.out.printf("\t\t%-20s :: %.0f%n", "Displacement", displacement);
+            System.out.printf("\t\t%-20s :: %.0f%n", "Displaced After", (displacement + after));
+            
+            longestBufferBefore = Math.max(longestBufferBefore, before);
+            longestBufferAfter = Math.max(longestBufferAfter, after);
+            longestLocalBuffer = Math.max(longestLocalBuffer, local);
+            longestTimeDisplacement = Math.max(longestTimeDisplacement, displacement);
+            longestDisplacedAfter = Math.max(longestDisplacedAfter, displacement + after);
+        }
+        System.out.println("Longest (before) is: " + longestBufferBefore);
+        System.out.println("Longest (after) is: " + longestBufferAfter);
+        System.out.println("Longest (local) is: " + longestLocalBuffer);
+        System.out.println("Longest (displacement) is: " + longestTimeDisplacement);
+        System.out.println("Longest (displacemed after) is: " + longestDisplacedAfter);
+        System.out.println("\n");
+        
+        System.out.println("Readout Window: " + readoutWindow);
+        System.out.println("Trigger Offset: " + triggerTimeDisplacement);
+        System.out.println("Default Before: " + triggerTimeDisplacement);
+        System.out.println("Default After : " + (readoutWindow - triggerTimeDisplacement));
+        System.out.println("\n");
+        
+        double totalNeededDisplacement = Math.max(longestTriggerDisplacement, longestDisplacedAfter);
+        totalNeededDisplacement = Math.max(totalNeededDisplacement, longestLocalBuffer);
+        System.out.println("Total Time Needed: " + totalNeededDisplacement);
+        
+        
+        
         // Determine the total amount of time that must be included
         // in the data buffer in order to safely write out all data.
         // An extra 100 ns of data is retained as a safety, just in
         // case some driver needs to look unusually far back.
-        bufferTotal = bufferTrigger + bufferBefore + bufferAfter + 100.0;
+        bufferTotal = totalNeededDisplacement;
     }
     
     @Override
@@ -146,7 +184,7 @@ public class ReadoutDataManager extends Driver {
         // Check the trigger queue.
         if(!triggerQueue.isEmpty()) {
             // Check the earliest possible trigger write time.
-            boolean isWritable = checkCollectionStatus(largestDisplacement, triggerQueue.peek().getTriggerWriteTime());
+            boolean isWritable = getCurrentTime() >= triggerQueue.peek().getTriggerTime() + bufferTotal;
             
             // If all collections are available to be written, the
             // event should be output.
@@ -194,7 +232,10 @@ public class ReadoutDataManager extends Driver {
                 }
                 
                 // Write out any special on-trigger collections into
-                // the event as well.
+                // the event as well. These are collated so that if
+                // more than one driver contributes to the same
+                // collection, they will be properly merged.
+                Map<String, TriggeredLCIOData<?>> triggeredDataMap = new HashMap<String, TriggeredLCIOData<?>>();
                 for(ReadoutDriver driver : driverSet) {
                     // Get the special collection(s) from the current
                     // driver, if it exists.
@@ -203,8 +244,33 @@ public class ReadoutDataManager extends Driver {
                     // If there are special collections, write them.
                     if(onTriggerData != null) {
                         for(TriggeredLCIOData<?> triggerData : onTriggerData) {
-                            storeCollection(triggerData, lcsimEvent);
+                            // Get the triggered data stored in the
+                            // map, if it exists. If not, make a new
+                            // one and insert it.
+                            TriggeredLCIOData<?> mapCollection = triggeredDataMap.get(triggerData.getCollectionParameters().getCollectionName());
+                            if(mapCollection == null) {
+                                mapCollection = triggerData.cloneEmpty();
+                                triggeredDataMap.put(triggerData.getCollectionParameters().getCollectionName(), mapCollection);
+                            }
+                            
+                            // Check that the stored collection has
+                            // the same collection parameters as the
+                            // new one.
+                            if(!mapCollection.getCollectionParameters().equals(triggerData.getCollectionParameters())) {
+                                throw new RuntimeException("Error: Multiple on-trigger data sets were seen for collection \""
+                                        + triggerData.getCollectionParameters().getCollectionName() + "\" with differing parameters.");
+                            }
+                            
+                            // Otherwise, merge the sets.
+                            mapCollection.mergeDataList(triggerData);
+                            
+                            //storeCollection(triggerData, lcsimEvent);
                         }
+                    }
+                    
+                    // Store all of the data collections.
+                    for(TriggeredLCIOData<?> triggerData : triggeredDataMap.values()) {
+                        storeCollection(triggerData, lcsimEvent);
                     }
                 }
                 
@@ -403,6 +469,15 @@ public class ReadoutDataManager extends Driver {
     }
     
     /**
+     * Gets the time by which the trigger is offset in the readout
+     * window.
+     * @return Returns the trigger offset in units of nanoseconds.
+     */
+    public static final double getTriggerOffset() {
+        return triggerTimeDisplacement;
+    }
+    
+    /**
      * Adds a managed collection to the data manager. All collections
      * which serve as either input or output from a {@link
      * org.hps.readout.ReadoutDriver ReadoutDriver} are required to
@@ -465,39 +540,12 @@ public class ReadoutDataManager extends Driver {
         ManagedLCIOData<T> collectionData = new ManagedLCIOData<T>(managedParams);
         collectionMap.put(params.getCollectionName(), collectionData);
         
-        // Track which collection has the largest time displacement.
-        // This only applied if the registered collection is to be
-        // persisted.
-        if(managedParams.isPersistent()) {
-            if(largestDisplacement == null) {
-                largestDisplacement = params.getCollectionName();
-            } else if(timeDisplacement > collectionMap.get(largestDisplacement).getCollectionParameters().getGlobalTimeDisplacement()) {
-                largestDisplacement = params.getCollectionName();
-            }
-        }
-        
-        // Track the largest window both before and after the trigger
-        // time that must be buffered to safely output the data. If
-        // the collection gives NaN for its time window, it will use
-        // the default readout window and trigger time displacement.
-        // Otherwise, it will use its own specified window.
-        if(Double.isNaN(managedParams.getWindowAfter())) {
-            bufferAfter = Math.max(bufferAfter, (readoutWindow - triggerTimeDisplacement));
-        } else {
-            bufferAfter = Math.max(bufferAfter, managedParams.getWindowAfter());
-        }
-        
-        if(Double.isNaN(managedParams.getWindowBefore())) {
-            bufferBefore = Math.max(bufferBefore, triggerTimeDisplacement);
-        } else {
-            bufferBefore = Math.max(bufferBefore, managedParams.getWindowBefore());
-        }
-        
         // Store the readout driver in the driver set.
         driverSet.add(params.getProductionDriver());
         
         System.out.println("Registered collection \"" + managedParams.getCollectionName() + "\" of class type "
                 + managedParams.getObjectType().getSimpleName() + ".");
+        
     }
     
     /**
@@ -529,12 +577,42 @@ public class ReadoutDataManager extends Driver {
         // Get the total time displacement for the trigger driver.
         double timeDisplacement = getTotalTimeDisplacement("", triggerDriver);
         
-        // Track the longest displacement needed for trigger output.
-        bufferTrigger = Math.max(bufferTrigger, timeDisplacement + triggerDriver.getTimeDisplacement());
-        
         // Store the time displacement in the trigger driver map.
         triggerTimeDisplacementMap.put(triggerDriver, timeDisplacement);
         System.out.println("Registered trigger: " + triggerDriver.getClass().getSimpleName());
+    }
+    
+    /**
+     * Changes the "readout name" parameter for a collection, while
+     * retaining all other parameters and stored data.
+     * @param collectionName - The name of the collection to modify.
+     * @param objectType - The object type of the collection.
+     * @param newReadoutName - The new name for the "readout name"
+     * parameter.
+     * @param <T> - The object type of the data stored in the
+     * collection that is to be modified.
+     */
+    public static final <T> void updateCollectionReadoutName(String collectionName, Class<T> objectType, String newReadoutName) {
+        // Get the collection.
+        if(!collectionMap.containsKey(collectionName)) {
+            throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" does not exist.");
+        }
+        ManagedLCIOData<?> oldData = collectionMap.get(collectionName);
+        
+        // Make a new managed LCIO collection with the new readout.
+        LCIOCollectionFactory.setParams(oldData.getCollectionParameters());
+        LCIOCollectionFactory.setReadoutName(newReadoutName);
+        ManagedLCIOCollection<T> newParams = LCIOCollectionFactory.produceManagedLCIOCollection(objectType);
+        
+        // Create a new managed LCIO data object and transfer all the
+        // data from the old object to it.
+        ManagedLCIOData<T> newData = new ManagedLCIOData<T>(newParams);
+        for(TimedList<?> oldList : oldData.getData()) {
+            newData.getData().add(oldList);
+        }
+        
+        // Put the new data list into the map.
+        collectionMap.put(collectionName, newData);
     }
     
     /**
