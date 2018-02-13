@@ -14,18 +14,13 @@ import org.hps.readout.util.TimedList;
  * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
-public class ManagedLCIOData<T> {
+public class ManagedLCIOData<T> extends LCIOData<T, ManagedLCIOCollection<T>, LinkedList<TimedList<?>>> {
     /**
      * The collection data. Each entry in the data list represents a
      * specific simulation time quantum, while the list itself holds
      * the collection object data.
      */
     private final LinkedList<TimedList<?>> data;
-    /**
-     * Stores the collection parameters for both writing the data to
-     * an LCIO file and also managing it in the readout data manager.
-     */
-    private final ManagedLCIOCollection<T> params;
     
     /**
      * Creates a new <code>ManagedLCIOData</code> based on the
@@ -34,30 +29,11 @@ public class ManagedLCIOData<T> {
      * @param params - The collection parameters.
      */
     public ManagedLCIOData(ManagedLCIOCollection<T> params) {
-        this.params = params;
+        super(params);
         this.data = new LinkedList<TimedList<?>>();
     }
     
-    /**
-     * Gets the collection parameters for the data.
-     * @return Returns the collection parameters as a {@link
-     * org.hps.readout.util.collection.ManagedLCIOCollection
-     * ManagedLCSimCollection} object.
-     */
-    public ManagedLCIOCollection<T> getCollectionParameters() {
-        return params;
-    }
-    
-    /**
-     * Gets the collection data.
-     * @return Returns the collection data. Collection data is stored
-     * in a single list, which itself contains {@link
-     * org.hps.readout.util.TimedList TimedList} objects. Each
-     * <code>TimedList</code> object represents the collection data
-     * generated at the simulation time of the list, which can be
-     * obtained through the method {@link
-     * org.hps.readout.util.TimedList#getTime() TimedList.getTime()}.
-     */
+    @Override
     public LinkedList<TimedList<?>> getData() {
         return data;
     }
