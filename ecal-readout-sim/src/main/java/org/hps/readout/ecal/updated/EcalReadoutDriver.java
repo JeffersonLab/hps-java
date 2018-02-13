@@ -20,9 +20,10 @@ import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
 import org.hps.readout.util.DoubleRingBuffer;
 import org.hps.readout.util.IntegerRingBuffer;
-import org.hps.readout.util.LcsimCollection;
-import org.hps.readout.util.LcsimSingleEventCollectionData;
 import org.hps.readout.util.ObjectRingBuffer;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
@@ -168,7 +169,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * Buffers the truth information for each sample period so that
      * truth relations can be retained upon readout.
      */
-    private Map<Long, ObjectRingBuffer<CalorimeterHit>> truthBufferMap = new HashMap<Long, ObjectRingBuffer<CalorimeterHit>>();
+    private Map<Long, ObjectRingBuffer<SimCalorimeterHit>> truthBufferMap = new HashMap<Long, ObjectRingBuffer<SimCalorimeterHit>>();
     /**
      * A buffer for storing ADC values representing the converted
      * voltage values from the voltage buffers. These are stored in
@@ -230,22 +231,17 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * are produced by this driver when it is emulating Mode-1 or
      * Mode-3.
      */
-    private LcsimCollection<RawTrackerHit> mode13HitCollectionParams;
+    private LCIOCollection<RawTrackerHit> mode13HitCollectionParams;
     /**
      * Defines the LCSim collection data for the trigger hits that
      * are produced by this driver when it is emulating Mode-7.
      */
-    private LcsimCollection<RawCalorimeterHit> mode7HitCollectionParams;
-    /**
-     * Defines the LCSim collection data for the SLIC truth hits that
-     * correspond to the simulated trigger output hits.
-     */
-    private LcsimCollection<CalorimeterHit> truthHitsCollectionParams;
+    private LCIOCollection<RawCalorimeterHit> mode7HitCollectionParams;
     /**
      * Defines the LCSim collection data that links SLIC truth hits
      * to the their corresponding simulated output hit.
      */
-    private LcsimCollection<LCRelation> truthRelationsCollectionParams;
+    private LCIOCollection<LCRelation> truthRelationsCollectionParams;
     
     
     // ==============================================================
@@ -293,29 +289,32 @@ public class EcalReadoutDriver extends ReadoutDriver {
             throw new IllegalArgumentException("Error: Mode " + mode + " is not a supported output mode.");
         }
         
+        // Add the driver dependencies.
+        addDependency(truthHitCollectionName);
+        
         // Define the LCSim collection parameters for this driver's
         // output. Note: Since these are not persisted, the flags and
         // readout name are probably not necessary.
-        LcsimCollection<RawCalorimeterHit> hitCollectionParams = new LcsimCollection<RawCalorimeterHit>(outputHitCollectionName,
-                this, RawCalorimeterHit.class, getTimeDisplacement());
-        hitCollectionParams.setFlags((0 + (1 << LCIOConstants.CHBIT_LONG) + (1 << LCIOConstants.RCHBIT_ID1)));
-        hitCollectionParams.setReadoutName("EcalHits");
-        hitCollectionParams.setPersistent(false);
-        
-        // Set the dependencies for the driver and register its
-        // output collections with the data management driver.
-        addDependency(truthHitCollectionName);
-        ReadoutDataManager.registerCollection(hitCollectionParams);
+        LCIOCollectionFactory.setCollectionName(outputHitCollectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags((0 + (1 << LCIOConstants.CHBIT_LONG) + (1 << LCIOConstants.RCHBIT_ID1)));
+        LCIOCollectionFactory.setReadoutName("EcalHits");
+        LCIOCollection<RawCalorimeterHit> hitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawCalorimeterHit.class);
+        ReadoutDataManager.registerCollection(hitCollectionParams, false);
         
         // Define the LCSim collection data for the on-trigger output.
-        mode13HitCollectionParams = new LcsimCollection<RawTrackerHit>("EcalReadoutHits", this, RawTrackerHit.class, 0.0);
-        mode7HitCollectionParams = new LcsimCollection<RawCalorimeterHit>("EcalReadoutHits", this, RawCalorimeterHit.class, 0.0);
-        mode7HitCollectionParams.setFlags(1 << LCIOConstants.RCHBIT_TIME);
+        LCIOCollectionFactory.setCollectionName("EcalReadoutHits");
+        LCIOCollectionFactory.setProductionDriver(this);
+        mode13HitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawTrackerHit.class);
         
-        // Define the LCSim collections for the truth data.
-        truthHitsCollectionParams = new LcsimCollection<CalorimeterHit>("EcalTruthHits", this, CalorimeterHit.class, 0.0);
-        truthHitsCollectionParams.setFlags(0xe0000000);
-        truthRelationsCollectionParams = new LcsimCollection<LCRelation>("EcalTruthRelations", this, LCRelation.class, 0.0);
+        LCIOCollectionFactory.setCollectionName("EcalReadoutHits");
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(1 << LCIOConstants.RCHBIT_TIME);
+        mode7HitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawCalorimeterHit.class);
+        
+        LCIOCollectionFactory.setCollectionName("EcalTruthRelations");
+        LCIOCollectionFactory.setProductionDriver(this);
+        truthRelationsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
         
         // DEBUG :: Pass the writers to the superclass writer list.
         writers.add(inputWriter);
@@ -357,8 +356,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
     public void detectorChanged(Detector detector) {
         // Get the readout name from the calorimeter geometry data.
         calorimeterGeometry = (HPSEcal3) detector.getSubdetector(ecalGeometryName);
-        mode13HitCollectionParams.setReadoutName(calorimeterGeometry.getReadout().getName());
-        mode7HitCollectionParams.setReadoutName(calorimeterGeometry.getReadout().getName());
+        LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
+        mode13HitCollectionParams = LCIOCollectionFactory.cloneCollection(mode13HitCollectionParams);
+        LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
+        mode7HitCollectionParams = LCIOCollectionFactory.cloneCollection(mode7HitCollectionParams);
         
         // Update the cached calorimeter conditions.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
@@ -378,8 +379,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
          */
         
         // Get current SLIC truth energy depositions.
-        Collection<CalorimeterHit> hits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
-                truthHitCollectionName, CalorimeterHit.class);
+        Collection<SimCalorimeterHit> hits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
+                truthHitCollectionName, SimCalorimeterHit.class);
         
         // DEBUG :: Write the truth hits seen.
         inputWriter.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
@@ -394,8 +395,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // Add the truth hits to the truth hit buffer. The buffer is
         // only incremented when the ADC buffer is incremented, which
         // is handled below.
-        for(CalorimeterHit hit : hits) {
-            ObjectRingBuffer<CalorimeterHit> hitBuffer = this.truthBufferMap.get(hit.getCellID());
+        for(SimCalorimeterHit hit : hits) {
+            ObjectRingBuffer<SimCalorimeterHit> hitBuffer = this.truthBufferMap.get(hit.getCellID());
             hitBuffer.addToCell(0, hit);
         }
         
@@ -649,7 +650,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     @Override
-    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+    protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         // DEBUG :: Output the real truth hits in the output time
         // range.
         StringBuffer timeBufferBuffer = new StringBuffer('}');
@@ -663,7 +664,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         StringBuffer hitCountBuffer = new StringBuffer('}');
         for(int i = 0; i < readoutWindow; i++) {
             int totalHitCount = 0;
-            for(ObjectRingBuffer<CalorimeterHit> buffer : truthBufferMap.values()) {
+            for(ObjectRingBuffer<SimCalorimeterHit> buffer : truthBufferMap.values()) {
                 totalHitCount += buffer.getValue(-(readoutLatency - i - 1)).size();
             }
             hitCountBuffer.append("    " + totalHitCount);
@@ -684,20 +685,20 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         
         // Create a list to store the extra collections.
-        List<LcsimSingleEventCollectionData<?>> collectionsList = null;
+        List<TriggeredLCIOData<?>> collectionsList = null;
         if(writeTruth) {
-            collectionsList = new ArrayList<LcsimSingleEventCollectionData<?>>(3);
+            collectionsList = new ArrayList<TriggeredLCIOData<?>>(3);
         } else {
-            collectionsList = new ArrayList<LcsimSingleEventCollectionData<?>>(1);
+            collectionsList = new ArrayList<TriggeredLCIOData<?>>(1);
         }
         
         // Instantiate some lists to store truth data, if truth is to
         // be output.
         System.out.println("Write Truth: " + writeTruth);
-        List<CalorimeterHit> triggerTruthHits = null;
+        List<SimCalorimeterHit> triggerTruthHits = null;
         List<LCRelation> triggerTruthRelations = null;
         if(writeTruth) {
-            triggerTruthHits = new ArrayList<CalorimeterHit>();
+            triggerTruthHits = new ArrayList<SimCalorimeterHit>();
             triggerTruthRelations = new ArrayList<LCRelation>();
         }
         
@@ -705,14 +706,14 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // them to the readout data manager.
         if(mode == 7) {
             List<RawCalorimeterHit> readoutHits = getMode7Hits(triggerTime);
-            LcsimSingleEventCollectionData<RawCalorimeterHit> readoutData = new LcsimSingleEventCollectionData<RawCalorimeterHit>(mode7HitCollectionParams);
+            TriggeredLCIOData<RawCalorimeterHit> readoutData = new TriggeredLCIOData<RawCalorimeterHit>(mode7HitCollectionParams);
             readoutData.getData().addAll(readoutHits);
             collectionsList.add(readoutData);
         } else {
             List<RawTrackerHit> readoutHits = null;
             if(mode == 1) { readoutHits = getMode1Hits(triggerTime); }
             else { readoutHits = getMode3Hits(triggerTime); }
-            LcsimSingleEventCollectionData<RawTrackerHit> readoutData = new LcsimSingleEventCollectionData<RawTrackerHit>(mode13HitCollectionParams);
+            TriggeredLCIOData<RawTrackerHit> readoutData = new TriggeredLCIOData<RawTrackerHit>(mode13HitCollectionParams);
             readoutData.getData().addAll(readoutHits);
             collectionsList.add(readoutData);
             
@@ -722,7 +723,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
             //       being in an LCRelation?
             if(writeTruth && mode == 1) {
                 for(RawTrackerHit hit : readoutHits) {
-                    Collection<CalorimeterHit> truthHits = getTriggerTruthValues(hit.getCellID(), triggerTime);
+                    Collection<SimCalorimeterHit> truthHits = getTriggerTruthValues(hit.getCellID(), triggerTime);
                     triggerTruthHits.addAll(truthHits);
                     for(CalorimeterHit truthHit : truthHits) {
                         triggerTruthRelations.add(new BaseLCRelation(hit, truthHit));
@@ -733,13 +734,20 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         // Add the truth collections if they exist.
         if(writeTruth) {
+            // Make the truth data collection parameters object.
+            LCIOCollectionFactory.setParams(ReadoutDataManager.getCollectionParameters(truthHitCollectionName, SimCalorimeterHit.class));
+            LCIOCollectionFactory.setCollectionName("EcalTruthHits");
+            LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
+            LCIOCollection<SimCalorimeterHit> truthHitCollection = LCIOCollectionFactory.produceLCIOCollection(SimCalorimeterHit.class);
+            
             // Add the truth hits to the output collection.
-            LcsimSingleEventCollectionData<CalorimeterHit> truthData = new LcsimSingleEventCollectionData<CalorimeterHit>(truthHitsCollectionParams);
+            //TriggeredLCIOData<CalorimeterHit> truthData = new TriggeredLCIOData<CalorimeterHit>(truthHitsCollectionParams);
+            TriggeredLCIOData<SimCalorimeterHit> truthData = new TriggeredLCIOData<SimCalorimeterHit>(truthHitCollection);
             truthData.getData().addAll(triggerTruthHits);
             collectionsList.add(truthData);
             
             // Add the truth relations to the output data.
-            LcsimSingleEventCollectionData<LCRelation> truthRelations = new LcsimSingleEventCollectionData<LCRelation>(truthRelationsCollectionParams);
+            TriggeredLCIOData<LCRelation> truthRelations = new TriggeredLCIOData<LCRelation>(truthRelationsCollectionParams);
             truthRelations.getData().addAll(triggerTruthRelations);
             collectionsList.add(truthRelations);
             
@@ -765,15 +773,14 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * CalorimeterHit} and returns a copy that is shifted in time by
      * the specified amount.
      * @param hit - The hit to clone.
-     * @param timeShift - The amount of time by which the hit should
-     * be shifted.
+     * @param newTime - The new time for the hit.
      * @return Returns a time-shifted hit as an object of type {@link
      * org.lcsim.event.CalorimeterHit CalorimeterHit}, unless the
      * input hit was a {@link org.lcsim.event.SimCalorimeterHit
      * SimCalorimeterHit} object, in which case the truth information
      * will be retained.
      */
-    private static final CalorimeterHit cloneHitToTime(CalorimeterHit hit, double timeShift) {
+    private static final CalorimeterHit cloneHitToTime(CalorimeterHit hit, double newTime) {
         if(hit instanceof SimCalorimeterHit) {
             // Cast the hit to a simulated calorimeter hit.
             SimCalorimeterHit simHit = (SimCalorimeterHit) hit;
@@ -786,24 +793,25 @@ public class EcalReadoutDriver extends ReadoutDriver {
             Object[] particles = new Object[simHit.getMCParticleCount()];
             for(int i = 0; i < simHit.getMCParticleCount(); i++) {
                 particles[i] = simHit.getMCParticle(i);
+                // TODO: This may be the PDGID for products of this particles, and not the contributors. If so, remove this.
                 pdgs[i] = simHit.getMCParticle(i).getPDGID();
                 
                 // Note -- despite returning the value for these
                 // methods as a double, they are actually stored
                 // internally as floats, so this case is always safe.
-                times[i] = (float) simHit.getContributedTime(i);
+                times[i] = (float) newTime;
+                //times[i] = (float) simHit.getContributedTime(i);
                 energies[i] = (float) simHit.getContributedEnergy(i);
             }
             
             // Create the new hit and shift its time position.
-            BaseSimCalorimeterHit cloneHit = new BaseSimCalorimeterHit(simHit.getCellID(), simHit.getRawEnergy(), simHit.getTime(),
+            BaseSimCalorimeterHit cloneHit = new BaseSimCalorimeterHit(simHit.getCellID(), simHit.getRawEnergy(), newTime,
                     particles, energies, times, pdgs, simHit.getMetaData());
-            cloneHit.shiftTime(timeShift);
             
             // Return the hit.
             return cloneHit;
         } else {
-            return new BaseCalorimeterHit(hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getEnergyError(), hit.getTime() + timeShift,
+            return new BaseCalorimeterHit(hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getEnergyError(), newTime,
                     hit.getCellID(), hit.getPositionVec(), hit.getType(), hit.getMetaData());
         }
     }
@@ -1023,7 +1031,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         truthWriter.write(String.format("B%d;%.0f;%.0f", cellID, (ReadoutDataManager.getCurrentTime() - readoutLatency),
                 ((ReadoutDataManager.getCurrentTime() - readoutLatency) + readoutWindow)));
-        ObjectRingBuffer<CalorimeterHit> truthBuffer = truthBufferMap.get(cellID);
+        ObjectRingBuffer<SimCalorimeterHit> truthBuffer = truthBufferMap.get(cellID);
         for(int i = 0; i < readoutWindow; i++) {
             if(!truthBuffer.getValue(-(readoutLatency - i - 1)).isEmpty()) {
                 for(CalorimeterHit hit : truthBuffer.getValue(-(readoutLatency - i - 1))) {
@@ -1053,25 +1061,22 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * readout window around the trigger time for the specified
      * channel.
      */
-    private Collection<CalorimeterHit> getTriggerTruthValues(long cellID, double triggerTime) {
+    private Collection<SimCalorimeterHit> getTriggerTruthValues(long cellID, double triggerTime) {
         // Calculate the offset between the current position and the
         // trigger time.
         int readoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + readoutOffset;
         
         // Get the truth pipeline.
-        ObjectRingBuffer<CalorimeterHit> pipeline = truthBufferMap.get(cellID);
+        ObjectRingBuffer<SimCalorimeterHit> pipeline = truthBufferMap.get(cellID);
         
         // Extract the truth for the requested channel.
         double baseHitTime = 0;
-        List<CalorimeterHit> channelHits = new ArrayList<CalorimeterHit>();
+        List<SimCalorimeterHit> channelHits = new ArrayList<SimCalorimeterHit>();
         for(int i = 0; i < readoutWindow; i++) {
             // Hit times should be specified with respect to the
             // start of the readout window.
-            for(CalorimeterHit hit : pipeline.getValue(-(readoutLatency - i - 1))) {
-                channelHits.add(cloneHitToTime(hit, baseHitTime + hit.getTime()));
-                
-                //channelHits.add(new BaseCalorimeterHit(hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getEnergyError(), baseHitTime + hit.getTime(),
-                //        hit.getCellID(), hit.getPositionVec(), hit.getType(), hit.getMetaData()));
+            for(SimCalorimeterHit hit : pipeline.getValue(-(readoutLatency - i - 1))) {
+                channelHits.add((SimCalorimeterHit) cloneHitToTime(hit, baseHitTime));
             }
             
             // Increment the base hit time.
@@ -1191,7 +1196,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         for(Long cellID : cells) {
             EcalChannelConstants channelData = findChannel(cellID);
             voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
-            truthBufferMap.put(cellID, new ObjectRingBuffer<CalorimeterHit>(PIPELINE_LENGTH));
+            truthBufferMap.put(cellID, new ObjectRingBuffer<SimCalorimeterHit>(PIPELINE_LENGTH));
             adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(channelData.getCalibration().getPedestal())));
             
             truthBufferMap.get(cellID).stepForward();
