@@ -13,11 +13,13 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.readout.util.LcsimCollection;
-import org.hps.readout.util.LcsimCollectionData;
-import org.hps.readout.util.LcsimSingleEventCollectionData;
 import org.hps.readout.util.TimedList;
 import org.hps.readout.util.TriggerTime;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.readout.util.collection.ManagedLCIOCollection;
+import org.hps.readout.util.collection.ManagedLCIOData;
+import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.lcio.LCIOWriter;
@@ -73,7 +75,7 @@ public class ReadoutDataManager extends Driver {
      * Tracks all data collections which are managed by the readout
      * manager as well as their properties.
      */
-    private static final Map<String, LcsimCollectionData<?>> collectionMap = new HashMap<String, LcsimCollectionData<?>>();
+    private static final Map<String, ManagedLCIOData<?>> collectionMap = new HashMap<String, ManagedLCIOData<?>>();
     /**
      * Tracks the time displacement for trigger drivers.
      */
@@ -164,9 +166,9 @@ public class ReadoutDataManager extends Driver {
                 double endTime = startTime + readoutWindow;
                 
                 // Write out the writable collections into the event.
-                for(LcsimCollectionData<?> collectionData : collectionMap.values()) {
+                for(ManagedLCIOData<?> collectionData : collectionMap.values()) {
                     // Ignore any collections that are not set to be persisted.
-                    if(!collectionData.isPersistent()) {
+                    if(!collectionData.getCollectionParameters().isPersistent()) {
                         continue;
                     }
                     
@@ -177,13 +179,13 @@ public class ReadoutDataManager extends Driver {
                     // the time found through use of the readout
                     // window/trigger time displacement calculation.
                     double localStartTime = startTime;
-                    if(!Double.isNaN(collectionData.getWindowBefore())) {
-                        localStartTime = trigger.getTriggerTime() - collectionData.getWindowBefore();
+                    if(!Double.isNaN(collectionData.getCollectionParameters().getWindowBefore())) {
+                        localStartTime = trigger.getTriggerTime() - collectionData.getCollectionParameters().getWindowBefore();
                     }
                     
                     double localEndTime = endTime;
-                    if(!Double.isNaN(collectionData.getWindowAfter())) {
-                        localEndTime = trigger.getTriggerTime() + collectionData.getWindowAfter();
+                    if(!Double.isNaN(collectionData.getCollectionParameters().getWindowAfter())) {
+                        localEndTime = trigger.getTriggerTime() + collectionData.getCollectionParameters().getWindowAfter();
                     }
                     
                     // Persisted collection should be added to event
@@ -196,11 +198,11 @@ public class ReadoutDataManager extends Driver {
                 for(ReadoutDriver driver : driverSet) {
                     // Get the special collection(s) from the current
                     // driver, if it exists.
-                    Collection<LcsimSingleEventCollectionData<?>> onTriggerData = driver.getOnTriggerData(trigger.getTriggerTime());
+                    Collection<TriggeredLCIOData<?>> onTriggerData = driver.getOnTriggerData(trigger.getTriggerTime());
                     
                     // If there are special collections, write them.
                     if(onTriggerData != null) {
-                        for(LcsimSingleEventCollectionData<?> triggerData : onTriggerData) {
+                        for(TriggeredLCIOData<?> triggerData : onTriggerData) {
                             storeCollection(triggerData, lcsimEvent);
                         }
                     }
@@ -217,7 +219,7 @@ public class ReadoutDataManager extends Driver {
         
         // Remove all data from the buffer that occurs before the max
         // buffer length cut-off.
-        for(LcsimCollectionData<?> data : collectionMap.values()) {
+        for(ManagedLCIOData<?> data : collectionMap.values()) {
             while(!data.getData().isEmpty() && (data.getData().getFirst().getTime() < (getCurrentTime() - bufferTotal))) {
                 data.getData().removeFirst();
             }
@@ -252,19 +254,19 @@ public class ReadoutDataManager extends Driver {
         }
         
         // Get the collection data object.
-        LcsimCollectionData<?> collectionData = collectionMap.get(collectionName);
+        ManagedLCIOData<?> collectionData = collectionMap.get(collectionName);
         
         // Validate that the data type is correct.
-        if(collectionData.getObjectType() != dataType) {
+        if(collectionData.getCollectionParameters().getObjectType() != dataType) {
             throw new IllegalArgumentException("Error: Saw data type \"" + dataType.getSimpleName() + "\" but expected data type \""
-                    + collectionData.getObjectType().getSimpleName() + "\" instead.");
+                    + collectionData.getCollectionParameters().getObjectType().getSimpleName() + "\" instead.");
         }
         
         // If the data is empty, then there is no need to add it to
         // the buffer.
         if(!data.isEmpty()) {
             // Add the new data to the data buffer.
-            double time = Double.isNaN(dataTime) ? currentTime - collectionData.getGlobalTimeDisplacement() : dataTime;
+            double time = Double.isNaN(dataTime) ? currentTime - collectionData.getCollectionParameters().getGlobalTimeDisplacement() : dataTime;
             LinkedList<TimedList<?>> dataBuffer = collectionData.getData();
             dataBuffer.add(new TimedList<T>(time, data));
         }
@@ -308,7 +310,7 @@ public class ReadoutDataManager extends Driver {
         // Otherwise, check if enough time has passed for the driver
         // which controls to the collection to have produced output
         // for the requested time period.
-        return time <= getCurrentTime() - collectionMap.get(collectionName).getGlobalTimeDisplacement();
+        return time <= getCurrentTime() - collectionMap.get(collectionName).getCollectionParameters().getGlobalTimeDisplacement();
     }
     
     /**
@@ -317,6 +319,34 @@ public class ReadoutDataManager extends Driver {
      */
     public static final double getBeamBunchSize() {
         return BEAM_BUNCH_SIZE;
+    }
+    
+    /**
+     * Gets the LCIO collection parameters for a collection.
+     * @param collectionName - The name of the collection.
+     * @param objectType - The data type of the collection.
+     * @return Returns the collection parameters.
+     */
+    @SuppressWarnings("unchecked")
+    public static final <T> LCIOCollection<T> getCollectionParameters(String collectionName, Class<T> objectType) {
+        // Verify that the requested collection actually exists.
+        if(!collectionMap.containsKey(collectionName)) {
+            throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" does not exist.");
+        }
+        
+        // Get the collection and check that it is of the appropriate
+        // parameterized type.
+        LCIOCollection<?> collection = collectionMap.get(collectionName).getCollectionParameters();
+        if(collection.getObjectType() != objectType) {
+            throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" is of type " + collection.getObjectType().getSimpleName()
+                    + " while object type " + objectType.getSimpleName() + " was requested.");
+        }
+        
+        // Return the collection parameters.
+        // NOTE: This type case is safe, since it is verified above
+        //       that the collection object is of the same class type
+        //       as the parameterized type.
+        return (LCIOCollection<T>) collection;
     }
     
     /**
@@ -365,7 +395,11 @@ public class ReadoutDataManager extends Driver {
      * @return Returns the total time displacement in nanoseconds.
      */
     public static final double getTotalTimeDisplacement(String collectionName) {
-        return collectionMap.get(collectionName).getGlobalTimeDisplacement();
+        if(collectionMap.containsKey(collectionName)) {
+            return collectionMap.get(collectionName).getCollectionParameters().getGlobalTimeDisplacement();
+        } else {
+            throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" does not exist.");
+        }
     }
     
     /**
@@ -376,10 +410,35 @@ public class ReadoutDataManager extends Driver {
      * special collections should not be registered.
      * @param params - An object describing the collection
      * parameters.
+     * @param persistent - Sets whether this collection should be
+     * written out to the readout LCIO file.
      * @param <T> - Specifies the class type of the data stored by
      * the collection.
      */
-    public static final <T> void registerCollection(LcsimCollection<T> params) {
+    public static final <T> void registerCollection(LCIOCollection<T> params, boolean persistent) {
+        registerCollection(params, persistent, Double.NaN, Double.NaN);
+    }
+    
+    /**
+     * Adds a managed collection to the data manager. All collections
+     * which serve as either input or output from a {@link
+     * org.hps.readout.ReadoutDriver ReadoutDriver} are required to
+     * be registered and managed by the data manager. On-trigger
+     * special collections should not be registered.
+     * @param params - An object describing the collection
+     * parameters.
+     * @param persistent - Sets whether this collection should be
+     * written out to the readout LCIO file.
+     * @param readoutWindowBefore - Defines a custom period of time
+     * before the trigger time in which all objects will be output to
+     * the output LCIO file.
+     * @param readoutWindowAfter - Defines a custom period of time
+     * after the trigger time in which all objects will be output to
+     * the output LCIO file.
+     * @param <T> - Specifies the class type of the data stored by
+     * the collection.
+     */
+    public static final <T> void registerCollection(LCIOCollection<T> params, boolean persistent, double readoutWindowBefore, double readoutWindowAfter) {
         // Make sure that all arguments are defined.
         if(params.getCollectionName() == null) {
             throw new IllegalArgumentException("Error: Collection name must be defined.");
@@ -397,16 +456,22 @@ public class ReadoutDataManager extends Driver {
         
         // Create a collection data object.
         double timeDisplacement = getTotalTimeDisplacement(params.getCollectionName(), params.getProductionDriver());
-        LcsimCollectionData<T> collectionData = new LcsimCollectionData<T>(params, timeDisplacement);
+        LCIOCollectionFactory.setParams(params);
+        LCIOCollectionFactory.setGlobalTimeDisplacement(timeDisplacement);
+        LCIOCollectionFactory.setPersistent(persistent);
+        LCIOCollectionFactory.setWindowAfter(readoutWindowAfter);
+        LCIOCollectionFactory.setWindowBefore(readoutWindowBefore);
+        ManagedLCIOCollection<T> managedParams = LCIOCollectionFactory.produceManagedLCIOCollection(params.getObjectType());
+        ManagedLCIOData<T> collectionData = new ManagedLCIOData<T>(managedParams);
         collectionMap.put(params.getCollectionName(), collectionData);
         
         // Track which collection has the largest time displacement.
         // This only applied if the registered collection is to be
         // persisted.
-        if(params.isPersistent()) {
+        if(managedParams.isPersistent()) {
             if(largestDisplacement == null) {
                 largestDisplacement = params.getCollectionName();
-            } else if(timeDisplacement > collectionMap.get(largestDisplacement).getGlobalTimeDisplacement()) {
+            } else if(timeDisplacement > collectionMap.get(largestDisplacement).getCollectionParameters().getGlobalTimeDisplacement()) {
                 largestDisplacement = params.getCollectionName();
             }
         }
@@ -416,20 +481,23 @@ public class ReadoutDataManager extends Driver {
         // the collection gives NaN for its time window, it will use
         // the default readout window and trigger time displacement.
         // Otherwise, it will use its own specified window.
-        if(Double.isNaN(params.getWindowAfter())) {
+        if(Double.isNaN(managedParams.getWindowAfter())) {
             bufferAfter = Math.max(bufferAfter, (readoutWindow - triggerTimeDisplacement));
         } else {
-            bufferAfter = Math.max(bufferAfter, params.getWindowAfter());
+            bufferAfter = Math.max(bufferAfter, managedParams.getWindowAfter());
         }
         
-        if(Double.isNaN(params.getWindowBefore())) {
+        if(Double.isNaN(managedParams.getWindowBefore())) {
             bufferBefore = Math.max(bufferBefore, triggerTimeDisplacement);
         } else {
-            bufferBefore = Math.max(bufferBefore, params.getWindowBefore());
+            bufferBefore = Math.max(bufferBefore, managedParams.getWindowBefore());
         }
         
         // Store the readout driver in the driver set.
         driverSet.add(params.getProductionDriver());
+        
+        System.out.println("Registered collection \"" + managedParams.getCollectionName() + "\" of class type "
+                + managedParams.getObjectType().getSimpleName() + ".");
     }
     
     /**
@@ -509,14 +577,14 @@ public class ReadoutDataManager extends Driver {
      */
     private static final <T> List<T> getDataList(double startTime, double endTime, String collectionName, Class<T> objectType) {
         // Get the collection data.
-        LcsimCollectionData<?> collectionData = collectionMap.get(collectionName);
+        ManagedLCIOData<?> collectionData = collectionMap.get(collectionName);
         
         // Verify that the a collection of the indicated name exists
         // and that it is the appropriate object type.
         if(collectionData != null) {
-            if(!objectType.isAssignableFrom(collectionData.getObjectType())) {
+            if(!objectType.isAssignableFrom(collectionData.getCollectionParameters().getObjectType())) {
                 throw new IllegalArgumentException("Error: Expected object type " + objectType.getSimpleName() + " for collection \"" + collectionName
-                        + ",\" but found object type " + collectionData.getObjectType().getSimpleName() + ".");
+                        + ",\" but found object type " + collectionData.getCollectionParameters().getObjectType().getSimpleName() + ".");
             }
         } else {
             throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" does not exist.");
@@ -573,7 +641,7 @@ public class ReadoutDataManager extends Driver {
             // that it is.
             double dependencyDisplacement = 0.0;
             if(collectionMap.containsKey(dependency)) {
-                dependencyDisplacement = collectionMap.get(dependency).getGlobalTimeDisplacement();
+                dependencyDisplacement = collectionMap.get(dependency).getCollectionParameters().getGlobalTimeDisplacement();
             } else {
                 throw new IllegalArgumentException("Error: Collection \"" + dependency + "\" has not been registered.");
             }
@@ -603,12 +671,14 @@ public class ReadoutDataManager extends Driver {
      * @param <T> - Specifies the class type of the data that is to be
      * written to the output event.
      */
-    private static final <T> void storeCollection(double startTime, double endTime, LcsimCollectionData<T> collectionData, EventHeader event) {
+    private static final <T> void storeCollection(double startTime, double endTime, ManagedLCIOData<T> collectionData, EventHeader event) {
         // Get the trigger window data.
-        List<T> triggerData = getDataList(startTime, endTime, collectionData.getCollectionName(), collectionData.getObjectType());
+        List<T> triggerData = getDataList(startTime, endTime, collectionData.getCollectionParameters().getCollectionName(),
+                collectionData.getCollectionParameters().getObjectType());
         
         // Store the trigger window data.
-        storeCollection(collectionData.getCollectionName(), collectionData.getObjectType(), collectionData.getFlags(), collectionData.getReadoutName(),
+        storeCollection(collectionData.getCollectionParameters().getCollectionName(), collectionData.getCollectionParameters().getObjectType(),
+                collectionData.getCollectionParameters().getFlags(), collectionData.getCollectionParameters().getReadoutName(),
                 triggerData, event);
     }
     
@@ -621,8 +691,9 @@ public class ReadoutDataManager extends Driver {
      * @param <T> - Specifies the class type of the data that is to be
      * written to the output event.
      */
-    private static final <T> void storeCollection(LcsimSingleEventCollectionData<T> collectionData, EventHeader event) {
-        storeCollection(collectionData.getCollectionName(), collectionData.getObjectType(), collectionData.getFlags(), collectionData.getReadoutName(),
+    private static final <T> void storeCollection(TriggeredLCIOData<T> collectionData, EventHeader event) {
+        storeCollection(collectionData.getCollectionParameters().getCollectionName(), collectionData.getCollectionParameters().getObjectType(),
+                collectionData.getCollectionParameters().getFlags(), collectionData.getCollectionParameters().getReadoutName(),
                 collectionData.getData(), event);
     }
     
@@ -676,12 +747,12 @@ public class ReadoutDataManager extends Driver {
             }
             
             // Get the collection data for the dependency.
-            LcsimCollectionData<?> collectionData = collectionMap.get(dependency);
+            ManagedLCIOData<?> collectionData = collectionMap.get(dependency);
             
             // Check that this dependency does not depend on the
             // higher driver.
             for(String dependent : dependents) {
-                if(collectionData.getProductionDriver().getDependencies().contains(dependent)) {
+                if(collectionData.getCollectionParameters().getProductionDriver().getDependencies().contains(dependent)) {
                     throw new IllegalStateException("Error: Collection \"" + dependency + "\" depends on collection \"" + dependent
                             + ",\" but collection \"" + dependent + "\" also depends of collection \"" + dependency + ".\"");
                 }
@@ -692,7 +763,7 @@ public class ReadoutDataManager extends Driver {
             // dependency.
             Set<String> dependencySet = new HashSet<String>();
             dependencySet.addAll(dependents);
-            validateDependencies(dependency, collectionData.getProductionDriver(), dependencySet);
+            validateDependencies(dependency, collectionData.getCollectionParameters().getProductionDriver(), dependencySet);
         }
     }
     
