@@ -8,8 +8,9 @@ import java.util.Map;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.SLICDataReadoutDriver;
-import org.hps.readout.util.LcsimCollection;
-import org.hps.readout.util.LcsimSingleEventCollectionData;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.event.SimTrackerHit;
@@ -18,7 +19,7 @@ import org.lcsim.geometry.Subdetector;
 
 public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTrackerHit> {
     private Subdetector detector = null;
-    private LcsimCollection<FpgaData> fpgaDataParams = null;
+    private LCIOCollection<FpgaData> fpgaDataParams = null;
     
     public SimTrackerHitReadoutDriver() {
         super(SimTrackerHit.class, 0xc0000000);
@@ -35,20 +36,21 @@ public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTracker
         super.startOfData();
         
         // Create the LCSim collection parameters for the FPGA data.
-        // String collectionName, ReadoutDriver productionDriver, Class<T> objectType, double globalTimeDisplacement
-        fpgaDataParams = new LcsimCollection<FpgaData>("FPGAData", this, FpgaData.class, 0.0);
+        LCIOCollectionFactory.setCollectionName("FPGAData");
+        LCIOCollectionFactory.setProductionDriver(this);
+        fpgaDataParams = LCIOCollectionFactory.produceLCIOCollection(FpgaData.class);
     }
     
-    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+    protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         // Get the FPGA data.
         List<FpgaData> fpgaData = new ArrayList<FpgaData>(makeFPGAData(detector).values());
         
         // Create the FPGA data collection.
-        LcsimSingleEventCollectionData<FpgaData> fpgaCollection = new LcsimSingleEventCollectionData<FpgaData>(fpgaDataParams);
+        TriggeredLCIOData<FpgaData> fpgaCollection = new TriggeredLCIOData<FpgaData>(fpgaDataParams);
         fpgaCollection.getData().addAll(fpgaData);
         
         // Create a general list for the collection.
-        List<LcsimSingleEventCollectionData<?>> collectionsList = new ArrayList<LcsimSingleEventCollectionData<?>>(1);
+        List<TriggeredLCIOData<?>> collectionsList = new ArrayList<TriggeredLCIOData<?>>(1);
         collectionsList.add(fpgaCollection);
         
         // Return the collections list result.
