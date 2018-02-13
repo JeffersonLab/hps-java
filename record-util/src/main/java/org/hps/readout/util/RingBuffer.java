@@ -22,9 +22,16 @@ public abstract class RingBuffer<T, V> implements Iterable<T> {
      */
     private int index = 0;
     
+    /**
+     * Instantiates a ring buffer of the indicated size and for the
+     * indicated object type.
+     * @param size - The size of the buffer.
+     * @param objectType - The class of the object that is to be
+     * stored in the buffer.
+     */
     @SuppressWarnings("unchecked")
-    protected RingBuffer(int size, Class<T> numberType) {
-        array = (T[]) Array.newInstance(numberType, size);
+    protected RingBuffer(int size, Class<T> objectType) {
+        array = (T[]) Array.newInstance(objectType, size);
         instantiateBuffer();
     }
     
