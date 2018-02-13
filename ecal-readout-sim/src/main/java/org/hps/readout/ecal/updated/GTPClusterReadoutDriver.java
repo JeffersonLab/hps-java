@@ -10,6 +10,7 @@ import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -93,11 +94,6 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      * This is calculated automatically.
      */
     private double localTimeDisplacement = 0;
-    /**
-     * Indicates whether or not the GTP clusters produced by the
-     * driver should be output into the LCIO file.
-     */
-    private boolean outputClusters = true;
     
     // ==============================================================
     // ==== Driver Parameters =======================================
@@ -125,6 +121,8 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      */
     private final TempOutputWriter seedWriter = new TempOutputWriter("cluster_seeds_new.log");
     
+    private HPSEcal3 calorimeterGeometry = null;
+    
     @Override
     public void endOfData() {
         if(debug) {
@@ -136,13 +134,14 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
     @Override
     public void detectorChanged(Detector etector) {
         // Get the calorimeter data object.
-        HPSEcal3 ecal = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
-        if(ecal == null) {
+        //HPSEcal3 ecal = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
+        calorimeterGeometry = (HPSEcal3) DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector("Ecal");
+        if(calorimeterGeometry == null) {
             throw new IllegalStateException("Error: Calorimeter geometry data object not defined.");
         }
         
         // Get the calorimeter hit neighbor map.
-        neighborMap = ecal.getNeighborMap();
+        neighborMap = calorimeterGeometry.getNeighborMap();
         if(neighborMap == null) {
             throw new IllegalStateException("Error: Calorimeter hit neighbor map is not defined.");
         }
@@ -271,7 +270,7 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         // data manager.
         localTimeDisplacement = temporalWindow + 4.0;
         addDependency(inputCollectionName);
-        ReadoutDataManager.registerCollection(clusterCollectionParams, outputClusters);
+        ReadoutDataManager.registerCollection(clusterCollectionParams, false);
         
         // DEBUG :: Pass the writers to the superclass writer list.
         writers.add(writer);
@@ -281,40 +280,65 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         super.startOfData();
     }
     
-    /*
     @Override
-    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
-        List<LcsimSingleEventCollectionData<?>> collectionsList = new ArrayList<LcsimSingleEventCollectionData<?>>(2);
+    protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
+        // If clusters are not to be output, return null.
+        if(!isPersistent()) { return null; }
         
+        // Create a list to store the on-trigger collections. There
+        // are two collections outputs for this driver - the clusters
+        // and the cluster hits. Unlike other drivers, the clusterer
+        // must handle its own output because the manager does not
+        // know that it must also specifically output the hits from
+        // each cluster as well.
+        List<TriggeredLCIOData<?>> collectionsList = new ArrayList<TriggeredLCIOData<?>>(2);
         
-        LcsimCollection<Cluster> clusterCollectionParams = new LcsimCollection<Cluster>("DebugClusters", this, Cluster.class, getTimeDisplacement());
-        clusterCollectionParams.setFlags(1 << LCIOConstants.CLBIT_HITS);
+        // Define the LCIO collection settings for the clusters.
+        LCIOCollectionFactory.setCollectionName(outputCollectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(1 << LCIOConstants.CLBIT_HITS);
+        LCIOCollection<Cluster> clusterCollectionParams = LCIOCollectionFactory.produceLCIOCollection(Cluster.class);
         
+        // Define the LCIO collection settings for the cluster hits.
+        int hitFlags = 0;
+        hitFlags += 1 << LCIOConstants.RCHBIT_TIME;
+        hitFlags += 1 << LCIOConstants.RCHBIT_LONG;
+        LCIOCollectionFactory.setCollectionName("ClusterSimHits");
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(hitFlags);
+        LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
+        LCIOCollection<CalorimeterHit> clusterHitsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(CalorimeterHit.class);
         
-        LcsimCollection<CalorimeterHit> clusterHitsCollectionParams = new LcsimCollection<CalorimeterHit>("DebugClusterHits", this, CalorimeterHit.class, 0.0);
-        int clusterHitFlags = 0;
-        clusterHitsCollectionParams.setFlags(clusterHitFlags);
+        // Get the output time range for clusters. This is either the
+        // user defined output range, or the default readout window
+        // that is defined by the readout data manager.
+        double startTime;
+        if(Double.isNaN(getReadoutWindowBefore())) { startTime = triggerTime - ReadoutDataManager.getTriggerOffset(); }
+        else { startTime = triggerTime - getReadoutWindowBefore(); }
         
-        double startTime = triggerTime - 138;
-        double endTime = triggerTime + 258;
+        double endTime;
+        if(Double.isNaN(getReadoutWindowAfter())) { endTime = startTime + ReadoutDataManager.getReadoutWindow(); }
+        else { endTime = triggerTime + getReadoutWindowAfter(); }
         
+        // Get the cluster data and populate a list of cluster hits.
         Collection<Cluster> clusters = ReadoutDataManager.getData(startTime, endTime, outputCollectionName, Cluster.class);
         List<CalorimeterHit> clusterHits = new ArrayList<CalorimeterHit>();
         for(Cluster cluster : clusters) {
             clusterHits.addAll(cluster.getCalorimeterHits());
         }
         
-        LcsimSingleEventCollectionData<CalorimeterHit> clusterHitData = new LcsimSingleEventCollectionData<CalorimeterHit>(clusterHitsCollectionParams);
+        // Create the LCIO on-trigger data lists.
+        TriggeredLCIOData<CalorimeterHit> clusterHitData = new TriggeredLCIOData<CalorimeterHit>(clusterHitsCollectionParams);
         clusterHitData.getData().addAll(clusterHits);
         collectionsList.add(clusterHitData);
         
-        LcsimSingleEventCollectionData<Cluster> clusterData = new LcsimSingleEventCollectionData<Cluster>(clusterCollectionParams);
+        TriggeredLCIOData<Cluster> clusterData = new TriggeredLCIOData<Cluster>(clusterCollectionParams);
         clusterData.getData().addAll(clusters);
         collectionsList.add(clusterData);
         
+        // Return the on-trigger data.
         return collectionsList;
     }
-    */
     
     @Override
     protected double getTimeDisplacement() {
@@ -366,15 +390,5 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      */
     public void setSeedEnergyThreshold(double value) {
         seedEnergyThreshold = value;
-    }
-    
-    /**
-     * Defines whether the output of this clusterer should be
-     * persisted to LCIO or not. By default, this is false.
-     * @param state - <code>true</code> indicates that clusters will
-     * be persisted, and <code>false</code> that they will not.
-     */
-    public void setWriteClusterCollection(boolean state) {
-        outputClusters = state;
     }
 }
