@@ -8,7 +8,8 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
-import org.hps.readout.util.LcsimCollection;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -261,15 +262,16 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
     @Override
     public void startOfData() {
         // Define the output LCSim collection parameters.
-        LcsimCollection<Cluster> clusterCollectionParams = new LcsimCollection<Cluster>(outputCollectionName, this, Cluster.class, getTimeDisplacement());
-        clusterCollectionParams.setFlags(1 << LCIOConstants.CLBIT_HITS);
-        clusterCollectionParams.setPersistent(outputClusters);
+        LCIOCollectionFactory.setCollectionName(outputCollectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(1 << LCIOConstants.CLBIT_HITS);
+        LCIOCollection<Cluster> clusterCollectionParams = LCIOCollectionFactory.produceLCIOCollection(Cluster.class);
         
         // Instantiate the GTP cluster collection with the readout
         // data manager.
         localTimeDisplacement = temporalWindow + 4.0;
         addDependency(inputCollectionName);
-        ReadoutDataManager.registerCollection(clusterCollectionParams);
+        ReadoutDataManager.registerCollection(clusterCollectionParams, outputClusters);
         
         // DEBUG :: Pass the writers to the superclass writer list.
         writers.add(writer);
@@ -278,6 +280,41 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         // Run the superclass method.
         super.startOfData();
     }
+    
+    /*
+    @Override
+    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+        List<LcsimSingleEventCollectionData<?>> collectionsList = new ArrayList<LcsimSingleEventCollectionData<?>>(2);
+        
+        
+        LcsimCollection<Cluster> clusterCollectionParams = new LcsimCollection<Cluster>("DebugClusters", this, Cluster.class, getTimeDisplacement());
+        clusterCollectionParams.setFlags(1 << LCIOConstants.CLBIT_HITS);
+        
+        
+        LcsimCollection<CalorimeterHit> clusterHitsCollectionParams = new LcsimCollection<CalorimeterHit>("DebugClusterHits", this, CalorimeterHit.class, 0.0);
+        int clusterHitFlags = 0;
+        clusterHitsCollectionParams.setFlags(clusterHitFlags);
+        
+        double startTime = triggerTime - 138;
+        double endTime = triggerTime + 258;
+        
+        Collection<Cluster> clusters = ReadoutDataManager.getData(startTime, endTime, outputCollectionName, Cluster.class);
+        List<CalorimeterHit> clusterHits = new ArrayList<CalorimeterHit>();
+        for(Cluster cluster : clusters) {
+            clusterHits.addAll(cluster.getCalorimeterHits());
+        }
+        
+        LcsimSingleEventCollectionData<CalorimeterHit> clusterHitData = new LcsimSingleEventCollectionData<CalorimeterHit>(clusterHitsCollectionParams);
+        clusterHitData.getData().addAll(clusterHits);
+        collectionsList.add(clusterHitData);
+        
+        LcsimSingleEventCollectionData<Cluster> clusterData = new LcsimSingleEventCollectionData<Cluster>(clusterCollectionParams);
+        clusterData.getData().addAll(clusters);
+        collectionsList.add(clusterData);
+        
+        return collectionsList;
+    }
+    */
     
     @Override
     protected double getTimeDisplacement() {
