@@ -10,7 +10,7 @@ import org.hps.readout.ReadoutDriver;
  * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
-public class LCIOCollection<T> {
+public class LCIOCollection<T> implements Comparable<LCIOCollection<T>> {
     private final int flags;
     private final String readoutName;
     private final String collectionName;
@@ -97,6 +97,54 @@ public class LCIOCollection<T> {
      */
     LCIOCollection(String collectionName, LCIOCollection<T> baseParams) {
         this(collectionName, baseParams.productionDriver, baseParams.objectType, baseParams.flags, baseParams.readoutName);
+    }
+    
+    /**
+     * Compares two LCIO collections. They are sorted by object type,
+     * collection name, and flags in this order. Note that the
+     * production driver is not required to match.
+     * @param otherCollection - The collection to which this object
+     * will be compared.
+     * @return Returns a value of <code>0</code> if the collections
+     * are identical (ignoring the production driver). Otherwise, a
+     * non-zero value will be returned based on the differing values.
+     */
+    @Override
+    public int compareTo(LCIOCollection<T> otherCollection) {
+        // The object types must be the same.
+        if(otherCollection.getObjectType() != getObjectType()) {
+            return getObjectType().getSimpleName().compareTo(otherCollection.getObjectType().getSimpleName());
+        }
+        
+        // The collection names must be the same.
+        int nameCompare = getCollectionName().compareTo(otherCollection.getCollectionName());
+        if(nameCompare != 0) {
+            return nameCompare;
+        }
+        
+        // The flags must be the same.
+        return Integer.compare(getFlags(), otherCollection.getFlags());
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        // The object must be of the same class type.
+        if(!(obj instanceof LCIOCollection)) {
+            return false;
+        }
+        
+        // The object must have the same object type.
+        LCIOCollection<?> lcioObj = (LCIOCollection<?>) obj;
+        if(lcioObj.getClass() != getClass()) {
+            return false;
+        }
+        
+        // Finally, compare the object attributes. Note that the
+        // preceding check requires that this object be properly
+        // parameterized, so there is no risk of a case exception.
+        @SuppressWarnings("unchecked")
+        LCIOCollection<T> castObj = (LCIOCollection<T>) obj;
+        return (compareTo(castObj) == 0);
     }
     
     /**
