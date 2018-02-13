@@ -17,6 +17,7 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
@@ -96,6 +97,10 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         
         // Cache the calorimeter conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        
+        // Get the readout name from the calorimeter geometry data.
+        HPSEcal3 calorimeterGeometry = (HPSEcal3) detector.getSubdetector("Ecal");
+        ReadoutDataManager.updateCollectionReadoutName(outputCollectionName, CalorimeterHit.class, calorimeterGeometry.getReadout().getName());
     }
     
     @Override
@@ -165,7 +170,7 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         // Set the dependencies for the driver and register its
         // output collections with the data management driver.
         addDependency(inputCollectionName);
-        ReadoutDataManager.registerCollection(hitCollectionParams, false);
+        ReadoutDataManager.registerCollection(hitCollectionParams, isPersistent(), getReadoutWindowBefore(), getReadoutWindowAfter());
         
         // DEBUG :: Pass the writer to the superclass writer list.
         writers.add(writer);
