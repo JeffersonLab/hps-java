@@ -3,7 +3,8 @@ package org.hps.readout;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.readout.util.LcsimCollection;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -81,21 +82,15 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
     @Override
     public void startOfData() {
         // Define the LCSim output collection parameters.
-        LcsimCollection<E> mcCollectionParams = new LcsimCollection<E>(collectionName, this, type, 0.0);
-        mcCollectionParams.setFlags(flags);
-        
-        // The trigger time is the time at which integration begins
-        // on the seed hit of the triggering cluster. Since this is
-        // usually displaced by a bit due to the pulse shape, MC data
-        // is retained over a range that is weighted to the period
-        // preceding the trigger time.
-        // TODO: This should probably be programmable.
-        mcCollectionParams.setWindowAfter(8.0);
-        mcCollectionParams.setWindowBefore(32.0);
+        LCIOCollectionFactory.setCollectionName(collectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(flags);
+        LCIOCollection<E> mcCollectionParams = LCIOCollectionFactory.produceLCIOCollection(type);
         
         // Register the handled collection with the data management
         // driver.
-        ReadoutDataManager.registerCollection(mcCollectionParams);
+        // TODO: Truth data should be handled by the SVT and ECal drivers more directly.
+        ReadoutDataManager.registerCollection(mcCollectionParams, true, 8.0, 32.0);
         
         // DEBUG :: Pass the writer to the superclass writer list.
         writer = new TempOutputWriter(collectionName + ".log");
