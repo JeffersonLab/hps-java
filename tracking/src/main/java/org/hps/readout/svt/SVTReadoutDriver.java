@@ -29,8 +29,9 @@ import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDr
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.TempOutputWriter;
-import org.hps.readout.util.LcsimCollection;
-import org.hps.readout.util.LcsimSingleEventCollectionData;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.hps.recon.tracking.PulseShape;
 import org.hps.util.RandomGaussian;
 
@@ -73,8 +74,8 @@ public class SVTReadoutDriver extends ReadoutDriver {
     private String outputCollection = "SVTRawTrackerHits";
     private String relationCollection = "SVTTrueHitRelations";
     
-    private LcsimCollection<RawTrackerHit> trackerHitCollectionParams;
-    private LcsimCollection<LCRelation> truthCollectionParams;
+    private LCIOCollection<RawTrackerHit> trackerHitCollectionParams;
+    private LCIOCollection<LCRelation> truthCollectionParams;
     
     private final TempOutputWriter inputWriter = new TempOutputWriter("svt_input_hits_new.log");
     private final TempOutputWriter outputWriter = new TempOutputWriter("svt_output_hits_new.log");
@@ -367,20 +368,24 @@ public class SVTReadoutDriver extends ReadoutDriver {
         // manager if no pile-up simulation is included. Otherwise,
         // the driver outputs its own collection at readout.
         if(noPileup) {
-            LcsimCollection<RawTrackerHit> noPileUpCollectionParams = new LcsimCollection<RawTrackerHit>(outputCollection, this, RawTrackerHit.class, 0.0);
-            noPileUpCollectionParams.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
-            noPileUpCollectionParams.setReadoutName(readout);
-            noPileUpCollectionParams.setWindowBefore(0);
-            noPileUpCollectionParams.setWindowAfter(4.0);
-            ReadoutDataManager.registerCollection(noPileUpCollectionParams);
+            LCIOCollectionFactory.setCollectionName(outputCollection);
+            LCIOCollectionFactory.setProductionDriver(this);
+            LCIOCollectionFactory.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
+            LCIOCollectionFactory.setReadoutName(readout);
+            LCIOCollection<RawTrackerHit> noPileUpCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawTrackerHit.class);
+            ReadoutDataManager.registerCollection(noPileUpCollectionParams, true, 8.0, 32.0);
         }
         
         // Define the LCSim on-trigger collection parameters.
-        trackerHitCollectionParams = new LcsimCollection<RawTrackerHit>(outputCollection, this, RawTrackerHit.class, 0.0);
-        trackerHitCollectionParams.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
-        trackerHitCollectionParams.setReadoutName(readout);
-        trackerHitCollectionParams.setPersistent(false);
-        truthCollectionParams = new LcsimCollection<LCRelation>(relationCollection, this, LCRelation.class, 0.0);
+        LCIOCollectionFactory.setCollectionName(outputCollection);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(1 << LCIOConstants.TRAWBIT_ID1);
+        LCIOCollectionFactory.setReadoutName(readout);
+        trackerHitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawTrackerHit.class);
+        
+        LCIOCollectionFactory.setCollectionName(relationCollection);
+        LCIOCollectionFactory.setProductionDriver(this);
+        truthCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
         
         // DEBUG :: Pass the writers to the superclass writer list.
         writers.add(inputWriter);
@@ -573,7 +578,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
     }
     
     @Override
-    protected Collection<LcsimSingleEventCollectionData<?>> getOnTriggerData(double triggerTime) {
+    protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         verboseWriter.write("Running method ProcessTrigger(EventHeader).");
         verboseWriter.write("noPileup = " + noPileup);
         
@@ -745,13 +750,13 @@ public class SVTReadoutDriver extends ReadoutDriver {
         
         // Create the collection data objects for output to the
         // readout event.
-        LcsimSingleEventCollectionData<RawTrackerHit> hitCollection = new LcsimSingleEventCollectionData<RawTrackerHit>(trackerHitCollectionParams);
+        TriggeredLCIOData<RawTrackerHit> hitCollection = new TriggeredLCIOData<RawTrackerHit>(trackerHitCollectionParams);
         hitCollection.getData().addAll(hits);
-        LcsimSingleEventCollectionData<LCRelation> truthCollection = new LcsimSingleEventCollectionData<LCRelation>(truthCollectionParams);
+        TriggeredLCIOData<LCRelation> truthCollection = new TriggeredLCIOData<LCRelation>(truthCollectionParams);
         truthCollection.getData().addAll(trueHitRelations);
         
         // Store them in a single collection.
-        Collection<LcsimSingleEventCollectionData<?>> eventOutput = new ArrayList<LcsimSingleEventCollectionData<?>>(2);
+        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(2);
         eventOutput.add(hitCollection);
         eventOutput.add(truthCollection);
         
