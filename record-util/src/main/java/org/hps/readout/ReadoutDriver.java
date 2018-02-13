@@ -106,6 +106,21 @@ public abstract class ReadoutDriver extends Driver {
      * as input.
      */
     private final Set<String> dependencies = new HashSet<String>();
+    /**
+     * Specifies whether this collection should be written to the
+     * output LCIO file.
+     */
+    private boolean persistent = false;
+    /**
+     * Specifies the time window after the trigger time in which this
+     * collection data should be written.
+     */
+    private double readoutWindowAfter = Double.NaN;
+    /**
+     * Specifies the time window before the trigger time in which
+     * this collection data should be written.
+     */
+    private double readoutWindowBefore = Double.NaN;
     
     // DEBUG
     protected boolean debug = true;
@@ -148,6 +163,18 @@ public abstract class ReadoutDriver extends Driver {
     }
     
     /**
+     * Indicates whether this collection is persisted into the output
+     * LCIO file or not.
+     * @return Returns <code>true</code> if the collection is
+     * persisted, and <code>false</code> if it is not.
+     * @throws UnsupportedOperationException Occurs if a particular
+     * implementing driver class does not support persisted readout.
+     */
+    protected boolean isPersistent() throws UnsupportedOperationException {
+        return persistent;
+    }
+    
+    /**
      * Returns a {@link java.util.Collection Collection} of type
      * {@link java.lang.String String} containing the names of the
      * input collections used by this driver.
@@ -173,6 +200,32 @@ public abstract class ReadoutDriver extends Driver {
     }
     
     /**
+     * Gets the time window after the trigger time in which objects
+     * from this collection will be written into the output file.
+     * @return Returns the post-trigger readout window in units of
+     * nanoseconds.
+     * @throws UnsupportedOperationException Occurs if a particular
+     * implementing driver class does not support persisted readout,
+     * or does not support custom readout windows.
+     */
+    protected double getReadoutWindowAfter() throws UnsupportedOperationException {
+        return readoutWindowAfter;
+    }
+    
+    /**
+     * Gets the time window before the trigger time in which objects
+     * from this collection will be written into the output file.
+     * @return Returns the pre-trigger readout window in units of
+     * nanoseconds.
+     * @throws UnsupportedOperationException Occurs if a particular
+     * implementing driver class does not support persisted readout,
+     * or does not support custom readout windows.
+     */
+    protected double getReadoutWindowBefore() throws UnsupportedOperationException {
+        return readoutWindowBefore;
+    }
+    
+    /**
      * Specifies the amount of simulation time that the driver needs
      * to produce its output. This indicates that the driver's
      * present output was generated based on input a time equal to
@@ -190,6 +243,44 @@ public abstract class ReadoutDriver extends Driver {
      * <code>double</code>.
      */
     protected abstract double getTimeNeededForLocalOutput();
+    
+    /**
+     * Sets whether this data collection should be written to the
+     * output LCIO file.
+     * @param state - <code>true</code> means that the collection is
+     * persisted, and <code>false</code> that it is not.
+     * @throws UnsupportedOperationException Occurs if a particular
+     * implementing driver class does not support persisted readout.
+     */
+    public void setPersistent(boolean state) throws UnsupportedOperationException {
+        persistent = state;
+    }
+    
+    /**
+     * Set the time window after the trigger time in which this
+     * collection data should be written.
+     * @param value - The length of the readout window after the
+     * trigger time, in units of nanoseconds.
+     * @throws UnsupportedOperationException Occurs if a particular
+     * implementing driver class does not support persisted readout,
+     * or does not support custom readout windows.
+     */
+    public void setReadoutWindowAfter(double value) throws UnsupportedOperationException {
+        readoutWindowAfter = value;
+    }
+    
+    /**
+     * Set the time window before the trigger time in which this
+     * collection data should be written.
+     * @param value - The length of the readout window before the
+     * trigger time, in units of nanoseconds.
+     * @throws UnsupportedOperationException Occurs if a particular
+     * implementing driver class does not support persisted readout,
+     * or does not support custom readout windows.
+     */
+    public void setReadoutWindowBefore(double value) throws UnsupportedOperationException {
+        readoutWindowBefore = value;
+    }
     
     public void setDebug(boolean state) {
         debug = state;
