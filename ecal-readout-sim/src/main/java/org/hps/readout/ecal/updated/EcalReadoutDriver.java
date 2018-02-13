@@ -356,6 +356,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
     public void detectorChanged(Detector detector) {
         // Get the readout name from the calorimeter geometry data.
         calorimeterGeometry = (HPSEcal3) detector.getSubdetector(ecalGeometryName);
+        
+        // Update the output LCIO collections data.
         LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
         mode13HitCollectionParams = LCIOCollectionFactory.cloneCollection(mode13HitCollectionParams);
         LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
@@ -759,6 +761,21 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     @Override
+    protected boolean isPersistent() {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    protected double getReadoutWindowAfter() {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    protected double getReadoutWindowBefore() {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
     protected double getTimeDisplacement() {
         return localTimeOffset;
     }
@@ -796,11 +813,14 @@ public class EcalReadoutDriver extends ReadoutDriver {
                 // TODO: This may be the PDGID for products of this particles, and not the contributors. If so, remove this.
                 pdgs[i] = simHit.getMCParticle(i).getPDGID();
                 
-                // Note -- despite returning the value for these
+                // Note -- Despite returning the value for these
                 // methods as a double, they are actually stored
                 // internally as floats, so this case is always safe.
+                // Note -- Hit times are calculated based on the time
+                // of each of the contributing truth particles. This
+                // means that we have to give a fake truth time to
+                // actually get the correct hit time.
                 times[i] = (float) newTime;
-                //times[i] = (float) simHit.getContributedTime(i);
                 energies[i] = (float) simHit.getContributedEnergy(i);
             }
             
@@ -1271,6 +1291,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
         numSamplesBefore = value;
     }
     
+    @Override
+    public void setPersistent(boolean state) {
+        throw new UnsupportedOperationException();
+    }
+    
     /**
      * Sets the number of photoelectrons per MeV of deposited energy.
      * This value is used in the simulation of calorimeter hit noise
@@ -1313,6 +1338,16 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     public void setReadoutOffset(int value) {
         readoutOffset = value;
+    }
+    
+    @Override
+    public void setReadoutWindowAfter(double value) {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void setReadoutWindowBefore(double value) {
+        throw new UnsupportedOperationException();
     }
     
     /**
