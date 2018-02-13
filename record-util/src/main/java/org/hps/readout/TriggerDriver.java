@@ -40,6 +40,11 @@ public abstract class TriggerDriver extends ReadoutDriver {
         return !Double.isNaN(lastTrigger) && lastTrigger + deadTime >= ReadoutDataManager.getCurrentTime();
     }
     
+    @Override
+    protected boolean isPersistent() {
+        throw new UnsupportedOperationException();
+    }
+    
     /**
      * Gets the dead time for this trigger.
      * @return Returns the dead time in units of nanoseconds.
@@ -56,6 +61,16 @@ public abstract class TriggerDriver extends ReadoutDriver {
      */
     protected double getLastTriggerTime() {
         return lastTrigger;
+    }
+    
+    @Override
+    protected double getReadoutWindowAfter() {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    protected double getReadoutWindowBefore() {
+        throw new UnsupportedOperationException();
     }
     
     /**
@@ -76,5 +91,20 @@ public abstract class TriggerDriver extends ReadoutDriver {
      */
     public void setDeadTime(int samples) {
         deadTime = samples * ReadoutDataManager.getBeamBunchSize();
+    }
+    
+    @Override
+    public void setPersistent(boolean state) {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void setReadoutWindowAfter(double value) {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void setReadoutWindowBefore(double value) {
+        throw new UnsupportedOperationException();
     }
 }
