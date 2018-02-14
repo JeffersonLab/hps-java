@@ -17,6 +17,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
@@ -388,7 +389,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
         LCIOCollectionFactory.setProductionDriver(this);
         truthRelationsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
         
-        LCIOCollectionFactory.setCollectionName("SVTTruthHits");
+        LCIOCollectionFactory.setCollectionName("TrackerHits");
         LCIOCollectionFactory.setFlags(0xc0000000);
         LCIOCollectionFactory.setProductionDriver(this);
         LCIOCollectionFactory.setReadoutName("TrackerHits");
@@ -493,6 +494,26 @@ public class SVTReadoutDriver extends ReadoutDriver {
     private void addNoise(SiSensor sensor, int channel, double[] signal) {
         for(int sampleN = 0; sampleN < 6; sampleN++) {
             signal[sampleN] += RandomGaussian.getGaussian(0, ((HpsSiSensor) sensor).getNoise(channel, sampleN));
+        }
+    }
+    
+    /**
+     * Adds the argument particle and all of its direct parents to
+     * the particle set.
+     * @param particle - The base particle.
+     * @param particleSet - The set that is to contain the full tree
+     * of particles.
+     */
+    private static final void addParticleParents(MCParticle particle, Set<MCParticle> particleSet) {
+        // Add the particle itself to the set.
+        particleSet.add(particle);
+        
+        // If the particle has parents, run the same method for each
+        // parent.
+        if(!particle.getParents().isEmpty()) {
+            for(MCParticle parent : particle.getParents()) {
+                addParticleParents(parent, particleSet);
+            }
         }
     }
     
@@ -765,9 +786,25 @@ public class SVTReadoutDriver extends ReadoutDriver {
         TriggeredLCIOData<LCRelation> truthRelationCollection = new TriggeredLCIOData<LCRelation>(truthRelationsCollectionParams);
         truthRelationCollection.getData().addAll(trueHitRelations);
         
+        // MC particles need to be extracted from the truth hits
+        // and included in the readout data to ensure that the
+        // full truth chain is available.
+        Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
+        for(SimTrackerHit simHit : truthHits) {
+            addParticleParents(simHit.getMCParticle(), truthParticles);
+        }
+        
+        // Create the truth MC particle collection.
+        LCIOCollectionFactory.setCollectionName("MCParticle");
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollection<MCParticle> truthParticleCollection = LCIOCollectionFactory.produceLCIOCollection(MCParticle.class);
+        TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
+        truthParticleData.getData().addAll(truthParticles);
+        
         // Store them in a single collection.
         Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(3);
         eventOutput.add(hitCollection);
+        eventOutput.add(truthParticleData);
         eventOutput.add(truthHitCollection);
         eventOutput.add(truthRelationCollection);
         
