@@ -1,7 +1,7 @@
 package org.hps.readout.util.collection;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Class <code>TriggeredLCIOData</code> represents data output from
@@ -12,11 +12,11 @@ import java.util.List;
  * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
-public class TriggeredLCIOData<T> extends LCIOData<T, LCIOCollection<T>, List<T>> {
+public class TriggeredLCIOData<T> extends LCIOData<T, LCIOCollection<T>, Set<T>> {
     /**
      * The collection data.
      */
-    private final List<T> data;
+    private final Set<T> data;
     
     /**
      * Creates a new <code>TriggeredLCIOData</code based on the
@@ -26,7 +26,7 @@ public class TriggeredLCIOData<T> extends LCIOData<T, LCIOCollection<T>, List<T>
      */
     public TriggeredLCIOData(LCIOCollection<T> params) {
         super(params);
-        this.data = new ArrayList<T>();
+        this.data = new HashSet<T>();
     }
     
     /**
@@ -39,30 +39,7 @@ public class TriggeredLCIOData<T> extends LCIOData<T, LCIOCollection<T>, List<T>
     }
     
     @Override
-    public List<T> getData() {
+    public Set<T> getData() {
         return data;
-    }
-    
-    /**
-     * Merges the data set of the argument list into this list.
-     * @param dataList - The data set to be merged into this list.
-     * @throws IllegalArgumentException Occurs if the object type of
-     * the argument list is not compatible with the data type stored
-     * in this list.
-     */
-    @SuppressWarnings("unchecked")
-    public void mergeDataList(TriggeredLCIOData<?> dataList) throws IllegalArgumentException {
-        // Verify that the object types are the same.
-        if(!getCollectionParameters().getObjectType().isAssignableFrom(dataList.getCollectionParameters().getObjectType())) {
-            throw new IllegalArgumentException("Error: Can not merge data set of class " + dataList.getCollectionParameters().getObjectType().getSimpleName()
-                    + " into data set of type " + getCollectionParameters().getObjectType().getSimpleName() + ".");
-        }
-        
-        // Otherwise, combine the data sets. This cast is safe, since
-        // we already verified that both lists contain objects of the
-        // same type (or a subclass thereof).
-        for(Object obj : dataList.getData()) {
-            getData().add((T) obj);
-        }
     }
 }
