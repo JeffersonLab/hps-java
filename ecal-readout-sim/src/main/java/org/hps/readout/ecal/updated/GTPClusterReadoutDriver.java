@@ -303,7 +303,7 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         int hitFlags = 0;
         hitFlags += 1 << LCIOConstants.RCHBIT_TIME;
         hitFlags += 1 << LCIOConstants.RCHBIT_LONG;
-        LCIOCollectionFactory.setCollectionName("ClusterSimHits");
+        LCIOCollectionFactory.setCollectionName("EcalClustersGTPSimHits");
         LCIOCollectionFactory.setProductionDriver(this);
         LCIOCollectionFactory.setFlags(hitFlags);
         LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
