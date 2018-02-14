@@ -24,13 +24,16 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 	private static final int POSITRON = 0;
 	private static final int ELECTRON = 1;
 	private IHistogram1D[] svtLayersTraversed = new IHistogram1D[2];
+	private IHistogram2D[] svtLayersTraversedEnergy = new IHistogram2D[2];
 	private IHistogram1D[] ecalHitXPosition = new IHistogram1D[2];
+	private IHistogram1D[] ecalHitYPosition = new IHistogram1D[2];
 	private IHistogram2D[] ecalHitXYPosition = new IHistogram2D[2];
 	private IHistogram1D[][] hodoscopeHitΔx = new IHistogram1D[2][6];
 	private IHistogram2D[][] hodoscopeHitXEcalX = new IHistogram2D[2][6];
+	private IHistogram2D[][] hodoscopeHitYEcalY = new IHistogram2D[2][6];
 	private IHistogram1D[][] hodoscopeHitXPosition = new IHistogram1D[2][6];
+	private IHistogram1D[][] hodoscopeHitYPosition = new IHistogram1D[2][6];
 	private IHistogram2D[][] hodoscopeHitXYPosition = new IHistogram2D[2][6];
-	
 	private IHistogram2D[][][] hodoscopePixelHitXEcalX = new IHistogram2D[2][6][4];
 	
 	private IHistogram1D[] ecalHitEnergy = new IHistogram1D[2];
@@ -61,12 +64,15 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 		for(int i = 0; i < 2; i++) {
 			ecalHitEnergy[i] = aida.histogram1D("Calorimeter Hit " + type[i] + " Momentum", 1300, 0.000, 2.600);
 			ecalHitXPosition[i] = aida.histogram1D("Calorimeter Hit " + type[i] + " x-Position", 800, -400, 400);
+			ecalHitYPosition[i] = aida.histogram1D("Calorimeter Hit " + type[i] + " y-Position", 500, -250, 250);
 			//ecalHitXPositionEnergy[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " x-Position vs. Momentum",
 			//		1300, 0.000, 2.600, 500, -250, 250);
 			ecalHitYPositionEnergy[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " y-Position vs. Momentum",
 					1300, 0.000, 2.600, 500, -250, 250);
 			ecalHitXYPosition[i] = aida.histogram2D("Calorimeter Hit " + type[i] + " xy-Position", 800, -400, 400, 500, -250, 250);
 			svtLayersTraversed[i] = aida.histogram1D(type[i] + " SVT Layers Traversed", 7, -0.5, 6.5);
+			svtLayersTraversedEnergy[i] = aida.histogram2D(type[i] + " SVT Layers Traversed vs. Energy",
+					1300, 0, 2.600,  7, -0.5, 6.5);
 			
 			for(int j = 0; j < layer.length; j++) {
 				hodoscopeHitEnergy[i][j] = aida.histogram1D("Hodoscope Hit " + type[i] + " Momentum" + layer[j], 1300, 0, 2.600);
@@ -76,10 +82,13 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 				//hodoscopeHitYPositionEnergy[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " y-Position vs. Momentum" + layer[j],
 				//		1300, 0.000, 2.600, 500, -250, 250);
 				hodoscopeHitXPosition[i][j] = aida.histogram1D("Hodoscope Hit " + type[i] + " x-Position" + layer[j], 310, 0, 310);
+				hodoscopeHitYPosition[i][j] = aida.histogram1D("Hodoscope Hit " + type[i] + " y-Position" + layer[j], 300, -150, 150);
 				hodoscopeHitXYPosition[i][j] = aida.histogram2D("Hodoscope Hit " + type[i] + " xy-Position" + layer[j],
 						310, 0, 310, 400, -200, 200);
 				hodoscopeHitXEcalX[i][j] = aida.histogram2D(type[i] + " Hodoscope Hit x vs. Calorimeter Hit x" + layer[j],
 						800, -400, 400, 310, 0, 310);
+				hodoscopeHitYEcalY[i][j] = aida.histogram2D(type[i] + " Hodoscope Hit y vs. Calorimeter Hit y" + layer[j],
+						500, -250, 250, 300, -150, 150);
 				
 				hodoscopePixelHitXEcalX[i][j][0] = aida.histogram2D(
 						type[i] + " Pixelized Hodoscope x vs. Calorimeter x (10x10 mm)" + layer[j],
@@ -145,8 +154,10 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 			if(particle.getProductionTime() == 0) {
 				if(particle.getPDGID() == 11) {
 					svtLayersTraversed[ELECTRON].fill(layers);
+					svtLayersTraversedEnergy[ELECTRON].fill(particle.getMomentum().magnitude(), layers);
 				} else if(particle.getPDGID() == -11) {
 					svtLayersTraversed[POSITRON].fill(layers);
+					svtLayersTraversedEnergy[POSITRON].fill(particle.getMomentum().magnitude(), layers);
 				}
 			}
 			particleLayerCountMap.put(particle, layers);
@@ -211,6 +222,7 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 				//ecalHitXPositionEnergy[type].fill(hitP, ecalHit.getPosition()[0]);
 				ecalHitYPositionEnergy[type].fill(hitP, ecalHit.getPosition()[1]);
 				ecalHitXPosition[type].fill(ecalHit.getPosition()[0]);
+				ecalHitYPosition[type].fill(ecalHit.getPosition()[1]);
 				ecalHitXYPosition[type].fill(ecalHit.getPosition()[0], ecalHit.getPosition()[1]);
 			}
 			
@@ -223,7 +235,9 @@ public class HodoscopeMultiplaneAnalysis extends Driver {
 			//hodoscopeHitYPositionEnergy[type][layer].fill(p, ecalHit.getPosition()[1]);
 			hodoscopeHitΔx[type][layer].fill(ecalHit.getPosition()[0] - hodoscopeHit.getPosition()[0]);
 			hodoscopeHitXEcalX[type][layer].fill(ecalHit.getPosition()[0], hodoscopeHit.getPosition()[0]);
+			hodoscopeHitYEcalY[type][layer].fill(ecalHit.getPosition()[1], hodoscopeHit.getPosition()[1]);
 			hodoscopeHitXPosition[type][layer].fill(hodoscopeHit.getPosition()[0]);
+			hodoscopeHitYPosition[type][layer].fill(hodoscopeHit.getPosition()[1]);
 			hodoscopeHitXYPosition[type][layer].fill(hodoscopeHit.getPosition()[0], hodoscopeHit.getPosition()[1]);
 			for(int i = 0; i < 4; i++) {
 				hodoscopePixelHitXEcalX[type][layer][i].fill(ecalHit.getPosition()[0], hodoscopeHit.getPosition()[0]);

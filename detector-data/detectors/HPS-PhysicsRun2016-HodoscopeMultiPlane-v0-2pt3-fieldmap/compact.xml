@@ -911,14 +911,27 @@
         <detector id="38" name="HodoscopeLayer4" type="HPSTracker2" readout="HodoscopeHits" insideTrackingVolume="true">
             <comment>Fourth layer for hodoscope position testing.</comment>
             <module name="HodoscopeLayer4Module">
-                <box x="210.8" y="64.75233309"/>
+                <box x="182.21" y="59.2246949"/>
                 <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
             </module>
             <layer id="1">
-                <module_placement name="HodoscopeLayer4Module" id="0" x="21.17+(210.8/2)" y="14.21392678+(64.75233309/2)" z="1100" rx="0" ry="0" rz="-PI/2"/>
+                <module_placement name="HodoscopeLayer4Module" id="0" x="21.17+48+(182.21/2)" y="14.21392678+(59.2246949/2)" z="1100" rx="0" ry="0" rz="-PI/2"/>
             </layer>
             <layer id="2">
-                <module_placement name="HodoscopeLayer4Module" id="0" x="21.17+(210.8/2)" y="-14.21392678-(64.75233309/2)" z="1100" rx="0" ry="0" rz="-3*PI/2"/>
+                <module_placement name="HodoscopeLayer4Module" id="0" x="21.17+48+(182.21/2)" y="-14.21392678-(59.2246949/2)" z="1100" rx="0" ry="0" rz="-3*PI/2"/>
+            </layer>
+        </detector>
+        <detector id="42" name="HodoscopeLayer4F" type="HPSTracker2" readout="HodoscopeHits" insideTrackingVolume="true">
+            <comment>Fourth layer for hodoscope position testing.</comment>
+            <module name="HodoscopeLayer4FModule">
+                <box x="182.21" y="59.2246949"/>
+                <module_component thickness="scoringThickness" material="Vacuum" sensitive="true"/>
+            </module>
+            <layer id="1">
+                <module_placement name="HodoscopeLayer4FModule" id="0" x="21.17+48-4.452+(182.21/2)" y="14.21392678+(59.2246949/2)" z="1090" rx="0" ry="0" rz="-PI/2"/>
+            </layer>
+            <layer id="2">
+                <module_placement name="HodoscopeLayer4FModule" id="0" x="21.17+48-4.452+(182.21/2)" y="-14.21392678-(59.2246949/2)" z="1090" rx="0" ry="0" rz="-3*PI/2"/>
             </layer>
         </detector>
         <detector id="39" name="HodoscopeLayer5" type="HPSTracker2" readout="HodoscopeHits" insideTrackingVolume="true">
@@ -1017,5 +1030,6 @@
     <includes>
         <gdmlFile file="gdml/ecal_vacuum_flange_complete_v1.gdml" />
         <gdmlFile file="gdml/svt_chamber_v2.gdml" />
+        <gdmlFile file="gdml/vacuumChamber_v2.gdml" />
     </includes>
 </lccdd>

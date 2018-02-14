@@ -884,7 +884,7 @@
         <readout name="TrackerHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
         </readout>
-    <readout name="TrackerHitsFieldDef">
+		<readout name="TrackerHitsFieldDef">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>

@@ -854,7 +854,7 @@
 			<scintillator_material value="Polystyrene" />
 			<cover_material value="TitaniumDioxide" />
 			<reflector_material value="Mylar" />
-			<buffer_material value="GenericFoam" />
+			<buffer_material value="Carbon" />
 			
 			<!--
 			     These variables allow the hodoscope to be shifted
@@ -864,26 +864,26 @@
 			     combination of these variables can be declared or
 			     excluded freely.
 			  -->
-			<layer1_top_x value="43.548*mm" />
-			<layer1_top_y value="14.21392678*mm" />
+			<layer1_top_x value="39.0*mm" />
+			<layer1_top_y value="14.2*mm" />
 			<layer1_top_z value="1090*mm" />
-			<layer1_bot_x value="43.548*mm" />
-			<layer1_bot_y value="14.21392678*mm" />
+			<layer1_bot_x value="39.0*mm" />
+			<layer1_bot_y value="14.2*mm" />
 			<layer1_bot_z value="1090*mm" />
 			
-			<layer2_top_x value="48*mm" />
-			<layer2_top_y value="14.21392678*mm" />
-			<layer2_bot_x value="48*mm" />
-			<layer2_bot_y value="14.21392678*mm" />
+			<layer2_top_x value="47.9*mm" />
+			<layer2_top_y value="14.2*mm" />
+			<layer2_bot_x value="47.9*mm" />
+			<layer2_bot_y value="14.2*mm" />
 			
 			<scintillator_depth value="9.5*mm" />
-			<scintillator_depth_height value="59.225*mm" />
+			<scintillator_depth_height value="59.9*mm" />
 			<cover_depth value="0.25*mm" />
 			<reflector_depth value="0.05*mm" />
 			
-			<buffer_depth value="10*mm" />
-			<buffer_width value="182.2*mm" />
-			<buffer_x value="45.7738565735*mm" />
+			<buffer_depth value="2*mm" />
+			<buffer_width value="187.64*mm" />
+			<buffer_x value="39.0*mm" />
 			
 			<!--
 			     Defines the hodoscope pixel widths and count. One
@@ -924,9 +924,8 @@
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
         <readout name="HodoscopeHits">
-            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <segmentation type="GridXYZ" gridSizeX="1.0*mm" gridSizeY="0.0" gridSizeZ="0.0" />
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
-            <processor type="ScoringTrackerHitProcessor"/>
         </readout>
         <readout name="HodoscopeForeHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
