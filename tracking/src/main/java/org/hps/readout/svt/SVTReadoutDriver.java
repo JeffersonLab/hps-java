@@ -75,7 +75,8 @@ public class SVTReadoutDriver extends ReadoutDriver {
     private String relationCollection = "SVTTrueHitRelations";
     
     private LCIOCollection<RawTrackerHit> trackerHitCollectionParams;
-    private LCIOCollection<LCRelation> truthCollectionParams;
+    private LCIOCollection<LCRelation> truthRelationsCollectionParams;
+    private LCIOCollection<SimTrackerHit> truthHitsCollectionParams;
     
     private final TempOutputWriter inputWriter = new TempOutputWriter("svt_input_hits_new.log");
     private final TempOutputWriter outputWriter = new TempOutputWriter("svt_output_hits_new.log");
@@ -385,7 +386,13 @@ public class SVTReadoutDriver extends ReadoutDriver {
         
         LCIOCollectionFactory.setCollectionName(relationCollection);
         LCIOCollectionFactory.setProductionDriver(this);
-        truthCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
+        truthRelationsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
+        
+        LCIOCollectionFactory.setCollectionName("SVTTruthHits");
+        LCIOCollectionFactory.setFlags(0xc0000000);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setReadoutName("TrackerHits");
+        truthHitsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(SimTrackerHit.class);
         
         // DEBUG :: Pass the writers to the superclass writer list.
         writers.add(inputWriter);
@@ -588,6 +595,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
         
         // Create a list to hold the analog data
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
+        List<SimTrackerHit> truthHits = new ArrayList<SimTrackerHit>();
         List<LCRelation> trueHitRelations = new ArrayList<LCRelation>();
         
         // Calculate time of first sample
@@ -728,6 +736,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                     for(SimTrackerHit simHit : hit.getSimTrackerHits()) {
                         LCRelation hitRelation = new BaseLCRelation(hit, simHit);
                         trueHitRelations.add(hitRelation);
+                        truthHits.add(simHit);
                     }
                 }
             }
@@ -747,18 +756,20 @@ public class SVTReadoutDriver extends ReadoutDriver {
                     hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
         }
         
-        
         // Create the collection data objects for output to the
         // readout event.
         TriggeredLCIOData<RawTrackerHit> hitCollection = new TriggeredLCIOData<RawTrackerHit>(trackerHitCollectionParams);
         hitCollection.getData().addAll(hits);
-        TriggeredLCIOData<LCRelation> truthCollection = new TriggeredLCIOData<LCRelation>(truthCollectionParams);
-        truthCollection.getData().addAll(trueHitRelations);
+        TriggeredLCIOData<SimTrackerHit> truthHitCollection = new TriggeredLCIOData<SimTrackerHit>(truthHitsCollectionParams);
+        truthHitCollection.getData().addAll(truthHits);
+        TriggeredLCIOData<LCRelation> truthRelationCollection = new TriggeredLCIOData<LCRelation>(truthRelationsCollectionParams);
+        truthRelationCollection.getData().addAll(trueHitRelations);
         
         // Store them in a single collection.
-        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(2);
+        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(3);
         eventOutput.add(hitCollection);
-        eventOutput.add(truthCollection);
+        eventOutput.add(truthHitCollection);
+        eventOutput.add(truthRelationCollection);
         
         // Return the event output.
         return eventOutput;
