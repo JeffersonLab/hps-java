@@ -29,6 +29,7 @@ import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimCalorimeterHit;
@@ -689,7 +690,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // Create a list to store the extra collections.
         List<TriggeredLCIOData<?>> collectionsList = null;
         if(writeTruth) {
-            collectionsList = new ArrayList<TriggeredLCIOData<?>>(3);
+            collectionsList = new ArrayList<TriggeredLCIOData<?>>(4);
         } else {
             collectionsList = new ArrayList<TriggeredLCIOData<?>>(1);
         }
@@ -738,15 +739,32 @@ public class EcalReadoutDriver extends ReadoutDriver {
         if(writeTruth) {
             // Make the truth data collection parameters object.
             LCIOCollectionFactory.setParams(ReadoutDataManager.getCollectionParameters(truthHitCollectionName, SimCalorimeterHit.class));
-            LCIOCollectionFactory.setCollectionName("EcalTruthHits");
+            LCIOCollectionFactory.setCollectionName("EcalHits");
             LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
             LCIOCollection<SimCalorimeterHit> truthHitCollection = LCIOCollectionFactory.produceLCIOCollection(SimCalorimeterHit.class);
             
             // Add the truth hits to the output collection.
-            //TriggeredLCIOData<CalorimeterHit> truthData = new TriggeredLCIOData<CalorimeterHit>(truthHitsCollectionParams);
             TriggeredLCIOData<SimCalorimeterHit> truthData = new TriggeredLCIOData<SimCalorimeterHit>(truthHitCollection);
             truthData.getData().addAll(triggerTruthHits);
             collectionsList.add(truthData);
+            
+            // MC particles need to be extracted from the truth hits
+            // and included in the readout data to ensure that the
+            // full truth chain is available.
+            Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
+            for(SimCalorimeterHit simHit : triggerTruthHits) {
+                for(int i = 0; i < simHit.getMCParticleCount(); i++) {
+                    addParticleParents(simHit.getMCParticle(i), truthParticles);
+                }
+            }
+            
+            // Create the truth MC particle collection.
+            LCIOCollectionFactory.setCollectionName("MCParticle");
+            LCIOCollectionFactory.setProductionDriver(this);
+            LCIOCollection<MCParticle> truthParticleCollection = LCIOCollectionFactory.produceLCIOCollection(MCParticle.class);
+            TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
+            truthParticleData.getData().addAll(truthParticles);
+            collectionsList.add(truthParticleData);
             
             // Add the truth relations to the output data.
             TriggeredLCIOData<LCRelation> truthRelations = new TriggeredLCIOData<LCRelation>(truthRelationsCollectionParams);
@@ -783,6 +801,26 @@ public class EcalReadoutDriver extends ReadoutDriver {
     @Override
     protected double getTimeNeededForLocalOutput() {
         return (readoutWindow - readoutOffset) * 4.0;
+    }
+    
+    /**
+     * Adds the argument particle and all of its direct parents to
+     * the particle set.
+     * @param particle - The base particle.
+     * @param particleSet - The set that is to contain the full tree
+     * of particles.
+     */
+    private static final void addParticleParents(MCParticle particle, Set<MCParticle> particleSet) {
+        // Add the particle itself to the set.
+        particleSet.add(particle);
+        
+        // If the particle has parents, run the same method for each
+        // parent.
+        if(!particle.getParents().isEmpty()) {
+            for(MCParticle parent : particle.getParents()) {
+                addParticleParents(parent, particleSet);
+            }
+        }
     }
     
     /**
