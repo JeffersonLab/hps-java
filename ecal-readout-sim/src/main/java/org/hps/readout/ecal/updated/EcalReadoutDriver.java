@@ -84,7 +84,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * collection that links output raw hits to the SLIC truth hits
      * from which they were generated.
      */
-    private String truthRelationCollectionName = "EcalHitTruthRelations";
+    private String truthRelationsCollectionName = "EcalTruthRelations";
+    /**
+     * The name of the collection which contains readout hits. The
+     * class type of this collection will vary based on which mode
+     * the calorimeter simulation is set to emulate.
+     */
+    private String readoutCollectionName = "EcalReadoutHits";
     
     // ==============================================================
     // ==== Driver Options ==========================================
@@ -304,16 +310,16 @@ public class EcalReadoutDriver extends ReadoutDriver {
         ReadoutDataManager.registerCollection(hitCollectionParams, false);
         
         // Define the LCSim collection data for the on-trigger output.
-        LCIOCollectionFactory.setCollectionName("EcalReadoutHits");
+        LCIOCollectionFactory.setCollectionName(readoutCollectionName);
         LCIOCollectionFactory.setProductionDriver(this);
         mode13HitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawTrackerHit.class);
         
-        LCIOCollectionFactory.setCollectionName("EcalReadoutHits");
+        LCIOCollectionFactory.setCollectionName(readoutCollectionName);
         LCIOCollectionFactory.setProductionDriver(this);
         LCIOCollectionFactory.setFlags(1 << LCIOConstants.RCHBIT_TIME);
         mode7HitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawCalorimeterHit.class);
         
-        LCIOCollectionFactory.setCollectionName("EcalTruthRelations");
+        LCIOCollectionFactory.setCollectionName(truthRelationsCollectionName);
         LCIOCollectionFactory.setProductionDriver(this);
         truthRelationsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
         
@@ -334,7 +340,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         verboseWriter.write(String.format("\t%-30s :: %s", "ecalGeometryName", ecalGeometryName));
         verboseWriter.write(String.format("\t%-30s :: %s", "truthHitCollectionName", truthHitCollectionName));
         verboseWriter.write(String.format("\t%-30s :: %s", "outputHitCollectionName", outputHitCollectionName));
-        verboseWriter.write(String.format("\t%-30s :: %s", "truthRelationCollectionName", truthRelationCollectionName));
+        verboseWriter.write(String.format("\t%-30s :: %s", "truthRelationCollectionName", truthRelationsCollectionName));
         verboseWriter.write(String.format("\t%-30s :: %b", "addNoise", addNoise));
         verboseWriter.write(String.format("\t%-30s :: %f", "pePerMeV", pePerMeV));
         verboseWriter.write(String.format("\t%-30s :: %f", "fixedGain", fixedGain));
@@ -1308,6 +1314,25 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
+     * Sets the name of the input truth his collection name. This is
+     * normally set be SLIC to "EcalHits".
+     * @param collection - The collection name.
+     */
+    public void setInputHitCollectionName(String collection) {
+        truthHitCollectionName = collection;
+    }
+    
+    /**
+     * Sets the operational mode of the simulation. This affects the
+     * form of the readout hit output. Mode may be set to the values
+     * 1, 3, or 7.
+     * @param value - The operational mode.
+     */
+    public void setMode(int value) {
+        mode = value;
+    }
+    
+    /**
      * Defines the number of samples from after a threshold-crossing
      * pulse sample that should be included in the pulse integral.
      * Units are in clock-cycles (4 ns samples) and the default value
@@ -1327,6 +1352,19 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     public void setNumberSamplesBefore(int value) {
         numSamplesBefore = value;
+    }
+    
+    /**
+     * Sets the name of the hits produced by this driver for use in
+     * the trigger simulation.<br/><br/>
+     * Note that this is not the name of the collection output when a
+     * trigger occurs. For this value, see the method {@link
+     * org.hps.readout.ecal.updated.EcalReadoutDriver#setReadoutHitCollectionName(String)
+     * setReadoutHitCollectionName(String)} instead.
+     * @param collection - The collection name.
+     */
+    public void setOutputHitCollectionName(String collection) {
+        outputHitCollectionName = collection;
     }
     
     @Override
@@ -1368,6 +1406,21 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
+     * Sets the name of the triggered hit output collection. This
+     * collection will hold all hits produced when a trigger occurs.
+     * <br/><br/>
+     * Note that this collection is different from the hits produced
+     * for internal usage by the readout simulation.  For this value,
+     * see the method {@link
+     * org.hps.readout.ecal.updated.EcalReadoutDriver#setOutputHitCollectionName(String)
+     * setOutputHitCollectionName(String)} instead.
+     * @param collection - The collection name.
+     */
+    public void setReadoutHitCollectionName(String collection) {
+        readoutCollectionName = collection;
+    }
+    
+    /**
      * Sets the number of samples by which readout hit pulse-crossing
      * samples should be offset. Units are in clock-cycles (intervals
      * of 4 ns).
@@ -1378,6 +1431,14 @@ public class EcalReadoutDriver extends ReadoutDriver {
         readoutOffset = value;
     }
     
+    /**
+     * Sets the size of the readout window, in units of 4 ns samples.
+     * @param value - The readout window.
+     */
+    public void setReadoutWindow(int value) {
+        readoutWindow = value;
+    }
+    
     @Override
     public void setReadoutWindowAfter(double value) {
         throw new UnsupportedOperationException();
@@ -1386,6 +1447,15 @@ public class EcalReadoutDriver extends ReadoutDriver {
     @Override
     public void setReadoutWindowBefore(double value) {
         throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Sets the name of the collection which contains the relations
+     * between truth hits from SLIC and the calorimeter hit output.
+     * @param collection - The collection name.
+     */
+    public void setTruthRelationsCollectionName(String collection) {
+        truthRelationsCollectionName = collection;
     }
     
     /**
