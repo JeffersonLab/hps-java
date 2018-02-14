@@ -203,6 +203,13 @@ public class ReadoutDataManager extends Driver {
                 double startTime = trigger.getTriggerTime() - triggerTimeDisplacement;
                 double endTime = startTime + readoutWindow;
                 
+                // All readout output is initially stored in a single
+                // object. This allows the readout from multiple
+                // drivers to be merged, if needed, and also prevents
+                // duplicate instances of an object from being
+                // written.
+                Map<String, TriggeredLCIOData<?>> triggeredDataMap = new HashMap<String, TriggeredLCIOData<?>>();
+                
                 // Write out the writable collections into the event.
                 for(ManagedLCIOData<?> collectionData : collectionMap.values()) {
                     // Ignore any collections that are not set to be persisted.
@@ -226,16 +233,19 @@ public class ReadoutDataManager extends Driver {
                         localEndTime = trigger.getTriggerTime() + collectionData.getCollectionParameters().getWindowAfter();
                     }
                     
+                    // Get the object data for the time range.
+                    addDataToMap(collectionData.getCollectionParameters(), localStartTime, localEndTime, triggeredDataMap);
+                    
                     // Persisted collection should be added to event
                     // within the readout window time range.
-                    storeCollection(localStartTime, localEndTime, collectionData, lcsimEvent);
+                    // TODO: Clear this.
+                    //storeCollection(localStartTime, localEndTime, collectionData, lcsimEvent);
                 }
                 
                 // Write out any special on-trigger collections into
                 // the event as well. These are collated so that if
                 // more than one driver contributes to the same
                 // collection, they will be properly merged.
-                Map<String, TriggeredLCIOData<?>> triggeredDataMap = new HashMap<String, TriggeredLCIOData<?>>();
                 for(ReadoutDriver driver : driverSet) {
                     // Get the special collection(s) from the current
                     // driver, if it exists.
@@ -244,6 +254,8 @@ public class ReadoutDataManager extends Driver {
                     // If there are special collections, write them.
                     if(onTriggerData != null) {
                         for(TriggeredLCIOData<?> triggerData : onTriggerData) {
+                            addDataToMap(triggerData, triggerData.getCollectionParameters().getObjectType(), triggeredDataMap);
+                            /*
                             // Get the triggered data stored in the
                             // map, if it exists. If not, make a new
                             // one and insert it.
@@ -265,13 +277,14 @@ public class ReadoutDataManager extends Driver {
                             mapCollection.mergeDataList(triggerData);
                             
                             //storeCollection(triggerData, lcsimEvent);
+                             */
                         }
                     }
-                    
-                    // Store all of the data collections.
-                    for(TriggeredLCIOData<?> triggerData : triggeredDataMap.values()) {
-                        storeCollection(triggerData, lcsimEvent);
-                    }
+                }
+                
+                // Store all of the data collections.
+                for(TriggeredLCIOData<?> triggerData : triggeredDataMap.values()) {
+                    storeCollection(triggerData, lcsimEvent);
                 }
                 
                 // Write the event to the output file.
@@ -632,12 +645,93 @@ public class ReadoutDataManager extends Driver {
         
         // Calculate the trigger and readout times.
         double triggerTime = getCurrentTime() - triggerTimeDisplacementMap.get(driver);
-        double readoutTime = triggerTime + (readoutWindow - triggerTimeDisplacement);
         
         // Add the trigger to the trigger queue.
-        triggerQueue.add(new TriggerTime(triggerTime, readoutTime, driver));
-        System.out.println("Added trigger to queue with trigger time " + triggerTime + " and readout time " + readoutTime + " from driver "
+        triggerQueue.add(new TriggerTime(triggerTime, driver));
+        System.out.println("Added trigger to queue with trigger time " + triggerTime + " and readout time " + (triggerTime + bufferTotal) + " from driver "
                 + driver.getClass().getSimpleName() + ".");
+    }
+    
+    /**
+     * Adds a data collection corresponding to a given parameter set
+     * to the data map. If there is already data existing under the
+     * same collection, it is then merged without duplicating any
+     * objects.
+     * @param params - The collection parameters for the data.
+     * @param readoutData - The data to add.
+     * @param triggeredDataMap - The data map into which the data
+     * collection should be added.
+     */
+    @SuppressWarnings("unchecked")
+    private static final <T> void addDataToMap(LCIOCollection<T> params, Collection<T> readoutData, Map<String, TriggeredLCIOData<?>> triggeredDataMap) {
+        // Check and see if an output collection already exists for
+        // this parameter set. If so, use it; otherwise, make a new
+        // entry for it.
+        TriggeredLCIOData<?> untypedData = triggeredDataMap.get(params.getCollectionName());
+        TriggeredLCIOData<T> typedData = null;
+        if(untypedData == null) {
+            typedData = new TriggeredLCIOData<T>(params);
+            triggeredDataMap.put(params.getCollectionName(), typedData);
+        } else {
+            // Verify that the collection parameters are the same.
+            if(untypedData.getCollectionParameters().equals(params)) {
+                // Note: This cast is safe; if the parameters objects
+                // are the same, then the object sets are necessarily
+                // of the same object type.
+                typedData = (TriggeredLCIOData<T>) untypedData;
+            } else {
+                throw new RuntimeException("Error: Found multiple collections of name \"" + params.getCollectionName() + "\", but of differing definitions.");
+            }
+        }
+        
+        // Add the readout data to the collection data list.
+        typedData.getData().addAll(readoutData);
+    }
+    
+    /**
+     * Adds data stored in the collection defined by the parameters
+     * object within the given time range to the data map. If there
+     * is already data existing under the same collection, it is then
+     * merged without duplicating any objects.
+     * @param params - The parameters for the collection to add.
+     * @param startTime - The start of the time range within the data
+     * buffer from which data should be drawn.
+     * @param endTime - The end of the time range within the data
+     * buffer from which data should be drawn.
+     * @param triggeredDataMap - The data map into which the data
+     * collection should be added.
+     */
+    private static final <T> void addDataToMap(LCIOCollection<T> params, double startTime, double endTime, Map<String, TriggeredLCIOData<?>> triggeredDataMap) {
+        // Get the readout data objects.
+        List<T> triggerData = getDataList(startTime, endTime, params.getCollectionName(), params.getObjectType());
+        
+        // Pass the readout data to the merging method.
+        addDataToMap(params, triggerData, triggeredDataMap);
+    }
+    
+    /**
+     * Adds data stored in a triggered collection object to the data
+     * map. If there is already data existing under the same
+     * collection, it is then merged without duplicating any objects.
+     * @param dataList - The collection data to be added.
+     * @param objectType - the object type of the collection data.
+     * @param triggeredDataMap - The data map into which the data
+     * collection should be added.
+     */
+    private static final <T> void addDataToMap(TriggeredLCIOData<?> dataList, Class<T> objectType, Map<String, TriggeredLCIOData<?>> triggeredDataMap) {
+        // Check that the parameters object is the same object type
+        // as is specified.
+        if(dataList.getCollectionParameters().getObjectType() != objectType) {
+            throw new IllegalArgumentException("Error: Can not process class type " + dataList.getCollectionParameters().getObjectType().getSimpleName()
+                    + " as class type " + objectType.getSimpleName());
+        } else {
+            // Note: This is safe - the above check requires that the
+            // object type be the parameterized type.
+            @SuppressWarnings("unchecked")
+            TriggeredLCIOData<T> typedDataList = (TriggeredLCIOData<T>) dataList;
+            Set<T> triggerData = typedDataList.getData();
+            addDataToMap(typedDataList.getCollectionParameters(), triggerData, triggeredDataMap);
+        }
     }
     
     /**
@@ -734,33 +828,6 @@ public class ReadoutDataManager extends Driver {
     }
     
     /**
-     * Gets the buffered data for the LCSim collection
-     * <code>collectionData</code> between <code>startTime</code> and
-     * <code>endTime</code> and writes it to the output event
-     * <code>event</code>.
-     * @param startTime - The (inclusive) start time of the range of
-     * data which should be output for the collection.
-     * @param endTime - The (exclusive) end time for the range of
-     * data that should be output for the collection.
-     * @param collectionData - The collection data object which
-     * contains the data to be output.
-     * @param event - The output event into which the data should be
-     * written.
-     * @param <T> - Specifies the class type of the data that is to be
-     * written to the output event.
-     */
-    private static final <T> void storeCollection(double startTime, double endTime, ManagedLCIOData<T> collectionData, EventHeader event) {
-        // Get the trigger window data.
-        List<T> triggerData = getDataList(startTime, endTime, collectionData.getCollectionParameters().getCollectionName(),
-                collectionData.getCollectionParameters().getObjectType());
-        
-        // Store the trigger window data.
-        storeCollection(collectionData.getCollectionParameters().getCollectionName(), collectionData.getCollectionParameters().getObjectType(),
-                collectionData.getCollectionParameters().getFlags(), collectionData.getCollectionParameters().getReadoutName(),
-                triggerData, event);
-    }
-    
-    /**
      * Writes an entire {@link org.hps.readout.ReadoutDriver
      * ReadoutDriver} on-trigger data collection to the specified
      * output event.
@@ -784,19 +851,31 @@ public class ReadoutDataManager extends Driver {
      * @param readoutName - The readout name for the data, if it is
      * needed. <code>null</code> should be used if a readout name is
      * not required.
-     * @param collectionData - A parameterized {@link java.util.List
-     * List} containing the data that is to be written.
+     * @param collectionData - A parameterized {@link
+     * java.util.Collection Collection} containing the data that is
+     * to be written.
      * @param event - The event into which the data is to be written.
      * @param <T> - Specifies the class type of the data that is to be
      * written to the output event.
      */
     private static final <T> void storeCollection(String collectionName, Class<T> objectType, int flags, String readoutName,
-            List<T> collectionData, EventHeader event) {
-        // Place the data into the LCSim event.
-        if(readoutName == null) {
-            event.put(collectionName, collectionData, objectType, flags);
+            Collection<T> collectionData, EventHeader event) {
+        // The input collection must be a list. If it already is,
+        // just use it directly. Otherwise, copy the contents into an
+        // appropriately parameterized list.
+        List<T> dataList;
+        if(collectionData instanceof List) {
+            dataList = (List<T>) collectionData;
         } else {
-            event.put(collectionName, collectionData, objectType, flags, readoutName);
+            dataList = new ArrayList<T>(collectionData.size());
+            dataList.addAll(collectionData);
+        }
+        
+        // Place the data into the LCIO event.
+        if(readoutName == null) {
+            event.put(collectionName, dataList, objectType, flags);
+        } else {
+            event.put(collectionName, dataList, objectType, flags, readoutName);
         }
     }
     
