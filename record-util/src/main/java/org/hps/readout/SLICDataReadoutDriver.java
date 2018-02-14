@@ -89,7 +89,7 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
         
         // Register the handled collection with the data management
         // driver.
-        ReadoutDataManager.registerCollection(mcCollectionParams, true, getReadoutWindowBefore(), getReadoutWindowAfter());
+        ReadoutDataManager.registerCollection(mcCollectionParams, isPersistent(), getReadoutWindowBefore(), getReadoutWindowAfter());
         
         // DEBUG :: Pass the writer to the superclass writer list.
         writer = new TempOutputWriter(collectionName + ".log");
