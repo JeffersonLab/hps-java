@@ -535,9 +535,11 @@ public class SVTReadoutDriver extends ReadoutDriver {
         // Perform each enabled cut.
         if(enableThresholdCut && !samplesAboveThreshold(hit)) {
             return false;
-        } if(enablePileupCut && !pileupCut(hit)) {
+        }
+        if(enablePileupCut && !pileupCut(hit)) {
             return false;
-        } if(dropBadChannels && !badChannelCut(hit)) {
+        }
+        if(dropBadChannels && !badChannelCut(hit)) {
             return false;
         }
         
