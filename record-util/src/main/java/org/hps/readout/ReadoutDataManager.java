@@ -530,9 +530,11 @@ public class ReadoutDataManager extends Driver {
         // Make sure that all arguments are defined.
         if(params.getCollectionName() == null) {
             throw new IllegalArgumentException("Error: Collection name must be defined.");
-        } if(params.getObjectType() == null) {
+        } 
+        if(params.getObjectType() == null) {
             throw new IllegalArgumentException("Error: Collection object class must be defined.");
-        } if(params.getProductionDriver() == null) {
+        }
+        if(params.getProductionDriver() == null) {
             throw new IllegalArgumentException("Error: Production driver must be defined.");
         }
         
