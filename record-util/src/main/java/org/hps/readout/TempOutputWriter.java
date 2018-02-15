@@ -39,7 +39,7 @@ public class TempOutputWriter {
      * Closes the writer file stream.
      */
     public void close() {
-        System.out.println(FILE_DIR + filename);
+        System.out.println("Closed file: " + FILE_DIR + filename + ".");
         try { writer.close(); }
         catch (IOException e) { throw new RuntimeException(); }
     }
@@ -49,6 +49,7 @@ public class TempOutputWriter {
      */
     public void initialize() {
         try {
+            System.out.println("Initialized writer for file " + (FILE_DIR + filename) + ".");
             writer = new FileWriter(FILE_DIR + filename);
             writer.write("");
         } catch (IOException e) {
@@ -80,7 +81,7 @@ public class TempOutputWriter {
     @Override
     public String toString() {
         return String.format("Output writer for file \"%s\". Writer is %s enabled and is %s initialized.",
-                FILE_DIR + filename, enabled ? "" : "not ", writer == null ? "not " : "");
+                FILE_DIR + filename, enabled ? "" : "not", writer == null ? "not" : "");
     }
     
     /**
