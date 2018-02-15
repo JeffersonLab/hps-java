@@ -80,8 +80,6 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     private int verbosity = 0;
     
-    private boolean debug = false;
-    
     @Override
     public void endOfData() {
         inputWriter.close();
@@ -93,12 +91,10 @@ public class SimpleSvtReadout extends TriggerableDriver {
     
     @Override
     public void startOfData() {
-        if(debug) {
-            inputWriter.initialize();
-            outputWriter.initialize();
-            verboseWriter.initialize();
-            triggerWriter.initialize();
-        }
+        inputWriter.initialize();
+        outputWriter.initialize();
+        verboseWriter.initialize();
+        triggerWriter.initialize();
         verboseWriter.write("Test");
         super.startOfData();
     }
@@ -110,10 +106,6 @@ public class SimpleSvtReadout extends TriggerableDriver {
 
     public void setAddNoise(boolean addNoise) {
         this.addNoise = addNoise;
-    }
-    
-    public void setDebug(boolean state) {
-        debug = state;
     }
 
     public void setEnablePileupCut(boolean enablePileupCut) {
