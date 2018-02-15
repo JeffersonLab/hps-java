@@ -61,8 +61,6 @@ public class EcalRawConverterDriver extends Driver {
      * Output relation between ecalCollectionName and Mode-7 pedestals
      */
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
-
-    private boolean debug = true;
     
     /**
      * Hit threshold in GeV.  Anything less will not be put into LCIO. 
@@ -121,7 +119,7 @@ public class EcalRawConverterDriver extends Driver {
     
     @Override
     public void endOfData() {
-        if(debug) { writer.close(); }
+        writer.close();
     }
 
     /**
@@ -347,14 +345,6 @@ public class EcalRawConverterDriver extends Driver {
     public void setApplyBadCrystalMap(boolean apply) {
         this.applyBadCrystalMap = apply;
     }
-
-    /**
-     * Set to <code>true</code> to turn on debug output.
-     * @param debug True to turn on debug output.
-     */
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
     
     public void setDisplay(boolean display){
         converter.setDisplay(display);
@@ -406,7 +396,7 @@ public class EcalRawConverterDriver extends Driver {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
         
-        if(debug) { writer.initialize(); }
+        writer.initialize();
     }
 
     @Override
