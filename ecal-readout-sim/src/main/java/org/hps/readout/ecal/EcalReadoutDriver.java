@@ -39,16 +39,11 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     //readout period counter
     int readoutCounter;
     public static boolean readoutBit = false;
-    protected boolean debug = true;
 
     public EcalReadoutDriver() {
         flags += 1 << LCIOConstants.CHBIT_LONG; //store position
         flags += 1 << LCIOConstants.RCHBIT_ID1; //store cell ID
         triggerDelay = 100.0;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
     }
 
     public void setEcalReadoutName(String ecalReadoutName) {
@@ -85,11 +80,9 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
 
     @Override
     public void startOfData() {
-        if(debug) {
-            inputWriter.initialize();
-            outputWriter.initialize();
-            verboseWriter.initialize();
-        }
+        inputWriter.initialize();
+        outputWriter.initialize();
+        verboseWriter.initialize();
         
         super.startOfData();
         if (ecalCollectionName == null) {
@@ -103,11 +96,9 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     
     @Override
     public void endOfData() {
-        if(debug) {
-            inputWriter.close();
-            outputWriter.close();
-            verboseWriter.close();
-        }
+        inputWriter.close();
+        outputWriter.close();
+        verboseWriter.close();
     }
 
     @Override
