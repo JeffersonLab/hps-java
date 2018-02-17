@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
@@ -15,9 +16,11 @@ import org.hps.record.daqconfig.ConfigurationManager;
 import org.hps.record.daqconfig.FADCConfig;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
@@ -519,6 +522,24 @@ public class EcalRawConverter {
         return new double []{pulseTime,sumADC,minADC,maxADC,fitQuality};
     }
     
+    /**
+     * This HitDtoA is for emulating the conversion of Mode-1 readout (RawTrackerHit)
+     * into what EcalRawConverter would have created from a Mode-3 or Mode-7 readout.
+     * Clustering classes will read the resulting CalorimeterHits same as if they were
+     * directly readout from the FADCs in Mode-3/7.
+     * 
+     * For Mode-3, hit time is just the time of threshold crossing, with an optional
+     * time-walk correction.  For Mode-7, it is a "high-resolution" one calculated
+     * by linear interpolation between threshold crossing and pulse maximum.
+     *
+     * TODO: Generate GenericObject (and corresponding LCRelation) to store min and max
+     * to fully emulate mode-7.  This is less important for now.
+     *
+     */
+    public ArrayList<CalorimeterHit> HitDtoA(EventHeader event, RawTrackerHit hit) {
+        return HitDtoA(event, hit, null, null);
+    }
+    
     
     /**
      * This HitDtoA is for emulating the conversion of Mode-1 readout (RawTrackerHit)
@@ -534,7 +555,8 @@ public class EcalRawConverter {
      * to fully emulate mode-7.  This is less important for now.
      *
      */
-    public ArrayList <CalorimeterHit> HitDtoA(EventHeader event, RawTrackerHit hit) {
+    public ArrayList<CalorimeterHit> HitDtoA(EventHeader event, RawTrackerHit hit, Map<RawTrackerHit, Set<SimCalorimeterHit>> truthMap,
+            LCMetaData metaData) {
         final long cellID = hit.getCellID();
         final short samples[] = hit.getADCValues();
         if(samples.length == 0) return null;
@@ -580,6 +602,7 @@ public class EcalRawConverter {
         
         // make hits
         ArrayList <CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
+        Set<SimCalorimeterHit> truthHits = new java.util.HashSet<SimCalorimeterHit>();
         for(int thresholdCrossing : thresholdCrossings) {
             // do pulse integral:
             final double[] data = convertWaveformToPulse(hit, thresholdCrossing, mode7);
@@ -588,6 +611,33 @@ public class EcalRawConverter {
 //            final double min = data[2]; // TODO: stick min and max in a GenericObject with an 
 //            final double max = data[3]; // LCRelation to finish mode-7 emulation
             final double fitQuality = data[4];
+            
+            if(truthMap != null) {
+                // Determine the location of the first and last
+                // integration samples.
+                // TODO: This should probably be extracted into a separate method.
+                int firstSample, lastSample;
+                if ((NSA + NSB) / nsPerSample >= samples.length) {
+                    firstSample = 0;
+                    lastSample = samples.length - 1;
+                } else {
+                    firstSample = thresholdCrossing - NSB / nsPerSample;
+                    lastSample = thresholdCrossing + NSA / nsPerSample - 1;
+                }
+                
+                // Convert those to time displacement from the window
+                // starting point.
+                int startTime = firstSample * nsPerSample;
+                int endTime = lastSample * nsPerSample;
+                
+                // Collect all of the truth hits that occurred in
+                // this time range.
+                for(SimCalorimeterHit truthHit : truthMap.get(hit)) {
+                    if(truthHit.getTime() >= startTime && truthHit.getTime() <= endTime) {
+                        truthHits.add(truthHit);
+                    }
+                }
+            }
             
             if (!useFit || fitQuality<=0) {
                 // do pedestal subtraction:
@@ -609,9 +659,19 @@ public class EcalRawConverter {
             }
           
             time -= findChannel(cellID).getTimeShift().getTimeShift();
-
             
-            newHits.add(CalorimeterHitUtilities.create(energy,time,cellID));
+            // Create the new hit.
+            CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
+            
+            // If there is truth information, convert the new hit to
+            // a SimCalorimeterHit with all the truth data included.
+            // Otherwise, just return the generic hit.
+            if(truthMap != null) {
+                SimCalorimeterHit truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, metaData);
+                newHits.add(truthHit);
+            } else {
+                newHits.add(newHit);
+            }
         }
         
         return newHits;
