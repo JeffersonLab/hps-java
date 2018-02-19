@@ -1,8 +1,8 @@
 package org.hps.recon.ecal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.util.TruthCalorimeterHit;
@@ -55,13 +55,13 @@ public final class CalorimeterHitUtilities {
      * SimCalorimeterHit} object that contains all of the truth data
      * present in the attached {@link java.util.Set Set}.
      * @param baseHit - The generic calorimeter hit object.
-     * @param truthData - A set of all truth data associated with the
-     * calorimeter hit object.
+     * @param truthData - A collection of all truth data associated
+     * with the calorimeter hit object.
      * @return Returns a SimCalorimeterHit object with the same
      * parameters as the generic hit, but with all the compiled truth
      * information from the truth set.
      */
-    public static final SimCalorimeterHit convertToTruthHit(CalorimeterHit baseHit, Set<SimCalorimeterHit> truthData, LCMetaData metaData) {
+    public static final SimCalorimeterHit convertToTruthHit(CalorimeterHit baseHit, Collection<SimCalorimeterHit> truthData, LCMetaData metaData) {
         // Extract the truth data into one, singular list.
         List<Integer> pdgs = new ArrayList<Integer>();
         List<Float> times = new ArrayList<Float>();
