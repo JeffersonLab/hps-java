@@ -8,9 +8,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
@@ -44,7 +48,68 @@ public class MCFullDetectorTruth{
         return trackerHitMap;
     }
     
-    public static Map<MCParticle, Map<String, List<SimTrackerHit>>> BuildComboTrackerHitMap(List<SimTrackerHit> trackerHitsAct, List<SimTrackerHit> trackerHitsIn){
+    public static Map<MCParticle, Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>> BuildComboHitMap(List<SimTrackerHit> trackerHitsAct, List<SimTrackerHit> trackerHitsIn, List<SimCalorimeterHit> calHits){
+        Map<MCParticle,Map<String, List<SimTrackerHit>>> trackerNewHitMap = new HashMap<MCParticle,Map<String, List<SimTrackerHit>>>();
+        Map<MCParticle,List<SimCalorimeterHit>> ecalNewHitMap = BuildCalHitMap(calHits);
+        
+        for (SimTrackerHit hit : trackerHitsAct) {
+            MCParticle p = hit.getMCParticle();
+            if (p == null) {
+                throw new RuntimeException("Tracker hit points to null MCParticle!");
+            }
+            if (trackerNewHitMap.get(p) == null) {
+                trackerNewHitMap.put(p, new HashMap<String, List<SimTrackerHit>>());
+                trackerNewHitMap.get(p).put("active", new ArrayList<SimTrackerHit>());
+            }
+            trackerNewHitMap.get(p).get("active").add(hit);
+        }
+
+        for (SimTrackerHit hit : trackerHitsIn) {
+            MCParticle p = hit.getMCParticle();
+            if (p == null) {
+                throw new RuntimeException("Inactive tracker hit points to null MCParticle!");
+            }
+            if (trackerNewHitMap.get(p) == null) {
+                trackerNewHitMap.put(p, new HashMap<String, List<SimTrackerHit>>());
+                trackerNewHitMap.get(p).put("inactive", new ArrayList<SimTrackerHit>());
+            }
+            if(trackerNewHitMap.get(p).get("inactive") == null){
+                trackerNewHitMap.get(p).put("inactive", new ArrayList<SimTrackerHit>());
+            }
+            trackerNewHitMap.get(p).get("inactive").add(hit);
+        }
+        
+        return BuildHitMap(trackerNewHitMap,ecalNewHitMap);
+    }
+
+    public static Map<MCParticle, Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>> BuildHitMap(Map<MCParticle,Map<String, List<SimTrackerHit>>> trackerHitMap,Map<MCParticle,List<SimCalorimeterHit>> ecalHitMap){
+    //public static Map<MCParticle, Map<String, List<>>> BuildHitMap(Map<MCParticle,Map<String, List<SimTrackerHit>>> trackerHitMap,Map<MCParticle,List<SimCalorimeterHit>> ecalHitMap){
+        Map<MCParticle, Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>> hitMap = new HashMap<MCParticle, Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>>();
+        for (Entry<MCParticle, Map<String,List<SimTrackerHit>>> entry : trackerHitMap.entrySet()) {
+            //Pair<Map<String, List<SimTrackerHit>>, List<SimCalorimeterHit>> entry;
+            MCParticle p = entry.getKey();
+            Map<String, List<SimTrackerHit>> trackerHits = entry.getValue();
+            if(hitMap.get(p) == null){
+                hitMap.put(p, new Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>(trackerHits,null));
+            }
+            else{
+                hitMap.get(p).getFirst().putAll(trackerHits);
+            }
+        }
+        for (Entry<MCParticle,List<SimCalorimeterHit>> entry : ecalHitMap.entrySet()) {
+            MCParticle p = entry.getKey();
+            List<SimCalorimeterHit> ecalHits = entry.getValue();
+            if(hitMap.get(p) == null){
+                hitMap.put(p, new Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>(null,ecalHits));
+            }
+            else{
+                //hitMap.get(p).getSecond().addAll(ecalHits);
+            }
+        }
+        return hitMap;
+    }
+    
+    /*public static Map<MCParticle, Map<String, List<SimTrackerHit>>> BuildComboTrackerHitMap(List<SimTrackerHit> trackerHitsAct, List<SimTrackerHit> trackerHitsIn){
         Map<MCParticle,Map<String, List<SimTrackerHit>>> trackerNewHitMap = new HashMap<MCParticle,Map<String, List<SimTrackerHit>>>();
         for (SimTrackerHit hit : trackerHitsAct) {
             MCParticle p = hit.getMCParticle();
@@ -59,7 +124,7 @@ public class MCFullDetectorTruth{
         }
         int i = 0;
         for (SimTrackerHit hit : trackerHitsIn) {
-            if (i == trackerHitsIn.size()/2) break;
+            if (i == trackerHitsIn.size()) break;
             MCParticle p = hit.getMCParticle();
             if (p == null) {
                 throw new RuntimeException("Tracker hit points to null MCParticle!");
@@ -75,7 +140,7 @@ public class MCFullDetectorTruth{
             i++;
         }
         return trackerNewHitMap;
-    }
+    }*/
     
     /*public static Map<MCParticle,List<SimTrackerHit>> BuildComboTrackerHitMap(Map<MCParticle, List<SimTrackerHit>> ActiveHitMap, Map<MCParticle, List<SimTrackerHit>> InActiveHitMap){
         Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
@@ -131,6 +196,51 @@ public class MCFullDetectorTruth{
         else volume = "b";
         String prefix = "L" + layer + volume;
         return prefix;
+    }
+    
+    public static String trackHitLayer(IDetectorElement de, List<HpsSiSensor> sensors, boolean inactive) {
+        if(!inactive){
+            HpsSiSensor sensor = ((HpsSiSensor) de);
+            String layer = Integer.toString(sensor.getLayerNumber());
+            String volume = "";
+            if(sensor.isTopLayer()) volume = "t";
+            else volume = "b";
+            return "L" + layer + volume;
+        }
+        else{
+            HpsSiSensor sensor = null;
+            for (HpsSiSensor s : sensors){
+                String name = de.getName() + "_sensor0";
+                if(s.getName().equals(name)){
+                    sensor = s;
+                    break;
+                }
+            }
+            String layer = Integer.toString(sensor.getLayerNumber());
+            String volume = "";
+            if(sensor.isTopLayer()) volume = "t";
+            else volume = "b";
+            return "L" + layer + volume;
+        }
+        //System.out.println(sensor.getModuleId());
+        //String layer = "";
+        //System.out.println(sensor.getName());
+        //HpsSiSensor sensor = null;
+        /*for (HpsSiSensor s : sensors){
+            System.out.println(s.getName() + "  " + de.getName() + "  ");
+            String name = de.getName();
+            if(de.isSensitive()) name = name + "_sensor0";
+            if(s.getName() == name){
+                System.out.println(s.getName());
+                sensor = s;
+                break;
+            }
+        }*/
+        //String layer = Integer.toString(sensor.getLayerNumber());;
+        //String volume = "";
+        //if(sensor.isTopLayer()) volume = "t";
+        //else volume = "b";
+        //return "L" + layer + volume;
     }
     
     public static String trackHitLayer_1(SimTrackerHit hit) {

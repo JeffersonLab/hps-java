@@ -39,6 +39,7 @@ import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
+import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.TrackerHit;
@@ -73,6 +74,7 @@ public abstract class TupleMaker extends Driver {
     protected FieldMap bFieldMap = null;
 
     protected static List<HpsSiSensor> sensors;
+    protected static Subdetector trackerSubdet;
     private static final String SUBDETECTOR_NAME = "Tracker";
     protected String CandidatesColName = "V0Candidates";
     protected TIData triggerData;
@@ -167,6 +169,7 @@ public abstract class TupleMaker extends Driver {
             tupleWriter.println(StringUtils.join(tupleVariables, ":"));
         }
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+        trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
     }
 
     protected boolean setupCollections(EventHeader event) {
