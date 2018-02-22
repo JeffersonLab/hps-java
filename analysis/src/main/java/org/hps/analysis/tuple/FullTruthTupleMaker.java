@@ -320,8 +320,8 @@ public abstract class FullTruthTupleMaker extends MCTupleMaker {
         //Map<MCParticle, List<SimCalorimeterHit>> calHitMap = MCFullDetectorTruth.BuildCalHitMap(calHits);
         Map<MCParticle, Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>> hitMap = MCFullDetectorTruth.BuildComboHitMap(trackerHits,trackerHits_Inactive,calHits);
     
-        TrackTruthMatching eleTruth = new TrackTruthMatching(eleTrack, rawtomc);
-        TrackTruthMatching posTruth = new TrackTruthMatching(posTrack, rawtomc);
+        TrackTruthMatching eleTruth = new TrackTruthMatching(eleTrack, rawtomc, trackerHits);
+        TrackTruthMatching posTruth = new TrackTruthMatching(posTrack, rawtomc, trackerHits);
         //TrackAnalysis eleTruth = new TrackAnalysis(eleTrack, hittomc, rawtomc, hittostrip, hittorotated);
         //TrackAnalysis posTruth = new TrackAnalysis(posTrack, hittomc, rawtomc, hittostrip, hittorotated);
         //System.out.println("New Electron");
@@ -621,8 +621,19 @@ public abstract class FullTruthTupleMaker extends MCTupleMaker {
         MCParticle truthp = partTruth.getMCParticle();
         tupleMap.put(MCprefix+"HasTruthMatch/I", (double) 1);
         tupleMap.put(MCprefix+"NTruthHits/I", (double) partTruth.getNHits());
+        tupleMap.put(MCprefix+"NGoodTruthHits/I", (double) partTruth.getNBadHits());
         tupleMap.put(MCprefix+"NBadTruthHits/I", (double) partTruth.getNBadHits());
         tupleMap.put(MCprefix+"Purity/D", partTruth.getPurity());
+        String isTop = "t";
+        if(!partTruth.isTop())
+            isTop = "b";
+        
+        for(int i = 0; i < nLay*2; i++){
+            int layer = i + 1;
+            tupleMap.put(MCprefix+"L"+Integer.toString(layer)+isTop+"NTruthParticles/I", (double) partTruth.getNumberOfMCParticles(layer));
+            if(partTruth.getHitList(layer) != null)
+                tupleMap.put(MCprefix+"L"+Integer.toString(layer)+isTop+"IsGoodTruthHit/I", (double) ((partTruth.getHitList(layer)) ? 1 : 0));
+        }
         fillMCParticleVariables(MCprefix, truthp);
         for (Entry<MCParticle, Pair<Map<String, List<SimTrackerHit>>,List<SimCalorimeterHit>>> entry : hitMap.entrySet()) {
             MCParticle p = entry.getKey();

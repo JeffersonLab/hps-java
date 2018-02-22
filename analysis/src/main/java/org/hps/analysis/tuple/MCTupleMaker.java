@@ -108,8 +108,8 @@ public abstract class MCTupleMaker extends TupleMaker {
     }
 
     protected void addMCParticleVariables(String prefix) {
-        String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D",
-                "PY/D", "PZ/D", "P/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NBadTruthHits/I","Purity/D"};
+        String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D","PY/D", "PZ/D", 
+                "P/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NGoodTruthHits/I","NBadTruthHits/I","Purity/D"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -119,7 +119,8 @@ public abstract class MCTupleMaker extends TupleMaker {
     
     protected void addMCSVTVariables(String prefix) {
         String[] newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
-                "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D","residualX/D","residualY/D"};
+                "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D","residualX/D","residualY/D",
+                "NTruthParticles/I","IsGoodTruthHit/I"};
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
         }
