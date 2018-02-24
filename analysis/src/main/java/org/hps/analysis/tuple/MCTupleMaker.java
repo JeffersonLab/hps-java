@@ -99,7 +99,7 @@ public abstract class MCTupleMaker extends TupleMaker {
     
     protected void addMCEcalVariables(String prefix) {
         String[] newVars = new String[]{
-                "ecalhitIx/D","ecalhitIy/D","ecalhitX/D","ecalhitY/D","ecalhitZ/D",
+                "ecalhitIx/I","ecalhitIy/I","ecalhitX/D","ecalhitY/D","ecalhitZ/D",
                 "ecalhitEnergy/D"};
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];

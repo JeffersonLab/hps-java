@@ -215,12 +215,12 @@ public class TrackTruthMatching {
         }
         
         
-        if(mcbestlist.size() > 1){
+        /*if(mcbestlist.size() > 1){
             System.out.println("More than 1 match!!!");
             System.out.println("MCbest " + mcbest + "  nbest " + _ngoodhits);
-        }
+        }*/
         
-        if(_hitListNotMatched.size() > 1000){
+        /*if(_hitListNotMatched.size() > 1000){
             System.out.println("");
             System.out.println("");
             System.out.println("");
@@ -246,7 +246,7 @@ public class TrackTruthMatching {
                 System.out.println("Missing hit " + hit + " layer " + hit.getLayer());
             }
             System.out.println("MCbest " + mcbest + "  nbest " + _ngoodhits);
-        }
+        }*/
     }
     
     private int GetMax(Collection<Integer> ilist){
