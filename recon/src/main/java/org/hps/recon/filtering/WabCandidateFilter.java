@@ -2,6 +2,7 @@ package org.hps.recon.filtering;
 
 import static java.lang.Math.abs;
 import java.util.List;
+import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
@@ -37,7 +38,7 @@ public class WabCandidateFilter extends EventReconFilter {
             if (event.hasCollection(ReconstructedParticle.class, _reconParticleCollectionName)) {
                 List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, _reconParticleCollectionName);
                 // require two and only two Reconstructed particles.
-                if (rpList.size() == 2) {
+                if (rpList.size() == 3) {
                     ReconstructedParticle electron = null;
                     ReconstructedParticle photon = null;
                     double beamEnergy = getBeamEnergy();
@@ -46,8 +47,14 @@ public class WabCandidateFilter extends EventReconFilter {
 
                     for (ReconstructedParticle rp : rpList) {
                         if (rp.getParticleIDUsed().getPDG() == 11) {
-                            electron = rp;
-                            nElectrons++;
+                            // we seem to still be creating ReconstructedParticles with non-GBL tracks...
+                            if (TrackType.isGBL(rp.getType())) {
+                                // require electron to have an associated cluster
+                                if (rp.getClusters().size() == 1) {
+                                    electron = rp;
+                                    nElectrons++;
+                                }
+                            }
                         }
                         if (rp.getParticleIDUsed().getPDG() == 22) {
                             photon = rp;
@@ -64,7 +71,7 @@ public class WabCandidateFilter extends EventReconFilter {
                             // first CalorimeterHit in the list is the seed crystal
                             double t1 = electron.getClusters().get(0).getCalorimeterHits().get(0).getTime();
                             double t2 = photon.getClusters().get(0).getCalorimeterHits().get(0).getTime();
-                            if (abs(t1 - t2) > _clusterDeltaTimeCut) {
+                            if (abs(t1 - t2) < _clusterDeltaTimeCut) {
                                 goodEvent = true;
                             }
                         }
