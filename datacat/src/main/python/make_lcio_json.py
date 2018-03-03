@@ -5,7 +5,6 @@ Creates a JSON file with datacat entries from a list of LCIO files.
 """
 
 import os, sys, json
-#hashlib
 from datacat import *
 from datacat.error import DcException
 
@@ -22,7 +21,6 @@ EXCLUDES = ['/mss/hallb/hps/production/PhysicsRun2016/',
         '/mss/hallb/hps/production/MG_alphaFix/slic/targetz_0pt5mm/beam/2pt3/',
         '/mss/hallb/hps/production/ngraf/',
         '/mss/hallb/hps/production/MG_alphaFix/engrun2015/tpass7/recon/tritrig-pulserData/']
-#'/mss/hallb/hps/production/MG_alphaFix/engrun2015/tpass7/',
 
 # run tags
 RUN_TAGS = ['engrun2015', 'physrun2016']
@@ -47,7 +45,6 @@ def make_dict(datafile):
     d['resource'] = datafile
     d['data_format'] = 'LCIO'
     d['site'] = 'JLAB'
-    #d['checksum'] = hashlib.md5(open(datafile,'rb').read()).hexdigest()
 
     # data type and set base dir for subsequent searches
     loc = -1
