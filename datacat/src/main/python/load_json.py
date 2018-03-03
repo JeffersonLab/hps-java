@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 
+"""
+Load datasets from JSON into the datacat.
+"""
+
 import os, sys, json
 from datacat import *
 from datacat.error import DcException
+
+DEBUG = False
 
 datafile = 'data.json'
 if len(sys.argv) > 1:
@@ -22,7 +28,6 @@ for entry in data['datacat']:
             site=entry['site'],
             resource=entry['resource'],
             versionMetadata=entry['metadata'])
-#,
-#            locationExtras={"runMin": 0, "runMax": 0, "eventCount": 0, "scanStatus": "UNSCANNED", "checksum": 0})
     print(repr(ds))
-    break # DEBUG
+    if DEBUG:
+        break
