@@ -259,10 +259,22 @@ public class TrackTruthMatching {
         return imax;
     }
     
+    //This function chooses the particle with the highest energy
+    //This function needs to be improved
     private MCParticle ChooseBest(Map<MCParticle,Map<Integer,Boolean>> pmap,List<Integer> trackerlayerhitlist){
         List<MCParticle> plist = new ArrayList<MCParticle>();
         plist.addAll(pmap.keySet());
         MCParticle Pbest = plist.get(0);
+        double maxenergy = 0;
+        for(Map.Entry<MCParticle,Map<Integer,Boolean>> map : pmap.entrySet()){
+            MCParticle p = map.getKey();
+            double energy = p.getEnergy();
+            if(energy > maxenergy){
+                energy = maxenergy;
+                Pbest = p;
+            }
+            
+        }
         /*Map<MCParticle,List<Integer>> falselist = new HashMap<MCParticle,List<Integer>>();
         for(Map.Entry<MCParticle,Map<Integer,Boolean>> map : pmap.entrySet()){
             MCParticle p = map.getKey();

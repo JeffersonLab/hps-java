@@ -53,6 +53,7 @@ public class MCFullDetectorTruth{
     private Map<Integer,Hep3Vector> _ecalHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Double> _ecalHitE = new HashMap<Integer,Double>();
     private int _ecalNHits = 0;
+    private boolean _isTriggered = false;
     
     private final String trackHitMCRelationsCollectionName = "RotatedHelicalTrackMCRelations";
     private String trackerHitsCollectionName = "TrackerHits";
@@ -103,7 +104,7 @@ public class MCFullDetectorTruth{
         
         IDDecoder calDecoder = event.getMetaData(calHits).getIDDecoder();
         
-        ComputeEcalVars(truthEcalHits,calDecoder);
+        ComputeEcalVars(event,truthEcalHits,calDecoder);
     }
 
     private void ComputeSVTVars(MCParticle p, List<SimTrackerHit> hits_act, List<SimTrackerHit> hits_in, FieldMap bFieldMap, List<HpsSiSensor> sensors, Subdetector trackerSubdet){
@@ -129,7 +130,7 @@ public class MCFullDetectorTruth{
                 continue;
             }
             
-            Pair<Hep3Vector,Hep3Vector> extrapPair = extrapolateTrack(endPosition,endMomentum,startPosition,5,bFieldMap,p.getCharge());
+            Pair<Hep3Vector,Hep3Vector> extrapPair = extrapolateTrack(endPosition,endMomentum,startPosition,0.5,bFieldMap,p.getCharge());
             if(extrapPair == null) continue;
             Hep3Vector extrapPos = extrapPair.getFirst();
             Hep3Vector extrapP = extrapPair.getSecond();
@@ -251,7 +252,7 @@ public class MCFullDetectorTruth{
         return hitlist;
     }
     
-    private void ComputeEcalVars(List<SimCalorimeterHit> truthEcalHits,IDDecoder calDecoder){
+    private void ComputeEcalVars(EventHeader event, List<SimCalorimeterHit> truthEcalHits,IDDecoder calDecoder){
         _ecalNHits = truthEcalHits.size();
         int i = 0;
         for(SimCalorimeterHit hit : truthEcalHits){
@@ -263,7 +264,6 @@ public class MCFullDetectorTruth{
             i++;
         }
     }
-
     
     public static Map<MCParticle, List<SimTrackerHit>> BuildTrackerHitMap(List<SimTrackerHit> trackerHits){
         Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
@@ -698,5 +698,10 @@ public class MCFullDetectorTruth{
     //Returns number of Ecal hits
     public int getEcalNHits(){
         return _ecalNHits;
+    }
+    
+  //Returns whether this MCParticle contributes to a triggered cluster
+    public boolean getIsTriggered(){
+        return _isTriggered;
     }
 }

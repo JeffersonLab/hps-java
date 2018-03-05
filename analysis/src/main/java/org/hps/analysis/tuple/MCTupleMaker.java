@@ -109,7 +109,8 @@ public abstract class MCTupleMaker extends TupleMaker {
 
     protected void addMCParticleVariables(String prefix) {
         String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D","PY/D", "PZ/D", 
-                "P/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NGoodTruthHits/I","NBadTruthHits/I","Purity/D"};
+                "P/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NGoodTruthHits/I","NBadTruthHits/I",
+                "Purity/D"};
 
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
@@ -117,10 +118,16 @@ public abstract class MCTupleMaker extends TupleMaker {
         tupleVariables.addAll(Arrays.asList(newVars));
     }
     
-    protected void addMCSVTVariables(String prefix) {
-        String[] newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
+    protected void addMCSVTVariables(String prefix, boolean inactive) {
+        String[] newVars = null;
+        if(!inactive)
+            newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
                 "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D","residualX/D","residualY/D",
                 "NTruthParticles/I","IsGoodTruthHit/I"};
+        else{
+            newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
+                "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D","residualX/D","residualY/D"};
+        }
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
         }
@@ -136,11 +143,13 @@ public abstract class MCTupleMaker extends TupleMaker {
 
     protected void addSVTTruthVariables(String prefix){    
         for(int i = 0; i < nLay*2; i++){
+            if(i + 1 > nTrackingLayers*2)
+                break;
             String layer = Integer.toString(i+1);
-            addMCSVTVariables(prefix+"L"+layer+"t");
-            addMCSVTVariables(prefix+"L"+layer+"b");
-            addMCSVTVariables(prefix+"L"+layer+"tIn");
-            addMCSVTVariables(prefix+"L"+layer+"bIn");
+            addMCSVTVariables(prefix+"L"+layer+"t",false);
+            addMCSVTVariables(prefix+"L"+layer+"b",false);
+            addMCSVTVariables(prefix+"L"+layer+"tIn",true);
+            addMCSVTVariables(prefix+"L"+layer+"bIn",true);
         }
     }
 

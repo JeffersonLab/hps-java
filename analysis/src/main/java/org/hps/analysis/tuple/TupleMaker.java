@@ -82,6 +82,7 @@ public abstract class TupleMaker extends Driver {
     protected double ebeam = Double.NaN;
     protected int nLay = 6;
     protected int tupleevent = 0;
+    protected int nTrackingLayers = nLay;
     private double[] extrapTrackXTopAxial = new double[nLay];
     private double[] extrapTrackXTopStereo = new double[nLay];
     private double[] extrapTrackXBotAxial = new double[nLay];
@@ -121,6 +122,10 @@ public abstract class TupleMaker extends Driver {
 
     public void setNLay(int nLay) {
         this.nLay = nLay;
+    }
+    
+    public void setNTrackingLayers(int nTrackingLayers) {
+        this.nTrackingLayers = nTrackingLayers;
     }
 
     public void setApplyBeamRotation(boolean applyBeamRotation) {
@@ -400,7 +405,7 @@ public abstract class TupleMaker extends Driver {
         }
 
         if (doTrkExtrap) {
-            String[] newVars2 = new String[] {
+            /*String[] newVars2 = new String[] {
                     "TrkExtrpXAxialTopL0/D", "TrkExtrpXStereoTopL0/D", "TrkExtrpXAxialBotL0/D", "TrkExtrpXStereoBotL0/D", "TrkExtrpYAxialTopL0/D",
                     "TrkExtrpYStereoTopL0/D", "TrkExtrpYAxialBotL0/D", "TrkExtrpYStereoBotL0/D", "TrkExtrpXAxialTopL1/D",
                     "TrkExtrpXStereoTopL1/D", "TrkExtrpXAxialBotL1/D", "TrkExtrpXStereoBotL1/D", "TrkExtrpYAxialTopL1/D",
@@ -428,11 +433,28 @@ public abstract class TupleMaker extends Driver {
                     "TrkExtrpXSensorStereoTopL5/D", "TrkExtrpXSensorAxialBotL5/D", "TrkExtrpXSensorStereoBotL5/D", "TrkExtrpYSensorAxialTopL5/D",
                     "TrkExtrpYSensorStereoTopL5/D", "TrkExtrpYSensorAxialBotL5/D", "TrkExtrpYSensorStereoBotL5/D", "TrkExtrpXSensorAxialTopL6/D",
                     "TrkExtrpXSensorStereoTopL6/D", "TrkExtrpXSensorAxialBotL6/D", "TrkExtrpXSensorStereoBotL6/D", "TrkExtrpYSensorAxialTopL6/D",
-                    "TrkExtrpYSensorStereoTopL6/D", "TrkExtrpYSensorAxialBotL6/D", "TrkExtrpYSensorStereoBotL6/D"};
-            for (int i = 0; i < newVars2.length; i++) {
-                newVars2[i] = prefix + newVars2[i];
+                    "TrkExtrpYSensorStereoTopL6/D", "TrkExtrpYSensorAxialBotL6/D", "TrkExtrpYSensorStereoBotL6/D"};*/
+            /*String[] newVars2 = new String[] {
+                    "TrkExtrpXAxialTopL", "TrkExtrpXStereoTopL", "TrkExtrpXAxialBotL", "TrkExtrpXStereoBotL", "TrkExtrpYAxialTopL",
+                    "TrkExtrpYStereoTopL", "TrkExtrpYAxialBotL", "TrkExtrpYStereoBotL","TrkExtrpXSensorAxialTopL", "TrkExtrpXSensorStereoTopL", 
+                    "TrkExtrpXSensorAxialBotL", "TrkExtrpXSensorStereoBotL", "TrkExtrpYSensorAxialTopL",
+                    "TrkExtrpYSensorStereoTopL", "TrkExtrpYSensorAxialBotL", "TrkExtrpYSensorStereoBotL"};*/
+            for(int i = 0; i < nTrackingLayers; i++){
+                String layer = Integer.toString(i + 1);
+                String[] newVars2 = new String[] {
+                        "TrkExtrpXAxialTopL", "TrkExtrpXStereoTopL", "TrkExtrpXAxialBotL", "TrkExtrpXStereoBotL", "TrkExtrpYAxialTopL",
+                        "TrkExtrpYStereoTopL", "TrkExtrpYAxialBotL", "TrkExtrpYStereoBotL","TrkExtrpXSensorAxialTopL", "TrkExtrpXSensorStereoTopL", 
+                        "TrkExtrpXSensorAxialBotL", "TrkExtrpXSensorStereoBotL", "TrkExtrpYSensorAxialTopL",
+                        "TrkExtrpYSensorStereoTopL", "TrkExtrpYSensorAxialBotL", "TrkExtrpYSensorStereoBotL"};
+                for(int j = 0; j < newVars2.length; j++){
+                    newVars2[j] = prefix + newVars2[j] + layer + "/D";
+                }
+                tupleVariables.addAll(Arrays.asList(newVars2));
             }
-            tupleVariables.addAll(Arrays.asList(newVars2));
+            /*for (int i = 0; i < newVars2.length; i++) {
+                newVars2[i] = prefix + newVars2[i];
+            }*/
+            //tupleVariables.addAll(Arrays.asList(newVars2));
         }
 
         if (doIso) {
@@ -1096,6 +1118,8 @@ public abstract class TupleMaker extends Driver {
 
         if (theV0 == null)
             return;
+        
+        fillVertexCov(prefix, theV0);
         
         ReconstructedParticle particle1 = theV0.getParticles().get(0); //v0:  electron,   moller:  top
         ReconstructedParticle particle2 = theV0.getParticles().get(1); //v0:  positron,   moller:  bot
