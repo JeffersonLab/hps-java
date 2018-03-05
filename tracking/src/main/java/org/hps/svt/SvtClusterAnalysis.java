@@ -61,12 +61,14 @@ public class SvtClusterAnalysis extends Driver {
     private Map<SiSensor, IHistogram1D> multHitSignalToNoisePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> clusterSizePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> clusterTimePlots = new HashMap<SiSensor, IHistogram1D>();
+    private Map<SiSensor, IHistogram1D> hitTimePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram2D> clusterChargeVsTimePlots = new HashMap<SiSensor, IHistogram2D>();
 
     // Histograms of clusters associated with a track
     private Map<SiSensor, IHistogram1D> trackClusterChargePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> trackHitSignalToNoisePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> trackClusterTimePlots = new HashMap<SiSensor, IHistogram1D>();
+    private Map<SiSensor, IHistogram1D> trackHitTimePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram2D> trackClusterChargeVsMomentum = new HashMap<SiSensor, IHistogram2D>();
     private Map<SiSensor, IHistogram2D> trackClusterChargeVsCosTheta = new HashMap<SiSensor, IHistogram2D>();
     private Map<SiSensor, IHistogram2D> trackClusterChargeVsSinPhi = new HashMap<SiSensor, IHistogram2D>();
@@ -142,9 +144,15 @@ public class SvtClusterAnalysis extends Driver {
             
             clusterTimePlots.put(sensor,
                     histogramFactory.createHistogram1D(sensorName + " - Cluster Time", 100, -100, 100));
+            
+            hitTimePlots.put(sensor,
+                    histogramFactory.createHistogram1D(sensorName + " - Hit Time", 100, -100, 100));
 
             trackClusterTimePlots.put(sensor,
                     histogramFactory.createHistogram1D(sensorName + " - Track Cluster Time", 100, -100, 100));
+            
+            trackHitTimePlots.put(sensor,
+                    histogramFactory.createHistogram1D(sensorName + " - Track Hit Time", 100, -100, 100));
             
             clusterChargeVsTimePlots.put(sensor,
                     histogramFactory.createHistogram2D(sensorName + " - Cluster Amplitude vs Time", 100, 0, 5000, 100, -100, 100));
@@ -209,6 +217,11 @@ public class SvtClusterAnalysis extends Driver {
                 multHitClusterChargePlots.get(sensor).fill(clusterObject.getAmplitude());
                 multHitSignalToNoisePlots.get(sensor).fill(clusterObject.getSignalToNoise());
             }
+            
+            List<RawTrackerHit> rawhits = cluster.getRawHits();
+            for(RawTrackerHit rawhit : rawhits){
+                hitTimePlots.get(sensor).fill(rawhit.getTime());
+            }
         }
        
         if (!event.hasCollection(Track.class, "MatchedTracks")) return;
@@ -244,7 +257,8 @@ public class SvtClusterAnalysis extends Driver {
         for(Track track : tracks){
 
             // Calculate the momentum of the track
-            double p = this.getReconstructedParticle(track).getMomentum().magnitude();
+            double[] pvec = track.getTrackStates().get(0).getMomentum();
+            double p = pvec[0]*pvec[0] +  pvec[1]*pvec[1] +  pvec[2]*pvec[2];
             
             for (TrackerHit rotatedStereoHit : track.getTrackerHits()) { 
             
@@ -266,6 +280,11 @@ public class SvtClusterAnalysis extends Driver {
                     trackClusterChargeVsCosTheta.get(sensor).fill(TrackUtils.getCosTheta(track), clusterObject.getAmplitude());
                     trackClusterChargeVsSinPhi.get(sensor).fill(Math.sin(TrackUtils.getPhi0(track)), clusterObject.getAmplitude());
                     trackClusterTimePlots.get(sensor).fill(trackCluster.getTime());
+                    
+                    List<RawTrackerHit> rawhits = trackCluster.getRawHits();
+                    for(RawTrackerHit rawhit : rawhits){
+                        trackHitTimePlots.get(sensor).fill(rawhit.getTime());
+                    }
                 }
             }
         }
