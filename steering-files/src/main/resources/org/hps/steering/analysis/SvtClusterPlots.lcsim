@@ -14,6 +14,8 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
 	    <driver name="SvtClusterAnalysis" type="org.hps.svt.SvtClusterAnalysis">
+	        <trackQualityCut>true</trackQualityCut>
+	        <feeCut>true</feeCut>
 	    </driver>
        	<driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>

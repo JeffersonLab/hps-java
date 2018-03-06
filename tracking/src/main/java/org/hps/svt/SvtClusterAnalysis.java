@@ -11,20 +11,20 @@ import hep.aida.IHistogramFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
 
-
 import org.lcsim.util.Driver; 
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
+import org.hps.conditions.beam.BeamEnergy;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.TrackUtils;
 
@@ -34,13 +34,12 @@ import org.hps.recon.tracking.TrackUtils;
  * These will be used for Svt NIM paper
  *  
  * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a> 
- * @auther mrsolt@slac.stanford.edu
+ * @auther Matt Solt mrsolt@slac.stanford.edu
  */
 public class SvtClusterAnalysis extends Driver {
 
     private List<HpsSiSensor> sensors;
     private Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
-    private Map<Track, ReconstructedParticle> reconParticleMap = new HashMap<Track, ReconstructedParticle>();
   
     // Plotting
     private ITree tree = null; 
@@ -61,14 +60,13 @@ public class SvtClusterAnalysis extends Driver {
     private Map<SiSensor, IHistogram1D> multHitSignalToNoisePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> clusterSizePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> clusterTimePlots = new HashMap<SiSensor, IHistogram1D>();
-    private Map<SiSensor, IHistogram1D> hitTimePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram2D> clusterChargeVsTimePlots = new HashMap<SiSensor, IHistogram2D>();
 
     // Histograms of clusters associated with a track
     private Map<SiSensor, IHistogram1D> trackClusterChargePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> trackHitSignalToNoisePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram1D> trackClusterTimePlots = new HashMap<SiSensor, IHistogram1D>();
-    private Map<SiSensor, IHistogram1D> trackHitTimePlots = new HashMap<SiSensor, IHistogram1D>();
+    private Map<SiSensor, IHistogram1D> trackSingleHitClusterTimePlots = new HashMap<SiSensor, IHistogram1D>();
     private Map<SiSensor, IHistogram2D> trackClusterChargeVsMomentum = new HashMap<SiSensor, IHistogram2D>();
     private Map<SiSensor, IHistogram2D> trackClusterChargeVsCosTheta = new HashMap<SiSensor, IHistogram2D>();
     private Map<SiSensor, IHistogram2D> trackClusterChargeVsSinPhi = new HashMap<SiSensor, IHistogram2D>();
@@ -81,9 +79,17 @@ public class SvtClusterAnalysis extends Driver {
     private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
     private String stereoHitRelationsColName = "HelicalTrackHitRelations";
     private String rotatedHthRelationsColName = "RotatedHelicalTrackHitRelations";
-    private String fsParticlesCollectionName = "FinalStateParticles";
+    private String trackCollectionName = "GBLTracks";
     
     private int runNumber = -1; 
+    
+    private double ebeam = Double.NaN;
+    
+    private boolean feeCut = false;
+    private boolean trackQualityCut = false;
+    private double minFee = 0.85;
+    private double maxFee = 1.15;
+    private double maxChi2 = 10;
         
     //-------------//
     //   Setters   //
@@ -98,6 +104,26 @@ public class SvtClusterAnalysis extends Driver {
         this.subdetectorName = subdetectorName; 
     }
     
+    public void setFeeCut(boolean feeCut) { 
+        this.feeCut = feeCut; 
+    }
+    
+    public void setTrackQualityCut(boolean trackQualityCut) { 
+        this.trackQualityCut = trackQualityCut; 
+    }
+    
+    public void setMinFee(double minFee) { 
+        this.minFee = minFee; 
+    }
+    
+    public void setMaxFee(double maxFee) { 
+        this.maxFee = maxFee; 
+    }
+    
+    public void setMaxChi2(double maxChi2) { 
+        this.maxChi2 = maxChi2; 
+    }
+    
     /** Default Constructor */
     public SvtClusterAnalysis() { }
     
@@ -106,6 +132,15 @@ public class SvtClusterAnalysis extends Driver {
         aida.tree().cd("/");
         tree = aida.tree();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
+        
+        if (Double.isNaN(ebeam)) {
+            try {
+                BeamEnergy.BeamEnergyCollection beamEnergyCollection = this.getConditionsManager()
+                        .getCachedConditions(BeamEnergy.BeamEnergyCollection.class, "beam_energies").getCachedData();
+                ebeam = beamEnergyCollection.get(0).getBeamEnergy();
+            } catch (Exception e) {
+            }
+        }
         
         // Get the HpsSiSensor objects from the tracker detector element
         sensors = detector.getSubdetector(subdetectorName)
@@ -145,14 +180,11 @@ public class SvtClusterAnalysis extends Driver {
             clusterTimePlots.put(sensor,
                     histogramFactory.createHistogram1D(sensorName + " - Cluster Time", 100, -100, 100));
             
-            hitTimePlots.put(sensor,
-                    histogramFactory.createHistogram1D(sensorName + " - Hit Time", 100, -100, 100));
-
             trackClusterTimePlots.put(sensor,
                     histogramFactory.createHistogram1D(sensorName + " - Track Cluster Time", 100, -100, 100));
             
-            trackHitTimePlots.put(sensor,
-                    histogramFactory.createHistogram1D(sensorName + " - Track Hit Time", 100, -100, 100));
+            trackSingleHitClusterTimePlots.put(sensor,
+                    histogramFactory.createHistogram1D(sensorName + " - Track Single Hit Cluster Time", 100, -100, 100));
             
             clusterChargeVsTimePlots.put(sensor,
                     histogramFactory.createHistogram2D(sensorName + " - Cluster Amplitude vs Time", 100, 0, 5000, 100, -100, 100));
@@ -217,16 +249,11 @@ public class SvtClusterAnalysis extends Driver {
                 multHitClusterChargePlots.get(sensor).fill(clusterObject.getAmplitude());
                 multHitSignalToNoisePlots.get(sensor).fill(clusterObject.getSignalToNoise());
             }
-            
-            List<RawTrackerHit> rawhits = cluster.getRawHits();
-            for(RawTrackerHit rawhit : rawhits){
-                hitTimePlots.get(sensor).fill(rawhit.getTime());
-            }
         }
        
-        if (!event.hasCollection(Track.class, "MatchedTracks")) return;
+        if (!event.hasCollection(Track.class, trackCollectionName)) return;
         
-        List<Track> tracks = event.get(Track.class, "MatchedTracks");
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
         
         // Get the collection of LCRelations between a stereo hit and the strips making it up
         List<LCRelation> stereoHitRelations = event.get(LCRelation.class, stereoHitRelationsColName);
@@ -246,20 +273,24 @@ public class SvtClusterAnalysis extends Driver {
                 hthToRotatedHth.add(relation.getFrom(), relation.getTo());
             }
         }
-        
-        // Get the list of final state particles from the event.  These will
-        // be used to obtain the track momentum.
-        List<ReconstructedParticle> fsParticles = event.get(ReconstructedParticle.class, fsParticlesCollectionName);
-      
-        this.mapReconstructedParticlesToTracks(tracks, fsParticles);
        
         // Loop over all of the tracks in the event
         for(Track track : tracks){
 
+            boolean isGoodTrack = track.getChi2() < maxChi2 && track.getTrackerHits().size() >= 6;
+            if(trackQualityCut && !isGoodTrack)
+                continue;
+
             // Calculate the momentum of the track
-            double[] pvec = track.getTrackStates().get(0).getMomentum();
-            double p = pvec[0]*pvec[0] +  pvec[1]*pvec[1] +  pvec[2]*pvec[2];
+            HelicalTrackFit hlc_trk_fit = TrackUtils.getHTF(track.getTrackStates().get(0));
+            double B_field = Math.abs(TrackUtils.getBField(event.getDetector()).y());
+            double p = hlc_trk_fit.p(B_field);
             
+            boolean isFee = p > minFee * ebeam && p < maxFee * ebeam && track.getTrackStates().get(0).getOmega() > 0;
+            
+            if(feeCut && !isFee)
+                continue;
+
             for (TrackerHit rotatedStereoHit : track.getTrackerHits()) { 
             
                 // Get the HelicalTrackHit corresponding to the RotatedHelicalTrackHit
@@ -280,11 +311,8 @@ public class SvtClusterAnalysis extends Driver {
                     trackClusterChargeVsCosTheta.get(sensor).fill(TrackUtils.getCosTheta(track), clusterObject.getAmplitude());
                     trackClusterChargeVsSinPhi.get(sensor).fill(Math.sin(TrackUtils.getPhi0(track)), clusterObject.getAmplitude());
                     trackClusterTimePlots.get(sensor).fill(trackCluster.getTime());
-                    
-                    List<RawTrackerHit> rawhits = trackCluster.getRawHits();
-                    for(RawTrackerHit rawhit : rawhits){
-                        trackHitTimePlots.get(sensor).fill(rawhit.getTime());
-                    }
+                    if(trackCluster.getRawHits().size() == 1)
+                        trackSingleHitClusterTimePlots.get(sensor).fill(trackCluster.getTime());
                 }
             }
         }
@@ -352,22 +380,6 @@ public class SvtClusterAnalysis extends Driver {
      */
     private LCRelation getFittedHit(RawTrackerHit rawHit) { 
         return fittedRawTrackerHitMap.get(rawHit);
-    }
-    
-    private void mapReconstructedParticlesToTracks(List<Track> tracks, List<ReconstructedParticle> particles) {
-        
-        reconParticleMap.clear();
-        for (ReconstructedParticle particle : particles) {
-            for (Track track : tracks) {
-                if (!particle.getTracks().isEmpty() && particle.getTracks().get(0) == track) {
-                    reconParticleMap.put(track, particle);
-                }
-            }
-        }
-    }
-    
-    private ReconstructedParticle getReconstructedParticle(Track track) {
-        return reconParticleMap.get(track);
     }
    
     /**
