@@ -1,0 +1,44 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver"/>
+        <driver name="TrackerHitDriver"/>
+        <driver name="SVTOccupancyPlots"/>
+        <driver name="AidaSaveDriverRoot"/>
+        <driver name="CleanupDriver"/>
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>            
+        </driver>
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>true</correctChanT0>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="SVTOccupancyPlots" type="org.hps.svt.OccupancyPlots">
+            <eventRefreshRate>50</eventRefreshRate>
+            <enablePositionPlots>true</enablePositionPlots>
+            <enableMaxSamplePlots>true</enableMaxSamplePlots>
+            <maxSamplePosition>4</maxSamplePosition>
+            <timeWindowWeight>3</timeWindowWeight>
+        </driver>
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+	    </driver>
+	    <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+    </drivers>
+</lcsim>
