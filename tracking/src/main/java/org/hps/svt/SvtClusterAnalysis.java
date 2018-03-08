@@ -184,7 +184,7 @@ public class SvtClusterAnalysis extends Driver {
                     histogramFactory.createHistogram1D(sensorName + " - Track Cluster Time", 100, -100, 100));
             
             trackSingleHitClusterTimePlots.put(sensor,
-                    histogramFactory.createHistogram1D(sensorName + " - Track Single Hit Cluster Time", 100, -100, 100));
+                    histogramFactory.createHistogram1D(sensorName + " - Track Single Hit Cluster Time", 100, -20, 20));
             
             clusterChargeVsTimePlots.put(sensor,
                     histogramFactory.createHistogram2D(sensorName + " - Cluster Amplitude vs Time", 100, 0, 5000, 100, -100, 100));
