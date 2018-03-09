@@ -156,8 +156,9 @@ num_written = 0
 num_errors = 0
 num_excludes = 0
 error_log = open(ERROR_LOG, 'w')
-for i in range(len(flist)):
-    datafile = flist[i].strip()
+print "Processing files ..."
+for f in flist:
+    datafile = f.strip()
     if exclude(datafile):
         print "Excluding '%s'" % datafile
         num_excludes +=1 
@@ -172,8 +173,6 @@ for i in range(len(flist)):
         error_log.write('\n')
         num_errors += 1
         continue
-    if i != 0 and i % 1000 == 0:
-        print "Processed %d files" % i
 
 print "Writing JSON file ..."
 with open(outfile, 'w') as f:
