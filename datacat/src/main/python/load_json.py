@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Load datasets from JSON into the datacat.
 """
