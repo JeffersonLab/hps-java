@@ -37,10 +37,10 @@ class JsubJSON:
         start = 0
         stop = len(data['datacat'])
         for i in range(0, stop, self.entries_per_job):
-            cmd = "python %s -c %s -s %d -n %d %s" % (PYTHON_SCRIPT, DATACAT_CONFIG, i, self.entries_per_job, self.jsonfile)
-            self.make_xml(self.jsonfile, cmd, self.xml_file)
+            cmd_str = "python %s -c %s -s %d -n %d %s" % (PYTHON_SCRIPT, DATACAT_CONFIG, i, self.entries_per_job, self.jsonfile)
+            self.make_xml(self.jsonfile, cmd_str, self.xml_file)
             jsub = ['jsub', '-xml', self.xml_file]
-            print cmd
+            print cmd_str
             print jsub
             print 
             #p = subprocess.Pop(jsub, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -48,7 +48,7 @@ class JsubJSON:
             #print out
             #print err
 
-    def make_xml(self, datafile, cmd, xml_file):
+    def make_xml(self, datafile, cmd_str, xml_file):
 
         json_data = open(datafile).read()
         data = json.loads(json_data)
@@ -94,14 +94,13 @@ class JsubJSON:
         cmd_lines = []
         cmd_lines.append("<![CDATA[")
         cmd_lines.append("source %s" % SETUP_SCRIPT)
-        cmd_lines.append("python %s %s" % (PYTHON_SCRIPT, datafile))
+        cmd_lines.append(cmd_str)
         cmd_lines.append("]]>")
         cmd_text = '\n'.join(cmd_lines)
         cmd_text = unescape(cmd_text)
         cmd.text = cmd_text
 
         pretty = unescape(minidom.parseString(ET.tostring(req)).toprettyxml(indent = "    "))
-        #xml_file = os.path.splitext(datafile)[0] + ".xml"
         with open(xml_file, "w") as f:
             f.write(pretty)
         print "Wrote Auger XML '%s'" % xml_file

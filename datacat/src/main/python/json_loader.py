@@ -2,7 +2,7 @@
 Load datasets from JSON into the datacat.
 """
 
-import os, sys, json
+import os, sys, json, argparse
 from datacat import *
 from datacat.error import DcException
 
@@ -21,9 +21,9 @@ class JSONLoader:
             raise Exception("Name of JSON file is required.")
 
         self.json_file = cl.json_file[0]
-        self.config = cl.config
-        self.start = cl.start
-        self.nentries = cl.entries
+        self.config = cl.config[0]
+        self.start = cl.start[0]
+        self.nentries = cl.entries[0]
 
     def load(self):
 
@@ -32,7 +32,7 @@ class JSONLoader:
 
         client = client_from_config_file(self.config)
 
-        entries = data['datacat'][start:start+nentries]
+        entries = data['datacat'][self.start:self.start+self.nentries]
         for entry in entries:
             try: 
                 ds = client.mkds(
