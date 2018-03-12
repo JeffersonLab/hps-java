@@ -9,20 +9,21 @@ class Crawler:
         parser.add_argument("-i", "--include", nargs="?", help="Pattern to include (paths must contain all include strings)", action="append", default=[])
         parser.add_argument("-o", "--output", nargs=1, help="If set then write the output to the specified file, otherwise print the results")
         parser.add_argument("-v", "--verbose", action="store_true")
-        parser.add_argument("directories", nargs="?", help="Directory to crawl", action="append", default=[])
+        parser.add_argument("directory", nargs="?", help="Directory to crawl")
         cl = parser.parse_args()
 
-        self.directories = cl.directories
-        if not (len(self.directories)):
+        if cl.directory is None:
             parser.print_help()
             raise Exception("At least one directory is required.")
+        self.directory = cl.directory
 
         excludes = cl.exclude
         includes = cl.include
         extensions = cl.extension
         self.verbose = cl.verbose
 
-        self.output = cl.output[0]
+        if cl.output is not None:
+            self.output = cl.output[0]
 
         self.filters = []
         if len(extensions):
@@ -40,14 +41,15 @@ class Crawler:
 
     def run(self):
         self.results = []
-        for dirname in self.directories:
-            if self.verbose:
-                print "Crawling '%s'" % dirname
-            for directory, dirnames, filenames in os.walk(dirname):
-                for filename in filenames:
-                    path = os.path.join(directory, filename)
-                    if self.check_file(path):
-                        self.results.append(path)
+        if self.verbose:
+            print "Crawling '%s'" % self.directory
+        for directory, dirnames, filenames in os.walk(self.directory):
+            for filename in filenames:
+                path = os.path.join(directory, filename)
+                if self.verbose:
+                    print "Checking '%s'" % path
+                if self.check_file(path):
+                    self.results.append(path)
                     
     def check_file(self, filename):
         for f in self.filters:
