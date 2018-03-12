@@ -5,7 +5,7 @@ import os
 
 client = client_from_config_file(path=os.getcwd() + "/default.cfg")
 
-s = client.search('/HPS/mc')
+s = client.search('/HPS/test/mc')
 
 for d in s:
     print "Deleting '%s'" % d.path
