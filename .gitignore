@@ -5,3 +5,4 @@ target
 *.diff
 *.log
 /recon/nbproject/
+/analysis/nbproject/

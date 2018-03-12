@@ -64,7 +64,7 @@ public class WabCandidateFilter extends EventReconFilter {
                 List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, _reconParticleCollectionName);
                 // require two and only two Reconstructed particles (except for old passes we matched both
                 // MatchedTracks and GBL Tracks.
-                if (rpList.size() == 3) {
+                if (4 >= rpList.size()) {
                     ReconstructedParticle electron = null;
                     ReconstructedParticle photon = null;
 
@@ -73,7 +73,7 @@ public class WabCandidateFilter extends EventReconFilter {
 
                     for (ReconstructedParticle rp : rpList) {
                         if (rp.getParticleIDUsed().getPDG() == 11) {
-                            // we seem to still be creating ReconstructedParticles with non-GBL tracks...
+                            // older recon passes create ReconstructedParticles with non-GBL tracks...
                             if (TrackType.isGBL(rp.getType())) {
                                 // require electron to have an associated cluster
                                 if (rp.getClusters().size() == 1) {
