@@ -40,13 +40,13 @@ class JsubJSON:
             cmd_str = "python %s -c %s -s %d -n %d %s" % (PYTHON_SCRIPT, DATACAT_CONFIG, i, self.entries_per_job, self.jsonfile)
             self.make_xml(self.jsonfile, cmd_str, self.xml_file)
             jsub = ['jsub', '-xml', self.xml_file]
-            print cmd_str
-            print jsub
-            print 
-            #p = subprocess.Pop(jsub, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #out, err = p.communicate()
-            #print out
-            #print err
+            #print cmd_str
+            #print jsub
+            #print 
+            p = subprocess.Pop(jsub, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            print out
+            print err
 
     def make_xml(self, datafile, cmd_str, xml_file):
 
