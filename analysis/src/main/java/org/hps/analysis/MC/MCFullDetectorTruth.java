@@ -130,7 +130,7 @@ public class MCFullDetectorTruth{
                 continue;
             }
             
-            Pair<Hep3Vector,Hep3Vector> extrapPair = extrapolateTrack(endPosition,endMomentum,startPosition,0.5,bFieldMap,p.getCharge());
+            Pair<Hep3Vector,Hep3Vector> extrapPair = extrapolateTrack(endPosition,endMomentum,startPosition,5,bFieldMap,p.getCharge());
             if(extrapPair == null) continue;
             Hep3Vector extrapPos = extrapPair.getFirst();
             Hep3Vector extrapP = extrapPair.getSecond();
@@ -550,6 +550,12 @@ public class MCFullDetectorTruth{
                 //System.out.println("Track is going Forwards!");
                 return null;
             }
+            
+            //If trajectory step crosses starting position, adjust step size to fall on starting position
+            if(trajectory.getPointAtDistance(stepSize).x() < startPositionZ){
+                stepSize = VecOp.sub(CoordinateTransformations.transformVectorToTracking(startPosition),currentPosition).magnitude();
+            }
+            
             currentPosition = trajectory.getPointAtDistance(stepSize);
 
             // Calculate the momentum vector at the new position. This will
