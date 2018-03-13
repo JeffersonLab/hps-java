@@ -7,6 +7,8 @@ class Builder:
         components = path.split('/')
         if path.startswith("/mss/hallb/hps"):
             components = components[4:]
+        else:
+            raise Exception("Bad path: " + path)
 
         name = components[-1]
         datadict['name'] = name
@@ -34,8 +36,14 @@ class LCIOBuilder(Builder):
                 raise Exception("Unknown data type for path: " + path)
 
             # detector
-            name = datadict['name']
-            metadata['DETECTOR'] = name[name.find("HPS-"):name.rfind("_")]
+            name = datadict["name"]
+            det_name = name[name.find("HPS-"):]
+            det_end = det_name.find("_")
+            if "_globalAlign" in det_name:
+                det_end = det_name.find("_globalAlign") + 12
+            elif "-fieldmap" in det_name:
+                det_end = det_name.find("-fieldmap") + 9
+            metadata['DETECTOR'] = det_name[:det_end]
 
             # physics event type
             event_type = components[loc+1]
@@ -98,8 +106,9 @@ class JSONWriter:
         parser = argparse.ArgumentParser("Write datacat JSON from a list of files")
         parser.add_argument("-o", "--output", nargs=1, help="If set then write the output to the specified file, otherwise print the results")
         parser.add_argument("-v", "--verbose", action="store_true")
-        parser.add_argument("-f", "--folder", nargs=1, help="Target folder in the datacat", required=True)
+        parser.add_argument("-f", "--folder", nargs=1, help="Target root folder in the datacat", required=True)
         parser.add_argument("-s", "--site", nargs=1, help="Site of dataset (default is 'JLAB')", default=["JLAB"])
+        parser.add_argument("-x", "--strip", nargs=1, help="Strip dir from resource when making folder")
         parser.add_argument("filelist", nargs="?", help="Text files containing datacat files", action="append", default=[])
         cl = parser.parse_args()
 
@@ -111,6 +120,10 @@ class JSONWriter:
         self.verbose = cl.verbose
         self.folder = cl.folder[0]
         self.site = cl.site[0]
+        if cl.strip is not None:
+            self.strip_dirs = cl.strip
+        else:
+            self.strip_dirs = []
 
         self.filelists = cl.filelist
 
@@ -126,9 +139,16 @@ class JSONWriter:
                 ext = '.evio'
             builder = JSONWriter.BUILDERS[ext]            
             datadict,components = builder.build(f)
-            datadict['folder'] = self.folder
+            datadict['folder'] = self.get_folder(datadict['resource'])
             datadict['site'] = self.site
             self.datacat['datacat'].append(datadict)
+
+    def get_folder(self, path):
+        f = os.path.dirname(path)
+        for s in self.strip_dirs:
+            f = f.replace(s, '')
+        f = self.folder + "/" + f
+        return f
 
     def write_results(self):
         with open(self.output, 'w') as f:
