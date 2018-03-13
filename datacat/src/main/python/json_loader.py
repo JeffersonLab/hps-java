@@ -6,8 +6,8 @@ import os, sys, json, argparse
 from datacat import *
 from datacat.error import DcException
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
 
 class JSONLoader:
 
@@ -17,6 +17,8 @@ class JSONLoader:
         parser.add_argument("-s", "--start", nargs=1, type=int, default=0, help="Start index in JSON datacat list")
         parser.add_argument("-n", "--entries", nargs=1, type=int, help="Number of entries to load")   
         parser.add_argument("-p", "--checkpoint", nargs=1, help="File for checkpointing index in JSON file")
+        parser.add_argument("-F", "--create-folders", action="store_true", help="Create missing folders before loading entries")
+        parser.add_argument("-v", "--verbose", action="store_true", help="Print verbose output")
         parser.add_argument("json_file", nargs=1, help="JSON file")
         cl = parser.parse_args()
 
@@ -28,10 +30,27 @@ class JSONLoader:
         self.config = cl.config[0]
         self.start = cl.start
         self.nentries = cl.entries
+        self.create_folders = cl.create_folders
+        self.verbose = cl.verbose
         if cl.checkpoint is not None:
             self.checkpoint = cl.checkpoint[0]
         else:
             self.checkpoint = None
+
+    def make_folders(self, client, data):
+        folders = []
+        for entry in data['datacat']:
+            folders.append(entry['folder'])
+        folders = set(folders)
+        for folder in folders:
+            try:
+                if self.verbose:
+                    print "Checking for folder '%s'" % folder
+                client.path(folder)
+            except:
+                if self.verbose:
+                    print "Creating folder '%s'" % folder
+                client.mkdir(folder)
 
     def load(self):
 
@@ -41,8 +60,12 @@ class JSONLoader:
         if self.nentries is None:
             self.nentries = len(data['datacat'])
 
-        print self.config
+        if self.verbose:
+            print "Config: " + self.config
         client = client_from_config_file(self.config)
+
+        if self.create_folders:
+            self.make_folders(client, data)
 
         if self.checkpoint:
             checkpoint_file = open(self.checkpoint, 'w')
@@ -52,7 +75,7 @@ class JSONLoader:
         for i in range(self.start, self.start + self.nentries, 1):
             entry = data['datacat'][i]
             try: 
-                print "Loading entry: " + str(entry)
+                #print "Loading entry: " + str(entry)
                 ds = client.mkds(
                         entry['folder'],
                         entry['name'],
@@ -61,12 +84,15 @@ class JSONLoader:
                         site=entry['site'],
                         resource=entry['resource'],
                         versionMetadata=entry['metadata'])
-                print "Wrote entry %d" % i
-                print(repr(ds))
-                print
+                #print "Wrote entry %d" % i
+                if self.verbose:
+                    print(repr(ds))
+                #print
                 if self.checkpoint:
                     checkpoint_file.seek(0, 0)
                     checkpoint_file.write(str(i) + '\n')
+                    if self.verbose:
+                        print "Wrote JSON index %d to %s" % (i, checkpoint)
             except Exception as e:
                 print e
         if checkpoint_file:
