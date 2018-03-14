@@ -188,6 +188,11 @@ public final class ConfigurationModel extends AbstractModel {
      * The ET wait time (if using timed wait mode).
      */
     public static final String WAIT_TIME_PROPERTY = "WaitTime";
+    
+    /**
+     * Enable pop-up window when clicking on plots.
+     */
+    public static final String PLOT_POPUP_PROPERTY = "PlotPopup";
 
     /**
      * The underlying properties for the model.
@@ -1051,5 +1056,15 @@ public final class ConfigurationModel extends AbstractModel {
         final Integer oldValue = this.getWaitTime();
         this.configuration.set(WAIT_TIME_PROPERTY, waitTime);
         this.firePropertyChange(WAIT_TIME_PROPERTY, oldValue, this.getWaitTime());
+    }
+
+    public void setPlotPopup(final boolean value) {
+        final boolean oldValue = this.getPlotPopup();
+        this.configuration.set(PLOT_POPUP_PROPERTY, value);
+        this.firePropertyChange(PLOT_POPUP_PROPERTY, oldValue, this.getPlotPopup());
+    }
+    
+    public boolean getPlotPopup() {
+        return this.configuration.getBoolean(PLOT_POPUP_PROPERTY);
     }
 }
