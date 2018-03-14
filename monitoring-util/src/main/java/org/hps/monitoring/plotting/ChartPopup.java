@@ -27,39 +27,4 @@ public class ChartPopup {
         }
         plotter.show();
     }
-    
-    /*
-    private Plotter plotter = null;
-    private IPlotterFactory plotterFactory = (PlotterFactory) AnalysisFactory.create().createPlotterFactory();
-                    
-    public void update(PlotterRegion region) {
-        if (plotter == null) {
-            plotter = (Plotter) plotterFactory.create("Plot Pop-up");
-            plotter.setIsEmbedded(false);
-            plotter.createRegion(0);
-        } else {
-            plotter.region(0).clear();
-        }
-
-        PlotterRegion targetRegion = (PlotterRegion) plotter.region(0);
-        targetRegion.setStyle(region.style());
-        for (Object object : region.getPlottedObjects()) {
-            IPlotterStyle style = region.getState().findPlotterStyle(object);
-            if (object instanceof IBaseHistogram) {
-                targetRegion.plot((IBaseHistogram) object, style);
-            } else if (object instanceof IDataPointSet) {
-                targetRegion.plot((IDataPointSet) object, style);
-            } else if (object instanceof IFunction) {
-                targetRegion.plot((IFunction) object, style);
-            }
-        }
-        plotter.show();
-        
-        JFrame frame = new JFrame();
-        frame.setLayout(new BorderLayout());
-        frame.add(plotter.panel(), BorderLayout.CENTER);
-        frame.pack();
-        frame.setVisible(true);
-    }
-    */
 }
