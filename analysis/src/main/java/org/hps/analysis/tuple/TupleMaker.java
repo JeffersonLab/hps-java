@@ -439,7 +439,7 @@ public abstract class TupleMaker extends Driver {
                     "TrkExtrpYStereoTopL", "TrkExtrpYAxialBotL", "TrkExtrpYStereoBotL","TrkExtrpXSensorAxialTopL", "TrkExtrpXSensorStereoTopL", 
                     "TrkExtrpXSensorAxialBotL", "TrkExtrpXSensorStereoBotL", "TrkExtrpYSensorAxialTopL",
                     "TrkExtrpYSensorStereoTopL", "TrkExtrpYSensorAxialBotL", "TrkExtrpYSensorStereoBotL"};*/
-            for(int i = 0; i < nTrackingLayers; i++){
+            for(int i = 0; i < nTrackingLayers*2; i++){
                 String layer = Integer.toString(i + 1);
                 String[] newVars2 = new String[] {
                         "TrkExtrpXAxialTopL", "TrkExtrpXStereoTopL", "TrkExtrpXAxialBotL", "TrkExtrpXStereoBotL", "TrkExtrpYAxialTopL",
