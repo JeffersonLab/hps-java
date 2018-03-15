@@ -233,7 +233,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      */
     private ChartPopup popup = null;
     
-    private boolean plotPopupEnabled = false;
+    private boolean plotPopupEnabled = true;
     
     /**
      * Instantiate and show the monitoring application with the given configuration.

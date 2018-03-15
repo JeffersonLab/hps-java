@@ -207,7 +207,8 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
         popupItem.addActionListener(listener);
         popupItem.setEnabled(true);
         popupItem.setToolTipText("Enable plot popup window");
-        plotsMenu.add(popupItem);        
+        popupItem.setSelected(true);
+        plotsMenu.add(popupItem);
         
         final JMenu toolsMenu = new JMenu("Tools");
         toolsMenu.setMnemonic(KeyEvent.VK_T);
@@ -274,9 +275,6 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
                 } else {
                     this.closeFileItem.setEnabled(false);
                 }
-            } else if (e.getActionCommand().equals(Commands.PLOT_POPUP)) {
-                // Push plot pop-up setting to configuration model. 
-                this.configurationModel.setPlotPopup(this.popupItem.isSelected());
             }            
         } finally {
             this.getConfigurationModel().addPropertyChangeListener(this);
@@ -312,9 +310,6 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
                 }
             } else if (evt.getPropertyName().equals(ConfigurationModel.RECENT_FILES_PROPERTY)) {
                 setRecentFiles(this.configurationModel.getRecentFilesList());
-            } else if (evt.getPropertyName().equals(ConfigurationModel.PLOT_POPUP_PROPERTY)) {
-                // Set plot pop-up button from configuration model.
-                this.popupItem.setSelected(this.configurationModel.getPlotPopup());
             }
         } finally {
             this.configurationModel.addPropertyChangeListener(this);
