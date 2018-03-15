@@ -334,6 +334,17 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
 
         this.logFileNameField = this.addField("Log File Name", "", "Full path to log file", 50, false);
         this.logFileNameField.setEditable(false);
+        
+        /*
+        final JTextField testField = this.addField("Testes", "", "herp derp", 50, true);
+        testField.addPropertyChangeListener(model.getProperties().get("Test")); // Send property changes.
+        final AbstractProperty<?> testProp = model.getProperties().get("Test");
+        testProp.addPropertyChangeListener(new PropertyChangeListener() { // Receive property changes.
+            public void propertyChange(PropertyChangeEvent evt) {
+                testField.setText(evt.getNewValue().toString());
+            }
+        });
+        */
     }
 
     /**
