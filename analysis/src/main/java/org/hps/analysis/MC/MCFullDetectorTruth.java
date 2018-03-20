@@ -360,18 +360,29 @@ public class MCFullDetectorTruth{
     
     public static int trackHitLayerNum(IDetectorElement de, List<HpsSiSensor> sensors, boolean inactive) {
         if(!inactive){
-            HpsSiSensor sensor = ((HpsSiSensor) de);
-            return sensor.getLayerNumber();
+            try{
+                //System.out.println(de.getName() + " " + de.getParent().getName() + " " + de.getAncestry());
+                HpsSiSensor sensor = ((HpsSiSensor) de);
+                return sensor.getLayerNumber();
+            }
+            catch(ClassCastException e){
+                System.out.println("Sim tracker hit does not correspond to a sensor! " + e.getMessage());
+                return -1;
+            }
         }
         else{
             HpsSiSensor sensor = null;
             for (HpsSiSensor s : sensors){
-                String name = de.getName() + "_sensor0";
-                //System.out.println(s.getName() + " " + name);
-                if(s.getName().equals(name)){
-                    sensor = s;
-                    //System.out.println(sensor.getName());
-                    break;
+                try{
+                    String name = de.getName() + "_sensor0";
+                    if(s.getName().equals(name)){
+                        sensor = s;
+                        break;
+                    }
+                }
+                catch(ClassCastException e){
+                    System.out.println("Sim tracker hit does not correspond to a sensor! " + e.getMessage());
+                    return -1;
                 }
             }
             return sensor.getLayerNumber();
