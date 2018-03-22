@@ -455,6 +455,7 @@
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
             <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
+            <java.awt.headless>true</java.awt.headless>
           </systemPropertyVariables>
         </configuration>
       </plugin>
