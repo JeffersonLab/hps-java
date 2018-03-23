@@ -42,15 +42,30 @@ class JSONLoader:
         for entry in data['datacat']:
             folders.append(entry['folder'])
         folders = set(folders)
+        if self.verbose:
+            print "Processing %d folders" % len(folders)
+        folders_created = set()
         for folder in folders:
-            try:
-                if self.verbose:
-                    print "Checking for folder '%s'" % folder
-                client.path(folder)
-            except:
-                if self.verbose:
-                    print "Creating folder '%s'" % folder
-                client.mkdir(folder)
+            if self.verbose:
+                print "Processing full folder '%s'" % folder
+            components = folder.split("/")
+            part_folder = "/HPS"
+            for component in components[2:]:
+                part_folder = part_folder + "/" + component
+                if part_folder not in folders_created:
+                    try:
+                        if self.verbose:
+                            print "Checking for folder '%s'" % part_folder
+                        client.path(part_folder)
+                        folders_created.add(part_folder)
+                    except:
+                        if self.verbose:
+                            print "Creating folder '%s'" % part_folder
+                        #client.mkdir(folder)
+                        folders_created.add(part_folder)
+                else:
+                    if self.verbose:
+                        print "Folder '%s' was already created" % part_folder
 
     def load(self):
 
