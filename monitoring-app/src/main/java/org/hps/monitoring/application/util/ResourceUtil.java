@@ -36,7 +36,15 @@ public final class ResourceUtil {
      * @return the list of available conditions tags
      */
     public static String[] getConditionsTags() {
-        return DatabaseConditionsManager.getInstance().getAvailableTags().toArray(new String[] {});
+        // FIXME: New database manager should probably not be instantiated here.
+        DatabaseConditionsManager mgr = new DatabaseConditionsManager();
+        String[] tags = mgr.getAvailableTags().toArray(new String[]{});
+        try {
+            mgr.getConnection().close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tags;
     }
 
     /**
