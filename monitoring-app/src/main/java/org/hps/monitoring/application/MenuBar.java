@@ -7,6 +7,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
+import javax.swing.JCheckBox;
+//import javax.swing.JCheckBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -14,6 +16,7 @@ import javax.swing.JMenuItem;
 import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
+import org.hps.monitoring.application.model.HasConfigurationModel;
 import org.hps.record.enums.DataSourceType;
 
 /**
@@ -22,7 +25,7 @@ import org.hps.record.enums.DataSourceType;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
-final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener {
+final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionListener, HasConfigurationModel {
 
     /**
      * The implementation of {@link javax.swing.JMenuItem} for recent file items.
@@ -69,7 +72,7 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
     /**
      * The application backing model.
      */
-    private final ConfigurationModel configurationModel;
+    private ConfigurationModel configurationModel;
 
     /**
      * Menu item for logging to a file.
@@ -90,6 +93,11 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
      * Menu item for opening the settings dialog window.
      */
     private final JMenu settingsMenu;
+    
+    /**
+     * Checkbox for enabling plot pop-up when regions are clicked.
+     */
+    private JCheckBox popupItem;
 
     /**
      * Class constructor.
@@ -102,10 +110,9 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
     MenuBar(final ConfigurationModel configurationModel, final ConnectionStatusModel connectionModel,
             final ActionListener listener) {
 
-        this.configurationModel = configurationModel;
-        this.configurationModel.addPropertyChangeListener(this);
+        this.setConfigurationModel(configurationModel);
 
-        // Need to listen for connection status changes.
+        // Need to listen for connection status changes to toggle menu items.
         connectionModel.addPropertyChangeListener(this);
 
         final JMenu fileMenu = new JMenu("File");
@@ -194,7 +201,15 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
         clearPlotsItem.setEnabled(true);
         clearPlotsItem.setToolTipText("Clear the AIDA plots");
         plotsMenu.add(clearPlotsItem);
-
+        
+        popupItem = new JCheckBox("Plot popup");
+        popupItem.setActionCommand(Commands.PLOT_POPUP);
+        popupItem.addActionListener(listener);
+        popupItem.setEnabled(true);
+        popupItem.setToolTipText("Enable plot popup window");
+        popupItem.setSelected(true);
+        plotsMenu.add(popupItem);
+        
         final JMenu toolsMenu = new JMenu("Tools");
         toolsMenu.setMnemonic(KeyEvent.VK_T);
         add(toolsMenu);
@@ -245,18 +260,24 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
     }
 
     /**
-     * The {@link java.awt.event.ActionEvent} handling which sets GUI values from the model.
+     * The {@link java.awt.event.ActionEvent} handling, which may set values on the configuration
+     * model from the GUI.
      *
      * @param the {@link java.awt.event.ActionEvent} to handle
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
-        if (e.getActionCommand().equals(Commands.DATA_SOURCE_CHANGED)) {
-            if (!this.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
-                this.closeFileItem.setEnabled(true);
-            } else {
-                this.closeFileItem.setEnabled(false);
-            }
+        try {
+            this.getConfigurationModel().removePropertyChangeListener(this);        
+            if (e.getActionCommand().equals(Commands.DATA_SOURCE_CHANGED)) {
+                if (!this.configurationModel.getDataSourceType().equals(DataSourceType.ET_SERVER)) {
+                    this.closeFileItem.setEnabled(true);
+                } else {
+                    this.closeFileItem.setEnabled(false);
+                }
+            }            
+        } finally {
+            this.getConfigurationModel().addPropertyChangeListener(this);
         }
     }
 
@@ -290,11 +311,10 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
             } else if (evt.getPropertyName().equals(ConfigurationModel.RECENT_FILES_PROPERTY)) {
                 setRecentFiles(this.configurationModel.getRecentFilesList());
             }
-
         } finally {
             this.configurationModel.addPropertyChangeListener(this);
         }
-    }
+    }      
 
     /**
      * Set the recent file menu items.
@@ -319,5 +339,16 @@ final class MenuBar extends JMenuBar implements PropertyChangeListener, ActionLi
             this.recentFilesMenu.add(recentFileItem);
             ++fileMnemonic;
         }
+    }
+
+    @Override
+    public ConfigurationModel getConfigurationModel() {
+        return this.configurationModel;
+    }
+
+    @Override
+    public void setConfigurationModel(ConfigurationModel configurationModel) {
+        this.configurationModel = configurationModel;
+        this.configurationModel.addPropertyChangeListener(this);
     }
 }
