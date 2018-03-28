@@ -2,6 +2,7 @@ package org.hps.analysis.trackingperformance;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
+import hep.aida.IProfile1D;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -70,7 +71,13 @@ public class MollerAnalysisDriver extends Driver {
     private IHistogram2D p1vsp2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
     private IHistogram2D ptopvspbotHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
     private IHistogram2D theta1vstheta2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+    private IHistogram2D thetavspHist_UnconstrainedMollerVertices_t = aida.histogram2D("UnconstrainedMollerVertices/Moller theta vs p top", 100, 0.01, 0.05, 100, 0.25, 1.75);
+    private IHistogram2D thetavspHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller theta vs p bottom", 100, 0.01, 0.05, 100, 0.25, 1.75);
+    private IProfile1D thetavspHist_UnconstrainedMollerVertices_proft = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile top", 100, 0.015, 0.03);//0.7, 1.6);//, 100, 0.015, 0.03);
+    private IProfile1D thetavspHist_UnconstrainedMollerVertices_profb = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile bottom", 100, 0.015, 0.03);//0.7, 1.6);//, 100, 0.015, 0.03);
+    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_t = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta vs top", 100, 0.25, 1.75, 100, 0.01, 0.05);
+    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta vs bottom", 100, 0.25, 1.75, 100, 0.01, 0.05);
+
     private IHistogram2D xvsyHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
     //
@@ -233,13 +240,25 @@ public class MollerAnalysisDriver extends Driver {
                         if (isTopTrack(t1)) {
                             trkptopHist_UnconstrainedMollerVertices.fill(p1);
                             ptopvspbotHist_UnconstrainedMollerVertices.fill(p1, p2);
+                            thetavspHist_UnconstrainedMollerVertices_proft.fill(theta1, p1);
+                            thetavspHist_UnconstrainedMollerVertices_t.fill(theta1, p1);
+                            pvsthetaHist_UnconstrainedMollerVertices_t.fill(p1,theta1);
                         } else {
                             trkpbotHist_UnconstrainedMollerVertices.fill(p1);
+                            thetavspHist_UnconstrainedMollerVertices_profb.fill(theta1, p1);
+                            thetavspHist_UnconstrainedMollerVertices_b.fill(theta1, p1);
+                            pvsthetaHist_UnconstrainedMollerVertices_b.fill(p1,theta1);
                         }
                         if (isTopTrack(t2)) {
                             trkptopHist_UnconstrainedMollerVertices.fill(p2);
+                            thetavspHist_UnconstrainedMollerVertices_proft.fill(theta2, p2);
+                            thetavspHist_UnconstrainedMollerVertices_t.fill(theta2, p2);
+                            pvsthetaHist_UnconstrainedMollerVertices_t.fill(p2,theta2);
                         } else {
                             trkpbotHist_UnconstrainedMollerVertices.fill(p2);
+                            thetavspHist_UnconstrainedMollerVertices_profb.fill(theta2, p2);
+                            thetavspHist_UnconstrainedMollerVertices_b.fill(theta2, p2);
+                            pvsthetaHist_UnconstrainedMollerVertices_b.fill(p2,theta2);
                         }
                         trkNhitsHist_UnconstrainedMollerVertices.fill(t1.getTrackerHits().size());
                         trkNhitsHist_UnconstrainedMollerVertices.fill(t2.getTrackerHits().size());
@@ -259,8 +278,6 @@ public class MollerAnalysisDriver extends Driver {
 // 2D
                         p1vsp2Hist_UnconstrainedMollerVertices.fill(p1, p2);
                         theta1vstheta2Hist_UnconstrainedMollerVertices.fill(theta1, theta2);
-                        pvsthetaHist_UnconstrainedMollerVertices.fill(p1, theta1);
-                        pvsthetaHist_UnconstrainedMollerVertices.fill(p2, theta2);
                         xvsyHist_UnconstrainedMollerVertices.fill(pos.x(), pos.y());
                         if (_dumpRunAndEventNumber) {
                             System.out.println(event.getRunNumber() + " " + event.getEventNumber());
