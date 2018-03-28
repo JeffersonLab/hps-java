@@ -1059,8 +1059,7 @@
             <processor type="ScoringTrackerHitProcessor" />        
         </readout>
         <readout name="HodoscopeHits">
-            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
-            <processor type="ScoringTrackerHitProcessor"/>
+            <id>system:6,layer:2,x:-8,y:-6</id>
         </readout>
         <readout name="HodoscopeForeHits">
             <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
