@@ -50,14 +50,7 @@ public final class PropertyTypes {
         public BooleanProperty(String name, String description, Boolean defaultValue) {
             super(name, description, defaultValue);
         }
-        
-        public void setValue(String string) {
-            Boolean newValue = Boolean.valueOf(string);
-            Boolean oldValue = this.value;
-            this.value = newValue;
-            this.firePropertyChanged(oldValue, newValue);
-        }
-        
+                   
         public void setRawValue(String rawValue) {
             this.setValue(Boolean.valueOf(rawValue));
         }
@@ -67,13 +60,6 @@ public final class PropertyTypes {
 
         public LongProperty(String name, String description, Long defaultValue) {
             super(name, description, defaultValue);
-        }
-        
-        public void setValue(String string) {
-            Long newValue = Long.valueOf(string);
-            Long oldValue = this.value;
-            this.value = newValue;
-            this.firePropertyChanged(oldValue, newValue);
         }
         
         public void setRawValue(String rawValue) {
