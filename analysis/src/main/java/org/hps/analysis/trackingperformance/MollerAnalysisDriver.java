@@ -73,8 +73,8 @@ public class MollerAnalysisDriver extends Driver {
     private IHistogram2D theta1vstheta2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
     private IHistogram2D thetavspHist_UnconstrainedMollerVertices_t = aida.histogram2D("UnconstrainedMollerVertices/Moller theta vs p top", 100, 0.01, 0.05, 100, 0.25, 1.75);
     private IHistogram2D thetavspHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller theta vs p bottom", 100, 0.01, 0.05, 100, 0.25, 1.75);
-    private IProfile1D thetavspHist_UnconstrainedMollerVertices_proft = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile top", 100, 0.015, 0.03);//0.7, 1.6);//, 100, 0.015, 0.03);
-    private IProfile1D thetavspHist_UnconstrainedMollerVertices_profb = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile bottom", 100, 0.015, 0.03);//0.7, 1.6);//, 100, 0.015, 0.03);
+    private IProfile1D thetavspHist_UnconstrainedMollerVertices_proft = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile top", 100, 0.015, 0.05);//0.7, 1.6);//, 100, 0.015, 0.03);
+    private IProfile1D thetavspHist_UnconstrainedMollerVertices_profb = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile bottom", 100, 0.015, 0.05);//0.7, 1.6);//, 100, 0.015, 0.03);
     private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_t = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta vs top", 100, 0.25, 1.75, 100, 0.01, 0.05);
     private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta vs bottom", 100, 0.25, 1.75, 100, 0.01, 0.05);
 
