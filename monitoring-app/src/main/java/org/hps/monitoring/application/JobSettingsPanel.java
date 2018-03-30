@@ -337,8 +337,8 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
         
         /*
         final JTextField testField = this.addField("Testes", "", "herp derp", 50, true);
-        testField.addPropertyChangeListener(model.getProperties().get("Test")); // Send property changes.
         final AbstractProperty<?> testProp = model.getProperties().get("Test");
+        testField.addPropertyChangeListener(testProp)); // Send property changes.
         testProp.addPropertyChangeListener(new PropertyChangeListener() { // Receive property changes.
             public void propertyChange(PropertyChangeEvent evt) {
                 testField.setText(evt.getNewValue().toString());
