@@ -146,7 +146,6 @@ public abstract class ReadoutDriver extends Driver {
         // output anything, tell it to delete the file on exit.
         if(debug) {
             for(TempOutputWriter writer : writers) {
-                System.out.println(writer.toString());
                 writer.initialize();
                 writer.setEnabled(debug);
             }
