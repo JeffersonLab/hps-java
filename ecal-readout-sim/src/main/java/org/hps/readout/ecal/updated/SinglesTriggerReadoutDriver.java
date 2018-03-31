@@ -183,10 +183,8 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
             clusterDistribution[WITH_CUTS].fill(ixy.x, ixy.y);
         }
         
-        System.out.println("Checking trigger status for driver \"" + getClass().getSimpleName() + "\".");
         if(triggered) {
             writer.write(triggerOutput.toString());
-            System.out.println("Sending trigger.");
             sendTrigger();
         }
     }
