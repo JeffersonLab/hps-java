@@ -18,9 +18,11 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimCalorimeterHit;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
@@ -626,15 +628,26 @@ public class EcalRawConverter {
                 }
                 
                 // Convert those to time displacement from the window
-                // starting point.
-                int startTime = firstSample * nsPerSample;
+                // starting point. Include one extra sample before
+                // the proper start of the integration window that
+                // pulse rising time delays might be accounted for.
+                int startTime = (firstSample - 1) * nsPerSample;
+                if(startTime < 0) { startTime = 0; }
+                //int endTime = startTime + ((NSB + 1) * 4);
                 int endTime = lastSample * nsPerSample;
                 
                 // Collect all of the truth hits that occurred in
                 // this time range.
+                //System.out.printf("Integration Range :: [%d, %d) << >> [%d, %d)%n", firstSample, lastSample,
+                //        thresholdCrossing - NSB, thresholdCrossing + NSA);
+                //System.out.printf("Time Range        :: [%d, %d)%n", startTime, endTime);
                 for(SimCalorimeterHit truthHit : truthMap.get(hit)) {
+                    //System.out.printf("\tHit at time %.0f on channel %d with energy %5.3f >> ", truthHit.getTime(), truthHit.getCellID(), truthHit.getRawEnergy());
                     if(truthHit.getTime() >= startTime && truthHit.getTime() <= endTime) {
                         truthHits.add(truthHit);
+                        //System.out.println("[ PASS ]");
+                    } else {
+                        //System.out.println("[ FAIL ]");
                     }
                 }
             }
@@ -669,6 +682,20 @@ public class EcalRawConverter {
             if(truthMap != null) {
                 SimCalorimeterHit truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, metaData);
                 newHits.add(truthHit);
+                
+                
+                java.util.List<LCRelation> newTruthRelations = null;
+                if(event.hasCollection(LCRelation.class, "SimHitTruthRelations")) {
+                    newTruthRelations = event.get(LCRelation.class, "SimHitTruthRelations");
+                } else {
+                    newTruthRelations = new java.util.ArrayList<LCRelation>();
+                }
+                for(SimCalorimeterHit truthSlicHit : truthHits) {
+                    newTruthRelations.add(new BaseLCRelation(truthHit, truthSlicHit));
+                }
+                event.put("SimHitTruthRelations", newTruthRelations, LCRelation.class, 0);
+                
+                
             } else {
                 newHits.add(newHit);
             }
