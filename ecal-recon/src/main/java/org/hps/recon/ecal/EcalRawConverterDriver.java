@@ -1,6 +1,7 @@
 package org.hps.recon.ecal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,7 +57,13 @@ public class EcalRawConverterDriver extends Driver {
      * This has energy (GeV) and ns time information.
      */
     private String ecalCollectionName = "EcalCalHits";
-
+    
+    /**
+     * Defines the name of the collection that contains the truth
+     * relations for raw hits.
+     */
+    private String truthRelationsCollectionName = "EcalTruthRelations";
+    
     /**
      * ecalCollectionName "type" (must match detector-data) 
      */
@@ -117,6 +124,15 @@ public class EcalRawConverterDriver extends Driver {
      * This is poorly named.
      */
     private boolean emulateFirmware = true;
+    
+    /**
+     * Specifies whether truth information is to be persisted through
+     * this driver. If set to true, the driver will attempt to access
+     * calorimeter truth relations and will merge them into the hits
+     * it generates. An error will occur if these relations are not
+     * found. 
+     */
+    private boolean persistTruth = false;
     
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
@@ -394,6 +410,29 @@ public class EcalRawConverterDriver extends Driver {
         useDAQConfig = state;
         converter.setUseDAQConfig(state);
     }
+    
+    /**
+     * Sets whether the driver should use calorimeter truth relations
+     * and include this data in the hits generates. If enabled, all
+     * truth hits associated with a given raw hit will have their
+     * contribution references merged into the output hit. This will
+     * cause an exception if the truth information is not available.
+     * If disabled, no truth information is included or needed.
+     * @param state - <code>true</code> enables the merging of truth
+     * information, and <code>false</code>  disables it.
+     */
+    public void setPersistTruth(boolean state) {
+        persistTruth = state;
+    }
+    
+    /**
+     * Sets the name of the collection that contains the hit truth
+     * relations.
+     * @param collection - The collection name.
+     */
+    public void setTruthRelationsCollectionName(String collection) {
+        truthRelationsCollectionName = collection;
+    }
 
     @Override
     public void startOfData() {
@@ -486,8 +525,8 @@ public class EcalRawConverterDriver extends Driver {
             // Load the truth information, if it exists, and
             // format it into a more usable data structure.
             List<LCRelation> truthRelations = null;
-            if(event.hasCollection(LCRelation.class, "EcalTruthRelations")) {
-                truthRelations = event.get(LCRelation.class, "EcalTruthRelations");
+            if(event.hasCollection(LCRelation.class, truthRelationsCollectionName)) {
+                truthRelations = event.get(LCRelation.class, truthRelationsCollectionName);
             }
             
             
@@ -502,8 +541,10 @@ public class EcalRawConverterDriver extends Driver {
                     
                     // If truth information exists, read it.
                     Map<RawTrackerHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-                    if(truthRelations != null) {
+                    if(persistTruth && truthRelations != null) {
                         hitToTruthMap = getTruthMap(truthRelations, RawTrackerHit.class);
+                    } else if(persistTruth) {
+                        throw new RuntimeException("Error: Requested truth data, but no truth relations were found.");
                     }
                     
                     // Convert each of the hits into a simulation hit.
@@ -526,7 +567,7 @@ public class EcalRawConverterDriver extends Driver {
                         // This method just adds the entire pulse ADC
                         // together, and as such, should have all the
                         // truth hits associated with that pulse.
-                        if(truthRelations != null) {
+                        if(persistTruth) {
                             genericHit = CalorimeterHitUtilities.convertToTruthHit(genericHit, hitToTruthMap.get(hit), genericHit.getMetaData());
                         }
                         
@@ -547,10 +588,10 @@ public class EcalRawConverterDriver extends Driver {
                             continue;
                         }
                         if(newHit.getRawEnergy() > threshold) {
-                            if(SimCalorimeterHit.class.isAssignableFrom(newHit.getClass())) {
-                                newTruthHits.add((SimCalorimeterHit) newHit);
-                            } else if(truthRelations == null) {
+                            if(!persistTruth) {
                                 newHits.add(newHit);
+                            } else if(SimCalorimeterHit.class.isAssignableFrom(newHit.getClass())) {
+                                newTruthHits.add((SimCalorimeterHit) newHit);
                             } else {
                                 throw new RuntimeException("Error: Truth data is available, but output hits do not include it.");
                             }
@@ -561,7 +602,7 @@ public class EcalRawConverterDriver extends Driver {
                 // If truth data is included, then the hits in the
                 // output collection are actually SimCalorimeterHit
                 // objects. Convert them formally.
-                if(truthRelations != null) {
+                if(persistTruth) {
                     event.put(ecalCollectionName, newTruthHits, SimCalorimeterHit.class, flags, ecalReadoutName);
                     System.out.println("Output collection \"" + ecalCollectionName + "\" of size " + newTruthHits.size()
                             + " and type " + SimCalorimeterHit.class.getSimpleName());
@@ -575,13 +616,11 @@ public class EcalRawConverterDriver extends Driver {
             
             // Process Mode-3 and Mode-7 data. These are both stored
             // as RawCalorimeterHit objects.
-            if(event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { 
+            if(event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
                 // Process Mode-7 hits. These are distinguished from
                 // Mode-3 hits by the presence of extra information
                 // in the form of LCRelations.
                 if(event.hasCollection(LCRelation.class, extraDataRelationsName)) {
-                    System.out.println("Running Mode-7 hit analysis...");
-                    
                     List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
                     for (LCRelation rel : extraDataRelations) {
                         // Get the readout hit.
@@ -589,8 +628,10 @@ public class EcalRawConverterDriver extends Driver {
                         
                         // If truth information exists, read it.
                         Map<RawCalorimeterHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-                        if(truthRelations != null) {
+                        if(persistTruth && truthRelations != null) {
                             hitToTruthMap = getTruthMap(truthRelations, RawCalorimeterHit.class);
+                        } else if(persistTruth) {
+                            throw new RuntimeException("Error: Requested truth data, but no truth relations were found.");
                         }
                         
                         // Get the extra readout data.
@@ -605,7 +646,7 @@ public class EcalRawConverterDriver extends Driver {
                         // SimCalorimeterHit object, except now with
                         // the extra truth data.
                         SimCalorimeterHit truthHit = null;
-                        if(truthRelations != null) {
+                        if(persistTruth) {
                             Set<SimCalorimeterHit> truthHits = hitToTruthMap.get(hit);
                             truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, newHit.getMetaData());
                         }
@@ -637,8 +678,6 @@ public class EcalRawConverterDriver extends Driver {
                 // If extra information is not available, the hits
                 // are simply Mode-3.
                 else {
-                    System.out.println("Running Mode-3 hit analysis...");
-                    
                     // Get the collection of hits from the event.
                     List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
                     
@@ -649,8 +688,10 @@ public class EcalRawConverterDriver extends Driver {
                     
                     // If truth information exists, read it.
                     Map<RawCalorimeterHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-                    if(truthRelations != null) {
+                    if(persistTruth && truthRelations != null) {
                         hitToTruthMap = getTruthMap(truthRelations, RawCalorimeterHit.class);
+                    } else if(persistTruth) {
+                        throw new RuntimeException("Error: Requested truth data, but no truth relations were found.");
                     }
                     
                     // Iterate over each hit and convert it to a
@@ -665,7 +706,7 @@ public class EcalRawConverterDriver extends Driver {
                         // SimCalorimeterHit object, except now with
                         // the extra truth data.
                         SimCalorimeterHit truthHit = null;
-                        if(truthRelations != null) {
+                        if(persistTruth) {
                             Set<SimCalorimeterHit> truthHits = hitToTruthMap.get(hit);
                             truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, newHit.getMetaData());
                         }
@@ -699,7 +740,7 @@ public class EcalRawConverterDriver extends Driver {
                 
                 // Output the truth hits if possible. Otherwise, just
                 // output the converted hits.
-                if(truthRelations == null) {
+                if(!persistTruth) {
                     event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
                 } else {
                     event.put(ecalCollectionName, newTruthHits, SimCalorimeterHit.class, flags, ecalReadoutName);
@@ -727,7 +768,7 @@ public class EcalRawConverterDriver extends Driver {
     }
     
     @SuppressWarnings("unchecked")
-    public static final <T> Map<T, Set<SimCalorimeterHit>> getTruthMap(List<LCRelation> truthRelations, Class<T> readoutHitType) {
+    public static final <T> Map<T, Set<SimCalorimeterHit>> getTruthMap(Collection<LCRelation> truthRelations, Class<T> readoutHitType) {
         // Create a map to store the relations in.
         Map<T, Set<SimCalorimeterHit>> truthMap = new HashMap<T, Set<SimCalorimeterHit>>();
         
