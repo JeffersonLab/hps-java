@@ -336,7 +336,8 @@ public class ReadoutDataManager extends Driver {
         ManagedLCIOData<?> collectionData = collectionMap.get(collectionName);
         
         // Validate that the data type is correct.
-        if(collectionData.getCollectionParameters().getObjectType() != dataType) {
+        //if(collectionData.getCollectionParameters().getObjectType() != dataType) {
+        if(!collectionData.getCollectionParameters().getObjectType().isAssignableFrom(dataType)) {
             throw new IllegalArgumentException("Error: Saw data type \"" + dataType.getSimpleName() + "\" but expected data type \""
                     + collectionData.getCollectionParameters().getObjectType().getSimpleName() + "\" instead.");
         }
