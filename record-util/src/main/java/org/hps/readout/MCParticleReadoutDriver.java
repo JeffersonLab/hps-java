@@ -16,6 +16,8 @@ import org.lcsim.lcio.SIOMCParticle;
  * @see org.hps.readout.SLICDataReadoutDriver
  */
 public class MCParticleReadoutDriver extends SLICDataReadoutDriver<MCParticle> {
+    private StringBuffer outputBuffer = null;
+    
     /**
      * Instantiate an instance of {@link
      * org.hps.readout.SLICDataReadoutDriver SLICDataReadoutDriver}
@@ -38,18 +40,36 @@ public class MCParticleReadoutDriver extends SLICDataReadoutDriver<MCParticle> {
         }
         
         // Modify the particle times.
-        double currentTime = ReadoutDataManager.getCurrentTime();
-        for(MCParticle particle : particles) {
-            if(SIOMCParticle.class.isAssignableFrom(particle.getClass())) {
-                SIOMCParticle baseParticle = SIOMCParticle.class.cast(particle);
-                baseParticle.setTime(baseParticle.getProductionTime() + currentTime);
-            } else {
-                throw new RuntimeException("Error: Saw unexpected MC particle class \"" + particle.getClass().getSimpleName() + "\".");
+        if(!particles.isEmpty()) {
+            outputBuffer = new StringBuffer();
+            outputBuffer.append("Processing MC Particles...\n");
+            double currentTime = ReadoutDataManager.getCurrentTime();
+            outputBuffer.append("Time Adjustment: " + currentTime + "\n");
+            for(MCParticle particle : particles) {
+                if(SIOMCParticle.class.isAssignableFrom(particle.getClass())) {
+                    outputBuffer.append(String.format("\tParticle of type %d and charge %.0f created at time t = %5.3f with momentum p = <%5.3f, %5.3f, %5.3f>.%n",
+                            particle.getPDGID(), particle.getCharge(), particle.getProductionTime(),
+                            particle.getMomentum().x(), particle.getMomentum().y(), particle.getMomentum().z()));
+                    outputBuffer.append(String.format("\t\tTime Shift: t = %5.3f >>>> ", particle.getProductionTime()));
+                    SIOMCParticle baseParticle = SIOMCParticle.class.cast(particle);
+                    baseParticle.setTime(particle.getProductionTime() + currentTime);
+                    outputBuffer.append(String.format("t = %5.3f.%n", baseParticle.getProductionTime()));
+                } else {
+                    throw new RuntimeException("Error: Saw unexpected MC particle class \"" + particle.getClass().getSimpleName() + "\".");
+                }
             }
         }
         
         // Run the superclass method to store the particle collection
         // in the data manager.
         super.process(event);
+    }
+    
+    @Override
+    protected void writeData(List<MCParticle> data) {
+        if(outputBuffer != null) {
+            writer.write(outputBuffer.toString());
+            outputBuffer = null;
+        }
     }
 }
