@@ -8,6 +8,7 @@ import static org.hps.recon.ecal.EcalUtils.riseTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,6 +87,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     private String truthRelationsCollectionName = "EcalTruthRelations";
     /**
+     * The name of the {@link org.lcsim.event.LCRelation LCRelation}
+     * collection that links output raw hits to the SLIC truth hits
+     * from which they were generated. This collection is output for
+     * trigger path hits, and is never persisted.
+     */
+    private String triggerTruthRelationsCollectionName = "TriggerPathTruthRelations";
+    /**
      * The name of the collection which contains readout hits. The
      * class type of this collection will vary based on which mode
      * the calorimeter simulation is set to emulate.
@@ -145,8 +153,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     private int mode = 1;
     /**
-     * Specifies whether truth information should be included in the
-     * driver output.
+     * Specifies whether trigger path hit truth information should be
+     * included in the driver output.
+     */
+    private boolean writeTriggerTruth = false;
+    /**
+     * Specifies whether readout path truth information should be
+     * included in the driver output.
      */
     private boolean writeTruth = false;
     
@@ -198,10 +211,17 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     private Map<Long, Integer> channelIntegrationSumMap = new HashMap<Long, Integer>();
     /**
+     * Stores the total ADC sums for each calorimeter channel that is
+     * currently undergoing integration.
+     */
+    private Map<Long, Set<SimCalorimeterHit>> channelIntegrationTruthMap = new HashMap<Long, Set<SimCalorimeterHit>>();
+    /**
      * Stores the time at which integration began on a given channel.
      * This is used to track when the integration period has ended.
      */
     private Map<Long, Integer> channelIntegrationTimeMap = new HashMap<Long, Integer>();
+    
+    Map<Long, List<Integer>> channelIntegrationADCMap = new HashMap<Long, List<Integer>>();
     /**
      * Defines the time offset of objects produced by this driver
      * from the actual true time that they should appear.
@@ -283,6 +303,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     private final TempOutputWriter verboseWriter = new TempOutputWriter("raw_hits_verbose_new.log");
     private final TempOutputWriter triggerWriter = new TempOutputWriter("raw_hits_trigger_new.log");
     private final TempOutputWriter truthWriter = new TempOutputWriter("raw_hits_truth_new.log");
+    private final TempOutputWriter triggerTruthWriter = new TempOutputWriter("raw_hits_triggerpathtruth_new.log");
     private int triggers = 0;
     
     @Override
@@ -309,6 +330,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
         LCIOCollection<RawCalorimeterHit> hitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawCalorimeterHit.class);
         ReadoutDataManager.registerCollection(hitCollectionParams, false);
         
+        LCIOCollectionFactory.setCollectionName(triggerTruthRelationsCollectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollection<LCRelation> triggerTruthCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
+        ReadoutDataManager.registerCollection(triggerTruthCollectionParams, false);
+        
         // Define the LCSim collection data for the on-trigger output.
         LCIOCollectionFactory.setCollectionName(readoutCollectionName);
         LCIOCollectionFactory.setProductionDriver(this);
@@ -330,6 +356,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         writers.add(verboseWriter);
         writers.add(triggerWriter);
         writers.add(truthWriter);
+        writers.add(triggerTruthWriter);
         
         // Run the superclass method.
         super.startOfData();
@@ -405,7 +432,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // only incremented when the ADC buffer is incremented, which
         // is handled below.
         for(SimCalorimeterHit hit : hits) {
-            ObjectRingBuffer<SimCalorimeterHit> hitBuffer = this.truthBufferMap.get(hit.getCellID());
+            ObjectRingBuffer<SimCalorimeterHit> hitBuffer = truthBufferMap.get(hit.getCellID());
             hitBuffer.addToCell(0, hit);
         }
         
@@ -473,8 +500,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // contain any newly integrated hits and perform integration.
         boolean readHits = false;
         List<RawCalorimeterHit> newHits = null;
+        List<LCRelation> newTruthRelations = null;
         while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
             newHits = new ArrayList<RawCalorimeterHit>();
+            newTruthRelations = new ArrayList<LCRelation>();
             readHits = true;
             readoutCounter++;
         }
@@ -492,9 +521,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             for(Long cellID : voltageBufferMap.keySet()) {
                 // Get the preamplifier pulse buffer for the channel.
                 DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
-                
-                // Step the truth buffer for this channel forward.
-                truthBufferMap.get(cellID).stepForward();
                 
                 // Get the ADC buffer for the channel.
                 IntegerRingBuffer adcBuffer = adcBufferMap.get(cellID);
@@ -565,6 +591,28 @@ public class EcalReadoutDriver extends ReadoutDriver {
                     // additional samples are read.
                     channelIntegrationSumMap.put(cellID, sumBefore);
                     
+                    // If trigger path hit truth information should
+                    // be produced, collect and store it.
+                    if(writeTriggerTruth) {
+                        channelIntegrationADCMap.put(cellID, new ArrayList<Integer>());
+                        
+                        // Get the truth information in the
+                        // integration samples for this channel.
+                        Set<SimCalorimeterHit> truthHits = new HashSet<SimCalorimeterHit>();
+                        for(int i = 0; i < numSamplesBefore + 4; i++) {
+                            channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(-(numSamplesBefore - i)));
+                            truthHits.addAll(truthBufferMap.get(cellID).getValue(-(numSamplesBefore - i)));
+                        }
+                        
+                        // Store all the truth hits that occurred in
+                        // the truth buffer in the integration period
+                        // for this channel as well. These will be
+                        // passed through the chain to allow for the
+                        // accessing of truth information during the
+                        // trigger simulation.
+                        channelIntegrationTruthMap.put(cellID, truthHits);
+                    }
+                    
                     // DEBUG :: Indicate that integration has started.
                     if(currentValue != 0) {
                         verboseWriter.write("\t\tIntegration Start " + cellID);
@@ -587,7 +635,16 @@ public class EcalReadoutDriver extends ReadoutDriver {
                     // integration period, the current sample should
                     // be added to the total sum.
                     if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter - 1) {
+                        channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+                        
+                        // Add the new ADC sample.
                         channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+                        
+                        // Add the new truth information, if trigger
+                        // path truth output is enabled.
+                        if(writeTriggerTruth) {
+                            channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
+                        }
                         
                         // DEBUG :: Indicate that integration is on-going.
                         if(currentValue != 0) {
@@ -599,8 +656,18 @@ public class EcalReadoutDriver extends ReadoutDriver {
                     // If integration is complete, a hit may be added
                     // to data manager.
                     else if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 2) {
-                        newHits.add(new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID)));
-                        //channelIntegrationSumMap.remove(cellID);
+                        // Add a new calorimeter hit.
+                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID));
+                        newHits.add(newHit);
+                        
+                        // Add the truth relations for this hit, if
+                        // trigger path truth is enabled.
+                        if(writeTriggerTruth) {
+                            Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
+                            for(SimCalorimeterHit truthHit : truthHits) {
+                                newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                            }
+                        }
                         
                         // DEBUG :: Indicate that integration is complete.
                         if(currentValue != 0) {
@@ -608,7 +675,37 @@ public class EcalReadoutDriver extends ReadoutDriver {
                             verboseWriter.write("\t\t\tFinal value: " + sum);
                             verboseWriter.write("\t\t\tHit time: " + (64 * channelIntegrationTimeMap.get(cellID)));
                         }
+                        
+                        if(channelIntegrationTruthMap.get(cellID).isEmpty()) {
+                            triggerTruthWriter.write("Completed Integration for Channel " + cellID);
+                            triggerTruthWriter.write("Integration Time: " + channelIntegrationTimeMap.get(cellID));
+                            triggerTruthWriter.write(String.format("Time Range: [%d, %d]",
+                                    (channelIntegrationTimeMap.get(cellID) - numSamplesBefore), (channelIntegrationTimeMap.get(cellID) + numSamplesAfter)));
+                            triggerTruthWriter.write("Truth Hits in Output Range: " + channelIntegrationTruthMap.get(cellID).size());
+                            triggerTruthWriter.write("ADC Buffer:");
+                            StringBuffer adcBufferBuffer = new StringBuffer();
+                            for(int i = 0; i < adcBuffer.size(); i++) {
+                                adcBufferBuffer.append(String.format("[%4d]%d;   ", timeTestBuffer.getValue(i), adcBuffer.getValue(i)));
+                            }
+                            triggerTruthWriter.write(adcBufferBuffer.toString());
+                            StringBuffer adcSumBuffer = new StringBuffer("Read ADC: ");
+                            for(int adc : channelIntegrationADCMap.get(cellID)) {
+                                adcSumBuffer.append(adc + "   ");
+                            }
+                            triggerTruthWriter.write(adcSumBuffer.toString());
+                            triggerTruthWriter.write("Truth Buffer:");
+                            StringBuffer truthBufferBuffer = new StringBuffer();
+                            for(int i = 0; i < truthBufferMap.get(cellID).size(); i++) {
+                                truthBufferBuffer.append(String.format("[%4d]", timeTestBuffer.getValue(i)));
+                                for(SimCalorimeterHit hit : truthBufferMap.get(cellID).getValue(i)) {
+                                    truthBufferBuffer.append(String.format("(%s)", String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID())));
+                                }
+                                truthBufferBuffer.append("   ");
+                            }
+                            triggerTruthWriter.write(truthBufferBuffer.toString());
+                        }
                     }
+                    
                     
                     // A channel may only start integrating once per
                     // 32 ns period. Do not clear the channel for
@@ -621,6 +718,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
                 // Step to the next entry in the voltage buffer.
                 voltageBuffer.clearValue();
                 voltageBuffer.stepForward();
+                
+                // Step the truth buffer for this channel forward.
+                // The new cell should be cleared of any old values.
+                truthBufferMap.get(cellID).stepForward();
+                truthBufferMap.get(cellID).clearValue();
             }
             
             // DEBUG :: Output the raw hits that were generated in
@@ -633,7 +735,29 @@ public class EcalReadoutDriver extends ReadoutDriver {
                 }
             }
             
+            // Write the trigger path output data to the readout data
+            // manager. Truth data is optional.
             ReadoutDataManager.addData(outputHitCollectionName, newHits, RawCalorimeterHit.class);
+            if(writeTriggerTruth) {
+                ReadoutDataManager.addData(triggerTruthRelationsCollectionName, newTruthRelations, LCRelation.class);
+            }
+            
+            /*
+            for(RawCalorimeterHit hit : newHits) {
+                System.out.println(String.format("Saw Hit :: %d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
+                int observedTruths = 0;
+                for(LCRelation relation : newTruthRelations) {
+                    if(relation.getFrom() == hit) {
+                        observedTruths++;
+                        SimCalorimeterHit truth = (SimCalorimeterHit) relation.getTo();
+                        System.out.println(String.format("\tSaw Truth Hit :: %f;%f;%d", truth.getRawEnergy(), truth.getTime(), truth.getCellID()));
+                    }
+                }
+                if(observedTruths == 0) {
+                    System.out.println("\tNone!!");
+                }
+            }
+            */
             
             // DEBUG :: Write the raw hits seen.
             outputWriter.write("Output");
@@ -658,12 +782,89 @@ public class EcalReadoutDriver extends ReadoutDriver {
         timeTestBuffer.setValue((int) Math.round(ReadoutDataManager.getCurrentTime()));
     }
     
+    /**
+     * Finds the root particle which originated the particle decay
+     * tree of which the argument particle is a member.
+     * @param particle - The particle for which to find the original
+     * parent.
+     * @return Returns the root of the particle tree.
+     */
+    private static final MCParticle getRootParticle(MCParticle particle) {
+        // Keep moving up the particle tree until a particle with no
+        // parents is found. Note that particles are assumed to have
+        // only one parent.
+        MCParticle curParticle = particle;
+        while(!curParticle.getParents().isEmpty()) {
+            if(curParticle.getParents().size() != 1) {
+                throw new IllegalArgumentException("Error: Particle has " + particle.getParents().size() + " parents -- expected 0 or 1.");
+            } else {
+                curParticle = curParticle.getParents().get(0);
+            }
+        }
+        
+        // Return the root particle.
+        return curParticle;
+    }
+    
+    /**
+     * Flattens the particle tree to a set containing both the root
+     * particle and any particles that are descended from it.
+     * @param root - The root of the particle tree.
+     * @return Returns a set containing the argument particle and all
+     * of its descendants.
+     */
+    private static final Set<MCParticle> getParticleTreeAsSet(MCParticle root) {
+        // Create a set to store the particle tree.
+        Set<MCParticle> particleSet = new HashSet<MCParticle>();
+        
+        // Add the root particle to the tree, and then recursively
+        // add any daughter particles to the tree.
+        particleSet.add(root);
+        addDaughtersToSet(root, particleSet);
+        
+        // Return the particle set.
+        return particleSet;
+    }
+    
+    /**
+     * Adds all the daughter particles of the argument to the set.
+     * Daughters of each daughter particle are then recursively added
+     * to the set as well.
+     * @param particle - The particle to add.
+     * @param set - The set to which to add the particle.
+     */
+    private static final void addDaughtersToSet(MCParticle particle, Set<MCParticle> set) {
+        // Add each daughter particle to the set, and recursively add
+        // its daughters as well.
+        for(MCParticle daughter : particle.getDaughters()) {
+            set.add(daughter);
+            addDaughtersToSet(daughter, set);
+        }
+    }
+    
     @Override
     protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         // DEBUG :: Output the real truth hits in the output time
         // range.
         StringBuffer timeBufferBuffer = new StringBuffer('}');
-        int readoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + readoutOffset;
+        
+        int readoutLatency = getReadoutLatency(triggerTime);
+        
+        System.out.println("New Driver:");
+        System.out.println("\treadoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + readoutOffset");
+        System.out.printf("\t%d = (int) ((%.0f - %.0f) / 4.0) + %d%n", readoutLatency, ReadoutDataManager.getCurrentTime(), triggerTime, readoutOffset);
+        System.out.printf("\t%d = (%d) + %d%n", readoutLatency, (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0), readoutOffset);
+        System.out.printf("\tBuffer Range: (%d, %d)%n", -(readoutLatency - 0 - 1), -(readoutLatency - (readoutWindow - 1) - 1));
+        
+        /*
+        System.out.println("New Driver:");
+        System.out.println("\treadoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + (readoutOffset + readoutCorrection)");
+        System.out.printf("\t%d = (int) ((%.0f - %.0f) / 4.0) + (%d + %d)%n", readoutLatency, ReadoutDataManager.getCurrentTime(), triggerTime, readoutOffset, readoutCorrection);
+        System.out.printf("\t%d = (%d) + (%d)%n", readoutLatency, (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0), (readoutOffset + readoutCorrection));
+        System.out.printf("\tBuffer Range: (%d, %d)%n", -(readoutLatency - 0 - 1), -(readoutLatency - (readoutWindow - 1) - 1));
+        */
+        
+        
         for(int i = 0; i < readoutWindow; i++) {
             timeBufferBuffer.append("    " + timeTestBuffer.getValue(-(readoutLatency - i - 1)).intValue());
         }
@@ -727,9 +928,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             collectionsList.add(readoutData);
             
             // FIXME: Truth information is currently only supported for Mode-1 operation.
-            // TODO: Do we need to specifically include all objects,
-            //       or are they automatically included by virtue of
-            //       being in an LCRelation?
             if(writeTruth && mode == 1) {
                 for(RawTrackerHit hit : readoutHits) {
                     Collection<SimCalorimeterHit> truthHits = getTriggerTruthValues(hit.getCellID(), triggerTime);
@@ -760,9 +958,82 @@ public class EcalReadoutDriver extends ReadoutDriver {
             Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
             for(SimCalorimeterHit simHit : triggerTruthHits) {
                 for(int i = 0; i < simHit.getMCParticleCount(); i++) {
-                    addParticleParents(simHit.getMCParticle(i), truthParticles);
+                    // TODO: Full particle tree test.
+                    MCParticle rootParticle = getRootParticle(simHit.getMCParticle(i));
+                    truthParticles.addAll(getParticleTreeAsSet(rootParticle));
+                    //addParticleParents(simHit.getMCParticle(i), truthParticles);
                 }
             }
+            
+            /*
+             * MCParticle objects have times listed in terms of time
+             * displacement from the start of the beam bunch in which
+             * they are contained. This is not useful in readout, as
+             * particles may come from multiple events and it is not
+             * then possible to differentiate whether or not a given
+             * particle comes from the same event as another.
+             * 
+             * To counter this, truth particles are passed to another
+             * driver which creates a clone of them, but defines the
+             * particle time in terms of the trigger time. These are
+             * then output to the readout file instead, and it may
+             * then be easily seen which particle belongs to the same
+             * beam bunch.
+             * 
+             * The original particles are not altered by this process
+             * so that if they should be included in a different
+             * readout event, there is no oddity with the time.
+             */
+            
+            /*
+            // Iterate over a range of events and find which ones
+            // contain the truth particles. These should be passed
+            // to the particle readout driver to be time-corrected so
+            // that particles from different events can be
+            // differentiated in the readout.
+            for(double offset = (-25 * ReadoutDataManager.getBeamBunchSize()); offset < (25 * ReadoutDataManager.getBeamBunchSize()); offset += ReadoutDataManager.getBeamBunchSize()) {
+                // Get the particle collection for the current beam
+                // bunch.
+                Collection<MCParticle> bunchParticles = ReadoutDataManager.getData(triggerTime + offset, triggerTime + offset + ReadoutDataManager.getBeamBunchSize(),
+                        "MCParticle", MCParticle.class);
+                
+                // If the collection is empty, it does not need to be
+                // parsed.
+                if(bunchParticles.isEmpty()) {
+                    continue;
+                }
+                
+                // Check whether or not it contains any of the truth
+                // particles in the set.
+                Set<MCParticle> matchedParticles = new HashSet<MCParticle>();
+                for(MCParticle truthParticle : truthParticles) {
+                    if(bunchParticles.contains(truthParticle)) {
+                        matchedParticles.add(truthParticle);
+                    }
+                }
+                
+                // If there was a match in this beam bunch include it
+                // in the readout output.
+                if(!matchedParticles.isEmpty()) {
+                    ParticleTruthReadoutDriver.addBeamBunch(triggerTime + offset, triggerTime);
+                    System.out.printf("Beam bunch [%.0f, %.0f) (corrected time %.0f) contains %d particles.",
+                            triggerTime + offset, triggerTime + offset + ReadoutDataManager.getBeamBunchSize(), offset,
+                            matchedParticles.size());
+                }
+                
+                // Remove any matched particles from the set. If none
+                // remain, then there is no need to continue looping.
+                truthParticles.removeAll(matchedParticles);
+                if(truthParticles.isEmpty()) {
+                    break;
+                }
+            }
+            
+            // If there are particles that remain unmatched, throw an
+            // alert.
+            // TODO: This should properly be an error.
+            System.out.println("ALERT :: " + truthParticles.size() + " particles remain unaccounted for!");
+            */
             
             // Create the truth MC particle collection.
             LCIOCollectionFactory.setCollectionName("MCParticle");
@@ -778,6 +1049,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
             collectionsList.add(truthRelations);
             
             System.out.println("Added truth data!!");
+            System.out.printf("\tReadout Hits    :: %d%n", collectionsList.get(0).getData().size());
+            System.out.printf("\tTruth Hits      :: %d%n", truthData.getData().size());
+            System.out.printf("\tTruth Particles :: %d%n", truthParticleData.getData().size());
+            System.out.printf("\tTruth Relations :: %d%n", truthRelations.getData().size());
         }
         
         // Return the extra trigger collections.
@@ -806,6 +1081,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     @Override
     protected double getTimeNeededForLocalOutput() {
+        // TODO: Latency correction.
+        //return (readoutWindow - (readoutOffset + readoutCorrection)) * 4.0;
         return (readoutWindow - readoutOffset) * 4.0;
     }
     
@@ -854,7 +1131,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             Object[] particles = new Object[simHit.getMCParticleCount()];
             for(int i = 0; i < simHit.getMCParticleCount(); i++) {
                 particles[i] = simHit.getMCParticle(i);
-                // TODO: This may be the PDGID for products of this particles, and not the contributors. If so, remove this.
                 pdgs[i] = simHit.getMCParticle(i).getPDGID();
                 
                 // Note -- Despite returning the value for these
@@ -1073,6 +1349,12 @@ public class EcalReadoutDriver extends ReadoutDriver {
         return hits;
     }
     
+    private int getReadoutLatency(double triggerTime) {
+        // TODO: Readout latency.
+        //return ((int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0)) + (readoutOffset + readoutCorrection);
+        return ((int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0)) + readoutOffset;
+    }
+    
     /**
      * Gets the ADC values for the trigger readout window for the
      * requested cell ID and returns them as a <code>short</code>
@@ -1087,7 +1369,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     private short[] getTriggerADCValues(long cellID, double triggerTime) {
         // Calculate the offset between the current position and the
         // trigger time.
-        int readoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + readoutOffset;
+        int readoutLatency = getReadoutLatency(triggerTime);
         
         // Get the ADC pipeline.
         IntegerRingBuffer pipeline = adcBufferMap.get(cellID);
@@ -1128,18 +1410,21 @@ public class EcalReadoutDriver extends ReadoutDriver {
     private Collection<SimCalorimeterHit> getTriggerTruthValues(long cellID, double triggerTime) {
         // Calculate the offset between the current position and the
         // trigger time.
-        int readoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + readoutOffset;
+        int readoutLatency = getReadoutLatency(triggerTime);
         
         // Get the truth pipeline.
         ObjectRingBuffer<SimCalorimeterHit> pipeline = truthBufferMap.get(cellID);
         
-        // Extract the truth for the requested channel.
+        // Extract the truth for the requested channel. Note that one
+        // extra sample is included over the range of ADC samples as
+        // sometimes, the truth hit occurs a little earlier than may
+        // be expected due to a delay from pulse propagation.
         double baseHitTime = 0;
         List<SimCalorimeterHit> channelHits = new ArrayList<SimCalorimeterHit>();
-        for(int i = 0; i < readoutWindow; i++) {
+        for(int i = 0; i < readoutWindow + 4; i++) {
             // Hit times should be specified with respect to the
             // start of the readout window.
-            for(SimCalorimeterHit hit : pipeline.getValue(-(readoutLatency - i - 1))) {
+            for(SimCalorimeterHit hit : pipeline.getValue(-(readoutLatency - i))) {
                 channelHits.add((SimCalorimeterHit) cloneHitToTime(hit, baseHitTime));
             }
             
@@ -1452,6 +1737,17 @@ public class EcalReadoutDriver extends ReadoutDriver {
     /**
      * Sets the name of the collection which contains the relations
      * between truth hits from SLIC and the calorimeter hit output.
+     * This is specifically for the trigger path hits.
+     * @param collection - The collection name.
+     */
+    public void setTriggerPathTruthRelationsCollectionName(String collection) {
+        triggerTruthRelationsCollectionName = collection;
+    }
+    
+    /**
+     * Sets the name of the collection which contains the relations
+     * between truth hits from SLIC and the calorimeter hit output.
+     * This is specifically for the readout path hits.
      * @param collection - The collection name.
      */
     public void setTruthRelationsCollectionName(String collection) {
@@ -1459,8 +1755,18 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Sets whether calorimeter truth data should be written to the
-     * output LCIO file or not.
+     * Sets whether calorimeter truth data for trigger path hits is
+     * to be produced or not.
+     * @param state - <code>true</code> indicates that the truth data
+     * should be created, and <code>false</code> that it should not.
+     */
+    public void setWriteTriggerPathTruth(boolean state) {
+        writeTriggerTruth = state;
+    }
+    
+    /**
+     * Sets whether calorimeter truth data for readout path hits is
+     * to be written to the output LCIO file or not.
      * @param state - <code>true</code> indicates that the truth data
      * should be written, and <code>false</code> that it should not.
      */
