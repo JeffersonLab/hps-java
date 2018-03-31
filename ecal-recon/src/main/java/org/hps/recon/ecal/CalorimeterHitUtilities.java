@@ -62,6 +62,16 @@ public final class CalorimeterHitUtilities {
      * information from the truth set.
      */
     public static final SimCalorimeterHit convertToTruthHit(CalorimeterHit baseHit, Collection<SimCalorimeterHit> truthData, LCMetaData metaData) {
+        // If there is no truth information, just don't write any.
+        // Declare a warning, though, so the user knows that this is
+        // happening.
+        if(truthData == null || truthData.isEmpty()) {
+            System.out.println("Warning: Converting hit to truth hit, but no truth data was provided. (Hit time = " + baseHit.getTime() + ".)");
+            if(truthData == null) {
+                truthData = new java.util.ArrayList<SimCalorimeterHit>(0);
+            }
+        }
+        
         // Extract the truth data into one, singular list.
         List<Integer> pdgs = new ArrayList<Integer>();
         List<Float> times = new ArrayList<Float>();
