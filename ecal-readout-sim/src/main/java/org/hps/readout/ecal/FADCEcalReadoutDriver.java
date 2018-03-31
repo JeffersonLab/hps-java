@@ -510,6 +510,11 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 System.out.println("Trunk Readout Hits:");
                 List<RawTrackerHit> readoutHits = readWindow();
                 
+                
+                System.out.println("Old Driver");
+                System.out.println("\treadoutLatency = CONSTANT");
+                System.out.printf("\treadoutLatency = %d%n", readoutLatency);
+                System.out.printf("\tBuffer Range: (%d, %d)%n", -(readoutLatency - 0 - 1), -(readoutLatency - (readoutWindow - 1) - 1));
                 /*
                 for(RawTrackerHit hit : readoutHits) {
                     System.out.printf("%8d :: ", hit.getCellID());
