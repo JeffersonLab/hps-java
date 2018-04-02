@@ -420,24 +420,29 @@ public class MollerAnalysisDriver extends Driver {
                 if (isTopTrack(t1)) {
                     aida.histogram2D(binLabel + "Top Track thetaX vs ThetaY " + t1Nhits + " hits", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta1x, theta1y);
                     aida.histogram1D(binLabel + "Top Track theta " + t1Nhits + " hits", 100, 0.015, thetaMax).fill(theta1);
+                    aida.histogram2D(binLabel + "Track thetaX vs ThetaY ", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta1x, theta1y);
+                    aida.histogram1D(binLabel + "Top Track theta ", 100, 0.015, thetaMax).fill(theta1);
                     //aida.cloud1D(binLabel + "Top Track p").fill(p1);
                 } else {
-
                     aida.histogram2D(binLabel + "Bottom Track thetaX vs ThetaY " + t1Nhits + " hits", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta1x, theta1y);
                     aida.histogram1D(binLabel + "Bottom Track theta " + t1Nhits + " hits", 100, 0.015, thetaMax).fill(theta1);
+                    aida.histogram2D(binLabel + "Track thetaX vs ThetaY ", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta1x, theta1y);
+                    aida.histogram1D(binLabel + "Bottom Track theta ", 100, 0.015, thetaMax).fill(theta1);
                     // aida.cloud1D(binLabel + "Bottom Track p").fill(p1);
                 }
             }
             if (abs(p2 - pBin) < dP / 2.) {
                 if (isTopTrack(t2)) {
-
                     aida.histogram2D(binLabel + "Top Track thetaX vs ThetaY " + t1Nhits + " hits", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta2x, theta2y);
                     aida.histogram1D(binLabel + "Top Track theta " + t1Nhits + " hits", 100, 0.015, thetaMax).fill(theta2);
+                    aida.histogram2D(binLabel + "Track thetaX vs ThetaY ", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta2x, theta2y);
+                    aida.histogram1D(binLabel + "Top Track theta ", 100, 0.015, thetaMax).fill(theta2);
                     //aida.cloud1D(binLabel + "Top Track p").fill(p2);
                 } else {
-
                     aida.histogram2D(binLabel + "Bottom Track thetaX vs ThetaY " + t1Nhits + " hits", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta2x, theta2y);
                     aida.histogram1D(binLabel + "Bottom Track theta " + t1Nhits + " hits", 100, 0.015, thetaMax).fill(theta2);
+                    aida.histogram2D(binLabel + "Track thetaX vs ThetaY ", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta2x, theta2y);
+                    aida.histogram1D(binLabel + "Bottom Track theta ", 100, 0.015, thetaMax).fill(theta2);
                     //aida.cloud1D(binLabel + "Bottom Track p").fill(p2);
                 }
             }
