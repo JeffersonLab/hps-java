@@ -7,6 +7,7 @@ import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import static java.lang.Math.abs;
+import java.math.BigDecimal;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
@@ -75,8 +76,8 @@ public class MollerAnalysisDriver extends Driver {
     private IHistogram2D thetavspHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller theta vs p bottom", 100, 0.01, 0.05, 100, 0.25, 1.75);
     private IProfile1D thetavspHist_UnconstrainedMollerVertices_proft = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile top", 100, 0.015, 0.05);//0.7, 1.6);//, 100, 0.015, 0.03);
     private IProfile1D thetavspHist_UnconstrainedMollerVertices_profb = aida.profile1D("UnconstrainedMollerVertices/Moller theta vs p profile bottom", 100, 0.015, 0.05);//0.7, 1.6);//, 100, 0.015, 0.03);
-    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_t = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta vs top", 100, 0.25, 1.75, 100, 0.01, 0.05);
-    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta vs bottom", 100, 0.25, 1.75, 100, 0.01, 0.05);
+    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_t = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta top", 100, 0.25, 1.75, 100, 0.01, 0.05);
+    private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices_b = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta bottom", 100, 0.25, 1.75, 100, 0.01, 0.05);
 
     private IHistogram2D xvsyHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
@@ -191,7 +192,7 @@ public class MollerAnalysisDriver extends Driver {
                     if (psum < psumMin || psum > psumMax) {
                         continue;
                     }
-                    //rotate into physiscs frame of reference
+                    //rotate into physics frame of reference
                     Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
                     Hep3Vector p1rot = VecOp.mult(beamAxisRotation, rp1.getMomentum());
                     Hep3Vector p2rot = VecOp.mult(beamAxisRotation, rp2.getMomentum());
@@ -203,11 +204,11 @@ public class MollerAnalysisDriver extends Driver {
                         continue;
                     }
                     // cut on Moller pX
-                    if (abs(rprot.x()) > 0.01) {
+                    if (abs(rprot.x()) > 0.02) {
                         continue;
                     }
                     // cut on Moller pY
-                    if (abs(rp.getMomentum().y()) > .01) {
+                    if (abs(rp.getMomentum().y()) > .02) {
                         continue;
                     }
                     double t1ChisqNdf = t1.getChi2() / t1.getNDF();
@@ -230,6 +231,7 @@ public class MollerAnalysisDriver extends Driver {
                     double p1 = rp1.getMomentum().magnitude();
                     double p2 = rp2.getMomentum().magnitude();
                     if (vertexCollectionName.equals("UnconstrainedMollerVertices")) {
+                        alignit(rp, rp1, rp2);
                         invMassHist_UnconstrainedMollerVertices.fill(rp.getMass());
                         pHist_UnconstrainedMollerVertices.fill(rp.getMomentum().magnitude());
                         pxHist_UnconstrainedMollerVertices.fill(rprot.x());
@@ -242,23 +244,23 @@ public class MollerAnalysisDriver extends Driver {
                             ptopvspbotHist_UnconstrainedMollerVertices.fill(p1, p2);
                             thetavspHist_UnconstrainedMollerVertices_proft.fill(theta1, p1);
                             thetavspHist_UnconstrainedMollerVertices_t.fill(theta1, p1);
-                            pvsthetaHist_UnconstrainedMollerVertices_t.fill(p1,theta1);
+                            pvsthetaHist_UnconstrainedMollerVertices_t.fill(p1, theta1);
                         } else {
                             trkpbotHist_UnconstrainedMollerVertices.fill(p1);
                             thetavspHist_UnconstrainedMollerVertices_profb.fill(theta1, p1);
                             thetavspHist_UnconstrainedMollerVertices_b.fill(theta1, p1);
-                            pvsthetaHist_UnconstrainedMollerVertices_b.fill(p1,theta1);
+                            pvsthetaHist_UnconstrainedMollerVertices_b.fill(p1, theta1);
                         }
                         if (isTopTrack(t2)) {
                             trkptopHist_UnconstrainedMollerVertices.fill(p2);
                             thetavspHist_UnconstrainedMollerVertices_proft.fill(theta2, p2);
                             thetavspHist_UnconstrainedMollerVertices_t.fill(theta2, p2);
-                            pvsthetaHist_UnconstrainedMollerVertices_t.fill(p2,theta2);
+                            pvsthetaHist_UnconstrainedMollerVertices_t.fill(p2, theta2);
                         } else {
                             trkpbotHist_UnconstrainedMollerVertices.fill(p2);
                             thetavspHist_UnconstrainedMollerVertices_profb.fill(theta2, p2);
                             thetavspHist_UnconstrainedMollerVertices_b.fill(theta2, p2);
-                            pvsthetaHist_UnconstrainedMollerVertices_b.fill(p2,theta2);
+                            pvsthetaHist_UnconstrainedMollerVertices_b.fill(p2, theta2);
                         }
                         trkNhitsHist_UnconstrainedMollerVertices.fill(t1.getTrackerHits().size());
                         trkNhitsHist_UnconstrainedMollerVertices.fill(t2.getTrackerHits().size());
@@ -358,6 +360,81 @@ public class MollerAnalysisDriver extends Driver {
                 }//Loop over GBL-vertices
             }// Loop over vertices
         }// loop over various vertex collections
+    }
+
+    private void alignit(ReconstructedParticle rp, ReconstructedParticle rp1, ReconstructedParticle rp2) {
+        Track t1 = rp1.getTracks().get(0);
+        Track t2 = rp2.getTracks().get(0);
+        int t1Nhits = t1.getTrackerHits().size();
+        int t2Nhits = t2.getTrackerHits().size();
+        
+        double e1 = rp1.getEnergy();
+        double e2 = rp2.getEnergy();
+        double p1 = rp1.getMomentum().magnitude();
+        double p2 = rp2.getMomentum().magnitude();
+
+        BasicHep3Matrix beam = new BasicHep3Matrix();
+        double pBeam = 2.288;
+        double angleX = 1.627e-3 / pBeam; //px/p
+        double angleY = -6.34E-4 / pBeam;  // py/p
+        //TODO check definition and derivation of following angles.
+        beam.setActiveEuler((Math.PI / 2), -(0.0305 + angleX), -(Math.PI / 2 + angleY));
+        Hep3Vector rprot = VecOp.mult(beam, rp.getMomentum());
+        Hep3Vector p1rot = VecOp.mult(beam, rp1.getMomentum());
+        Hep3Vector p2rot = VecOp.mult(beam, rp2.getMomentum());
+        double theta1 = Math.acos(p1rot.z() / p1rot.magnitude());
+        double theta1x = Math.asin(p1rot.x() / p1rot.magnitude());
+        double theta1y = Math.asin(p1rot.y() / p1rot.magnitude());
+
+        double theta2 = Math.acos(p2rot.z() / p2rot.magnitude());
+        double theta2x = Math.asin(p2rot.x() / p2rot.magnitude());
+        double theta2y = Math.sin(p2rot.y() / p2rot.magnitude());
+
+        aida.histogram1D("Unrotated Moller x Momentum", 200, 0.05, 0.1).fill(rp.getMomentum().x());
+        aida.histogram1D("Unrotated Moller y Momentum", 200, -0.01, 0.01).fill(rp.getMomentum().y());
+        aida.histogram1D("Unrotated Moller z Momentum", 200, 0., 3.0).fill(rp.getMomentum().z());
+        aida.histogram1D("Tuned Moller x Momentum", 200, -0.01, 0.01).fill(rprot.x());
+        aida.histogram1D("Tuned Moller y Momentum", 200, -0.01, 0.01).fill(rprot.y());
+        aida.histogram1D("Tuned Moller z Momentum", 200, 0., 3.0).fill(rprot.z());
+
+        // step in momentum
+        double pMin = 0.7;
+        double dP = .05;
+        for (int i = 0; i < 15; ++i) {
+            double pBin = pMin + i * dP;
+            BigDecimal bd = new BigDecimal(Double.toString(pBin));
+            bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+            double binLabel = bd.doubleValue();
+
+           // System.out.println("i " + i + " pBin " + pBin + " p1 " + p1 + " p2 " + p2);
+            if (abs(p1 - pBin) < dP/2.) {
+                if (isTopTrack(t1)) {
+                    aida.histogram2D(binLabel + "Top Track thetaX vs ThetaY "+t1Nhits+" hits",100,-.035, 0.035, 100, -0.035, 0.035).fill(theta1x, theta1y);
+                    aida.histogram1D(binLabel + "Top Track theta "+t1Nhits+" hits",100, 0.015, 0.035).fill(theta1);
+                    //aida.cloud1D(binLabel + "Top Track p").fill(p1);
+                } else {
+
+                    aida.histogram2D(binLabel + "Bottom Track thetaX vs ThetaY "+t1Nhits+" hits",100,-.035, 0.035, 100, -0.035, 0.035).fill(theta1x, theta1y);
+                    aida.histogram1D(binLabel + "Bottom Track theta "+t1Nhits+" hits",100, 0.015, 0.035).fill(theta1);
+                   // aida.cloud1D(binLabel + "Bottom Track p").fill(p1);
+                }
+            }
+            if (abs(p2 - pBin) < dP/2.) {
+                if (isTopTrack(t2)) {
+
+                    aida.histogram2D(binLabel + "Top Track thetaX vs ThetaY "+t1Nhits+" hits",100,-.035, 0.035, 100, -0.035, 0.035).fill(theta2x, theta2y);
+                    aida.histogram1D(binLabel + "Top Track theta "+t1Nhits+" hits",100, 0.015, 0.035).fill(theta2);
+                    //aida.cloud1D(binLabel + "Top Track p").fill(p2);
+                } else {
+
+                    aida.histogram2D(binLabel + "Bottom Track thetaX vs ThetaY "+t1Nhits+" hits",100,-.035, 0.035, 100, -0.035, 0.035).fill(theta2x, theta2y);
+                    aida.histogram1D(binLabel + "Bottom Track theta "+t1Nhits+" hits",100, 0.015, 0.035).fill(theta2);
+                    //aida.cloud1D(binLabel + "Bottom Track p").fill(p2);
+                }
+            }
+        }
+
+        //acos(1-(1/400. -1/1056.)*.00511)
     }
 
     private void setupSensors(EventHeader event) {
