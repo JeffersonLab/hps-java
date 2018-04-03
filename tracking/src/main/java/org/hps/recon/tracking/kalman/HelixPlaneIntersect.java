@@ -11,7 +11,6 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     private double h;
     private double c;
     double alpha;
-    private FieldMap fM;
 
     HelixPlaneIntersect() {
         c = 2.99793e8;
@@ -109,7 +108,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
             return phi0;
         }
 
-        double dphi = 0.1;
+        double dphi = 0.3;
         double accuracy = 0.0000001;
         // Iterative solution for a general plane orientation
         double phi = rtSafe(phi0, phi0 - dphi, phi0 + dphi, accuracy);
@@ -134,17 +133,14 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         fl = S(x1);
         fh = S(x2);
         if ((fl > 0.0 && fh > 0.0) || (fl < 0.0 && fh < 0.0)) {
-            System.out.format("ZeroFind.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f\n", fl, fh,
-                                            alpha);
+            System.out.format("ZeroFind.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f\n", fl, fh, alpha);
             // p.print("internal plane");
             // a.print("internal helix parameters");
             // X0.print("internal pivot");
             return xGuess;
         }
-        if (fl == 0.)
-            return x1;
-        if (fh == 0.)
-            return x2;
+        if (fl == 0.) return x1;
+        if (fh == 0.) return x2;
         if (fl < 0.0) {
             xl = x1;
             xh = x2;
@@ -162,15 +158,13 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
                 dxold = dx;
                 dx = 0.5 * (xh - xl); // Use bisection if the Newton-Raphson method is going bonkers
                 rts = xl + dx;
-                if (xl == rts)
-                    return rts;
+                if (xl == rts) return rts;
             } else {
                 dxold = dx;
                 dx = f / df; // Newton-Raphson method
                 temp = rts;
                 rts -= dx;
-                if (temp == rts)
-                    return rts;
+                if (temp == rts) return rts;
             }
             if (Math.abs(dx) < xacc) {
                 // System.out.format("ZeroFind.rtSafe: solution converged in %d iterations.\n",
@@ -190,8 +184,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     }
 
     private double dSdPhi(double phi) {
-        Vec dXdPhi = new Vec((alpha / a.v[2]) * Math.sin(a.v[1] + phi), -(alpha / a.v[2]) * Math.cos(a.v[1] + phi),
-                                        -(alpha / a.v[2]) * a.v[4]);
+        Vec dXdPhi = new Vec((alpha / a.v[2]) * Math.sin(a.v[1] + phi), -(alpha / a.v[2]) * Math.cos(a.v[1] + phi), -(alpha / a.v[2]) * a.v[4]);
         return p.T().dot(dXdPhi);
     }
 

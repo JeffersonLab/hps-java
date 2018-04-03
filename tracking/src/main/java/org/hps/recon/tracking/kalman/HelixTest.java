@@ -11,22 +11,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 //This is for testing only and is not part of the Kalman fitting code
-public class HelixTest { // Main program for testing the Kalman fitting code
+public class HelixTest { // Program for testing the Kalman fitting code
 
     // Coordinate system:
     // z is the B field direction, downward in lab coordinates
     // y is the beam direction
     // x is y cross z
 
-    public static void main(String[] args) {
-
-        String defaultPath = "C:\\Users\\Robert\\Desktop\\Kalman\\";
-        String path; // Path to where the output histograms should be written
-        if (args.length == 0) {
-            path = defaultPath;
-        } else {
-            path = args[0];
-        }
+    public HelixTest(String path) {
 
         // Units are Tesla, GeV, mm
 
@@ -732,9 +724,17 @@ public class HelixTest { // Main program for testing the Kalman fitting code
 
             // Create a seed track from the first 3 or 4 layers
             int frstLyr = Math.max(startModule - numbLayers + 1, 0);
-            SeedTrack seed = new SeedTrack(SiModules, location[frstLyr / 2], frstLyr, numbLayers, verbose);
+            ArrayList<int []> hitList = new ArrayList<int []>();
+            for (int i=0; i<numbLayers; i++) {
+                int [] ht = new int[2];
+                ht[0] = frstLyr + i;
+                ht[1] = 0;
+                hitList.add(ht);
+            }
+            SeedTrack seed = new SeedTrack(SiModules, location[frstLyr / 2], hitList, verbose);
             if (!seed.success) {
-                return;
+                System.out.format("Failed to make a seed track\n");
+                continue;
             }
             if (verbose) {
                 seed.print("helix parameters");
@@ -887,7 +887,7 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     aF = kF.fittedStateBegin().rotateHelix(aF, Rcombo, fRot);
                     if (verbose) {
                         aF.print("final smoothed helix parameters at the track beginning");
-                        newPivot.print("final smoothed helix pivot");
+                        newPivot.print("final smoothed helix pivot in local coordinates");
                     }
                     Vec aFe = new Vec(5); // .fittedStateBegin().helixErrors(aF);
                     SquareMatrix aFC = kF.fittedStateBegin().covariancePivotTransform(aF);
@@ -921,14 +921,14 @@ public class HelixTest { // Main program for testing the Kalman fitting code
                     }
                     newPivot = kF.fittedStateEnd().toLocal(TkEnd.R.inverseRotate(TkEnd.X0).sum(TkEnd.origin));
                     Vec eF = kF.fittedStateEnd().pivotTransform(newPivot);
-                    Rcombo = TkEnd.R.multiply(kF.fittedStateEnd().Rot.invert());
-                    eF = kF.fittedStateEnd().rotateHelix(eF, Rcombo, fRot);
+                    //Rcombo = TkEnd.R.multiply(kF.fittedStateEnd().Rot.invert());
+                    //eF = kF.fittedStateEnd().rotateHelix(eF, Rcombo, fRot);
                     if (verbose) {
                         eF.print("final smoothed helix parameters at the track end");
                         newPivot.print("new pivot at the track end");
                     }
                     SquareMatrix eFc = kF.fittedStateEnd().covariancePivotTransform(eF);
-                    eFc = eFc.similarity(fRot);
+                    //eFc = eFc.similarity(fRot);
                     Vec eFe = new Vec(5);
                     for (int i = 0; i < 5; i++) {
                         eFe.v[i] = Math.sqrt(Math.max(0., eFc.M[i][i]));
@@ -1032,10 +1032,6 @@ public class HelixTest { // Main program for testing the Kalman fitting code
         r[2] = alpha / R;
         r[0] = xc / Math.cos(r[1]) - R;
         return r;
-    }
-
-    public HelixTest() {
-        System.out.format("Unnecessary HelixTest constructor; all the work is done in main\n");
     }
 
 }

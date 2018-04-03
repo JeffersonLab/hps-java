@@ -92,6 +92,42 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         return Mp;
     }
 
+    SquareMatrix rotate(RotMatrix R) { // Similarity transform by rotation matrix F
+        if (N != 3) {
+            System.out.format("SquareMatrix.rotate: incorrect dimension %d\n", N);
+            return null;
+        }
+        SquareMatrix Mp = new SquareMatrix(N);
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                for (int m = 0; m < N; m++) {
+                    for (int n = 0; n < N; n++) {
+                        Mp.M[i][j] += R.M[i][m] * M[m][n] * R.M[j][n];
+                    }
+                }
+            }
+        }
+        return Mp;
+    }
+
+    SquareMatrix inverseRotate(RotMatrix R) { // Similarity transform by inverted rotation matrix F
+        if (N != 3) {
+            System.out.format("SquareMatrix.inverseRotate: incorrect dimension %d\n", N);
+            return null;
+        }
+        SquareMatrix Mp = new SquareMatrix(N);
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                for (int m = 0; m < N; m++) {
+                    for (int n = 0; n < N; n++) {
+                        Mp.M[i][j] += R.M[m][i] * M[m][n] * R.M[n][j];
+                    }
+                }
+            }
+        }
+        return Mp;
+    }
+
     void print(String s) {
         System.out.format("Printout of matrix %s  %d\n", s, N);
         for (int i = 0; i < N; i++) {

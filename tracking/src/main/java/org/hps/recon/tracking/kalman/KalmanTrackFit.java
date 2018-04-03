@@ -3,8 +3,7 @@ package kalman;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-//Driver program for executing a Kalman fit.  At first it takes just the simplest case of starting
-// from one end, filtering to the other end, and then smoothing.  No pattern recognition is done here.
+//Driver program for testing the Kalman fit. Deprecated---do not use. 
 public class KalmanTrackFit {
 
     ArrayList<MeasurementSite> sites;
@@ -83,15 +82,15 @@ public class KalmanTrackFit {
             finalSite = idx;
             SiModule m = data.get(idx);
             thisSite++;
-            MeasurementSite newSite = new MeasurementSite(idx, m, mxResid);
+            MeasurementSite newSite = new MeasurementSite(idx, m, mxResid, mxResid);
             if (idx == start) {
-                if (!newSite.makePrediction(sI)) {
+                if (newSite.makePrediction(sI,-1,false,false)<0) {
                     System.out.format("KalmanTrackFit: Failed to make initial prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     success = false;
                     break;
                 }
             } else {
-                if (!newSite.makePrediction(sites.get(prevSite).aF)) {
+                if (newSite.makePrediction(sites.get(prevSite).aF,-1,false,false)<0) {
                     System.out.format("KalmanTrackFit: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     success = false;
                     break;
@@ -119,23 +118,13 @@ public class KalmanTrackFit {
         // Go back through the filtered sites in the reverse order to do the smoothing
         chi2s = 0.;
         MeasurementSite nextSite = null;
-        SquareMatrix Facc = null;
         for (int idx = sites.size() - 1; idx >= 0; idx--) {
             MeasurementSite currentSite = sites.get(idx);
-            if (currentSite.m.Layer < 0) {
-                if (Facc == null) {
-                    Facc = currentSite.aP.F;
-                } else {
-                    Facc = currentSite.aP.F.multiply(Facc); // Accumulate propagator from dummy steps.
-                }
-                continue;
-            }
             if (nextSite == null) {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
             } else {
                 currentSite.smooth(nextSite);
-                Facc = null;
             }
             chi2s += currentSite.chi2inc;
 
@@ -154,8 +143,8 @@ public class KalmanTrackFit {
                     System.out.format("KalmanTrackFit: filtering remaining sites, measurements %d\n", idx);
                 SiModule m = data.get(idx);
                 thisSite++;
-                MeasurementSite newSite = new MeasurementSite(idx, m, mxResid);
-                if (!newSite.makePrediction(sites.get(prevSite).aF)) {
+                MeasurementSite newSite = new MeasurementSite(idx, m, mxResid, mxResid);
+                if (newSite.makePrediction(sites.get(prevSite).aF,-1,false,false)<0) {
                     System.out.format("KalmanTrackFit: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     success = false;
                     break;
@@ -200,7 +189,7 @@ public class KalmanTrackFit {
                 currentSite.predicted = false;
                 currentSite.filtered = false;
                 currentSite.smoothed = false;
-                if (!currentSite.makePrediction(sH)) {
+                if (currentSite.makePrediction(sH,currentSite.hitID,false,false)<0) {
                     System.out.format("KalmanTrackFit: In iteration %d failed to make prediction!!\n", iteration);
                     success = false;
                     break;
@@ -223,23 +212,14 @@ public class KalmanTrackFit {
             if (success) {
                 chi2s = 0.;
                 nextSite = null;
-                Facc = null;
+
                 for (int idx = sites.size() - 1; idx >= 0; idx--) {
                     MeasurementSite currentSite = sites.get(idx);
-                    if (currentSite.m.Layer < 0) {
-                        if (Facc == null) {
-                            Facc = currentSite.aP.F;
-                        } else {
-                            Facc = currentSite.aP.F.multiply(Facc); // Accumulate propagator from dummy steps.
-                        }
-                        continue;
-                    }
                     if (nextSite == null) {
                         currentSite.aS = currentSite.aF.copy();
                         currentSite.smoothed = true;
                     } else {
                         currentSite.smooth(nextSite);
-                        Facc = null;
                     }
                     chi2s += currentSite.chi2inc;
 

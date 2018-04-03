@@ -7,11 +7,9 @@ import java.util.Iterator;
 class SiModule {
     int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a non-uniform field
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
-                                 // A dummy layer will
     Plane p; // Orientation and offset of the detector measurement plane in global
              // coordinates (NOT rotated by the stereo angle)
-             // The offset should be the location of the center of the detector in global
-             // coordinates
+             // The offset should be the location of the center of the detector in global coordinates
     double[] xExtent; // Plus and minus limits on the detector active area in the x direction (along the strips)
     double[] yExtent; // Plus and minus limits on the detector active area in the y direction (perpendicular to the strips)
     RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
@@ -74,12 +72,10 @@ class SiModule {
     }
 
     Vec toGlobal(Vec vLocal) { // Convert a position vector from local detector coordinates to global
-                               // coordinates
         return p.X().sum(R.rotate(vLocal));
     }
 
     Vec toLocal(Vec vGlobal) { // Convert a position vector from global coordinates to local detector
-                               // coordinates
         return Rinv.rotate(vGlobal.dif(p.X()));
     }
 

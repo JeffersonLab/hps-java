@@ -28,14 +28,14 @@ public class KalmanTrackFit2 {
         Vec Bfield = fM.getField(pivot);
         double B = Bfield.mag();
         Vec t = Bfield.unitVec(B);
-        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, verbose);
+        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, false);
 
         if (verbose) {
             System.out.format("KalmanTrackFit2: begin Kalman fit, start=%d, number iterations=%d\n", start, nIterations);
-            sI.print("initial state for KalmanTrackFit");
+            //sI.print("initial state for KalmanTrackFit");
         }
 
-        double mxResid = 999.;
+        double mxResid = 9999.;
 
         sites = new ArrayList<MeasurementSite>();
         initialSite = 0;
@@ -53,15 +53,15 @@ public class KalmanTrackFit2 {
                 finalSite = idx;
                 SiModule m = data.get(idx);
                 thisSite++;
-                newSite = new MeasurementSite(idx, m, mxResid);
+                newSite = new MeasurementSite(idx, m, mxResid, mxResid);
                 if (idx == start) {
-                    if (!newSite.makePrediction(sI)) {
+                    if (newSite.makePrediction(sI,0,false,false)<0) {
                         System.out.format("KalmanTrackFit2: Failed to make initial prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                         success = false;
                         break;
                     }
                 } else {
-                    if (!newSite.makePrediction(sites.get(prevSite).aF)) {
+                    if (newSite.makePrediction(sites.get(prevSite).aF,0,false,false)<0) {
                         System.out.format("KalmanTrackFit2: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                         success = false;
                         break;
@@ -86,6 +86,20 @@ public class KalmanTrackFit2 {
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
+                int cnt = 0;
+                for (MeasurementSite site : sites) {
+                    SiModule m = site.m;
+                    StateVector aF = site.aF;
+                    double phiF = aF.planeIntersect(m.p);
+                    if (Double.isNaN(phiF)) phiF = 0.;
+                    double vPred = site.h(aF, phiF);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    for (Measurement hit : m.hits) {
+                        System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
+                    }
+                    System.out.format("\n");
+                    cnt++;
+                }
             }
             if (!success)
                 return;
@@ -107,7 +121,7 @@ public class KalmanTrackFit2 {
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
-                sH.print("starting state vector for iteration");
+            //    sH.print("starting state vector for iteration");
             }
             sites.clear();
 
@@ -119,15 +133,15 @@ public class KalmanTrackFit2 {
             while (itr.hasNext()) {
                 SiModule m = itr.next();
                 thisSite++;
-                MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid);
+                MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
                 if (thisSite == 0) {
-                    if (!newSite.makePrediction(sH)) {
+                    if (newSite.makePrediction(sH,0,false, false)<0) {
                         System.out.format("KalmanTrackFit2: Failed to make initial prediction at site %d.  Abort\n", thisSite);
                         success = false;
                         break;
                     }
                 } else {
-                    if (!newSite.makePrediction(previousSite.aF)) {
+                    if (newSite.makePrediction(previousSite.aF,0,false, false)<0) {
                         System.out.format("KalmanTrackFit2: Failed to make prediction at site %d.  Abort\n", thisSite);
                         success = false;
                         break;
@@ -140,9 +154,9 @@ public class KalmanTrackFit2 {
                     break;
                 }
 
-                if (verbose) {
-                    newSite.print(String.format("Iteration %d: filtering", iteration));
-                }
+                //if (verbose) {
+                //    newSite.print(String.format("Iteration %d: filtering", iteration));
+                //}
                 chi2f += newSite.chi2inc;
 
                 sites.add(newSite);
@@ -150,7 +164,21 @@ public class KalmanTrackFit2 {
                 previousSite = newSite;
             }
             if (verbose) {
-                System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e\n", chi2f);
+                System.out.format("KalmanTrackFit2: Fit chi^2 after first full filtering = %12.4e\n", chi2f);
+                int cnt = 0;
+                for (MeasurementSite site : sites) {
+                    SiModule m = site.m;
+                    StateVector aF = site.aF;
+                    double phiF = aF.planeIntersect(m.p);
+                    if (Double.isNaN(phiF)) phiF = 0.;
+                    double vPred = site.h(aF, phiF);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    for (Measurement hit : m.hits) {
+                        System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
+                    }
+                    System.out.format("\n");
+                    cnt++;
+                }
             }
             if (!success) {
                 return;
@@ -169,13 +197,27 @@ public class KalmanTrackFit2 {
                 }
                 chi2s += currentSite.chi2inc;
 
-                if (verbose) {
-                    currentSite.print(String.format("Iteration %d smoothing", iteration));
-                }
+                //if (verbose) {
+                //    currentSite.print(String.format("Iteration %d smoothing", iteration));
+                //}
                 nextSite = currentSite;
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
+                int cnt = 0;
+                for (MeasurementSite site : sites) {
+                    SiModule m = site.m;
+                    StateVector aS = site.aS;
+                    double phiS = aS.planeIntersect(m.p);
+                    if (Double.isNaN(phiS)) phiS = 0.;
+                    double vPred = site.h(aS, phiS);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    for (Measurement hit : m.hits) {
+                        System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
+                    }
+                    System.out.format("\n");
+                    cnt++;
+                }
             }
             startSite = currentSite;
         }
