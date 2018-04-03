@@ -132,14 +132,18 @@ public class MollerAnalysisDriver extends Driver {
     double pMin = 0.25;
     double dP = .05;
     int nSteps = 11;
-    double thetaMax = 0.05;
-    double thetaMin = -0.05;
+    double thetaMax = 0.06;
+    double thetaMin = -0.06;
 
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
     }
 
     protected void process(EventHeader event) {
+        if (event.getRunNumber() <5620) {
+            pMin=.35;
+            nSteps=9;
+        }
         if (event.getRunNumber() > 7000) {
             pMin = 0.75;
             dP = .05;
