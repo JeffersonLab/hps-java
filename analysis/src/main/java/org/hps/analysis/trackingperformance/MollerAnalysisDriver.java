@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -20,6 +22,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
@@ -134,12 +137,16 @@ public class MollerAnalysisDriver extends Driver {
     int nSteps = 11;
     double thetaMax = 0.06;
     double thetaMin = -0.06;
+    
+    String _triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
+
 
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
     }
 
     protected void process(EventHeader event) {
+        if (!matchTrigger(event)) return;
         if (event.getRunNumber() <5620) {
             pMin=.35;
             nSteps=9;
@@ -529,5 +536,52 @@ public class MollerAnalysisDriver extends Driver {
             return false;
         }
         throw new RuntimeException("mixed top and bottom hits on same track");
+    }
+    
+    public void setTriggerType(String type)
+    {
+        _triggerType = type;
+    }
+
+    public boolean matchTriggerType(TIData triggerData)
+    {
+        if (_triggerType.contentEquals("") || _triggerType.contentEquals("all")) {
+            return true;
+        }
+        if (triggerData.isSingle0Trigger() && _triggerType.contentEquals("singles0")) {
+            return true;
+        }
+        if (triggerData.isSingle1Trigger() && _triggerType.contentEquals("singles1")) {
+            return true;
+        }
+        if (triggerData.isPair0Trigger() && _triggerType.contentEquals("pairs0")) {
+            return true;
+        }
+        if (triggerData.isPair1Trigger() && _triggerType.contentEquals("pairs1")) {
+            return true;
+        }
+        if (triggerData.isPulserTrigger() && _triggerType.contentEquals("pulser")) {
+            return true;
+        }
+        return false;
+
+    }
+
+    public boolean matchTrigger(EventHeader event)
+    {
+        boolean match = true;
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
+                    TIData triggerData = new TIData(data);
+                    if (!matchTriggerType(triggerData))//only process singles0 triggers...
+                    {
+                        match = false;
+                    }
+                }
+            }
+        }
+        return match;
     }
 }
