@@ -141,9 +141,9 @@ public class MollerAnalysisDriver extends Driver {
 
     protected void process(EventHeader event) {
         if (event.getRunNumber() > 7000) {
-            pMin = 0.7;
+            pMin = 0.75;
             dP = .05;
-            nSteps = 15;
+            nSteps = 14;
             thetaMax = 0.035;
             thetaMin = -.035;
             _beamEnergy = 2.306;
