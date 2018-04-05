@@ -601,8 +601,7 @@ public class KalmanPatRecHPS {
 
         // Refit tracks that got changed
         ArrayList<KalTrack> allTks = new ArrayList<KalTrack>(TkrList.size());
-        for (KalTrack tkr : TkrList)
-            allTks.add(tkr);
+        for (KalTrack tkr : TkrList) allTks.add(tkr);  // (refit them all for now)
         for (KalTrack tkr : allTks) {
             // check that there are enough hits in both views
             int nStereo = 0;

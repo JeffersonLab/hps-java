@@ -414,7 +414,7 @@ public class PatRecTest {
                 // Compare with the generated particles
                 Vec helixAtOrigin = new Vec(5, tkr.originHelix());
                 SquareMatrix Cinv = (new SquareMatrix(5, tkr.originCovariance())).invert();
-                double minChi2 = 9999.e12;
+                double minChi2 = 9999.e33;
                 int iBest = -1;
                 for (int ih = 0; ih < nHelices; ih++) {
                     Vec trueErr = helixAtOrigin.dif(TkInitial[ih].p);
@@ -424,6 +424,7 @@ public class PatRecTest {
                         iBest = ih;
                     }
                 }
+                if (iBest == -1) continue;
                 if (verbose) TkInitial[iBest].print("Best MC track");
                 Vec trueErr = helixAtOrigin.dif(TkInitial[iBest].p);
                 if (verbose) {

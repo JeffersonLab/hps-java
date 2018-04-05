@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 // Description of a single silicon-strip module, and a container for its hits
-class SiModule {
+public class SiModule {
     int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a non-uniform field
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global
@@ -18,7 +18,7 @@ class SiModule {
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
     FieldMap Bfield;
 
-    SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
+    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
         this.Layer = Layer;
         this.Bfield = Bfield;
         this.p = p;
@@ -37,7 +37,7 @@ class SiModule {
         hits = new ArrayList<Measurement>();
     }
 
-    void print(String s) {
+    public void print(String s) {
         System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer,
                                         stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         p.X().print("origin of Si layer coordinates in the global system");
@@ -54,7 +54,7 @@ class SiModule {
         }
     }
 
-    void addMeasurement(Measurement m) {
+    public void addMeasurement(Measurement m) {
         if (hits.size() == 0)
             hits.add(m);
         else {

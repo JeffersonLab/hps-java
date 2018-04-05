@@ -22,7 +22,7 @@ public class KalTrack {
     private double[][] Cx;
     private double[][] Cp;
 
-    public KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
+    KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         this.SiteList = SiteList;
         this.nHits = nHits;
         this.chi2 = chi2;
