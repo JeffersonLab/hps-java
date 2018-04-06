@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2016-Hodoscope-v3-2pt3-fieldmap" />
-    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java_issues/iss40/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Hodoscope-v3-2pt3-fieldmap/compact.xml" checksum="1257565389" />
+    <generator name="lcsim" version="1.0" file="/net/home/rafopar/soft/hps_java/iss40/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Hodoscope-v3-2pt3-fieldmap/compact.xml" checksum="1257565389" />
     <author name="NONE" />
     <comment>HPS detector for 2017 proposal with fieldmap, tracker at nominal opening angle, and no SVT survey. This detector uses the corrected fieldmap scaled to -0.50T for 2.3 GeV. A basic hodoscope with scoring planes was added to perform initial positron trigger tests.</comment>
   </header>
