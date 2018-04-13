@@ -864,12 +864,12 @@
 			     combination of these variables can be declared or
 			     excluded freely.
 			  -->
-			<layer1_top_x value="39.0*mm" />
+			<layer1_top_x value="42.56*mm" />
 			<layer1_top_y value="14.2*mm" />
-			<layer1_top_z value="1090*mm" />
-			<layer1_bot_x value="39.0*mm" />
+			<layer1_top_z value="1089*mm" />
+			<layer1_bot_x value="42.56*mm" />
 			<layer1_bot_y value="14.2*mm" />
-			<layer1_bot_z value="1090*mm" />
+			<layer1_bot_z value="1089*mm" />
 			
 			<layer2_top_x value="47.9*mm" />
 			<layer2_top_y value="14.2*mm" />
