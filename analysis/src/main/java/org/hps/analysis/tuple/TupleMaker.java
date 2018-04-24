@@ -68,7 +68,7 @@ public abstract class TupleMaker extends Driver {
 
     protected String triggerType = "all";// allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     private boolean applyBeamRotation = true;
-    protected boolean isGBL = false;
+    protected boolean isGBL = true;
     private final String finalStateParticlesColName = "FinalStateParticles";
 
     protected double bfield;
