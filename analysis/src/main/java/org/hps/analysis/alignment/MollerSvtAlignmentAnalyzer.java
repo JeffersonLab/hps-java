@@ -91,6 +91,8 @@ public class MollerSvtAlignmentAnalyzer {
 //            }
         IPlotter scatterXvsYPlotter = analysisFactory.createPlotterFactory().create("ThetaX vs ThetaY scatter plots");
         scatterXvsYPlotter.createRegions(3, 3);
+        scatterXvsYPlotter.setParameter("plotterWidth", "1600");
+        scatterXvsYPlotter.setParameter("plotterHeight", "900");
 
         for (int j = 0; j < eBins.length; ++j) {
             IHistogram2D scatter = (IHistogram2D) tree.find("0." + eBins[j] + " Track thetaX vs ThetaY ");
@@ -113,8 +115,12 @@ public class MollerSvtAlignmentAnalyzer {
         for (String half : halves) {
             IPlotter profilePlotter = analysisFactory.createPlotterFactory().create(half + " profile plots");
             profilePlotter.createRegions(3, 3);
+            profilePlotter.setParameter("plotterWidth", "1600");
+            profilePlotter.setParameter("plotterHeight", "900");
             IPlotter scatterPlotter = analysisFactory.createPlotterFactory().create(half + " scatter plots");
             scatterPlotter.createRegions(3, 3);
+            scatterPlotter.setParameter("plotterWidth", "1600");
+            scatterPlotter.setParameter("plotterHeight", "900");
 
             //loop over interesting energy bins
             for (int j = 0; j < eBins.length; ++j) {
@@ -203,6 +209,9 @@ public class MollerSvtAlignmentAnalyzer {
         }
 
         IPlotter plotter = analysisFactory.createPlotterFactory().create("parameter fits");
+        plotter.setParameter("plotterWidth", "1600");
+        plotter.setParameter("plotterHeight", "900");
+
         plotter.createRegions(2, 2);
         plotter.region(0).plot(topP0dataPointSet);
         plotter.region(1).plot(topP1dataPointSet);
