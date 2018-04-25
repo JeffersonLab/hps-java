@@ -180,6 +180,18 @@ public class MCFullDetectorTruth{
                     int layer = trackHitLayerNum(de, sensors, true);
                     System.out.println("InActive Hits " + layer);
                 }
+                else
+                    hitlist.add(new Pair<SimTrackerHit,String>(hit,"inactive"));
+                
+            } while(inactive);
+        }
+        if(n_inact_used > 0){
+            int n_inact = 0;
+            for(SimTrackerHit hit:hits_in){
+                n_inact++;
+                if(n_inact_used >= n_inact) continue;
+                hitlist.add(new Pair<SimTrackerHit,String>(hit,"inactive"));
+
             }
         }*/
         
