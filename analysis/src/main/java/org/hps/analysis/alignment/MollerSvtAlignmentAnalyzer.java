@@ -29,9 +29,19 @@ public class MollerSvtAlignmentAnalyzer {
 
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         // Define the root directory for the plots.
-
+        boolean showPlots = false;
+        boolean writePlots = true;
+        String fileType = "png"; // pdf, eps ps svg emf swf
         String rootDir = null;
         String plotFile = "D:/work/hps/analysis/mollerAlignment/2015_MollerSkim_pass8_PC.aida";
+        if(args.length>0)
+        {
+            plotFile = args[0];
+        }
+        if(args.length>1)
+        {
+            fileType = args[1];
+        }
         // Get the plots file and open it.
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
 //        IPlotter plotter = analysisFactory.createPlotterFactory().create("Fit.java Plot");
@@ -98,7 +108,12 @@ public class MollerSvtAlignmentAnalyzer {
             IHistogram2D scatter = (IHistogram2D) tree.find("0." + eBins[j] + " Track thetaX vs ThetaY ");
             scatterXvsYPlotter.region(j).plot(scatter, scatterPlotStyle);
         }
-        scatterXvsYPlotter.show();
+        if (showPlots) {
+            scatterXvsYPlotter.show();
+        }
+        if (writePlots) {
+            scatterXvsYPlotter.writeToFile("thetaXvsThetaY."+fileType);
+        }
 
         //let's store some parameters that we're going to be fitting...
         double[] p0fit_bottom = new double[eBins.length];
@@ -161,10 +176,14 @@ public class MollerSvtAlignmentAnalyzer {
                     }
                 }
             }
-
-            profilePlotter.show();
-            scatterPlotter.show();
-
+            if (showPlots) {
+                profilePlotter.show();
+                scatterPlotter.show();
+            }
+            if (writePlots) {
+                profilePlotter.writeToFile(half+"profilePlots."+fileType);
+                scatterPlotter.writeToFile(half+"scatterPlots."+fileType);
+            }
         }
         // Create a two dimensional IDataPointSet.
         IDataPointSet topP0dataPointSet = dpsf.create("dataPointSet", "top p0", 2);
@@ -217,13 +236,17 @@ public class MollerSvtAlignmentAnalyzer {
         plotter.region(1).plot(topP1dataPointSet);
         plotter.region(2).plot(bottomP0dataPointSet);
         plotter.region(3).plot(bottomP1dataPointSet);
-        plotter.show();
 
         IFunction line = functionFactory.createFunctionByName("line", "p1");
 
         IFitResult result = fitter.fit(topP0dataPointSet, line);
         plotter.region(0).plot(result.fittedFunction());
-
+        if (showPlots) {
+            plotter.show();
+        }
+        if (writePlots) {
+            plotter.writeToFile("parameterFits."+fileType);
+        }
     }
 
     private static final List<String> getTreeFiles(ITree tree) {
