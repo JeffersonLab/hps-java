@@ -156,7 +156,7 @@ public class ReadoutDataManager extends Driver {
         System.out.println("\n");
         
         double totalNeededDisplacement = Math.max(longestTriggerDisplacement, longestDisplacedAfter);
-        totalNeededDisplacement = Math.max(totalNeededDisplacement, longestLocalBuffer);
+        totalNeededDisplacement = Math.max(totalNeededDisplacement, longestLocalBuffer) + longestBufferBefore + 150;
         System.out.println("Total Time Needed: " + totalNeededDisplacement);
         
         
@@ -202,6 +202,8 @@ public class ReadoutDataManager extends Driver {
                 // a manually specified output range.
                 double startTime = trigger.getTriggerTime() - triggerTimeDisplacement;
                 double endTime = startTime + readoutWindow;
+                System.out.println("Trigger Time: " + trigger.getTriggerTime());
+                System.out.println("Default Time Range: " + startTime + " - " + endTime);
                 
                 // All readout output is initially stored in a single
                 // object. This allows the readout from multiple
@@ -217,6 +219,8 @@ public class ReadoutDataManager extends Driver {
                         continue;
                     }
                     
+                    System.out.println("Processing Collection: " + collectionData.getCollectionParameters().getCollectionName());
+                    
                     // Get the local start and end times. A driver
                     // may manually specify an amount of time before
                     // and after the trigger time which should be
@@ -227,11 +231,13 @@ public class ReadoutDataManager extends Driver {
                     if(!Double.isNaN(collectionData.getCollectionParameters().getWindowBefore())) {
                         localStartTime = trigger.getTriggerTime() - collectionData.getCollectionParameters().getWindowBefore();
                     }
+                    System.out.println("\tLocal Start Time: " + localStartTime);
                     
                     double localEndTime = endTime;
                     if(!Double.isNaN(collectionData.getCollectionParameters().getWindowAfter())) {
                         localEndTime = trigger.getTriggerTime() + collectionData.getCollectionParameters().getWindowAfter();
                     }
+                    System.out.println("\tLocal End Time: " + localEndTime);
                     
                     // Get the object data for the time range.
                     addDataToMap(collectionData.getCollectionParameters(), localStartTime, localEndTime, triggeredDataMap);
@@ -299,7 +305,7 @@ public class ReadoutDataManager extends Driver {
         // Remove all data from the buffer that occurs before the max
         // buffer length cut-off.
         for(ManagedLCIOData<?> data : collectionMap.values()) {
-            while(!data.getData().isEmpty() && (data.getData().getFirst().getTime() < (getCurrentTime() - bufferTotal))) {
+            while(!data.getData().isEmpty() && (data.getData().getFirst().getTime() < (getCurrentTime() - 500))) {
                 data.getData().removeFirst();
             }
         }
@@ -336,7 +342,6 @@ public class ReadoutDataManager extends Driver {
         ManagedLCIOData<?> collectionData = collectionMap.get(collectionName);
         
         // Validate that the data type is correct.
-        //if(collectionData.getCollectionParameters().getObjectType() != dataType) {
         if(!collectionData.getCollectionParameters().getObjectType().isAssignableFrom(dataType)) {
             throw new IllegalArgumentException("Error: Saw data type \"" + dataType.getSimpleName() + "\" but expected data type \""
                     + collectionData.getCollectionParameters().getObjectType().getSimpleName() + "\" instead.");
@@ -349,6 +354,9 @@ public class ReadoutDataManager extends Driver {
             double time = Double.isNaN(dataTime) ? currentTime - collectionData.getCollectionParameters().getGlobalTimeDisplacement() : dataTime;
             LinkedList<TimedList<?>> dataBuffer = collectionData.getData();
             dataBuffer.add(new TimedList<T>(time, data));
+            
+            System.out.printf("Added %d objects of type %s to collection \"%s\" at time t = %.0f.%n", data.size(),
+                    dataType.getSimpleName(), collectionName, time);
         }
     }
     
@@ -708,6 +716,9 @@ public class ReadoutDataManager extends Driver {
         // Get the readout data objects.
         List<T> triggerData = getDataList(startTime, endTime, params.getCollectionName(), params.getObjectType());
         
+        System.out.printf("Storing collection \"%s\" of type %s and size %d in range %.0f to %.0f.%n", params.getCollectionName(),
+                params.getObjectType().getSimpleName(), triggerData.size(), startTime, endTime);
+        
         // Pass the readout data to the merging method.
         addDataToMap(params, triggerData, triggeredDataMap);
     }
@@ -880,6 +891,8 @@ public class ReadoutDataManager extends Driver {
         } else {
             event.put(collectionName, dataList, objectType, flags, readoutName);
         }
+        
+        System.out.printf("Output %d objects of type %s to collection \"%s\".%n", dataList.size(), objectType.getSimpleName(), collectionName);
     }
     
     /**
