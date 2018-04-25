@@ -1,7 +1,6 @@
 package org.hps.analysis.alignment;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.IAxisStyle;
 import hep.aida.IDataPointSet;
 import hep.aida.IDataPointSetFactory;
 import hep.aida.IFitData;
@@ -10,6 +9,7 @@ import hep.aida.IFitResult;
 import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
+import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
@@ -35,6 +35,9 @@ public class MollerSvtAlignmentAnalyzer {
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
 //        IPlotter plotter = analysisFactory.createPlotterFactory().create("Fit.java Plot");
         ITree tree = analysisFactory.createTreeFactory().create(new File(plotFile).getAbsolutePath());
+        if (tree == null) {
+            throw new IllegalArgumentException("Unable to load plot file.");
+        }
         IFunctionFactory functionFactory = analysisFactory.createFunctionFactory(tree);
         IFitFactory fitFactory = analysisFactory.createFitFactory();
         IFitter fitter = fitFactory.createFitter("Chi2", "jminuit");
@@ -47,13 +50,24 @@ public class MollerSvtAlignmentAnalyzer {
         functionStyle.legendBoxStyle().setVisible(false);
         functionStyle.statisticsBoxStyle().setVisible(false);
 
-        IPlotterStyle plotStyle = plotterFactory.createPlotterStyle();
-        plotStyle.dataStyle().fillStyle().setColor("blue");
-        plotStyle.dataStyle().errorBarStyle().setColor("blue");
-        plotStyle.legendBoxStyle().setVisible(true);
-        plotStyle.statisticsBoxStyle().setVisible(true);
-//        plotStyle.yAxisStyle().setParameter("lowerLimit", "-0.002");
-//        plotStyle.yAxisStyle().setParameter("upperLimit", "0.002");
+        IPlotterStyle profilePlotStyle = plotterFactory.createPlotterStyle();
+        profilePlotStyle.dataStyle().fillStyle().setColor("blue");
+        profilePlotStyle.dataStyle().errorBarStyle().setColor("blue");
+        profilePlotStyle.legendBoxStyle().setVisible(true);
+        profilePlotStyle.statisticsBoxStyle().setVisible(true);
+        profilePlotStyle.yAxisStyle().setParameter("lowerLimit", "-0.005");
+        profilePlotStyle.yAxisStyle().setParameter("upperLimit", "0.005");
+
+        IPlotterStyle scatterPlotStyle = plotterFactory.createPlotterStyle();
+//        scatterPlotStyle.dataStyle().fillStyle().setColor("blue");
+//        scatterPlotStyle.dataStyle().errorBarStyle().setColor("blue");
+        scatterPlotStyle.legendBoxStyle().setVisible(false);
+        scatterPlotStyle.statisticsBoxStyle().setVisible(false);
+        scatterPlotStyle.setParameter("hist2DStyle", "colorMap");
+        scatterPlotStyle.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+        scatterPlotStyle.zAxisStyle().setParameter("scale", "logarithmic");
+//        scatterPlotStyle.yAxisStyle().setParameter("lowerLimit", "-0.005");
+//        scatterPlotStyle.yAxisStyle().setParameter("upperLimit", "0.005");
 
 //        IPlotterStyle axisStyle = plotterFactory.createPlotterStyle();
 //        String[] params = axisStyle.yAxisStyle().availableParameters();
@@ -64,25 +78,38 @@ public class MollerSvtAlignmentAnalyzer {
 //                System.out.println("option " + opt);
 //            }
 //        }
-
-        IPlotter bottomPlotter = analysisFactory.createPlotterFactory().create("Fit.java Plot");
-        bottomPlotter.createRegions(3, 3);
-        if (tree == null) {
-            throw new IllegalArgumentException("Unable to load plot file.");
-        }
         // Get the histograms names.
         List<String> objectNameList = getTreeFiles(tree);
         int[] eBins = {35, 4, 45, 5, 55, 6, 65, 7, 75};
+        String[] halves = {"Top", "Bottom"};
 //        for (String s : objectNameList) {
 //            IProfile1D prof = null;
 //            if (s.contains("Profile")) {
 //                System.out.println(s);
 //                prof = (IProfile1D) tree.find(s);
 //            }
+        IPlotter scatterXvsYPlotter = analysisFactory.createPlotterFactory().create("ThetaX vs ThetaY scatter plots");
+        scatterXvsYPlotter.createRegions(3, 3);
         for (int j = 0; j < eBins.length; ++j) {
-            IProfile1D prof = (IProfile1D) tree.find("0." + eBins[j] + " Bottom Track phi vs dTheta Profile");
-            if (prof != null) {
-                IFunction line = functionFactory.createFunctionByName("line", "p1");
+            IHistogram2D scatter = (IHistogram2D) tree.find("0." + eBins[j] + " Track thetaX vs ThetaY ");
+            scatterXvsYPlotter.region(j).plot(scatter, scatterPlotStyle);
+        }
+        scatterXvsYPlotter.show();
+        
+        for (String half : halves) {
+            IPlotter profilePlotter = analysisFactory.createPlotterFactory().create(half + " profile plots");
+            profilePlotter.createRegions(3, 3);
+            IPlotter scatterPlotter = analysisFactory.createPlotterFactory().create(half + " scatter plots");
+            scatterPlotter.createRegions(3, 3);
+
+            //0.65 Track thetaX vs ThetaY 
+            for (int j = 0; j < eBins.length; ++j) {
+                IHistogram2D scatter = (IHistogram2D) tree.find("0." + eBins[j] + " " + half + " Track phi vs dTheta");
+                scatterPlotter.region(j).plot(scatter, scatterPlotStyle);
+
+                IProfile1D prof = (IProfile1D) tree.find("0." + eBins[j] + " " + half + " Track phi vs dTheta Profile");
+                if (prof != null) {
+                    IFunction line = functionFactory.createFunctionByName("line", "p1");
 
 //                IFitData fitData = fitFactory.createFitData();
 //                fitData.create1DConnection(prof);
@@ -93,27 +120,30 @@ public class MollerSvtAlignmentAnalyzer {
 //                bottomPlotter.region(0).plot(result.fittedFunction());
 //
 //                System.out.println("Chi2=" + result.quality());
-                // now try a data point set
-                IDataPointSet profDataPointSet = dpsf.create("dpsFromProf", prof);
-                //plotter.region(1).plot(profDataPointSet);
-                // seems to be exactly the same
-                //manually set uncertainties to be the error on the mean (not the rms)
+                    // now try a data point set
+                    IDataPointSet profDataPointSet = dpsf.create("dpsFromProf", prof);
+                    //plotter.region(1).plot(profDataPointSet);
+                    // seems to be exactly the same
+                    //manually set uncertainties to be the error on the mean (not the rms)
 //                System.out.println(" profile plot has " + prof.axis().bins() + " bins");
-                for (int i = 0; i < prof.axis().bins(); ++i) {
+                    for (int i = 0; i < prof.axis().bins(); ++i) {
 //            System.out.println("bin "+i+" error "+prof.binError(i)+" rms "+prof.binRms(i));
-                    profDataPointSet.point(i).coordinate(1).setErrorPlus(prof.binError(i));
-                    profDataPointSet.point(i).coordinate(1).setErrorMinus(prof.binError(i));
-                }
+                        profDataPointSet.point(i).coordinate(1).setErrorPlus(prof.binError(i));
+                        profDataPointSet.point(i).coordinate(1).setErrorMinus(prof.binError(i));
+                    }
 
-                IFitData fitData1 = fitFactory.createFitData();
-                fitData1.create1DConnection(profDataPointSet, 0, 1);
-                fitData1.range(0).excludeAll();
-                fitData1.range(0).include(-0.4, 0.4);
-                bottomPlotter.region(j).plot(profDataPointSet, plotStyle);
-                IFitResult result2 = fitter.fit(fitData1, line);
-                bottomPlotter.region(j).plot(result2.fittedFunction(), functionStyle, "range=\"(-0.4,0.4)\"");
-                bottomPlotter.show();
+                    IFitData fitData1 = fitFactory.createFitData();
+                    fitData1.create1DConnection(profDataPointSet, 0, 1);
+                    fitData1.range(0).excludeAll();
+                    fitData1.range(0).include(-0.4, 0.4);
+                    profilePlotter.region(j).plot(profDataPointSet, profilePlotStyle);
+                    IFitResult result2 = fitter.fit(fitData1, line);
+                    profilePlotter.region(j).plot(result2.fittedFunction(), functionStyle, "range=\"(-0.4,0.4)\"");
+
+                }
             }
+            profilePlotter.show();
+            scatterPlotter.show();
         }
     }
 
