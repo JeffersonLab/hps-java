@@ -1,6 +1,7 @@
 package org.hps.analysis.alignment;
 
 import hep.aida.IAnalysisFactory;
+import hep.aida.IDataPoint;
 import hep.aida.IDataPointSet;
 import hep.aida.IDataPointSetFactory;
 import hep.aida.IFitData;
@@ -90,19 +91,32 @@ public class MollerSvtAlignmentAnalyzer {
 //            }
         IPlotter scatterXvsYPlotter = analysisFactory.createPlotterFactory().create("ThetaX vs ThetaY scatter plots");
         scatterXvsYPlotter.createRegions(3, 3);
+
         for (int j = 0; j < eBins.length; ++j) {
             IHistogram2D scatter = (IHistogram2D) tree.find("0." + eBins[j] + " Track thetaX vs ThetaY ");
             scatterXvsYPlotter.region(j).plot(scatter, scatterPlotStyle);
         }
         scatterXvsYPlotter.show();
-        
+
+        //let's store some parameters that we're going to be fitting...
+        double[] p0fit_bottom = new double[eBins.length];
+        double[] p0fiterror_bottom = new double[eBins.length];
+        double[] p0fit_top = new double[eBins.length];
+        double[] p0fiterror_top = new double[eBins.length];
+        double[] p1fit_bottom = new double[eBins.length];
+        double[] p1fiterror_bottom = new double[eBins.length];
+        double[] p1fit_top = new double[eBins.length];
+        double[] p1fiterror_top = new double[eBins.length];
+        double[] binEnergies = {375, 425, 475, 525, 575, 625, 675, 725, 775};
+
+        // loop over detector halves
         for (String half : halves) {
             IPlotter profilePlotter = analysisFactory.createPlotterFactory().create(half + " profile plots");
             profilePlotter.createRegions(3, 3);
             IPlotter scatterPlotter = analysisFactory.createPlotterFactory().create(half + " scatter plots");
             scatterPlotter.createRegions(3, 3);
 
-            //0.65 Track thetaX vs ThetaY 
+            //loop over interesting energy bins
             for (int j = 0; j < eBins.length; ++j) {
                 IHistogram2D scatter = (IHistogram2D) tree.find("0." + eBins[j] + " " + half + " Track phi vs dTheta");
                 scatterPlotter.region(j).plot(scatter, scatterPlotStyle);
@@ -110,41 +124,97 @@ public class MollerSvtAlignmentAnalyzer {
                 IProfile1D prof = (IProfile1D) tree.find("0." + eBins[j] + " " + half + " Track phi vs dTheta Profile");
                 if (prof != null) {
                     IFunction line = functionFactory.createFunctionByName("line", "p1");
-
-//                IFitData fitData = fitFactory.createFitData();
-//                fitData.create1DConnection(prof);
-//                fitData.range(0).excludeAll();
-//                fitData.range(0).include(-0.4, 0.4);
-//
-//                IFitResult result = fitter.fit(fitData, line);
-//                bottomPlotter.region(0).plot(result.fittedFunction());
-//
-//                System.out.println("Chi2=" + result.quality());
-                    // now try a data point set
                     IDataPointSet profDataPointSet = dpsf.create("dpsFromProf", prof);
                     //plotter.region(1).plot(profDataPointSet);
-                    // seems to be exactly the same
                     //manually set uncertainties to be the error on the mean (not the rms)
-//                System.out.println(" profile plot has " + prof.axis().bins() + " bins");
                     for (int i = 0; i < prof.axis().bins(); ++i) {
-//            System.out.println("bin "+i+" error "+prof.binError(i)+" rms "+prof.binRms(i));
                         profDataPointSet.point(i).coordinate(1).setErrorPlus(prof.binError(i));
                         profDataPointSet.point(i).coordinate(1).setErrorMinus(prof.binError(i));
                     }
 
-                    IFitData fitData1 = fitFactory.createFitData();
-                    fitData1.create1DConnection(profDataPointSet, 0, 1);
-                    fitData1.range(0).excludeAll();
-                    fitData1.range(0).include(-0.4, 0.4);
+                    IFitData fitData = fitFactory.createFitData();
+                    fitData.create1DConnection(profDataPointSet, 0, 1);
+                    fitData.range(0).excludeAll();
+                    fitData.range(0).include(-0.4, 0.4);
                     profilePlotter.region(j).plot(profDataPointSet, profilePlotStyle);
-                    IFitResult result2 = fitter.fit(fitData1, line);
-                    profilePlotter.region(j).plot(result2.fittedFunction(), functionStyle, "range=\"(-0.4,0.4)\"");
-
+                    IFitResult result = fitter.fit(fitData, line);
+                    profilePlotter.region(j).plot(result.fittedFunction(), functionStyle, "range=\"(-0.4,0.4)\"");
+                    //store the results of the fit...
+                    double[] parameters = result.fittedParameters();
+                    double[] errors = result.errors();
+                    if (half.equals("Top")) {
+                        p0fit_top[j] = parameters[0];
+                        p0fiterror_top[j] = errors[0];
+                        p1fit_top[j] = parameters[1];
+                        p1fiterror_top[j] = errors[1];
+                    } else {
+                        p0fit_bottom[j] = parameters[0];
+                        p0fiterror_bottom[j] = errors[0];
+                        p1fit_bottom[j] = parameters[1];
+                        p1fiterror_bottom[j] = errors[1];
+                    }
                 }
             }
+
             profilePlotter.show();
             scatterPlotter.show();
+
         }
+        // Create a two dimensional IDataPointSet.
+        IDataPointSet topP0dataPointSet = dpsf.create("dataPointSet", "top p0", 2);
+        IDataPointSet topP1dataPointSet = dpsf.create("dataPointSet", "top p1", 2);
+        IDataPointSet bottomP0dataPointSet = dpsf.create("dataPointSet", "bottom p0", 2);
+        IDataPointSet bottomP1dataPointSet = dpsf.create("dataPointSet", "bottom p1", 2);
+
+        IDataPoint dp;
+        for (int jj = 0; jj < binEnergies.length; ++jj) {
+//            System.out.println(binEnergies[jj] + " :");
+//            System.out.println("top p0 " + p0fit_top[jj]);
+//            System.out.println("top p1 " + p1fit_top[jj]);
+//            System.out.println("bottom p0 " + p0fit_bottom[jj]);
+//            System.out.println("bottom p1 " + p1fit_bottom[jj]);
+            topP0dataPointSet.addPoint();
+            dp = topP0dataPointSet.point(jj);
+            dp.coordinate(0).setValue(binEnergies[jj]);
+            dp.coordinate(1).setValue(p0fit_top[jj]);
+            dp.coordinate(1).setErrorPlus(p0fiterror_top[jj]);
+            dp.coordinate(1).setErrorMinus(p0fiterror_top[jj]);
+
+            topP1dataPointSet.addPoint();
+            dp = topP1dataPointSet.point(jj);
+            dp.coordinate(0).setValue(binEnergies[jj]);
+            dp.coordinate(1).setValue(p1fit_top[jj]);
+            dp.coordinate(1).setErrorPlus(p1fiterror_top[jj]);
+            dp.coordinate(1).setErrorMinus(p1fiterror_top[jj]);
+
+            bottomP0dataPointSet.addPoint();
+            dp = bottomP0dataPointSet.point(jj);
+            dp.coordinate(0).setValue(binEnergies[jj]);
+            dp.coordinate(1).setValue(p0fit_bottom[jj]);
+            dp.coordinate(1).setErrorPlus(p0fiterror_bottom[jj]);
+            dp.coordinate(1).setErrorMinus(p0fiterror_bottom[jj]);
+
+            bottomP1dataPointSet.addPoint();
+            dp = bottomP1dataPointSet.point(jj);
+            dp.coordinate(0).setValue(binEnergies[jj]);
+            dp.coordinate(1).setValue(p1fit_bottom[jj]);
+            dp.coordinate(1).setErrorPlus(p1fiterror_bottom[jj]);
+            dp.coordinate(1).setErrorMinus(p1fiterror_bottom[jj]);
+        }
+
+        IPlotter plotter = analysisFactory.createPlotterFactory().create("parameter fits");
+        plotter.createRegions(2, 2);
+        plotter.region(0).plot(topP0dataPointSet);
+        plotter.region(1).plot(topP1dataPointSet);
+        plotter.region(2).plot(bottomP0dataPointSet);
+        plotter.region(3).plot(bottomP1dataPointSet);
+        plotter.show();
+
+        IFunction line = functionFactory.createFunctionByName("line", "p1");
+
+        IFitResult result = fitter.fit(topP0dataPointSet, line);
+        plotter.region(0).plot(result.fittedFunction());
+
     }
 
     private static final List<String> getTreeFiles(ITree tree) {

@@ -249,7 +249,7 @@ public class MollerSvtAlignmentDriver extends Driver {
         double theta1y = Math.asin(p1rot.y() / p1rot.magnitude());
 
         double theta2x = Math.asin(p2rot.x() / p2rot.magnitude());
-        double theta2y = Math.sin(p2rot.y() / p2rot.magnitude());
+        double theta2y = Math.asin(p2rot.y() / p2rot.magnitude());
 
         aida.histogram1D("Track thetaY " + t1L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta1y);
         aida.histogram1D("Track thetaY " + t2L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta2y);
