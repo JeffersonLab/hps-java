@@ -251,8 +251,12 @@ public class MollerSvtAlignmentDriver extends Driver {
         double theta2x = Math.asin(p2rot.x() / p2rot.magnitude());
         double theta2y = Math.asin(p2rot.y() / p2rot.magnitude());
 
-        aida.histogram1D("Track thetaY " + t1L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta1y);
-        aida.histogram1D("Track thetaY " + t2L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta2y);
+        if (t1L1AxialNstrips < 3) {
+            aida.histogram1D("Track thetaY " + t1L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta1y);
+        }
+        if (t2L1AxialNstrips < 3) {
+            aida.histogram1D("Track thetaY " + t2L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta2y);
+        }
 
         double mollerTrackTheta1 = acos(1 - 0.511e-3 * (1 / p1 - 1 / _beamEnergy));
         double mollerTrackTheta2 = acos(1 - 0.511e-3 * (1 / p2 - 1 / _beamEnergy));
@@ -278,7 +282,9 @@ public class MollerSvtAlignmentDriver extends Driver {
                     aida.histogram1D(binLabel + " Top Track theta ", 100, 0.015, thetaMax).fill(theta1);
                     aida.histogram2D(binLabel + " Top Track phi vs dTheta", 100, -1., 1., 100, -0.01, 0.01).fill(phi1, dTheta);
                     aida.profile1D(binLabel + " Top Track phi vs dTheta Profile", 100, -1., 1.).fill(phi1, dTheta);
-                    aida.profile1D(binLabel + " Top Track phi vs dTheta Profile " + t1L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi1, dTheta);
+                    if (t1L1AxialNstrips < 3) {
+                        aida.profile1D(binLabel + " Top Track phi vs dTheta Profile " + t1L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi1, dTheta);
+                    }
                 } else {
                     aida.histogram1D("Bottom Track Momentum", 100, 0.25, 1.75).fill(p1);
                     //aida.histogram2D(binLabel + "Bottom Track thetaX vs ThetaY " + t1Nhits + " hits", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta1x, theta1y);
@@ -287,7 +293,9 @@ public class MollerSvtAlignmentDriver extends Driver {
                     aida.histogram1D(binLabel + " Bottom Track theta ", 100, 0.015, thetaMax).fill(theta1);
                     aida.histogram2D(binLabel + " Bottom Track phi vs dTheta", 100, -1., 1., 100, -0.01, 0.01).fill(phi1, dTheta);
                     aida.profile1D(binLabel + " Bottom Track phi vs dTheta Profile", 100, -1., 1.).fill(phi1, dTheta);
-                    aida.profile1D(binLabel + " Bottom Track phi vs dTheta Profile " + t1L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi1, dTheta);
+                    if (t1L1AxialNstrips < 3) {
+                        aida.profile1D(binLabel + " Bottom Track phi vs dTheta Profile " + t1L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi1, dTheta);
+                    }
                 }
             }
             if (abs(p2 - pBin) < dP / 2.) {
@@ -300,7 +308,9 @@ public class MollerSvtAlignmentDriver extends Driver {
                     aida.histogram1D(binLabel + " Top Track theta ", 100, 0.015, thetaMax).fill(theta2);
                     aida.histogram2D(binLabel + " Top Track phi vs dTheta", 100, -1., 1., 100, -0.01, 0.01).fill(phi2, dTheta);
                     aida.profile1D(binLabel + " Top Track phi vs dTheta Profile", 100, -1., 1.).fill(phi2, dTheta);
-                    aida.profile1D(binLabel + " Top Track phi vs dTheta Profile " + t2L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi2, dTheta);
+                    if (t2L1AxialNstrips < 3) {
+                        aida.profile1D(binLabel + " Top Track phi vs dTheta Profile " + t2L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi2, dTheta);
+                    }
                 } else {
                     aida.histogram1D("Bottom Track Momentum", 100, 0.25, 1.75).fill(p2);
                     //aida.histogram2D(binLabel + "Bottom Track thetaX vs ThetaY " + t2Nhits + " hits", 100, -thetaMax, thetaMax, 100, -thetaMax, thetaMax).fill(theta2x, theta2y);
@@ -309,7 +319,9 @@ public class MollerSvtAlignmentDriver extends Driver {
                     aida.histogram1D(binLabel + " Bottom Track theta ", 100, 0.015, thetaMax).fill(theta2);
                     aida.histogram2D(binLabel + " Bottom Track phi vs dTheta", 100, -1., 1., 100, -0.01, 0.01).fill(phi2, dTheta);
                     aida.profile1D(binLabel + " Bottom Track phi vs dTheta Profile", 100, -1., 1.).fill(phi2, dTheta);
-                    aida.profile1D(binLabel + " Bottom Track phi vs dTheta Profile " + t2L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi2, dTheta);
+                    if (t2L1AxialNstrips < 3) {
+                        aida.profile1D(binLabel + " Bottom Track phi vs dTheta Profile " + t2L1AxialNstrips + " L1 axial strips", 100, -1., 1.).fill(phi2, dTheta);
+                    }
                 }
             }
         }
