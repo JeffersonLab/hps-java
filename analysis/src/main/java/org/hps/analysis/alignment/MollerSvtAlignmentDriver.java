@@ -197,6 +197,20 @@ public class MollerSvtAlignmentDriver extends Driver {
         int t1L1StereoNstrips = 0;
         int t2L1AxialNstrips = 0;
         int t2L1StereoNstrips = 0;
+        int t1L2AxialNstrips = 0;
+        int t1L2StereoNstrips = 0;
+        int t2L2AxialNstrips = 0;
+        int t2L2StereoNstrips = 0;
+
+        int t1L1AxialStripNumber = 0;
+        int t1L1StereoStripNumber = 0;
+        int t1L2AxialStripNumber = 0;
+        int t1L2StereoStripNumber = 0;
+
+        int t2L1AxialStripNumber = 0;
+        int t2L1StereoStripNumber = 0;
+        int t2L2AxialStripNumber = 0;
+        int t2L2StereoStripNumber = 0;
 
         for (TrackerHit hit : TrackUtils.getStripHits(t1, hitToStrips, hitToRotated)) {
             List rthList = hit.getRawHits();
@@ -204,12 +218,40 @@ public class MollerSvtAlignmentDriver extends Driver {
             if (moduleName.contains("module_L1")) {
                 if (moduleName.contains("axial")) {
                     t1L1AxialNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t1L1AxialStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 0., 100.).fill(t1L1AxialStripNumber);
+                    }
                 }
                 if (moduleName.contains("stereo")) {
                     t1L1StereoNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t1L1StereoStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 540., 640.).fill(t1L1StereoStripNumber);
+                    }
                 }
             }
-//            System.out.println(hit);
+            if (moduleName.contains("module_L2")) {
+                if (moduleName.contains("axial")) {
+                    t1L2AxialNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t1L2AxialStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 0., 100.).fill(t1L2AxialStripNumber);
+                    }
+                }
+                if (moduleName.contains("stereo")) {
+                    t1L2StereoNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t1L2StereoStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 540., 640.).fill(t1L2StereoStripNumber);
+                    }
+                }
+            }
+
 //            for (Object o : hit.getRawHits()) {
 //                RawTrackerHit rth = (RawTrackerHit) o;
 //                System.out.printf("name=%s\tside=%d\tstrip=%d\n", rth.getDetectorElement().getName(),
@@ -223,9 +265,37 @@ public class MollerSvtAlignmentDriver extends Driver {
             if (moduleName.contains("module_L1")) {
                 if (moduleName.contains("axial")) {
                     t2L1AxialNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t2L1AxialStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 0., 100.).fill(t2L1AxialStripNumber);
+                    }
                 }
                 if (moduleName.contains("stereo")) {
                     t2L1StereoNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t2L1StereoStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 540., 640.).fill(t2L1StereoStripNumber);
+                    }
+                }
+            }
+            if (moduleName.contains("module_L2")) {
+                if (moduleName.contains("axial")) {
+                    t2L2AxialNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t2L2AxialStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 0., 100.).fill(t2L2AxialStripNumber);
+                    }
+                }
+                if (moduleName.contains("stereo")) {
+                    t2L2StereoNstrips = rthList.size();
+                    if (rthList.size() == 1) // look at single strip clusters
+                    {
+                        t2L2StereoStripNumber = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("strip");
+                        aida.histogram1D(moduleName + "single strip cluster strip number", 100, 540., 640.).fill(t2L2StereoStripNumber);
+                    }
                 }
             }
         }
@@ -256,6 +326,43 @@ public class MollerSvtAlignmentDriver extends Driver {
         }
         if (t2L1AxialNstrips < 3) {
             aida.histogram1D("Track thetaY " + t2L1AxialNstrips + " L1 axial strips", 1000, -0.06, 0.06).fill(theta2y);
+        }
+
+        if (t1L1AxialNstrips < 3 && t1L2AxialNstrips < 3) {
+            aida.histogram1D("Track thetaY " + t1L1AxialNstrips + " L1 " + t1L2AxialNstrips + " L2 axial strips", 1000, -0.06, 0.06).fill(theta1y);
+        }
+
+        if (t2L1AxialNstrips < 3 && t2L2AxialNstrips < 3) {
+            aida.histogram1D("Track thetaY " + t2L1AxialNstrips + " L1 " + t2L2AxialNstrips + " L2 axial strips", 1000, -0.06, 0.06).fill(theta2y);
+        }
+
+        // look for correlations
+        if (t1L1AxialNstrips == 1 && t1L2AxialNstrips == 1) {
+            aida.histogram2D("Track L1 axial strip number vs Track thetaY", 50, 0., 50., 500, 0.016, 0.046).fill(t1L1AxialStripNumber, theta1y);
+            if (t1L1AxialStripNumber < 20) // inspect the first few strips more closely...
+            {
+                if (theta1y > 0) {
+                    aida.histogram1D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(theta1y);
+                    aida.histogram2D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, -0.025, 0.025, 100, 0.018, 0.03).fill(theta1x, theta1y);
+                } else {
+                    aida.histogram1D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(-theta1y);
+                    aida.histogram2D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, -0.025, 0.025, 100, 0.018, 0.03).fill(theta1x, -theta1y);
+                }
+            }
+        }
+
+        if (t2L1AxialNstrips == 1 && t2L2AxialNstrips == 1) {
+            aida.histogram2D("Track L1 axial strip number vs Track thetaY", 50, 0., 50., 500, 0.016, 0.046).fill(t2L1AxialStripNumber, theta2y);
+            if (t2L1AxialStripNumber < 20) // inspect the first few strips more closely...
+            {
+                if (theta2y > 0) {
+                    aida.histogram1D("Top Track L1 axial strip number " + t2L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(theta2y);
+                    aida.histogram2D("Top Track L1 axial strip number " + t2L1AxialStripNumber + " thetaX vs thetaY", 100, -0.025, 0.025, 100, 0.018, 0.03).fill(theta2x, theta2y);
+                } else {
+                    aida.histogram1D("Bottom Track L1 axial strip number " + t2L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(-theta2y);
+                    aida.histogram2D("Bottom Track L1 axial strip number " + t2L1AxialStripNumber + " thetaX vs thetaY", 100, -0.025, 0.025, 100, 0.018, 0.03).fill(theta2x, -theta2y);
+                }
+            }
         }
 
         double mollerTrackTheta1 = acos(1 - 0.511e-3 * (1 / p1 - 1 / _beamEnergy));

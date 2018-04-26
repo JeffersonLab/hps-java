@@ -29,8 +29,8 @@ public class MollerSvtAlignmentAnalyzer {
 
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         // Define the root directory for the plots.
-        boolean showPlots = false;
-        boolean writePlots = true;
+        boolean showPlots = true;
+        boolean writePlots = false;
         String fileType = "png"; // pdf, eps ps svg emf swf
         String rootDir = null;
         String plotFile = "D:/work/hps/analysis/mollerAlignment/2015_MollerSkim_pass8_PC.aida";
@@ -40,6 +40,8 @@ public class MollerSvtAlignmentAnalyzer {
         }
         if(args.length>1)
         {
+            showPlots = false;
+            writePlots = true;
             fileType = args[1];
         }
         // Get the plots file and open it.
