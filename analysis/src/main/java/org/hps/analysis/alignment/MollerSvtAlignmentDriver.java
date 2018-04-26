@@ -343,7 +343,7 @@ public class MollerSvtAlignmentDriver extends Driver {
             } else {
                 aida.histogram2D("Bottom Track L1 axial strip number vs Track thetaY", 50, 0., 50., 500, 0.016, 0.046).fill(t1L1AxialStripNumber, -theta1y);
             }
-            if (t1L1AxialStripNumber < 20) // inspect the first few strips more closely...
+            if (t1L1AxialStripNumber>1 && t1L1AxialStripNumber < 20) // inspect the first few strips more closely...
             {
                 if (theta1y > 0) {
                     aida.histogram1D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(theta1y);
@@ -362,7 +362,7 @@ public class MollerSvtAlignmentDriver extends Driver {
                 aida.histogram2D("Bottom Track L1 axial strip number vs Track thetaY", 50, 0., 50., 500, 0.016, 0.046).fill(t2L1AxialStripNumber, -theta2y);
 
             }
-            if (t2L1AxialStripNumber < 20) // inspect the first few strips more closely...
+            if (t2L1AxialStripNumber>1 && t2L1AxialStripNumber < 20) // inspect the first few strips more closely...
             {
                 if (theta2y > 0) {
                     aida.histogram1D("Top Track L1 axial strip number " + t2L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(theta2y);
