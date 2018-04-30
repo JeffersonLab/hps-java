@@ -57,6 +57,9 @@ public class FeeSvtAlignmentDriver extends Driver {
     double ctMin = 40.;
     double ctMax = 49.;
 
+    double thetaXmin = -0.024;
+    double thetaXmax = 0.024;
+
     RelationalTable hitToStrips;
     RelationalTable hitToRotated;
 
@@ -72,6 +75,8 @@ public class FeeSvtAlignmentDriver extends Driver {
             clusterCut = 1.6;
             ctMin = 55.;
             ctMax = 61.;
+            thetaXmin = 0.09;
+            thetaXmax = 0.15;
         }
         // only keep singles triggers:
         if (!event.hasCollection(GenericObject.class, "TriggerBank")) {
@@ -178,7 +183,9 @@ public class FeeSvtAlignmentDriver extends Driver {
                         aida.histogram1D("Fee bottom 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                     }
                 }
-                if(nHits==6) alignit(rp);
+                if (nHits == 6) {
+                    alignit(rp);
+                }
             }// end of cluster cuts
         }
     }
@@ -282,11 +289,15 @@ public class FeeSvtAlignmentDriver extends Driver {
             if (t1L1AxialStripNumber > 1 && t1L1AxialStripNumber < 50) // inspect the first few strips more closely...
             {
                 if (theta1y > 0) {
-                    aida.histogram1D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(theta1y);
-                    aida.histogram2D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, -0.025, 0.025, 100, 0.018, 0.03).fill(theta1x, theta1y);
+                    aida.histogram2D("Top Track thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, theta1y);
+                    aida.histogram1D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 400, 0.018, 0.058).fill(theta1y);
+                    aida.cloud1D("Top Track thetaX").fill(theta1x);
+                    aida.histogram2D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, theta1y);
                 } else {
-                    aida.histogram1D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 100, 0.018, 0.03).fill(-theta1y);
-                    aida.histogram2D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, -0.025, 0.025, 100, 0.018, 0.03).fill(theta1x, -theta1y);
+                    aida.histogram2D("Bottom Track thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, -theta1y);
+                    aida.histogram1D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 400, 0.018, 0.058).fill(-theta1y);
+                    aida.cloud1D("Bottom Track thetaX").fill(theta1x);
+                    aida.histogram2D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, -theta1y);
                 }
             }
         }
