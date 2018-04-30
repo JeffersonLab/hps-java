@@ -46,10 +46,10 @@ public class FeeSvtAlignmentDriver extends Driver {
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 
     //Set min seed energy value, default to 2015 run 
-    private double seedCut = 0.4; //= 0.4
+    private double seedCut = 0.0; //= 0.4
 
     //set min cluster energy value, default to 2015 run
-    private double clusterCut = 0.6;
+    private double clusterCut = 0.2;
 
     //minimum number of hits per cluster
     private int minHits = 3;
@@ -71,8 +71,8 @@ public class FeeSvtAlignmentDriver extends Driver {
         // modify for 2016 run
         if (event.getRunNumber() > 7000) {
             _beamEnergy = 2.306;
-            seedCut = 1.2;
-            clusterCut = 1.6;
+            seedCut = 0.;
+            clusterCut = 0.2;
             ctMin = 55.;
             ctMax = 61.;
             thetaXmin = 0.09;
@@ -93,17 +93,17 @@ public class FeeSvtAlignmentDriver extends Driver {
                 break;
             }
         }
-        if (!isSingles) {
-            return;
-        }
+//        if (!isSingles) {
+//            return;
+//        }
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
         }
         // only keep events with one and only one cluster
-        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
-        if (ecalClusters.size() != 1) {
-            return;
-        }
+//        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+//        if (ecalClusters.size() != 1) {
+//            return;
+//        }
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
         setupSensors(event);
         hitToStrips = TrackUtils.getHitToStripsTable(event);
@@ -282,23 +282,30 @@ public class FeeSvtAlignmentDriver extends Driver {
         // look for correlations
         if (t1L1AxialNstrips == 1 && t1L2AxialNstrips == 1) {
             if (theta1y > 0) {
-                aida.histogram2D("Top Track L1 axial strip number vs Track thetaY", 50, 0., 50., 500, 0.016, 0.046).fill(t1L1AxialStripNumber, theta1y);
+                aida.histogram2D("Top Track L1 axial strip number vs Track thetaY", 100, 0., 100., 500, 0.015, 0.055).fill(t1L1AxialStripNumber, theta1y);
             } else {
-                aida.histogram2D("Bottom Track L1 axial strip number vs Track thetaY", 50, 0., 50., 500, 0.016, 0.046).fill(t1L1AxialStripNumber, -theta1y);
+                aida.histogram2D("Bottom Track L1 axial strip number vs Track thetaY", 100, 0., 100., 500, 0.015, 0.055).fill(t1L1AxialStripNumber, -theta1y);
             }
-            if (t1L1AxialStripNumber > 1 && t1L1AxialStripNumber < 50) // inspect the first few strips more closely...
+            if (t1L1AxialStripNumber > 1 && t1L1AxialStripNumber < 100) // inspect the first few strips more closely...
             {
                 if (theta1y > 0) {
-                    aida.histogram2D("Top Track thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, theta1y);
-                    aida.histogram1D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 400, 0.018, 0.058).fill(theta1y);
+                    aida.histogram2D("Top Track thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, theta1y);
+                    aida.histogram1D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 400, 0.015, 0.055).fill(theta1y);
                     aida.cloud1D("Top Track thetaX").fill(theta1x);
-                    aida.histogram2D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, theta1y);
+                    aida.histogram2D("Top Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, theta1y);
                 } else {
-                    aida.histogram2D("Bottom Track thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, -theta1y);
-                    aida.histogram1D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 400, 0.018, 0.058).fill(-theta1y);
+                    aida.histogram2D("Bottom Track thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, -theta1y);
+                    aida.histogram1D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaY", 400, 0.015, 0.055).fill(-theta1y);
                     aida.cloud1D("Bottom Track thetaX").fill(theta1x);
-                    aida.histogram2D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.018, 0.058).fill(theta1x, -theta1y);
+                    aida.histogram2D("Bottom Track L1 axial strip number " + t1L1AxialStripNumber + " thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, -theta1y);
                 }
+            }
+        }
+        if (t1L1AxialNstrips == 2 && t1L2AxialNstrips == 2) { // should give the bext positin resolution
+            if (theta1y > 0) {
+                aida.histogram2D("Top Track 2 L1 2 L2 thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, theta1y);
+            } else {
+                aida.histogram2D("Bottom Track 2 L1 2 L2 thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, -theta1y);
             }
         }
 
