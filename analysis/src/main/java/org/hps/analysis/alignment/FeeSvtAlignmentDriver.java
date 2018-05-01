@@ -301,7 +301,14 @@ public class FeeSvtAlignmentDriver extends Driver {
                 }
             }
         }
-        if (t1L1AxialNstrips == 2 && t1L2AxialNstrips == 2) { // should give the bext positin resolution
+        if (t1L1AxialNstrips == 1 && t1L2AxialNstrips == 2) { // should give the bext position resolution for layer 2 wrt 1
+            if (theta1y > 0) {
+                aida.histogram2D("Top Track 1 L1 2 L2 thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, theta1y);
+            } else {
+                aida.histogram2D("Bottom Track 1 L1 2 L2 thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, -theta1y);
+            }
+        }
+        if (t1L1AxialNstrips == 2 && t1L2AxialNstrips == 2) { // should give the bext position resolution but no structure
             if (theta1y > 0) {
                 aida.histogram2D("Top Track 2 L1 2 L2 thetaX vs thetaY", 100, thetaXmin, thetaXmax, 400, 0.015, 0.055).fill(theta1x, theta1y);
             } else {
