@@ -57,8 +57,8 @@ public class FeeSvtAlignmentDriver extends Driver {
     double ctMin = 40.;
     double ctMax = 49.;
 
-    double thetaXmin = -0.024;
-    double thetaXmax = 0.024;
+    double thetaXmin = -0.05;
+    double thetaXmax = 0.05;
 
     RelationalTable hitToStrips;
     RelationalTable hitToRotated;
