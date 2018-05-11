@@ -33,6 +33,7 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
@@ -40,6 +41,7 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -97,6 +99,11 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
 
     protected void process(EventHeader event) {
 
+        // only keep events with one and only one cluster
+        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+        if (ecalClusters.size() != 1) {
+            return;
+        }
         uLocal.clear();
         uSigLocal.clear();
 
@@ -116,6 +123,10 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
         Map<Integer, double[]> globalPos = new ConcurrentSkipListMap<Integer, double[]>();
         Map<Integer, double[]> localPos = new ConcurrentSkipListMap<Integer, double[]>();
 
+        Map<Integer, Hep3Vector> sensorOrigins = new ConcurrentSkipListMap<Integer, Hep3Vector>();
+        Map<Integer, Hep3Vector> sensorNormals = new ConcurrentSkipListMap<Integer, Hep3Vector>();
+        Map<Integer, String> sensorNames = new ConcurrentSkipListMap<Integer, String>();
+
         for (TrackerHit hit : stripClusters) {
 
             List rthList = hit.getRawHits();
@@ -126,6 +137,8 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
             List<FittedRawTrackerHit> cluster = new ArrayList<FittedRawTrackerHit>();
             ITransform3D local_to_global = null;
             ITransform3D global_to_local = null;
+            Hep3Vector sensorOrigin;
+            Hep3Vector sensorNormal;
             for (int i = 0; i < size; ++i) {
                 RawTrackerHit rth = ((RawTrackerHit) rthList.get(i));
                 IIdentifier id = rth.getIdentifier();
@@ -179,6 +192,15 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
             uLocal.put(layer, weightedPos.x());
             uSigLocal.put(layer, 1. / (measured_resolution * measured_resolution));
             SiTrackerHitStrip1D stripHit = new SiTrackerHitStrip1D(hit);
+            //
+            sensorOrigin = getOrigin(stripHit);
+            sensorNormal = getNormal(stripHit);
+
+            sensorOrigins.put(layer, sensorOrigin);
+            sensorNormals.put(layer, sensorNormal);
+            sensorNames.put(layer, moduleName);
+
+            //
             Hep3Vector uMeas = stripHit.getMeasuredCoordinate();
             Hep3Vector vMeas = stripHit.getUnmeasuredCoordinate();
             Hep3Vector pos = stripHit.getPositionAsVector();
@@ -253,12 +275,28 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
             }
         }
 
-//        if (isTop) {
-//            for (int i = 1; i < 13; ++i) {
-//                System.out.println("global " + Arrays.toString(globalPos.get(i)));
-//                System.out.println("local " + Arrays.toString(localPos.get(i)));
-//            }
-//        }
+        if (isTop) {
+            //try something here...
+            // connect beamspot at HARP scan wire and cluster centroid and predict track intercepts with sensors.
+            // this should get the y position for axial layers fairly well
+            // wire is nominally at (0.,0.,-2337.1810);
+            //
+            Cluster c = ecalClusters.get(0);
+            double[] ecalClusterPos = c.getPosition();
+            Hep3Vector line = new BasicHep3Vector(ecalClusterPos[0], ecalClusterPos[1], ecalClusterPos[2] + 2337.1810);
+            Hep3Vector IP = new BasicHep3Vector(0., 0., -2337.1810);
+            for (int i = 1; i < 13; ++i) {
+                System.out.println(" layer " + i + " " + sensorNames.get(i));
+                System.out.println("global " + Arrays.toString(globalPos.get(i)));
+                System.out.println("local " + Arrays.toString(localPos.get(i)));
+                System.out.println("sensor origin " + sensorOrigins.get(i));
+                System.out.println("sensor normal " + sensorNormals.get(i));
+                Hep3Vector xcept = getLinePlaneIntercept(line, IP, sensorOrigins.get(i), sensorNormals.get(i));
+                System.out.println("intercept " + xcept);
+                System.out.println(" ");
+            }
+
+        }
 
         if (printEvent) {
             if (uLocal.size() == 12) {
@@ -328,6 +366,37 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
             }*/
         }
         return VecOp.mult(1 / total_weight, position);
+    }
+
+    static Hep3Vector getOrigin(SiTrackerHitStrip1D stripCluster) {
+        SiTrackerHitStrip1D local = stripCluster.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+        ITransform3D trans = local.getLocalToGlobal();
+        return trans.transformed(new BasicHep3Vector(0, 0, 0));
+    }
+
+    static Hep3Vector getNormal(SiTrackerHitStrip1D s2) {
+        Hep3Vector u2 = s2.getMeasuredCoordinate();
+        Hep3Vector v2 = s2.getUnmeasuredCoordinate();
+        return VecOp.cross(u2, v2);
+    }
+
+    /**
+     * Finds point of intercept between a generic straight line and a plane.
+     *
+     * @param l - vector pointing along the line
+     * @param l0 - point on the line
+     * @param p0 - point on the plane
+     * @param n - normal vector of the plane.
+     * @return point of intercept.
+     */
+    private static Hep3Vector getLinePlaneIntercept(Hep3Vector l, Hep3Vector l0, Hep3Vector p0, Hep3Vector n) {
+        if (VecOp.dot(l, n) == 0) {
+            throw new RuntimeException("This line and plane are parallel!");
+        }
+        final double d = VecOp.dot(VecOp.sub(p0, l0), n) / VecOp.dot(l, n);
+        Hep3Vector p = VecOp.add(VecOp.mult(d, l), l0);
+        return p;
+
     }
 
 }
