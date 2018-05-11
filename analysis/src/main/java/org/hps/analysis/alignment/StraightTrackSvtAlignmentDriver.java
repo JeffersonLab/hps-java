@@ -3,11 +3,18 @@ package org.hps.analysis.alignment;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
+import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
+import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
+import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.hps.recon.tracking.DefaultSiliconResolutionModel;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.SiliconResolutionModel;
@@ -17,7 +24,6 @@ import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IRotation3D;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.ITranslation3D;
-import org.lcsim.detector.RotationGeant;
 import org.lcsim.detector.RotationPassiveXYZ;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
@@ -32,6 +38,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -43,6 +50,9 @@ import org.lcsim.util.aida.AIDA;
 public class StraightTrackSvtAlignmentDriver extends Driver {
 
     boolean debug = false;
+    boolean printGeometry = false;
+    boolean printEvent = false;
+    boolean isTop = false;
     private AIDA aida = AIDA.defaultInstance();
 
     RelationalTable hitToStrips;
@@ -56,7 +66,40 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
     private double _fourClusterErr = 1 / 2.;
     private double _fiveClusterErr = 1;
 
+    // let's store some geometry here...
+    Map<String, double[]> sensorAngles = new ConcurrentSkipListMap<String, double[]>();
+    Map<String, double[]> sensorShifts = new ConcurrentSkipListMap<String, double[]>();
+    Map<String, IRotation3D> sensorRotations = new ConcurrentSkipListMap<String, IRotation3D>();
+    Map<String, ITranslation3D> sensorTranslations = new ConcurrentSkipListMap<String, ITranslation3D>();
+
+    Map<Integer, Double> uLocal = new ConcurrentSkipListMap<Integer, Double>();
+    Map<Integer, Double> uSigLocal = new ConcurrentSkipListMap<Integer, Double>();
+
+    Formatter topEvents;
+    Formatter bottomEvents;
+
+    @Override
+    protected void detectorChanged(Detector detector) {
+
+        try {
+            topEvents = new Formatter("topEvents.txt");
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.err.println("Error opening topEvents.txt");
+        }
+
+        try {
+            bottomEvents = new Formatter("bottomEvents.txt");
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.err.println("Error opening bottomEvents.txt");
+        }
+
+    }
+
     protected void process(EventHeader event) {
+
+        uLocal.clear();
+        uSigLocal.clear();
+
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
@@ -69,6 +112,9 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
         for (LCRelation fittedHit : fittedHits) {
             fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
         }
+
+        Map<Integer, double[]> globalPos = new ConcurrentSkipListMap<Integer, double[]>();
+        Map<Integer, double[]> localPos = new ConcurrentSkipListMap<Integer, double[]>();
 
         for (TrackerHit hit : stripClusters) {
 
@@ -91,16 +137,20 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
                 SiSensorElectrodes electrodes = ((SiSensor) rth.getDetectorElement()).getReadoutElectrodes(carrier);
                 sense_pitch = sensor.getSenseElectrodes(electrodes.getChargeCarrier()).getPitch(0);
                 Hep3Vector stripPosition = ((SiStrips) electrodes).getStripCenter(_sid_helper.getElectrodeValue(id));
-                System.out.println("sensor " + sensor + " sense pitch " + sense_pitch);
                 double stripAmp = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rth));
-                System.out.println("strip amplitude: " + stripAmp);
-                System.out.println("strip position " + stripPosition);
                 signals.add(stripAmp);
                 positions.add(stripPosition);
+                if (debug) {
+                    System.out.println("sensor " + sensor + " sense pitch " + sense_pitch);
+                    System.out.println("strip amplitude: " + stripAmp);
+                    System.out.println("strip position " + stripPosition);
+                }
             } // loop over strips in cluster
             Hep3Vector weightedPos = weightedAveragePosition(signals, positions);
-            System.out.println(size + " hit cluster weighted average position " + weightedPos);
-            System.out.println("hit cov matrix " + Arrays.toString(hit.getCovMatrix()));
+            if (debug) {
+                System.out.println(size + " hit cluster weighted average position " + weightedPos);
+                System.out.println("hit cov matrix " + Arrays.toString(hit.getCovMatrix()));
+            }
             double measured_resolution;
             switch (size) {
                 case 1:
@@ -119,62 +169,114 @@ public class StraightTrackSvtAlignmentDriver extends Driver {
                     measured_resolution = sense_pitch * _fiveClusterErr;
                     break;
             }
-            System.out.println("measured_resolution " + measured_resolution);
+
             String moduleName = ((RawTrackerHit) rthList.get(0)).getDetectorElement().getName();
-            System.out.println(moduleName);
             int layer = TrackUtils.getLayer(hit);
+            globalPos.put(layer, hit.getPosition());
+            localPos.put(layer, weightedPos.v());
+
+            isTop = moduleName.contains("t_halfmodule") ? true : false;
+            uLocal.put(layer, weightedPos.x());
+            uSigLocal.put(layer, 1. / (measured_resolution * measured_resolution));
             SiTrackerHitStrip1D stripHit = new SiTrackerHitStrip1D(hit);
             Hep3Vector uMeas = stripHit.getMeasuredCoordinate();
             Hep3Vector vMeas = stripHit.getUnmeasuredCoordinate();
             Hep3Vector pos = stripHit.getPositionAsVector();
-            System.out.println("layer: " + layer);
-            System.out.println("u: " + uMeas);
-            System.out.println("v: " + vMeas);
             Hep3Vector calcNormal = VecOp.cross(vMeas, uMeas);
-            System.out.println("calculated normal v x u " + calcNormal);
-
             Hep3Vector transformed_ltg = local_to_global.transformed(weightedPos);
             Hep3Vector transformed_gtl = global_to_local.transformed(pos);
-            System.out.println("weighted pos " + weightedPos);
-            System.out.println("transformed ltg" + transformed_ltg);
-            System.out.println("pos: " + pos);
-            System.out.println("transformed gtl" + transformed_gtl);
-
             IRotation3D gtl_rot = global_to_local.getRotation();
-            System.out.println("gtl_rot " + gtl_rot);
             ITranslation3D gtl_trans = global_to_local.getTranslation();
-            System.out.println("gtl_trans " + gtl_trans);
-
             IRotation3D ltg_rot = local_to_global.getRotation();
-            System.out.println("ltg_rot " + ltg_rot);
             ITranslation3D ltg_trans = local_to_global.getTranslation();
-            System.out.println("ltg_trans " + ltg_trans);
+            Vector3D vX = Vector3D.PLUS_I;
+            Vector3D vY = Vector3D.PLUS_J;
+            //Vector3D vZ = Vector3D.PLUS_K;
 
-            // local to global is wrt to the Geant4 volume!!!!
-            double alpha = 0.; //-PI / 2; // rotation about x
-            double beta = .0305; // rotation about y (beam angle)
-            double gamma = .050; // rotation about z (stereo angle)
-            IRotation3D tstRotPassive = new RotationPassiveXYZ(alpha, beta, gamma);         
-            IRotation3D tstRotGeant = new RotationGeant(alpha, beta, gamma);
-            System.out.println("rotPassive " + tstRotPassive);
-            System.out.println("rotGeant " + tstRotGeant);
-            
-            IRotation3D tstRotPassive123 = new RotationPassiveXYZ(alpha, beta, gamma);         
-            IRotation3D tstRotPassive213 = new RotationPassiveXYZ(beta, alpha, gamma);         
-            IRotation3D tstRotPassive231 = new RotationPassiveXYZ(beta, gamma, alpha);         
-            IRotation3D tstRotPassive321 = new RotationPassiveXYZ(gamma, beta, alpha);
-            IRotation3D tstRotPassive312 = new RotationPassiveXYZ(gamma, alpha, beta);
-            System.out.println(tstRotPassive123);
-            System.out.println(tstRotPassive213);
-            System.out.println(tstRotPassive231);
-            System.out.println(tstRotPassive321);
-            System.out.println(tstRotPassive312);
-            System.out.println(tstRotPassive123);
-            
-            
-            
+            Vector3D vXprime = new Vector3D(uMeas.x(), uMeas.y(), uMeas.z());
+            Vector3D vYprime = new Vector3D(vMeas.x(), vMeas.y(), vMeas.z());
+            // create a rotation matrix from this pair of vectors
+            Rotation xyVecRot = new Rotation(vX, vY, vXprime, vYprime);
+            double[] hpsAngles = xyVecRot.getAngles(RotationOrder.XYZ, RotationConvention.VECTOR_OPERATOR);
+            sensorAngles.put(moduleName, hpsAngles);
+            sensorShifts.put(moduleName, ltg_trans.getTranslationVector().v());
+            sensorRotations.put(moduleName, ltg_rot);
+            sensorTranslations.put(moduleName, ltg_trans);
+
+            if (debug) {
+                System.out.println("measured_resolution " + measured_resolution);
+                System.out.println(moduleName);
+                System.out.println("layer: " + layer);
+                System.out.println("u: " + uMeas);
+                System.out.println("v: " + vMeas);
+                System.out.println("calculated normal v x u " + calcNormal);
+                System.out.println("weighted pos " + weightedPos);
+                System.out.println("transformed ltg" + transformed_ltg);
+                System.out.println("pos: " + pos);
+                System.out.println("transformed gtl" + transformed_gtl);
+                System.out.println("gtl_rot " + gtl_rot);
+                System.out.println("gtl_trans " + gtl_trans);
+                System.out.println("ltg_rot " + ltg_rot);
+                System.out.println("ltg_trans " + ltg_trans);
+//do some testing here...
+                Hep3Vector X = new BasicHep3Vector(1., 0., 0.); // this is local u
+                Hep3Vector Y = new BasicHep3Vector(0., 1., 0.); // this is local v
+                Hep3Vector Z = new BasicHep3Vector(0., 0., 1.); // this is local z
+
+                double[][] xyVecRotMat = xyVecRot.getMatrix();
+                System.out.println("Apache commons rotation:");
+                for (int ii = 0; ii < 3; ++ii) {
+                    System.out.println(xyVecRotMat[ii][0] + " " + xyVecRotMat[ii][1] + " " + xyVecRotMat[ii][2]);
+                }
+                System.out.println("Apache commons angles");
+                System.out.println(Arrays.toString(hpsAngles));
+
+                double alpha = hpsAngles[0];
+                double beta = hpsAngles[1];
+                double gamma = hpsAngles[2];
+                IRotation3D tstRotPassive = new RotationPassiveXYZ(alpha, beta, gamma);
+                // this equals local_to_global
+                System.out.println("rotPassive " + tstRotPassive);
+                IRotation3D tstRotPassiveInv = tstRotPassive.inverse();
+                System.out.println("rotPassiveInv " + tstRotPassiveInv);
+            }
 
         } // loop over strip clusters
+
+        if (printGeometry) {
+            for (String s : sensorAngles.keySet()) {
+                System.out.println("module: " + s);
+                System.out.println("angles " + Arrays.toString(sensorAngles.get(s)));
+                System.out.println("shifts " + Arrays.toString(sensorShifts.get(s)));
+                System.out.println("rotation " + sensorRotations.get(s));
+                System.out.println("translation " + sensorTranslations.get(s));
+            }
+        }
+
+//        if (isTop) {
+//            for (int i = 1; i < 13; ++i) {
+//                System.out.println("global " + Arrays.toString(globalPos.get(i)));
+//                System.out.println("local " + Arrays.toString(localPos.get(i)));
+//            }
+//        }
+
+        if (printEvent) {
+            if (uLocal.size() == 12) {
+
+                Formatter writer = isTop ? topEvents : bottomEvents;
+                for (Map.Entry<Integer, Double> entry : uLocal.entrySet()) {
+                    writer.format("%10.4f", entry.getValue());
+                }
+                for (Map.Entry<Integer, Double> entry : uSigLocal.entrySet()) {
+                    writer.format("%12.4f", entry.getValue());
+                }
+                // filler for now, used for 4 track parameters
+                for (int i = 0; i < 4; ++i) {
+                    writer.format("%10.4f", 0.);
+                }
+                writer.format("%s", "\n");
+            }
+        }
     }
 
     private void setupSensors(EventHeader event) {
