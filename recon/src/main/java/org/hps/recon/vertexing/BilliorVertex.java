@@ -41,6 +41,12 @@ public class BilliorVertex implements Vertex {
     private double _invMassError;
     private boolean storeCovTrkMomList = false;
 
+    private Hep3Vector _v0Momentum;
+    private Hep3Vector _v0MomentumErr;
+
+    private double[] _v0TargetProjectionXY;
+    private double[] _v0TargetProjectionXYErr;
+
     /**
      * Dflt Ctor
      */
@@ -63,7 +69,7 @@ public class BilliorVertex implements Vertex {
         _invMass = invMass;
 
     }
-    
+
     BilliorVertex(Vertex lcioVtx) {
         _chiSq = lcioVtx.getChi2();
         _vertexPosition = lcioVtx.getPosition();
@@ -112,7 +118,7 @@ public class BilliorVertex implements Vertex {
             _covTrkMomList = covList;
 
     }
-    
+
     public void setStoreCovTrkMomList(boolean input) {
         storeCovTrkMomList = input;
     }
@@ -129,6 +135,39 @@ public class BilliorVertex implements Vertex {
      */
     public void setAssociatedParticle(ReconstructedParticle particle) {
         this._particle = particle;
+    }
+
+    public void setVertexTrackParameters(Hep3Vector p1, Hep3Vector p2, double mass) {
+        _invMass = mass;
+        _fittedMomentum.put(0, p1);
+        _fittedMomentum.put(1, p2);
+    }
+
+    public void setPositionError(Hep3Vector err) {
+        _vertexPositionError = err;
+    }
+
+    public void setPosition(Hep3Vector position) {
+        _vertexPosition = position;
+    }
+
+    public void setTrackMomentumCovariances(List<Matrix> pErrs) {
+        _covTrkMomList = pErrs;
+    }
+
+    public void setMassError(double invMassErr) {
+        _invMassError = invMassErr;
+
+    }
+
+    public void setV0Momentum(Hep3Vector mom, Hep3Vector momErr) {
+        _v0Momentum = mom;
+        _v0MomentumErr = momErr;
+    }
+
+    public void setV0TargetXY(double[] xy, double[] xyerr) {
+        _v0TargetProjectionXY = xy;
+        _v0TargetProjectionXYErr = xyerr;
     }
 
     @Override
@@ -182,8 +221,8 @@ public class BilliorVertex implements Vertex {
             pars.put("p2Y", p2Fit.y());
             pars.put("p2Z", p2Fit.z());
         }
-        
-        if (_covTrkMomList != null && storeCovTrkMomList == true) {
+
+        if (_covTrkMomList != null && storeCovTrkMomList == true)
             if (_covTrkMomList.size() >= 2) {
                 SymmetricMatrix covMat = new SymmetricMatrix(_covTrkMomList.get(0));
                 double[] cov = covMat.asPackedArray(true);
@@ -201,32 +240,21 @@ public class BilliorVertex implements Vertex {
                 pars.put("c2-3", cov[3]);
                 pars.put("c2-4", cov[4]);
                 pars.put("c2-5", cov[5]);
+                /* mg 3/5/2018:  added the track1-track2 momentum covariance...added as the third maxtrix
+                                 what if we ever vertex >2 tracks???  Need to have a better way to store these
+                 */
+                if (_covTrkMomList.size() >= 3) {
+                    covMat = new SymmetricMatrix(_covTrkMomList.get(2));
+                    cov = covMat.asPackedArray(true);
+                    pars.put("c12-0", cov[0]);
+                    pars.put("c12-1", cov[1]);
+                    pars.put("c12-2", cov[2]);
+                    pars.put("c12-3", cov[3]);
+                    pars.put("c12-4", cov[4]);
+                    pars.put("c12-5", cov[5]);
+                }
             }
-        }
         return pars;
-    }
-
-    public void setVertexTrackParameters(Hep3Vector p1, Hep3Vector p2, double mass) {
-        _invMass = mass;
-        _fittedMomentum.put(0, p1);
-        _fittedMomentum.put(1, p2);
-    }
-
-    public void setPositionError(Hep3Vector err) {
-        _vertexPositionError = err;
-    }
-
-    public void setPosition(Hep3Vector position) {
-        _vertexPosition = position;
-    }
-
-    public void setTrackMomentumCovariances(List<Matrix> pErrs) {
-        _covTrkMomList = pErrs;
-    }
-
-    public void setMassError(double invMassErr) {
-        _invMassError = invMassErr;
-
     }
 
     public double getInvMass() {
@@ -270,4 +298,21 @@ public class BilliorVertex implements Vertex {
     public ReconstructedParticle getAssociatedParticle() {
         return _particle;
     }
+
+    public Hep3Vector getV0Momentum() {
+        return _v0Momentum;
+    }
+
+    public Hep3Vector getV0MomentumError() {
+        return _v0MomentumErr;
+    }
+
+    public double[] getV0TargetXY() {
+        return _v0TargetProjectionXY;
+    }
+
+    public double[] getV0TargetXYError() {
+        return _v0TargetProjectionXYErr;
+    }
+
 }
