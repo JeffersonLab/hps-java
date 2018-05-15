@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 class Plane { // Description of a 2D plane in 3D space
 

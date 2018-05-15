@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 //State vector (projected, filtered, or smoothed) for the Kalman filter
 class StateVector {
@@ -25,7 +25,8 @@ class StateVector {
     // Constructor for the initial state vector used to start the Kalman filter.
     StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin, boolean verbose) {
         // Here tB is the B field direction, while B is the magnitude
-        if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
+        if (verbose)
+            System.out.format("StateVector: constructing an initial state vector\n");
         this.verbose = verbose;
         a = helixParams.copy();
         X0 = pivot.copy();
@@ -33,7 +34,8 @@ class StateVector {
         this.B = B;
         c = 2.99793e8; // Speed of light in m/s
         alpha = 1.0e12 / (c * B); // Convert from pt in GeV to curvature in mm
-        if (verbose) System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
+        if (verbose)
+            System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
         kLow = site;
         kUp = kLow;
         C = Cov.copy();
@@ -76,7 +78,8 @@ class StateVector {
         q.kUp = kUp;
         q.a = a.copy();
         q.C = C.copy();
-        if (F != null) q.F = F.copy();
+        if (F != null)
+            q.F = F.copy();
         q.X0 = X0.copy();
         q.origin = origin.copy();
         q.mPred = mPred;
@@ -96,7 +99,8 @@ class StateVector {
         a.print("helix parameters");
         helixErrors().print("helix parameter errors");
         C.print("for the helix covariance");
-        if (F != null) F.print("for the propagator");
+        if (F != null)
+            F.print("for the propagator");
         double sigmas;
         if (R > 0.) {
             sigmas = r / Math.sqrt(R);
@@ -263,8 +267,7 @@ class StateVector {
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
         if (verbose) {
-            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp, snS.kLow,
-                                            snS.kUp, snP.kLow, snP.kUp);
+            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp, snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         }
         StateVector sS = this.copy();
 
@@ -396,7 +399,8 @@ class StateVector {
         double Bmag = B.mag();
         double alphaOrigin = 1.0e12 / (c * Bmag);
         Vec tB = B.unitVec(Bmag);
-        if (verbose) System.out.format("    At origin B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
+        if (verbose)
+            System.out.format("    At origin B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec uB = yhat.cross(tB).unitVec();
         Vec vB = tB.cross(uB);

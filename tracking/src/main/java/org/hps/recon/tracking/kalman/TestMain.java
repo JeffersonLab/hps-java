@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 //This is for testing only and is not part of the Kalman fitting code
 public class TestMain {

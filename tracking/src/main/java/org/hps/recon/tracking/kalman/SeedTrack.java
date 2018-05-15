@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,6 +25,10 @@ class SeedTrack {
     private static Plane p0; // x,z plane at y=0
     private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting
 
+    double getAlpha() {
+        return alpha;
+    }
+
     void print(String s) {
         if (success) {
             System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
@@ -42,9 +46,9 @@ class SeedTrack {
     }
 
     SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
-                                    double yOrigin, // New origin along beam to use for the fit
-                                    ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
-                                    boolean verbose // Set true for lots of debug printout
+            double yOrigin, // New origin along beam to use for the fit
+            ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
+            boolean verbose // Set true for lots of debug printout
     ) {
         minDistXZ = 0.25;
         p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));

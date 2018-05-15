@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly arbitrary plane
     // Coordinates: the beam is ~ in the y direction
@@ -139,8 +139,10 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
             // X0.print("internal pivot");
             return xGuess;
         }
-        if (fl == 0.) return x1;
-        if (fh == 0.) return x2;
+        if (fl == 0.)
+            return x1;
+        if (fh == 0.)
+            return x2;
         if (fl < 0.0) {
             xl = x1;
             xh = x2;
@@ -158,13 +160,15 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
                 dxold = dx;
                 dx = 0.5 * (xh - xl); // Use bisection if the Newton-Raphson method is going bonkers
                 rts = xl + dx;
-                if (xl == rts) return rts;
+                if (xl == rts)
+                    return rts;
             } else {
                 dxold = dx;
                 dx = f / df; // Newton-Raphson method
                 temp = rts;
                 rts -= dx;
-                if (temp == rts) return rts;
+                if (temp == rts)
+                    return rts;
             }
             if (Math.abs(dx) < xacc) {
                 // System.out.format("ZeroFind.rtSafe: solution converged in %d iterations.\n",

@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 public class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
     // and a parabola in the bending plane
@@ -59,7 +59,8 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
         A.M[4][2] = A.M[2][4];
         A.M[4][3] = A.M[3][4];
 
-        if (verbose) A.print("of the LinearHelixFit");
+        if (verbose)
+            A.print("of the LinearHelixFit");
 
         // Do the calculation
         C = A.invert();
@@ -84,8 +85,7 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
         C.print("LinearHelixFit2 covariance");
         System.out.format("LinearHelixFit2: i   x       y          z           v       v predicted     residual     sigmas       chi^2=%8.3f\n", chi2);
         for (int i = 0; i < N; i++) {
-            System.out.format("        %d   %10.7f %10.7f %10.7f  %10.7f   %10.7f   %10.7f   %10.7f\n", i, x[i], y[i], z[i], v[i], vpred[i], v[i] - vpred[i],
-                                            (v[i] - vpred[i]) / s[i]);
+            System.out.format("        %d   %10.7f %10.7f %10.7f  %10.7f   %10.7f   %10.7f   %10.7f\n", i, x[i], y[i], z[i], v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
         }
     }
 

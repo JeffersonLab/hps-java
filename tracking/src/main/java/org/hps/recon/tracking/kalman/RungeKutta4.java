@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 // Propagate a charged particle according to the magnetic field map by 4th order Runge Kutta integration.
 public class RungeKutta4 {

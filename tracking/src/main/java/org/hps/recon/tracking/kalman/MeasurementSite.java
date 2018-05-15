@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.util.Comparator;
 
@@ -46,10 +46,14 @@ class MeasurementSite {
         System.out.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
         tB.print("magnetic field direction");
         System.out.format("    chi^2 increment=%12.4e\n", chi2inc);
-        if (predicted) aP.print("predicted");
-        if (filtered) aF.print("filtered");
-        if (smoothed) aS.print("smoothed");
-        if (H != null) H.print("matrix of the transformation from state vector to measurement");
+        if (predicted)
+            aP.print("predicted");
+        if (filtered)
+            aF.print("filtered");
+        if (smoothed)
+            aS.print("smoothed");
+        if (H != null)
+            H.print("matrix of the transformation from state vector to measurement");
         System.out.format("      Detector thickness=%10.7f radiation lengths\n", XL);
         System.out.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
         if (m.Layer < 0) {
@@ -87,7 +91,8 @@ class MeasurementSite {
         int returnFlag = 0;
         double phi = pS.planeIntersect(m.p);
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
-            if (verbose) System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+            if (verbose)
+                System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n", thisSite);
             return -1;
         }
 
@@ -150,7 +155,8 @@ class MeasurementSite {
             int theHit = hitNumber;
             if (theHit < 0 && pickup) {
                 for (int i = 0; i < nHits; i++) {
-                    if (m.hits.get(i).tracks.size() > 0) continue; // Skip used hits
+                    if (m.hits.get(i).tracks.size() > 0)
+                        continue; // Skip used hits
                     double residual = m.hits.get(i).v - aP.mPred;
                     if (Math.abs(residual) < minResid) {
                         theHit = i;
@@ -190,8 +196,7 @@ class MeasurementSite {
                     H2.print("H made using old statevector");
                     aP.C.print("covariance");
                     double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
-                    System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n", aP.R, exRes,
-                                                    m.hits.get(0).sigma);
+                    System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n", aP.R, exRes, m.hits.get(0).sigma);
                 }
 
                 if (aP.R > 0.) {
@@ -206,8 +211,7 @@ class MeasurementSite {
                     chi2inc = 0.;
                 }
                 if (verbose) {
-                    System.out.format("MeasurementSite.makePrediction: chi2 increment=%12.5e, hitID=%d, theHit=%d, mxResid=%12.5e\n", chi2inc, hitID, theHit,
-                                                    cut);
+                    System.out.format("MeasurementSite.makePrediction: chi2 increment=%12.5e, hitID=%d, theHit=%d, mxResid=%12.5e\n", chi2inc, hitID, theHit, cut);
                 }
             }
         }
@@ -244,7 +248,8 @@ class MeasurementSite {
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
-            if (verbose) System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+            if (verbose)
+                System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
             return false;
         }
         aF.mPred = h(aF, phiF);
@@ -255,7 +260,8 @@ class MeasurementSite {
         // H.print("predicted H");
         aF.R = V - H.dot(H.leftMultiply(aF.C));
         if (aF.R < 0) {
-            if (verbose) System.out.format("MeasurementSite.filter: covariance of residual %12.4e is negative\n", aF.R);
+            if (verbose)
+                System.out.format("MeasurementSite.filter: covariance of residual %12.4e is negative\n", aF.R);
             aF.R = V;
         }
 
@@ -301,9 +307,11 @@ class MeasurementSite {
         double chi2incMin = 9999.;
         int theHit = -1;
         for (int hitidx = 0; hitidx < m.hits.size(); hitidx++) {
-            if (hitidx == oldID) continue; // don't add a hit that was just removed
+            if (hitidx == oldID)
+                continue; // don't add a hit that was just removed
             Measurement hit = m.hits.get(hitidx);
-            if (hit.tracks.size() > 0) continue;
+            if (hit.tracks.size() > 0)
+                continue;
             if (firstHit) {
                 double phiS = a.planeIntersect(m.p);
 
@@ -375,7 +383,8 @@ class MeasurementSite {
 
     double h(StateVector pS, double phi) { // Predict the measurement for a helix passing through this plane
         Vec rGlobal = pS.toGlobal(pS.atPhi(phi));
-        if (verbose) rGlobal.print("MeasurementSite.h: global intersection");
+        if (verbose)
+            rGlobal.print("MeasurementSite.h: global intersection");
         Vec rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
         if (verbose) {
             rLocal.print("MeasurementSite.h: local intersection");
@@ -390,7 +399,8 @@ class MeasurementSite {
         double phi = S.planeIntersect(m.p);
 
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
-            if (verbose) System.out.format("MeasurementSite.buildH: no intersection of helix with the plane exists.\n");
+            if (verbose)
+                System.out.format("MeasurementSite.buildH: no intersection of helix with the plane exists.\n");
             return HH;
         }
         if (verbose) {

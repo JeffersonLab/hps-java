@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,12 +15,12 @@ public class KalmanTrackFit2 {
     boolean success;
 
     public KalmanTrackFit2(ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
-                                    int start, // Starting point in the list
-                                    int nIterations, // Number of fit iterations requested
-                                    Vec pivot, // Pivot point for the starting "guess" helix
-                                    Vec helixParams, // 5 helix parameters for the starting "guess" helix
-                                    SquareMatrix C, // Full covariance matrix for the starting "guess" helix
-                                    FieldMap fM, boolean verbose) {
+            int start, // Starting point in the list
+            int nIterations, // Number of fit iterations requested
+            Vec pivot, // Pivot point for the starting "guess" helix
+            Vec helixParams, // 5 helix parameters for the starting "guess" helix
+            SquareMatrix C, // Full covariance matrix for the starting "guess" helix
+            FieldMap fM, boolean verbose) {
 
         success = true;
 
@@ -91,10 +91,10 @@ public class KalmanTrackFit2 {
                     SiModule m = site.m;
                     StateVector aF = site.aF;
                     double phiF = aF.planeIntersect(m.p);
-                    if (Double.isNaN(phiF)) phiF = 0.;
+                    if (Double.isNaN(phiF))
+                        phiF = 0.;
                     double vPred = site.h(aF, phiF);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc,
-                                                    vPred);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                     for (Measurement hit : m.hits) {
                         System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
                     }
@@ -102,7 +102,8 @@ public class KalmanTrackFit2 {
                     cnt++;
                 }
             }
-            if (!success) return;
+            if (!success)
+                return;
             startSite = newSite;
         }
 
@@ -170,10 +171,10 @@ public class KalmanTrackFit2 {
                     SiModule m = site.m;
                     StateVector aF = site.aF;
                     double phiF = aF.planeIntersect(m.p);
-                    if (Double.isNaN(phiF)) phiF = 0.;
+                    if (Double.isNaN(phiF))
+                        phiF = 0.;
                     double vPred = site.h(aF, phiF);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc,
-                                                    vPred);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                     for (Measurement hit : m.hits) {
                         System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
                     }
@@ -210,10 +211,10 @@ public class KalmanTrackFit2 {
                     SiModule m = site.m;
                     StateVector aS = site.aS;
                     double phiS = aS.planeIntersect(m.p);
-                    if (Double.isNaN(phiS)) phiS = 0.;
+                    if (Double.isNaN(phiS))
+                        phiS = 0.;
                     double vPred = site.h(aS, phiS);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc,
-                                                    vPred);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                     for (Measurement hit : m.hits) {
                         System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
                     }

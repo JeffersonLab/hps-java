@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 // This simple parabola fit is no longer used.  See LinearHelixFit instead.
 class ParabolaFit {

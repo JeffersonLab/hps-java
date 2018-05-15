@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,9 +61,11 @@ public class KalTrack {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
             int hitID = site.hitID;
-            if (hitID < 0) continue;
+            if (hitID < 0)
+                continue;
             int idx = 2 * m.Layer;
-            if (m.stereo != 0.) idx++;
+            if (m.stereo != 0.)
+                idx++;
             System.out.format("%d Layer %d, stereo=%6.3f, chi^2 inc.=%10.6f, hit=%d  \n", idx, m.Layer, m.stereo, site.chi2inc, hitID);
         }
         System.out.format("End of printing for KalTrack %s ID %d\n\n", s, ID);
@@ -71,7 +73,8 @@ public class KalTrack {
 
     // Runge Kutta propagation of the helix to the origin
     public double[] originHelix() {
-        if (propagated) return helixAtOrigin.v.clone();
+        if (propagated)
+            return helixAtOrigin.v.clone();
 
         MeasurementSite innerSite = null;
         double minY = 9999.;
@@ -114,7 +117,8 @@ public class KalTrack {
     }
 
     public double[] originX() {
-        if (!propagated) originHelix();
+        if (!propagated)
+            originHelix();
         return originPoint.v.clone();
     }
 
@@ -127,7 +131,8 @@ public class KalTrack {
     }
 
     public double[] originP() {
-        if (!propagated) originHelix();
+        if (!propagated)
+            originHelix();
         return originMomentum.v.clone();
     }
 
@@ -165,7 +170,8 @@ public class KalTrack {
             } else {
                 idx = 0;
             }
-            if (SiteList.get(idx).m == module) return idx;
+            if (SiteList.get(idx).m == module)
+                return idx;
         } while (idx != idm);
         return -1;
     }
@@ -205,7 +211,8 @@ public class KalTrack {
                 chi2f += currentSite.chi2inc;
                 sH = currentSite.aF;
             }
-            if (verbose) System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f);
+            if (verbose)
+                System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f);
 
             double chi2s = 0.;
             MeasurementSite nextSite = null;

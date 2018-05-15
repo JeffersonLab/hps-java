@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 // This simple line fit is no longer used.  See LinearHelixFit instead.
 class LineFit {

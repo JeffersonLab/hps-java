@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.util.Random;
 
@@ -201,7 +201,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         Vec zhat = new Vec(0., 0., 1.);
         Vec uhat = t.cross(zhat).unitVec(); // A unit vector u perpendicular to the helix direction
         Vec vhat = t.cross(uhat);
-        RotMatrix Rp = new RotMatrix(uhat, vhat, t);     
+        RotMatrix Rp = new RotMatrix(uhat, vhat, t);
         // t.print("initial helix direction in Helix.randomScat");
         // Rp.print("rotation matrix in Helix.randomScat");
         double ct = Math.abs(P.T().dot(t));
@@ -256,38 +256,39 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
         return new Helix(H, r, P.X(), fM); // Create the new helix with new origin and pivot point
     }
-/*
-    private SquareMatrix makeF(double[] aP, double[] a, double B) { // For testing purposes only
-        double alpha = 1. / B;
-        double[][] f = new double[5][5];
-        f[0][0] = Math.cos(aP[1] - a[1]);
-        f[0][1] = (a[0] + alpha / a[2]) * Math.sin(aP[1] - a[1]);
-        f[0][2] = (alpha / (a[2] * a[2])) * (1.0 - Math.cos(aP[1] - a[1]));
-        f[0][3] = 0.;
-        f[0][4] = 0.;
-        f[1][0] = -Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
-        f[1][1] = (a[0] + alpha / a[2]) * Math.cos(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
-        f[1][2] = (alpha / (a[2] * a[2])) * Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
-        f[1][3] = 0.;
-        f[1][4] = 0.;
-        f[2][0] = 0.;
-        f[2][1] = 0.;
-        f[2][2] = 1.0;
-        f[2][3] = 0.;
-        f[2][4] = 0.;
-        f[3][0] = (alpha / a[2]) * a[4] * Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
-        f[3][1] = (alpha / a[2]) * a[4] * (1.0 - (a[0] + alpha / a[2]) * Math.cos(aP[1] - a[1]) / (aP[0] + alpha / a[2]));
-        f[3][2] = (alpha / (a[2] * a[2])) * a[4] * (aP[1] - a[1] - (alpha / a[2]) * Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]));
-        f[3][3] = 1.0;
-        f[3][4] = -(alpha / a[2]) * (aP[1] - a[1]);
-        f[4][0] = 0.;
-        f[4][1] = 0.;
-        f[4][2] = 0.;
-        f[4][3] = 0.;
-        f[4][4] = 1.0;
-        return new SquareMatrix(5, f);
-    }
-*/
+
+    /*
+        private SquareMatrix makeF(double[] aP, double[] a, double B) { // For testing purposes only
+            double alpha = 1. / B;
+            double[][] f = new double[5][5];
+            f[0][0] = Math.cos(aP[1] - a[1]);
+            f[0][1] = (a[0] + alpha / a[2]) * Math.sin(aP[1] - a[1]);
+            f[0][2] = (alpha / (a[2] * a[2])) * (1.0 - Math.cos(aP[1] - a[1]));
+            f[0][3] = 0.;
+            f[0][4] = 0.;
+            f[1][0] = -Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
+            f[1][1] = (a[0] + alpha / a[2]) * Math.cos(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
+            f[1][2] = (alpha / (a[2] * a[2])) * Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
+            f[1][3] = 0.;
+            f[1][4] = 0.;
+            f[2][0] = 0.;
+            f[2][1] = 0.;
+            f[2][2] = 1.0;
+            f[2][3] = 0.;
+            f[2][4] = 0.;
+            f[3][0] = (alpha / a[2]) * a[4] * Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]);
+            f[3][1] = (alpha / a[2]) * a[4] * (1.0 - (a[0] + alpha / a[2]) * Math.cos(aP[1] - a[1]) / (aP[0] + alpha / a[2]));
+            f[3][2] = (alpha / (a[2] * a[2])) * a[4] * (aP[1] - a[1] - (alpha / a[2]) * Math.sin(aP[1] - a[1]) / (aP[0] + alpha / a[2]));
+            f[3][3] = 1.0;
+            f[3][4] = -(alpha / a[2]) * (aP[1] - a[1]);
+            f[4][0] = 0.;
+            f[4][1] = 0.;
+            f[4][2] = 0.;
+            f[4][3] = 0.;
+            f[4][4] = 1.0;
+            return new SquareMatrix(5, f);
+        }
+    */
     Vec pivotTransform(Vec pivot) {
         double xC = X0.v[0] + (p.v[0] + alpha / p.v[2]) * Math.cos(p.v[1]); // Center of the helix circle
         double yC = X0.v[1] + (p.v[0] + alpha / p.v[2]) * Math.sin(p.v[1]);
@@ -307,24 +308,24 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
         return new Vec(5, aP);
     }
-/*
-    private double[] pivotTransform(double[] pivot, double[] a, double B) { // For testing purposes only
-        double alpha = 1 / B;
-        double xC = X0.v[0] + (a[0] + alpha / a[2]) * Math.cos(a[1]); // Center of the helix circle
-        double yC = X0.v[1] + (a[0] + alpha / a[2]) * Math.sin(a[1]);
+    /*
+        private double[] pivotTransform(double[] pivot, double[] a, double B) { // For testing purposes only
+            double alpha = 1 / B;
+            double xC = X0.v[0] + (a[0] + alpha / a[2]) * Math.cos(a[1]); // Center of the helix circle
+            double yC = X0.v[1] + (a[0] + alpha / a[2]) * Math.sin(a[1]);
 
-        double[] aP = new double[5];
-        aP[2] = a[2];
-        aP[4] = a[4];
-        if (a[2] > 0) {
-            aP[1] = Math.atan2(yC - pivot[1], xC - pivot[0]);
-        } else {
-            aP[1] = Math.atan2(pivot[1] - yC, pivot[0] - xC);
+            double[] aP = new double[5];
+            aP[2] = a[2];
+            aP[4] = a[4];
+            if (a[2] > 0) {
+                aP[1] = Math.atan2(yC - pivot[1], xC - pivot[0]);
+            } else {
+                aP[1] = Math.atan2(pivot[1] - yC, pivot[0] - xC);
+            }
+            aP[0] = (xC - pivot[0]) * Math.cos(aP[1]) + (yC - pivot[1]) * Math.sin(aP[1]) - alpha / a[2];
+            aP[3] = X0.v[2] - pivot[2] + a[3] - (alpha / a[2]) * (aP[1] - a[1]) * a[4];
+
+            return aP;
         }
-        aP[0] = (xC - pivot[0]) * Math.cos(aP[1]) + (yC - pivot[1]) * Math.sin(aP[1]) - alpha / a[2];
-        aP[3] = X0.v[2] - pivot[2] + a[3] - (alpha / a[2]) * (aP[1] - a[1]) * a[4];
-
-        return aP;
-    }
-*/
+    */
 }

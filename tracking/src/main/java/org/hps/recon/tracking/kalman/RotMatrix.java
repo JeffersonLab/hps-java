@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
     double[][] M = null;
@@ -9,7 +9,7 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
 
     RotMatrix(Vec u, Vec v, Vec t) { // Transforms from global coordinates to frame with 3-D unit vectors u, v, t
         M = new double[3][3];
-        for (int i = 0; i < 3; i++) {  // Simply place the vectors u, v, and t along the successive rows of the matrix
+        for (int i = 0; i < 3; i++) { // Simply place the vectors u, v, and t along the successive rows of the matrix
             M[0][i] = u.v[i];
             M[1][i] = v.v[i];
             M[2][i] = t.v[i];

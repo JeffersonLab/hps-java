@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -55,8 +55,7 @@ public class FieldMap {
                         bY[ix][iy][iz] = dis.readFloat();
                         bZ[ix][iy][iz] = dis.readFloat();
                         if (nEcho < 10) {
-                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz], bX[ix][iy][iz],
-                                                            bY[ix][iy][iz], bZ[ix][iy][iz]);
+                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
                             nEcho++;
                         }
                     }
@@ -107,8 +106,7 @@ public class FieldMap {
                         }
                         scan.nextLine();
                         if (nEcho < 10) {
-                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz], bX[ix][iy][iz],
-                                                            bY[ix][iy][iz], bZ[ix][iy][iz]);
+                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
                             nEcho++;
                         }
                     }
@@ -136,7 +134,8 @@ public class FieldMap {
         }
         if (iX > nX - 2) {
             iX = nX - 2;
-            if (rMag.v[0] > X[nX - 1]) rMag.v[0] = X[nX - 1];
+            if (rMag.v[0] > X[nX - 1])
+                rMag.v[0] = X[nX - 1];
         }
         int iY = (int) Math.floor((rMag.v[1] - Y[0]) / dY);
         if (iY < 0) {
@@ -145,15 +144,18 @@ public class FieldMap {
         }
         if (iY > nY - 2) {
             iY = nY - 2;
-            if (rMag.v[1] > Y[nY - 1]) rMag.v[1] = Y[nY - 1];
+            if (rMag.v[1] > Y[nY - 1])
+                rMag.v[1] = Y[nY - 1];
         }
         int iZ = (int) Math.floor((rMag.v[2] - Z[0]) / dZ);
         if (iZ < 0) {
             iZ = 0;
             rMag.v[2] = Z[0];
-            if (rMag.v[2] > Z[nZ - 1]) rMag.v[2] = Z[nZ - 1];
+            if (rMag.v[2] > Z[nZ - 1])
+                rMag.v[2] = Z[nZ - 1];
         }
-        if (iZ > nZ - 2) iZ = nZ - 2;
+        if (iZ > nZ - 2)
+            iZ = nZ - 2;
 
         // r.print("r");
         // rHPS.print("rHPS");

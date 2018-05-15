@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,15 +28,15 @@ public class KalmanTrackFit {
     }
 
     public KalmanTrackFit(ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
-                                    int start, // Starting point in the list
-                                    int direction, // Proceed to larger indices in the list (1) or smaller (-1)
-                                    int nIterations, // Number of fit iterations requested
-                                    Vec pivot, // Pivot point for the starting "guess" helix
-                                    Vec helixParams, // 5 helix parameters for the starting "guess" helix
-                                    SquareMatrix C, // Full covariance matrix for the starting "guess" helix
-                                    double B, // Magnetic field strength at helix beginning
-                                    Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate system
-                                    FieldMap fM, boolean verbose) {
+            int start, // Starting point in the list
+            int direction, // Proceed to larger indices in the list (1) or smaller (-1)
+            int nIterations, // Number of fit iterations requested
+            Vec pivot, // Pivot point for the starting "guess" helix
+            Vec helixParams, // 5 helix parameters for the starting "guess" helix
+            SquareMatrix C, // Full covariance matrix for the starting "guess" helix
+            double B, // Magnetic field strength at helix beginning
+            Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate system
+            FieldMap fM, boolean verbose) {
 
         success = true;
         if (direction > 0) {
@@ -84,13 +84,13 @@ public class KalmanTrackFit {
             thisSite++;
             MeasurementSite newSite = new MeasurementSite(idx, m, mxResid, mxResid);
             if (idx == start) {
-                if (newSite.makePrediction(sI,-1,false,false)<0) {
+                if (newSite.makePrediction(sI, -1, false, false) < 0) {
                     System.out.format("KalmanTrackFit: Failed to make initial prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     success = false;
                     break;
                 }
             } else {
-                if (newSite.makePrediction(sites.get(prevSite).aF,-1,false,false)<0) {
+                if (newSite.makePrediction(sites.get(prevSite).aF, -1, false, false) < 0) {
                     System.out.format("KalmanTrackFit: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     success = false;
                     break;
@@ -144,7 +144,7 @@ public class KalmanTrackFit {
                 SiModule m = data.get(idx);
                 thisSite++;
                 MeasurementSite newSite = new MeasurementSite(idx, m, mxResid, mxResid);
-                if (newSite.makePrediction(sites.get(prevSite).aF,-1,false,false)<0) {
+                if (newSite.makePrediction(sites.get(prevSite).aF, -1, false, false) < 0) {
                     System.out.format("KalmanTrackFit: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                     success = false;
                     break;
@@ -189,7 +189,7 @@ public class KalmanTrackFit {
                 currentSite.predicted = false;
                 currentSite.filtered = false;
                 currentSite.smoothed = false;
-                if (currentSite.makePrediction(sH,currentSite.hitID,false,false)<0) {
+                if (currentSite.makePrediction(sH, currentSite.hitID, false, false) < 0) {
                     System.out.format("KalmanTrackFit: In iteration %d failed to make prediction!!\n", iteration);
                     success = false;
                     break;

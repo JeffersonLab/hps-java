@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 class SquareMatrix { // Simple matrix package strictly for N by N matrices needed by the Kalman
                      // fitter

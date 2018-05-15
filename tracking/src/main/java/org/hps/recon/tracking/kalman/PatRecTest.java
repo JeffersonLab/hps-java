@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -152,8 +152,7 @@ public class PatRecTest {
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
-        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(),
-                                        ldt.getSecond(), ldt.getNano());
+        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
         Vec[] helixSaved = new Vec[2 * nPlanes];
         Helix helixBegin = TkInitial[0].copy();
@@ -206,7 +205,8 @@ public class PatRecTest {
                     }
                     SiModule thisSi = SiModules.get(2 * pln);
                     double phiInt = Tk[ih].planeIntersect(thisSi.p);
-                    if (Double.isNaN(phiInt)) break;
+                    if (Double.isNaN(phiInt))
+                        break;
                     if (verbose) {
                         System.out.format("Plane %d, phiInt1= %12.10f\n", pln, phiInt);
                     }
@@ -230,7 +230,8 @@ public class PatRecTest {
                             npnts++;
                             Vec r = Tk[ih].atPhiGlobal(-Q[ih] * phi);
                             printWriter2.format("%10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
-                            if (npnts > 1000) break;
+                            if (npnts > 1000)
+                                break;
                         }
                         // printWriter2.format("%10.6f %10.6f %10.6f\n", rscat.v[0], rscat.v[1], rscat.v[2]);
                         if (rungeKutta) {
@@ -290,7 +291,8 @@ public class PatRecTest {
                     // Now for the stereo layer
                     thisSi = SiModules.get(2 * pln + 1);
                     phiInt = Tk[ih].planeIntersect(thisSi.p);
-                    if (Double.isNaN(phiInt)) break;
+                    if (Double.isNaN(phiInt))
+                        break;
                     if (verbose) {
                         System.out.format("Plane %d, phiInt2= %f\n", pln, phiInt);
                         double dPhi = (phiInt) / 5.0;
@@ -299,7 +301,8 @@ public class PatRecTest {
                             npnts++;
                             Vec r = Tk[ih].atPhiGlobal(phi);
                             printWriter2.format(" %10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
-                            if (npnts > 1000) break;
+                            if (npnts > 1000)
+                                break;
                         }
                     }
                     if (rungeKutta) {
@@ -326,7 +329,8 @@ public class PatRecTest {
                         rscatRot.print("       helix intersection in detector frame");
                     }
                     m2[pln] = rscatRot.v[1] + resolution * gran[1];
-                    if (verbose) System.out.format("       Measurement 2= %10.7f, Truth=%10.7f\n", m2[pln], rscatRot.v[1]);
+                    if (verbose)
+                        System.out.format("       Measurement 2= %10.7f, Truth=%10.7f\n", m2[pln], rscatRot.v[1]);
                     md = null;
                     for (Measurement mm : thisSi.hits) {
                         if (Math.abs(mm.v - m2[pln]) < 0.04) { // assume hits overlap if less than 40 microns apart
@@ -352,7 +356,8 @@ public class PatRecTest {
                     }
                     helixSaved[2 * pln + 1] = Tk[ih].p.copy();
                 }
-                if (verbose) printWriter2.format("EOD\n");
+                if (verbose)
+                    printWriter2.format("EOD\n");
             }
 
             if (verbose) {
@@ -379,7 +384,8 @@ public class PatRecTest {
                         StateVector aS = site.aS;
                         SiModule m = site.m;
                         double phiS = aS.planeIntersect(m.p);
-                        if (Double.isNaN(phiS)) continue;
+                        if (Double.isNaN(phiS))
+                            continue;
                         Vec rLocal = aS.atPhi(phiS);
                         Vec rGlobal = aS.toGlobal(rLocal);
                         printWriter2.format(" %10.6f %10.6f %10.6f\n", rGlobal.v[0], rGlobal.v[1], rGlobal.v[2]);
@@ -423,8 +429,10 @@ public class PatRecTest {
                         iBest = ih;
                     }
                 }
-                if (iBest == -1) continue;
-                if (verbose) TkInitial[iBest].print("Best MC track");
+                if (iBest == -1)
+                    continue;
+                if (verbose)
+                    TkInitial[iBest].print("Best MC track");
                 Vec trueErr = helixAtOrigin.dif(TkInitial[iBest].p);
                 if (verbose) {
                     for (int i = 0; i < 5; i++) {
@@ -454,8 +462,7 @@ public class PatRecTest {
         timestamp = Instant.now();
         System.out.format("Ending time = %s\n", timestamp.toString());
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
-        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(),
-                                        ldt.getSecond(), ldt.getNano());
+        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
@@ -498,7 +505,8 @@ public class PatRecTest {
         double xc = coef.v[0] - sgn * R * (1.0 - 0.5 * coef.v[1] * coef.v[1]);
         double[] r = new double[3];
         r[1] = Math.atan2(yc, xc);
-        if (R < 0.) r[1] += Math.PI;
+        if (R < 0.)
+            r[1] += Math.PI;
         r[2] = alpha / R;
         r[0] = xc / Math.cos(r[1]) - R;
         return r;

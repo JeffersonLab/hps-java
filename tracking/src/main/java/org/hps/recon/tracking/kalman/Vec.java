@@ -1,4 +1,4 @@
-package kalman;
+package org.hps.recon.tracking.kalman;
 
 class Vec { // N-vector for the Kalman filter
     double[] v;
