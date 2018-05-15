@@ -3,7 +3,7 @@
     <execute>
         <driver name="CleanupDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>   
-        <driver name="TridentTuple"/>
+        <!--<driver name="TridentTuple"/>-->
         <!--<driver name="MollerTuple"/>-->
         <!--<driver name="FEETuple"/>-->
         <driver name="FullTruthTuple"/>
@@ -34,8 +34,10 @@
         </driver>
         <!--<driver name="FullTruthTuple" type="org.hps.analysis.tuple.WABTridentFullTupleDriver">-->
 	<driver name="FullTruthTuple" type="org.hps.analysis.tuple.TridentFullTupleDriver">
-            <nEcalHit>3</nEcalHit>
+            <nEcalHit>1</nEcalHit>
+	    	<nTrackingLayers>3</nTrackingLayers>
             <tupleFile>${outputFile}_fulltruth.txt</tupleFile>
+            <isGBL>true</isGBL>
         </driver>
     </drivers>
 </lcsim>
