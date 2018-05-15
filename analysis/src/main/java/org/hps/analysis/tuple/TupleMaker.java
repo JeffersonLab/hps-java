@@ -39,6 +39,7 @@ import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
+import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.TrackerHit;
@@ -47,6 +48,7 @@ import java.util.Collection;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 /**
  * sort of an interface for DQM analysis drivers creates the DQM database
@@ -66,13 +68,14 @@ public abstract class TupleMaker extends Driver {
 
     protected String triggerType = "all";// allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     private boolean applyBeamRotation = true;
-    protected boolean isGBL = false;
+    protected boolean isGBL = true;
     private final String finalStateParticlesColName = "FinalStateParticles";
 
     protected double bfield;
     protected FieldMap bFieldMap = null;
 
     protected static List<HpsSiSensor> sensors;
+    protected static Subdetector trackerSubdet;
     private static final String SUBDETECTOR_NAME = "Tracker";
     protected String CandidatesColName = "V0Candidates";
     protected TIData triggerData;
@@ -80,6 +83,7 @@ public abstract class TupleMaker extends Driver {
     protected double ebeam = Double.NaN;
     protected int nLay = 6;
     protected int tupleevent = 0;
+    protected int nTrackingLayers = nLay;
     private double[] extrapTrackXTopAxial = new double[nLay];
     private double[] extrapTrackXTopStereo = new double[nLay];
     private double[] extrapTrackXBotAxial = new double[nLay];
@@ -96,6 +100,10 @@ public abstract class TupleMaker extends Driver {
     private double[] extrapTrackYSensorTopStereo = new double[nLay];
     private double[] extrapTrackYSensorBotAxial = new double[nLay];
     private double[] extrapTrackYSensorBotStereo = new double[nLay];
+    private double[] extrapTrackYErrorSensorTopAxial = new double[nLay];
+    private double[] extrapTrackYErrorSensorTopStereo = new double[nLay];
+    private double[] extrapTrackYErrorSensorBotAxial = new double[nLay];
+    private double[] extrapTrackYErrorSensorBotStereo = new double[nLay];
     List<ReconstructedParticle> unConstrainedV0List = null;
     List<ReconstructedParticle> bsConstrainedV0List = null;
     List<ReconstructedParticle> tarConstrainedV0List = null;
@@ -119,6 +127,10 @@ public abstract class TupleMaker extends Driver {
 
     public void setNLay(int nLay) {
         this.nLay = nLay;
+    }
+    
+    public void setNTrackingLayers(int nTrackingLayers) {
+        this.nTrackingLayers = nTrackingLayers;
     }
 
     public void setApplyBeamRotation(boolean applyBeamRotation) {
@@ -167,6 +179,7 @@ public abstract class TupleMaker extends Driver {
             tupleWriter.println(StringUtils.join(tupleVariables, ":"));
         }
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
+        trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
     }
 
     protected boolean setupCollections(EventHeader event) {
@@ -397,7 +410,7 @@ public abstract class TupleMaker extends Driver {
         }
 
         if (doTrkExtrap) {
-            String[] newVars2 = new String[] {
+            /*String[] newVars2 = new String[] {
                     "TrkExtrpXAxialTopL0/D", "TrkExtrpXStereoTopL0/D", "TrkExtrpXAxialBotL0/D", "TrkExtrpXStereoBotL0/D", "TrkExtrpYAxialTopL0/D",
                     "TrkExtrpYStereoTopL0/D", "TrkExtrpYAxialBotL0/D", "TrkExtrpYStereoBotL0/D", "TrkExtrpXAxialTopL1/D",
                     "TrkExtrpXStereoTopL1/D", "TrkExtrpXAxialBotL1/D", "TrkExtrpXStereoBotL1/D", "TrkExtrpYAxialTopL1/D",
@@ -425,11 +438,29 @@ public abstract class TupleMaker extends Driver {
                     "TrkExtrpXSensorStereoTopL5/D", "TrkExtrpXSensorAxialBotL5/D", "TrkExtrpXSensorStereoBotL5/D", "TrkExtrpYSensorAxialTopL5/D",
                     "TrkExtrpYSensorStereoTopL5/D", "TrkExtrpYSensorAxialBotL5/D", "TrkExtrpYSensorStereoBotL5/D", "TrkExtrpXSensorAxialTopL6/D",
                     "TrkExtrpXSensorStereoTopL6/D", "TrkExtrpXSensorAxialBotL6/D", "TrkExtrpXSensorStereoBotL6/D", "TrkExtrpYSensorAxialTopL6/D",
-                    "TrkExtrpYSensorStereoTopL6/D", "TrkExtrpYSensorAxialBotL6/D", "TrkExtrpYSensorStereoBotL6/D"};
-            for (int i = 0; i < newVars2.length; i++) {
-                newVars2[i] = prefix + newVars2[i];
+                    "TrkExtrpYSensorStereoTopL6/D", "TrkExtrpYSensorAxialBotL6/D", "TrkExtrpYSensorStereoBotL6/D"};*/
+            /*String[] newVars2 = new String[] {
+                    "TrkExtrpXAxialTopL", "TrkExtrpXStereoTopL", "TrkExtrpXAxialBotL", "TrkExtrpXStereoBotL", "TrkExtrpYAxialTopL",
+                    "TrkExtrpYStereoTopL", "TrkExtrpYAxialBotL", "TrkExtrpYStereoBotL","TrkExtrpXSensorAxialTopL", "TrkExtrpXSensorStereoTopL", 
+                    "TrkExtrpXSensorAxialBotL", "TrkExtrpXSensorStereoBotL", "TrkExtrpYSensorAxialTopL",
+                    "TrkExtrpYSensorStereoTopL", "TrkExtrpYSensorAxialBotL", "TrkExtrpYSensorStereoBotL"};*/
+            for(int i = 0; i < nTrackingLayers*2; i++){
+                String layer = Integer.toString(i + 1);
+                String[] newVars2 = new String[] {
+                        "TrkExtrpXAxialTopL", "TrkExtrpXStereoTopL", "TrkExtrpXAxialBotL", "TrkExtrpXStereoBotL", 
+                        "TrkExtrpYAxialTopL","TrkExtrpYStereoTopL", "TrkExtrpYAxialBotL", "TrkExtrpYStereoBotL",
+                        "TrkExtrpXSensorAxialTopL", "TrkExtrpXSensorStereoTopL", "TrkExtrpXSensorAxialBotL", "TrkExtrpXSensorStereoBotL",
+                        "TrkExtrpYSensorAxialTopL","TrkExtrpYSensorStereoTopL", "TrkExtrpYSensorAxialBotL", "TrkExtrpYSensorStereoBotL",
+                        "TrkExtrpYErrorSensorAxialTopL","TrkExtrpYErrorSensorStereoTopL", "TrkExtrpYErrorSensorAxialBotL", "TrkExtrpYErrorSensorStereoBotL"};
+                for(int j = 0; j < newVars2.length; j++){
+                    newVars2[j] = prefix + newVars2[j] + layer + "/D";
+                }
+                tupleVariables.addAll(Arrays.asList(newVars2));
             }
-            tupleVariables.addAll(Arrays.asList(newVars2));
+            /*for (int i = 0; i < newVars2.length; i++) {
+                newVars2[i] = prefix + newVars2[i];
+            }*/
+            //tupleVariables.addAll(Arrays.asList(newVars2));
         }
 
         if (doIso) {
@@ -651,6 +682,15 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(putMe2, extrapTrackXSensorBotStereo[nLay-lay]);
         putMe2 = String.format("%sTrkExtrpYSensorStereoBotL%d/D", prefix, 7-lay);
         tupleMap.put(putMe2, extrapTrackYSensorBotStereo[nLay-lay]);
+   
+        String putMe3 = String.format("%sTrkExtrpYErrorSensorAxialTopL%d/D", prefix, 7-lay);
+        tupleMap.put(putMe3, extrapTrackYErrorSensorTopAxial[nLay-lay]);
+        putMe3 = String.format("%sTrkExtrpYErrorSensorStereoTopL%d/D", prefix, 7-lay);
+        tupleMap.put(putMe3, extrapTrackYErrorSensorTopStereo[nLay-lay]);
+        putMe3 = String.format("%sTrkExtrpYErrorSensorAxialBotL%d/D", prefix, 7-lay);
+        tupleMap.put(putMe3, extrapTrackYErrorSensorBotAxial[nLay-lay]);
+        putMe3 = String.format("%sTrkExtrpYErrorSensorStereoBotL%d/D", prefix, 7-lay);
+        tupleMap.put(putMe3, extrapTrackYErrorSensorBotStereo[nLay-lay]);
     }
 
     private void fillParticleVariablesTrkExtrap(String prefix, Track track) {
@@ -673,6 +713,11 @@ public abstract class TupleMaker extends Driver {
         extrapTrackYSensorBotAxial = new double[nLay];
         extrapTrackYSensorBotStereo = new double[nLay];
         
+        extrapTrackYErrorSensorTopAxial = new double[nLay];
+        extrapTrackYErrorSensorTopStereo = new double[nLay];
+        extrapTrackYErrorSensorBotAxial = new double[nLay];
+        extrapTrackYErrorSensorBotStereo = new double[nLay];
+        
         // initialize
         for (int i=0; i<nLay; i++) {
             extrapTrackXTopAxial[i] = -9999;
@@ -692,6 +737,11 @@ public abstract class TupleMaker extends Driver {
             extrapTrackYSensorTopStereo[i] = -9999;
             extrapTrackYSensorBotAxial[i] = -9999;
             extrapTrackYSensorBotStereo[i] = -9999;
+            
+            extrapTrackYErrorSensorTopAxial[i] = -9999;
+            extrapTrackYErrorSensorTopStereo[i] = -9999;
+            extrapTrackYErrorSensorBotAxial[i] = -9999;
+            extrapTrackYErrorSensorBotStereo[i] = -9999;
         }
 
         for (HpsSiSensor sensor : sensors) {
@@ -710,11 +760,13 @@ public abstract class TupleMaker extends Driver {
                         extrapTrackYTopAxial[i] = extrapPos.y();
                         extrapTrackXSensorTopAxial[i] = TrackUtils.globalToSensor(extrapPos,sensor).y();
                         extrapTrackYSensorTopAxial[i] = TrackUtils.globalToSensor(extrapPos,sensor).x();
+                        extrapTrackYErrorSensorTopAxial[i] = computeExtrapErrorY(track);
                     } else {
                         extrapTrackXTopStereo[i] = extrapPos.x();
                         extrapTrackYTopStereo[i] = extrapPos.y();
                         extrapTrackXSensorTopStereo[i] = TrackUtils.globalToSensor(extrapPos,sensor).y();
                         extrapTrackYSensorTopStereo[i] = TrackUtils.globalToSensor(extrapPos,sensor).x();
+                        extrapTrackYErrorSensorTopStereo[i] = computeExtrapErrorY(track);
                     }
                 }
                 if (trackState.getTanLambda() < 0 && sensor.isBottomLayer()) {
@@ -723,11 +775,13 @@ public abstract class TupleMaker extends Driver {
                         extrapTrackYBotAxial[i] = extrapPos.y();
                         extrapTrackXSensorBotAxial[i] = TrackUtils.globalToSensor(extrapPos,sensor).y();
                         extrapTrackYSensorBotAxial[i] = TrackUtils.globalToSensor(extrapPos,sensor).x();
+                        extrapTrackYErrorSensorBotAxial[i] = computeExtrapErrorY(track);
                     } else {
                         extrapTrackXBotStereo[i] = extrapPos.x();
                         extrapTrackYBotStereo[i] = extrapPos.y();
                         extrapTrackXSensorBotStereo[i] = TrackUtils.globalToSensor(extrapPos,sensor).y();
                         extrapTrackYSensorBotStereo[i] = TrackUtils.globalToSensor(extrapPos,sensor).x();
+                        extrapTrackYErrorSensorBotStereo[i] = computeExtrapErrorY(track);
                     }
                 }
             }
@@ -736,6 +790,20 @@ public abstract class TupleMaker extends Driver {
         for (int i=nLay;i>0;i--) {
             tupleMapTrkExtrap(i, prefix);
         }
+    }
+    
+    //Computes track extrapolation error in sensor frame
+    //This probably needs to be fixed
+    private double computeExtrapErrorY(Track track){
+        TrackState tState = track.getTrackStates().get(0);
+        HelicalTrackFit hlc_trk_fit = TrackUtils.getHTF(tState);
+        double p = hlc_trk_fit.p(bfield);;
+        double beta = 1;
+        double z = 1;
+        double t = 0.007;
+        double d = 100;
+        double error = 0.0136/(beta*p)*z*Math.sqrt(t)*(1+0.038*Math.log(t));
+        return error * d;
     }
 
     private void fillParticleVariablesIso(String prefix, Hep3Vector pRot, Double[] iso) {
@@ -1093,6 +1161,8 @@ public abstract class TupleMaker extends Driver {
 
         if (theV0 == null)
             return;
+        
+        fillVertexCov(prefix, theV0);
         
         ReconstructedParticle particle1 = theV0.getParticles().get(0); //v0:  electron,   moller:  top
         ReconstructedParticle particle2 = theV0.getParticles().get(1); //v0:  positron,   moller:  bot
