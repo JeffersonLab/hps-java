@@ -3,7 +3,6 @@ package kalman;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 
 // Track followed and fitted by the Kalman filter
 public class KalTrack {

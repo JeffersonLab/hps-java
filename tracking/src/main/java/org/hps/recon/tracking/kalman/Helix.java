@@ -186,15 +186,13 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     Helix randomScat(Plane P, Vec r, Vec pmom, double X) { // Produce a new helix scattered randomly in a given plane P
         // X is the thickness of the silicon material in meters
         // r is the intersection point and pmom the momentum at that point
-        double phi = this.planeIntersect(P); // Here the plane P is assumed to be given in global coordinates
+        //double phi = this.planeIntersect(P); // Here the plane P is assumed to be given in global coordinates
         // p.print("randomScat: helix parameters before scatter");
 
         // Vec r = this.atPhiGlobal(phi);
-        double tst = r.dif(P.X()).dot(P.T());
+        //double tst = r.dif(P.X()).dot(P.T());
         // System.out.format("randomScat: test dot product %12.6e should be zero\n", tst);
-        Vec Bf = fM.getField(r);
-        double Bnew = Bf.mag();
-        Vec tBnew = Bf.unitVec(Bnew);
+
         // r.print("randomScat: r global");
         // Vec pmom = getMomGlobal(phi);
         // pmom.print("randomScat: p global");
@@ -203,9 +201,9 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         Vec zhat = new Vec(0., 0., 1.);
         Vec uhat = t.cross(zhat).unitVec(); // A unit vector u perpendicular to the helix direction
         Vec vhat = t.cross(uhat);
-        RotMatrix R = new RotMatrix(uhat, vhat, t);
+        RotMatrix Rp = new RotMatrix(uhat, vhat, t);     
         // t.print("initial helix direction in Helix.randomScat");
-        // R.print("rotation matrix in Helix.randomScat");
+        // Rp.print("rotation matrix in Helix.randomScat");
         double ct = Math.abs(P.T().dot(t));
         double theta0;
         // Get the scattering angle
@@ -224,14 +222,17 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         double ty = Math.sin(thetaY);
         Vec tLoc = new Vec(tx, ty, Math.sqrt(1.0 - tx * tx - ty * ty));
         // tLoc.print("tLoc in Helix.randomScat");
-        Vec tnew = R.inverseRotate(tLoc);
+        Vec tnew = Rp.inverseRotate(tLoc);
         // tnew.print("tnew in Helix.randomScat");
         // System.out.format("tnew dot tnew= %14.10f\n", tnew.dot(tnew));
         // System.out.format("t dot tnew= %14.10f\n", t.dot(tnew));
-        double check = Math.acos(Math.min(t.dot(tnew), 1.));
+        // double check = Math.acos(Math.min(t.dot(tnew), 1.));
         // System.out.format("recalculated scattered angle=%10.7f\n", check);
 
         // Rotate the direction into the frame of the new field (evaluated at the new pivot)
+        Vec Bf = fM.getField(r);
+        double Bnew = Bf.mag();
+        Vec tBnew = Bf.unitVec(Bnew);
         Vec yhat = new Vec(0., 1., 0.);
         Vec uBnew = yhat.cross(tBnew).unitVec();
         Vec vBnew = tBnew.cross(uBnew);
@@ -255,7 +256,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
         return new Helix(H, r, P.X(), fM); // Create the new helix with new origin and pivot point
     }
-
+/*
     private SquareMatrix makeF(double[] aP, double[] a, double B) { // For testing purposes only
         double alpha = 1. / B;
         double[][] f = new double[5][5];
@@ -286,7 +287,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         f[4][4] = 1.0;
         return new SquareMatrix(5, f);
     }
-
+*/
     Vec pivotTransform(Vec pivot) {
         double xC = X0.v[0] + (p.v[0] + alpha / p.v[2]) * Math.cos(p.v[1]); // Center of the helix circle
         double yC = X0.v[1] + (p.v[0] + alpha / p.v[2]) * Math.sin(p.v[1]);
@@ -306,7 +307,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
         return new Vec(5, aP);
     }
-
+/*
     private double[] pivotTransform(double[] pivot, double[] a, double B) { // For testing purposes only
         double alpha = 1 / B;
         double xC = X0.v[0] + (a[0] + alpha / a[2]) * Math.cos(a[1]); // Center of the helix circle
@@ -325,4 +326,5 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
 
         return aP;
     }
+*/
 }

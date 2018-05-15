@@ -23,7 +23,8 @@ class StateVector {
     private double c;
 
     // Constructor for the initial state vector used to start the Kalman filter.
-    StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec t, Vec origin, boolean verbose) {
+    StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin, boolean verbose) {
+        // Here tB is the B field direction, while B is the magnitude
         if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
         this.verbose = verbose;
         a = helixParams.copy();
@@ -38,13 +39,13 @@ class StateVector {
         C = Cov.copy();
         hpi = new HelixPlaneIntersect();
         Vec yhat = new Vec(0., 1.0, 0.);
-        Vec u = yhat.cross(t).unitVec();
-        Vec v = t.cross(u);
-        Rot = new RotMatrix(u, v, t);
+        Vec u = yhat.cross(tB).unitVec();
+        Vec v = tB.cross(u);
+        Rot = new RotMatrix(u, v, tB);
     }
 
     // Constructor for a new blank state vector with a new B field
-    StateVector(int site, double B, Vec t, Vec origin, boolean verbose) {
+    StateVector(int site, double B, Vec tB, Vec origin, boolean verbose) {
         // System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
         kLow = site;
         c = 2.99793e8; // Speed of light in m/s
@@ -54,9 +55,9 @@ class StateVector {
         this.verbose = verbose;
         this.origin = origin.copy();
         Vec yhat = new Vec(0., 1.0, 0.);
-        Vec u = yhat.cross(t).unitVec();
-        Vec v = t.cross(u);
-        Rot = new RotMatrix(u, v, t);
+        Vec u = yhat.cross(tB).unitVec();
+        Vec v = tB.cross(u);
+        Rot = new RotMatrix(u, v, tB);
     }
 
     // Constructor for a new completely blank state vector

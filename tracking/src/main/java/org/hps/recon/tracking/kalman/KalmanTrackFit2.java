@@ -32,7 +32,7 @@ public class KalmanTrackFit2 {
 
         if (verbose) {
             System.out.format("KalmanTrackFit2: begin Kalman fit, start=%d, number iterations=%d\n", start, nIterations);
-            //sI.print("initial state for KalmanTrackFit");
+            // sI.print("initial state for KalmanTrackFit");
         }
 
         double mxResid = 9999.;
@@ -55,13 +55,13 @@ public class KalmanTrackFit2 {
                 thisSite++;
                 newSite = new MeasurementSite(idx, m, mxResid, mxResid);
                 if (idx == start) {
-                    if (newSite.makePrediction(sI,0,false,false)<0) {
+                    if (newSite.makePrediction(sI, 0, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make initial prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                         success = false;
                         break;
                     }
                 } else {
-                    if (newSite.makePrediction(sites.get(prevSite).aF,0,false,false)<0) {
+                    if (newSite.makePrediction(sites.get(prevSite).aF, 0, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
                         success = false;
                         break;
@@ -93,7 +93,8 @@ public class KalmanTrackFit2 {
                     double phiF = aF.planeIntersect(m.p);
                     if (Double.isNaN(phiF)) phiF = 0.;
                     double vPred = site.h(aF, phiF);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc,
+                                                    vPred);
                     for (Measurement hit : m.hits) {
                         System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
                     }
@@ -101,8 +102,7 @@ public class KalmanTrackFit2 {
                     cnt++;
                 }
             }
-            if (!success)
-                return;
+            if (!success) return;
             startSite = newSite;
         }
 
@@ -121,7 +121,7 @@ public class KalmanTrackFit2 {
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
-            //    sH.print("starting state vector for iteration");
+                // sH.print("starting state vector for iteration");
             }
             sites.clear();
 
@@ -135,13 +135,13 @@ public class KalmanTrackFit2 {
                 thisSite++;
                 MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
                 if (thisSite == 0) {
-                    if (newSite.makePrediction(sH,0,false, false)<0) {
+                    if (newSite.makePrediction(sH, 0, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make initial prediction at site %d.  Abort\n", thisSite);
                         success = false;
                         break;
                     }
                 } else {
-                    if (newSite.makePrediction(previousSite.aF,0,false, false)<0) {
+                    if (newSite.makePrediction(previousSite.aF, 0, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make prediction at site %d.  Abort\n", thisSite);
                         success = false;
                         break;
@@ -154,9 +154,9 @@ public class KalmanTrackFit2 {
                     break;
                 }
 
-                //if (verbose) {
-                //    newSite.print(String.format("Iteration %d: filtering", iteration));
-                //}
+                // if (verbose) {
+                // newSite.print(String.format("Iteration %d: filtering", iteration));
+                // }
                 chi2f += newSite.chi2inc;
 
                 sites.add(newSite);
@@ -172,7 +172,8 @@ public class KalmanTrackFit2 {
                     double phiF = aF.planeIntersect(m.p);
                     if (Double.isNaN(phiF)) phiF = 0.;
                     double vPred = site.h(aF, phiF);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc,
+                                                    vPred);
                     for (Measurement hit : m.hits) {
                         System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
                     }
@@ -197,9 +198,9 @@ public class KalmanTrackFit2 {
                 }
                 chi2s += currentSite.chi2inc;
 
-                //if (verbose) {
-                //    currentSite.print(String.format("Iteration %d smoothing", iteration));
-                //}
+                // if (verbose) {
+                // currentSite.print(String.format("Iteration %d smoothing", iteration));
+                // }
                 nextSite = currentSite;
             }
             if (verbose) {
@@ -211,7 +212,8 @@ public class KalmanTrackFit2 {
                     double phiS = aS.planeIntersect(m.p);
                     if (Double.isNaN(phiS)) phiS = 0.;
                     double vPred = site.h(aS, phiS);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc,
+                                                    vPred);
                     for (Measurement hit : m.hits) {
                         System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
                     }

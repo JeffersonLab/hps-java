@@ -171,7 +171,7 @@ public class FieldMap {
         // double Bzc = bZ[iX][iY][iZ]*1000.;
         // new Vec(-Bxc,Bzc,Byc).print("B on grid");
         return new Vec(Bx, Bz, -By); // correct HPS field
-        // return new Vec(0.,0.,0.24); // constant field
+        //return new Vec(0.,0.,0.24); // constant field
         // return new Vec(-Bx, -Bz, +By); // reversed field
     }
 

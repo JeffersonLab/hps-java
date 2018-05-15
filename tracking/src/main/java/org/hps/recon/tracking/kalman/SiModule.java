@@ -14,6 +14,8 @@ public class SiModule {
     double[] yExtent; // Plus and minus limits on the detector active area in the y direction (perpendicular to the strips)
     RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
     RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
+                    // The local coordinate system is u, v, t where t is more-or-less the beam direction (y-global)
+                    // and v is the measurement direction.
     double stereo; // Stereo angle of the detectors in radians
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
     FieldMap Bfield;
@@ -30,10 +32,10 @@ public class SiModule {
         yExtent = new double[2];
         yExtent[0] = -height / 2.0;
         yExtent[1] = height / 2.0;
-        RotMatrix R1 = new RotMatrix(p.U(), p.V(), p.T()); // Rotation into the detector plane
+        RotMatrix R1 = new RotMatrix(p.U(), p.V(), p.T()); 
         RotMatrix R2 = new RotMatrix(stereo); // Rotation by stereo angle in detector plane
-        Rinv = R2.multiply(R1);
-        R = Rinv.invert();
+        Rinv = R2.multiply(R1);  // This goes from global to local
+        R = Rinv.invert();       // This goes from local to global
         hits = new ArrayList<Measurement>();
     }
 

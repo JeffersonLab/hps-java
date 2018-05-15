@@ -2,7 +2,6 @@ package kalman;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 
 // Tracking pattern recognition for the HPS experiment based on an extended Kalman filter
 // Algorithm:
@@ -601,7 +600,8 @@ public class KalmanPatRecHPS {
 
         // Refit tracks that got changed
         ArrayList<KalTrack> allTks = new ArrayList<KalTrack>(TkrList.size());
-        for (KalTrack tkr : TkrList) allTks.add(tkr);  // (refit them all for now)
+        for (KalTrack tkr : TkrList)
+            allTks.add(tkr); // (refit them all for now)
         for (KalTrack tkr : allTks) {
             // check that there are enough hits in both views
             int nStereo = 0;

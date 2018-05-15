@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 //This is for testing only and is not part of the Kalman fitting code
 public class PatRecTest {
@@ -16,7 +15,7 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 1; // The number of test events to generate for fitting
         boolean MCplot = false; // true to plot MC tracks, otherwise fitted tracks
         boolean perfect = false;
         double thickness = 0.3; // Silicon thickness in mm

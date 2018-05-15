@@ -3,17 +3,17 @@ package kalman;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-// Fit a line/parabola approximation to a helix to a set of measurement points.
+// Fit a line/parabola approximation of a helix to a set of measurement points.
 // The line and parabola are fit simultaneously in order to handle properly the stereo layers.
 // The pivot of the helix is assumed to be the origin of the coordinate system, but the
 // coordinate system in which the helix is described may be rotated slightly with respect to
 // the global coordinates, in order to optimize its alignment with the field.
 class SeedTrack {
     boolean success;
-    int [] hits; // Save information for the hit used in each layer
+    int[] hits; // Save information for the hit used in each layer
     private double drho, phi0, K, dz, tanl; // Helix parameters derived from the line/parabola fits
     private Vec hParm; // Final helix parameters rotated into the field frame
-    private RotMatrix Rot; // Orthogonal transformation from global to helix coordinates
+    //private RotMatrix Rot; // Orthogonal transformation from global to helix (B-field) coordinates
     private SquareMatrix C; // Covariance of helix parameters
     private boolean verbose; // Set true to generate lots of debug printout
     private double alpha; // Conversion constant from 1/pt to helix radius
@@ -22,14 +22,14 @@ class SeedTrack {
     private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
     private double yOrigin;
-    private static Plane p0;    // x,z plane at y=0
-    private static double minDistXZ;   // Minimum difference in distance to origin for it to be used in sorting
+    private static Plane p0; // x,z plane at y=0
+    private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting
 
     void print(String s) {
         if (success) {
             System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
             System.out.format("  seed track hits:");
-            for (int j=0; j<hits.length; j++) {
+            for (int j = 0; j < hits.length; j++) {
                 System.out.format(" %d ", hits[j]);
             }
             System.out.format("\n");
@@ -43,33 +43,40 @@ class SeedTrack {
 
     SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
                                     double yOrigin, // New origin along beam to use for the fit
-                                    ArrayList<int []> hitList, // Element 0= index of Si module; Element 1= hit number
+                                    ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
                                     boolean verbose // Set true for lots of debug printout
     ) {
         minDistXZ = 0.25;
-        p0 =  new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
+        p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
         this.verbose = verbose;
         this.yOrigin = yOrigin;
         hits = new int[hitList.size()];
-        for (int i=0; i<hitList.size(); i++) {
+        for (int i = 0; i < hitList.size(); i++) {
             hits[i] = hitList.get(i)[1];
         }
 
         // Fit a straight line in the non-bending plane and a parabola in the bending plane
 
-        double[] x = new double[data.size()]; // Global x coordinates of measurements (bending plane)
-        double[] y = new double[data.size()]; // Global y coordinates of measurements (along beam direction)
-        double[] z = new double[data.size()]; // Global z coordinates of measurements (along B field direction)
-        double[] v = new double[data.size()]; // Measurement value (i.e. position of the hit strip)
-        double[] s = new double[data.size()]; // Uncertainty in the measurement (spatial resolution of the SSD)
-        double[] t = new double[data.size()]; // Stereo angle
+        double[] x = null;
+        double[] y = new double[hitList.size()]; // Global y coordinates of measurements (along beam direction)
+        double[] z = null;
+        double[] t = null;
+        if (verbose) {
+            x = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
+            z = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
+            t = new double[hitList.size()]; // Stereo angle
+        }
+        double[] v = new double[hitList.size()]; // Measurement value (i.e. position of the hit strip)
+        double[] s = new double[hitList.size()]; // Uncertainty in the measurement (spatial resolution of the SSD)
+        double[][] delta = new double[hitList.size()][3];
+        double[][] R2 = new double[hitList.size()][3];
         int N = 0;
         int Nbending = 0;
         int Nnonbending = 0;
 
         // First find the average field
         Vec Bvec = new Vec(0., 0., 0.);
-        for (int [] pnt : hitList) {
+        for (int[] pnt : hitList) {
             SiModule thisSi = data.get(pnt[0]);
             Vec thisB = thisSi.Bfield.getField(thisSi.toGlobal(new Vec(0., 0., 0.))); // Taking the field from the center of the module
             Bvec = Bvec.sum(thisB);
@@ -85,26 +92,36 @@ class SeedTrack {
         alpha = 1000.0 * 1.0e9 / (c * Bavg); // Convert from pt in GeV to curvature in mm
 
         N = 0;
-        for (int [] itr : hitList) {
+        for (int[] itr : hitList) {
             SiModule thisSi = data.get(itr[0]);
             if (thisSi.stereo == 0.) {
                 Nnonbending++;
             } else {
                 Nbending++;
             }
-            Measurement m = thisSi.hits.get(itr[1]); 
+            Measurement m = thisSi.hits.get(itr[1]);
             Vec pnt = new Vec(0., m.v, 0.);
             pnt = thisSi.toGlobal(pnt);
             if (verbose) {
-                System.out.format("itr=%d %d, Measurement %d = %10.7f, stereo=%10.7f\n", itr[0],itr[1], N, m.v, thisSi.stereo);
+                System.out.format("itr=%d %d, Measurement %d = %10.7f, stereo=%10.7f\n", itr[0], itr[1], N, m.v, thisSi.stereo);
                 pnt.print("point global");
+                t[N] = thisSi.stereo;
             }
-            x[N] = pnt.v[0];
             y[N] = pnt.v[1] - yOrigin;
-            z[N] = pnt.v[2];
+            if (verbose) {
+                x[N] = pnt.v[0];
+                z[N] = pnt.v[2];
+            }
             v[N] = m.v;
             s[N] = m.sigma;
-            t[N] = thisSi.stereo;
+            for (int j = 0; j < 3; j++) {
+                if (j == 1) {
+                    delta[N][j] = thisSi.p.X().v[j] - yOrigin;
+                } else {
+                    delta[N][j] = thisSi.p.X().v[j];
+                }
+                R2[N][j] = thisSi.Rinv.M[1][j];
+            }
             N++;
         }
         if (Nnonbending < 2) {
@@ -124,11 +141,11 @@ class SeedTrack {
                 System.out.format("%d  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %8.5f\n", i, y[i], z[i], x[i], v[i], vcheck, s[i], t[i]);
             }
         }
-        
+
         // Here we do the 5-parameter linear fit:
-        LinearHelixFit fit = new LinearHelixFit(N, y, v, s, t, verbose);
+        LinearHelixFit fit = new LinearHelixFit(N, y, v, s, delta, R2, verbose);
         if (verbose) {
-            fit.print(N, y, v, s, t);
+            fit.print(N, x, y, z, v, s);
         }
 
         // Now, derive the helix parameters and covariance from the two fits
@@ -179,7 +196,7 @@ class SeedTrack {
         // will give trouble here!
 
         // Rotate the result into the frame of the B field at the specified origin
-        int [] itr = hitList.get(0); 
+        int[] itr = hitList.get(0);
         SiModule firstSi = data.get(itr[0]);
         Vec firstB = firstSi.Bfield.getField(new Vec(0., yOrigin, 0.));
         Vec zhat = firstB.unitVec();
@@ -190,7 +207,7 @@ class SeedTrack {
 
         hParm = rotateHelix(new Vec(drho, phi0, K, dz, tanl), Rot);
         if (verbose) {
-            hParm.print("Seedtrack, roated helix");
+            hParm.print("Seedtrack, rotated helix");
         }
 
         success = true;
@@ -286,10 +303,10 @@ class SeedTrack {
         // both zero, i.e. pivot is on the helix
         return new Vec(phi0, K, tanl);
     }
-    
+
     // Comparator function for sorting seed tracks by curvature
     static Comparator<SeedTrack> curvatureComparator = new Comparator<SeedTrack>() {
-         public int compare(SeedTrack t1, SeedTrack t2) {
+        public int compare(SeedTrack t1, SeedTrack t2) {
             double K1 = Math.abs(t1.helixParams().v[2]);
             double K2 = Math.abs(t2.helixParams().v[2]);
             if (K1 > K2) {
@@ -299,7 +316,7 @@ class SeedTrack {
             }
         }
     };
-    
+
     // Comparator function for sorting seeds by distance from origin in x,z plane
     static Comparator<SeedTrack> dRhoComparator = new Comparator<SeedTrack>() {
         public int compare(SeedTrack t1, SeedTrack t2) {
@@ -307,7 +324,7 @@ class SeedTrack {
             Vec pInt2 = t2.planeIntersection(p0);
             double diff = pInt1.mag() - pInt2.mag();
             if (Math.abs(diff) > minDistXZ) {
-                if (diff > 0.) {  
+                if (diff > 0.) {
                     return 1;
                 } else {
                     return -1;
@@ -319,17 +336,17 @@ class SeedTrack {
                     return 1;
                 } else {
                     return -1;
-                }                
+                }
             }
         }
     };
-    
+
     Vec planeIntersection(Plane p) {
         double arg = (K / alpha) * ((drho + (alpha / K)) * Math.sin(phi0) - (p.X().v[1] - yOrigin));
         double phiInt = -phi0 + Math.asin(arg);
         return atPhi(phiInt);
     }
-    
+
     private Vec atPhi(double phi) { // point on the helix at the angle phi
         double x = (drho + (alpha / K)) * Math.cos(phi0) - (alpha / K) * Math.cos(phi0 + phi);
         double y = yOrigin + (drho + (alpha / K)) * Math.sin(phi0) - (alpha / K) * Math.sin(phi0 + phi);
