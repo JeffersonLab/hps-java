@@ -137,7 +137,9 @@ public class KalmanInterface {
         return returnMe;
     }
 
-    public void fillMeasurements(List<SiModule> mods, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+    public ArrayList<int[]> fillMeasurements(List<SiModule> mods, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        ArrayList<int[]> hitList = new ArrayList<int[]>();
+        //Map<Integer, Integer> hitListMap = new HashMap<Integer, Integer>();
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitsMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
 
         List<TrackerHit> hits1D = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
