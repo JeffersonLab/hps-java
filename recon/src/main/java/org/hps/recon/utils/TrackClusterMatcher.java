@@ -347,15 +347,18 @@ public class TrackClusterMatcher {
         double dxMean[],dyMean[],dxSigm[],dySigm[];
         int charge = TrackUtils.getCharge(track);
         
-        boolean use1pt05parameters = false, use2pt3parameters;
-        if(beamEnergy < 2){
+        boolean use1pt05parameters = false, use2pt3parameters = false; //change use2pt3... to false
+        
+        use1pt05parameters = true;
+        //Why is the following done like that? Causes problems when trying to just run the HpsReconParticleDriver - Matt Solt
+        /*if(beamEnergy < 2){
             use1pt05parameters = true;
             use2pt3parameters = false;
         } else { // if we do 4.4 or 6.6 GeV or other beam energies, use the 2.3 GeV values,
             // until we have new parameters for that beam energy.  
             use1pt05parameters = false;
             use2pt3parameters = true;
-        }
+        }*/
             
         
         if(use1pt05parameters){

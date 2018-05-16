@@ -625,9 +625,9 @@ public class BilliorVertexer {
         double vY = _vertexPosition.e(2, 0)+_referencePosition[2];
         double delZ = _beamPosition[0] - vZ;
         double[] tXY = {delZ * sX + vX, delZ * sY + vY};
-        System.out.println(_constraintType + ";  delZ = " + delZ + "; sX = " + sX + "; sY = " + sY);
-        System.out.println("vertX = " + vX + ";vertY = " + vY);
-        System.out.println("v0 projection X = " + tXY[0] + "; Y = " + tXY[1]);
+        //System.out.println(_constraintType + ";  delZ = " + delZ + "; sX = " + sX + "; sY = " + sY);
+        //System.out.println("vertX = " + vX + ";vertY = " + vY);
+        //System.out.println("v0 projection X = " + tXY[0] + "; Y = " + tXY[1]);
         return tXY;
     }
 
