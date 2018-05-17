@@ -27,7 +27,7 @@
 	        <beamConV0CandidatesColName>BeamspotConstrainedV0CandidatesWithPErrs</beamConV0CandidatesColName>
 	        <beamConV0VerticesColName>BeamspotConstrainedV0VerticesWithPErrs</beamConV0VerticesColName>
 	        <disablePID>true</disablePID>
-	        <beamPositionX>0.5</beamPositionX>
+	        <beamPositionZ>0.5</beamPositionZ>
         </driver>
         <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentTupleDriver">
             <triggerType>all</triggerType>
