@@ -1,21 +1,17 @@
 package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
-//import hep.physics.vec.BasicHep3Vector;
-//import hep.physics.vec.Hep3Matrix;
-//import hep.physics.vec.VecOp;
-
 import hep.physics.vec.VecOp;
 
-//import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -30,14 +26,18 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 public class KalmanInterface {
 
-    public Map<Measurement, TrackerHit> hitMap;
-    public Map<SiModule, SiStripPlane> moduleMap;
+    private Map<Measurement, TrackerHit> hitMap;
+    private Map<SiModule, SiStripPlane> moduleMap;
     public static SquareMatrix HpsToKalman;
     public static BasicHep3Matrix HpsToKalmanMatrix;
+    private ArrayList<int[]> trackHitsKalman;
+    private ArrayList<SiModule> SiMlist;
 
     public KalmanInterface() {
         hitMap = new HashMap<Measurement, TrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
+        trackHitsKalman = new ArrayList<int[]>();
+        SiMlist = new ArrayList<SiModule>();
         double[][] HpsToKalmanVals = { { 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 } };
         HpsToKalman = new SquareMatrix(3, HpsToKalmanVals);
         HpsToKalmanMatrix = new BasicHep3Matrix();
@@ -47,11 +47,34 @@ public class KalmanInterface {
         }
     }
 
-    public void clearHitMap() {
-        hitMap.clear();
+    public ArrayList<SiModule> getSiModuleList() {
+        return SiMlist;
     }
 
-    public BaseTrack createTrack(SeedTrack trk, List<Measurement> measList) {
+    public ArrayList<Measurement> getMeasurements() {
+        ArrayList<Measurement> measList = new ArrayList<Measurement>();
+        int modIndex = 0;
+        for (SiModule SiM : SiMlist) {
+            for (int[] hitPair : trackHitsKalman) {
+                if (hitPair[0] == modIndex) {
+                    measList.add(SiM.hits.get(hitPair[1]));
+                }
+            }
+            modIndex++;
+        }
+        return measList;
+    }
+
+    public void clearTrack() {
+        hitMap.clear();
+        trackHitsKalman.clear();
+        for (SiModule SiM : SiMlist) {
+            SiM.hits.clear();
+        }
+    }
+
+    public BaseTrack createTrack(SeedTrack trk) {
+        List<Measurement> measList = getMeasurements();
 
         BaseTrack newTrack = new BaseTrack();
         double[] oldParams = trk.helixParams().v;
@@ -60,11 +83,11 @@ public class KalmanInterface {
         SymmetricMatrix cov = new SymmetricMatrix(5);
 
         // convert params
-        params[ParameterName.d0.ordinal()] = -1.0 * oldParams[0];
-        params[ParameterName.phi0.ordinal()] = oldParams[1] - Math.PI / 2.0;
-        params[ParameterName.omega.ordinal()] = trk.helixParams().v[2] / trk.getAlpha();
-        params[ParameterName.tanLambda.ordinal()] = oldParams[4];
-        params[ParameterName.z0.ordinal()] = oldParams[3];
+        params[ParameterName.d0.ordinal()] = oldParams[0]; //*-1.0
+        params[ParameterName.phi0.ordinal()] = oldParams[1]; //- Math.PI / 2.0;
+        params[ParameterName.omega.ordinal()] = trk.helixParams().v[2] / trk.getAlpha() * -1.0;
+        params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
+        params[ParameterName.z0.ordinal()] = oldParams[3] * -1.0;
 
         // convert cov matrix
         // TODO: fix omega cov
@@ -98,9 +121,9 @@ public class KalmanInterface {
         return newTrack;
     }
 
-    public ArrayList<SiModule> createSiModules(List<SiStripPlane> inputPlanes, FieldMap fm) {
+    public void createSiModules(List<SiStripPlane> inputPlanes, FieldMap fm) {
         // SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
-        ArrayList<SiModule> returnMe = new ArrayList<SiModule>();
+        SiMlist.clear();
         //double stereo = 0;
 
         for (SiStripPlane inputPlane : inputPlanes) {
@@ -132,14 +155,13 @@ public class KalmanInterface {
             SiModule newMod = new SiModule(temp.getLayerNumber(), p, stereo, inputPlane.getWidth(), inputPlane.getLength(), inputPlane.getThickness(), fm);
             //p.print("plane");
             moduleMap.put(newMod, inputPlane);
-            returnMe.add(newMod);
+            SiMlist.add(newMod);
         }
-        return returnMe;
+        Collections.sort(SiMlist, new SortByLayer());
     }
 
-    public ArrayList<int[]> fillMeasurements(List<SiModule> mods, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        ArrayList<int[]> hitList = new ArrayList<int[]>();
-        //Map<Integer, Integer> hitListMap = new HashMap<Integer, Integer>();
+    public void fillMeasurements(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitsMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
 
         List<TrackerHit> hits1D = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
@@ -167,8 +189,10 @@ public class KalmanInterface {
             hitsMap.put(temp, hitsInLayer);
         }
 
-        for (SiModule mod : mods) {
-            mod.hits.clear();
+        int modIndex = -1;
+        for (SiModule mod : SiMlist) {
+            modIndex++;
+            //mod.hits.clear();
             SiStripPlane plane = moduleMap.get(mod);
             if (!hitsMap.containsKey(plane.getSensor()))
                 continue;
@@ -215,12 +239,48 @@ public class KalmanInterface {
                 //System.out.printf("rotMat %s \n", rotMat.toString());
                 //System.out.printf("cov %s \n", cov.toString());
 
+                int[] hitPair = { modIndex, mod.hits.size() };
+                //System.out.printf("adding hitPair %d %d \n", hitPair[0], hitPair[1]);
+                trackHitsKalman.add(hitPair);
                 mod.addMeasurement(m);
                 hitMap.put(m, hit);
 
             }
-        }
 
+        }
+    }
+
+    public SeedTrack createKalmanTrack(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+        fillMeasurements(track, hitToStrips, hitToRotated);
+        //
+        //        for (SiModule SiM : SiMlist)
+        //            SiM.print("HPSmod");
+        //ArrayList<SiModule> SiMfilled = new ArrayList<SiModule>();
+        //ArrayList<int[]> hitList = new ArrayList<int[]>();
+
+        //        int modIndex = 0;
+        //        for (SiModule SiM : SiMlist) {
+        //            for (int[] hitPair : trackHitsKalman) {
+        //                if (hitPair[0] == modIndex) {
+        //                    int[] temp = { SiMfilled.size(), hitPair[1] };
+        //                    hitList.add(temp);
+        //                    SiMfilled.add(SiM);
+        //                }
+        //            }
+        //            modIndex++;
+        //        }
+        //Collections.sort(SiMlist, new SortByLayer());
+
+        return new SeedTrack(SiMlist, 0, trackHitsKalman, false);
+    }
+
+    //
+    class SortByLayer implements Comparator<SiModule> {
+
+        @Override
+        public int compare(SiModule o1, SiModule o2) {
+            return o1.Layer - o2.Layer;
+        }
     }
 
 }

@@ -2,8 +2,6 @@ package org.hps.recon.tracking.kalman;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.hps.recon.tracking.MaterialSupervisor;
@@ -28,7 +26,6 @@ public class KalmanDriverHPS extends Driver {
     private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
     private String trackCollectionName = "MatchedTracks";
     private KalmanInterface KI;
-    ArrayList<SiModule> SiMlist;
 
     public void setMaterialManager(MaterialSupervisor mm) {
         _materialManager = mm;
@@ -114,7 +111,7 @@ public class KalmanDriverHPS extends Driver {
         }
 
         KI = new KalmanInterface();
-        SiMlist = KI.createSiModules(detPlanes, fm);
+        KI.createSiModules(detPlanes, fm);
     }
 
     @Override
@@ -135,29 +132,22 @@ public class KalmanDriverHPS extends Driver {
         //        }
 
         for (Track trk : tracks) {
-            ArrayList<SiModule> SiMlist2 = new ArrayList<SiModule>();
-            KI.fillMeasurements(SiMlist, trk, hitToStrips, hitToRotated);
+
             System.out.println("\nPrinting info for original HPS track:");
             printTrackInfo(trk);
 
-            System.out.println("\nPrinting info for HPS SiMods:\n");
-            for (SiModule SiM : SiMlist) {
-                if (SiM.hits.size() > 0) {
-                    SiMlist2.add(SiM);
-                    SiM.print("SiModFilled");
-                }
-            }
-            Collections.sort(SiMlist2, new SortByLayer());
-
-            SeedTrack testKalmanTrack = new SeedTrack(SiMlist2, 0, 0, SiMlist2.size(), false);
+            SeedTrack testKalmanTrack = KI.createKalmanTrack(trk, hitToStrips, hitToRotated);
             System.out.println("\nPrinting info for Kalman track:");
             testKalmanTrack.print("testKalmanTrack");
 
-            Track HPStrk = KI.createTrack(testKalmanTrack, getMeasurements(SiMlist2));
+            Track HPStrk = KI.createTrack(testKalmanTrack);
 
             System.out.println("\nPrinting info for converted HPS track:");
             printTrackInfo(HPStrk);
-            KI.clearHitMap();
+
+            // clearing for next track
+            KI.clearTrack();
+
         }
         System.out.println("DONE event ");
     }
@@ -169,20 +159,4 @@ public class KalmanDriverHPS extends Driver {
         System.out.printf("      params: %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);
     }
 
-    public ArrayList<Measurement> getMeasurements(List<SiModule> modList) {
-        ArrayList<Measurement> measList = new ArrayList<Measurement>();
-        for (SiModule SiM : modList) {
-            measList.addAll(SiM.hits);
-        }
-        return measList;
-    }
-
-}
-
-class SortByLayer implements Comparator<SiModule> {
-
-    @Override
-    public int compare(SiModule o1, SiModule o2) {
-        return o1.Layer - o2.Layer;
-    }
 }
