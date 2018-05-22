@@ -1,5 +1,7 @@
 package org.hps.analysis.MC;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,27 +11,37 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.hps.record.triggerbank.TriggerModule;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
+
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 
 public class MLAnalysisDriver extends Driver {
     private Subdetector tracker = null;
     private FieldMap magneticFieldMap = null;
     private List<HpsSiSensor> sensors = null;
     private String TRACKER_SUBDETECTOR_NAME = "Tracker";
+    
+    private FileWriter writer = null;
+    
+    private final AIDA aida = AIDA.defaultInstance();
+    private IHistogram1D deltaR = aida.histogram1D("Dr", 40, 0, 400);
+    private IHistogram2D deltaXY = aida.histogram2D("Dy vs. Dx", 40, 0, 400, 40, 0, 40);
+    
+    private int multiClusterTracks = 0;
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -39,502 +51,307 @@ public class MLAnalysisDriver extends Driver {
     }
     
     @Override
-    public void process(EventHeader event) {
-        System.out.println("\n\n\nEvent " + event.getEventNumber());
-        
-        List<RawTrackerHit> readoutHits = null;
-        if(event.hasCollection(RawTrackerHit.class, "EcalReadoutHits")) {
-            readoutHits = event.get(RawTrackerHit.class, "EcalReadoutHits");
-            readoutHits.sort(new Comparator<RawTrackerHit>() {
-                @Override
-                public int compare(RawTrackerHit arg0, RawTrackerHit arg1) {
-                    return Long.compare(arg0.getCellID(), arg1.getCellID());
-                }
-            });
-        } else {
-            readoutHits = new ArrayList<RawTrackerHit>(0);
-        }
-        
-        List<CalorimeterHit> convertedHits = null;
-        if(event.hasCollection(CalorimeterHit.class, "EcalCalHits")) {
-            convertedHits = event.get(CalorimeterHit.class, "EcalCalHits");
-            convertedHits.sort(new Comparator<CalorimeterHit>() {
-                @Override
-                public int compare(CalorimeterHit arg0, CalorimeterHit arg1) {
-                    return Long.compare(arg0.getCellID(), arg1.getCellID());
-                }
-            });
-        } else {
-            convertedHits = new ArrayList<CalorimeterHit>(0);
-        }
-        
-        List<Cluster> gtpClusters = null;
-        if(event.hasCollection(Cluster.class, "EcalClustersGTP")) {
-            gtpClusters = event.get(Cluster.class, "EcalClustersGTP");
-            gtpClusters.sort(new Comparator<Cluster>() {
-                @Override
-                public int compare(Cluster arg0, Cluster arg1) {
-                    return Long.compare(arg0.getCalorimeterHits().get(0).getCellID(), arg0.getCalorimeterHits().get(0).getCellID());
-                }
-            });
-        } else {
-            gtpClusters = new ArrayList<Cluster>(0);
-        }
-        
-        // Try and obtain calorimeter clusters.
-        List<Cluster> clusters = null;
-        if(event.hasCollection(Cluster.class, "EcalClusters")) {
-            clusters = event.get(Cluster.class, "EcalClusters");
-            clusters.sort(new Comparator<Cluster>() {
-                @Override
-                public int compare(Cluster arg0, Cluster arg1) {
-                    return Long.compare(arg0.getCalorimeterHits().get(0).getCellID(), arg0.getCalorimeterHits().get(0).getCellID());
-                }
-            });
-        } else {
-            clusters = new ArrayList<Cluster>(0);
-        }
-        
-        
-        
-        System.out.println("Raw Hits:");
-        for(RawTrackerHit readoutHit : readoutHits) {
-            System.out.printf("\tHit at %7d and time %4d ns and position <%7.1f, %7.1f, %7.1f>.%n",
-                    readoutHit.getCellID(), readoutHit.getTime(), readoutHit.getPosition()[0], readoutHit.getPosition()[1], readoutHit.getPosition()[2]);
-            StringBuffer adcBuffer = new StringBuffer("\t\tADC:");
-            for(short adc : readoutHit.getADCValues()) {
-                adcBuffer.append("   ");
-                adcBuffer.append(adc);
-            }
-            System.out.println(adcBuffer.toString());
-        }
-        if(readoutHits.isEmpty()) { System.out.println("\tNone"); }
-        
-        System.out.println("\nConverted Hits:");
-        for(CalorimeterHit hit : convertedHits) {
-            System.out.printf("\tHit at %7d with energy %6.3f GeV (%6.3f GeV) at time %6.2f ns and position <%7.1f, %7.1f, %7.1f>.%n", hit.getCellID(),
-                    hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getTime(), hit.getPosition()[0], hit.getPosition()[1], hit.getPosition()[2]);
-            System.out.println("\t\tTruth Hits: " + ((SimCalorimeterHit) hit).getMCParticleCount());
-        }
-        if(convertedHits.isEmpty()) { System.out.println("\tNone"); }
-        
-        System.out.println("\nGTP Clusters:");
-        Set<CalorimeterHit> clusterHits = new HashSet<CalorimeterHit>();
-        for(Cluster cluster : gtpClusters) {
-            clusterHits.addAll(cluster.getCalorimeterHits());
-            System.out.printf("\tCluster at %7d with energy %6.3f GeV and %d hits at time %6.2f ns and position <%7.1f, %7.1f, %7.1f>.%n",
-                    cluster.getCalorimeterHits().get(0).getCellID(), cluster.getEnergy(), cluster.getCalorimeterHits().size(),
-                    cluster.getCalorimeterHits().get(0).getTime(), cluster.getPosition()[0], cluster.getPosition()[1], cluster.getPosition()[2]);
-        }
-        if(gtpClusters.isEmpty()) { System.out.println("\tNone"); }
-        
-        System.out.println("\nGTP Cluster Hits:");
-        for(CalorimeterHit hit : clusterHits) {
-            System.out.printf("\tHit at %7d with energy %6.3f GeV (%6.3f GeV) at time %6.2f ns and position <%7.1f, %7.1f, %7.1f>.%n", hit.getCellID(),
-                    hit.getRawEnergy(), hit.getCorrectedEnergy(), hit.getTime(), hit.getPosition()[0], hit.getPosition()[1], hit.getPosition()[2]);
-        }
-        if(clusterHits.isEmpty()) { System.out.println("\tNone"); }
-        
-        System.out.println("\nClusters:");
-        for(Cluster cluster : clusters) {
-            System.out.printf("\tCluster at %7d with energy %6.3f GeV and %d hits at time %6.2f ns and position <%7.1f, %7.1f, %7.1f>.%n",
-                    cluster.getCalorimeterHits().get(0).getCellID(), cluster.getEnergy(), cluster.getCalorimeterHits().size(),
-                    cluster.getCalorimeterHits().get(0).getTime(), cluster.getPosition()[0], cluster.getPosition()[1], cluster.getPosition()[2]);
-        }
-        if(clusters.isEmpty()) { System.out.println("\tNone"); }
-        
-        //if(true) { return; }
-        
-        /*
-        // Get the individual truth relations.
-        List<LCRelation> truthRelations = null;
-        if(event.hasCollection(LCRelation.class, "SimHitTruthRelations")) {
-            truthRelations = event.get(LCRelation.class, "SimHitTruthRelations");
-        } else {
-            throw new RuntimeException("Error: SLIC hit relations collection not found.");
-        }
-        
-        // Process the relations into a truth map.
-        Map<SimCalorimeterHit, Set<SimCalorimeterHit>> truthMap = EcalRawConverterDriver.getTruthMap(truthRelations, SimCalorimeterHit.class);
-        */
-        
-        // For each cluster, find the particle that contributes
-        // the most energy to each hit.
-        List<LCRelation> clusterTruthParticles = new ArrayList<LCRelation>();
-        List<Pair<Cluster, MCParticle>> pairList = new ArrayList<Pair<Cluster, MCParticle>>();
-        for(Cluster cluster : clusters) {
-            // Output the cluster debug text.
-            System.out.println("\n");
-            System.out.println(getClusterString(cluster));
+    public void startOfData() {
+        try {
+            writer = new FileWriter("C:\\cygwin64\\home\\Kyle\\data.arff");
             
-            // Process the hits into a proper truth hit collection.
-            List<SimCalorimeterHit> truthHits = new ArrayList<SimCalorimeterHit>(cluster.getCalorimeterHits().size());
-            for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                if(SimCalorimeterHit.class.isAssignableFrom(hit.getClass())) {
-                    truthHits.add(SimCalorimeterHit.class.cast(hit));
-                } else {
-                    System.out.println("Error: Truth analysis can not be performed unless truth information is available.");
-                    return;
-                    //throw new RuntimeException("Error: Truth analysis can not be performed unless truth information is available.");
-                }
-            }
+            writer.write("");
+            writer.append("@relation cluster_track_matching\n");
+            writer.append("@attribute cluster_rx numeric\n");
+            writer.append("@attribute cluster_ry numeric\n");
+            writer.append("@attribute cluster_ix numeric\n");
+            writer.append("@attribute cluster_iy numeric\n");
+            writer.append("@attribute cluster_energy numeric\n");
+            writer.append("@attribute cluster_hit_count numeric\n");
             
+            writer.append("@attribute track_rx numeric\n");
+            writer.append("@attribute track_ry numeric\n");
+            writer.append("@attribute track_px numeric\n");
+            writer.append("@attribute track_py numeric\n");
+            writer.append("@attribute track_momentum numeric\n");
+            writer.append("@attribute track_chi2 numeric\n");
+            writer.append("@attribute track_charge { positive, negative }\n");
+            writer.append("@attribute track_top_bottom { top, bottom }\n");
             
-            /*
-             * Output the total energy contribution each particle
-             * contributed to the entire cluster. The primary
-             * particle could be considered to be the one that gives
-             * the most energy to the cluster.
-             */
-            //final int headerWidth = 45;
-            //String headerBorder = "\t** " + getHeader(headerWidth) + " **";
-            //System.out.println(headerBorder);
-            //System.out.println("\t** " + getHeader(headerWidth, "Particle Total Contribution to Cluster") + " **");
-            //System.out.println(headerBorder);
+            writer.append("@attribute dx numeric\n");
+            writer.append("@attribute dy numeric\n");
+            writer.append("@attribute dr numeric\n");
+            writer.append("@attribute dE numeric\n");
+            writer.append("@attribute matched { true, false }\n");
             
-            double ultimatePercent = 0.0;
-            double penultimatePercent = 0.0;
-            MCParticle ultimateParticle = null;
-            double clusterTruthEnergy = getTruthEnergy(cluster);
-            Map<MCParticle, Double> particleEnergyMap = getClusterEnergyDistributionByParticle(cluster);
-            for(Map.Entry<MCParticle, Double> entry : particleEnergyMap.entrySet()) {
-                double percent = 100.0 * entry.getValue().doubleValue() / clusterTruthEnergy;
-                if(percent > ultimatePercent) {
-                    penultimatePercent = ultimatePercent;
-                    ultimatePercent = percent;
-                    ultimateParticle = entry.getKey();
-                } else if(percent > penultimatePercent) {
-                    penultimatePercent = percent;
-                }
-                
-                System.out.printf("\t\t%6.2f%% :: %s%n", percent, getParticleString(entry.getKey()));
-            }
-            System.out.printf("\tLargest Single Contribution        :: %6.2f%%%n", ultimatePercent);
-            System.out.printf("\tSecond-Largest Single Contribution :: %6.2f%%%n", penultimatePercent);
-            System.out.printf("\tTop Two Contribution Difference    :: %6.2f%%%n", (ultimatePercent - penultimatePercent));
-            if(ultimatePercent > 50.0) {
-                System.out.printf("\tDominant Particle                  :: %s%n", getParticleString(ultimateParticle));
-                clusterTruthParticles.add(new BaseLCRelation(cluster, ultimateParticle));
-                pairList.add(new Pair<Cluster, MCParticle>(cluster, ultimateParticle));
-            } else {
-                System.out.printf("\tDominant Particle                  :: NONE%n");
-            }
-        }
-        
-        event.put("ClusterTruthRelations", clusterTruthParticles, LCRelation.class, 0);
-        
-        // Create a list of pairs which originate from the trident.
-        // One list should include only pairs where the cluster was
-        // directly generated by the trident particle, and the other
-        // should include any pairs generated from trident particles,
-        // even if the cluster came from secondaries.
-        System.out.println("\n\nTrident Truth Pairs:");
-        for(int i = 0; i < pairList.size() - 1; i++) {
-            Pair<Cluster, MCParticle> pair0 = pairList.get(i);
-            boolean isTrident = isTrident(pair0.getSecondElement());
-            boolean isTridentDescendent = isTridentDescendent(pair0.getSecondElement());
-            
-            for(int j = i + 1; j < pairList.size(); j++) {
-                Pair<Cluster, MCParticle> pair1 = pairList.get(j);
-                
-                // The same particle can not be a pair.
-                if(pair0 == pair1) { continue; }
-                
-                // If both particles are tridents, they are a valid
-                // primary cluster pair.
-                if(isTrident(pair1.getSecondElement()) && isTrident) {
-                    System.out.println("\tPrimary Trident Pair:");
-                    System.out.println("\t\t" + getClusterString(pair0.getFirstElement()));
-                    System.out.println("\t\t\t" + getParticleString(pair0.getSecondElement()));
-                    System.out.println("\t\t" + getClusterString(pair1.getFirstElement()));
-                    System.out.println("\t\t\t" + getParticleString(pair1.getSecondElement()));
-                } else if(isTridentDescendent(pair1.getSecondElement()) && isTridentDescendent) {
-                    System.out.println("\tSecondary Trident Pair:");
-                    System.out.println("\t\t" + getClusterString(pair0.getFirstElement()));
-                    System.out.println("\t\t\t" + getParticleString(pair0.getSecondElement()));
-                    System.out.println("\t\t" + getClusterString(pair1.getFirstElement()));
-                    System.out.println("\t\t\t" + getParticleString(pair1.getSecondElement()));
-                }
-            }
-        }
-        
-        // Get the tracks for the event and attempt to obtain truth
-        // information for them.
-        if(event.hasCollection(Track.class, "GBLTracks")) {
-            List<Track> gblTracks = event.get(Track.class, "GBLTracks");
-            for(Track track : gblTracks) {
-                MCFullDetectorTruth trackTruth = new MCFullDetectorTruth(event, track, magneticFieldMap, sensors, tracker);
-            }
-        } else {
-            throw new RuntimeException("Error: Track collection \"GBLTracks\" was not found.");
-        }
-        
-        /*
-         * Output the distance of a truth particle from the cluster
-         * center as well as its energy. The closest high-energy
-         * particle is likely the origin of the cluster.
-         */
-        if(!clusters.isEmpty()) {
-            System.out.println("\n\n\n");
-        }
+            writer.append("@data\n");
+        } catch (IOException e) { throw new RuntimeException(); }
     }
     
-    private static final Map<MCParticle, Integer> getParticleEnergyRankings(Cluster cluster) {
-        // Get the particle energy contributions.
-        Map<MCParticle, Double> particleEnergyMap = getClusterEnergyDistributionByParticle(cluster);
+    @Override
+    public void endOfData() {
+        try { writer.close(); }
+        catch (IOException e) { throw new RuntimeException(); }
         
-        // Dump the values into a list and sort by energy.
-        List<Map.Entry<MCParticle, Double>> particleEnergyRankingList = new ArrayList<Map.Entry<MCParticle, Double>>(particleEnergyMap.size());
-        particleEnergyRankingList.addAll(particleEnergyMap.entrySet());
-        particleEnergyRankingList.sort(new Comparator<Map.Entry<MCParticle, Double>>() {
+        System.out.println("Multi-Cluster Tracks: " + multiClusterTracks);
+    }
+    
+    @Override
+    public void process(EventHeader event) {
+        
+        /*
+         * Get the event collection data needed in order to perform
+         * the truth analysis. This consists of both the GBL track
+         * and calorimeter cluster collections.
+         */
+        
+        // Obtain the calorimeter clusters, and sort them based on
+        // the cluster energy.
+        List<Cluster> clusters = TruthModule.getCollection(event, "EcalClustersCorr", Cluster.class);
+        clusters.sort(new Comparator<Cluster>() {
             @Override
-            public int compare(Entry<MCParticle, Double> arg0, Entry<MCParticle, Double> arg1) {
-                return Double.compare(arg0.getValue().doubleValue(), arg1.getValue().doubleValue());
+            public int compare(Cluster arg0, Cluster arg1) {
+                return Double.compare(arg0.getEnergy(), arg1.getEnergy());
             }
         });
         
-        // Map the particles to their ranking in the list.
-        Map<MCParticle, Integer> rankingMap = new HashMap<MCParticle, Integer>(particleEnergyMap.size());
-        for(int i = 0; i < particleEnergyRankingList.size(); i++) {
-            rankingMap.put(particleEnergyRankingList.get(i).getKey(), Integer.valueOf(i));
-        }
-        
-        // Return the result.
-        return rankingMap;
-    }
-    
-    private static final String getHeader(int bufferWidth) {
-        return getHeader(bufferWidth, null);
-    }
-    
-    private static final String getHeader(int bufferWidth, String text) {
-        StringBuffer headerBuffer = new StringBuffer();
-        
-        if(text == null || text.isEmpty()) {
-            for(int i = 0; i < bufferWidth; i++) {
-                headerBuffer.append('*');
+        // Obtain the GBL tracks, and sort them based on the track
+        // momentum magnitude.
+        List<Track> tracks = TruthModule.getCollection(event, "GBLTracks", Track.class);
+        tracks.sort(new Comparator<Track>() {
+            @Override
+            public int compare(Track arg0, Track arg1) {
+                return Double.compare(TruthModule.magnitude(arg0.getTrackStates().get(0).getMomentum()), TruthModule.magnitude(arg1.getTrackStates().get(0).getMomentum()));
             }
-        } else {
-            if((text.length() + 2) >= bufferWidth) {
-                return text;
-            } else {
-                int stars = bufferWidth - text.length() - 2;
-                boolean uneven = (stars % 2) == 1;
-                int halfStars = uneven ? ((stars - 1) / 2) : (stars / 2);
+        });
+        
+        
+        
+        /*
+         * We only need to worry about "analyzable events." These are
+         * events that contain the minimum data necessary to perform
+         * trident reconstruction, and is presently defined as having
+         * two GBL tracks, one positive and one negative, where one
+         * track points upwards and one downwards.
+         */
+        
+        // Consider all possible track permutations and store those
+        // that pass the "analyzable" conditions.
+        List<Pair<Track, Track>> analyzableTrackPairs = new ArrayList<Pair<Track, Track>>();
+        for(int i = 0; i < tracks.size(); i++) {
+            Track iTrack = tracks.get(i);
+            for(int j = i + 1; j < tracks.size(); j++) {
+                // Get the track.
+                Track jTrack = tracks.get(j);
                 
-                for(int i = 0; i < halfStars; i++) {
-                    headerBuffer.append('*');
-                }
-                if(uneven) {
-                    headerBuffer.append('*');
-                }
-                
-                headerBuffer.append(' ');
-                headerBuffer.append(text);
-                headerBuffer.append(' ');
-                
-                for(int i = 0; i < halfStars; i++) {
-                    headerBuffer.append('*');
-                }
-            }
-        }
-        
-        return headerBuffer.toString();
-    }
-    
-    private static final MCParticle getOriginParticle(MCParticle particle) {
-        MCParticle curParticle = particle;
-        while(curParticle.getParents() != null && !curParticle.getParents().isEmpty()) {
-            if(!isSecondary(curParticle)) {
-                return curParticle;
-            } else if(curParticle.getParents().size() == 1) {
-                curParticle = curParticle.getParents().get(0);
-            } else {
-                throw new RuntimeException("Error: Particle has multiple parents.");
-            }
-        }
-        
-        return curParticle;
-    }
-    
-    private static final double getTruthEnergy(Cluster cluster) {
-        // Iterate over the cluster hits and extract the total truth
-        // energy from each of its contributing MCParticles.
-        double totalTruthEnergy = 0.0;
-        for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-            // Only truth hits can be analyzed in this way.
-            if(SimCalorimeterHit.class.isAssignableFrom(hit.getClass())) {
-                // Cast the hit to a truth hit.
-                SimCalorimeterHit truthHit = SimCalorimeterHit.class.cast(hit);
-                
-                // Iterate over the truth particles and add their
-                // truth energy deposition to the energy counter.
-                for(int i = 0; i < truthHit.getMCParticleCount(); i++) {
-                    totalTruthEnergy += truthHit.getContributedEnergy(i);
-                }
-            } else {
-                throw new IllegalArgumentException("Error: Only clusters with truth information available can be processed for truth energy.");
-            }
-        }
-        
-        // Return the total truth energy from all hits.
-        return totalTruthEnergy;
-    }
-    
-    private static final boolean isPrimary(MCParticle particle) {
-        return particle.getParents().isEmpty() || particle.getParents().get(0).getPDGID() == 622;
-    }
-    
-    private static final boolean isSecondary(MCParticle particle) {
-        return !isPrimary(particle);
-    }
-    
-    private static final boolean isTridentDescendent(MCParticle particle) {
-        MCParticle curParticle = particle;
-        while(!curParticle.getParents().isEmpty()) {
-            if(curParticle.getParents().size() > 1) {
-                throw new RuntimeException("Error: Particles are expected to have either no or 1 parent(s).");
-            }
-            
-            if(isTrident(curParticle)) {
-                return true;
-            } else {
-                curParticle = curParticle.getParents().get(0);
-            }
-        }
-        
-        return isTrident(curParticle);
-    }
-    
-    private static final boolean isTrident(MCParticle particle) {
-        // A particle with no parents is either the A' or an external
-        // particle.
-        if(particle.getParents().isEmpty()) {
-            return false;
-        }
-        
-        // Otherwise, the particle is a trident if it has the A' as
-        // a parent and is either an electron or positron.
-        else if(particle.getParents().size() == 1) {
-            if(particle.getParents().get(0).getPDGID() == 622 && (particle.getPDGID() == 11 || particle.getPDGID() == -11)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            throw new RuntimeException("Error: Particles are expected to have either no or 1 parent(s).");
-        }
-    }
-    
-    private static final MCParticle getOriginEcalParticle(MCParticle particle) {
-        // The calorimeter face occurs at approximately 1318 mm. We
-        // allow a little extra distance for safety.
-        final int ecalFace = 1330;
-        
-        // Check the position of the particle's production vertex. If
-        // it is within the calorimeter, get its parent and perform
-        // the same test. Repeat until the current particle is not
-        // produced within the calorimeter.
-        MCParticle curParticle = particle;
-        while(true) {
-            // Particles are expected to only ever have one parent.
-            if(curParticle.getParents().size() != 1) {
-                throw new RuntimeException("Error: Particles are expected to have either 0 or 1 parent(s) - saw "
-                        + particle.getParents().size() + ".");
-            }
-            
-            // If the particle was created before the calorimeter
-            // face, this is the "final" particle.
-            if(curParticle.getOriginZ() < ecalFace) {
-                break;
-            }
-            
-            // Otherwise, get the particle's parent and return that.
-            // Note that the A' should never be returned, so if the
-            // parent is the A', just return the current particle.
-            if(curParticle.getParents().get(0).getPDGID() == 622) {
-                break;
-            } else {
-                curParticle = curParticle.getParents().get(0);
-            }
-        }
-        
-        // Return the particle
-        return curParticle;
-    }
-    
-    private static final Map<MCParticle, Double> getClusterEnergyDistributionByParticle(Cluster cluster) {
-        // Iterate over the cluster hits and map the truth energy
-        // depositions of their contributing particles to the energy
-        // value.
-        Map<MCParticle, Double> particleEnergyMap = new HashMap<MCParticle, Double>();
-        for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-            // Only truth hits can be analyzed in this way.
-            if(SimCalorimeterHit.class.isAssignableFrom(hit.getClass())) {
-                // Cast the hit to a truth hit.
-                SimCalorimeterHit truthHit = SimCalorimeterHit.class.cast(hit);
-                
-                // Iterate over the truth particles and add their
-                // truth energy deposition to the energy counter.
-                for(int i = 0; i < truthHit.getMCParticleCount(); i++) {
-                    // Get the originating particle.
-                    //MCParticle originParticle = getOriginParticle(truthHit.getMCParticle(i));
-                    MCParticle originParticle = getOriginEcalParticle(truthHit.getMCParticle(i));
-                    
-                    // Get the energy contribution for this particle,
-                    // if it already exists.
-                    Double energyContribution = particleEnergyMap.get(originParticle);
-                    
-                    // Associate the new energy contribution with the
-                    // particle. Increment the existing value if one
-                    // already exists.
-                    if(energyContribution == null) {
-                        energyContribution = Double.valueOf(truthHit.getContributedEnergy(i));
-                    } else {
-                        energyContribution = Double.valueOf(energyContribution.doubleValue() + truthHit.getContributedEnergy(i));
+                // Check whether this is a positron/electron pair.
+                double iCharge = TruthModule.getCharge(iTrack);
+                double jCharge = TruthModule.getCharge(jTrack);
+                if((iCharge > 0 && jCharge < 0) || (iCharge < 0 && jCharge > 0)) {
+                    // Check whether one track is a top track and the
+                    // other is a bottom track.
+                    if((TruthModule.isTopTrack(iTrack) && TruthModule.isBottomTrack(jTrack)) || (TruthModule.isBottomTrack(iTrack) && TruthModule.isTopTrack(jTrack))) {
+                        analyzableTrackPairs.add(new Pair<Track, Track>(iTrack, jTrack));
                     }
-                    
-                    // Map the energy contribution to the particle.
-                    particleEnergyMap.put(originParticle, energyContribution);
                 }
-            } else {
-                throw new IllegalArgumentException("Error: Only clusters with truth information available can be processed for truth energy.");
             }
         }
         
-        // Return the mapping.
-        return particleEnergyMap;
-    }
-    
-    private static final String getParticleString(MCParticle particle) {
-        if(particle == null) {
-            return "Particle with PDGID UNDEFINED produced at time t = NaN ns with charge NaN C and momentum NaN GeV.";
-        } else {
-            String particleName = null;
-            int pid = particle.getPDGID();
-            if(pid == 11) { particleName = "e-"; }
-            else if(pid == -11) { particleName = "e+"; }
-            else { particleName = Integer.toString(pid); }
+        // If at least one analyzable track exists, then the event is
+        // "good" and analysis may continue. Otherwise, skip the event.
+        if(analyzableTrackPairs.isEmpty()) { return; }
+        
+        
+        
+        /*
+         * Print out the initial event data for clusters, tracks, and
+         * analyzable track pairs. This is only performed if an event
+         * is actually analyzable.
+         */
+        
+        System.out.println("\n\n\nEvent " + event.getEventNumber());
+        
+        // Print out the cluster and track information to the terminal.
+        System.out.println("Energy-Corrected Reconstructed Clusters:");
+        for(Cluster cluster : clusters) {
+            System.out.println("\t" + TruthModule.getClusterString(cluster));
+            for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                if(!(hit instanceof SimCalorimeterHit)) {
+                    throw new RuntimeException("Error: Expected cluster truth information, but found none.");
+                }
+                System.out.println("\t\t" + TruthModule.getEcalHitString(hit));
+            }
+        }
+        
+        System.out.println("\nGBL Tracks:");
+        for(Track track : tracks) {
+            System.out.println("\t" + TruthModule.getTrackString(track));
+        }
+        
+        // Otherwise, print out the analyzable track pairs.
+        System.out.println("\nAnalyzable Track Pairs:");
+        for(Pair<Track, Track> pair : analyzableTrackPairs) {
+            System.out.println("\tAnalyzable Pair:");
+            System.out.println("\t\t" + TruthModule.getTrackString(pair.getFirstElement()));
+            System.out.println("\t\t" + TruthModule.getTrackString(pair.getSecondElement()));
+        }
+        
+        
+        
+        /*
+         * Get the truth information for each of the analysis object
+         * types. GBL tracks are assigned a truth particle by an
+         * external algorithm. Clusters are processed and the exact
+         * energy contribution (both total and percent) of each truth
+         * particle is determined. This is then used to match the
+         * track truth particle to best cluster.
+         */
+        
+        // Get the truth data for each track.
+        Map<Track, MCParticle> trackTruthMap = new HashMap<Track, MCParticle>(tracks.size());
+        Map<MCParticle, Track> reverseTrackTruthMap = new HashMap<MCParticle, Track>(tracks.size());
+        for(Track track : tracks) {
+            MCFullDetectorTruth trackTruth = new MCFullDetectorTruth(event, track, magneticFieldMap, sensors, tracker);
+            trackTruthMap.put(track, trackTruth.getMCParticle());
+            reverseTrackTruthMap.put(trackTruth.getMCParticle(), track);
+        }
+        
+        // Get the mappings of cluster to truth energy contribution
+        // for each relevant truth particle.
+        Map<Cluster, Map<MCParticle, Double>> actualClusterEnergyContributionMap = new HashMap<Cluster, Map<MCParticle, Double>>(clusters.size());
+        Map<Cluster, Map<MCParticle, Double>> percentClusterEnergyContributionMap = new HashMap<Cluster, Map<MCParticle, Double>>(clusters.size());
+        for(Cluster cluster : clusters) {
+            Map<MCParticle, Double> actualMap = TruthModule.getIncidentClusterParticleEnergyContribution(cluster);
+            Map<MCParticle, Double> percentMap = TruthModule.getIncidentClusterParticlePercentEnergyContribution(cluster);
             
-            return String.format("Particle of type %3s produced at time t = %5.1f ns and vertex <%.1f, %.1f, %.1f> with charge %2.0f C and momentum %5.3f GeV.",
-                    particleName, particle.getProductionTime(), particle.getOriginX(), particle.getOriginY(), particle.getOriginZ(), particle.getCharge(), particle.getEnergy());
+            actualClusterEnergyContributionMap.put(cluster, actualMap);
+            percentClusterEnergyContributionMap.put(cluster, percentMap);
+        }
+        
+        // Print out the cluster energy data.
+        System.out.println("\nCluster Truth Data:");
+        for(Cluster cluster : clusters) {
+            System.out.println("\t" + TruthModule.getClusterString(cluster));
+            
+            Map<MCParticle, Double> actualMap = actualClusterEnergyContributionMap.get(cluster);
+            Map<MCParticle, Double> percentMap = percentClusterEnergyContributionMap.get(cluster);
+            List<Pair<MCParticle, Double>> actualMapList = TruthModule.asOrderedList(actualMap);
+            
+            for(Pair<MCParticle, Double> entry : actualMapList) {
+                System.out.printf("\t\t%5.3f (%5.1f%%) :: %s%n", entry.getSecondElement().doubleValue(),
+                        percentMap.get(entry.getFirstElement()).doubleValue() * 100.0, TruthModule.getParticleString(entry.getFirstElement()));
+            }
+        }
+        
+        // Print out the track truth data.
+        System.out.println("\nTrack Truth Data:");
+        for(Entry<Track, MCParticle> entry : trackTruthMap.entrySet()) {
+            System.out.println("\t" + TruthModule.getTrackString(entry.getKey()) + "\n\t\t" + TruthModule.getParticleString(entry.getValue()));
+        }
+        
+        
+        
+        /*
+         * Each track should be attached to the cluster that it most
+         * closely connects to based on its truth particle. This is
+         * done by finding all cluster to which a track's truth
+         * particle contributes, and selecting the cluster to which
+         * it contributes the most energy. This cluster must receive
+         * at least 1/3 of its energy from that truth particle for it
+         * to be considered matched.
+         */
+        
+        Map<Track, Set<Cluster>> trackClusterMap = new HashMap<Track, Set<Cluster>>();
+        for(Track track : tracks) {
+            MCParticle truthParticle = trackTruthMap.get(track);
+            for(Cluster cluster : clusters) {
+                Map<MCParticle, Double> percentMap = percentClusterEnergyContributionMap.get(cluster);
+                if(percentMap.containsKey(truthParticle) && percentMap.get(truthParticle).doubleValue() >= 0.200) {
+                    addToMap(track, cluster, trackClusterMap);
+                }
+            }
+        }
+        
+        // Print out the track/cluster matches.
+        System.out.println("\nTrack-Cluster Matched Pairs:");
+        for(Entry<Track, Set<Cluster>> entry : trackClusterMap.entrySet()) {
+            System.out.println("\t" + TruthModule.getTrackString(entry.getKey()));
+            
+            double[] trackR = TruthModule.getTrackPositionAtCalorimeterFace(entry.getKey());
+            for(Cluster cluster : entry.getValue()) {
+                double deltaR = delta(trackR, cluster.getPosition());
+                System.out.printf("\t\t%6.3f mm :: %s%n", deltaR, TruthModule.getClusterString(cluster));
+            }
+        }
+        if(trackClusterMap.isEmpty()) { System.out.println("\tNone"); }
+        
+        for(Track track : tracks) {
+            double[] trackR = TruthModule.getTrackPositionAtCalorimeterFace(track);
+            double[] trackP = track.getTrackStates().get(0).getMomentum();
+            double trackPMag = TruthModule.magnitude(trackP);
+            double trackCharge = TruthModule.getCharge(track);
+            boolean isTop = TruthModule.isTopTrack(track);
+            double chi2 = track.getChi2();
+            
+            MCParticle trackParticle = trackTruthMap.get(track);
+            
+            int matches = 0;
+            
+            // PRUNING :: Cut data that is obviously bad.
+            if(chi2 > 50) { continue; }
+            
+            for(Cluster cluster : clusters) {
+                double[] clusterR = cluster.getPosition();
+                double clusterEnergy = TriggerModule.getValueClusterTotalEnergy(cluster);
+                double clusterHitCount = TriggerModule.getClusterHitCount(cluster);
+                
+                int ix = TriggerModule.getClusterXIndex(cluster);
+                int iy = TriggerModule.getClusterYIndex(cluster);
+                double dx = Math.abs(clusterR[0] - trackR[0]);
+                double dy = Math.abs(clusterR[1] - trackR[1]);
+                double dr = delta(clusterR, trackR);
+                double dE = Math.abs(clusterEnergy - trackPMag);
+                
+                // PRUNING :: Cut data that is obviously bad.
+                if(dr > 50) { continue; }
+                
+                boolean isMatch = false;
+                Map<MCParticle, Double> percentMap = percentClusterEnergyContributionMap.get(cluster);
+                if(percentMap.containsKey(trackParticle) && percentMap.get(trackParticle).doubleValue() >= 0.200) {
+                    isMatch = true;
+                    deltaR.fill(dr);
+                    deltaXY.fill(dx, dy);
+                    matches++;
+                }
+                
+                try {
+                    //writer.append(String.format("%f,%f,%s,%s,%f,%f,%f,%f,%b%n",
+                    //        clusterR[0], chi2, trackCharge > 0 ? "positive" : "negative", isTop ? "top" : "bottom", dx, dy, dr, dE, isMatch));
+                    writer.append(String.format("%f,%f,%d,%d,%f,%.0f,%f,%f,%f,%f,%f,%f,%s,%s,%f,%f,%f,%f,%b%n",
+                            clusterR[0], clusterR[1], ix, iy, clusterEnergy, clusterHitCount, trackR[0], trackR[1], trackP[0], trackP[1],
+                            trackPMag, chi2, trackCharge > 0 ? "positive" : "negative", isTop ? "top" : "bottom", dx, dy, dr, dE, isMatch));
+                } catch (IOException e) { throw new RuntimeException(); }
+            }
+            
+            if(matches > 1) { multiClusterTracks++; }
         }
     }
     
-    private static final String getClusterString(Cluster cluster) {
-        if(cluster == null) {
-            return "Cluster at UNDEFINED with energy NaN GeV and size NaN hit(s) at time NaN ns.";
-        } else {
-            return String.format("Cluster at %d with energy %5.3f GeV and size %d hit(s) at time %.2f ns.", cluster.getCalorimeterHits().get(0).getCellID(),
-                    cluster.getEnergy(), cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getTime());
+    private static double delta(double[] v0, double[] v1) {
+        if(v0.length != v1.length) {
+            throw new IllegalArgumentException("Error: Vectors must be of the same length.");
         }
+        
+        double sum = 0.0;
+        for(int i = 0; i < v0.length; i++) {
+            sum += Math.pow(v0[i] - v1[i], 2);
+        }
+        return Math.sqrt(sum);
     }
     
-    private static final String getHitString(CalorimeterHit hit) {
-        if(hit == null) {
-            return "Hit at UNDEFINED with energy NaN GeV at time NaN ns.";
+    private static final <T, V> void addToMap(T key, V value, Map<T, Set<V>> map) {
+        if(map.containsKey(key)) {
+            Set<V> newValue = map.get(key);
+            newValue.add(value);
         } else {
-            return String.format("Hit at %d with energy %5.3f GeV at time %.1f ns.", hit.getCellID(), hit.getRawEnergy(), hit.getTime());
+            Set<V> newValue = new HashSet<V>();
+            newValue.add(value);
+            map.put(key, newValue);
         }
     }
 }
