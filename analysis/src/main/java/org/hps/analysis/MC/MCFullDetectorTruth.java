@@ -282,6 +282,7 @@ public class MCFullDetectorTruth{
     
     public static Map<MCParticle, List<SimTrackerHit>> BuildTrackerHitMap(List<SimTrackerHit> trackerHits){
         Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
+        if(trackerHits == null) { return trackerHitMap; }
         for (SimTrackerHit hit : trackerHits) {
             MCParticle p = hit.getMCParticle();
             if (p == null) {
