@@ -1233,16 +1233,10 @@ public class TrackUtils {
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
-//        System.out.println("getStripHits::  hitToRotated size = " + hitToRotated.size());
-//        System.out.println("getStripHits::  hitToStrips size = " + hitToStrips.size());
-
         for (TrackerHit hit : track.getTrackerHits()) {
-//            System.out.println("getStripHits:: trackerHit = " + hit.toString());
-//            System.out.println("getStripHits:: hitToRotated.from(hit) size = " + hitToRotated.from(hit));
-////            System.out.println("getStripHits:: hitToRotated.from(hit) = "+hitToRotated.from(hit).toString());
-//            System.out.println("getStripHits:: hitToStrips.from(hit) = " + hitToStrips.allFrom(hitToRotated.from(hit)).size());
-//            hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+            hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
         }
+        
         return hits;
     }
 
