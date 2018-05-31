@@ -63,6 +63,8 @@ public class FeeSvtAlignmentDriver extends Driver {
     RelationalTable hitToStrips;
     RelationalTable hitToRotated;
 
+    private boolean _alignit = false;
+
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
     }
@@ -125,6 +127,7 @@ public class FeeSvtAlignmentDriver extends Driver {
             }
 
             Track t = rp.getTracks().get(0);
+            Hep3Vector pmom = rp.getMomentum();
             double p = rp.getMomentum().magnitude();
             Cluster c = rp.getClusters().get(0);
             // debug diagnostics to set cuts
@@ -148,6 +151,14 @@ public class FeeSvtAlignmentDriver extends Driver {
                 double chisqProb = ChisqProb.gammp(ndf, chiSquared);
                 int nHits = t.getTrackerHits().size();
                 double dEdx = t.getdEdx();
+                double e1 = rp.getEnergy();
+                double p1 = rp.getMomentum().magnitude();
+
+                double d0 = t.getTrackStates().get(0).getD0();
+                double z0 = t.getTrackStates().get(0).getZ0();
+                double thetaY = Math.asin(pmom.y() / pmom.magnitude());
+
+                Hep3Vector p1mom = rp.getMomentum();
                 //rotate into physiscs frame of reference
                 Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
                 double theta = Math.acos(rprot.z() / rprot.magnitude());
@@ -174,6 +185,17 @@ public class FeeSvtAlignmentDriver extends Driver {
                         aida.histogram1D("Fee top 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                     } else if (nHits == 6) {
                         aida.histogram1D("Fee top 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                        aida.histogram1D("Fee top 6-hit track d0", 100, -2.0, 2.0).fill(d0);
+                        aida.profile1D("Fee top 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
+                        aida.histogram2D("Fee top 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                        aida.histogram1D("Fee top 6-hit track z0", 100, -0.6, 0.6).fill(z0);
+                        aida.profile1D("Fee top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
+                        aida.histogram2D("Fee top 6-hit track thetaY vs z0", 100, 0.015, 0.055, 100, -0.6, 0.6).fill(thetaY, z0);
+                        aida.cloud1D("Top Track theta").fill(theta);
+                        aida.cloud2D("Top Track theta vs p").fill(theta, p);
+                        aida.cloud1D("Top rp x0").fill(TrackUtils.getX0(t));
+                        aida.cloud1D("Top rp y0").fill(TrackUtils.getY0(t));
+                        aida.cloud1D("Top rp z0").fill(TrackUtils.getZ0(t));
                     }
                 } else {
 
@@ -181,10 +203,23 @@ public class FeeSvtAlignmentDriver extends Driver {
                         aida.histogram1D("Fee bottom 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                     } else if (nHits == 6) {
                         aida.histogram1D("Fee bottom 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                        aida.histogram1D("Fee bottom 6-hit track d0", 100, -2.0, 2.0).fill(d0);
+                        aida.profile1D("Fee bottom 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
+                        aida.histogram2D("Fee bottom 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                        aida.histogram1D("Fee bottom 6-hit track z0", 100, -0.6, 0.6).fill(z0);
+                        aida.profile1D("Fee bottom 6-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
+                        aida.histogram2D("Fee bottom 6-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
+                        aida.cloud1D("Bottom Track theta").fill(theta);
+                        aida.cloud2D("Bottom Track theta vs p").fill(theta, p);
+                        aida.cloud1D("Bottom rp x0").fill(TrackUtils.getX0(t));
+                        aida.cloud1D("Bottom rp y0").fill(TrackUtils.getY0(t));
+                        aida.cloud1D("Bottom rp z0").fill(TrackUtils.getZ0(t));
                     }
                 }
-                if (nHits == 6) {
-                    alignit(rp);
+                if (_alignit) {
+                    if (nHits == 6) {
+                        alignit(rp);
+                    }
                 }
             }// end of cluster cuts
         }
@@ -260,6 +295,9 @@ public class FeeSvtAlignmentDriver extends Driver {
 
         double e1 = rp.getEnergy();
         double p1 = rp.getMomentum().magnitude();
+
+        double d0 = t1.getTrackStates().get(0).getD0();
+        double z0 = t1.getTrackStates().get(0).getZ0();
 
         Hep3Vector p1mom = rp.getMomentum();
 

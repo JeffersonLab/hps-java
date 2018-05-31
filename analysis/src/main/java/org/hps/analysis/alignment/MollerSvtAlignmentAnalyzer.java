@@ -29,9 +29,9 @@ public class MollerSvtAlignmentAnalyzer {
 
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         // Define the root directory for the plots.
-        boolean showPlots = true;
-        boolean writePlots = false;
-        String fileType = "png"; // pdf, eps ps svg emf swf
+        boolean showPlots = false;
+        boolean writePlots = true;
+        String fileType = "pdf"; // png, pdf, eps ps svg emf swf
         String rootDir = null;
         String plotFile = "D:/work/hps/analysis/mollerAlignment/2015_MollerSkim_pass8_PC.aida";
         if(args.length>0)
@@ -241,8 +241,10 @@ public class MollerSvtAlignmentAnalyzer {
 
         IFunction line = functionFactory.createFunctionByName("line", "p1");
 
-        IFitResult result = fitter.fit(topP0dataPointSet, line);
-        plotter.region(0).plot(result.fittedFunction());
+        IFitResult topP0vsPLineFitresult = fitter.fit(topP0dataPointSet, line);
+        plotter.region(0).plot(topP0vsPLineFitresult.fittedFunction());
+        IFitResult bottomP0vsPLineFitresult = fitter.fit(bottomP0dataPointSet, line);
+        plotter.region(2).plot(bottomP0vsPLineFitresult.fittedFunction());
         if (showPlots) {
             plotter.show();
         }
