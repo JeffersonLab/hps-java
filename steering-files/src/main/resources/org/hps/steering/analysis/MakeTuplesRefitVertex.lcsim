@@ -27,7 +27,7 @@
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
-        <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentMCTupleDriver">
+        <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentTupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
