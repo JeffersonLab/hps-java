@@ -70,7 +70,7 @@ public class BilliorVertex implements Vertex {
 
     }
 
-    BilliorVertex(Vertex lcioVtx) {
+    public BilliorVertex(Vertex lcioVtx) {
         _chiSq = lcioVtx.getChi2();
         _vertexPosition = lcioVtx.getPosition();
         _covVtx = lcioVtx.getCovMatrix();
@@ -117,6 +117,21 @@ public class BilliorVertex implements Vertex {
         if (covList.size() > 0)
             _covTrkMomList = covList;
 
+        if (paramMap.containsKey("V0Px") && paramMap.containsKey("V0Py") && paramMap.containsKey("V0Pz")) {
+            _v0Momentum = new BasicHep3Vector(paramMap.get("V0Px"),paramMap.get("V0Py"),paramMap.get("V0Pz"));
+        }
+        
+        if (paramMap.containsKey("V0PxErr") && paramMap.containsKey("V0PyErr") && paramMap.containsKey("V0PzErr")) {
+            _v0MomentumErr =  new BasicHep3Vector(paramMap.get("V0PxErr"),paramMap.get("V0PyErr"),paramMap.get("V0PzErr"));
+        }
+        
+        if (paramMap.containsKey("V0TargProjX") && paramMap.containsKey("V0TargProjY")) {
+            _v0TargetProjectionXY = new double[]{paramMap.get("V0TargProjX"),paramMap.get("V0TargProjY")};
+        }
+
+        if (paramMap.containsKey("V0TargProjXErr") && paramMap.containsKey("V0TargProjYErr")) {
+            _v0TargetProjectionXYErr = new double[]{paramMap.get("V0TargProjXErr"),paramMap.get("V0TargProjYErr")};
+        }
     }
 
     public void setStoreCovTrkMomList(boolean input) {
@@ -254,6 +269,35 @@ public class BilliorVertex implements Vertex {
                     pars.put("c12-5", cov[5]);
                 }
             }
+        
+        if(_v0Momentum != null){
+            Hep3Vector p = _v0Momentum;
+            pars.put("V0P", p.magnitude());
+            pars.put("V0Px", p.x());
+            pars.put("V0Py", p.y());
+            pars.put("V0Pz", p.z());
+        }
+        
+        if(_v0MomentumErr != null){
+            Hep3Vector pErr = _v0MomentumErr;
+            pars.put("V0PErr", pErr.magnitude());
+            pars.put("V0PxErr", pErr.x());
+            pars.put("V0PyErr", pErr.y());
+            pars.put("V0PzErr", pErr.z());
+        }
+         
+        if(_v0TargetProjectionXY != null){
+            double[] proj = _v0TargetProjectionXY;
+            pars.put("V0TargProjX", proj[0]);
+            pars.put("V0TargProjY", proj[1]);
+        }
+        
+        if(_v0TargetProjectionXYErr != null){
+            double[] projErr = _v0TargetProjectionXYErr;
+            pars.put("V0TargProjXErr", projErr[0]);
+            pars.put("V0TargProjYErr", projErr[1]);
+        }
+        
         return pars;
     }
 

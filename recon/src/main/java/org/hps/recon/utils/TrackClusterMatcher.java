@@ -29,7 +29,7 @@ import org.lcsim.geometry.FieldMap;
  */
 public class TrackClusterMatcher {
 
-    Double beamEnergy = 1.056; //I hard-coded this because it crashes without a value. Hopefully it doesn't break anything.
+    Double beamEnergy;
 
     /**
      * The B field map
@@ -347,7 +347,7 @@ public class TrackClusterMatcher {
         double dxMean[],dyMean[],dxSigm[],dySigm[];
         int charge = TrackUtils.getCharge(track);
         
-        boolean use1pt05parameters = false, use2pt3parameters = false; //change use2pt3... to false
+        boolean use1pt05parameters = false, use2pt3parameters;
         
         //Why is the following done like that? Causes problems when trying to just run the HpsReconParticleDriver - Matt Solt
         if(beamEnergy < 2){
