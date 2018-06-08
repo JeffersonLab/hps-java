@@ -1,13 +1,27 @@
 package org.hps.analysis.alignment;
 
+import hep.aida.IFitFactory;
+import hep.aida.IFitResult;
+import hep.aida.IFitter;
+import hep.aida.IFunction;
+import hep.aida.IFunctionFactory;
+import hep.aida.IHistogram1D;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+import java.io.IOException;
 import static java.lang.Integer.min;
 import static java.lang.Math.abs;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -22,6 +36,7 @@ import org.lcsim.event.TrackState;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -48,6 +63,8 @@ public class V0SvtAlignmentDriver extends Driver {
     // prop-2014 configurations
     private int flipSign = 1;
 
+    FieldMap _fieldmap;
+
     List<ReconstructedParticle> _topElectrons = new ArrayList<ReconstructedParticle>();
     List<ReconstructedParticle> _bottomElectrons = new ArrayList<ReconstructedParticle>();
     List<ReconstructedParticle> _topPositrons = new ArrayList<ReconstructedParticle>();
@@ -62,6 +79,17 @@ public class V0SvtAlignmentDriver extends Driver {
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
+//        _fieldmap = detector.getFieldMap();
+//        double[] pos = new double[3];
+//        double[] field = new double[3];
+//        for (int i = 0; i < 2000; ++i) {
+//            pos[2] = -50. + i;
+//            _fieldmap.getField(pos, field);
+//            System.out.println(pos[0]+" "+pos[1]+" "+pos[2]+" "+field[0]+" "+field[1]+" "+field[2]);
+//            aida.cloud1D("bx").fill(pos[2], field[0]);
+//            aida.cloud1D("by").fill(pos[2], field[1]);
+//            aida.cloud1D("bz").fill(pos[2], field[2]);
+//        }
         bField = detector.getFieldMap().getField(ip).y();
         if (bField < 0) {
             flipSign = -1;
@@ -74,8 +102,80 @@ public class V0SvtAlignmentDriver extends Driver {
             _beamEnergy = 2.306;
         }
 
+        List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
+        for (ReconstructedParticle rp : rpList) {
+
+            if (!TrackType.isGBL(rp.getType())) {
+                continue;
+            }
+            // require both track and cluster
+            if (rp.getClusters().size() != 1) {
+                continue;
+            }
+            if (rp.getTracks().size() != 1) {
+                continue;
+            }
+
+            Track t = rp.getTracks().get(0);
+            Cluster c = rp.getClusters().get(0);
+
+            int tNhits = t.getTrackerHits().size();
+            if (tNhits != 6) {
+                continue;
+            }
+
+            String type = (rp.getParticleIDUsed().getPDG() == 11) ? " electron " : " positron ";
+            String side = (c.getPosition()[1] > 0) ? " top " : " bottom ";
+            String s = "allTracks " + type + side;
+            Hep3Vector pmom = rp.getMomentum();
+            double p = pmom.magnitude();
+            TrackState ts = t.getTrackStates().get(0);
+            double z0 = ts.getZ0();
+            double[] refPoint = ts.getReferencePoint();
+            double thetaY = Math.asin(pmom.y() / pmom.magnitude());
+            aida.histogram1D(s + " z0", 100, -1.5, 1.5).fill(z0);
+            aida.histogram1D(s + " thetaY", 100, .015, .065).fill(abs(thetaY));
+            aida.profile1D(s + " track thetaY vs z0 profile", 30, 0.02, 0.05).fill(abs(thetaY), z0);
+            aida.histogram2D(s + " track thetaY vs z0", 30, .02, 0.05, 100, -1.5, 1.5).fill(abs(thetaY), z0);
+            aida.histogram1D(s + " track momentum", 150, 0., 1.5).fill(rp.getMomentum().magnitude());
+
+//            aida.cloud1D(s + " refPoint x").fill(refPoint[0]);
+//            aida.cloud1D(s + " refPoint y").fill(refPoint[1]);
+//            aida.cloud1D(s + " refPoint z").fill(refPoint[2]);
+
+            if (p > .9 && p < 1.2) {
+                aida.histogram1D(s + " high mom track momentum", 150, 0., 1.5).fill(rp.getMomentum().magnitude());
+                aida.histogram2D(s + " high mom track thetaY vs z0", 30, .02, 0.05, 100, -1.5, 1.5).fill(abs(thetaY), z0);
+                aida.profile1D(s + " high mom track thetaY vs z0 profile", 30, 0.02, 0.05).fill(abs(thetaY), z0);
+            }
+            if (p > .2 && p < .5) {
+                aida.histogram1D(s + " low mom track momentum", 150, 0., 1.5).fill(rp.getMomentum().magnitude());
+                aida.histogram2D(s + " low mom track thetaY vs z0", 30, .02, 0.05, 100, -1.5, 1.5).fill(abs(thetaY), z0);
+                aida.profile1D(s + " low mom track thetaY vs z0 profile", 30, 0.02, 0.05).fill(abs(thetaY), z0);
+            }
+
+            // step in momentum
+            int nSteps = 10;
+            double pMin = 0.25;
+            double dP = 0.1;
+
+            for (int i = 0; i < nSteps; ++i) {
+                double pBin = pMin + i * dP;
+                BigDecimal bd = new BigDecimal(Double.toString(pBin));
+                bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+                double binLabel = bd.doubleValue();
+
+                if (abs(p - pBin) < dP / 2.) {
+                    aida.histogram1D(s + binLabel + " track momentum", 150, 0., 1.5).fill(p);
+                    aida.histogram2D(s + binLabel + " track thetaY vs z0", 100, .015, 0.065, 100, -1.5, 1.5).fill(abs(thetaY), z0);
+                    aida.profile1D(s + binLabel + " track thetaY vs z0 profile", 10, 0.024, 0.054).fill(abs(thetaY), z0);
+                }
+            }
+
+        }
+
         List<Vertex> vertices = event.get(Vertex.class, vertexCollectionName);
-        if (vertices.size() != 1) {
+        if (vertices.size() != 2) {
             return;
         }
 
@@ -202,31 +302,118 @@ public class V0SvtAlignmentDriver extends Driver {
     }
 
 //    @Override
-//    protected void endOfData() {
+    protected void endOfData() {
+        try {
+            //        System.out.println("end of data");
+//        IAnalysisFactory af = IAnalysisFactory.create();
+//        IHistogramFactory hf = af.createHistogramFactory(aida.tree());
+//        IDataPointSetFactory dpsf = af.createDataPointSetFactory(aida.tree());
+//        IFunctionFactory functionFactory = af.createFunctionFactory(aida.tree());
+//        IFitFactory fitFactory = af.createFitFactory();
+//        IFitter fitter = fitFactory.createFitter("Chi2", "jminuit");
 //
-//        System.out.println("found " + _topElectrons.size() + " top electrons");
-//        System.out.println("found " + _topPositrons.size() + " top positrons");
-//        System.out.println("found " + _bottomElectrons.size() + " bottom electrons");
-//        System.out.println("found " + _bottomPositrons.size() + " bottom positrons");
+//        IHistogram2D bottomHiPPlot = (IHistogram2D) aida.tree().find("allTracks  electron  bottom  high mom track thetaY vs z0");
+//        IHistogram2D bottomLoPPlot = (IHistogram2D) aida.tree().find("allTracks  electron  bottom  low mom track thetaY vs z0");
+//        IHistogram2D topHiPPlot = (IHistogram2D) aida.tree().find("allTracks  electron  top  high mom track thetaY vs z0");
+//        IHistogram2D topLoPPlot = (IHistogram2D) aida.tree().find("allTracks  electron  top  low mom track thetaY vs z0");
 //
-//        //vertex top positrons and electrons
-//        int nTop = min(_topElectrons.size(), _topPositrons.size());
-//        for (int i = 0; i < nTop; ++i) {
-//            BilliorVertex vtx = fitVertex(_topElectrons.get(i), _topPositrons.get(i));
-//            aida.histogram1D("top vertex x position").fill(vtx.getPosition().x());
-//            aida.histogram1D("top vertex y position").fill(vtx.getPosition().y());
-//            aida.histogram1D("top vertex z position").fill(vtx.getPosition().z());
-//        }
-//        //vertex bottom electrons and positrons
-//        int nBottom = min(_bottomElectrons.size(), _bottomPositrons.size());
-//        for (int i = 0; i < nBottom; ++i) {
-//            BilliorVertex vtx = fitVertex(_bottomElectrons.get(i), _bottomPositrons.get(i));
-//            aida.histogram1D("bottom vertex x position").fill(vtx.getPosition().x());
-//            aida.histogram1D("bottom vertex y position").fill(vtx.getPosition().y());
-//            aida.histogram1D("bottom vertex z position").fill(vtx.getPosition().z());
-//        }
+//        IDataPointSet bottomHiPdataPointSet = dpsf.create("dataPointSet", "bottom high mom", 2);
+//        IDataPointSet bottomLoPdataPointSet = dpsf.create("dataPointSet", "bottom low mom", 2);
+//        IDataPointSet topHiPdataPointSet = dpsf.create("dataPointSet", "top high mom", 2);
+//        IDataPointSet topLoPdataPointSet = dpsf.create("dataPointSet", "top low mom", 2);
 //
-//    }
+//        sliceAndFit(bottomHiPPlot, bottomHiPdataPointSet, hf);
+//        sliceAndFit(bottomLoPPlot, bottomLoPdataPointSet, hf);
+//        sliceAndFit(topHiPPlot, topHiPdataPointSet, hf);
+//        sliceAndFit(topLoPPlot, topLoPdataPointSet, hf);
+//
+////        System.out.println("successfully fit "+nDataPoints+" slices");
+////        IPlotter plotter = af.createPlotterFactory().create("slice gaussian fits");
+////        plotter.setParameter("plotterWidth", "1600");
+////        plotter.setParameter("plotterHeight", "900");
+////        plotter.region(0).plot(bottomHiPdataPointSet);
+////
+////        IFunction line = functionFactory.createFunctionByName("line", "p1");
+////
+////        IFitResult bottomHiPLineFitresult = fitter.fit(bottomHiPdataPointSet, line);
+////        plotter.region(0).plot(bottomHiPLineFitresult.fittedFunction());
+////
+////        plotter.show();
+////
+////        System.out.println("found " + _topElectrons.size() + " top electrons");
+////        System.out.println("found " + _topPositrons.size() + " top positrons");
+////        System.out.println("found " + _bottomElectrons.size() + " bottom electrons");
+////        System.out.println("found " + _bottomPositrons.size() + " bottom positrons");
+////
+////        //vertex top positrons and electrons
+////        int nTop = min(_topElectrons.size(), _topPositrons.size());
+////        for (int i = 0; i < nTop; ++i) {
+////            BilliorVertex vtx = fitVertex(_topElectrons.get(i), _topPositrons.get(i));
+////            aida.histogram1D("top vertex x position").fill(vtx.getPosition().x());
+////            aida.histogram1D("top vertex y position").fill(vtx.getPosition().y());
+////            aida.histogram1D("top vertex z position").fill(vtx.getPosition().z());
+////        }
+////        //vertex bottom electrons and positrons
+////        int nBottom = min(_bottomElectrons.size(), _bottomPositrons.size());
+////        for (int i = 0; i < nBottom; ++i) {
+////            BilliorVertex vtx = fitVertex(_bottomElectrons.get(i), _bottomPositrons.get(i));
+////            aida.histogram1D("bottom vertex x position").fill(vtx.getPosition().x());
+////            aida.histogram1D("bottom vertex y position").fill(vtx.getPosition().y());
+////            aida.histogram1D("bottom vertex z position").fill(vtx.getPosition().z());
+////        }
+////
+            aida.saveAs("V0SvtAlignmentDriverPlots_" + myDate() + ".root");
+            aida.saveAs("V0SvtAlignmentDriverPlots_" + myDate() + ".aida");
+        } catch (IOException ex) {
+            Logger.getLogger(V0SvtAlignmentDriver.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static private String myDate() {
+        Calendar cal = new GregorianCalendar();
+        Date date = new Date();
+        cal.setTime(date);
+        DecimalFormat formatter = new DecimalFormat("00");
+        String day = formatter.format(cal.get(Calendar.DAY_OF_MONTH));
+        String month = formatter.format(cal.get(Calendar.MONTH) + 1);
+        return cal.get(Calendar.YEAR) + month + day;
+    }
+    //
+    //    private void sliceAndFit(IHistogram2D hist2D, IDataPointSet dataPointSet, IHistogramFactory hf) {
+    //        IAxis xAxis = hist2D.xAxis();
+    //        int nBins = xAxis.bins();
+    //        IHistogram1D[] bottomSlices = new IHistogram1D[nBins];
+    //        IDataPoint dp;
+    //        int nDataPoints = 0;
+    //        for (int i = 0; i < nBins; ++i) { // stepping through x axis bins
+    //            bottomSlices[i] = hf.sliceY("/bottom slice " + i, hist2D, i);
+    //            System.out.println("bottom slice " + i + " has " + bottomSlices[i].allEntries() + " entries");
+    //            if (bottomSlices[i].entries() > 100.) {
+    //                IFitResult fr = performGaussianFit(bottomSlices[i]);
+    //                System.out.println(" fit status: " + fr.fitStatus());
+    //                double[] frPars = fr.fittedParameters();
+    //                double[] frParErrors = fr.errors();
+    //                String[] frParNames = fr.fittedParameterNames();
+    //                System.out.println(" Energy Resolution Fit: ");
+    //                for (int jj = 0; jj < frPars.length; ++jj) {
+    //                    System.out.println(frParNames[jj] + " : " + frPars[jj] + " +/- " + frParErrors[jj]);
+    //                }
+    //                // create a datapoint
+    //                dataPointSet.addPoint();
+    //                dp = dataPointSet.point(nDataPoints++);
+    //                dp.coordinate(0).setValue(xAxis.binCenter(i));
+    //                dp.coordinate(1).setValue(frPars[1]); // gaussian mean
+    //                dp.coordinate(1).setErrorPlus(frParErrors[1]);
+    //                dp.coordinate(1).setErrorMinus(frParErrors[1]);
+    //            }
+    //        }
+    //        try {
+    //            aida.tree().commit();
+    //        } catch (IOException ex) {
+    //            Logger.getLogger(V0SvtAlignmentDriver.class.getName()).log(Level.SEVERE, null, ex);
+    //        }
+    //    }
+
     /**
      * Fits a vertex from an electron/positron track pair using the indicated
      * constraint.
@@ -318,6 +505,29 @@ public class V0SvtAlignmentDriver extends Driver {
     private BilliorTrack toBilliorTrack(TrackState trackstate) {
         // Generate and return the billior track.
         return new BilliorTrack(trackstate, 0, 0); // track state doesn't store chi^2 info (stored in the Track object)
+    }
+
+    private IFitResult performGaussianFit(IHistogram1D histogram) {
+        IFunctionFactory functionFactory = aida.analysisFactory().createFunctionFactory(null);
+        IFitFactory fitFactory = aida.analysisFactory().createFitFactory();
+        IFunction function = functionFactory.createFunctionByName("Gaussian Fit", "G");
+        IFitter fitter = fitFactory.createFitter("chi2", "jminuit");
+        double[] parameters = new double[3];
+        parameters[0] = histogram.maxBinHeight();
+        parameters[1] = histogram.mean();
+        parameters[2] = 0.1; // histogram.rms();// why is the rms of a slice wrong?
+        function.setParameters(parameters);
+        IFitResult fitResult = null;
+        Logger minuitLogger = Logger.getLogger("org.freehep.math.minuit");
+        minuitLogger.setLevel(Level.OFF);
+        minuitLogger.info("minuit logger test");
+
+        try {
+            fitResult = fitter.fit(histogram, function);
+        } catch (RuntimeException e) {
+            System.out.println("fit failed.");
+        }
+        return fitResult;
     }
 
 }
