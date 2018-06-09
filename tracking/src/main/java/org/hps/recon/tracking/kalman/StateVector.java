@@ -17,7 +17,7 @@ class StateVector {
     double R; // Covariance of residual
     boolean verbose;
     SquareMatrix F; // Propagator matrix to propagate from this site to the next site
-    private double B; // Field magnitude
+    double B; // Field magnitude
     double alpha; // Conversion from 1/K to radius R
     private HelixPlaneIntersect hpi;
     private double c;

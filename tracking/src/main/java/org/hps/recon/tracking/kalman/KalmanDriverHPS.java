@@ -136,14 +136,17 @@ public class KalmanDriverHPS extends Driver {
             System.out.println("\nPrinting info for original HPS track:");
             printTrackInfo(trk);
 
-            SeedTrack testKalmanTrack = KI.createKalmanTrack(trk, hitToStrips, hitToRotated);
-            System.out.println("\nPrinting info for Kalman track:");
+            //seedtrack
+            SeedTrack testKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
+            System.out.println("\nPrinting info for Kalman SeedTrack:");
             testKalmanTrack.print("testKalmanTrack");
 
             Track HPStrk = KI.createTrack(testKalmanTrack);
 
-            System.out.println("\nPrinting info for converted HPS track:");
+            System.out.println("\nPrinting info for Kalmam SeedTrack converted to HPS track:");
             printTrackInfo(HPStrk);
+
+            //full track
 
             // clearing for next track
             KI.clearTrack();
