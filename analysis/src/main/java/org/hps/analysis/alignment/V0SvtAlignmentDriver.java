@@ -78,7 +78,7 @@ public class V0SvtAlignmentDriver extends Driver {
     protected void detectorChanged(Detector detector) {
 
         // Set the magnetic field parameters to the appropriate values.
-        Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
+        Hep3Vector ip = new BasicHep3Vector(0., 0., 0.0);
 //        _fieldmap = detector.getFieldMap();
 //        double[] pos = new double[3];
 //        double[] field = new double[3];
@@ -175,7 +175,7 @@ public class V0SvtAlignmentDriver extends Driver {
         }
 
         List<Vertex> vertices = event.get(Vertex.class, vertexCollectionName);
-        if (vertices.size() != 2) {
+        if (vertices.size() != 1) {
             return;
         }
 
