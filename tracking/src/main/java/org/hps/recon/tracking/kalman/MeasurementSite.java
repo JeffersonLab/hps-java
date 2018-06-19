@@ -22,6 +22,7 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     private boolean verbose;
+    double B;
 
     // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
     // will never have a hit and thus will be handled the same as physical layers that lack hits
@@ -72,7 +73,7 @@ class MeasurementSite {
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
         Vec Bfield = m.Bfield.getField(m.p.X());
-        double B = Bfield.mag();
+        B = Bfield.mag();
         alpha = conFac / B; // Convert from pt in GeV to curvature in mm
         predicted = false;
         filtered = false;

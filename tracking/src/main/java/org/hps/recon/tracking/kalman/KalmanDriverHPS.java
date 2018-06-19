@@ -143,7 +143,7 @@ public class KalmanDriverHPS extends Driver {
 
             Track HPStrk = KI.createTrack(testKalmanTrack);
 
-            System.out.println("\nPrinting info for Kalmam SeedTrack converted to HPS track:");
+            System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
             printTrackInfo(HPStrk);
 
             //full track
