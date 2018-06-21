@@ -1,4 +1,5 @@
 package org.hps.recon.tracking.kalman;
+//package kalman;
 
 public class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
     // and a parabola in the bending plane
@@ -13,9 +14,8 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
         // y = nominal location of each measurement plane along the beam axis
         // v = measurement value in the detector coordinate system, perpendicular to the strips
         // s = one sigma error estimate on each measurement
-        // theta = stereo angle of each measurement plane
         // delta = offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)
-        // R2 = 2nd row of the general rotation from the global system to the local detector system, not including the stereo rotation
+        // R2 = 2nd row of the general rotation from the global system to the local detector system
         // verbose: set true to get lots of debug printout
         SquareMatrix A = new SquareMatrix(5);
         Vec B = new Vec(5);
@@ -64,6 +64,7 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
 
         // Do the calculation
         C = A.invert();
+        //C.multiply(A).print("unit matrix?");
         a = B.leftMultiply(C);
 
         // Add up the chi-squared
@@ -73,7 +74,7 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
             double R10 = R2[i][0];
             double R11 = R2[i][1];
             double R12 = R2[i][2];
-            vpred[i] = R10 * (evaluateParabola(y[i]) - delta[i][0]) + R12 * (evaluateLine(y[i]) - delta[i][1]) + R11 * (y[i] - delta[i][1]);
+            vpred[i] = R10 * (evaluateParabola(y[i]) - delta[i][0]) + R12 * (evaluateLine(y[i]) - delta[i][2]) + R11 * (y[i] - delta[i][1]);
             double err = (v[i] - vpred[i]) / s[i];
             chi2 += err * err;
         }
@@ -83,9 +84,11 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
         System.out.format("LinearHelixFit2: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.v[2], a.v[3], a.v[4]);
         System.out.format("LinearHelixFit2:     line a=%10.7f   b=%10.7f\n", a.v[0], a.v[1]);
         C.print("LinearHelixFit2 covariance");
-        System.out.format("LinearHelixFit2: i   x       y          z           v       v predicted     residual     sigmas       chi^2=%8.3f\n", chi2);
+        System.out.format("LinearHelixFit2: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n", chi2);
         for (int i = 0; i < N; i++) {
-            System.out.format("        %d   %10.7f %10.7f %10.7f  %10.7f   %10.7f   %10.7f   %10.7f\n", i, x[i], y[i], z[i], v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
+            double xpred = evaluateParabola(y[i]);
+            double zpred = evaluateLine(y[i]);
+            System.out.format("        %d   %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f\n", i, x[i], xpred, y[i], z[i], zpred, v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
         }
     }
 
