@@ -1,4 +1,5 @@
 package org.hps.recon.tracking.kalman;
+//package kalman;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,14 +62,18 @@ class SeedTrack {
 
         // Fit a straight line in the non-bending plane and a parabola in the bending plane
 
-        double[] x = null;
+        double[] xMC = null;
         double[] y = new double[hitList.size()]; // Global y coordinates of measurements (along beam direction)
-        double[] z = null;
+        double[] zMC = null;
         double[] t = null;
+        double[] yMC = null;
+        double[] mTrue = null;
         if (verbose) {
-            x = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
-            z = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
+            xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
+            zMC = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
             t = new double[hitList.size()]; // Stereo angle
+            yMC = new double[hitList.size()];
+            mTrue = new double[hitList.size()];
         }
         double[] v = new double[hitList.size()]; // Measurement value (i.e. position of the hit strip)
         double[] s = new double[hitList.size()]; // Uncertainty in the measurement (spatial resolution of the SSD)
@@ -113,8 +118,10 @@ class SeedTrack {
             }
             y[N] = pnt.v[1] - yOrigin;
             if (verbose) {
-                x[N] = pnt.v[0];
-                z[N] = pnt.v[2];
+                xMC[N] = m.rGlobal.v[0]; 
+                yMC[N] = m.rGlobal.v[1] - yOrigin;
+                zMC[N] = m.rGlobal.v[2]; 
+                mTrue[N] = m.vTrue;
             }
             v[N] = m.v;
             s[N] = m.sigma;
@@ -139,17 +146,17 @@ class SeedTrack {
             return;
         }
         if (verbose) {
-            System.out.format("SeedTrack: data in global coordinates: y, z, x, m, check, sigma, theta\n");
+            System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, theta\n");
             for (int i = 0; i < N; i++) {
-                double vcheck = -Math.sin(t[i]) * x[i] - Math.cos(t[i]) * z[i];
-                System.out.format("%d  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %8.5f\n", i, y[i], z[i], x[i], v[i], vcheck, s[i], t[i]);
+                double vcheck = R2[i][0]*(xMC[i]-delta[i][0]) + R2[i][2]*(zMC[i]-delta[i][2]) + R2[i][1]*(yMC[i]-delta[i][1]);
+                System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %8.5f\n", i, y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], t[i]);
             }
         }
 
         // Here we do the 5-parameter linear fit:
         LinearHelixFit fit = new LinearHelixFit(N, y, v, s, delta, R2, verbose);
         if (verbose) {
-            fit.print(N, x, y, z, v, s);
+            fit.print(N, xMC, y, zMC, v, s);
         }
 
         // Now, derive the helix parameters and covariance from the two fits
