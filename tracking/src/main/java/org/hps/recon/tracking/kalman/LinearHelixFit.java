@@ -73,7 +73,10 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
             double R10 = R2[i][0];
             double R11 = R2[i][1];
             double R12 = R2[i][2];
-            vpred[i] = R10 * (evaluateParabola(y[i]) - delta[i][0]) + R12 * (evaluateLine(y[i]) - delta[i][1]) + R11 * (y[i] - delta[i][1]);
+            vpred[i] = R10 * (evaluateParabola(y[i]) - delta[i][0]) + R12 * (evaluateLine(y[i]) - delta[i][2]) + R11 * (y[i] - delta[i][1]);
+            //   R10 -0.000146  ePyi -4.094654  deltai0 -22.794523  R12 -0.999999 eLyi 22.174849  deltai2 32.839151  R11 -0.001407  yi 912.877681  deltai1 912.892707
+
+            //System.out.printf("  R10 %f  ePyi %f  deltai0 %f  R12 %f eLyi %f  deltai2 %f  R11 %f  yi %f  deltai1 %f \n", R10, evaluateParabola(y[i]), delta[i][0], R12, evaluateLine(y[i]), delta[i][2], R11, y[i], delta[i][1]);
             double err = (v[i] - vpred[i]) / s[i];
             chi2 += err * err;
         }

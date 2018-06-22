@@ -98,7 +98,7 @@ class SeedTrack {
         N = 0;
         for (int[] itr : hitList) {
             SiModule thisSi = data.get(itr[0]);
-            if (thisSi.stereo == 0.) {
+            if (!thisSi.isStereo) {
                 Nnonbending++;
             } else {
                 Nbending++;

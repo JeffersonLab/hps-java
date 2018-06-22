@@ -161,7 +161,7 @@ public class KalmanInterface {
     static double[] getLCSimParams(double[] oldParams, double alpha) {
         // convert params
         double[] params = new double[5];
-        params[ParameterName.d0.ordinal()] = oldParams[0]; //*-1.0
+        params[ParameterName.d0.ordinal()] = oldParams[0] * -1.0;
         params[ParameterName.phi0.ordinal()] = oldParams[1]; //- Math.PI / 2.0;
         params[ParameterName.omega.ordinal()] = oldParams[2] / alpha * -1.0;
         params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
@@ -231,10 +231,7 @@ public class KalmanInterface {
                 VecOp.mult(-1.0, v);
             Hep3Vector w = inputPlane.normal();
 
-            double stereo = 0;
-            if (temp.isStereo()) {
-                stereo = Math.abs(Math.asin(v.z()));
-            }
+            double stereo = Math.abs(Math.asin(v.z()));
 
             Vec pointOnPlane = new Vec(3, inputPlane.origin().v());
             Vec normalToPlane = new Vec(3, w.v());
@@ -246,7 +243,7 @@ public class KalmanInterface {
             System.out.printf("HPSsensor raw info: %s : v %s w %s, origin %s, stereo %f \n", temp.getName(), v.toString(), w.toString(), inputPlane.origin().toString(), stereo);
             System.out.printf("    Building with Kalman plane: point %s normal %s \n", new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(normalToPlaneTransformed.v).toString());
             Plane p = new Plane(pointOnPlaneTransformed, normalToPlaneTransformed);
-            SiModule newMod = new SiModule(temp.getLayerNumber(), p, stereo, inputPlane.getWidth(), inputPlane.getLength(), inputPlane.getThickness(), fm);
+            SiModule newMod = new SiModule(temp.getLayerNumber(), p, temp.isStereo(), stereo, inputPlane.getWidth(), inputPlane.getLength(), inputPlane.getThickness(), fm);
 
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);

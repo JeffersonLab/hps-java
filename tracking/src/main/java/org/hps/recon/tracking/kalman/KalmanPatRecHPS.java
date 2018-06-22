@@ -272,7 +272,7 @@ public class KalmanPatRecHPS {
                                 phiF = 0.;
                             double vPred = site.h(aF, phiF);
                             int cnt = 2 * m.Layer;
-                            if (m.stereo != 0.)
+                            if (m.isStereo)
                                 cnt++;
                             System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                             for (Measurement hit : m.hits) {
@@ -298,7 +298,7 @@ public class KalmanPatRecHPS {
                     for (MeasurementSite site : sites) { // Save the hit assignments for the next step
                         SiModule m = site.m;
                         int jdx = m.Layer * 2;
-                        if (m.stereo != 0.)
+                        if (m.isStereo)
                             jdx++;
                         hits[jdx] = site.hitID;
                     }
@@ -340,7 +340,7 @@ public class KalmanPatRecHPS {
                         for (int mdx = nModules - 1; mdx >= 0; mdx--) {
                             SiModule m = data.get(mdx);
                             int jdx = m.Layer * 2;
-                            if (m.stereo != 0.)
+                            if (m.isStereo)
                                 jdx++;
                             thisSite++;
                             newSite = new MeasurementSite(thisSite, m, mxResid[trial], mxResidShare);
@@ -382,7 +382,7 @@ public class KalmanPatRecHPS {
                                 break;
                             }
                             nHits += rF;
-                            if (rF == 1 && m.stereo != 0.)
+                            if (rF == 1 && m.isStereo)
                                 nStereo++;
 
                             // if (verbose) {
@@ -447,7 +447,7 @@ public class KalmanPatRecHPS {
                             int ID = currentSite.hitID;
                             if (ID >= 0) {
                                 if (currentSite.chi2inc > mxChi2Inc[trial] && iteration != nIterations - 1 && nHits > minHits2[trial]) {
-                                    boolean stereo = currentSite.m.stereo != 0.;
+                                    boolean stereo = currentSite.m.isStereo;
                                     if ((stereo && nStereo > 4) || (!stereo && nHits - nStereo > 2)) {
                                         if (currentSite.removeHit()) {
                                             if (verbose)
@@ -560,7 +560,7 @@ public class KalmanPatRecHPS {
                         }
                         if (site.hitID >= 0) {
                             nHits++;
-                            if (m.stereo != 0.)
+                            if (m.isStereo)
                                 nStereo++;
                         }
                     }
@@ -646,7 +646,7 @@ public class KalmanPatRecHPS {
                 if (site.hitID < 0)
                     continue;
                 SiModule m = site.m;
-                if (m.stereo == 0.)
+                if (!m.isStereo)
                     nNonStereo++;
                 else
                     nStereo++;

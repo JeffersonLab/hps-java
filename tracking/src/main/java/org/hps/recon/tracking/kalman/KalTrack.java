@@ -64,7 +64,7 @@ public class KalTrack {
             if (hitID < 0)
                 continue;
             int idx = 2 * m.Layer;
-            if (m.stereo != 0.)
+            if (m.isStereo)
                 idx++;
             System.out.format("%d Layer %d, stereo=%6.3f, chi^2 inc.=%10.6f, hit=%d  \n", idx, m.Layer, m.stereo, site.chi2inc, hitID);
         }
@@ -158,7 +158,7 @@ public class KalTrack {
     public int whichSite(SiModule module) {
         int Layer = module.Layer;
         int idx;
-        if (module.stereo == 0.) {
+        if (!module.isStereo) {
             idx = 2 * Layer;
         } else {
             idx = 2 * Layer + 1;

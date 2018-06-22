@@ -19,11 +19,22 @@ public class SiModule {
     double stereo; // Stereo angle of the detectors in radians
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
     FieldMap Bfield;
+    boolean isStereo;
 
     public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
+        // for backwards-compatibility: assume axials have angle=0
+        boolean s = false;
+        if (stereo != 0)
+            s = true;
+
+        new SiModule(Layer, p, s, stereo, width, height, thickness, Bfield);
+    }
+
+    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, FieldMap Bfield) {
         this.Layer = Layer;
         this.Bfield = Bfield;
         this.p = p;
+        this.isStereo = isStereo;
         this.stereo = stereo;
         this.thickness = thickness;
         xExtent = new double[2];
