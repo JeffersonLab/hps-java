@@ -17,9 +17,10 @@ public class KalTrack {
     private SquareMatrix originCov;
     private Vec originPoint;
     private Vec originMomentum;
-    private double alpha;
+    public double alpha;
     private double[][] Cx;
     private double[][] Cp;
+    public double Bmag;
 
     KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         this.SiteList = SiteList;
@@ -31,7 +32,7 @@ public class KalTrack {
         originCov = new SquareMatrix(5);
         MeasurementSite site = SiteList.get(0);
         Vec B = site.m.Bfield.getField(new Vec(0., 0., 0.));
-        double Bmag = B.mag();
+        Bmag = B.mag();
         Vec tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec uB = yhat.cross(tB).unitVec();

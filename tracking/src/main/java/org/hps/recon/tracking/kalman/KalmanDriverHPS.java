@@ -13,6 +13,7 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.geometry.Detector;
+import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 // $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
@@ -26,6 +27,16 @@ public class KalmanDriverHPS extends Driver {
     private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
     private String trackCollectionName = "MatchedTracks";
     private KalmanInterface KI;
+    private boolean verbose = true;
+    private String outputSeedTrackCollectionName = "KalmanSeedTracks";
+
+    public void setOutputSeedTrackCollectionName(String input) {
+        outputSeedTrackCollectionName = input;
+    }
+
+    public void setVerbose(boolean input) {
+        verbose = input;
+    }
 
     public void setMaterialManager(MaterialSupervisor mm) {
         _materialManager = mm;
@@ -121,6 +132,7 @@ public class KalmanDriverHPS extends Driver {
             return;
         }
         List<Track> tracks = event.get(Track.class, trackCollectionName);
+        List<Track> outputSeedTracks = new ArrayList<Track>();
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
@@ -132,27 +144,33 @@ public class KalmanDriverHPS extends Driver {
         //        }
 
         for (Track trk : tracks) {
-
-            System.out.println("\nPrinting info for original HPS track:");
-            printTrackInfo(trk);
-
+            if (verbose) {
+                System.out.println("\nPrinting info for original HPS track:");
+                printTrackInfo(trk);
+            }
             //seedtrack
             SeedTrack testKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
-            System.out.println("\nPrinting info for Kalman SeedTrack:");
-            testKalmanTrack.print("testKalmanTrack");
-
+            if (verbose) {
+                System.out.println("\nPrinting info for Kalman SeedTrack:");
+                testKalmanTrack.print("testKalmanTrack");
+            }
             Track HPStrk = KI.createTrack(testKalmanTrack);
-
-            System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
-            printTrackInfo(HPStrk);
-
+            if (verbose) {
+                System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
+                printTrackInfo(HPStrk);
+            }
+            outputSeedTracks.add(HPStrk);
             //full track
 
             // clearing for next track
-            KI.clearTrack();
+            KI.clearInterface();
 
         }
-        System.out.println("DONE event ");
+        if (verbose)
+            System.out.println("\n DONE event ");
+
+        int flag = 1 << LCIOConstants.TRBIT_HITS;
+        event.put(outputSeedTrackCollectionName, outputSeedTracks, Track.class, flag);
     }
 
     private void printTrackInfo(Track HPStrk) {
