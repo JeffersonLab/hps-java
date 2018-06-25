@@ -30,6 +30,10 @@ public class KalmanDriverHPS extends Driver {
     private boolean verbose = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
 
+    public String getOutputSeedTrackCollectionName() {
+        return outputSeedTrackCollectionName;
+    }
+
     public void setOutputSeedTrackCollectionName(String input) {
         outputSeedTrackCollectionName = input;
     }

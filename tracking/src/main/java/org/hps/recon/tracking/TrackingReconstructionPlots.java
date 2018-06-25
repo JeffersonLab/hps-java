@@ -462,7 +462,6 @@ public class TrackingReconstructionPlots extends Driver {
 
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             System.out.println(trackCollectionName + " does not exist; skipping event");
-            aida.histogram1D("Number Tracks/Event").fill(0);
             return;
         }
         List<Track> tracks = event.get(Track.class, trackCollectionName);
