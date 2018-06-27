@@ -223,11 +223,16 @@ class MeasurementSite {
     }
 
     boolean filter() { // Produce the filtered state vector for this site
-        /*
-         * // For debugging only double phi = aP.planeIntersect(p); System.out.format("    phiNew=%10.7f\n", phi); Vec xGlobal =
-         * aP.atPhi(phi); xGlobal.print("xGlobal"); Vec xLocal = R.rotate(xGlobal.dif(p.X()));
-         * xLocal.print("MeasurementSite.filter: local intersection"); // end debug
-         */
+
+        // debug
+        double phi = aP.planeIntersect(m.p);
+        System.out.format("    phiNew=%10.7f\n", phi);
+        Vec xGlobal = aP.atPhi(phi);
+        xGlobal.print("xGlobal");
+        Vec xLocal = m.R.rotate(xGlobal.dif(m.p.X()));
+        xLocal.print("MeasurementSite.filter: local intersection");
+        // end debug
+
         if (smoothed || filtered || !predicted) {
             System.out.format("******MeasurementSite.filter: Warning, this site is not in the correct state!\n");
             // this.print("in the wrong state for filtering");
@@ -249,9 +254,9 @@ class MeasurementSite {
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
-            if (verbose)
-                System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
-            return false;
+            //if (verbose)
+            System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+            //return false;
         }
         aF.mPred = h(aF, phiF);
         aF.r = hit.v - aF.mPred;

@@ -29,6 +29,7 @@ public class KalmanDriverHPS extends Driver {
     private KalmanInterface KI;
     private boolean verbose = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
+    private String outputFullTrackCollectionName = "KalmanFullTracks";
 
     public String getOutputSeedTrackCollectionName() {
         return outputSeedTrackCollectionName;
@@ -137,6 +138,7 @@ public class KalmanDriverHPS extends Driver {
         }
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         List<Track> outputSeedTracks = new ArrayList<Track>();
+        List<Track> outputFullTracks = new ArrayList<Track>();
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
@@ -147,24 +149,41 @@ public class KalmanDriverHPS extends Driver {
         //            SiM.print("SiModFromTestData");
         //        }
 
+        int trackID = 0;
         for (Track trk : tracks) {
+            trackID++;
             if (verbose) {
                 System.out.println("\nPrinting info for original HPS track:");
                 printTrackInfo(trk);
             }
+
             //seedtrack
-            SeedTrack testKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
+            SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman SeedTrack:");
-                testKalmanTrack.print("testKalmanTrack");
+                seedKalmanTrack.print("testKalmanTrack");
             }
-            Track HPStrk = KI.createTrack(testKalmanTrack);
+            Track HPStrk = KI.createTrack(seedKalmanTrack);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
                 printTrackInfo(HPStrk);
             }
             outputSeedTracks.add(HPStrk);
+
             //full track
+            // KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) 
+            KalmanTrackFit2 ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
+            if (verbose)
+                ktf2.print("fullKalmanTrackFit");
+
+            KalTrack fullKalmanTrack = KI.createKalmanTrack(ktf2, trackID);
+            if (verbose)
+                fullKalmanTrack.print("fullKalmanTrack");
+
+            Track fullKalmanTrackHPS = KalmanInterface.createTrack(fullKalmanTrack, false);
+            if (verbose)
+                printTrackInfo(fullKalmanTrackHPS);
+            outputFullTracks.add(fullKalmanTrackHPS);
 
             // clearing for next track
             KI.clearInterface();
@@ -175,6 +194,7 @@ public class KalmanDriverHPS extends Driver {
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputSeedTrackCollectionName, outputSeedTracks, Track.class, flag);
+        event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
 
     private void printTrackInfo(Track HPStrk) {

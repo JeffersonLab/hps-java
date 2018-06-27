@@ -1,4 +1,5 @@
 package org.hps.recon.tracking.kalman;
+
 //package kalman;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ class SeedTrack {
     private Vec sol; // Fitted polynomial coefficients
     private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
-    private double yOrigin;
+    public double yOrigin;
     private static Plane p0; // x,z plane at y=0
     private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting
 
@@ -118,9 +119,9 @@ class SeedTrack {
             }
             y[N] = pnt.v[1] - yOrigin;
             if (verbose) {
-                xMC[N] = m.rGlobal.v[0]; 
+                xMC[N] = m.rGlobal.v[0];
                 yMC[N] = m.rGlobal.v[1] - yOrigin;
-                zMC[N] = m.rGlobal.v[2]; 
+                zMC[N] = m.rGlobal.v[2];
                 mTrue[N] = m.vTrue;
             }
             v[N] = m.v;
@@ -148,7 +149,7 @@ class SeedTrack {
         if (verbose) {
             System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, theta\n");
             for (int i = 0; i < N; i++) {
-                double vcheck = R2[i][0]*(xMC[i]-delta[i][0]) + R2[i][2]*(zMC[i]-delta[i][2]) + R2[i][1]*(yMC[i]-delta[i][1]);
+                double vcheck = R2[i][0] * (xMC[i] - delta[i][0]) + R2[i][2] * (zMC[i] - delta[i][2]) + R2[i][1] * (yMC[i] - delta[i][1]);
                 System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f   %8.5f\n", i, y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], t[i]);
             }
         }

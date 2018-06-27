@@ -36,7 +36,7 @@ public class KalmanInterface {
     private ArrayList<int[]> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
-    public boolean verbose = false;
+    public boolean verbose = true;
 
     public void setSeedTrackLayers(List<Integer> input) {
         SeedTrackLayers = input;
@@ -48,6 +48,7 @@ public class KalmanInterface {
         trackHitsKalman = new ArrayList<int[]>();
         SiMlist = new ArrayList<SiModule>();
         SeedTrackLayers = new ArrayList<Integer>();
+        //SeedTrackLayers.add(2);
         SeedTrackLayers.add(3);
         SeedTrackLayers.add(4);
         SeedTrackLayers.add(5);
@@ -279,9 +280,9 @@ public class KalmanInterface {
 
             HpsSiSensor temp = ((HpsSiSensor) ((RawTrackerHit) hit1D.getRawHits().get(0)).getDetectorElement());
             int lay = temp.getLayerNumber();
-            if (addMode == 0 && !SeedTrackLayers.contains(lay / 2 + 1))
+            if (addMode == 0 && !SeedTrackLayers.contains((lay + 1) / 2))
                 continue;
-            else if (addMode == 1 && SeedTrackLayers.contains(lay / 2 + 1))
+            else if (addMode == 1 && SeedTrackLayers.contains((lay + 1) / 2))
                 continue;
 
             ArrayList<TrackerHit> hitsInLayer = null;
@@ -350,10 +351,10 @@ public class KalmanInterface {
     public SeedTrack createKalmanSeedTrack(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
 
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
-        double firstHitZ = fillMeasurements(hitsOnTrack, 2);
+        double firstHitZ = fillMeasurements(hitsOnTrack, 0);
         if (verbose)
             System.out.printf("firstHitZ %f \n", firstHitZ);
-        return new SeedTrack(SiMlist, 0, trackHitsKalman, verbose);
+        return new SeedTrack(SiMlist, firstHitZ, trackHitsKalman, verbose);
     }
 
     public KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
@@ -363,12 +364,33 @@ public class KalmanInterface {
             if (hit1D.getPosition()[2] < firstHitZ)
                 firstHitZ = hit1D.getPosition()[2];
         }
+
+        ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
+        int startIndex = 0;
         fillMeasurements(hitsOnTrack, 1);
+        for (SiModule SiM : SiMlist) {
+            if (!SiM.hits.isEmpty())
+                SiMoccupied.add(SiM);
+        }
+        Collections.sort(SiMoccupied, new SortByLayer());
+
+        for (int i = 0; i < SiMoccupied.size(); i++) {
+            SiModule SiM = SiMoccupied.get(i);
+            if (SeedTrackLayers.contains((SiM.Layer + 1) / 2) && (i > startIndex))
+                startIndex = i;
+            if (verbose)
+                SiM.print(String.format("SiMoccupied%d", i));
+        }
+        //        startIndex++;
+
+        if (verbose) {
+            System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex);
+        }
 
         SquareMatrix cov = seed.covariance();
         cov.scale(1000.0);
 
-        return new KalmanTrackFit2(SiMlist, 0, nIt, new Vec(0., firstHitZ, 0.), seed.helixParams(), cov, fm, false);
+        return new KalmanTrackFit2(SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm, verbose);
     }
 
     public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {

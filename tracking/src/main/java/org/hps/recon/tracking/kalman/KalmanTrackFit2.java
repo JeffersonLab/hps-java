@@ -69,7 +69,7 @@ public class KalmanTrackFit2 {
                 }
 
                 if (!newSite.filter()) {
-                    System.out.format("KalmanTrackFit2: Failed to filter at site %d, idx=%d.  Ignore remaining sites\n", thisSite, idx);
+                    System.out.format("KalmanTrackFit2 72: Failed to filter at site %d, idx=%d.  Ignore remaining sites\n", thisSite, idx);
                     success = false;
                     break;
                 }
@@ -150,7 +150,7 @@ public class KalmanTrackFit2 {
                 }
 
                 if (!newSite.filter()) {
-                    System.out.format("KalmanTrackFit2: Failed to filter at site %d.  Ignore remaining sites\n", thisSite);
+                    System.out.format("KalmanTrackFit2 153: Failed to filter at site %d.  Ignore remaining sites\n", thisSite);
                     success = false;
                     break;
                 }
