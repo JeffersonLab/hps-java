@@ -259,8 +259,8 @@ public class StraightThroughAnalysisDriver extends Driver {
                 trackAxialIntercept[i] = hf.createHistogram1D("Track axial " + half + " intercept", 50, -50, 0);
                 trackL13AxialIntercept[i] = hf.createHistogram1D("Track L13 axial " + half + " intercept", 50, -50, 20);
                 trackL46AxialIntercept[i] = hf.createHistogram1D("Track L46 axial " + half + " intercept", 50, -50, 20);
-                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half + " slope", 50, -0.1, 0.02);
-                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half + " slope", 50, -0.1, 0.02);
+                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half + " slope", 100, -0.03, 0.02);
+                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half + " slope", 100, -0.1, 0.02);
             }
             trackAxialHitCount[i] = hf.createHistogram1D("Track axial " + half + " hit multiplicity", 11, -0.5, 10.5);
             trackAxialCount[i] = hf.createHistogram1D("Track axial " + half + " multiplicity", 2, -0.5, 1.5);
@@ -387,7 +387,7 @@ public class StraightThroughAnalysisDriver extends Driver {
             sensorHitTimes.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_hittime", 50, -100, 100));
             sensorHitCountMap.put(sensor.getName(), new int[1]);
             sensorHitCountMap.get(sensor.getName())[0] = 0;
-            sensorURes.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_ures", 50, -1, 1));
+            sensorURes.put(sensor.getName(), hf.createHistogram1D(sensor.getName() + "_ures", 100, -0.4, 0.4));
 
             plotters.get("Sensor u res").region(SvtPlotUtils.computePlotterRegion(sensor))
                     .plot(sensorURes.get(sensor.getName()));
@@ -406,13 +406,13 @@ public class StraightThroughAnalysisDriver extends Driver {
                 plotters.get("Sensor hit res").region(0).style().dataStyle().showInStatisticsBox(true);
 
                 sensorHitResGlobalL13.put(sensor.getName(),
-                        hf.createHistogram1D(sensor.getName() + "_hitresglobalL13", 50, -0.7, 0.7));
+                        hf.createHistogram1D(sensor.getName() + "_hitresglobalL13", 50, -0.2, 0.2));
                 plotters.get("Sensor hit res L13").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor))
                         .plot(sensorHitResGlobalL13.get(sensor.getName()));
                 plotters.get("Sensor hit res L13").region(0).style().dataStyle().showInStatisticsBox(true);
 
                 sensorHitResGlobalL46.put(sensor.getName(),
-                        hf.createHistogram1D(sensor.getName() + "_hitresglobalL46", 50, -0.7, 0.7));
+                        hf.createHistogram1D(sensor.getName() + "_hitresglobalL46", 50, -0.2, 0.2));
                 plotters.get("Sensor hit res L46").region(SvtPlotUtils.computePlotterRegionAxialOnly(sensor))
                         .plot(sensorHitResGlobalL46.get(sensor.getName()));
                 plotters.get("Sensor hit res L46").region(0).style().dataStyle().showInStatisticsBox(true);
