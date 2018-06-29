@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.hps.recon.tracking.straight;
 
@@ -29,10 +29,18 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.recon.tracking.straight.STUtils.STStereoTrack;
+import org.lcsim.detector.DetectorElementStore;
+import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -41,8 +49,9 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * Driver that fits {@link SiTrackerHitStrip1D} clusters to a straight line track model.
- * 
+ * Driver that fits {@link SiTrackerHitStrip1D} clusters to a straight line
+ * track model.
+ *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class StraightThroughAnalysisDriver extends Driver {
@@ -114,7 +123,7 @@ public class StraightThroughAnalysisDriver extends Driver {
     private boolean showPlots = true;
 
     /**
-     * 
+     *
      */
     public StraightThroughAnalysisDriver() {
         logger.setLevel(Level.INFO);
@@ -136,9 +145,10 @@ public class StraightThroughAnalysisDriver extends Driver {
         // find the stereo layers for this detector
         stereoLayers = ((HpsTracker2) detector.getSubdetector(subdetectorName).getDetectorElement()).getStereoPairs();
         StringBuffer sb = new StringBuffer("Found " + stereoLayers.size() + " stereo layers:");
-        for (SvtStereoLayer sl : stereoLayers)
+        for (SvtStereoLayer sl : stereoLayers) {
             sb.append(sl.getLayerNumber() + ": " + sl.getAxialSensor().getName() + " - "
                     + sl.getStereoSensor().getName() + "\n");
+        }
         logger.info(sb.toString());
 
         double msErrY = 100.0 * STUtils.msangle(STUtils.beamEnergy, STUtils.sensorThickness);
@@ -423,8 +433,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         }
 
         if (showPlots) {
-            for (IPlotter plotter : plotters.values())
+            for (IPlotter plotter : plotters.values()) {
                 plotter.show();
+            }
         }
     }
 
@@ -447,6 +458,14 @@ public class StraightThroughAnalysisDriver extends Driver {
         List<SiTrackerHitStrip1D> stripClusters = new ArrayList<SiTrackerHitStrip1D>();
         if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
             stripClusters = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
+        }
+
+        if (stripClusters.size() == 0) { // try reconstituting from lcio collection
+            setupSensors(event);
+            List<TrackerHit> lcioStripClusters = event.get(TrackerHit.class, "StripClusterer_SiTrackerHitStrip1D");
+            for (TrackerHit hit : lcioStripClusters) {
+                stripClusters.add(new SiTrackerHitStrip1D(hit));
+            }
         }
 
         logger.fine("Found " + stripClusters.size() + " strip clusters in the event");
@@ -504,7 +523,6 @@ public class StraightThroughAnalysisDriver extends Driver {
                 } else {
 
                     // look at stereos
-
                     Map<Integer, List<SiTrackerHitStrip1D>> hitsPerLayer;
                     if (sensor.isTopLayer()) {
                         hitsPerLayer = stereoHitsPerLayer.get(0);
@@ -532,8 +550,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         botHitCount.fill(botHits.size());
 
         // fill hit positions
-        for (HpsSiSensor sensor : sensors)
+        for (HpsSiSensor sensor : sensors) {
             sensorHitCounts.get(sensor.getName()).fill(sensorHitCountMap.get(sensor.getName())[0]);
+        }
 
         // Pattern recognition for axial hits - yeah!
         List<List<SiTrackerHitStrip1D>> axialSeedHits = new ArrayList<List<SiTrackerHitStrip1D>>();
@@ -547,10 +566,11 @@ public class StraightThroughAnalysisDriver extends Driver {
                 // single hit on the sensor
                 if (axialHitsPerLayer.get(ihalf).get(layer).size() == 1) {
                     seedHits.add(axialHitsPerLayer.get(ihalf).get(layer).get(0));
-                    if (layer < 4)
+                    if (layer < 4) {
                         seedL13Hits.add(axialHitsPerLayer.get(ihalf).get(layer).get(0));
-                    else
+                    } else {
                         seedL46Hits.add(axialHitsPerLayer.get(ihalf).get(layer).get(0));
+                    }
                 }
             }
             axialSeedHits.add(seedHits);
@@ -570,10 +590,11 @@ public class StraightThroughAnalysisDriver extends Driver {
                 // single hit on the sensor
                 if (stereoHitsPerLayer.get(ihalf).get(layer).size() == 1) {
                     seedHits.add(stereoHitsPerLayer.get(ihalf).get(layer).get(0));
-                    if (layer < 4)
+                    if (layer < 4) {
                         seedL13Hits.add(stereoHitsPerLayer.get(ihalf).get(layer).get(0));
-                    else
+                    } else {
                         seedL46Hits.add(stereoHitsPerLayer.get(ihalf).get(layer).get(0));
+                    }
                 }
             }
             stereoSeedHits.add(seedHits);
@@ -582,7 +603,6 @@ public class StraightThroughAnalysisDriver extends Driver {
         }
 
         // try to make stereo hits
-
         List<List<STUtils.StereoPair>> stereoPairs = new ArrayList<List<STUtils.StereoPair>>();
 
         for (int ihalf = 0; ihalf < 2; ++ihalf) {
@@ -605,8 +625,9 @@ public class StraightThroughAnalysisDriver extends Driver {
                 }
 
                 // make sure it was found
-                if (stereoSensor == null)
+                if (stereoSensor == null) {
                     throw new RuntimeException("Couldn't find stereo sensor to \"" + axialSensor.getName() + "\"");
+                }
 
                 logger.fine("Found stereo sensor \"" + stereoSensor.getName() + "\"");
 
@@ -629,8 +650,9 @@ public class StraightThroughAnalysisDriver extends Driver {
                 // Check if we found a candidate pair
                 if (stereoSeedHit != null) {
                     STUtils.StereoPair pair = new STUtils.StereoPair(axialSeedHit, stereoSeedHit, origoStraightThroughs);
-                    if (STUtils.StereoPair.passCuts(pair))
+                    if (STUtils.StereoPair.passCuts(pair)) {
                         stereoPairCandidates.add(pair);
+                    }
                 }
             }
             stereoPairs.add(stereoPairCandidates);
@@ -661,8 +683,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         List<STUtils.STTrack> axialTracks = new ArrayList<STUtils.STTrack>();
         for (List<SiTrackerHitStrip1D> seedHits : axialSeedHits) {
 
-            if (seedHits.size() < minHitsAxialTrack)
+            if (seedHits.size() < minHitsAxialTrack) {
                 continue;
+            }
 
             STUtils.STTrack track = new STUtils.STTrack();
             track.setHits(seedHits);
@@ -677,8 +700,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         // add hits to L13 axial tracks and fit them
         List<STUtils.STTrack> axialL13Tracks = new ArrayList<STUtils.STTrack>();
         for (List<SiTrackerHitStrip1D> seedHits : axialSeedL13Hits) {
-            if (seedHits.size() != 3)
+            if (seedHits.size() != 3) {
                 continue;
+            }
             STUtils.STTrack track = new STUtils.STTrack();
             track.setHits(seedHits);
             logger.fine("Fit axial L13 track");
@@ -690,8 +714,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         // add hits to L46 axial tracks and fit them
         List<STUtils.STTrack> axialL46Tracks = new ArrayList<STUtils.STTrack>();
         for (List<SiTrackerHitStrip1D> seedHits : axialSeedL46Hits) {
-            if (seedHits.size() != 3)
+            if (seedHits.size() != 3) {
                 continue;
+            }
             STUtils.STTrack track = new STUtils.STTrack();
             track.setHits(seedHits);
             logger.fine("Fit axial L46 track");
@@ -705,8 +730,9 @@ public class StraightThroughAnalysisDriver extends Driver {
         for (List<STUtils.StereoPair> seedHits : stereoPairs) {
 
             // require min number of hits
-            if (seedHits.size() < minHitsStereoTrack)
+            if (seedHits.size() < minHitsStereoTrack) {
                 continue;
+            }
 
             // Create the track and set the hits
             STUtils.STStereoTrack track = new STUtils.STStereoTrack();
@@ -749,7 +775,6 @@ public class StraightThroughAnalysisDriver extends Driver {
         trackAxialCount[1].fill(nTracksAxial[1]);
 
         // Fill histograms for axial L13 tracks
-
         for (STUtils.STTrack track : axialL13Tracks) {
 
             for (SiTrackerHitStrip1D hit : track.getHits()) {
@@ -772,7 +797,6 @@ public class StraightThroughAnalysisDriver extends Driver {
         }
 
         // Fill histograms for axial L46 tracks
-
         for (STUtils.STTrack track : axialL46Tracks) {
 
             for (SiTrackerHitStrip1D hit : track.getHits()) {
@@ -795,7 +819,6 @@ public class StraightThroughAnalysisDriver extends Driver {
         }
 
         // Look at difference b/w L13 and L46 axial tracks
-
         if (axialL13Tracks.size() == 1 && axialL46Tracks.size() == 1) {
             STUtils.STTrack l13Track = axialL13Tracks.get(0);
             STUtils.STTrack l46Track = axialL46Tracks.get(0);
@@ -939,15 +962,25 @@ public class StraightThroughAnalysisDriver extends Driver {
                 trackExtraPolationY[4].fill(zIter, xyIter[STStereoTrack.VIEW.YZ.ordinal()]);
                 trackExtraPolationX[4].fill(zIter, xyIter[STStereoTrack.VIEW.XZ.ordinal()]);
             }
+            
+            // let's examine the x-y position at the nominal wire z position 
+            zIter = wirePosition[2];
+            xyIter = track.predict(zIter);
+            String hemi = track.isTop() ? "top " : "bottom ";
+            aida.histogram2D(hemi+" x vs y at z ",100, -75., -50., 100, -5., 5.).fill(xyIter[STStereoTrack.VIEW.XZ.ordinal()],xyIter[STStereoTrack.VIEW.YZ.ordinal()]);
+            
         }
 
         // GBL interface
         if (writeGbl) {
-            if (gblPrintWriter == null)
+            if (gblPrintWriter == null) {
                 throw new RuntimeException("No file was opened!");
+            }
             STUtils.printGBL(gblPrintWriter, event, stereoTracks);
         }
 
+        // end further processing, including writing out, of event unless we have a good track.
+        if(stereoTracks.size()!=1) throw new Driver.NextEventException();
     }
 
     protected void endOfData() {
@@ -962,8 +995,9 @@ public class StraightThroughAnalysisDriver extends Driver {
             e.printStackTrace();
         }
 
-        if (gblPrintWriter != null)
+        if (gblPrintWriter != null) {
             gblPrintWriter.close();
+        }
 
     }
 
@@ -996,14 +1030,16 @@ public class StraightThroughAnalysisDriver extends Driver {
         IPlotterStyle style = this.pf.createPlotterStyle();
 
         // Set the style of the X axis
-        if (!xAxisTitle.isEmpty())
+        if (!xAxisTitle.isEmpty()) {
             style.xAxisStyle().setLabel(xAxisTitle);
+        }
         style.xAxisStyle().labelStyle().setFontSize(14);
         style.xAxisStyle().setVisible(true);
 
         // Set the style of the Y axis
-        if (!yAxisTitle.isEmpty())
+        if (!yAxisTitle.isEmpty()) {
             style.yAxisStyle().setLabel(yAxisTitle);
+        }
         style.yAxisStyle().labelStyle().setFontSize(14);
         style.yAxisStyle().setVisible(true);
 
@@ -1028,14 +1064,16 @@ public class StraightThroughAnalysisDriver extends Driver {
         style.dataBoxStyle().setVisible(true);
 
         // Set the style of the X axis
-        if (!xAxisTitle.isEmpty())
+        if (!xAxisTitle.isEmpty()) {
             style.xAxisStyle().setLabel(xAxisTitle);
+        }
         style.xAxisStyle().labelStyle().setFontSize(14);
         style.xAxisStyle().setVisible(true);
 
         // Set the style of the Y axis
-        if (!yAxisTitle.isEmpty())
+        if (!yAxisTitle.isEmpty()) {
             style.yAxisStyle().setLabel(yAxisTitle);
+        }
         style.yAxisStyle().labelStyle().setFontSize(14);
         style.yAxisStyle().setVisible(true);
 
@@ -1052,6 +1090,41 @@ public class StraightThroughAnalysisDriver extends Driver {
 
     public void setShowPlots(boolean showPlots) {
         this.showPlots = showPlots;
+    }
+
+    private void setupSensors(EventHeader event) {
+        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+        // Get the ID dictionary and field information.
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        int fieldIdx = dict.getFieldIndex("side");
+        int sideIdx = dict.getFieldIndex("strip");
+        for (RawTrackerHit hit : rawTrackerHits) {
+            // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
+            IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+            expId.setValue(fieldIdx, 0);
+            expId.setValue(sideIdx, 0);
+            IIdentifier strippedId = dict.pack(expId);
+            // Find the sensor DetectorElement.
+            List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
+            if (des == null || des.size() == 0) {
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            } else if (des.size() == 1) {
+                hit.setDetectorElement((SiSensor) des.get(0));
+            } else {
+                // Use first sensor found, which should work unless there are sensors with duplicate IDs.
+                for (IDetectorElement de : des) {
+                    if (de instanceof SiSensor) {
+                        hit.setDetectorElement((SiSensor) de);
+                        break;
+                    }
+                }
+            }
+            // No sensor was found.
+            if (hit.getDetectorElement() == null) {
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            }
+        }
     }
 
 }
