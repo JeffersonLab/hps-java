@@ -238,34 +238,34 @@ public class StraightThroughAnalysisDriver extends Driver {
             trackSlope[i] = new IHistogram1D[2];
             trackIntercept[i] = new IHistogram1D[2];
             trackSlope[i][STUtils.STStereoTrack.VIEW.YZ.ordinal()] = hf.createHistogram1D("Track " + half + " "
-                    + STUtils.STStereoTrack.VIEW.YZ.name() + " slope", 50, -0.05, 0.05);
+                    + STUtils.STStereoTrack.VIEW.YZ.name() + " slope", 50, -0.03, 0.03);
             trackSlope[i][STUtils.STStereoTrack.VIEW.XZ.ordinal()] = hf.createHistogram1D("Track " + half + " "
-                    + STUtils.STStereoTrack.VIEW.XZ.name() + " slope", 50, -0.1, 0.1);
+                    + STUtils.STStereoTrack.VIEW.XZ.name() + " slope", 50, 0.0, 0.03);
             if (i == 0) {
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.YZ.ordinal()] = hf.createHistogram1D("Track " + half + " "
-                        + STUtils.STStereoTrack.VIEW.YZ.name() + " intecept", 50, 0, 50);
+                        + STUtils.STStereoTrack.VIEW.YZ.name() + " intercept", 50, 0, 50);
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.XZ.ordinal()] = hf.createHistogram1D("Track " + half + " "
-                        + STUtils.STStereoTrack.VIEW.XZ.name() + " intecept", 50, -80, 0);
+                        + STUtils.STStereoTrack.VIEW.XZ.name() + " intercept", 50, -80, 0);
                 trackAxialIntercept[i] = hf.createHistogram1D("Track axial " + half + " intercept", 50, 0, 50);
                 trackL13AxialIntercept[i] = hf.createHistogram1D("Track L13 axial " + half + " intercept", 50, -20, 50);
                 trackL46AxialIntercept[i] = hf.createHistogram1D("Track L46 axial " + half + " intercept", 50, -20, 50);
-                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half + " slope", 50, -0.02, 0.1);
-                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half + " slope", 50, -0.02, 0.1);
+                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half + " slope", 50, 0.0, 0.03);
+                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half + " slope", 50, 0.0, 0.03);
             } else {
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.YZ.ordinal()] = hf.createHistogram1D("Track " + half + " "
-                        + STUtils.STStereoTrack.VIEW.YZ.name() + " intecept", 50, -50, 0);
+                        + STUtils.STStereoTrack.VIEW.YZ.name() + " intercept", 50, -50, 0);
                 trackIntercept[i][STUtils.STStereoTrack.VIEW.XZ.ordinal()] = hf.createHistogram1D("Track " + half + " "
-                        + STUtils.STStereoTrack.VIEW.XZ.name() + " intecept", 50, -50, 50);
+                        + STUtils.STStereoTrack.VIEW.XZ.name() + " intercept", 50, -50, 50);
                 trackAxialIntercept[i] = hf.createHistogram1D("Track axial " + half + " intercept", 50, -50, 0);
                 trackL13AxialIntercept[i] = hf.createHistogram1D("Track L13 axial " + half + " intercept", 50, -50, 20);
                 trackL46AxialIntercept[i] = hf.createHistogram1D("Track L46 axial " + half + " intercept", 50, -50, 20);
-                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half + " slope", 100, -0.03, 0.02);
-                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half + " slope", 100, -0.1, 0.02);
+                trackL13AxialSlope[i] = hf.createHistogram1D("Track L13 axial " + half + " slope", 100, -0.03, 0.0);
+                trackL46AxialSlope[i] = hf.createHistogram1D("Track L46 axial " + half + " slope", 100, -0.03, 0.0);
             }
             trackAxialHitCount[i] = hf.createHistogram1D("Track axial " + half + " hit multiplicity", 11, -0.5, 10.5);
             trackAxialCount[i] = hf.createHistogram1D("Track axial " + half + " multiplicity", 2, -0.5, 1.5);
-            trackAxialSlope[i] = hf.createHistogram1D("Track axial " + half + " slope", 50, -0.05, 0.05);
-            trackL13L46AxialSlope[i] = hf.createHistogram1D("Track L13-L46 axial " + half + " slope", 100, -0.01, 0.01);
+            trackAxialSlope[i] = hf.createHistogram1D("Track axial " + half + " slope", 50, -0.03, 0.03);
+            trackL13L46AxialSlope[i] = hf.createHistogram1D("Track L13-L46 axial " + half + " slope", 100, -0.005, 0.005);
             trackL13L46AxialIntercept[i] = hf
                     .createHistogram1D("Track L13-L46 axial " + half + " intercept", 50, -2, 2);
             trackAxialExtraPolation[i] = hf.createHistogram2D("Track axial " + half + " extrapolation", nPointsZ,
