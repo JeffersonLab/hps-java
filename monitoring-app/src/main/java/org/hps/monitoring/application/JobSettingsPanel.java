@@ -142,14 +142,17 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
     /**
      * The available LogLevel settings as an array of strings.
      */
-    static final String[] LOG_LEVELS = new String[] {Level.ALL.toString(), Level.FINEST.toString(),
-            Level.FINER.toString(), Level.FINE.toString(), Level.CONFIG.toString(), Level.INFO.toString(),
-            Level.WARNING.toString(), Level.SEVERE.toString(), Level.OFF.toString()};
-
-    /**
-     * The package where steering resources must be located.
-     */
-    private static final String STEERING_PACKAGE = "org/hps/steering/monitoring/";
+    static final String[] LOG_LEVELS = new String[] {
+        Level.ALL.toString(), 
+        Level.FINEST.toString(),
+        Level.FINER.toString(), 
+        Level.FINE.toString(), 
+        Level.CONFIG.toString(), 
+        Level.INFO.toString(),
+        Level.WARNING.toString(), 
+        Level.SEVERE.toString(), 
+        Level.OFF.toString()
+    };
 
     /**
      * Combo box for selecting a conditions system tag.

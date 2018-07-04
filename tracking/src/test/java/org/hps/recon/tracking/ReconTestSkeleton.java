@@ -29,7 +29,7 @@ public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
-    protected long nEvents = -1;
+    protected long nEvents = 1;
     protected URL testURL;
     protected FileCache cache;
     protected Driver testTrackingDriver = null;

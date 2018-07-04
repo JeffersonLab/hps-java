@@ -2,7 +2,7 @@ package org.hps.analysis.tuple;
 
 import org.lcsim.event.EventHeader;
 
-public class TridentTruthTupleDriver extends TupleDriver {
+public class TridentTruthTupleDriver extends MCTupleMaker {
 
     @Override
     protected void setupVariables() {
@@ -19,4 +19,11 @@ public class TridentTruthTupleDriver extends TupleDriver {
             writeTuple();
         }
     }
+
+    @Override
+    boolean passesCuts() {
+        return true;
+    }
+    
+
 }

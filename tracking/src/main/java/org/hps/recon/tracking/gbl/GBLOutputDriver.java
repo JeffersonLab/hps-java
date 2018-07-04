@@ -43,12 +43,6 @@ public class GBLOutputDriver extends Driver {
     private int totalTracksProcessed = 0;
     private int iTrack = 0;
     private int iEvent = 0;
-    private boolean addBeamspot = false;
-    private double beamspotScatAngle = 0.000001;
-    private double beamspotWidthZ = 0.05;
-    private double beamspotWidthY = 0.15;
-    private double beamspotTiltZOverY = 15.0 * 180.0 / Math.PI;
-    private double beamspotPosition[] = {0, 0, 0};
 
     public GBLOutputDriver() {
     }
@@ -61,13 +55,7 @@ public class GBLOutputDriver extends Driver {
         gbl = new GBLOutput(gblFileName, bfield); // if filename is empty no text file is written
         gbl.setDebug(_debug);
         gbl.buildModel(detector);
-        gbl.setXPlaneFlag(false);
-        gbl.setAddBeamspot(addBeamspot);
-        gbl.setBeamspotScatAngle(beamspotScatAngle);
-        gbl.setBeamspotWidthY(beamspotWidthY);
-        gbl.setBeamspotWidthZ(beamspotWidthZ);
-        gbl.setBeamspotTiltZOverY(beamspotTiltZOverY);
-        gbl.setBeamspotPosition(beamspotPosition);
+        gbl.setIsMC(this.isMC);
 
         // Create the class that makes residual plots for cross-checking
         // truthRes = new TruthResiduals(bfield);
@@ -81,18 +69,15 @@ public class GBLOutputDriver extends Driver {
         if (event.hasCollection(Track.class, trackCollectionName)) {
             tracklist = event.get(Track.class, trackCollectionName);
             if (_debug > 0) {
-                System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(),
-                        event.getEventNumber(), tracklist.size());
+                System.out.printf("%s: Event %d has %d tracks\n", this.getClass().getSimpleName(), event.getEventNumber(), tracklist.size());
             }
         } else {
             return;
         }
 
-        List<SiTrackerHitStrip1D> stripHits = event
-                .get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
+        List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
         if (_debug > 0) {
-            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", this.getClass().getSimpleName(),
-                    stripHits.size());
+            System.out.printf("%s: Got %d SiTrackerHitStrip1D in this event\n", this.getClass().getSimpleName(), stripHits.size());
         }
 
         List<MCParticle> mcParticles = new ArrayList<MCParticle>();
@@ -130,8 +115,7 @@ public class GBLOutputDriver extends Driver {
             totalTracks++;
 
             if (_debug > 0) {
-                System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(),
-                        TrackUtils.isBottomTrack(trk, 4) ? 1 : 0);
+                System.out.printf("%s: PX %f bottom %d\n", this.getClass().getSimpleName(), trk.getPX(), TrackUtils.isBottomTrack(trk, 4) ? 1 : 0);
             }
 
             if (TrackUtils.isGoodTrack(trk, tracklist, EventQuality.Quality.NONE)) {
@@ -187,14 +171,12 @@ public class GBLOutputDriver extends Driver {
             try {
                 aida.saveAs(outputPlotFileName);
             } catch (IOException ex) {
-                Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE,
-                        "Couldn't save aida plots to file " + outputPlotFileName, ex);
+                Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, "Couldn't save aida plots to file " + outputPlotFileName, ex);
             }
         }
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Events           = " + iEvent);
         System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks           = " + totalTracks);
-        System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks Processed = "
-                + totalTracksProcessed);
+        System.out.println(this.getClass().getSimpleName() + ": Total Number of Tracks Processed = " + totalTracksProcessed);
 
     }
 
@@ -212,50 +194,6 @@ public class GBLOutputDriver extends Driver {
 
     public void setIsMC(boolean isMC) {
         this.isMC = isMC;
-    }
-
-    public void setAddBeamspot(boolean add) {
-        this.addBeamspot = add;
-    }
-
-    public double getBeamspotScatAngle() {
-        return beamspotScatAngle;
-    }
-
-    public void setBeamspotScatAngle(double beamspotScatAngle) {
-        this.beamspotScatAngle = beamspotScatAngle;
-    }
-
-    public double getBeamspotWidthZ() {
-        return beamspotWidthZ;
-    }
-
-    public void setBeamspotWidthZ(double beamspotWidthZ) {
-        this.beamspotWidthZ = beamspotWidthZ;
-    }
-
-    public double getBeamspotWidthY() {
-        return beamspotWidthY;
-    }
-
-    public void setBeamspotWidthY(double beamspotWidthY) {
-        this.beamspotWidthY = beamspotWidthY;
-    }
-
-    public double getBeamspotTiltZOverY() {
-        return beamspotTiltZOverY;
-    }
-
-    public void setBeamspotTiltZOverY(double beamspotTiltZOverY) {
-        this.beamspotTiltZOverY = beamspotTiltZOverY;
-    }
-
-    public double[] getBeamspotPosition() {
-        return beamspotPosition;
-    }
-
-    public void setBeamspotPosition(double beamspotPosition[]) {
-        this.beamspotPosition = beamspotPosition;
     }
 
     public void setTrackCollectionName(String trackCollectionName) {

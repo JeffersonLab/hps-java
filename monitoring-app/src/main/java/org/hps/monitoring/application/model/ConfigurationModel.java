@@ -188,7 +188,7 @@ public final class ConfigurationModel extends AbstractModel {
      * The ET wait time (if using timed wait mode).
      */
     public static final String WAIT_TIME_PROPERTY = "WaitTime";
-
+    
     /**
      * The underlying properties for the model.
      */

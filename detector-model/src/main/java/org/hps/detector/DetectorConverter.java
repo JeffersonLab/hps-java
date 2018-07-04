@@ -18,7 +18,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
 import org.lcsim.conditions.ConditionsReader;
 import org.lcsim.geometry.compact.converter.Converter;

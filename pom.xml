@@ -8,7 +8,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>4.0-SNAPSHOT</version>
+  <version>4.1-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
@@ -18,9 +18,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.0-SNAPSHOT</lcsimVersion>
+    <lcsimVersion>4.0</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
+    <additionalparam>-Xdoclint:none</additionalparam>
   </properties>
 
   <scm>
@@ -330,7 +331,7 @@
       <dependency>
         <groupId>jfreechart-aida-experimental</groupId>
         <artifactId>jfreechart-aida-experimental</artifactId>
-        <version>1.8</version>
+        <version>1.9.0</version>
         <exclusions>
           <exclusion>
             <groupId>jdom</groupId>
@@ -452,7 +453,9 @@
           <forkMode>pertest</forkMode>
           <systemPropertyVariables>
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
+            <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
             <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
+            <java.awt.headless>true</java.awt.headless>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -631,6 +634,7 @@
           <detectLinks>true</detectLinks>
           <detectJavaApiLink>true</detectJavaApiLink>
           <failOnError>false</failOnError>
+          <additionalparam>-Xdoclint:none</additionalparam>
           <links>
             <link>http://java.freehep.org/freehep-physics/apidocs/</link>
             <link>http://java.freehep.org/heprep/apidocs/</link>
@@ -781,6 +785,17 @@
   </ciManagement>
 
   <profiles>
+    <profile>
+      <id>default-cache-dir</id>
+      <activation>
+        <property>
+          <name>!org.lcsim.cacheDir</name>
+        </property>
+      </activation>
+      <properties>
+        <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
+      </properties>
+    </profile>
     <profile>
       <id>no-plugin</id>
       <activation>

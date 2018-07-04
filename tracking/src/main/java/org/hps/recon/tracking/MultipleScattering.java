@@ -325,14 +325,6 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (!doIterative)
             return pos_int_trk;
 
-        // TODO Catch special cases where the incidental iteration procedure seems to fail
-        if (Math.abs(helix.R()) < 2000 && Math.abs(helix.dca()) > 10.0) {
-            if (_debug) {
-                System.out.printf("%s: momentum is low (p=%f,R=%f,B=%f) and d0 is big (d0=%f), skip the iterative calculation\n", this.getClass().getSimpleName(), helix.p(Math.abs(_bfield)), helix.R(), _bfield, helix.dca());
-            }
-            return pos_int_trk;
-        }
-
         if (_debug) {
             System.out.printf("%s: calculate iterative helix intercept\n", this.getClass().getSimpleName());
         }
@@ -340,9 +332,11 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         Hep3Vector pos_iter_trk = TrackUtils.getHelixPlaneIntercept(helix, plane.normal(), plane.origin(), _bfield, s_origin);
 
         if (pos_iter_trk == null) {
-            System.out.printf("%s: iterative intercept failed for helix \n%s\n at sensor with org=%s, unit w=%s\n", this.getClass().getSimpleName(), helix.toString(), plane.origin().toString(), plane.normal().toString());
-            System.out.printf("%s: => use simple intercept pos=%s\n", this.getClass().getSimpleName(), pos_int_trk);
-            System.out.printf("helix pos=%s dir=%s\n", pos, direction);
+            if (_debug) {
+                System.out.printf("%s: iterative intercept failed for helix \n%s\n at sensor with org=%s, unit w=%s\n", this.getClass().getSimpleName(), helix.toString(), plane.origin().toString(), plane.normal().toString());
+                System.out.printf("%s: => use simple intercept pos=%s\n", this.getClass().getSimpleName(), pos_int_trk);
+                System.out.printf("helix pos=%s dir=%s\n", pos, direction);
+            }
             return pos_int_trk;
         }
 

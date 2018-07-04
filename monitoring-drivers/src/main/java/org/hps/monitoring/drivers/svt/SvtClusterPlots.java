@@ -8,8 +8,6 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
-import hep.aida.jfree.plotter.Plotter;
-import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.ref.rootwriter.RootFileStore;
 
 import java.io.IOException;
@@ -36,9 +34,9 @@ import org.lcsim.util.aida.AIDA;
 public class SvtClusterPlots extends Driver {
 
     // TODO: Add documentation
-    static {
-        hep.aida.jfree.AnalysisFactory.register();
-    }
+    //static {
+    //    hep.aida.jfree.AnalysisFactory.register();
+    //}
 
     // Plotting
     private static ITree tree = null;
@@ -295,13 +293,6 @@ public class SvtClusterPlots extends Driver {
 
         for (IPlotter plotter : plotters.values()) {
             plotter.show();
-            for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) {
-                PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
-                if (region.getPlottedObjects().size() == 0) {
-                    continue;
-                }
-                region.getPanel().addMouseListener(new PopupPlotterListener(region));
-            }
         }
     }
 
