@@ -34,8 +34,9 @@ import org.lcsim.util.aida.AIDA;
  * @author Norman A. Graf
  */
 public class PhysRun2016MollerRecon extends Driver {
+
     private AIDA aida = AIDA.defaultInstance();
-    private String _aidaFileName = "PhysRun2016MollerRecon.aida";
+    private String _aidaFileName = "PhysRun2016MollerRecon";
 
     String[] vertexCollectionNames = {"UnconstrainedMollerVertices", "BeamspotConstrainedMollerVertices", "TargetConstrainedMollerVertices"};
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
@@ -47,7 +48,7 @@ public class PhysRun2016MollerRecon extends Driver {
     private double _trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
 
     private boolean _dumpRunAndEventNumber = false;
-   
+
     private IHistogram1D invMassHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
     private IHistogram1D pHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
     private IHistogram1D pxHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
@@ -250,7 +251,9 @@ public class PhysRun2016MollerRecon extends Driver {
                         pvsthetaHist_UnconstrainedMollerVertices.fill(p1, theta1);
                         pvsthetaHist_UnconstrainedMollerVertices.fill(p2, theta2);
                         xvsyHist_UnconstrainedMollerVertices.fill(pos.x(), pos.y());
-                        if(_dumpRunAndEventNumber) System.out.println(event.getRunNumber()+" "+event.getEventNumber());
+                        if (_dumpRunAndEventNumber) {
+                            System.out.println(event.getRunNumber() + " " + event.getEventNumber());
+                        }
                     }
                     if (vertexCollectionName.equals("BeamspotConstrainedMollerVertices")) {
                         invMassHist_BeamspotConstrainedMollerVertices.fill(rp.getMass());
@@ -375,25 +378,24 @@ public class PhysRun2016MollerRecon extends Driver {
     public void setESumPlusMinusPercentCut(double d) {
         _psumDelta = d;
     }
-    
-    public void setDumpRunAndEventNumber(boolean b)
-    {
+
+    public void setDumpRunAndEventNumber(boolean b) {
         _dumpRunAndEventNumber = b;
     }
-    
-    public void setAidaFileName(String s)
-    {
+
+    public void setAidaFileName(String s) {
         _aidaFileName = s;
     }
-    
+
     @Override
     protected void endOfData() {
-      try {
-            AIDA.defaultInstance().saveAs(_aidaFileName);
+        try {
+            AIDA.defaultInstance().saveAs(_aidaFileName +".aida");
+            AIDA.defaultInstance().saveAs(_aidaFileName + ".root");
             //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }  
+        }
     }
 
     private boolean isTopTrack(Track t) {
@@ -416,5 +418,5 @@ public class PhysRun2016MollerRecon extends Driver {
         }
         throw new RuntimeException("mixed top and bottom hits on same track");
     }
-    
+
 }

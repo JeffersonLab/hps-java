@@ -1,5 +1,6 @@
 package org.hps.monitoring.drivers.svt;
 
+import static org.hps.readout.svt.HPSSVTConstants.SAMPLING_INTERVAL;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -8,15 +9,14 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
-import hep.aida.jfree.plotter.Plotter;
-import hep.aida.jfree.plotter.PlotterRegion;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.readout.svt.HPSSVTConstants;
-import static org.hps.readout.svt.HPSSVTConstants.SAMPLING_INTERVAL;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -32,9 +32,9 @@ import org.lcsim.util.aida.AIDA;
  */
 public class SVTPulseFitPlots extends Driver {
 
-    static {
-        hep.aida.jfree.AnalysisFactory.register();
-    }
+    //static {
+    //    hep.aida.jfree.AnalysisFactory.register();
+    //}
 
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
     private static ITree tree = null;
@@ -109,13 +109,6 @@ public class SVTPulseFitPlots extends Driver {
         }
 
         for (IPlotter plotter : plotters.values()) {
-            for (int regionN = 0; regionN < plotter.numberOfRegions(); regionN++) {
-                PlotterRegion region = ((PlotterRegion) ((Plotter) plotter).region(regionN));
-                if (region.getPlottedObjects().isEmpty()) {
-                    continue;
-                }
-                region.getPanel().addMouseListener(new PopupPlotterListener(region));
-            }
             plotter.show();
         }
     }

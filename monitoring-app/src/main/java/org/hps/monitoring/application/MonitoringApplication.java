@@ -7,8 +7,8 @@ import hep.aida.jfree.plotter.PlotterRegionListener;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 
 import javax.imageio.ImageIO;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -45,6 +46,7 @@ import org.hps.monitoring.application.util.DialogUtil;
 import org.hps.monitoring.application.util.ErrorHandler;
 import org.hps.monitoring.application.util.EvioFileFilter;
 import org.hps.monitoring.application.util.TableExporter;
+import org.hps.monitoring.plotting.ChartPopup;
 import org.hps.monitoring.plotting.ExportPdf;
 import org.hps.monitoring.plotting.MonitoringAnalysisFactory;
 import org.hps.monitoring.plotting.MonitoringPlotFactory;
@@ -224,7 +226,15 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * The handler for putting messages into the log table.
      */
     private MonitoringApplicationStreamHandler streamHandler;
-
+    
+    /**
+     * Class for displayed a pop-up of selected region.
+     * Initialization is delayed until after AIDA is properly configured.
+     */
+    private ChartPopup popup = null;
+    
+    private boolean plotPopupEnabled = true;
+    
     /**
      * Instantiate and show the monitoring application with the given configuration.
      *
@@ -238,11 +248,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             this.frame = new MonitoringApplicationFrame(this);
 
             // Add window listener to perform clean shutdown.
-            this.frame.addWindowListener(new WindowListener() {
-
-                @Override
-                public void windowActivated(final WindowEvent e) {
-                }
+            this.frame.addWindowListener(new WindowAdapter() {
 
                 /**
                  * Activate cleanup when window closes.
@@ -252,26 +258,6 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 @Override
                 public void windowClosed(final WindowEvent e) {
                     exit();
-                }
-
-                @Override
-                public void windowClosing(final WindowEvent e) {
-                }
-
-                @Override
-                public void windowDeactivated(final WindowEvent e) {
-                }
-
-                @Override
-                public void windowDeiconified(final WindowEvent e) {
-                }
-
-                @Override
-                public void windowIconified(final WindowEvent e) {
-                }
-
-                @Override
-                public void windowOpened(final WindowEvent e) {
                 }
             });
 
@@ -363,9 +349,11 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             chooseLogFile();
         } else if (Commands.LOG_TO_TERMINAL.equals(command)) {
             logToTerminal();
+        } else if (Commands.PLOT_POPUP.equals(command)) {
+            this.plotPopupEnabled = ((JCheckBox) e.getSource()).isSelected();
         }
-    }
-
+    }      
+    
     /**
      * Redirect <code>System.out</code> and <code>System.err</code> to a chosen file.
      */
@@ -870,11 +858,17 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 if (region != null) {
                     MonitoringApplication.this.frame.getPlotInfoPanel().setCurrentRegion(region);
                 }
+                
+                if (plotPopupEnabled) {
+                    popup.update(region);
+                }
             }
         });
 
         // Perform global configuration of the JFreeChart back end.
         AnalysisFactory.configure();
+        
+        this.popup = new ChartPopup();
     }
 
     /**

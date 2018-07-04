@@ -1,6 +1,5 @@
 package org.hps.conditions.cli;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -18,9 +17,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 /**
  * This class is a command-line tool for performing commands on the conditions database using sub-commands for
  * operations such as 'add' and 'print'.
- * <p>
- * Command line options can be used to supply a custom connection properties file or XML which will override the
- * default.
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -37,7 +33,6 @@ public final class CommandLineTool {
         OPTIONS.addOption(new Option("h", "help", false, "print help"));
         OPTIONS.addOption(new Option("d", "detector", true, "detector name"));
         OPTIONS.addOption(new Option("r", "run", true, "run number"));
-        OPTIONS.addOption(new Option("p", "connection", true, "database connection properties file"));
         OPTIONS.addOption(new Option("x", "xml", true, "conditions XML configuration file"));
         OPTIONS.addOption(new Option("t", "tag", true, "conditions tag to use for filtering records"));
     }
@@ -175,14 +170,7 @@ public final class CommandLineTool {
         LOGGER.info("Setting up the conditions manager ...");
 
         // Create new manager.
-        this.conditionsManager = DatabaseConditionsManager.getInstance();
-
-        // Connection properties.
-        if (commandLine.hasOption("p")) {
-            final File connectionPropertiesFile = new File(commandLine.getOptionValue("p"));
-            this.conditionsManager.setConnectionProperties(connectionPropertiesFile);
-            LOGGER.config("using connection properties " + connectionPropertiesFile.getPath());
-        }
+        this.conditionsManager = new DatabaseConditionsManager();
 
         // User specified tag of conditions records.
         if (commandLine.hasOption("t")) {

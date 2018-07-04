@@ -36,7 +36,7 @@ import org.lcsim.util.aida.AIDA;
 public class PhysRun2016V0Recon  extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
-    private String _aidaFileName = "PhysRun2016V0Recon.aida";
+    private String _aidaFileName = "PhysRun2016V0Recon";
     String[] vertexCollectionNames = {"UnconstrainedV0Vertices", "BeamspotConstrainedV0Vertices", "TargetConstrainedV0Vertices"};
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 
@@ -393,7 +393,8 @@ public class PhysRun2016V0Recon  extends Driver {
     @Override
     protected void endOfData() {
       try {
-            AIDA.defaultInstance().saveAs(_aidaFileName);
+            AIDA.defaultInstance().saveAs(_aidaFileName+".aida");
+            AIDA.defaultInstance().saveAs(_aidaFileName+".root");
             //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
         } catch (IOException e) {
             throw new RuntimeException(e);
