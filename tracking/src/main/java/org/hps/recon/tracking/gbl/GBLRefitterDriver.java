@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
@@ -37,6 +38,18 @@ public class GBLRefitterDriver extends Driver {
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
 
+    private MilleBinary mille;
+    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
+    private boolean writeMilleBinary = true;
+
+    public void setMilleBinaryFileName(String filename) {
+        milleBinaryFileName = filename;
+    }
+
+    public void setWriteMilleBinary(boolean writeMillepedeFile) {
+        writeMilleBinary = writeMillepedeFile;
+    }
+
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
     }
@@ -51,6 +64,20 @@ public class GBLRefitterDriver extends Driver {
 
     public void setOutputCollectionName(String outputCollectionName) {
         this.outputCollectionName = outputCollectionName;
+    }
+
+    @Override
+    protected void startOfData() {
+        if (writeMilleBinary) {
+            mille = new MilleBinary(milleBinaryFileName);
+        }
+    }
+
+    @Override
+    protected void endOfData() {
+        if (writeMilleBinary) {
+            mille.close();
+        }
     }
 
     @Override
@@ -78,12 +105,16 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            if(newTrack==null) continue;
+            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+            Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
+            if (newTrack == null)
+                continue;
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
-
+            if (writeMilleBinary) {
+                newTrackTraj.getSecond().get_traj().milleOut(mille);
+            }
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), newTrack.getFirst()));
         }

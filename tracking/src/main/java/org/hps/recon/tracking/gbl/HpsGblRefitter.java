@@ -3,7 +3,6 @@ package org.hps.recon.tracking.gbl;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
-import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -14,22 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.apache.commons.math3.util.Pair;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
-import org.lcsim.constants.Constants;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
-import org.lcsim.event.LCRelation;
-import org.lcsim.event.Track;
-import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
-import org.lcsim.lcio.LCIOConstants;
-import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
-import org.lcsim.util.Driver;
 
 /**
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written by Per Hansson and Omar Moreno. Requires
@@ -39,31 +25,14 @@ import org.lcsim.util.Driver;
  * @author Per Hansson Adrian, SLAC
  * @author Miriam Diamond, SLAC
  */
-public class HpsGblRefitter extends Driver {
+public class HpsGblRefitter {
 
     private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
-    private final String trackCollectionName = "MatchedTracks";
-    private final String track2GblTrackRelationName = "TrackToGBLTrack";
-    private final String gblTrack2StripRelationName = "GBLTrackToStripData";
-    private final String outputTrackCollectionName = "GBLTracks";
-    private final String trackRelationCollectionName = "MatchedToGBLTrackRelations";
-
-    private MilleBinary mille;
-    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
-    private boolean writeMilleBinary = false;
 
     public void setDebug(boolean debug) {
         _debug = debug;
         MakeGblTracks.setDebug(debug);
-    }
-
-    public void setMilleBinaryFileName(String filename) {
-        milleBinaryFileName = filename;
-    }
-
-    public void setWriteMilleBinary(boolean writeMillepedeFile) {
-        writeMilleBinary = writeMillepedeFile;
     }
 
     public HpsGblRefitter() {
@@ -75,151 +44,6 @@ public class HpsGblRefitter extends Driver {
     // public void setLogLevel(String logLevel) {
     // logger.setLevel(Level.parse(logLevel));
     // }
-    @Override
-    protected void startOfData() {
-        if (writeMilleBinary) {
-            mille = new MilleBinary(milleBinaryFileName);
-        }
-    }
-
-    @Override
-    protected void endOfData() {
-        if (writeMilleBinary) {
-            mille.close();
-        }
-    }
-
-    @Override
-    protected void process(EventHeader event) {
-        double bfield = TrackUtils.getBField(event.getDetector()).y();
-        // double bfac = 0.0002998 * bfield;
-        double bfac = Constants.fieldConversion * bfield;
-
-        // get the tracks
-        if (!event.hasCollection(Track.class, trackCollectionName)) {
-            if (_debug) {
-                System.out.printf("%s: No tracks in Event %d \n", this.getClass().getSimpleName(), event.getEventNumber());
-            }
-            return;
-        }
-
-        // get the relations to the GBLtracks
-        if (!event.hasItem(track2GblTrackRelationName)) {
-            System.out.println("Need Relations " + track2GblTrackRelationName);
-            return;
-        }
-        // and strips
-        if (!event.hasItem(gblTrack2StripRelationName)) {
-            System.out.println("Need Relations " + gblTrack2StripRelationName);
-            return;
-        }
-
-        List<LCRelation> track2GblTrackRelations = event.get(LCRelation.class, track2GblTrackRelationName);
-        // need a map of GBLTrackData keyed on the Generic object from which it created
-        Map<GenericObject, GBLTrackData> gblObjMap = new HashMap<GenericObject, GBLTrackData>();
-        // need a map of SeedTrack to GBLTrackData keyed on the track object from which it created
-        Map<GBLTrackData, Track> gblToSeedMap = new HashMap<GBLTrackData, Track>();
-
-        // loop over the relations
-        for (LCRelation relation : track2GblTrackRelations) {
-            Track t = (Track) relation.getFrom();
-            GenericObject gblTrackObject = (GenericObject) relation.getTo();
-            GBLTrackData gblT = new GBLTrackData(gblTrackObject);
-            gblObjMap.put(gblTrackObject, gblT);
-            gblToSeedMap.put(gblT, t);
-        } // end of loop over tracks
-
-        // get the strip hit relations
-        List<LCRelation> gblTrack2StripRelations = event.get(LCRelation.class, gblTrack2StripRelationName);
-
-        // need a map of lists of strip data keyed by the gblTrack to which they correspond
-        Map<GBLTrackData, List<GBLStripClusterData>> stripsGblMap = new HashMap<GBLTrackData, List<GBLStripClusterData>>();
-        for (LCRelation relation : gblTrack2StripRelations) {
-            // from GBLTrackData to GBLStripClusterData
-            GenericObject gblTrackObject = (GenericObject) relation.getFrom();
-            // Let's get the GBLTrackData that corresponds to this object...
-            GBLTrackData gblT = gblObjMap.get(gblTrackObject);
-            GBLStripClusterData sd = new GBLStripClusterData((GenericObject) relation.getTo());
-            if (stripsGblMap.containsKey(gblT)) {
-                stripsGblMap.get(gblT).add(sd);
-            } else {
-                stripsGblMap.put(gblT, new ArrayList<GBLStripClusterData>());
-                stripsGblMap.get(gblT).add(sd);
-            }
-        }
-
-        // loop over the tracks and do the GBL fit
-        List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
-        LOGGER.info("Trying to fit " + stripsGblMap.size() + " tracks");
-        for (GBLTrackData t : stripsGblMap.keySet()) {
-            FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac, _debug);
-            if (traj != null) {
-                LOGGER.info("GBL fit successful");
-                if (_debug) {
-                    System.out.printf("%s: GBL fit successful.\n", getClass().getSimpleName());
-                }
-                // write to MP binary file
-                if (writeMilleBinary) {
-                    traj.get_traj().milleOut(mille);
-                }
-                traj.set_seed(gblToSeedMap.get(t));
-                trackFits.add(traj);
-            } else {
-                LOGGER.info("GBL fit failed");
-                if (_debug) {
-                    System.out.printf("%s: GBL fit failed.\n", getClass().getSimpleName());
-                }
-            }
-        }
-
-        LOGGER.info(event.get(Track.class, trackCollectionName).size() + " tracks in collection \"" + trackCollectionName + "\"");
-        LOGGER.info(gblObjMap.size() + " tracks in gblObjMap");
-        LOGGER.info(gblToSeedMap.size() + " tracks in gblToSeedMap");
-        LOGGER.info(stripsGblMap.size() + " tracks in stripsGblMap");
-        LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
-
-        List<Track> newTracks = new ArrayList<Track>();
-
-        List<LCRelation> trackRelations = new ArrayList<LCRelation>();
-
-        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
-
-        List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
-
-        LOGGER.info("adding " + trackFits.size() + " of fitted GBL tracks to the event");
-
-        for (FittedGblTrajectory fittedTraj : trackFits) {
-
-            SeedTrack seedTrack = (SeedTrack) fittedTraj.get_seed();
-            SeedCandidate trackseed = seedTrack.getSeedCandidate();
-
-            // Create a new Track
-            Pair<Track, GBLKinkData> trk = makeCorrectedTrack(fittedTraj, trackseed.getHelix(), seedTrack.getTrackerHits(), seedTrack.getType(), bfield);
-
-            // Add the track to the list of tracks
-            newTracks.add(trk.getFirst());
-
-            // Create relation from seed to GBL track
-            trackRelations.add(new BaseLCRelation(fittedTraj.get_seed(), trk.getFirst()));
-
-            kinkDataCollection.add(trk.getSecond());
-            kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
-        }
-
-        LOGGER.info("adding " + Integer.toString(newTracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
-
-        // Put the tracks back into the event and exit
-        int flag = 1 << LCIOConstants.TRBIT_HITS;
-        event.put(outputTrackCollectionName, newTracks, Track.class, flag);
-        event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
-        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
-        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
-
-        if (_debug) {
-            System.out.printf("%s: Done.\n", getClass().getSimpleName());
-        }
-
-    }
 
     public static FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac, boolean debug) {
         // path length along trajectory
@@ -457,10 +281,6 @@ public class HpsGblRefitter extends Driver {
         fittedTraj.setSensorMap(sensorMap);
 
         return fittedTraj;
-    }
-
-    @Override
-    protected void detectorChanged(Detector detector) {
     }
 
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {

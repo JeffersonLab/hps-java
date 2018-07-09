@@ -79,8 +79,7 @@ public class MilleBinary {
      * @param labGlobal List of labels of global parameters
      * @param derGlobal List of derivatives for global parameters
      */
-    public void addData(float aMeas, float aErr, List<Integer> indLocal, List<Double> derLocal,
-            List<Integer> labGlobal, List<Double> derGlobal) {
+    public void addData(float aMeas, float aErr, List<Integer> indLocal, List<Double> derLocal, List<Integer> labGlobal, List<Double> derGlobal) {
         _intBuffer.add(0);
         _floatBuffer.add(aMeas);
         for (int i = 0; i < indLocal.size(); ++i) {
@@ -95,14 +94,16 @@ public class MilleBinary {
                 _floatBuffer.add((float) derGlobal.get(i).doubleValue());
             }
         }
+
     }
 
     /**
      * Write record to file.
      */
     public void writeRecord() {
-        int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
-        ByteBuffer b = ByteBuffer.allocate((recordLength + 1) * 2); // writing one extra word per collection
+        //int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
+        int recordLength = _intBuffer.size() * 2; //number of entries per record
+        ByteBuffer b = ByteBuffer.allocate(4 * (recordLength + 1)); // total number bytes: one extra int for header
         b.order(ByteOrder.LITTLE_ENDIAN);
         b.putInt(recordLength);
         for (Float f : _floatBuffer) {
