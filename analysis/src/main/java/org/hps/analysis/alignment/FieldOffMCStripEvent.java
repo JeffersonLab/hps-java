@@ -41,7 +41,8 @@ public class FieldOffMCStripEvent extends Driver {
         }
         System.out.println("top has " + topLayers.size() + " hits");
         System.out.println("bottom has " + bottomLayers.size() + " hits");
-
+        System.out.println("_selectTopTracks "+_selectTopTracks);
+        System.out.println("select bottom tracks "+_selectBottomTracks);
         if (_selectTopTracks && topLayers.size() != 12) {
             skipEvent = true;
         }
