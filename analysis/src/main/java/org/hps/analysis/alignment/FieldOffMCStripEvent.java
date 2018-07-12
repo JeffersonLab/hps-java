@@ -22,6 +22,7 @@ public class FieldOffMCStripEvent extends Driver {
     boolean _selectBottomTracks = false;
     boolean skipEvent = false;
     int _numberOfEventsWritten;
+    int _maxSimTrackerHits = 12;
 
     @Override
     protected void process(EventHeader event) {
@@ -39,6 +40,9 @@ public class FieldOffMCStripEvent extends Driver {
                 bottomLayers.add(layer);
             }
         }
+        if (simHits.size() > _maxSimTrackerHits) {
+            skipEvent = true;
+        }
 //        System.out.println("top has " + topLayers.size() + " hits");
 //        System.out.println("bottom has " + bottomLayers.size() + " hits");
 //        System.out.println("_selectTopTracks "+_selectTopTracks);
@@ -46,7 +50,7 @@ public class FieldOffMCStripEvent extends Driver {
         if (_selectTopTracks && topLayers.size() != 12) {
             skipEvent = true;
         }
-        
+
         if (_selectBottomTracks && bottomLayers.size() != 12) {
             skipEvent = true;
         }
@@ -69,6 +73,10 @@ public class FieldOffMCStripEvent extends Driver {
 
     public void setSelectBottomTracks(boolean b) {
         _selectBottomTracks = b;
+    }
+
+    public void setMaxSimTrackerHits(int i) {
+        _maxSimTrackerHits = i;
     }
 
 }
