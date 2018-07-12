@@ -39,10 +39,10 @@ public class FieldOffMCStripEvent extends Driver {
                 bottomLayers.add(layer);
             }
         }
-        System.out.println("top has " + topLayers.size() + " hits");
-        System.out.println("bottom has " + bottomLayers.size() + " hits");
-        System.out.println("_selectTopTracks "+_selectTopTracks);
-        System.out.println("select bottom tracks "+_selectBottomTracks);
+//        System.out.println("top has " + topLayers.size() + " hits");
+//        System.out.println("bottom has " + bottomLayers.size() + " hits");
+//        System.out.println("_selectTopTracks "+_selectTopTracks);
+//        System.out.println("select bottom tracks "+_selectBottomTracks);
         if (_selectTopTracks && topLayers.size() != 12) {
             skipEvent = true;
         }
@@ -50,13 +50,13 @@ public class FieldOffMCStripEvent extends Driver {
         if (_selectBottomTracks && bottomLayers.size() != 12) {
             skipEvent = true;
         }
-        System.out.println("skipEvent "+skipEvent);
+//        System.out.println("skipEvent "+skipEvent);
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
             _numberOfEventsWritten++;
         }
-        System.out.println(_numberOfEventsWritten);
+//        System.out.println(_numberOfEventsWritten);
     }
 
     protected void endOfData() {
