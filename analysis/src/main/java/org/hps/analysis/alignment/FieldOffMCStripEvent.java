@@ -27,7 +27,7 @@ public class FieldOffMCStripEvent extends Driver {
     protected void process(EventHeader event) {
         skipEvent = false;
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, "TrackerHits");
-        System.out.println("event has " + simHits.size() + " SimTrackerHits");
+//        System.out.println("event has " + simHits.size() + " SimTrackerHits");
         Set<Integer> topLayers = new TreeSet<Integer>();
         Set<Integer> bottomLayers = new TreeSet<Integer>();
         for (SimTrackerHit hit : simHits) {
