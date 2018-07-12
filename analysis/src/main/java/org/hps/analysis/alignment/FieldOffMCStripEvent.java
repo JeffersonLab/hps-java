@@ -49,13 +49,13 @@ public class FieldOffMCStripEvent extends Driver {
         if (_selectBottomTracks && bottomLayers.size() != 12) {
             skipEvent = true;
         }
-        
+//        System.out.println("skipEvent "+skipEvent);
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
             _numberOfEventsWritten++;
         }
-
+ //       System.out.println(_numberOfEventsWritten);
     }
 
     protected void endOfData() {
