@@ -50,7 +50,7 @@ public class GenerateFieldOffStdhepEvents {
 //                            4-10   - reserved for future
 //                            11-200 - reserved for specific model use
 //                            201+   - reserved for users
-        int isthep[] = {0};
+        int isthep[] = {1};
         int idhep[] = {11}; // electron
         int jmohep[] = {0, 0};
         int jdahep[] = {0, 0};
