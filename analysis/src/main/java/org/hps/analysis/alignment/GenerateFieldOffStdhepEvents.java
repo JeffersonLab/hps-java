@@ -77,8 +77,8 @@ public class GenerateFieldOffStdhepEvents {
 //        double zSVTLayer1 = 86.;
 
 // use SVT axial sensor rough dimensions and layout for last layer
-        double xMax = 25.;
-        double xMin = -72.;
+        double xMax = 25. -5.;
+        double xMin = -72.+5.;
         double yMin = 12.;
         double yMax = 52.;
         double zSVTLayer1 = 889.;
@@ -86,7 +86,7 @@ public class GenerateFieldOffStdhepEvents {
         double z = zSVTLayer1 + 2338; // ECal face + HARP wire location
         double p = sqrt(eEnergy * eEnergy - mass2);
 
-        int nEvents = 100;
+        int nEvents = 300000; // roughly equivalent to good tracks in run 8100
         Random ran = new Random();
         StdhepWriter topEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z-2338_top.stdhep", "Generated Stdhep Events", "top", 250000);
         StdhepWriter bottomEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z-2338_bottom.stdhep", "Generated Stdhep Events", "bottom", 250000);
