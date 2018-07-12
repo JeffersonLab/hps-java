@@ -69,11 +69,19 @@ public class GenerateFieldOffStdhepEvents {
 //        double zEcal = 1390.;
 
 // use SVT axial sensor rough dimensions and layout
-        double xMax = 45.;
-        double xMin = -45.;
-        double yMin = 1.3;
-        double yMax = 39.;
-        double zSVTLayer1 = 86.;
+// can't use layer 1!
+//        double xMax = 45.;
+//        double xMin = -45.;
+//        double yMin = 1.3;
+//        double yMax = 39.;
+//        double zSVTLayer1 = 86.;
+
+// use SVT axial sensor rough dimensions and layout for last layer
+        double xMax = 25.;
+        double xMin = -72.;
+        double yMin = 12.;
+        double yMax = 52.;
+        double zSVTLayer1 = 889.;
 
         double z = zSVTLayer1 + 2338; // ECal face + HARP wire location
         double p = sqrt(eEnergy * eEnergy - mass2);
