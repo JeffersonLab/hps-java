@@ -1484,7 +1484,7 @@ public class TrackUtils {
         double[] trackParameters = new double[5];
         trackParameters[ParameterName.d0.ordinal()] = Math.sqrt(doca);
         trackParameters[ParameterName.phi0.ordinal()] = phi;
-        trackParameters[ParameterName.omega.ordinal()] = curvature;
+        trackParameters[ParameterName.omega.ordinal()] = curvature * fieldConversion;
         trackParameters[ParameterName.z0.ordinal()] = z;
         trackParameters[ParameterName.tanLambda.ordinal()] = tanLambda;
 
@@ -1615,11 +1615,11 @@ public class TrackUtils {
         }
         writer.close();
     }
-    
+
     //This method transforms vector from tracking detector frame to sensor frame
-    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor){
+    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor) {
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
-        if(electrodes == null){
+        if (electrodes == null) {
             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
             System.out.println("Charge Carrier is NULL");
         }
