@@ -455,14 +455,19 @@ public class StraightThroughAnalysisDriver extends Driver {
         }
 
         // Find all strip clusters in the events
+        // the following should work if we are running this Driver as part of the full reconstruction
+        // i.e. stripClusters really are SiTrackerHitStrip1D objects
         List<SiTrackerHitStrip1D> stripClusters = new ArrayList<SiTrackerHitStrip1D>();
         if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
             stripClusters = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
         }
 
+        // if stripClusters have been persisted as TrackerHit objects after being stroed as lcio files, try to reconstitute
         if (stripClusters.size() == 0) { // try reconstituting from lcio collection
-            setupSensors(event);
             List<TrackerHit> lcioStripClusters = event.get(TrackerHit.class, "StripClusterer_SiTrackerHitStrip1D");
+            // need to reassociate hits with sensors.
+            // the following works for data...
+            setupSensors(event);
             for (TrackerHit hit : lcioStripClusters) {
                 stripClusters.add(new SiTrackerHitStrip1D(hit));
             }
@@ -1093,7 +1098,13 @@ public class StraightThroughAnalysisDriver extends Driver {
     }
 
     private void setupSensors(EventHeader event) {
-        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        List<RawTrackerHit> rawTrackerHits = null;
+        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
+            rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        }
+        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits")) {
+            rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
+        }
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
         IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();

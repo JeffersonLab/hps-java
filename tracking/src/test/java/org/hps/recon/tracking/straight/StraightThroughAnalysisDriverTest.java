@@ -19,6 +19,7 @@ public class StraightThroughAnalysisDriverTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
     static final String testFileName = "hps_008100_0_fullRecon.slcio";
+//    static final String testFileName = "hpsForwardFullEnergyElectrons_z-2338_top_0_SLIC-v06-00-00_QGSP_BERT_HPS-PhysicsRun2016-Nominal-v5-0-nofield_nomsc_recon.slcio";
     private final int nEvents = -1;
 
     public void testIt() throws Exception {
