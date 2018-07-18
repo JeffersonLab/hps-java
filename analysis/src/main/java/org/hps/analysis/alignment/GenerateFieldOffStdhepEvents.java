@@ -55,7 +55,7 @@ public class GenerateFieldOffStdhepEvents {
         int jmohep[] = {0, 0};
         int jdahep[] = {0, 0};
         double phep[] = new double[5];
-        double vhep[] = {0., 0., -2338., 0.};
+        double vhep[] = {-63., 0., -2338., 0.};
         double emass = 0.000511;
         double mass2 = emass * emass;
         double eEnergy = 2.3;
