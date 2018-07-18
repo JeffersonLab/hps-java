@@ -131,8 +131,7 @@ public class GblTrajectory {
      * point, slope changes at scatterer!) \param [in] aSeed Precision matrix of external seed \param [in] flagCurv Use
      * q/p \param [in] flagU1dir Use in u1 direction \param [in] flagU2dir Use in u2 direction
      */
-    GblTrajectory(List<GblPoint> aPointList, int aLabel, SymMatrix aSeed, boolean flagCurv, boolean flagU1dir,
-            boolean flagU2dir) {
+    GblTrajectory(List<GblPoint> aPointList, int aLabel, SymMatrix aSeed, boolean flagCurv, boolean flagU1dir, boolean flagU2dir) {
         numAllPoints = aPointList.size();
         numOffsets = 0;
         numInnerTrans = 0;
@@ -562,8 +561,7 @@ public class GblTrajectory {
                     for (int i = iOff; i < 5; ++i) {
                         if (aPrec.get(i) > 0.) {
                             GblData aData = new GblData(nLabel, aMeas.get(i), aPrec.get(i));
-                            aData.addDerivatives(i, labDer, matPDer, iOff, localDer, globalLab, globalDer, numLocals,
-                                    transDer);
+                            aData.addDerivatives(i, labDer, matPDer, iOff, localDer, globalLab, globalDer, numLocals, transDer);
                             theData.add(aData);
                             nData++;
                         }
@@ -631,7 +629,7 @@ public class GblTrajectory {
      * Cauchy function) \return Error code (non zero value indicates failure of fit)
      */
     int fit(double[] retDVals, int[] retIVals, String optionList) {
-        final double[] normChi2 = {1.0, 0.8737, 0.9326, 0.8228};
+        final double[] normChi2 = { 1.0, 0.8737, 0.9326, 0.8228 };
         String methodList = "TtHhCc";
 
         double Chi2 = 0.;
@@ -675,6 +673,10 @@ public class GblTrajectory {
             d.getAllData(floats, indLocal, derLocal, labGlobal, derGlobal);
             aMille.addData(floats[0], floats[1], indLocal, derLocal, labGlobal, derGlobal);
         }
+
+        //for debug only
+        //aMille.printRecord();
+
         aMille.writeRecord();
     }
 

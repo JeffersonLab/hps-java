@@ -124,4 +124,18 @@ public class MilleBinary {
         _intBuffer.add(0); // first word is error counter
         _floatBuffer.add(0f);
     }
+
+    public void printRecord() {
+        // call this before writing, since writing will clear buffer
+        int recordLength = _intBuffer.size() * 2;
+        System.out.printf("\n\n Record length: %d \n Float buffer:", recordLength);
+
+        for (Float f : _floatBuffer) {
+            System.out.printf("%f \n", f);
+        }
+        System.out.println("Int buffer:");
+        for (Integer i : _intBuffer) {
+            System.out.printf("%d \n", i);
+        }
+    }
 }
