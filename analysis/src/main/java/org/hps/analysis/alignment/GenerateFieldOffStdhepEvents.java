@@ -103,7 +103,7 @@ public class GenerateFieldOffStdhepEvents {
         bottomEvents.setCompatibilityMode(false);
         // evenly populate face of ECal
         for (int i = 0; i < nEvents; ++i) {
-            double x = ThreadLocalRandom.current().nextDouble(xMin, xMax);
+            double x = ThreadLocalRandom.current().nextDouble(xMin, xMax)-vhep[0];
             double y = ThreadLocalRandom.current().nextDouble(yMin, yMax);
             double r = sqrt(x * x + y * y + z * z);
             phep[0] = p * x / r; //px
