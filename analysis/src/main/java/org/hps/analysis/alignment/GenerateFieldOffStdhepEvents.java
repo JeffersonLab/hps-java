@@ -76,9 +76,17 @@ public class GenerateFieldOffStdhepEvents {
 //        double yMax = 39.;
 //        double zSVTLayer1 = 86.;
 
+//// use SVT axial sensor rough dimensions and layout for last layer
+//        double xMax = 25. -5.;
+//        double xMin = -72.+5.;
+//        double yMin = 12.;
+//        double yMax = 52.;
+//        double zSVTLayer1 = 889.;
+
+// with x offset at HARP, need to make some adjustments...
 // use SVT axial sensor rough dimensions and layout for last layer
-        double xMax = 25. -5.;
-        double xMin = -72.+5.;
+        double xMax = 25.;// -5.;
+        double xMin = -45.; //-72.+5.;
         double yMin = 12.;
         double yMax = 52.;
         double zSVTLayer1 = 889.;
