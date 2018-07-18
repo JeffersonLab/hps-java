@@ -16,7 +16,9 @@ import java.util.concurrent.ThreadLocalRandom;
 public class GenerateFieldOffStdhepEvents {
 
     public static void main(String[] args) throws IOException {
- /*--------------------------------------------------------*/
+        int nEvents = 900000; // roughly equivalent to good tracks in run 8100
+        // but there is some efficiency and acceptance to account for, so allow for more to be generated.
+        /*--------------------------------------------------------*/
  /* NEVHEP          - event number (or some special meaning*/
  /*                    (see documentation for details)     */
  /* NHEP            - actual number of entries in current  */
@@ -67,7 +69,6 @@ public class GenerateFieldOffStdhepEvents {
 //        double yMin = 20;
 //        double yMax = 90.;
 //        double zEcal = 1390.;
-
 // use SVT axial sensor rough dimensions and layout
 // can't use layer 1!
 //        double xMax = 45.;
@@ -75,14 +76,12 @@ public class GenerateFieldOffStdhepEvents {
 //        double yMin = 1.3;
 //        double yMax = 39.;
 //        double zSVTLayer1 = 86.;
-
 //// use SVT axial sensor rough dimensions and layout for last layer
 //        double xMax = 25. -5.;
 //        double xMin = -72.+5.;
 //        double yMin = 12.;
 //        double yMax = 52.;
 //        double zSVTLayer1 = 889.;
-
 // with x offset at HARP, need to make some adjustments...
 // use SVT axial sensor rough dimensions and layout for last layer
         double xMax = 25.;// -5.;
@@ -94,7 +93,6 @@ public class GenerateFieldOffStdhepEvents {
         double z = zSVTLayer1 + 2338; // ECal face + HARP wire location
         double p = sqrt(eEnergy * eEnergy - mass2);
 
-        int nEvents = 300000; // roughly equivalent to good tracks in run 8100
         Random ran = new Random();
         StdhepWriter topEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z-2338_top.stdhep", "Generated Stdhep Events", "top", 250000);
         StdhepWriter bottomEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z-2338_bottom.stdhep", "Generated Stdhep Events", "bottom", 250000);
@@ -103,7 +101,7 @@ public class GenerateFieldOffStdhepEvents {
         bottomEvents.setCompatibilityMode(false);
         // evenly populate face of ECal
         for (int i = 0; i < nEvents; ++i) {
-            double x = ThreadLocalRandom.current().nextDouble(xMin, xMax)-vhep[0];
+            double x = ThreadLocalRandom.current().nextDouble(xMin, xMax) - vhep[0];
             double y = ThreadLocalRandom.current().nextDouble(yMin, yMax);
             double r = sqrt(x * x + y * y + z * z);
             phep[0] = p * x / r; //px
