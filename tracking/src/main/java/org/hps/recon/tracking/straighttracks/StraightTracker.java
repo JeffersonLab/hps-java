@@ -99,7 +99,7 @@ public class StraightTracker extends Driver {
      * @param debug switch
      */
     public void setDebug(boolean debug) {
-        _debug = true;
+        _debug = debug;
         _materialmanager.setDebug(debug);
         _fitter.setDebug(debug);
         _finder.setDebug(debug);
