@@ -23,7 +23,6 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackState;
 
 public class TruthModule {
     public static final Map<MCParticle, Integer> preprocessMCParticles(List<SimTrackerHit> trackerHits) {
@@ -104,21 +103,91 @@ public class TruthModule {
         return clusterParticleContributionMap;
     }
     
+    public static final double[] getMomentum(Track track) {
+        double phi = track.getTrackStates().get(0).getPhi();
+        double tanLambda = track.getTrackStates().get(0).getTanLambda();
+        
+        double magP = getMomentumMagnitude(track);
+        
+        double px = magP * Math.cos(phi);
+        double py = magP * Math.sin(phi);
+        double pz = magP * tanLambda;
+        
+        return new double[] { px, py, pz };
+    }
+    
+    public static final double getMomentumMagnitude(Track track) {
+        final double aa = 3.e-4;
+        final double B_PSpec = 0.5242301;
+        final double a_Bz = aa*B_PSpec;
+        double omega = track.getTrackStates().get(0).getOmega();
+        return a_Bz / Math.abs(omega);
+    }
+    
+    public static final double getMomentumSumMagnitude(Track track1, Track track2) {
+        double[] track1Momentum = TruthModule.getMomentum(track1);
+        double[] track2Momentum = TruthModule.getMomentum(track2);
+        double momentumSum = 0;
+        for(int i = 0; i < 3; i++) {
+            momentumSum += Math.pow(track1Momentum[i] + track2Momentum[i], 2);
+        }
+        return Math.sqrt(momentumSum);
+    }
+    
     public static final Map<Cluster, Track> getClusterTrackMatchedPairs(List<Track> tracks, List<Cluster> clusters) {
         Map<Cluster, Track> clusterTrackMap = new HashMap<Cluster, Track>();
         for(Track track : tracks) {
+            boolean isTopTrack = TruthModule.isTopTrack(track);
             double[] r = TrackUtils.extrapolateTrack(track, BeamlineConstants.ECAL_FACE).v();
             
             // Search for a nearby cluster.
             Cluster bestCluster = null;
             double bestDeltaR = Double.MAX_VALUE;
             for(Cluster cluster : clusters) {
+                // Get position deltas.
                 double deltaX = cluster.getPosition()[0] - r[0];
                 double deltaY = cluster.getPosition()[1] - r[1];
                 double deltaR = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-                boolean meetsXCondition = Math.abs(cluster.getPosition()[0] - r[0]) < 6.0 + 3.9 / (magnitude(track.getTrackStates().get(TrackState.AtCalorimeter).getMomentum()) - 0.3);
-                boolean meetsYCondition = Math.abs(cluster.getPosition()[1] - r[1]) < 15.0;
-                if(meetsXCondition && meetsYCondition) {
+                
+                // Get the track momentum. Momenta that exceed or
+                // underflow certain thresholds are treated as equal
+                // to those thresholds.
+                double p = getMomentumMagnitude(track);
+                p = Math.max(0.350, p);
+                p = Math.min(1.700, p);
+                
+                // Check that the track/cluster difference is within
+                // the allowed bounds for the track momentum.
+                boolean[] meetsXCondition = new boolean[3];
+                boolean[] meetsYCondition = new boolean[3];
+                if(isTopTrack) {
+                    meetsXCondition[0] = deltaX <= (28.642 * Math.pow(p, 0)) + (189.069 * Math.pow(p, 1)) + (-541.210 * Math.pow(p, 2)) + (572.439 * Math.pow(p, 3))
+                            + (-272.218 * Math.pow(p, 4)) + (48.779 * Math.pow(p, 5));
+                    meetsXCondition[1] = deltaX >= (-62.763 * Math.pow(p, 0)) + (349.399 * Math.pow(p, 1)) + (-655.959 * Math.pow(p, 2)) + (569.612 * Math.pow(p, 3))
+                            + (-233.414 * Math.pow(p, 4)) + (36.356 * Math.pow(p, 5));
+                    
+                    meetsYCondition[0] = deltaY <= (-55.083 * Math.pow(p, 0)) + (563.542 * Math.pow(p, 1)) + (-1483.572 * Math.pow(p, 2)) + (1736.836 * Math.pow(p, 3))
+                            + (-939.851 * Math.pow(p, 4)) +  (191.371 * Math.pow(p, 5));
+                    meetsYCondition[1] = deltaY >= (-28.258 * Math.pow(p, 0)) + (-51.423 * Math.pow(p, 1)) + (315.000 * Math.pow(p, 2)) + (-460.202 * Math.pow(p, 3))
+                            + (277.033 * Math.pow(p, 4)) +  (-60.092 * Math.pow(p, 5));
+                } else {
+                    meetsXCondition[0] = deltaX <= (26.199 * Math.pow(p, 0)) + (187.807 * Math.pow(p, 1)) + (-521.182 * Math.pow(p, 2)) + (540.531 * Math.pow(p, 3))
+                            + (-252.854 * Math.pow(p, 4)) + (44.706 * Math.pow(p, 5));
+                    meetsXCondition[1] = deltaX >= (-54.335 * Math.pow(p, 0)) + (311.927 * Math.pow(p, 1)) + (-599.073 * Math.pow(p, 2)) + (535.032 * Math.pow(p, 3))
+                            + (-227.219 * Math.pow(p, 4)) + (36.969 * Math.pow(p, 5));
+                    
+                    meetsYCondition[0] = deltaY <= (83.021 * Math.pow(p, 0)) + (-316.836 * Math.pow(p, 1)) + (557.894 * Math.pow(p, 2)) + (-505.039 * Math.pow(p, 3))
+                            + (228.115 * Math.pow(p, 4)) + (-40.629 * Math.pow(p, 5));
+                    meetsYCondition[1] = deltaY >= (-57.447 * Math.pow(p, 0)) + (117.906 * Math.pow(p, 1)) + (-132.630 * Math.pow(p, 2)) + (80.548 * Math.pow(p, 3))
+                            + (-26.978 * Math.pow(p, 4)) + (3.936 * Math.pow(p, 5));
+                }
+                
+                meetsXCondition[2] = meetsXCondition[0] && meetsXCondition[1];
+                meetsYCondition[2] = meetsYCondition[0] && meetsYCondition[1];
+                
+                // If the conditions are met, the track and cluster
+                // are a match.
+                if(meetsXCondition[2] && meetsYCondition[2]) {
                     if(deltaR < bestDeltaR) {
                         bestDeltaR = deltaR;
                         bestCluster = cluster;
@@ -126,12 +195,30 @@ public class TruthModule {
                 }
             }
             
-            if(bestDeltaR < 10.0) {
-                clusterTrackMap.put(bestCluster, track);
-            }
+            if(bestCluster != null) { clusterTrackMap.put(bestCluster, track); }
         }
         
         return clusterTrackMap;
+    }
+    
+    public static final boolean isAnalyzableEvent(Collection<Track> tracks) {
+        final int POSITIVE = 0;
+        final int NEGATIVE = 1;
+        final int TOP = 0;
+        final int BOT = 1;
+        boolean[][] hasTrack = new boolean[2][2];
+        for(Track track : tracks) {
+            int chargeIndex = getCharge(track) > 0 ? POSITIVE : NEGATIVE;
+            int positionIndex =  isTopTrack(track) ? TOP : BOT;
+            
+            hasTrack[chargeIndex][positionIndex] = true;
+        }
+        
+        if((hasTrack[TOP][POSITIVE] && hasTrack[BOT][NEGATIVE]) || (hasTrack[BOT][POSITIVE] && hasTrack[TOP][NEGATIVE])) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     public static final boolean isTopTrack(Track track) {
@@ -575,7 +662,7 @@ public class TruthModule {
         if(hit == null) {
             return "Hit at UNDEFINED with energy NaN GeV at time NaN ns.";
         } else {
-            return String.format("Hit at (%3d, %2d, %1d) with energy %5.3f GeV at time %.1f ns.", getHodoscopeXIndex(hit),
+            return String.format("Hit at (%3d, %2d, %1d) with energy %6.4f GeV at time %.1f ns.", getHodoscopeXIndex(hit),
                     getHodoscopeYIndex(hit), getHodoscopeZIndex(hit), hit.getRawEnergy(), hit.getTime());
         }
     }
@@ -584,7 +671,8 @@ public class TruthModule {
         if(track == null) {
             return "Track with momentum NaN GeV and charge NaN C with chi2 NaN and nDF = NaN.";
         } else {
-            double p[] = track.getTrackStates().get(0).getMomentum();
+            //double p[] = track.getTrackStates().get(0).getMomentum();
+            double p[] = TruthModule.getMomentum(track);
             String tanLambdaSign = null;
             if(track.getTrackStates().get(0).getTanLambda() > 0) { tanLambdaSign = "+"; }
             else if(track.getTrackStates().get(0).getTanLambda() < 0) { tanLambdaSign = "-"; }
@@ -599,6 +687,14 @@ public class TruthModule {
     
     public static final int getCharge(Track track) {
         return (int) -Math.signum(track.getTrackStates().get(0).getOmega());
+    }
+    
+    public static final boolean isPositive(Track track) {
+        return (-Math.signum(track.getTrackStates().get(0).getOmega())) > 0;
+    }
+    
+    public static final boolean isNegative(Track track) {
+        return (-Math.signum(track.getTrackStates().get(0).getOmega())) < 0;
     }
     
     public static final <T> List<T> getCollection(EventHeader event, String collectionName, Class<T> objectType) {
