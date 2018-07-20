@@ -12,8 +12,10 @@ import org.hps.record.triggerbank.TriggerModule;
 import org.hps.util.Pair;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.Track;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -23,9 +25,10 @@ import hep.aida.IHistogram2D;
 public class HodoscopeSimpleCorrelationDriver extends Driver {
     private int goodClusterEvents = 0;
     private int goodTrackPairEvents = 0;
-    private int hodoscopeHitEvents = 0;
+    private int matchedPositronEvents = 0;
     private int twoHodoscopeHitEvents = 0;
     private int correlatedHodoscopeHitEvents = 0;
+    private int hodoscopeHitEvents = 0;
     private int correlatedHodoscopeCalorimeterEvents = 0;
     
     private final AIDA aida = AIDA.defaultInstance();
@@ -70,7 +73,61 @@ public class HodoscopeSimpleCorrelationDriver extends Driver {
     private final IHistogram2D hodoscopeL2ClusterYTotalFailTableECutCorrelation = aida.histogram2D("Hodoscope/Hodoscope Layer 2 - Cluster Y Correlation (Total Failed, E > 200 MeV)",
             3, -1.5, 1.5, 11,  -5.5,  5.5);
     
-    private final IHistogram2D clusterEnergyPositionCorrelation = aida.histogram2D("Calorimeter/Cluster Energy vs. Position", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D clusterEnergyIndexCorrelation
+            = aida.histogram2D("Calorimeter/Cluster Energy vs. Position Index (Matched with Hodoscope)", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D clusterEnergyPositionCorrelation
+            = aida.histogram2D("Calorimeter/Cluster Energy vs. Position (Matched with Hodoscope)", 400, -400, 400, 75, 0.000, 2.500);
+    
+    private final IHistogram2D clusterEnergyIndexCorrelationNoHodo = aida.histogram2D("Calorimeter/Cluster Energy vs. Position Index (Matched no Hodoscope)", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D clusterEnergyPositionCorrelationNoHodo = aida.histogram2D("Calorimeter/Cluster Energy vs. Position (Matched no Hodoscope)", 400, -400, 400, 75, 0.000, 2.500);
+    
+    private final IHistogram2D clusterEnergyIndexCorrelationAll = aida.histogram2D("Calorimeter/Cluster Energy vs. Position Index (All)", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D clusterEnergyPositionCorrelationAll = aida.histogram2D("Calorimeter/Cluster Energy vs. Position (All)", 400, -400, 400, 75, 0.000, 2.500);
+    
+    private final IHistogram2D reconClusterEnergyIndexCorrelation = aida.histogram2D("Calorimeter/Recon Cluster Energy vs. Position Index (Matched with Hodoscope)", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D reconClusterEnergyPositionCorrelation = aida.histogram2D("Calorimeter/Recon Cluster Energy vs. Position (Matched with Hodoscope)", 400, -400, 400, 75, 0.000, 2.500);
+    
+    private final IHistogram2D reconClusterEnergyIndexCorrelationNoHodo = aida.histogram2D("Calorimeter/Recon Cluster Energy vs. Position Index (Matched no Hodoscope)", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D reconClusterEnergyPositionCorrelationNoHodo = aida.histogram2D("Calorimeter/Recon Cluster Energy vs. Position (Matched no Hodoscope)", 400, -400, 400, 75, 0.000, 2.500);
+    
+    private final IHistogram2D reconClusterEnergyIndexCorrelationAll = aida.histogram2D("Calorimeter/Recon Cluster Energy vs. Position Index (All)", 47, -23.5, 23.5, 75, 0.000, 2.500);
+    private final IHistogram2D reconClusterEnergyPositionCorrelationAll = aida.histogram2D("Calorimeter/Recon Cluster Energy vs. Position (All)", 400, -400, 400, 75, 0.000, 2.500);
+    
+    private final IHistogram1D mcParticleMomentum = aida.histogram1D("Debug/MC Particle Momentum", 250, 0.000, 2.500);
+    private final IHistogram1D mcParticleXMomentum = aida.histogram1D("Debug/MC Particle x-Momentum", 200, -0.100, 0.100);
+    private final IHistogram1D mcParticleYMomentum = aida.histogram1D("Debug/MC Particle y-Momentum", 200, -0.100, 0.100);
+    private final IHistogram1D mcParticleZMomentum = aida.histogram1D("Debug/MC Particle z-Momentum", 500, -2.500, 2.500);
+    
+    private final IHistogram2D[][] deltaXMomentum = {
+            {
+                aida.histogram2D("Matching/Momentum vs. #Delta x (Positive Top Track)", 250, 0.000, 2.500, 160, -40, 40),
+                aida.histogram2D("Matching/Momentum vs. #Delta x (Positive Bottom Track)", 250, 0.000, 2.500, 160, -40, 40)
+            },
+            {
+                aida.histogram2D("Matching/Momentum vs. #Delta x (Negative Top Track)", 250, 0.000, 2.500, 160, -40, 40),
+                aida.histogram2D("Matching/Momentum vs. #Delta x (Negative Bottom Track)", 250, 0.000, 2.500, 160, -40, 40)
+            }
+    };
+    private final IHistogram2D[][] deltaYMomentum = {
+            {
+                aida.histogram2D("Matching/Momentum vs. #Delta y (Positive Top Track)", 250, 0.000, 2.500, 160, -40, 40),
+                aida.histogram2D("Matching/Momentum vs. #Delta y (Positive Bottom Track)", 250, 0.000, 2.500, 160, -40, 40)
+            },
+            {
+                aida.histogram2D("Matching/Momentum vs. #Delta y (Negative Top Track)", 250, 0.000, 2.500, 160, -40, 40),
+                aida.histogram2D("Matching/Momentum vs. #Delta y (Negative Bottom Track)", 250, 0.000, 2.500, 160, -40, 40)
+            }
+    };
+    private final IHistogram2D[][] deltaRMomentum = {
+            {
+                aida.histogram2D("Matching/Momentum vs. #Delta r (Positive Top Track)", 250, 0.000, 2.500, 80, 0, 40),
+                aida.histogram2D("Matching/Momentum vs. #Delta r (Positive Bottom Track)", 250, 0.000, 2.500, 80, 0, 40)
+            },
+            {
+                aida.histogram2D("Matching/Momentum vs. #Delta r (Negative Top Track)", 250, 0.000, 2.500, 80, 0, 40),
+                aida.histogram2D("Matching/Momentum vs. #Delta r (Negative Bottom Track)", 250, 0.000, 2.500, 80, 0, 40)
+            }
+    };
     
     private int[][][] hodoEcalCorrelationTable = { // [LAYER][HODO_X_INDEX][MIN/MAX]
             {
@@ -85,14 +142,57 @@ public class HodoscopeSimpleCorrelationDriver extends Driver {
     };
     
     @Override
+    public void detectorChanged(Detector detector) {
+        System.out.println("Field Map Values:");
+        for(int y = 1400; y >= -1400; y -= 25) {
+            double[] field = detector.getFieldMap().getField(new double[] { 0, y, 0 });
+            System.out.printf("\t(0, %4d, 0) >> (%7.3f, %7.3f, %7.3f)%n", y, field[0], field[1], field[2]);
+        }
+    }
+    
+    @Override
+    public void startOfData() {
+        String[] topBot = { "Top", "Bottom" };
+        String[] posNeg = { "Positive", "Negative" };
+        for(int i = 0; i < 2; i++) {
+            for(int j = 0; j < 2; j++) {
+                aida.histogram1D("Debug/Particle x-Momentum (" + posNeg[i] + " " + topBot[j] + " Track)", 500, -2.500, 2.500);
+                aida.histogram1D("Debug/Particle y-Momentum (" + posNeg[i] + " " + topBot[j] + " Track)", 200, -0.100, 0.100);
+                aida.histogram1D("Debug/Particle z-Momentum (" + posNeg[i] + " " + topBot[j] + " Track)", 200, -0.100, 0.100);
+            }
+        }
+    }
+    
+    @Override
     public void endOfData() {
         System.out.println("Analysis Results");
         System.out.println("\tPositron Side Cluster Events               :: " + goodClusterEvents);
         System.out.println("\tAnalyzable Track Pair Events               :: " + goodTrackPairEvents);
+        System.out.println("\t\tMatched Positron Events                  :: " + matchedPositronEvents);
         System.out.println("\tA Hodoscope Hit Events                     :: " + hodoscopeHitEvents);
         System.out.println("\tA Hodoscope Hit per Layer Events           :: " + twoHodoscopeHitEvents);
         System.out.println("\tA Correlated Hodoscope Hit Pair Events     :: " + correlatedHodoscopeHitEvents);
         System.out.println("\tA Correlated Hodoscope/Cluster Pair Events :: " + correlatedHodoscopeCalorimeterEvents);
+        
+        IHistogram2D deltaXMomentumAll = aida.histogram2D("Matching/Momentum vs. #Delta x (All)", 250, 0.000, 2.500, 160, -40, 40);
+        IHistogram2D deltaYMomentumAll = aida.histogram2D("Matching/Momentum vs. #Delta y (All)", 250, 0.000, 2.500, 160, -40, 40);
+        IHistogram2D deltaRMomentumAll = aida.histogram2D("Matching/Momentum vs. #Delta r (All)", 250, 0.000, 2.500, 80, 0, 40);
+        
+        String[] topBot = { "Top", "Bottom" };
+        String[] posNeg = { "Positive", "Negative" };
+        IHistogram1D xMomentum = aida.histogram1D("Debug/Particle x-Momentum (All)", 500, -2.500, 2.500);
+        IHistogram1D yMomentum = aida.histogram1D("Debug/Particle y-Momentum (All)", 200, -0.100, 0.100);
+        IHistogram1D zMomentum = aida.histogram1D("Debug/Particle z-Momentum (All)", 200, -0.100, 0.100);
+        for(int i = 0; i < 2; i++) {
+            for(int j = 0; j < 2; j++) {
+                deltaXMomentumAll.add(deltaXMomentum[i][j]);
+                deltaYMomentumAll.add(deltaYMomentum[i][j]);
+                deltaRMomentumAll.add(deltaRMomentum[i][j]);
+                xMomentum.add(aida.histogram1D("Debug/Particle x-Momentum (" + posNeg[i] + " " + topBot[j] + " Track)"));
+                yMomentum.add(aida.histogram1D("Debug/Particle y-Momentum (" + posNeg[i] + " " + topBot[j] + " Track)"));
+                zMomentum.add(aida.histogram1D("Debug/Particle z-Momentum (" + posNeg[i] + " " + topBot[j] + " Track)"));
+            }
+        }
     }
     
     @Override
@@ -171,6 +271,17 @@ public class HodoscopeSimpleCorrelationDriver extends Driver {
          * of energy.
          */
         
+        // Track the momenta of initial particles in this event.
+        List<MCParticle> particles = TruthModule.getCollection(event, "MCParticle", MCParticle.class);
+        for(MCParticle particle : particles) {
+            if((particle.getPDGID() == -11 || particle.getPDGID() == 11) && (particle.getParents().isEmpty() || particle.getParents().get(0).getPDGID() > 600)) {
+                mcParticleMomentum.fill(particle.getMomentum().magnitude());
+                mcParticleXMomentum.fill(particle.getMomentum().x());
+                mcParticleYMomentum.fill(particle.getMomentum().y());
+                mcParticleZMomentum.fill(particle.getMomentum().z());
+            }
+        }
+        
         // Fill the hodoscope hit energy distribution plot.
         for(SimCalorimeterHit hit : processedHodoscopeHits) {
             hodoscopeEnergyDistributionAll.fill(hit.getRawEnergy());
@@ -211,48 +322,37 @@ public class HodoscopeSimpleCorrelationDriver extends Driver {
         
         
         /*
-         * Plot the hodoscope hit and calorimeter cluster x- and
-         * y-index correlations.
-         */
-        
-        /*
-        for(SimCalorimeterHit hit : processedHodoscopeHits) {
-            // Only consider hits with greater than 1 MeV energy.
-            if(hit.getRawEnergy() < 0.001) { continue; }
-            
-            // Track the indices of the hit.
-            int hodoIX = TruthModule.getHodoscopeXIndex(hit);
-            int hodoIY = TruthModule.getHodoscopeYIndex(hit);
-            int hodoIZ = TruthModule.getHodoscopeZIndex(hit);
-            
-            // Iterate over clusters and correlate the hit with any
-            // cluster that has a position of x > 80 mm.
-            for(Cluster cluster : gtpClusters) {
-                // Only select clusters on the positron side.
-                if(cluster.getPosition()[0] < 80) { continue; }
-                
-                // Only consider clusters with greater than 200 MeV
-                // energy.
-                if(cluster.getEnergy() < 0.200) { continue; }
-                
-                // Fill the appropriate plots.
-                if(hodoIZ == 0) {
-                    hodoscopeL1ClusterXCorrelation.fill(hodoIX, TriggerModule.getClusterXIndex(cluster));
-                    hodoscopeL1ClusterYCorrelation.fill(hodoIY, TriggerModule.getClusterYIndex(cluster));
-                } else {
-                    hodoscopeL2ClusterXCorrelation.fill(hodoIX, TriggerModule.getClusterXIndex(cluster));
-                    hodoscopeL2ClusterYCorrelation.fill(hodoIY, TriggerModule.getClusterYIndex(cluster));
-                }
-            }
-        }
-        */
-        
-        
-        
-        /*
          * Track the number of events that have hodoscope hits which
          * meet varying parameters.
          */
+        
+        List<Cluster> reconClusters = TruthModule.getCollection(event, "EcalClustersCorr", Cluster.class);
+        
+        Map<Cluster, Track> matchedPairs = TruthModule.getClusterTrackMatchedPairs(gblTracks, gtpClusters);
+        boolean sawMatchedPositron = false;
+        for(Track track : matchedPairs.values()) {
+            if(TruthModule.getCharge(track) > 0) {
+                sawMatchedPositron = true;
+                break;
+            }
+        }
+        if(sawMatchedPositron) { matchedPositronEvents++; }
+        
+        for(Entry<Cluster, Track> entry : matchedPairs.entrySet()) {
+            if(TruthModule.getCharge(entry.getValue()) > 0) {
+                clusterEnergyIndexCorrelationNoHodo.fill(TriggerModule.getClusterXIndex(entry.getKey()), entry.getKey().getEnergy());
+                clusterEnergyPositionCorrelationNoHodo.fill(entry.getKey().getPosition()[0], entry.getKey().getEnergy());
+            }
+        }
+        
+        Map<Cluster, Track> matchedReconPairs = TruthModule.getClusterTrackMatchedPairs(gblTracks, reconClusters);
+        
+        for(Entry<Cluster, Track> entry : matchedReconPairs.entrySet()) {
+            if(TruthModule.getCharge(entry.getValue()) > 0) {
+                reconClusterEnergyIndexCorrelationNoHodo.fill(TriggerModule.getClusterXIndex(entry.getKey()), entry.getKey().getEnergy());
+                reconClusterEnergyPositionCorrelationNoHodo.fill(entry.getKey().getPosition()[0], entry.getKey().getEnergy());
+            }
+        }
         
         boolean sawLayer1Hit = false;
         boolean sawLayer2Hit = false;
@@ -284,19 +384,74 @@ public class HodoscopeSimpleCorrelationDriver extends Driver {
         if(!correlatedHitPairs.isEmpty()) {
             correlatedHodoscopeHitEvents++;
             
-            Map<Cluster, Track> matchedPairs = TruthModule.getClusterTrackMatchedPairs(gblTracks, gtpClusters);
+            //Map<Cluster, Track> matchedPairs = TruthModule.getClusterTrackMatchedPairs(gblTracks, gtpClusters);
             
             for(Entry<Cluster, Track> entry : matchedPairs.entrySet()) {
                 if(TruthModule.getCharge(entry.getValue()) > 0) {
-                    clusterEnergyPositionCorrelation.fill(TriggerModule.getClusterXIndex(entry.getKey()), entry.getKey().getEnergy());
+                    clusterEnergyIndexCorrelation.fill(TriggerModule.getClusterXIndex(entry.getKey()), entry.getKey().getEnergy());
+                    clusterEnergyPositionCorrelation.fill(entry.getKey().getPosition()[0], entry.getKey().getEnergy());
                 }
             }
-            //for(Cluster cluster : gtpClusters) {
-            //    clusterEnergyPositionCorrelation.fill(TriggerModule.getClusterXIndex(cluster), cluster.getEnergy());
-            //}
+            
+            for(Entry<Cluster, Track> entry : matchedReconPairs.entrySet()) {
+                if(TruthModule.getCharge(entry.getValue()) > 0) {
+                    reconClusterEnergyIndexCorrelation.fill(TriggerModule.getClusterXIndex(entry.getKey()), entry.getKey().getEnergy());
+                    reconClusterEnergyPositionCorrelation.fill(entry.getKey().getPosition()[0], entry.getKey().getEnergy());
+                }
+            }
         }
         
+        for(Cluster cluster : gtpClusters) {
+            clusterEnergyIndexCorrelationAll.fill(TriggerModule.getClusterXIndex(cluster), cluster.getEnergy());
+            clusterEnergyPositionCorrelationAll.fill(cluster.getPosition()[0], cluster.getEnergy());
+        }
         
+        for(Cluster cluster : reconClusters) {
+            reconClusterEnergyIndexCorrelationAll.fill(TriggerModule.getClusterXIndex(cluster), cluster.getEnergy());
+            reconClusterEnergyPositionCorrelationAll.fill(cluster.getPosition()[0], cluster.getEnergy());
+        }
+        
+        String[] topBotString = { "Top", "Bottom" };
+        String[] posNegString = { "Positive", "Negative" };
+        for(Track track : gblTracks) {
+            double[] tr = TruthModule.getTrackPositionAtCalorimeterFace(track);
+            int topBot = tr[1] > 0 ? 0 : 1;
+            int posNeg = TruthModule.getCharge(track) > 0 ? 0 : 1;
+            
+            final double aa = 3.e-4;
+            final double B_PSpec = 0.5242301;
+            final double a_Bz = aa*B_PSpec;
+            
+            double phi = track.getTrackStates().get(0).getPhi();
+            double omega = track.getTrackStates().get(0).getOmega();
+            double tanLambda = track.getTrackStates().get(0).getTanLambda();
+            
+            double magP = a_Bz / Math.abs(omega);
+            
+            double px = magP * Math.cos(phi);
+            double py = magP * Math.sin(phi);
+            double pz = magP * tanLambda;
+            
+            boolean isTopTrack = TruthModule.isTopTrack(track);
+            
+            for(Cluster cluster : gtpClusters) {
+                double[] cr = cluster.getPosition();
+                
+                if((cr[1] > 0 && !isTopTrack) || (cr[1] < 0 && isTopTrack)) { continue; }
+                
+                double deltaX = cr[0] - tr[0];
+                double deltaY = cr[1] - tr[1];
+                double deltaR = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+                
+                deltaXMomentum[posNeg][topBot].fill(magP, deltaX);
+                deltaYMomentum[posNeg][topBot].fill(magP, deltaY);
+                deltaRMomentum[posNeg][topBot].fill(magP, deltaR);
+            }
+            
+            aida.histogram1D("Debug/Particle x-Momentum (" + posNegString[posNeg] + " " + topBotString[topBot] + " Track)").fill(px);
+            aida.histogram1D("Debug/Particle y-Momentum (" + posNegString[posNeg] + " " + topBotString[topBot] + " Track)").fill(py);
+            aida.histogram1D("Debug/Particle z-Momentum (" + posNegString[posNeg] + " " + topBotString[topBot] + " Track)").fill(pz);
+        }
         
         /*
          * Track the number of events where at least one pair of
