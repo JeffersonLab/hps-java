@@ -1,7 +1,8 @@
 package org.hps.recon.tracking;
 
-import hep.aida.IHistogram1D;
+//import hep.aida.IHistogram1D;
 
+import org.hps.recon.tracking.gbl.GBLOutput;
 import org.lcsim.util.aida.AIDA;
 
 /**
@@ -18,16 +19,16 @@ public class TrackReconWithPlotsTest extends ReconTestSkeleton {
 
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
-        String aidaOutputName = "target/test-output/TestPlots_" + inputFileName.replaceAll("slcio", "aida");
+        //String aidaOutputName = "target/test-output/TestPlots_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
-        testTrackingDriver = new TrackingReconstructionPlots();
-        ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
-        ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
+        testTrackingDriver = new GBLOutput();
+        //((GBLOutput) testTrackingDriver).setOutputPlots(aidaOutputName);
+        ((GBLOutput) testTrackingDriver).aida = aida;
         super.testRecon();
 
-        IHistogram1D ntracks = aida.histogram1D("Tracks per Event");
-        assertTrue("No events in plots", ntracks.entries() > 0);
-        assertTrue("No tracks in plots", ntracks.mean() > 0);
+        //IHistogram1D ntracks = aida.histogram1D("Tracks per Event");
+        //assertTrue("No events in plots", ntracks.entries() > 0);
+        //assertTrue("No tracks in plots", ntracks.mean() > 0);
     }
 
 }
