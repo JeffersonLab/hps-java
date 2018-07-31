@@ -29,7 +29,7 @@ public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
-    protected long nEvents = 1;
+    protected long nEvents = 100;
     protected URL testURL;
     protected FileCache cache;
     protected Driver testTrackingDriver = null;
@@ -134,9 +134,13 @@ public class ReconTestSkeleton extends TestCase {
             mtc.setRemoveCollections(true);
             add(mtc);
 
-            add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
-            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
+            org.hps.recon.tracking.gbl.GBLRefitterDriver GBLrd = new org.hps.recon.tracking.gbl.GBLRefitterDriver();
+            GBLrd.setStoreTrackStates(true);
+            GBLrd.setMilleBinaryFileName("milleTest1.dat");
+            add(GBLrd);
+
             add(new org.hps.recon.tracking.TrackDataDriver());
+            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
 
             add(new ReadoutCleanupDriver());
         }

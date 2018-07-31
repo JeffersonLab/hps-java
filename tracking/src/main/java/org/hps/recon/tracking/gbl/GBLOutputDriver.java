@@ -4,10 +4,13 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
@@ -111,9 +114,10 @@ public class GBLOutputDriver extends Driver {
                 if (sensor != null) {
                     sensorHits.put(sensor, hit);
                     sensorNums.put(sensor, i);
-                    System.out.printf("adding sensor %d \n", i);
-                } else
-                    System.out.printf("TrackerHit null sensor %s \n", hit.toString());
+                    //System.out.printf("adding sensor %d \n", i);
+                }
+                //else
+                //System.out.printf("TrackerHit null sensor %s \n", hit.toString());
                 i++;
             }
             doBasicGBLtrack(trk);
@@ -142,14 +146,14 @@ public class GBLOutputDriver extends Driver {
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
             Hep3Vector diff = VecOp.sub(extrapPos, hitPos);
 
-            System.out.printf("MextrapPos %s MhitPos %s \n Mdiff %s ", extrapPos.toString(), hitPos.toString(), diff.toString());
+            //System.out.printf("MextrapPos %s MhitPos %s \n Mdiff %s ", extrapPos.toString(), hitPos.toString(), diff.toString());
 
             ITransform3D trans = sensor.getGeometry().getGlobalToLocal();
             trans.rotate(diff);
 
             aida.histogram1D("residual before GBL " + sensor.getName()).fill(diff.x());
 
-            System.out.printf("MdiffSensor %s \n", diff.toString());
+            //System.out.printf("MdiffSensor %s \n", diff.toString());
 
         }
     }
@@ -193,7 +197,7 @@ public class GBLOutputDriver extends Driver {
             //                }
             aida.histogram2D("predicted v vs u sensor-frame " + sensor.getName()).fill(extrapPosSensor.x(), extrapPosSensor.y());
 
-            System.out.printf("extrapPos %s  extrapPosSensor %s \n", extrapPos.toString(), extrapPosSensor.toString());
+            //System.out.printf("extrapPos %s  extrapPosSensor %s \n", extrapPos.toString(), extrapPosSensor.toString());
 
             // position of hit
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
@@ -202,7 +206,7 @@ public class GBLOutputDriver extends Driver {
             aida.histogram2D("hit v vs u sensor-frame " + sensor.getName()).fill(hitPosSensor.y(), hitPosSensor.x());
             //aida.histogram2D("hit y vs x lab-frame " + sensor.getName()).fill(hitPos.y(), hitPos.x());
 
-            System.out.printf("hitPos %s  hitPosSensor %s \n", hitPos.toString(), hitPosSensor.toString());
+            //System.out.printf("hitPos %s  hitPosSensor %s \n", hitPos.toString(), hitPosSensor.toString());
 
             // post-GBL residual
             Hep3Vector resSensor = VecOp.sub(hitPosSensor, extrapPosSensor);
@@ -210,7 +214,7 @@ public class GBLOutputDriver extends Driver {
             aida.histogram2D("residual after GBL vs u hit " + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
             aida.histogram1D("residual after GBL " + sensor.getName()).fill(resSensor.x());
 
-            System.out.printf("resSensor %s \n", resSensor.toString());
+            //System.out.printf("resSensor %s \n", resSensor.toString());
 
             //debug
             //            ITransform3D electrodes_to_global = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
@@ -270,5 +274,15 @@ public class GBLOutputDriver extends Driver {
         aida.histogram1D("p bottom", 150, 0, 3);
         //        aida.histogram1D("beamspot x bottom", 10, 0, 10);
         //        aida.histogram1D("beamspot y bottom", 10, 0, 10);
+    }
+
+    public void endOfData() {
+        if (outputPlots != null) {
+            try {
+                aida.saveAs(outputPlots);
+            } catch (IOException ex) {
+                Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }
