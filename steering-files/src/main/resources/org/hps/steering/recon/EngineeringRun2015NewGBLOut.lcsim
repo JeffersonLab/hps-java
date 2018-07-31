@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @brief Steering file that will be used for pass 2 reconstruction of 
+             the 2015 Engineering Run data. 
+      @author <a href="mailto:meeg@slac.stanford.edu">Sho Uemura</a>
+      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      This file is copied fromo "EngineeringRun2015FullRecon.lcsim", and only GBLOutputDriver is added.
+      This will produce GBL asci files, that Alessandra and Mariangela can check the alignment.
+    -->
+    <execute>
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="TrackReconSeed345Conf2Extd16"/>       
+        <driver name="MergeTrackCollections"/>
+        <driver name="GBLRefitterDriver" />
+        <driver name="TrackDataDriver" />
+        <driver name="GBLOutputDriver"/>
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>    
+        
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>true</correctChanT0>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+        <!-- SVT Track finding -->
+        <driver name="TrackReconSeed345Conf2Extd16" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s345_c2_e16</trackCollectionName>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver">
+		<storeTrackStates>true</storeTrackStates>
+		<writeMilleBinary>true</writeMilleBinary>
+		<milleBinaryFileName>true</milleBinaryFileName>
+        </driver>                
+	<driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver" />
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>       
+    </drivers>
+</lcsim>
