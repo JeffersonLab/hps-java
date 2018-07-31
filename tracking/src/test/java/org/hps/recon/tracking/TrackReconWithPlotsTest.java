@@ -2,7 +2,7 @@ package org.hps.recon.tracking;
 
 //import hep.aida.IHistogram1D;
 
-import org.hps.recon.tracking.gbl.GBLOutput;
+import org.hps.recon.tracking.gbl.GBLOutputDriver;
 import org.lcsim.util.aida.AIDA;
 
 /**
@@ -21,9 +21,9 @@ public class TrackReconWithPlotsTest extends ReconTestSkeleton {
         aida = AIDA.defaultInstance();
         //String aidaOutputName = "target/test-output/TestPlots_" + inputFileName.replaceAll("slcio", "aida");
         nEvents = -1;
-        testTrackingDriver = new GBLOutput();
+        testTrackingDriver = new GBLOutputDriver();
         //((GBLOutput) testTrackingDriver).setOutputPlots(aidaOutputName);
-        ((GBLOutput) testTrackingDriver).aida = aida;
+        ((GBLOutputDriver) testTrackingDriver).aida = aida;
         super.testRecon();
 
         //IHistogram1D ntracks = aida.histogram1D("Tracks per Event");

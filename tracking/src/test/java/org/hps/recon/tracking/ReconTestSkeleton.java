@@ -137,8 +137,9 @@ public class ReconTestSkeleton extends TestCase {
             org.hps.recon.tracking.gbl.GBLRefitterDriver GBLrd = new org.hps.recon.tracking.gbl.GBLRefitterDriver();
             GBLrd.setMilleBinaryFileName("milleTest1.dat");
             add(GBLrd);
-            //add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
+
             add(new org.hps.recon.tracking.TrackDataDriver());
+            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
 
             add(new ReadoutCleanupDriver());
         }
