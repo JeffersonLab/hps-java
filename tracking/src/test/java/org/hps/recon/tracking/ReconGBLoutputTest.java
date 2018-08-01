@@ -110,11 +110,14 @@ public class ReconGBLoutputTest extends TestCase {
             org.hps.recon.tracking.gbl.GBLRefitterDriver GBLrd = new org.hps.recon.tracking.gbl.GBLRefitterDriver();
             GBLrd.setStoreTrackStates(true);
             GBLrd.setWriteMilleBinary(true);
-            GBLrd.setMilleBinaryFileName("milleTest1.dat");
+            GBLrd.setMilleBinaryFileName("target/test-output/milleTest1.dat");
             add(GBLrd);
 
             add(new org.hps.recon.tracking.TrackDataDriver());
-            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
+
+            org.hps.recon.tracking.gbl.GBLOutputDriver GBLod = new org.hps.recon.tracking.gbl.GBLOutputDriver();
+            GBLod.setOutputPlotsFilename("target/test-output/GBLplots.root");
+            add(GBLod);
 
             add(new ReadoutCleanupDriver());
         }

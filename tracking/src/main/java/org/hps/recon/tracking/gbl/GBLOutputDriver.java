@@ -12,10 +12,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.ITransform3D;
-//import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -31,8 +32,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-//import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-
 /**
  * Make post-GBL plots needed for alignment.
  *
@@ -45,6 +44,7 @@ public class GBLOutputDriver extends Driver {
     private String trackCollectionName = "GBLTracks";
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
+    public boolean debug = false;
 
     public void setOutputPlotsFilename(String fname) {
         outputPlots = fname;
@@ -72,24 +72,6 @@ public class GBLOutputDriver extends Driver {
     public void process(EventHeader event) {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
-        //        RelationalTable trackResidualsTable = null;
-        //        trackResidualsTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-        //        List<LCRelation> trackresRelation = event.get(LCRelation.class, "TrackResidualsRelations");
-        //        for (LCRelation relation : trackresRelation) {
-        //            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-        //                trackResidualsTable.add(relation.getFrom(), relation.getTo());
-        //            }
-        //        }
-
-        //        RelationalTable kinkTable = null;
-        //        kinkTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-        //        List<LCRelation> kinkRelation = event.get(LCRelation.class, "TrackResidualsRelations");
-        //        for (LCRelation relation : kinkRelation) {
-        //            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-        //                kinkTable.add(relation.getFrom(), relation.getTo());
-        //            }
-        //        }
-
         RelationalTable trackMatchTable = null;
         trackMatchTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> trackMatchRelation = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
@@ -103,7 +85,6 @@ public class GBLOutputDriver extends Driver {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         for (Track trk : tracks) {
-            //GenericObject trackRes = (GenericObject) trackResidualsTable.from(trk);
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
             Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
@@ -112,16 +93,16 @@ public class GBLOutputDriver extends Driver {
 
             int i = 0;
             for (TrackerHit hit : hitsOnTrack) {
-
-                //HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hth.getRawHits().get(0)).getDetectorElement());
                 HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
                 if (sensor != null) {
                     sensorHits.put(sensor, hit);
                     sensorNums.put(sensor, i);
-                    //System.out.printf("adding sensor %d \n", i);
+                    if (debug)
+                        System.out.printf("adding sensor %d \n", i);
                 }
-                //else
-                //System.out.printf("TrackerHit null sensor %s \n", hit.toString());
+
+                if (debug && sensor == null)
+                    System.out.printf("TrackerHit null sensor %s \n", hit.toString());
                 i++;
             }
             doBasicGBLtrack(trk);
@@ -149,15 +130,15 @@ public class GBLOutputDriver extends Driver {
             Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(trackState, sensor, bfield);
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
             Hep3Vector diff = VecOp.sub(extrapPos, hitPos);
-
-            //System.out.printf("MextrapPos %s MhitPos %s \n Mdiff %s ", extrapPos.toString(), hitPos.toString(), diff.toString());
+            if (debug)
+                System.out.printf("MextrapPos %s MhitPos %s \n Mdiff %s ", extrapPos.toString(), hitPos.toString(), diff.toString());
 
             ITransform3D trans = sensor.getGeometry().getGlobalToLocal();
             trans.rotate(diff);
 
             aida.histogram1D("residual before GBL " + sensor.getName()).fill(diff.x());
-
-            //System.out.printf("MdiffSensor %s \n", diff.toString());
+            if (debug)
+                System.out.printf("MdiffSensor %s \n", diff.toString());
 
         }
     }
@@ -172,36 +153,29 @@ public class GBLOutputDriver extends Driver {
         aida.histogram1D("d0 " + isTop).fill(trackState.getD0());
         aida.histogram1D("z0 " + isTop).fill(trackState.getZ0());
         aida.histogram1D("p " + isTop).fill(new BasicHep3Vector(trackState.getMomentum()).magnitude());
+
+        Hep3Vector beamspot = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState, 0));
+        if (debug)
+            System.out.printf("beamspot %s transformed %s \n", beamspot.toString());
+        aida.histogram1D("beamspot x " + isTop).fill(beamspot.x());
+        aida.histogram1D("beamspot y " + isTop).fill(beamspot.y());
     }
 
     private void doGBLresiduals(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits) {
-        //TrackState trackState = trk.getTrackStates().get(0);
 
         for (HpsSiSensor sensor : sensorHits.keySet()) {
             ITransform3D trans = sensor.getGeometry().getGlobalToLocal();
 
-            //            int index = sensorNums.get(sensor);
-            //            float resY = GBLres.getFloatVal(index);
-            //            double resX = GBLres.getDoubleVal(index);
-            //            double res = Math.sqrt(resX * resX + resY * resY);
-            //SiTrackerHitStrip1D stripHit = new SiTrackerHitStrip1D(hit);
-
             // position predicted on track
             Hep3Vector extrapPos = null;
             Hep3Vector extrapPosSensor = null;
-            //if ((trackState.getTanLambda() > 0 && sensor.isTopLayer()) || (trackState.getTanLambda() < 0 && sensor.isBottomLayer()))
             extrapPos = TrackUtils.extrapolateTrackPositionToSensor(trk, sensor, sensors, bfield);
             if (extrapPos == null)
                 return;
-
-            //                if ((trackState.getTanLambda() > 0 && sensor.isTopLayer()) || (trackState.getTanLambda() < 0 && sensor.isBottomLayer())) {
             extrapPosSensor = new BasicHep3Vector(extrapPos.v());
             trans.transform(extrapPosSensor);
             //aida.histogram2D("residual after GBL vs u predicted " + sensor.getName()).fill(extrapPosSensor.x(), res);
-            //                }
             aida.histogram2D("predicted v vs u sensor-frame " + sensor.getName()).fill(extrapPosSensor.x(), extrapPosSensor.y());
-
-            //System.out.printf("extrapPos %s  extrapPosSensor %s \n", extrapPos.toString(), extrapPosSensor.toString());
 
             // position of hit
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
@@ -210,27 +184,27 @@ public class GBLOutputDriver extends Driver {
             aida.histogram2D("hit v vs u sensor-frame " + sensor.getName()).fill(hitPosSensor.y(), hitPosSensor.x());
             //aida.histogram2D("hit y vs x lab-frame " + sensor.getName()).fill(hitPos.y(), hitPos.x());
 
-            //System.out.printf("hitPos %s  hitPosSensor %s \n", hitPos.toString(), hitPosSensor.toString());
-
             // post-GBL residual
             Hep3Vector resSensor = VecOp.sub(hitPosSensor, extrapPosSensor);
             aida.histogram2D("residual after GBL vs v predicted " + sensor.getName()).fill(extrapPosSensor.y(), resSensor.x());
             aida.histogram2D("residual after GBL vs u hit " + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
             aida.histogram1D("residual after GBL " + sensor.getName()).fill(resSensor.x());
 
-            //System.out.printf("resSensor %s \n", resSensor.toString());
-
-            //debug
-            //            ITransform3D electrodes_to_global = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
-            //            Hep3Vector measuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
-            //            Hep3Vector unmeasuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getUnmeasuredCoordinate(0);
-            //            System.out.printf("unMeasCoordOrig %s MeasCoordOrig %s \n", unmeasuredCoordinate.toString(), measuredCoordinate.toString());
-            //            measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), measuredCoordinate);
-            //            unmeasuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), unmeasuredCoordinate);
-            //            Hep3Vector testX = trans.inverse().rotated(new BasicHep3Vector(1, 0, 0));
-            //            Hep3Vector testY = trans.inverse().rotated(new BasicHep3Vector(0, 1, 0));
-            //            Hep3Vector testZ = trans.inverse().rotated(new BasicHep3Vector(0, 0, 1));
-            //            System.out.printf("unMeasCoord %s MeasCoord %s \n transX %s transY %s transZ %s \n", unmeasuredCoordinate.toString(), measuredCoordinate.toString(), testX.toString(), testY.toString(), testZ.toString());
+            if (debug) {
+                System.out.printf("hitPos %s  hitPosSensor %s \n", hitPos.toString(), hitPosSensor.toString());
+                System.out.printf("resSensor %s \n", resSensor.toString());
+                System.out.printf("extrapPos %s  extrapPosSensor %s \n", extrapPos.toString(), extrapPosSensor.toString());
+                ITransform3D electrodes_to_global = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getLocalToGlobal();
+                Hep3Vector measuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getMeasuredCoordinate(0);
+                Hep3Vector unmeasuredCoordinate = sensor.getReadoutElectrodes(ChargeCarrier.HOLE).getUnmeasuredCoordinate(0);
+                System.out.printf("unMeasCoordOrig %s MeasCoordOrig %s \n", unmeasuredCoordinate.toString(), measuredCoordinate.toString());
+                measuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), measuredCoordinate);
+                unmeasuredCoordinate = VecOp.mult(VecOp.mult(CoordinateTransformations.getMatrix(), electrodes_to_global.getRotation().getRotationMatrix()), unmeasuredCoordinate);
+                Hep3Vector testX = trans.inverse().rotated(new BasicHep3Vector(1, 0, 0));
+                Hep3Vector testY = trans.inverse().rotated(new BasicHep3Vector(0, 1, 0));
+                Hep3Vector testZ = trans.inverse().rotated(new BasicHep3Vector(0, 0, 1));
+                System.out.printf("unMeasCoord %s MeasCoord %s \n transX %s transY %s transZ %s \n", unmeasuredCoordinate.toString(), measuredCoordinate.toString(), testX.toString(), testY.toString(), testZ.toString());
+            }
         }
     }
 
@@ -270,14 +244,14 @@ public class GBLOutputDriver extends Driver {
         aida.histogram1D("d0 top", 50, -2.0, 2.0);
         aida.histogram1D("z0 top", 50, -1.3, 1.3);
         aida.histogram1D("p top", 150, 0, 3);
-        //        aida.histogram1D("beamspot x top", 10, 0, 10);
-        //        aida.histogram1D("beamspot y top", 10, 0, 10);
+        aida.histogram1D("beamspot x top", 50, -3, 3);
+        aida.histogram1D("beamspot y top", 50, -3, 3);
 
         aida.histogram1D("d0 bottom", 50, -2.0, 2.0);
         aida.histogram1D("z0 bottom", 50, -1.3, 1.3);
         aida.histogram1D("p bottom", 150, 0, 3);
-        //        aida.histogram1D("beamspot x bottom", 10, 0, 10);
-        //        aida.histogram1D("beamspot y bottom", 10, 0, 10);
+        aida.histogram1D("beamspot x bottom", 50, -3, 3);
+        aida.histogram1D("beamspot y bottom", 50, -3, 3);
     }
 
     public void endOfData() {
