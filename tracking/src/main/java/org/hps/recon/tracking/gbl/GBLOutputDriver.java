@@ -41,10 +41,14 @@ import org.lcsim.util.aida.AIDA;
 public class GBLOutputDriver extends Driver {
 
     public AIDA aida;
-    public String outputPlots = "GBLplots.root";
+    private String outputPlots = "GBLplots.root";
     private String trackCollectionName = "GBLTracks";
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
+
+    public void setOutputPlotsFilename(String fname) {
+        outputPlots = fname;
+    }
 
     @Override
     protected void detectorChanged(Detector detector) {

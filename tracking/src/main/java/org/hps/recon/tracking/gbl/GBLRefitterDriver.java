@@ -40,7 +40,7 @@ public class GBLRefitterDriver extends Driver {
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
-    private boolean writeMilleBinary = true;
+    private boolean writeMilleBinary = false;
 
     public void setMilleBinaryFileName(String filename) {
         milleBinaryFileName = filename;
