@@ -4,7 +4,8 @@
 # Date: June 2, 2011
 # Update: Feb 11, 2012
 # Update: Feb 12, 2014  -- GEMC 2.0 compatibility using GeometryEngine
-
+# Update: Aug 1, 2018   -- Change to Python3 compatibility. Make GDML compatible output for LCDD.
+#
 # This script places the crystals for the Electromagnetic Calorimeter for the HPS experiment.
 #
 # Notes:
@@ -35,14 +36,46 @@
 import math
 #import MySQLdb
 import sys
-
+import argparse
+#
 sys.path.append(".")    # Allow Python to find the Rotations.py and GeometryEngine.py.
 from Rotations import *
 from GeometryEngine import Geometry, GeometryEngine, Sensitive_Detector
 
+if __name__ == "__main__":
+################################################################################################
+#
+# Geometry engine setup for local running
+#
+# Slightly unusually, we need to do this here rather than at the end of the file,
+# so that any parameter changes that are put in as arguments can be part of the parameter
+# calculation.
+# Yes, it would be much clearer to make this whole thing a Python class, but at this point
+# I don't want to spend the time to put self. in front of every variable everywhere....
+#
+#################################################################################################
 
+    parser = argparse.ArgumentParser(
+                description="""Master HPS geometry writer.
+                This code will create TEXT or GDML tables for the HPS ECal.""",
+                epilog="""For more information, or errors, please email: maurik@physics.unh.edu """)
+    parser.add_argument('-N','--nocrystals',action='store_true',help='Do NOT write out the geometry for the crystals.')
+    parser.add_argument('-s','--show',action='store_true',help='show the geometry using the ROOT TGeoManager mechanism.')
+    parser.add_argument('-g','--gdml',action='store_true',help='Produce a GDML file for output.')
+    parser.add_argument('-t','--txt',action='store_true',help='Produce a TEXT file for output.')
+    parser.add_argument('-m','--mysql',action='store_true',help='Produce a MySQL table for output. You must also specify --host --database --user --password')
+    parser.add_argument('-H','--host',help='Name of the database host computer',default="localhost")
+    parser.add_argument('-D','--database',help='Name of the database',default="hps_2014")
+    parser.add_argument('-u','--user',help='User name for the database',default="clasuser")
+    parser.add_argument('-p','--passwd',help='Password for connecting to the database',default="")
+    parser.add_argument('-d','--debug',action="count",help='Increase debug level by one.')
+    parser.add_argument('-z','--extraz',type=float,help='Amount to add to the Z-location of ECAL')
+    args = parser.parse_args(sys.argv[1:])
+
+#
+# Table Names.
+#
 Standard_Table_Name="hps_ecal"
-
 
 #################################################################################################
 #
@@ -50,15 +83,26 @@ Standard_Table_Name="hps_ecal"
 #
 # This is kind of ugly, but also the most convenient way to control the geometry of the ECAL.
 #
+# We use a set of calculation to compute the parameters for the geometry. Note that
+# there are many parameters that depend on earlier defined variables.
+#
 #################################################################################################
-
 #
 # Z Location of entire ECAL system
 #
 # From Stepan: Drawings of Vacuum has the box length = 63.93" and it sticks out upstream by 12" == 51.93" = 1319 mm
 #
 # Box_Start_z = 51.93 * 25.4;  # Location of the FRONT of the box, in the root system. Determined by the exit flange of magnet.
-Box_Start_z = 1316.0  # Value from Holly
+Box_Start_z = 1318.0  # Value from Holly was 1316, but this causes a 2mm overlap with Sho's SVT vacuum box.
+
+x_location_crystal_front = 21.38 # From CAD drawing 2012/01/31
+# Location at front of crystals. The entire array of crystals is centered on the photon line at entrance point.
+## OLD VALUE = 20.77
+
+if args.extraz:
+    Box_Start_z += args.extraz
+
+
 
 z_crystal_added = 23. # From the CAD drawing, the crystals are moved back from origin by 23mm. CAD drawings 2012/01/31
 
@@ -119,9 +163,6 @@ crys_col2 = "AAAAE0"
 crys_col3 = "BBA7FF"
 crys_col4 = "AAA7E5"
 
-#
-Vacuum_chamber_x_start = 55. # Left side of vacuum box, measured at front
-#
 # Determine parameters for the vacuum plates.
 #
 Bulge_Plate_thickness = 3.
@@ -136,10 +177,6 @@ Photon_pipe_dy = 11 # Inner radius
 Photon_pipe_dy2 = 13 # Outer radius
 Photon_pipe_angle = 0.0305 ##
 Photon_pipe_flare_angle = 0
-
-x_location_crystal_front = 21.38 # From CAD drawing 2012/01/31
-# Location at front of crystals. The entire array of crystals is centered on the photon line at entrance point.
-## OLD VALUE = 20.77
 
 #
 # Side support
@@ -755,16 +792,16 @@ def calculate_ecal_vacuum_geometry(g_en,origin=[0,0,0],mother="ECAL",style=1):
     """Transcribed from GDML. This creates the detailed vacuum system for the ECAL, with flanges."""
     ecal_vac_material=Aluminum
 
-    front_x = 0.0
-    front_z = 10.0
+    # front_x = 0.0
+    # front_z = 10.0
     back_x  = -147.505
-    back_z  = 440.0
+    # back_z  = 440.0
     chamber_x = -140.828
-    chamber_z = 225.0
-    honeycomb_x = -210.0
-    honeycomb_z = 190.0
-    ecal_flange_x = 21.17
-    ecal_flange_z = 1318
+    # chamber_z = 225.0
+    # honeycomb_x = -210.0
+    # honeycomb_z = 190.0
+    # ecal_flange_x = 21.17
+    # ecal_flange_z = 1318
 
     fl_visible=1
     fl_style=style
@@ -2686,49 +2723,16 @@ def post_process_gdml_file(file):
         of.write(wr_line)
 
 if __name__ == "__main__":
-    ##############################################################################################
-    import sys
-    import argparse
-#################################################################################################
+################################################################################################
 #
 # Geometry engine setup for local running
 #
 #################################################################################################
 
-#
-# Table Names.
-#
-    DB_host = "localhost"
-    DB_name = "hps_2014"
-    DB_user = "myname"
-    DB_passwd = "mypassword"
-
-    Detector = "hps_ecal"
-    Detector_Vacuum = "hps_ecal_vacuum";
+    Detector = "ecal_vacuum"
 
     Variation= "original"
 
-    parser = argparse.ArgumentParser(
-                description="""Master HPS geometry writer.
-                This code will create TEXT or GDML tables for the HPS ECal.""",
-                epilog="""For more information, or errors, please email: maurik@physics.unh.edu """)
-    parser.add_argument('-N','--nocrystals',action='store_true',help='Do NOT write out the geometry for the crystals.')
-    parser.add_argument('-s','--show',action='store_true',help='show the geometry using the ROOT TGeoManager mechanism.')
-    parser.add_argument('-g','--gdml',action='store_true',help='Produce a GDML file for output.')
-    parser.add_argument('-t','--txt',action='store_true',help='Produce a TEXT file for output.')
-    parser.add_argument('-m','--mysql',action='store_true',help='Produce a MySQL table for output. You must also specify --host --database --user --password')
-    parser.add_argument('-H','--host',help='Name of the database host computer',default="localhost")
-    parser.add_argument('-D','--database',help='Name of the database',default="hps_2014")
-    parser.add_argument('-u','--user',help='User name for the database',default="clasuser")
-    parser.add_argument('-p','--passwd',help='Password for connecting to the database',default="")
-    parser.add_argument('-d','--debug',action="count",help='Increase debug level by one.')
-    parser.add_argument('-z','--extraz',type=float,help='Amount to add to the Z-location of ECAL')
-    args = parser.parse_args(sys.argv[1:])
-#
-# THIS DOES NOT WORk: DUH!!!
-#
-    if args.extraz:
-        Box_Start_z += args.extraz
 
     print("Parameters used for the ECal detector:")
     print_parameters()
@@ -2740,12 +2744,15 @@ if __name__ == "__main__":
     geo_en_flux=0
 
 #    Set_Global_Parameters()
-    calculate_ecal_mother_geometry(geo_en,mother="world_volume")
+    #calculate_ecal_mother_geometry(geo_en,mother="world_volume")
+    #origin=[x_location_crystal_front,0,z_location]
+    origin=[21.17,0,z_location]
+
     if not args.nocrystals:
-        calculate_ecal_geometry(geo_en)
-    calculate_ecal_vacuum_geometry(geo_en)
-    calculate_ecal_crystalbox_geometry(geo_en)
-    calculate_ecal_coolingsys_geometry(geo_en)
+        calculate_ecal_geometry(geo_en,mother="world_volume")
+    calculate_ecal_vacuum_geometry(geo_en,origin=origin,mother="world_volume")
+    calculate_ecal_crystalbox_geometry(geo_en,origin=origin,mother="world_volume")
+    calculate_ecal_coolingsys_geometry(geo_en,origin=origin,mother="world_volume")
 
     print("geo_en     length = ",len(geo_en._Geometry))
 #    print "geo_en_vac length = ",len(geo_en_vac._Geometry)
@@ -2754,7 +2761,7 @@ if __name__ == "__main__":
     #
 
     if args.mysql:
-        geo_en.MySQL_OpenDB(DB_host,DB_user,DB_passwd,DB_name)
+        geo_en.MySQL_OpenDB(args.host,args.user,args.passwd,args.database)
         geo_en.MySQL_New_Table(Detector)
         geo_en.MySQL_Write_Geometry()
 
@@ -2767,8 +2774,8 @@ if __name__ == "__main__":
         rr.Create_root_volume()
         rr.Build_volumes(geo_en)
         if args.gdml:
-            rr._geom.Export("ecal.gdml")
-            post_process_gdml_file("ecal.gdml")
+            rr._geom.Export(Detector+".gdml")
+            post_process_gdml_file(Detector+"ecal.gdml")
         if args.show:
             topvol = rr.Draw("ogl")
             print("Type return to end program.")
