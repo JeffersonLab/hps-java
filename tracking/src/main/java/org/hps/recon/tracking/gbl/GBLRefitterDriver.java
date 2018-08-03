@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.StandardCuts;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -36,6 +38,7 @@ public class GBLRefitterDriver extends Driver {
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
+    private StandardCuts cuts;
 
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
@@ -53,11 +56,20 @@ public class GBLRefitterDriver extends Driver {
         this.outputCollectionName = outputCollectionName;
     }
 
+    public void setMaxTrackChisqNorm(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisqNorm(input);
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+
+        if (cuts == null)
+            cuts = new StandardCuts();
     }
 
     @Override
@@ -79,13 +91,17 @@ public class GBLRefitterDriver extends Driver {
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            if(newTrack==null) continue;
-            refittedTracks.add(newTrack.getFirst());
-            trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
-            inputToRefitted.put(track, newTrack.getFirst());
+            if (newTrack == null)
+                continue;
+            Track gblTrk = newTrack.getFirst();
+            if (gblTrk.getChi2() / gblTrk.getNDF() > cuts.getMaxTrackChisqNorm())
+                continue;
+            refittedTracks.add(gblTrk);
+            trackRelations.add(new BaseLCRelation(track, gblTrk));
+            inputToRefitted.put(track, gblTrk);
 
             kinkDataCollection.add(newTrack.getSecond());
-            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), newTrack.getFirst()));
+            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
 
         // Put the tracks back into the event and exit

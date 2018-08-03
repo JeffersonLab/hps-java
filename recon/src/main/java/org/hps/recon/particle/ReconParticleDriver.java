@@ -17,9 +17,11 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.record.StandardCuts;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
@@ -55,6 +57,9 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
+    protected StandardCuts cuts = null;
+    RelationalTable hitToRotated = null;
+    RelationalTable hitToStrips = null;
    
     public void setUseCorrectedClusterPositionsForMatching(boolean val){
         useCorrectedClusterPositionsForMatching = val;
@@ -366,7 +371,17 @@ public abstract class ReconParticleDriver extends Driver {
                 this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
             
         matcher.setBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy()); 
-
+        
+        if (cuts == null)
+            cuts = new StandardCuts();
+        else
+            cuts.changeBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy());
+    }
+    
+    public void setMaxMatchChisq(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxMatchChisq(input);
     }
 
     /**
@@ -444,6 +459,10 @@ public abstract class ReconParticleDriver extends Driver {
                 // try to find a matching cluster:
                 Cluster matchedCluster = null;
                 for (Cluster cluster : clusters) {
+                    double clusTime = ClusterUtilities.getSeedHitTime(cluster);
+                    double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
+                        continue;
                     
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
@@ -497,7 +516,8 @@ public abstract class ReconParticleDriver extends Driver {
                 }
 
                 // Add the particle to the list of reconstructed particles.
-                particles.add(particle);
+                if (particle.getGoodnessOfPID() < cuts.getMaxMatchChisq())
+                    particles.add(particle);
             }
         }
 
@@ -628,6 +648,9 @@ public abstract class ReconParticleDriver extends Driver {
                 trackCollections.add(new ArrayList<Track>(0));
             }
         }
+        
+        hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        hitToStrips = TrackUtils.getHitToStripsTable(event);
 
         // Instantiate new lists to store reconstructed particles and
         // V0 candidate particles and vertices.

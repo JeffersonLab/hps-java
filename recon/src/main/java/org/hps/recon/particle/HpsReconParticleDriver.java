@@ -16,6 +16,7 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -304,14 +305,24 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      *
      */
     private void makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) {
-
+        double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+        double posClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+        if (Math.abs(eleClusTime - posClusTime) > cuts.getMaxVertexClusterDt())
+            return;
+        
         // Create candidate particles for each constraint.
         for (Constraint constraint : Constraint.values()) {
 
             // Generate a candidate vertex and particle.
+
             BilliorVertex vtxFit = fitVertex(constraint, electron, positron);
             ReconstructedParticle candidate = this.makeReconstructedParticle(electron, positron, vtxFit);
 
+            if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP())
+                continue;
+            if (candidate.getStartVertex().getChi2() > cuts.getMaxVertexChisq())
+                continue;
+                
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
