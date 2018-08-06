@@ -383,6 +383,8 @@ public abstract class ReconParticleDriver extends Driver {
             cuts = new StandardCuts();
         cuts.setMaxMatchChisq(input);
     }
+    
+    protected abstract List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles);
 
     /**
      * Generates reconstructed V0 candidate particles and vertices from sets of positrons and electrons. Implementing
@@ -393,7 +395,8 @@ public abstract class ReconParticleDriver extends Driver {
      * @param electrons - The list of electrons.
      * @param positrons - The list of positrons.
      */
-    protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
+    protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons, List<Track> tracks);
+    
 
     /**
      * Create the set of final state particles from the event tracks and clusters. Clusters will be matched with tracks
@@ -668,12 +671,6 @@ public abstract class ReconParticleDriver extends Driver {
         // create final state particles.
         finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
 
-        // VERBOSE :: Output the number of reconstructed particles.
-        printDebug("Final State Particles :: " + finalStateParticles.size());
-
-        // Add the final state ReconstructedParticles to the event
-        event.put(finalStateParticlesColName, finalStateParticles, ReconstructedParticle.class, 0);
-
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.
         for (ReconstructedParticle finalStateParticle : finalStateParticles) {
@@ -693,7 +690,14 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Form V0 candidate particles and vertices from the electron
         // and positron reconstructed particles.
-        findVertices(electrons, positrons);
+        findVertices(electrons, positrons, trackCollections.get(0));
+        
+        List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
+        // VERBOSE :: Output the number of reconstructed particles.
+        printDebug("Final State Particles :: " + goodFinalStateParticles.size());
+        // Add the final state ReconstructedParticles to the event
+        event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
+
 
         // Store the V0 candidate particles and vertices for each type
         // of constraint in the appropriate collection in the event,

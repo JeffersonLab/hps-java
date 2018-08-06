@@ -25,7 +25,7 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
      * @param positrons - The list of positrons.
      */
     @Override
-    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
+    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons, List<Track> tracks) {
         // Create a vertex fitter.
         TwoTrackVertexer vtxFitter = new TwoTrackVertexer();
         
@@ -64,5 +64,11 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
     @Override
     protected void startOfData(){
         if(unconstrainedV0CandidatesColName == null) { unconstrainedV0CandidatesColName = "V0Candidates"; }
+    }
+
+    @Override
+    protected List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles) {
+        // TODO Auto-generated method stub
+        return finalStateParticles;
     }
 }

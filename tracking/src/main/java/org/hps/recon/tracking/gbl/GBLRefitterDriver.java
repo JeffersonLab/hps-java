@@ -56,10 +56,10 @@ public class GBLRefitterDriver extends Driver {
         this.outputCollectionName = outputCollectionName;
     }
 
-    public void setMaxTrackChisqNorm(double input) {
+    public void setMaxTrackChisq(double nhits, double input) {
         if (cuts == null)
             cuts = new StandardCuts();
-        cuts.setMaxTrackChisqNorm(input);
+        cuts.setMaxTrackChisq(nhits, input);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class GBLRefitterDriver extends Driver {
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            if (gblTrk.getChi2() / gblTrk.getNDF() > cuts.getMaxTrackChisqNorm())
+            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getNDF()))
                 continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));

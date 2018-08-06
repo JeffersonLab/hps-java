@@ -11,10 +11,16 @@ import hep.physics.matrix.Matrix;
 import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.MutableMatrix;
 import hep.physics.matrix.SymmetricMatrix;
+
+import java.util.List;
 import java.util.Map;
+
 import org.lcsim.constants.Constants;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
@@ -57,6 +63,8 @@ public class BilliorTrack {
     private final Matrix _covmatrix;
     private Map<HelicalTrackHit, Double> _smap;
     private Map<HelicalTrackHit, MultipleScatter> _msmap;
+    private boolean hasL1 = false;
+    private boolean hasL2 = false;
     /**
      * Doubles used for error variables
      */
@@ -92,6 +100,22 @@ public class BilliorTrack {
         _chisq[0] = track.getChi2();
         _nhchisq = 0.;
         _ndf[0] = track.getNDF();
+        
+        List<TrackerHit> allTrackHits = track.getTrackerHits();
+        for (TrackerHit temp : allTrackHits) {
+            // Retrieve the sensor associated with one of the hits. This will
+            // be used to retrieve the layer number
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+
+            // Retrieve the layer number by using the sensor
+            int layer = (sensor.getLayerNumber() + 1) / 2 -1;
+            if (layer == 0)
+                hasL1 = true;
+            else if (layer ==1)
+                hasL2 = true;
+            if (hasL1 && hasL2)
+                break;
+        }
 //        _smap = helix.PathMap();
 //        _msmap = helix.ScatterMap();
     }
@@ -117,6 +141,22 @@ public class BilliorTrack {
         billior[4] = helixpars[2];
         return billior;
 
+    }
+    
+    public void setHasL1(boolean input) {
+        hasL1 = input;
+    }
+    
+    public void setHasL2(boolean input) {
+        hasL2 = input;
+    }
+    
+    public boolean HasL1() {
+        return hasL1;
+    }
+    
+    public boolean HasL2() {
+        return hasL2;
     }
 
     private Matrix convertCovarianceToBillior(SymmetricMatrix helixcov, double[] helixpars) {

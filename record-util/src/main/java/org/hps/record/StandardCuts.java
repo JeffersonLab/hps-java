@@ -1,10 +1,14 @@
 package org.hps.record;
 
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+
 public class StandardCuts {
     // max number of hits a track can share with other tracks
     private int maxSharedHitsPerTrack;
-    // max GBL chisq/dof for track
-    private double maxTrackChisqNorm;
+    // max GBL chisq for 6-hit track
+    private double maxTrackChisq6;
+    // max GBL chisq for 5-hit track
+    private double maxTrackChisq5;
     // max (absolute) chisq for track-cluster match for recon particle 
     private double maxMatchChisq;
     // max time diff [ns] between track and cluster time for recon particle
@@ -12,7 +16,7 @@ public class StandardCuts {
     // max vertex momentum (magnitude)
     private double maxVertexP;
     // max (absolute) chisq for vertex fit
-    private double maxVertexChisq;
+    private double minVertexChisqProb;
     // max time diff [ns] between the two recon particle clusters in vertex
     private double maxVertexClusterDt;
     
@@ -32,6 +36,8 @@ public class StandardCuts {
     private boolean maxMollerPset = false;
     private boolean maxVertexPset = false;
     private boolean maxMatchChisqset = false;
+    private boolean maxTrackChisqNormset = false;
+    private ChiSquaredDistribution chisqDistrib;
     
     public double getTrackClusterTimeOffset() {
         return trackClusterTimeOffset;
@@ -44,11 +50,24 @@ public class StandardCuts {
         return maxSharedHitsPerTrack;
     }
     
-    public void setMaxTrackChisqNorm(double input) {
-        maxTrackChisqNorm = input;
+    public void setMaxTrackChisq(double nhits, double input) {
+        if (nhits == 5) {
+            maxTrackChisq5 = input;
+            maxTrackChisqNormset = true;
+        }
+        else if (nhits == 6) {
+            maxTrackChisq6 = input;
+            maxTrackChisqNormset = true;            
+        }
     }
-    public double getMaxTrackChisqNorm() {
-        return maxTrackChisqNorm;
+    
+    public double getMaxTrackChisq(double nhits) {
+        if (nhits == 5)
+            return maxTrackChisq5;
+        else if (nhits == 6)
+            return maxTrackChisq6;
+        else
+            return -1;
     }
     
     public void setMaxMatchChisq(double input) {
@@ -67,11 +86,12 @@ public class StandardCuts {
         return maxVertexP;
     }
     
-    public void setMaxVertexChisq(double input) {
-        maxVertexChisq = input;
+    public void setMinVertexChisqProb(double input) {
+        minVertexChisqProb = input;
     }
-    public double getMaxVertexChisq() {
-        return maxVertexChisq;
+    
+    public double getMinVertexChisqProb() {
+        return minVertexChisqProb;
     }
     
     public void setMaxMatchDt(double input) {
@@ -114,19 +134,31 @@ public class StandardCuts {
     
     public StandardCuts(double ebeam) {
         maxSharedHitsPerTrack = 5;
-        maxTrackChisqNorm = 6.0;
         maxMatchChisq = 10.0;
         maxMatchDt = 6.0;
-        maxVertexChisq = 75.0;
         maxVertexClusterDt = 2.0;
+        minVertexChisqProb = 0.0001;
         
         maxElectronPset = false;
         minMollerPset = false;
         maxMollerPset = false;
         maxVertexPset = false;
         maxMatchChisqset = false;
+        maxTrackChisqNormset = false;
         
         changeBeamEnergy(ebeam);
+        changeChisqTrack(0.0001);
+    }
+    
+    public void changeChisqTrack(double prob) {        
+        //track: currently supports only 5 and 6-hit
+        if (!maxTrackChisqNormset) {
+            chisqDistrib = new ChiSquaredDistribution(6);
+            maxTrackChisq6 = chisqDistrib.inverseCumulativeProbability(0.0001);
+            chisqDistrib = new ChiSquaredDistribution(5);
+            maxTrackChisq5 = chisqDistrib.inverseCumulativeProbability(0.0001);
+        }
+        
     }
     
     public void changeBeamEnergy(double ebeam) {

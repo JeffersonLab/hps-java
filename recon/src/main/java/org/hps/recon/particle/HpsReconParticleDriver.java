@@ -11,9 +11,12 @@ import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
@@ -152,23 +155,27 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     protected void setStoreVertexCovars(boolean input) {
         _storeCovTrkMomList = input;
     }
-
-    /**
-     * Creates reconstructed V0 candidate particles and vertices for electron
-     * positron pairs using no constraints, beam constraints, and target
-     * constraints. These are saved to the appropriate lists in the super class.
-     *
-     * @param electrons - The list of electrons.
-     * @param positrons - The list of positrons.
-     */
+    
     @Override
-    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
-
-        // Iterate over the positrons and electrons to perform vertexing
-        // on the pairs.
-        for (ReconstructedParticle positron : positrons)
-            for (ReconstructedParticle electron : electrons) {
-
+    protected List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles) {
+        List<ReconstructedParticle> goodFinalStateParticles = new ArrayList<ReconstructedParticle>();
+        for (ReconstructedParticle part : finalStateParticles) {
+            // good electrons
+            if (part.getCharge() == -1) {
+                if (part.getMomentum().magnitude() < cuts.getMaxElectronP())
+                    goodFinalStateParticles.add(part);
+            }
+            // positrons / photons
+            else 
+                goodFinalStateParticles.add(part);
+        }
+        return goodFinalStateParticles;
+    }
+    
+    public void findV0s(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
+        List<ReconstructedParticle> goodElectrons = particleCuts(electrons);
+        for (ReconstructedParticle positron : positrons) {
+            for (ReconstructedParticle electron : goodElectrons) {
                 // Don't vertex a GBL track with a SeedTrack.
                 if (TrackType.isGBL(positron.getType()) != TrackType.isGBL(electron.getType()))
                     continue;
@@ -181,15 +188,22 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 // Make V0 candidates
                 this.makeV0Candidates(electron, positron);
             }
-
+        }
+    }
+    
+    public void findMollers(List<ReconstructedParticle> electrons, List<Track> tracks) {
         List<ReconstructedParticle> topElectrons = new ArrayList<ReconstructedParticle>();
         List<ReconstructedParticle> botElectrons = new ArrayList<ReconstructedParticle>();
+        
         for (ReconstructedParticle electron : electrons)
             if (electron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0)
                 topElectrons.add(electron);
             else
                 botElectrons.add(electron);
 
+        if (topElectrons.size() > 1 || botElectrons.size() > 1)
+            return;
+        
         // Iterate over the collection of electrons and create e-e- pairs 
         for (ReconstructedParticle topElectron : topElectrons)
 
@@ -205,6 +219,24 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 // Make Moller candidates
                 this.makeMollerCandidates(topElectron, botElectron);
             }
+    }
+
+    /**
+     * Creates reconstructed V0 candidate particles and vertices for electron
+     * positron pairs using no constraints, beam constraints, and target
+     * constraints. These are saved to the appropriate lists in the super class.
+     *
+     * @param electrons - The list of electrons.
+     * @param positrons - The list of positrons.
+     */
+    @Override
+    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons, List<Track> tracks) {
+
+        // Iterate over the positrons and electrons to perform vertexing
+        // on the pairs.
+        findV0s(electrons, positrons);
+        findMollers(electrons, tracks);
+
     }
 
     /**
@@ -276,6 +308,32 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
         // Find a vertex based on the tracks.
         BilliorVertex vtx = vtxFitter.fitVertex(billiorTracks);
+        
+        int minLayEle = 6;
+        int minLayPos = 6;
+        List<TrackerHit> allTrackHits = electron.getTracks().get(0).getTrackerHits();
+        for (TrackerHit temp : allTrackHits) {
+            // Retrieve the sensor associated with one of the hits. This will
+            // be used to retrieve the layer number
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+
+            // Retrieve the layer number by using the sensor
+            int layer = (sensor.getLayerNumber() + 1) / 2 -1;
+            if (layer < minLayEle)
+                minLayEle = layer;
+        }
+        allTrackHits = positron.getTracks().get(0).getTrackerHits();
+        for (TrackerHit temp : allTrackHits) {
+            // Retrieve the sensor associated with one of the hits. This will
+            // be used to retrieve the layer number
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+
+            // Retrieve the layer number by using the sensor
+            int layer = (sensor.getLayerNumber() + 1) / 2 -1;
+            if (layer < minLayPos)
+                minLayPos = layer;
+        }
+        vtx.setLayerCode(minLayPos + minLayEle);
 
         // mg 8/14/17 
         // if this is an unconstrained or BS constrained vertex, propogate the 
@@ -296,6 +354,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             BilliorVertex vtxNew = vtxFitter.fitVertex(shiftedTracks);
             Hep3Vector vtxPosNew = VecOp.add(vtx.getPosition(), vtxNew.getPosition());//the refit vertex is measured wrt the original vertex position
             vtxNew.setPosition(vtxPosNew);//just change the position...the errors and momenta are correct in re-fit
+            vtxNew.setLayerCode(vtx.getLayerCode());
             return vtxNew;
         } else
             return vtx;
@@ -316,11 +375,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // Generate a candidate vertex and particle.
 
             BilliorVertex vtxFit = fitVertex(constraint, electron, positron);
-            ReconstructedParticle candidate = this.makeReconstructedParticle(electron, positron, vtxFit);
+            ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
 
             if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP())
                 continue;
-            if (candidate.getStartVertex().getChi2() > cuts.getMaxVertexChisq())
+            if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb())
                 continue;
                 
             // Add the candidate vertex and particle to the
@@ -360,7 +419,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // Generate a candidate vertex and particle.
             BilliorVertex vtxFit = fitVertex(constraint, topElectron, botElectron);
             ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
-
+            if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP() || candidate.getMomentum().magnitude() < cuts.getMinMollerP())
+                continue;
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
@@ -494,7 +554,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // propagate this to the vertex z position...
         // Note that HPS y is lcsim z
         double es = HelixUtils.PathToZPlane(ehtf, v.getPosition().y());
-        Hep3Vector epointOnTrackAtVtx = HelixUtils.PointOnHelix(ehtf, es);
+        //Hep3Vector epointOnTrackAtVtx = HelixUtils.PointOnHelix(ehtf, es);
         Hep3Vector edirOfTrackAtVtx = HelixUtils.Direction(ehtf, es);
         Hep3Vector emomAtVtx = VecOp.mult(etrackMom, VecOp.unit(edirOfTrackAtVtx));
         //p2
@@ -504,7 +564,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // propagate this to the vertex z position...
         // Note that HPS y is lcsim z
         double ps = HelixUtils.PathToZPlane(phtf, v.getPosition().y());
-        Hep3Vector ppointOnTrackAtVtx = HelixUtils.PointOnHelix(phtf, ps);
+        //Hep3Vector ppointOnTrackAtVtx = HelixUtils.PointOnHelix(phtf, ps);
         Hep3Vector pdirOfTrackAtVtx = HelixUtils.Direction(phtf, ps);
         Hep3Vector pmomAtVtx = VecOp.mult(ptrackMom, VecOp.unit(pdirOfTrackAtVtx));
 
@@ -543,4 +603,5 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         }
         return newTrks;
     }
+
 }

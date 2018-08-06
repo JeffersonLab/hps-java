@@ -7,10 +7,12 @@ import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.constants.Constants;
 
@@ -93,6 +95,7 @@ public class BilliorVertexer {
         pcov.add(CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(this.getFittedMomentumCovariance(1))));
         vertex.setTrackMomentumCovariances(pcov);
         vertex.setStoreCovTrkMomList(storeCovTrkMomList);
+        
         return vertex;
     }
 
