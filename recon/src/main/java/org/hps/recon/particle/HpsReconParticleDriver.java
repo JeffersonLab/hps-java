@@ -162,10 +162,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         for (ReconstructedParticle part : finalStateParticles) {
             // good electrons
             if (part.getCharge() == -1) {
-                if (part.getMomentum().magnitude() < cuts.getMaxElectronP())
+                if (part.getMomentum().magnitude() < cuts.getMaxElectronP()) {
+                    if (part.getGoodnessOfPID() < cuts.getMaxMatchChisq())
+                        goodFinalStateParticles.add(part);
+                }
+            }
+            // good positrons
+            else if (part.getCharge() == 1) {
+                if (part.getGoodnessOfPID() < cuts.getMaxMatchChisq())
                     goodFinalStateParticles.add(part);
             }
-            // positrons / photons
+            // photons
             else 
                 goodFinalStateParticles.add(part);
         }
@@ -174,7 +181,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     
     public void findV0s(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
         List<ReconstructedParticle> goodElectrons = particleCuts(electrons);
-        for (ReconstructedParticle positron : positrons) {
+        List<ReconstructedParticle> goodPositrons = particleCuts(positrons);
+        for (ReconstructedParticle positron : goodPositrons) {
             for (ReconstructedParticle electron : goodElectrons) {
                 // Don't vertex a GBL track with a SeedTrack.
                 if (TrackType.isGBL(positron.getType()) != TrackType.isGBL(electron.getType()))
@@ -318,7 +326,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
 
             // Retrieve the layer number by using the sensor
-            int layer = (sensor.getLayerNumber() + 1) / 2 -1;
+            int layer = (sensor.getLayerNumber() + 1) / 2;
             if (layer < minLayEle)
                 minLayEle = layer;
         }
@@ -329,7 +337,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
 
             // Retrieve the layer number by using the sensor
-            int layer = (sensor.getLayerNumber() + 1) / 2 -1;
+            int layer = (sensor.getLayerNumber() + 1) / 2;
             if (layer < minLayPos)
                 minLayPos = layer;
         }

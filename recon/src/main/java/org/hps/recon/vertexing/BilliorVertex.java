@@ -70,7 +70,7 @@ public class BilliorVertex implements Vertex {
         _probability = ChisqProb.gammq(DOF, chiSq);
     }
     
-    BilliorVertex(Vertex lcioVtx) {
+    public BilliorVertex(Vertex lcioVtx) {
         _chiSq = lcioVtx.getChi2();
         _vertexPosition = lcioVtx.getPosition();
         _covVtx = lcioVtx.getCovMatrix();

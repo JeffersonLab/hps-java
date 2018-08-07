@@ -38,7 +38,7 @@ public class GBLRefitterDriver extends Driver {
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
-    private StandardCuts cuts;
+    private StandardCuts cuts = null;
 
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
@@ -56,7 +56,7 @@ public class GBLRefitterDriver extends Driver {
         this.outputCollectionName = outputCollectionName;
     }
 
-    public void setMaxTrackChisq(double nhits, double input) {
+    public void setMaxTrackChisq(int nhits, double input) {
         if (cuts == null)
             cuts = new StandardCuts();
         cuts.setMaxTrackChisq(nhits, input);
@@ -68,8 +68,10 @@ public class GBLRefitterDriver extends Driver {
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
 
-        if (cuts == null)
+        if (cuts == null) {
             cuts = new StandardCuts();
+            //System.out.printf("in constructor 5 %f 6 %f \n", cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+        }
     }
 
     @Override
@@ -94,7 +96,8 @@ public class GBLRefitterDriver extends Driver {
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getNDF()))
+            //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
                 continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));

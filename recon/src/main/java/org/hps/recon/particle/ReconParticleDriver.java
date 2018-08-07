@@ -43,7 +43,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     TrackClusterMatcher matcher = new TrackClusterMatcher();
 
-    String[] trackCollectionNames = null;
+    String[] trackCollectionNames = {"GBLTracks"};
 
     public static final int ELECTRON = 0;
     public static final int POSITRON = 1;
@@ -519,8 +519,7 @@ public abstract class ReconParticleDriver extends Driver {
                 }
 
                 // Add the particle to the list of reconstructed particles.
-                if (particle.getGoodnessOfPID() < cuts.getMaxMatchChisq())
-                    particles.add(particle);
+                particles.add(particle);
             }
         }
 
