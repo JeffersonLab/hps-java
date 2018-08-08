@@ -185,8 +185,8 @@ public class KalmanInterface {
     static double[] getLCSimParams(double[] oldParams, double alpha) {
         // convert params
         double[] params = new double[5];
-        params[ParameterName.d0.ordinal()] = oldParams[0] * -1.0;
-        params[ParameterName.phi0.ordinal()] = oldParams[1]; //- Math.PI / 2.0;
+        params[ParameterName.d0.ordinal()] = oldParams[0];
+        params[ParameterName.phi0.ordinal()] = -1.0 * oldParams[1];
         params[ParameterName.omega.ordinal()] = oldParams[2] / alpha * -1.0;
         params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
         params[ParameterName.z0.ordinal()] = oldParams[3] * -1.0;
