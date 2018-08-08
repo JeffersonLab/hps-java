@@ -6,7 +6,7 @@ public class StandardCuts {
     // max number of hits a track can share with other tracks
     private int maxSharedHitsPerTrack;
     // max GBL chisq for 6-hit track
-    private double maxTrackChisq6;
+    private double maxTrackChisq7;
     // max GBL chisq for 5-hit track
     private double maxTrackChisq5;
     // max (absolute) chisq for track-cluster match for recon particle 
@@ -56,7 +56,7 @@ public class StandardCuts {
             maxTrackChisqNormset = true;
         }
         else if (nhits == 6) {
-            maxTrackChisq6 = input;
+            maxTrackChisq7 = input;
             maxTrackChisqNormset = true;            
         }
     }
@@ -65,7 +65,7 @@ public class StandardCuts {
         if (nhits == 5)
             return maxTrackChisq5;
         else if (nhits == 6)
-            return maxTrackChisq6;
+            return maxTrackChisq7;
         else
             return -1;
     }
@@ -153,10 +153,10 @@ public class StandardCuts {
     public void changeChisqTrack(double prob) {        
         //track: currently supports only 5 and 6-hit
         if (!maxTrackChisqNormset) {
-            chisqDistrib = new ChiSquaredDistribution(5);
-            maxTrackChisq6 = chisqDistrib.inverseCumulativeProbability(1.0-prob);
+            chisqDistrib = new ChiSquaredDistribution(7);
+            maxTrackChisq7 = chisqDistrib.inverseCumulativeProbability(1.0-prob);
             
-            chisqDistrib = new ChiSquaredDistribution(4);
+            chisqDistrib = new ChiSquaredDistribution(5);
             maxTrackChisq5 = chisqDistrib.inverseCumulativeProbability(1.0-prob);
             
         }
