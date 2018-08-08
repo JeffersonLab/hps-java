@@ -373,7 +373,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      */
     private void makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) {
         double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
-        double posClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+        double posClusTime = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
         if (Math.abs(eleClusTime - posClusTime) > cuts.getMaxVertexClusterDt())
             return;
         

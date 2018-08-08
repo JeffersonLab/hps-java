@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.record.StandardCuts;
 //import org.hps.recon.vertexing.BilliorVertex;
@@ -384,21 +385,40 @@ public class TrackingReconstructionPlots extends Driver {
 
         if (descriptor == "FSP") {
             for (ReconstructedParticle part : recoParticles) {
-                aida.histogram1D("Match GoodnessOfPID").fill(part.getGoodnessOfPID());
+                if (part.getCharge() != 0)
+                    aida.histogram1D("Match GoodnessOfPID").fill(part.getGoodnessOfPID());
                 if (!part.getTracks().isEmpty() && !part.getClusters().isEmpty()) {
                     Cluster clus = part.getClusters().get(0);
                     double clusTime = ClusterUtilities.getSeedHitTime(clus);
                     Track trk = part.getTracks().get(0);
                     double trkT = TrackUtils.getTrackTime(trk, hitToStrips, hitToRotated);
-                    aida.histogram1D("Track-Cluster dt").fill(Math.abs(clusTime - trkT - timeOffset));
+                    aida.histogram1D("Track-Cluster dt").fill(clusTime - trkT - timeOffset);
                 }
                 if (part.getCharge() == -1)
                     aida.histogram1D("Electron P").fill(part.getMomentum().magnitude());
+                else if (part.getCharge() == 1)
+                    aida.histogram1D("Positron P").fill(part.getMomentum().magnitude());
 
             }
         } else
             for (ReconstructedParticle part : recoParticles) {
+                if (part.getParticles().size() < 2)
+                    continue;
+                ReconstructedParticle p1 = part.getParticles().get(0);
+                ReconstructedParticle p2 = part.getParticles().get(1);
+                if (!TrackType.isGBL(p1.getType()))
+                    continue;
+                if (!TrackType.isGBL(p2.getType()))
+                    continue;
+                if (!p1.getClusters().isEmpty() && !p2.getClusters().isEmpty()) {
+                    double clus1 = ClusterUtilities.getSeedHitTime(p1.getClusters().get(0));
+                    double clus2 = ClusterUtilities.getSeedHitTime(p2.getClusters().get(0));
+                    aida.histogram1D(descriptor + " Cluster dt").fill(Math.abs(clus1 - clus2));
+                }
                 Vertex v = part.getStartVertex();
+                if (v == null)
+                    continue;
+                aida.histogram1D(descriptor + " Chi2").fill(v.getChi2());
                 Map<String, Double> paramMap = v.getParameters();
                 if (paramMap.containsKey("layerCode")) {
                     //System.out.printf("layer code %f \n", paramMap.get("layerCode"));
@@ -608,6 +628,17 @@ public class TrackingReconstructionPlots extends Driver {
         if (doElectronPositronPlots)
             doElectronPositron();
 
+        //        ChiSquaredDistribution chisqDistrib = new ChiSquaredDistribution(7);
+        //        System.out.printf("7dof quantiles: 1e-3 %e  1e-5 %e  \n", chisqDistrib.inverseCumulativeProbability(1 - 0.001), chisqDistrib.inverseCumulativeProbability(1 - 0.00001));
+        //        System.out.printf("7dof prob: 30 %e 40 %e \n", chisqDistrib.cumulativeProbability(30), chisqDistrib.cumulativeProbability(40));
+        //
+        //        chisqDistrib = new ChiSquaredDistribution(5);
+        //        System.out.printf("5dof quantiles: 1e-3 %e  1e-5 %e  \n", chisqDistrib.inverseCumulativeProbability(1 - 0.001), chisqDistrib.inverseCumulativeProbability(1 - 0.00001));
+        //        System.out.printf("5dof prob: 30 %e 40 %e \n", chisqDistrib.cumulativeProbability(30), chisqDistrib.cumulativeProbability(40));
+        //
+        //        chisqDistrib = new ChiSquaredDistribution(4);
+        //        System.out.printf("4dof quantiles: 1e-3 %e  1e-5 %e  \n", chisqDistrib.inverseCumulativeProbability(1 - 0.001), chisqDistrib.inverseCumulativeProbability(1 - 0.00001));
+        //        System.out.printf("4dof prob: 30 %e 40 %e \n", chisqDistrib.cumulativeProbability(30), chisqDistrib.cumulativeProbability(40));
     }
 
     private void doElectronPositron() {
@@ -738,12 +769,17 @@ public class TrackingReconstructionPlots extends Driver {
 
         if (doRecoParticlePlots) {
             aida.histogram1D("Match GoodnessOfPID", 100, 0, 25);
-            aida.histogram1D("Track-Cluster dt", 100, 0, 100);
+            aida.histogram1D("Track-Cluster dt", 50, -10, 10);
+            aida.histogram1D("V0 Cluster dt", 50, 0, 10);
+            aida.histogram1D("Moller Cluster dt", 50, 0, 10);
             aida.histogram1D("Electron P", 100, 0, 1.5);
+            aida.histogram1D("Positron P", 100, 0, 1.5);
             aida.histogram1D("V0 P", 100, 0, 3.0);
             aida.histogram1D("Moller P", 100, 0, 3.0);
             aida.histogram1D("V0 layerCode", 6, -1, 5);
             aida.histogram1D("Moller layerCode", 6, -1, 5);
+            aida.histogram1D("V0 Chi2", 100, 0, 100);
+            aida.histogram1D("Moller Chi2", 100, 0, 100);
         }
 
         if (doStripHitPlots) {

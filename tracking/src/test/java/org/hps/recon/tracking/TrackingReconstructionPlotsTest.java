@@ -26,12 +26,12 @@ import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 
-    static final String testInput = "v0skim.slcio";
+    static final String testInput = "v0Skim_newReco.slcio";
     static final String testURLBase = null;
     static final String testOutput = "RecoCopy_" + testInput;
     static final String aidaOutput = "target/test-output/TestPlots_" + testInput.replaceAll("slcio", "aida");
 
-    private final int nEvents = 1;
+    private final int nEvents = 1000;
 
     public void testTrackRecoPlots() throws Exception {
         File lcioInputFile = null;
