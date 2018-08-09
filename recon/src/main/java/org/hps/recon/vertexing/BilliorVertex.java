@@ -36,7 +36,7 @@ public class BilliorVertex implements Vertex {
     private boolean _isPrimary = true;
     private double _chiSq;
     private double _invMass;
-    private double _probability;
+    private double _probability = -1.0;
 
     // L1L1 = 2, L1L2 = 3, L2L2 = 4
     private double layerCode = -1;
@@ -45,7 +45,6 @@ public class BilliorVertex implements Vertex {
     private double _invMassError;
     private boolean storeCovTrkMomList = false;
 
-    private final static int DOF = 4;
     /**
      * Dflt Ctor
      */
@@ -59,7 +58,7 @@ public class BilliorVertex implements Vertex {
         _invMass = invMass;
         _fittedMomentum = pFitMap;
         _constraintType = constraintType;
-        _probability = ChisqProb.gammq(DOF, chiSq);
+        
     }
 
     BilliorVertex(Hep3Vector vtxPos, Matrix covVtx, double chiSq, double invMass) {
@@ -67,7 +66,6 @@ public class BilliorVertex implements Vertex {
         _covVtx = covVtx;
         _vertexPosition = vtxPos;
         _invMass = invMass;
-        _probability = ChisqProb.gammq(DOF, chiSq);
     }
     
     public BilliorVertex(Vertex lcioVtx) {
@@ -119,6 +117,10 @@ public class BilliorVertex implements Vertex {
         if (covList.size() > 0)
             _covTrkMomList = covList;
 
+    }
+    
+    public void setProbability(int dof) {
+        _probability = ChisqProb.gammq(dof, _chiSq);
     }
     
     public void setStoreCovTrkMomList(boolean input) {

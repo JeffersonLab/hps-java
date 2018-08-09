@@ -1,14 +1,15 @@
 package org.hps.record;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 
 public class StandardCuts {
     // max number of hits a track can share with other tracks
     private int maxSharedHitsPerTrack;
     // max GBL chisq for 6-hit track
-    private double maxTrackChisq7;
-    // max GBL chisq for 5-hit track
-    private double maxTrackChisq5;
+    private Map<Integer, Double> maxTrackChisq;
     // max (absolute) chisq for track-cluster match for recon particle 
     private double maxMatchChisq;
     // max time diff [ns] between track and cluster time for recon particle
@@ -28,19 +29,22 @@ public class StandardCuts {
     private double maxMollerP;
     
     private double trackClusterTimeOffset;
-    
+    private double maxTrackChisqProb;
     
     // helpers
     private boolean maxElectronPset = false;
     private boolean minMollerPset = false;
     private boolean maxMollerPset = false;
     private boolean maxVertexPset = false;
-    private boolean maxMatchChisqset = false;
-    private boolean maxTrackChisqNormset = false;
-    private ChiSquaredDistribution chisqDistrib;
+    private boolean OffsetSet = false;
     
     public double getTrackClusterTimeOffset() {
         return trackClusterTimeOffset;
+    }
+    
+    public void setTrackClusterTimeOffset(double input) {
+        trackClusterTimeOffset = input;
+        OffsetSet = true;
     }
     
     public void setMaxSharedHitsPerTrack(int input) {
@@ -51,28 +55,20 @@ public class StandardCuts {
     }
     
     public void setMaxTrackChisq(int nhits, double input) {
-        if (nhits == 5) {
-            maxTrackChisq5 = input;
-            maxTrackChisqNormset = true;
-        }
-        else if (nhits == 6) {
-            maxTrackChisq7 = input;
-            maxTrackChisqNormset = true;            
-        }
+        int dof = nhits*2-5;
+        maxTrackChisq.put(dof, input);
     }
     
     public double getMaxTrackChisq(int nhits) {
-        if (nhits == 5)
-            return maxTrackChisq5;
-        else if (nhits == 6)
-            return maxTrackChisq7;
-        else
-            return -1;
+        int dof = nhits*2-5;
+        if (!maxTrackChisq.containsKey(nhits)) {
+            maxTrackChisq.put(dof, new ChiSquaredDistribution(dof).inverseCumulativeProbability(1.0-maxTrackChisqProb));
+        }
+        return maxTrackChisq.get(dof);
     }
     
     public void setMaxMatchChisq(double input) {
         maxMatchChisq = input;
-        maxMatchChisqset = true;
     }
     public double getMaxMatchChisq() {
         return maxMatchChisq;
@@ -138,29 +134,24 @@ public class StandardCuts {
         maxMatchDt = 6.0;
         maxVertexClusterDt = 2.0;
         minVertexChisqProb = 0.00001;
+        maxTrackChisqProb = 0.00001;
         
         maxElectronPset = false;
         minMollerPset = false;
         maxMollerPset = false;
         maxVertexPset = false;
-        maxMatchChisqset = false;
-        maxTrackChisqNormset = false;
+        OffsetSet = false;
         
+        maxTrackChisq = new HashMap<Integer, Double>();
+        maxTrackChisq.put(5, new ChiSquaredDistribution(5).inverseCumulativeProbability(1.0-maxTrackChisqProb));
+        maxTrackChisq.put(7, new ChiSquaredDistribution(7).inverseCumulativeProbability(1.0-maxTrackChisqProb));
         changeBeamEnergy(ebeam);
-        changeChisqTrack(0.00001);
     }
     
-    public void changeChisqTrack(double prob) {        
-        //track: currently supports only 5 and 6-hit
-        if (!maxTrackChisqNormset) {
-            chisqDistrib = new ChiSquaredDistribution(7);
-            maxTrackChisq7 = chisqDistrib.inverseCumulativeProbability(1.0-prob);
-            
-            chisqDistrib = new ChiSquaredDistribution(5);
-            maxTrackChisq5 = chisqDistrib.inverseCumulativeProbability(1.0-prob);
-            
+    public void changeChisqTrackProb(double prob) {        
+        for (int dof : maxTrackChisq.keySet()) {
+            maxTrackChisq.put(dof, new ChiSquaredDistribution(dof).inverseCumulativeProbability(1.0-prob));
         }
-        
     }
     
     public void changeBeamEnergy(double ebeam) {
@@ -172,7 +163,7 @@ public class StandardCuts {
             maxMollerP = 1.2*ebeam;
         if (!maxVertexPset)
             maxVertexP = 1.2*ebeam;
-        if (!maxMatchChisqset) {
+        if (!OffsetSet) {
             if (ebeam < 2)
                 trackClusterTimeOffset = 43;
             else

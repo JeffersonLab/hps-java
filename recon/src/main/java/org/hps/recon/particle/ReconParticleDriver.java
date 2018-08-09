@@ -137,6 +137,7 @@ public abstract class ReconParticleDriver extends Driver {
      * LCIO collection name for reconstructed particles.
      */
     private String finalStateParticlesColName = "FinalStateParticles";
+    private String OtherElectronsColName = "OtherElectrons";
     /**
      * LCIO collection name for V0 candidate particles generated without constraints.
      */
@@ -291,6 +292,10 @@ public abstract class ReconParticleDriver extends Driver {
     public void setTargetConV0CandidatesColName(String targetConV0CandidatesColName) {
         this.targetConV0CandidatesColName = targetConV0CandidatesColName;
     }
+    
+    public void setOtherElectronsColName(String input) {
+        OtherElectronsColName = input;
+    }
 
     /**
      * Sets the name of the LCIO collection for target constrained V0 candidate vertices.
@@ -395,7 +400,7 @@ public abstract class ReconParticleDriver extends Driver {
      * @param electrons - The list of electrons.
      * @param positrons - The list of positrons.
      */
-    protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons, List<Track> tracks);
+    protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
     
 
     /**
@@ -689,14 +694,18 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Form V0 candidate particles and vertices from the electron
         // and positron reconstructed particles.
-        findVertices(electrons, positrons, trackCollections.get(0));
+        findVertices(electrons, positrons);
         
         List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
         // VERBOSE :: Output the number of reconstructed particles.
         printDebug("Final State Particles :: " + goodFinalStateParticles.size());
         // Add the final state ReconstructedParticles to the event
         event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
-
+        for (ReconstructedParticle ele : goodFinalStateParticles) {
+            if (electrons.contains(ele))
+                electrons.remove(ele);
+        }
+        event.put(OtherElectronsColName, electrons, ReconstructedParticle.class, 0);
 
         // Store the V0 candidate particles and vertices for each type
         // of constraint in the appropriate collection in the event,

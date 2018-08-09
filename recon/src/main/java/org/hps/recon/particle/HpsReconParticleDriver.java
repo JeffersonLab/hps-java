@@ -121,9 +121,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
          */
         TARGET_CONSTRAINED
     }
-
+    // #dof for fit for each Constraint
+    private static final int[] DOF = {7,5,4};
+    
     private boolean _patchVertexTrackParameters = false;
     private boolean _storeCovTrkMomList = false;
+    
 
     /**
      * Processes the track and cluster collections in the event into
@@ -199,7 +202,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         }
     }
     
-    public void findMollers(List<ReconstructedParticle> electrons, List<Track> tracks) {
+    public void findMollers(List<ReconstructedParticle> electrons) {
         List<ReconstructedParticle> topElectrons = new ArrayList<ReconstructedParticle>();
         List<ReconstructedParticle> botElectrons = new ArrayList<ReconstructedParticle>();
         
@@ -221,8 +224,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                     continue;
 
                 // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
-                if ((topElectron.getType() & botElectron.getType() & 0x1f) == 0)
-                    continue;
+                //if ((topElectron.getType() & botElectron.getType() & 0x1f) == 0)
+                //    continue;
 
                 // Make Moller candidates
                 this.makeMollerCandidates(topElectron, botElectron);
@@ -238,12 +241,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      * @param positrons - The list of positrons.
      */
     @Override
-    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons, List<Track> tracks) {
+    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
 
         // Iterate over the positrons and electrons to perform vertexing
         // on the pairs.
         findV0s(electrons, positrons);
-        findMollers(electrons, tracks);
+        findMollers(electrons);
 
     }
 
@@ -342,6 +345,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 minLayPos = layer;
         }
         vtx.setLayerCode(minLayPos + minLayEle);
+        vtx.setProbability(DOF[constraint.ordinal()]);
 
         // mg 8/14/17 
         // if this is an unconstrained or BS constrained vertex, propogate the 
@@ -363,6 +367,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             Hep3Vector vtxPosNew = VecOp.add(vtx.getPosition(), vtxNew.getPosition());//the refit vertex is measured wrt the original vertex position
             vtxNew.setPosition(vtxPosNew);//just change the position...the errors and momenta are correct in re-fit
             vtxNew.setLayerCode(vtx.getLayerCode());
+            vtxNew.setProbability(DOF[constraint.ordinal()]);
             return vtxNew;
         } else
             return vtx;
@@ -372,8 +377,15 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      *
      */
     private void makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) {
+        boolean eleIsTop = (electron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] > 0);
+        boolean posIsTop = (positron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] > 0);
+        
+        if (eleIsTop == posIsTop)
+            return;
+        
         double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
         double posClusTime = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
+      
         if (Math.abs(eleClusTime - posClusTime) > cuts.getMaxVertexClusterDt())
             return;
         
@@ -383,10 +395,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // Generate a candidate vertex and particle.
 
             BilliorVertex vtxFit = fitVertex(constraint, electron, positron);
+            
             ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
-
+          
             if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP())
                 continue;
+           
             if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb())
                 continue;
                 

@@ -25,7 +25,7 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
      * @param positrons - The list of positrons.
      */
     @Override
-    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons, List<Track> tracks) {
+    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
         // Create a vertex fitter.
         TwoTrackVertexer vtxFitter = new TwoTrackVertexer();
         
