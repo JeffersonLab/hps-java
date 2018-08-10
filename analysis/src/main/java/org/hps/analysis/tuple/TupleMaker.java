@@ -409,7 +409,7 @@ public abstract class TupleMaker extends Driver {
                 "LambdaKink2/D", "LambdaKink3/D", "PhiKink1/D", "PhiKink2/D", "PhiKink3/D", "NTrackHits/I",  
                 "HitsSharedP/D", "MaxHitsShared/I", "SharedTrkChisq/D", "SharedTrkEcalX/D", "SharedTrkEcalY/D", "MatchChisq/D", "ClT/D",
                 "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I", "Cliy/I", "UncorrClT/D",
-                "UncorrClE/D", "UncorrClX/D", "UncorrClY/D", "UncorrClZ/D", "TrkD0Err/D", "TrkZ0Err/D"};
+                "UncorrClE/D", "UncorrClX/D", "UncorrClY/D", "UncorrClZ/D", "TrkD0Err/D", "TrkZ0Err/D", "TrkLambdaErr/D", "TrkPhiErr/D", "TrkOmegaErr/D"};
         for (int i = 0; i < newVars.length; i++) {
             newVars[i] = prefix + newVars[i];
         }
@@ -1078,6 +1078,9 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(prefix + "TrkOmega/D", trackState.getOmega());
         tupleMap.put(prefix + "TrkD0Err/D", Math.sqrt(cov[0]));
         tupleMap.put(prefix + "TrkZ0Err/D", Math.sqrt(cov[9]));
+        tupleMap.put(prefix + "TrkLambdaErr/D", Math.sqrt(cov[14]));
+        tupleMap.put(prefix + "TrkPhiErr/D", Math.sqrt(cov[2]));
+        tupleMap.put(prefix + "TrkOmegaErr/D", Math.sqrt(cov[5]));
 
         tupleMap.put(prefix + "TrkChisq/D", track.getChi2());
         tupleMap.put(prefix + "TrkHits/I", (double) track.getTrackerHits().size());
