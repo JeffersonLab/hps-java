@@ -578,7 +578,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
                         Tk[ih].atPhi(phiInt).print("local intersection point of helix");
                         Vec xIntGlob = Tk[ih].atPhiGlobal(phiInt);
                         xIntGlob.print("global intersection point of helix");
-                        double dPhi = -Q[ih] * (phiInt) / 20.0;
+                        double dPhi = Math.abs(phiInt) / 20.0;
                         for (double phi = 0.; phi < Math.abs(phiInt); phi = phi + dPhi) {
                             Vec r = Tk[ih].atPhiGlobal(-Q[ih] * phi);
                             printWriter2.format("%10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
@@ -644,8 +644,8 @@ public class HelixTest { // Program for testing the Kalman fitting code
                         break;
                     if (verbose) {
                         System.out.format("Plane %d, phiInt2= %f\n", pln, phiInt);
-                        double dPhi = (phiInt) / 5.0;
-                        for (double phi = 0.; phi < phiInt; phi = phi + dPhi) {
+                        double dPhi = Math.abs(phiInt) / 5.0;
+                        for (double phi = 0.; phi < Math.abs(phiInt); phi = phi + dPhi) {
                             Vec r = Tk[ih].atPhiGlobal(phi);
                             printWriter2.format(" %10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
                         }

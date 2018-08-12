@@ -121,7 +121,7 @@ public class KalmanDriverHPS extends Driver {
             detPlanes.add((SiStripPlane) (vol));
         }
         try {
-            fm = new FieldMap(fieldMapFileName, "HPS", 0, 0, 0);
+            fm = new FieldMap(fieldMapFileName, "HPS", 21.17, 0., 457.2);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -171,7 +171,6 @@ public class KalmanDriverHPS extends Driver {
             outputSeedTracks.add(HPStrk);
 
             //full track
-            // KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) 
             KalmanTrackFit2 ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
             if (verbose)
                 ktf2.print("fullKalmanTrackFit");

@@ -196,7 +196,7 @@ class StateVector {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
             double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
             if (verbose) {
-                System.out.format("StateVector.predict: momentum=%12.5e, sigmaMS=%12.5e\n", momentum, sigmaMS);
+                System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS);
             }
             Ctot = this.C.sum(this.getQ(sigmaMS));
         }
@@ -392,8 +392,6 @@ class StateVector {
 
     // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
     public Vec propagateRungeKutta(FieldMap fM, SquareMatrix newCovariance) {
-
-        // boolean verbose = true;
 
         Vec B = fM.getField(new Vec(0., 0., 0.)); // B field at the origin
         double Bmag = B.mag();

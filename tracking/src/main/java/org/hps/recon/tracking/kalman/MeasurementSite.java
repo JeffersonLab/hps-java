@@ -99,8 +99,9 @@ class MeasurementSite {
 
         Vec X0 = pS.atPhi(phi); // Intersection point in local coordinate system of pS
         if (verbose) {
-            X0.print("intersection in local coordinates");
-            pS.toGlobal(X0).print("intersection in global coordinates");
+            pS.a.print("helix parameters in makePrediction");
+            X0.print("intersection in local coordinates in makePrediction");
+            pS.toGlobal(X0).print("intersection in global coordinates in makePrediction");
             Plane pRot = m.p.toLocal(pS.Rot, pS.origin);
             double check = (X0.dif(pRot.X())).dot(pRot.T());
             System.out.format("MeasurementSite.makePrediction: dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
@@ -120,7 +121,7 @@ class MeasurementSite {
         }
 
         // Move pivot point to X0 to generate the predicted helix
-        aP = pS.predict(thisSite, X0, B, tB, origin, XL / ct, deltaE);
+        aP = pS.predict(thisSite, X0, B, tB, origin, XL / Math.abs(ct), deltaE);
         if (verbose) {
             pS.a.print("original helix in MeasurementSite.makePrediction");
             aP.a.print("pivot transformed helix in MeasurementSite.makePrediction");
@@ -256,6 +257,8 @@ class MeasurementSite {
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
             //if (verbose)
             System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+            aF.a.print("helix parameters (state vector)");
+            m.p.print("for the intersection");
             //return false;
         }
         aF.mPred = h(aF, phiF);

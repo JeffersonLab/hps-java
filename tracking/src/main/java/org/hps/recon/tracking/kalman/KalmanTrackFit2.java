@@ -32,7 +32,8 @@ public class KalmanTrackFit2 {
 
         if (verbose) {
             System.out.format("KalmanTrackFit2: begin Kalman fit, start=%d, number iterations=%d\n", start, nIterations);
-            // sI.print("initial state for KalmanTrackFit");
+            pivot.print("KalmanTrackFit2 pivot point");
+            sI.print("initial state for KalmanTrackFit");
         }
 
         double mxResid = 9999.;

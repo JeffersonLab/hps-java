@@ -22,12 +22,24 @@ public class SiModule {
     boolean isStereo;
 
     public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
-        // for backwards-compatibility: assume axials have angle=0
-        boolean s = false;
-        if (stereo != 0)
-            s = true;
-
-        new SiModule(Layer, p, s, stereo, width, height, thickness, Bfield);
+        // for backwards-compatibility with stand-alone development code: assume axial layers have stereo angle=0
+        this.Layer = Layer;
+        this.Bfield = Bfield;
+        this.p = p;
+        this.isStereo = stereo != 0.0;
+        this.stereo = stereo;
+        this.thickness = thickness;
+        xExtent = new double[2];
+        xExtent[0] = -width / 2.0;
+        xExtent[1] = width / 2.0;
+        yExtent = new double[2];
+        yExtent[0] = -height / 2.0;
+        yExtent[1] = height / 2.0;
+        RotMatrix R1 = new RotMatrix(p.U(), p.V(), p.T());
+        RotMatrix R2 = new RotMatrix(stereo); // Rotation by stereo angle in detector plane
+        Rinv = R2.multiply(R1); // This goes from global to local
+        R = Rinv.invert(); // This goes from local to global
+        hits = new ArrayList<Measurement>();
     }
 
     public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, FieldMap Bfield) {
@@ -52,16 +64,21 @@ public class SiModule {
 
     public void print(String s) {
         System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        if (isStereo) {
+            System.out.format("This is a stereo detector layer");
+        } else {
+            System.out.format("This is an axial detector layer");
+        }
         p.X().print("origin of Si layer coordinates in the global system");
+        Vec Bf = Bfield.getField(p.X());
+        Vec tBf = Bf.unitVec();
+        System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1], tBf.v[2]);
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();
         while (itr.hasNext()) {
             Measurement m = itr.next();
             m.print(" ");
-            Vec Bf = Bfield.getField(m.rGlobal);
-            Vec tBf = Bf.unitVec();
-            System.out.format("            At the MC true location, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1], tBf.v[2]);
         }
     }
 

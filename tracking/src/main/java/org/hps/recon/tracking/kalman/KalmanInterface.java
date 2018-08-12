@@ -185,11 +185,16 @@ public class KalmanInterface {
     static double[] getLCSimParams(double[] oldParams, double alpha) {
         // convert params
         double[] params = new double[5];
-        params[ParameterName.d0.ordinal()] = oldParams[0] * -1.0;
-        params[ParameterName.phi0.ordinal()] = oldParams[1]; //- Math.PI / 2.0;
+        params[ParameterName.d0.ordinal()] = oldParams[0];
+        params[ParameterName.phi0.ordinal()] = -oldParams[1];
         params[ParameterName.omega.ordinal()] = oldParams[2] / alpha * -1.0;
         params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
         params[ParameterName.z0.ordinal()] = oldParams[3] * -1.0;
+        //System.out.printf("d0 ordinal = %d\n", ParameterName.d0.ordinal());
+        //System.out.printf("phi0 ordinal = %d\n", ParameterName.phi0.ordinal());
+        //System.out.printf("omega ordinal = %d\n", ParameterName.omega.ordinal());
+        //System.out.printf("z0 ordinal = %d\n", ParameterName.z0.ordinal());
+        //System.out.printf("tanLambda ordinal = %d\n", ParameterName.tanLambda.ordinal());
 
         return params;
     }
@@ -227,7 +232,8 @@ public class KalmanInterface {
 
     public BaseTrack createTrack(SeedTrack trk) {
 
-        double[] params = getLCSimParams(trk.helixParams().v, trk.getAlpha());
+        double [] newPivot = {0.,0.,0.};
+        double[] params = getLCSimParams(trk.pivotTransform(newPivot), trk.getAlpha());
         SymmetricMatrix cov = getLCSimCov(trk.covariance(), trk.getAlpha());
         BaseTrack newTrack = new BaseTrack();
         newTrack.setTrackParameters(params, trk.B());
@@ -355,8 +361,8 @@ public class KalmanInterface {
         if (verbose)
             System.out.printf("firstHitZ %f \n", firstHitZ);
         return new SeedTrack(SiMlist, firstHitZ, trackHitsKalman, verbose);
-    }
-
+    }       
+    
     public KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
         double firstHitZ = 10000;
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
