@@ -604,8 +604,12 @@ public class TrackingReconstructionPlots extends Driver {
         }
 
         if (doRecoParticlePlots) {
+            List<ReconstructedParticle> mollers = null;
+            if (event.hasCollection(ReconstructedParticle.class, "UnconstrainedMollerCandidates"))
+                mollers = event.get(ReconstructedParticle.class, "UnconstrainedMollerCandidates");
             doRecoParticles(FSPs, hitToStripsTable, hitToRotatedTable, "FSP");
             doRecoParticles(vertices, null, null, "V0");
+            doRecoParticles(mollers, null, null, "Moller");
         }
 
         for (Track trk : tracks) {

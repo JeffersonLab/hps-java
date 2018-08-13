@@ -16,8 +16,10 @@ public class StandardCuts {
     private double maxMatchDt;
     // max vertex momentum (magnitude)
     private double maxVertexP;
-    // max (absolute) chisq for vertex fit
+    // max chisq prob for V0 vertex fit
     private double minVertexChisqProb;
+    // max chisq prob for vertex fit
+    private double minMollerChisqProb;
     // max time diff [ns] between the two recon particle clusters in vertex
     private double maxVertexClusterDt;
     
@@ -85,8 +87,14 @@ public class StandardCuts {
     public void setMinVertexChisqProb(double input) {
         minVertexChisqProb = input;
     }
+    public void setMinMollerChisqProb(double input) {
+        minVertexChisqProb = input;
+    }
     
     public double getMinVertexChisqProb() {
+        return minVertexChisqProb;
+    }
+    public double getMinMollerChisqProb() {
         return minVertexChisqProb;
     }
     
@@ -134,6 +142,7 @@ public class StandardCuts {
         maxMatchDt = 6.0;
         maxVertexClusterDt = 2.0;
         minVertexChisqProb = 0.00001;
+        minMollerChisqProb = 0.00001;
         maxTrackChisqProb = 0.00001;
         
         maxElectronPset = false;

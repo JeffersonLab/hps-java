@@ -443,6 +443,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
             if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP() || candidate.getMomentum().magnitude() < cuts.getMinMollerP())
                 continue;
+            if (candidate.getStartVertex().getProbability() < cuts.getMinMollerChisqProb())
+                continue;
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
