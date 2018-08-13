@@ -121,6 +121,8 @@ public class KalmanDriverHPS extends Driver {
             detPlanes.add((SiStripPlane) (vol));
         }
         try {
+            //FIXME
+            // fetch offsets from compact.xml, *10 for cm->mm
             fm = new FieldMap(fieldMapFileName, "HPS", 21.17, 0., 457.2);
         } catch (IOException e) {
             e.printStackTrace();

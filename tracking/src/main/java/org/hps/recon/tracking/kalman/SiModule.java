@@ -23,23 +23,7 @@ public class SiModule {
 
     public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
         // for backwards-compatibility with stand-alone development code: assume axial layers have stereo angle=0
-        this.Layer = Layer;
-        this.Bfield = Bfield;
-        this.p = p;
-        this.isStereo = stereo != 0.0;
-        this.stereo = stereo;
-        this.thickness = thickness;
-        xExtent = new double[2];
-        xExtent[0] = -width / 2.0;
-        xExtent[1] = width / 2.0;
-        yExtent = new double[2];
-        yExtent[0] = -height / 2.0;
-        yExtent[1] = height / 2.0;
-        RotMatrix R1 = new RotMatrix(p.U(), p.V(), p.T());
-        RotMatrix R2 = new RotMatrix(stereo); // Rotation by stereo angle in detector plane
-        Rinv = R2.multiply(R1); // This goes from global to local
-        R = Rinv.invert(); // This goes from local to global
-        hits = new ArrayList<Measurement>();
+        this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield);
     }
 
     public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, FieldMap Bfield) {
