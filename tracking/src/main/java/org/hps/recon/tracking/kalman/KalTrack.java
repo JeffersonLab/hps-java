@@ -21,6 +21,7 @@ public class KalTrack {
     private double[][] Cx;
     private double[][] Cp;
     public double Bmag;
+    private Vec tB;
 
     KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         this.SiteList = SiteList;
@@ -33,7 +34,7 @@ public class KalTrack {
         MeasurementSite site = SiteList.get(0);
         Vec B = site.m.Bfield.getField(new Vec(0., 0., 0.));
         Bmag = B.mag();
-        Vec tB = B.unitVec(Bmag);
+        tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec uB = yhat.cross(tB).unitVec();
         Vec vB = tB.cross(uB);
@@ -49,6 +50,7 @@ public class KalTrack {
     public void print(String s) {
         System.out.format("\n KalTrack %s: ID=%d, %d hits, chi^2=%10.5f\n", s, ID, nHits, chi2);
         if (propagated) {
+            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n",Bmag,tB.v[0],tB.v[1],tB.v[2]);
             helixAtOrigin.print("helix for a pivot at the origin");
             originCov.print("covariance of helix parameters for a pivot at the origin");
             originPoint.print("point on the helix closest to the origin");
@@ -67,7 +69,7 @@ public class KalTrack {
             int idx = 2 * m.Layer;
             if (m.isStereo)
                 idx++;
-            System.out.format("%d Layer %d, stereo=%6.3f, chi^2 inc.=%10.6f, hit=%d  \n", idx, m.Layer, m.stereo, site.chi2inc, hitID);
+            System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, hit=%d  \n", idx, m.Layer, m.stereo, site.chi2inc, hitID);
         }
         System.out.format("End of printing for KalTrack %s ID %d\n\n", s, ID);
     }

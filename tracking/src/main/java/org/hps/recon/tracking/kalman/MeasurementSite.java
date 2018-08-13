@@ -226,12 +226,12 @@ class MeasurementSite {
     boolean filter() { // Produce the filtered state vector for this site
 
         // debug
-        double phi = aP.planeIntersect(m.p);
-        System.out.format("    phiNew=%10.7f\n", phi);
-        Vec xGlobal = aP.atPhi(phi);
-        xGlobal.print("xGlobal");
-        Vec xLocal = m.R.rotate(xGlobal.dif(m.p.X()));
-        xLocal.print("MeasurementSite.filter: local intersection");
+        //double phi = aP.planeIntersect(m.p);
+        //System.out.format("    phiNew=%10.7f\n", phi);
+        //Vec xGlobal = aP.atPhi(phi);
+        //xGlobal.print("xGlobal");
+        //Vec xLocal = m.R.rotate(xGlobal.dif(m.p.X()));
+        //xLocal.print("MeasurementSite.filter: local intersection");
         // end debug
 
         if (smoothed || filtered || !predicted) {
