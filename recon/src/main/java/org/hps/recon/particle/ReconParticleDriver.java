@@ -746,7 +746,7 @@ public abstract class ReconParticleDriver extends Driver {
             ecalClustersCollectionName = "EcalClusters";
         }
         if (trackCollectionName == null) {
-            trackCollectionName = "MatchedTracks";
+            trackCollectionName = "GBLTracks";
         }
         if (finalStateParticlesColName == null) {
             finalStateParticlesColName = "FinalStateParticles";
