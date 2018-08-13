@@ -10,7 +10,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class TrackReconWithPlotsTest extends ReconTestSkeleton {
 
-    static final String inputFileName = "raw_v0skim.slcio";
+    static final String inputFileName = "ap_prompt_raw.slcio";
     private AIDA aida;
 
     @Override
@@ -19,7 +19,7 @@ public class TrackReconWithPlotsTest extends ReconTestSkeleton {
         testInputFileName = inputFileName;
         aida = AIDA.defaultInstance();
         String aidaOutputName = "target/test-output/TestPlots_" + inputFileName.replaceAll("slcio", "aida");
-        nEvents = 100;
+        nEvents = -1;
         testTrackingDriver = new TrackingReconstructionPlots();
         ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
         ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;

@@ -13,10 +13,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//import org.apache.commons.math3.distribution.ChiSquaredDistribution;
-import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.record.StandardCuts;
-//import org.hps.recon.vertexing.BilliorVertex;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
@@ -26,12 +22,9 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.Vertex;
-//import org.lcsim.event.Vertex;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
@@ -50,7 +43,7 @@ public class TrackingReconstructionPlots extends Driver {
     //    hep.aida.jfree.AnalysisFactory.register();
     //}
 
-    public AIDA aida = null;
+    public AIDA aida;
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private boolean doAmplitudePlots = false;
@@ -60,11 +53,8 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doMatchedClusterPlots = false;
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
-    private boolean doRecoParticlePlots = true;
-    private double timeOffset = 43;
 
-    private String trackCollectionName = "GBLTracks";
-    private String vertexColName = "UnconstrainedV0Candidates";
+    private String trackCollectionName = "MatchedTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
@@ -230,10 +220,6 @@ public class TrackingReconstructionPlots extends Driver {
 
         for (Track trk : tracks) {
 
-            Track trackShared = TrackUtils.mostSharedHitTrack(trk, tracks);
-            int maxShared = TrackUtils.numberOfSharedHits(trk, trackShared);
-            aida.histogram1D("Shared Hits per Track").fill(maxShared);
-
             boolean isTop = false;
             if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
                 isTop = true;
@@ -253,11 +239,6 @@ public class TrackingReconstructionPlots extends Driver {
                 aida.histogram1D("Hits per Track Top").fill(trk.getTrackerHits().size());
             else
                 aida.histogram1D("Hits per Track Bottom").fill(trk.getTrackerHits().size());
-            if (trk.getTrackerHits().size() == 5) {
-                aida.histogram1D("Track Chi2 5hit").fill(trk.getChi2());
-            } else if (trk.getTrackerHits().size() == 6) {
-                aida.histogram1D("Track Chi2 6hit").fill(trk.getChi2());
-            }
 
             aida.histogram1D("d0 ").fill(trk.getTrackStates().get(0).getParameter(ParameterName.d0.ordinal()));
             aida.histogram1D("sinphi ").fill(Math.sin(trk.getTrackStates().get(0).getParameter(ParameterName.phi0.ordinal())));
@@ -379,56 +360,6 @@ public class TrackingReconstructionPlots extends Driver {
         }
     }
 
-    private void doRecoParticles(List<ReconstructedParticle> recoParticles, RelationalTable hitToStrips, RelationalTable hitToRotated, String descriptor) {
-
-        StandardCuts sc = new StandardCuts();
-
-        if (descriptor == "FSP") {
-            for (ReconstructedParticle part : recoParticles) {
-                if (part.getCharge() != 0)
-                    aida.histogram1D("Match GoodnessOfPID").fill(part.getGoodnessOfPID());
-                if (!part.getTracks().isEmpty() && !part.getClusters().isEmpty()) {
-                    Cluster clus = part.getClusters().get(0);
-                    double clusTime = ClusterUtilities.getSeedHitTime(clus);
-                    Track trk = part.getTracks().get(0);
-                    double trkT = TrackUtils.getTrackTime(trk, hitToStrips, hitToRotated);
-                    aida.histogram1D("Track-Cluster dt").fill(clusTime - trkT - timeOffset);
-                }
-                if (part.getCharge() == -1)
-                    aida.histogram1D("Electron P").fill(part.getMomentum().magnitude());
-                else if (part.getCharge() == 1)
-                    aida.histogram1D("Positron P").fill(part.getMomentum().magnitude());
-
-            }
-        } else
-            for (ReconstructedParticle part : recoParticles) {
-                if (part.getParticles().size() < 2)
-                    continue;
-                ReconstructedParticle p1 = part.getParticles().get(0);
-                ReconstructedParticle p2 = part.getParticles().get(1);
-                if (!TrackType.isGBL(p1.getType()))
-                    continue;
-                if (!TrackType.isGBL(p2.getType()))
-                    continue;
-                if (!p1.getClusters().isEmpty() && !p2.getClusters().isEmpty()) {
-                    double clus1 = ClusterUtilities.getSeedHitTime(p1.getClusters().get(0));
-                    double clus2 = ClusterUtilities.getSeedHitTime(p2.getClusters().get(0));
-                    aida.histogram1D(descriptor + " Cluster dt").fill(Math.abs(clus1 - clus2));
-                }
-                Vertex v = part.getStartVertex();
-                if (v == null)
-                    continue;
-                aida.histogram1D(descriptor + " Chi2").fill(v.getChi2());
-                Map<String, Double> paramMap = v.getParameters();
-                if (paramMap.containsKey("layerCode")) {
-                    //System.out.printf("layer code %f \n", paramMap.get("layerCode"));
-                    aida.histogram1D(descriptor + " layerCode").fill(paramMap.get("layerCode"));
-                }
-                aida.histogram1D(descriptor + " P").fill(part.getMomentum().magnitude());
-            }
-
-    }
-
     private void doClustersOnTrack(Track trk, List<Cluster> clusters) {
         Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk);
         Cluster clust = findClosestCluster(posAtEcal, clusters);
@@ -541,17 +472,6 @@ public class TrackingReconstructionPlots extends Driver {
             doElectronPositronPlots = false;
         }
 
-        List<ReconstructedParticle> FSPs = null;
-        if (event.hasCollection(ReconstructedParticle.class, "FinalStateParticles")) {
-            FSPs = event.get(ReconstructedParticle.class, "FinalStateParticles");
-        } else
-            doRecoParticlePlots = false;
-        List<ReconstructedParticle> vertices = null;
-        if (event.hasCollection(ReconstructedParticle.class, vertexColName)) {
-            vertices = event.get(ReconstructedParticle.class, vertexColName);
-        } else
-            doRecoParticlePlots = false;
-
         List<LCRelation> fittedHits = null;
         if (event.hasCollection(LCRelation.class, "SVTFittedRawTrackerHits")) {
             fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
@@ -567,8 +487,8 @@ public class TrackingReconstructionPlots extends Driver {
             doStripHitPlots = false;
         }
 
-        RelationalTable hitToRotatedTable = TrackUtils.getHitToRotatedTable(event);
-        RelationalTable hitToStripsTable = TrackUtils.getHitToStripsTable(event);
+        //RelationalTable hitToRotatedTable = TrackUtils.getHitToRotatedTable(event);
+        //RelationalTable hitToStripsTable = TrackUtils.getHitToStripsTable(event);
 
         RelationalTable trackResidualsTable = null;
         if (event.hasCollection(LCRelation.class, "TrackResidualsRelations")) {
@@ -603,15 +523,6 @@ public class TrackingReconstructionPlots extends Driver {
             pCanditates = new HashMap<Track, Cluster>();
         }
 
-        if (doRecoParticlePlots) {
-            List<ReconstructedParticle> mollers = null;
-            if (event.hasCollection(ReconstructedParticle.class, "UnconstrainedMollerCandidates"))
-                mollers = event.get(ReconstructedParticle.class, "UnconstrainedMollerCandidates");
-            doRecoParticles(FSPs, hitToStripsTable, hitToRotatedTable, "FSP");
-            doRecoParticles(vertices, null, null, "V0");
-            doRecoParticles(mollers, null, null, "Moller");
-        }
-
         for (Track trk : tracks) {
             if (doStripHitPlots)
                 doStripHits(stripClusters, trk, trackDataTable);
@@ -632,17 +543,6 @@ public class TrackingReconstructionPlots extends Driver {
         if (doElectronPositronPlots)
             doElectronPositron();
 
-        //        ChiSquaredDistribution chisqDistrib = new ChiSquaredDistribution(7);
-        //        System.out.printf("7dof quantiles: 1e-3 %e  1e-5 %e  \n", chisqDistrib.inverseCumulativeProbability(1 - 0.001), chisqDistrib.inverseCumulativeProbability(1 - 0.00001));
-        //        System.out.printf("7dof prob: 30 %e 40 %e \n", chisqDistrib.cumulativeProbability(30), chisqDistrib.cumulativeProbability(40));
-        //
-        //        chisqDistrib = new ChiSquaredDistribution(5);
-        //        System.out.printf("5dof quantiles: 1e-3 %e  1e-5 %e  \n", chisqDistrib.inverseCumulativeProbability(1 - 0.001), chisqDistrib.inverseCumulativeProbability(1 - 0.00001));
-        //        System.out.printf("5dof prob: 30 %e 40 %e \n", chisqDistrib.cumulativeProbability(30), chisqDistrib.cumulativeProbability(40));
-        //
-        //        chisqDistrib = new ChiSquaredDistribution(4);
-        //        System.out.printf("4dof quantiles: 1e-3 %e  1e-5 %e  \n", chisqDistrib.inverseCumulativeProbability(1 - 0.001), chisqDistrib.inverseCumulativeProbability(1 - 0.00001));
-        //        System.out.printf("4dof prob: 30 %e 40 %e \n", chisqDistrib.cumulativeProbability(30), chisqDistrib.cumulativeProbability(40));
     }
 
     private void doElectronPositron() {
@@ -718,7 +618,6 @@ public class TrackingReconstructionPlots extends Driver {
             try {
                 aida.saveAs(outputPlots);
             } catch (IOException ex) {
-                System.out.println("aida write error");
                 Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -730,11 +629,7 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D trkPx = aida.histogram1D("Track Momentum (Px)", 100, -0.15, 0.15);
         IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 100, -0.15, 0.15);
         IHistogram1D trkPz = aida.histogram1D("Track Momentum (Pz)", 100, 0, 1.5);
-        IHistogram1D trkChi2 = aida.histogram1D("Track Chi2", 100, 0, 100.0);
-
-        aida.histogram1D("Track Chi2 5hit", 100, 0, 100.0);
-        aida.histogram1D("Track Chi2 6hit", 100, 0, 100.0);
-        aida.histogram1D("Shared Hits per Track", 7, 0, 7);
+        IHistogram1D trkChi2 = aida.histogram1D("Track Chi2", 25, 0, 25.0);
 
         IHistogram1D toptrkPx = aida.histogram1D("Top Track Momentum (Px)", 100, -0.15, 0.15);
         IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 100, -0.15, 0.15);
@@ -770,21 +665,6 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D nHitsBot = aida.histogram1D("Hits per Track Bottom", 4, 3, 7);
         IHistogram1D nHits = aida.histogram1D("Hits per Track", 4, 3, 7);
         IHistogram1D nTracks = aida.histogram1D("Tracks per Event", 10, 0, 10);
-
-        if (doRecoParticlePlots) {
-            aida.histogram1D("Match GoodnessOfPID", 100, 0, 25);
-            aida.histogram1D("Track-Cluster dt", 50, -10, 10);
-            aida.histogram1D("V0 Cluster dt", 50, 0, 10);
-            aida.histogram1D("Moller Cluster dt", 50, 0, 10);
-            aida.histogram1D("Electron P", 100, 0, 1.5);
-            aida.histogram1D("Positron P", 100, 0, 1.5);
-            aida.histogram1D("V0 P", 100, 0, 3.0);
-            aida.histogram1D("Moller P", 100, 0, 3.0);
-            aida.histogram1D("V0 layerCode", 6, -1, 5);
-            aida.histogram1D("Moller layerCode", 6, -1, 5);
-            aida.histogram1D("V0 Chi2", 100, 0, 100);
-            aida.histogram1D("Moller Chi2", 100, 0, 100);
-        }
 
         if (doStripHitPlots) {
             int i = 0;
