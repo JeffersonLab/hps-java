@@ -184,8 +184,10 @@ public class KalmanDriverHPS extends Driver {
 
             //full track
             KalmanTrackFit2 ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
-            if (verbose)
-                ktf2.print("fullKalmanTrackFit");
+            if (verbose) {
+                ktf2.printFit("fullKalmanTrackFit");
+                ktf2.tkr.print(" ");
+            }
 
             KalTrack fullKalmanTrack = KI.createKalmanTrack(ktf2, trackID);
             if (verbose)
