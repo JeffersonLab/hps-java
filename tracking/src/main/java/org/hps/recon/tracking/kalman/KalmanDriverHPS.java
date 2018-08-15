@@ -9,9 +9,11 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -25,7 +27,7 @@ public class KalmanDriverHPS extends Driver {
     private MaterialSupervisor _materialManager;
     private FieldMap fm;
     private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
-    private String trackCollectionName = "MatchedTracks";
+    private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
     private boolean verbose = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
@@ -145,6 +147,14 @@ public class KalmanDriverHPS extends Driver {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
+        RelationalTable MatchedToGbl = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> trkrelations = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
+        for (LCRelation relation : trkrelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                MatchedToGbl.add(relation.getFrom(), relation.getTo());
+            }
+        }
+
         //        constructTestData();
         //        System.out.println("Printing info for test-data SiMods:");
         //        for (SiModule SiM : testData) {
@@ -155,8 +165,8 @@ public class KalmanDriverHPS extends Driver {
         for (Track trk : tracks) {
             trackID++;
             if (verbose) {
-                System.out.println("\nPrinting info for original HPS track:");
-                printTrackInfo(trk);
+                System.out.println("\nPrinting info for original HPS SeedTrack:");
+                printTrackInfo(trk, MatchedToGbl);
             }
 
             //seedtrack
@@ -168,7 +178,7 @@ public class KalmanDriverHPS extends Driver {
             Track HPStrk = KI.createTrack(seedKalmanTrack);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
-                printTrackInfo(HPStrk);
+                printTrackInfo(HPStrk, null);
             }
             outputSeedTracks.add(HPStrk);
 
@@ -182,8 +192,10 @@ public class KalmanDriverHPS extends Driver {
                 fullKalmanTrack.print("fullKalmanTrack");
 
             Track fullKalmanTrackHPS = KalmanInterface.createTrack(fullKalmanTrack, false);
-            if (verbose)
-                printTrackInfo(fullKalmanTrackHPS);
+            if (verbose) {
+                System.out.println("\nPrinting info for Kalman full track converted to HPS track:");
+                printTrackInfo(fullKalmanTrackHPS, null);
+            }
             outputFullTracks.add(fullKalmanTrackHPS);
 
             // clearing for next track
@@ -198,8 +210,13 @@ public class KalmanDriverHPS extends Driver {
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
 
-    private void printTrackInfo(Track HPStrk) {
-        TrackState ts = HPStrk.getTrackStates().get(0);
+    private void printTrackInfo(Track HPStrk, RelationalTable MatchedToGbl) {
+        TrackState ts = null;
+        if (MatchedToGbl != null) {
+            Track tmp = (Track) (MatchedToGbl.to(HPStrk));
+            ts = tmp.getTrackStates().get(0);
+        } else
+            ts = HPStrk.getTrackStates().get(0);
         double[] params = ts.getParameters();
         System.out.printf("Track hits: %d \n", HPStrk.getTrackerHits().size());
         System.out.printf("      params: %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);

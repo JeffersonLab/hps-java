@@ -232,7 +232,7 @@ public class KalmanInterface {
 
     public BaseTrack createTrack(SeedTrack trk) {
 
-        double [] newPivot = {0.,0.,0.};
+        double[] newPivot = { 0., 0., 0. };
         double[] params = getLCSimParams(trk.pivotTransform(newPivot), trk.getAlpha());
         SymmetricMatrix cov = getLCSimCov(trk.covariance(), trk.getAlpha());
         BaseTrack newTrack = new BaseTrack();
@@ -361,8 +361,8 @@ public class KalmanInterface {
         if (verbose)
             System.out.printf("firstHitZ %f \n", firstHitZ);
         return new SeedTrack(SiMlist, firstHitZ, trackHitsKalman, verbose);
-    }       
-    
+    }
+
     public KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
         double firstHitZ = 10000;
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
