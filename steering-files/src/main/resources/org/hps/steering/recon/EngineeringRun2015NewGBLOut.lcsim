@@ -58,7 +58,7 @@
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver">
 		<storeTrackStates>true</storeTrackStates>
 		<writeMilleBinary>true</writeMilleBinary>
-		<milleBinaryFileName>true</milleBinaryFileName>
+		<milleBinaryFileName>millepedeData.bin</milleBinaryFileName>
         </driver>                
 	<driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
