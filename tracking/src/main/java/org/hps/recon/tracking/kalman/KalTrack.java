@@ -3,6 +3,8 @@ package org.hps.recon.tracking.kalman;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 // Track followed and fitted by the Kalman filter
 public class KalTrack {
@@ -11,6 +13,8 @@ public class KalTrack {
     public double chi2;
 
     ArrayList<MeasurementSite> SiteList;
+    public Map<MeasurementSite, Double> intercepts;
+    public Map<MeasurementSite, Vec> interceptVects;
     private Vec helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
@@ -45,12 +49,14 @@ public class KalTrack {
         alpha = 1.0e12 / (c * Bmag); // Convert from pt in GeV to curvature in mm
         Cx = null;
         Cp = null;
+        intercepts = new HashMap<MeasurementSite, Double>();
+        interceptVects = new HashMap<MeasurementSite, Vec>();
     }
 
     public void print(String s) {
         System.out.format("\n KalTrack %s: ID=%d, %d hits, chi^2=%10.5f\n", s, ID, nHits, chi2);
         if (propagated) {
-            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n",Bmag,tB.v[0],tB.v[1],tB.v[2]);
+            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             helixAtOrigin.print("helix for a pivot at the origin");
             originCov.print("covariance of helix parameters for a pivot at the origin");
             originPoint.print("point on the helix closest to the origin");

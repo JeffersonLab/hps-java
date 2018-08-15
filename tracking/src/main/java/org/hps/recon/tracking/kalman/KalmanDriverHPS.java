@@ -161,12 +161,12 @@ public class KalmanDriverHPS extends Driver {
         //            SiM.print("SiModFromTestData");
         //        }
 
-        int trackID = 0;
         for (Track trk : tracks) {
-            trackID++;
             if (verbose) {
                 System.out.println("\nPrinting info for original HPS SeedTrack:");
                 printTrackInfo(trk, MatchedToGbl);
+                System.out.println("\nPrinting info for original HPS GBLTrack:");
+                printExtendedTrackInfo(trk);
             }
 
             //seedtrack
@@ -184,19 +184,17 @@ public class KalmanDriverHPS extends Driver {
 
             //full track
             KalmanTrackFit2 ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
+            KalTrack fullKalmanTrack = ktf2.tkr;
             if (verbose) {
                 ktf2.printFit("fullKalmanTrackFit");
-                ktf2.tkr.print(" ");
+                if (fullKalmanTrack != null)
+                    fullKalmanTrack.print("fullKalmanTrack");
             }
-
-            KalTrack fullKalmanTrack = KI.createKalmanTrack(ktf2, trackID);
-            if (verbose)
-                fullKalmanTrack.print("fullKalmanTrack");
 
             Track fullKalmanTrackHPS = KalmanInterface.createTrack(fullKalmanTrack, false);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman full track converted to HPS track:");
-                printTrackInfo(fullKalmanTrackHPS, null);
+                printExtendedTrackInfo(fullKalmanTrackHPS);
             }
             outputFullTracks.add(fullKalmanTrackHPS);
 
@@ -212,10 +210,22 @@ public class KalmanDriverHPS extends Driver {
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
 
+    private void printExtendedTrackInfo(Track HPStrk) {
+        printTrackInfo(HPStrk, null);
+        for (TrackState ts : HPStrk.getTrackStates()) {
+            double[] ref = ts.getReferencePoint();
+            System.out.printf("   TrackState: intercept %f %f %f \n", ref[0], ref[1], ref[2]);
+            double[] params = ts.getParameters();
+            System.out.printf("       params %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);
+        }
+    }
+
     private void printTrackInfo(Track HPStrk, RelationalTable MatchedToGbl) {
         TrackState ts = null;
         if (MatchedToGbl != null) {
-            Track tmp = (Track) (MatchedToGbl.to(HPStrk));
+            Track tmp = (Track) (MatchedToGbl.from(HPStrk));
+            if (tmp == null)
+                return;
             ts = tmp.getTrackStates().get(0);
         } else
             ts = HPStrk.getTrackStates().get(0);

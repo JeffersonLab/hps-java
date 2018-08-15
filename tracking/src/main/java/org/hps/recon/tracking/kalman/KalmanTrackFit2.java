@@ -14,7 +14,6 @@ public class KalmanTrackFit2 {
     double chi2f, chi2s; // Filtered and smoothed chi squared values (just summed over the N measurement sites)
     boolean success;
     KalTrack tkr;
-    double [] params;
 
     public KalmanTrackFit2(ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
             int start, // Starting point in the list
@@ -26,7 +25,6 @@ public class KalmanTrackFit2 {
 
         success = true;
         tkr = null;
-        params = null;
 
         // Create an state vector from the input seed to initialize the Kalman filter
         Vec Bfield = fM.getField(pivot);
@@ -208,27 +206,27 @@ public class KalmanTrackFit2 {
                     currentSite.smooth(nextSite);
                 }
                 chi2s += currentSite.chi2inc;
-                if (iteration == nIterations - 1) nHits++;
+                if (iteration == nIterations - 1)
+                    nHits++;
 
                 // if (verbose) {
                 // currentSite.print(String.format("Iteration %d smoothing", iteration));
                 // }
                 nextSite = currentSite;
             }
+
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
                 currentSite.aS.a.print("smoothed helix parameters at the innermost site");
                 int cnt = 0;
                 for (MeasurementSite site : sites) {
-                    SiModule m = site.m;
-                    StateVector aS = site.aS;
-                    double phiS = aS.planeIntersect(m.p);
+                    double phiS = site.aS.planeIntersect(site.m.p);
                     if (Double.isNaN(phiS))
                         phiS = 0.;
-                    double vPred = site.h(aS, phiS);
-                    System.out.format("   %d Lyr %d stereo=%9.6f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
-                    for (Measurement hit : m.hits) {
-                        double resid = hit.v - vPred;
+                    double vpred = site.h(site.aS, phiS);
+                    System.out.format("   %d Lyr %d stereo=%9.6f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, site.m.Layer, site.m.stereo, site.hitID, site.chi2inc, vpred);
+                    for (Measurement hit : site.m.hits) {
+                        double resid = hit.v - vpred;
                         System.out.format(" v=%10.6f r=%10.8f #tks=%d,", hit.v, resid, hit.tracks.size());
                     }
                     System.out.format("\n");
@@ -250,8 +248,17 @@ public class KalmanTrackFit2 {
             }
         }
         finalSite = sites.size() - 1;
+
         tkr = new KalTrack(0, nHits, sites, chi2s);
-        params = tkr.originHelix();
+        // Storing intercepts at each plane
+        for (MeasurementSite site : sites) {
+            double phiS = site.aS.planeIntersect(site.m.p);
+            if (Double.isNaN(phiS))
+                phiS = 0.;
+            tkr.interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
+            tkr.intercepts.put(site, site.h(site.aS, phiS));
+        }
+
     }
 
     public StateVector fittedStateBegin() {
@@ -266,21 +273,24 @@ public class KalmanTrackFit2 {
         System.out.format("KalmanTrackFit2: dump of track information for %s\n", s);
         System.out.format("    Final fit chi^2 after filtering = %12.4e\n", chi2f);
         StateVector fS = sites.get(finalSite).aF;
-        double [] a = fS.a.v;
-        System.out.format("    Helix parameters at the outermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0],a[1],a[2],a[3],a[4]);
+        double[] a = fS.a.v;
+        System.out.format("    Helix parameters at the outermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
         double Bmag = fS.B;
-        double [] tB = {fS.Rot.M[2][0], fS.Rot.M[2][1], fS.Rot.M[2][2]};
-        System.out.format("        B-field at the outermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n",Bmag,tB[0],tB[1],tB[2]);
+        double[] tB = { fS.Rot.M[2][0], fS.Rot.M[2][1], fS.Rot.M[2][2] };
+        System.out.format("        B-field at the outermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB[0], tB[1], tB[2]);
         System.out.format("    Final fit chi^2 after smoothing = %12.4e\n", chi2s);
         StateVector iS = sites.get(initialSite).aS;
         a = iS.a.v;
-        System.out.format("    Helix parameters at the innermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0],a[1],a[2],a[3],a[4]);
+        System.out.format("    Helix parameters at the innermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
         Bmag = iS.B;
-        double [] tB2 = {iS.Rot.M[2][0], iS.Rot.M[2][1], iS.Rot.M[2][2]};
-        System.out.format("        B-field at the innermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n",Bmag,tB2[0],tB2[1],tB2[2]);
-        a = params;
-        System.out.format("    Helix parameters at the origin=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0],a[1],a[2],a[3],a[4]);
+        double[] tB2 = { iS.Rot.M[2][0], iS.Rot.M[2][1], iS.Rot.M[2][2] };
+        System.out.format("        B-field at the innermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB2[0], tB2[1], tB2[2]);
+        if (tkr != null) {
+            a = tkr.originHelix();
+            System.out.format("    Helix parameters at the origin=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
+        }
     }
+
     public void print(String s) {
         System.out.format("KalmanTrackFit: dump of the fitted sites, %s, chi2f=%12.4e, chi2s=%12.4e\n", s, chi2f, chi2s);
         Iterator<MeasurementSite> itr = sites.iterator();

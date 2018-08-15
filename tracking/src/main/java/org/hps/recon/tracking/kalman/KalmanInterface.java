@@ -36,7 +36,7 @@ public class KalmanInterface {
     private ArrayList<int[]> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
-    public boolean verbose = true;
+    public boolean verbose = false;
 
     public void setSeedTrackLayers(List<Integer> input) {
         SeedTrackLayers = input;
@@ -88,7 +88,7 @@ public class KalmanInterface {
         }
     }
 
-    public static TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
+    public static TrackState createTrackState(MeasurementSite ms, double[] refPoint, int loc, boolean useSmoothed) {
         // public BaseTrackState(double[] trackParameters, double[] covarianceMatrix, double[] position, int location)
         StateVector sv = null;
         if (useSmoothed) {
@@ -110,11 +110,7 @@ public class KalmanInterface {
         SquareMatrix globalCov = localCov.similarity(fRot);
         double[] newCov = getLCSimCov(globalCov, sv.alpha).asPackedArray(true);
 
-        Vec localPosition = sv.origin.sum(sv.X0);
-        Vec globalPosition = sv.toGlobal(localPosition);
-        double[] globalPositionTransformed = globalPosition.leftMultiply(HpsToKalman).v;
-
-        return new BaseTrackState(newParams, newCov, globalPositionTransformed, loc);
+        return new BaseTrackState(newParams, newCov, refPoint, loc);
 
     }
 
@@ -134,7 +130,7 @@ public class KalmanInterface {
             int loc = TrackState.AtOther;
 
             if (i == 0)
-                loc = TrackState.AtFirstHit;
+                loc = TrackState.AtIP;
             else if (i == kT.SiteList.size() - 1)
                 loc = TrackState.AtLastHit;
 
@@ -148,26 +144,15 @@ public class KalmanInterface {
                 prevID = lay;
             }
 
-            if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
-                ts = createTrackState(site, loc, true);
+            if (loc == TrackState.AtIP || loc == TrackState.AtLastHit || storeTrackStates) {
+                Vec refPoint = kT.interceptVects.get(site);
+                double[] refPointTransformed = refPoint.leftMultiply(HpsToKalman).v;
+                ts = createTrackState(site, refPointTransformed, loc, true);
                 if (ts != null) {
                     newTrack.getTrackStates().add(ts);
                 }
             }
         }
-
-        // get track params at origin
-        double[] kalmanOrigParams = kT.originHelix();
-        double[][] kalmanOrigCov = kT.originCovariance();
-        double[] lcsimOrigParams = getLCSimParams(kalmanOrigParams, kT.alpha);
-        SymmetricMatrix lcsimOrigCov = getLCSimCov(new SquareMatrix(5, kalmanOrigCov), kT.alpha);
-        double[] origin = { 0, 0, 0 };
-        TrackState ts = new BaseTrackState(lcsimOrigParams, lcsimOrigCov.asPackedArray(true), origin, TrackState.AtIP);
-        newTrack.getTrackStates().add(ts);
-
-        // set overall Track params/covar as IP state
-        newTrack.setTrackParameters(lcsimOrigParams, kT.Bmag);
-        newTrack.setCovarianceMatrix(lcsimOrigCov);
 
         // TODO: get track params at ECal
 
@@ -177,8 +162,8 @@ public class KalmanInterface {
         newTrack.setFitSuccess(true);
 
         // take first TrackState as overall Track params
-        //newTrack.setTrackParameters(newTrack.getTrackStates().get(0).getParameters(), kT.Bmag);
-
+        newTrack.setTrackParameters(newTrack.getTrackStates().get(0).getParameters(), kT.Bmag);
+        newTrack.setCovarianceMatrix(new SymmetricMatrix(5, newTrack.getTrackStates().get(0).getCovMatrix(), true));
         return newTrack;
     }
 
@@ -399,9 +384,9 @@ public class KalmanInterface {
         return new KalmanTrackFit2(SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm, verbose);
     }
 
-    public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {
-        return new KalTrack(trackID, ktf.sites.size(), ktf.sites, ktf.chi2s);
-    }
+    //    public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {
+    //        return new KalTrack(trackID, ktf.sites.size(), ktf.sites, ktf.chi2s);
+    //    }
 
     class SortByLayer implements Comparator<SiModule> {
 
