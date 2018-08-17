@@ -21,6 +21,7 @@ import org.lcsim.util.aida.AIDA;
  * crystal.
  * 
  * These plots are updated regularly, according to the event refresh rate.
+ * 
  * @author Andrea Celentano
  * 
  */
@@ -34,17 +35,17 @@ public class EcalMonitoringPlots extends Driver {
     IHistogram2D hitCountDrawPlot;
 
     IHistogram2D occupancyDrawPlot;
-    double[] occupancyFill=new double[11*47];
+    double[] occupancyFill = new double[11 * 47];
     int NoccupancyFill;
 
     IHistogram2D clusterCountFillPlot;
     IHistogram2D clusterCountDrawPlot;
     int eventRefreshRate = 1;
     int eventn = 0;
-    int thisEventN,prevEventN;
+    int thisEventN, prevEventN;
 
-    long thisTime,prevTime;
-    double thisEventTime,prevEventTime;
+    long thisTime, prevTime;
+    double thisEventTime, prevEventTime;
 
     public EcalMonitoringPlots() {
     }
@@ -59,17 +60,19 @@ public class EcalMonitoringPlots extends Driver {
 
     /**
      * Set the refresh rate for histograms in this driver
+     * 
      * @param eventRefreshRate the refresh rate, defined as number of events to accumulate before
-     *        refreshing the plot
+     * refreshing the plot
      */
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
     }
 
     protected void detectorChanged(Detector detector) {
-        //System.out.println("EcalMonitoringPlots:: detector changed was called");
+        // System.out.println("EcalMonitoringPlots:: detector changed was called");
         // Setup the plotter.
-        plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots").create("HPS ECal Monitoring Plots");
+        plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots")
+                .create("HPS ECal Monitoring Plots");
         // Setup plots.
         aida.tree().cd("/");
         String hitCountDrawPlotTitle;
@@ -77,16 +80,17 @@ public class EcalMonitoringPlots extends Driver {
 
         hitCountDrawPlot = aida.histogram2D(hitCountDrawPlotTitle, 47, -23.5, 23.5, 11, -5.5, 5.5);
         hitCountFillPlot = makeCopy(hitCountDrawPlot);
-        occupancyDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy", 47, -23.5, 23.5, 11, -5.5, 5.5);
-        clusterCountDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollection + " : Cluster Rate KHz", 47, -23.5, 23.5, 11, -5.5, 5.5);
+        occupancyDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy", 47,
+                -23.5, 23.5, 11, -5.5, 5.5);
+        clusterCountDrawPlot = aida.histogram2D(detector.getDetectorName() + " : " + clusterCollection
+                + " : Cluster Rate KHz", 47, -23.5, 23.5, 11, -5.5, 5.5);
         clusterCountFillPlot = makeCopy(clusterCountDrawPlot);
 
-
-        NoccupancyFill=1; //to avoid a "NaN" at beginning
+        NoccupancyFill = 1; // to avoid a "NaN" at beginning
         for (int ii = 0; ii < (11 * 47); ii++) {
             int row = EcalMonitoringUtilities.getRowFromHistoID(ii);
             int column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
-            occupancyFill[ii]=0.;
+            occupancyFill[ii] = 0.;
         }
 
         // Create the plotter regions.
@@ -111,14 +115,14 @@ public class EcalMonitoringPlots extends Driver {
 
         plotter.show();
 
-        prevTime=0; //init the time 
-        thisTime=0; //init the time 
+        prevTime = 0; // init the time
+        thisTime = 0; // init the time
 
-        thisEventN=0;
-        prevEventN=0;
+        thisEventN = 0;
+        prevEventN = 0;
 
-        thisEventTime=0;
-        prevEventTime=0;
+        thisEventTime = 0;
+        prevEventTime = 0;
     }
 
     public void process(EventHeader event) {
@@ -141,41 +145,42 @@ public class EcalMonitoringPlots extends Driver {
 
         if (nhits > 0) {
             for (int ii = 0; ii < (11 * 47); ii++) {
-                occupancyFill[ii]+=(1.*chits[ii])/nhits;
+                occupancyFill[ii] += (1. * chits[ii]) / nhits;
             }
         }
 
         if (event.hasCollection(Cluster.class, clusterCollection)) {
             List<Cluster> clusters = event.get(Cluster.class, clusterCollection);
             for (Cluster cluster : clusters) {
-                clusterCountFillPlot.fill(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
+                clusterCountFillPlot.fill(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster
+                        .getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
             }
         }
 
-        thisTime=System.currentTimeMillis()/1000;
-        thisEventN=event.getEventNumber();
-        thisEventTime=event.getTimeStamp()/1E9;
-        if ((thisTime-prevTime)>eventRefreshRate){
-            double scale=1.;
+        thisTime = System.currentTimeMillis() / 1000;
+        thisEventN = event.getEventNumber();
+        thisEventTime = event.getTimeStamp() / 1E9;
+        if ((thisTime - prevTime) > eventRefreshRate) {
+            double scale = 1.;
 
-            if (NoccupancyFill>0){
-                scale=(thisEventN-prevEventN)/NoccupancyFill;
-                scale=scale/(thisEventTime-prevEventTime);
-                scale/=1000. ; //do KHz
+            if (NoccupancyFill > 0) {
+                scale = (thisEventN - prevEventN) / NoccupancyFill;
+                scale = scale / (thisEventTime - prevEventTime);
+                scale /= 1000.; // do KHz
             }
-            //System.out.println("Event: "+thisEventN+" "+prevEventN);
-            //System.out.println("Time: "+thisEventTime+" "+prevEventTime);
+            // System.out.println("Event: "+thisEventN+" "+prevEventN);
+            // System.out.println("Time: "+thisEventTime+" "+prevEventTime);
             // System.out.println("Monitor: "+thisTime+" "+prevTime+" "+NoccupancyFill);
-if (scale>0) {
-            hitCountFillPlot.scale(scale);
-            clusterCountFillPlot.scale(scale);
-            redraw();}
-            prevTime=thisTime;
-            prevEventN=thisEventN;
-            prevEventTime=thisEventTime;
-            NoccupancyFill=0;
-        }
-        else{
+            if (scale > 0) {
+                hitCountFillPlot.scale(scale);
+                clusterCountFillPlot.scale(scale);
+                redraw();
+            }
+            prevTime = thisTime;
+            prevEventN = thisEventN;
+            prevEventTime = thisEventTime;
+            NoccupancyFill = 0;
+        } else {
             NoccupancyFill++;
         }
     }
@@ -188,32 +193,34 @@ if (scale>0) {
         hitCountDrawPlot.add(hitCountFillPlot);
         plotter.region(0).clear();
         plotter.region(0).plot(hitCountDrawPlot);
-//        plotter.region(0).refresh();
+        // plotter.region(0).refresh();
         hitCountFillPlot.reset();
 
         clusterCountDrawPlot.reset();
         clusterCountDrawPlot.add(clusterCountFillPlot);
         plotter.region(1).clear();
         plotter.region(1).plot(clusterCountDrawPlot);
-//        plotter.region(1).refresh();
+        // plotter.region(1).refresh();
         clusterCountFillPlot.reset();
 
         occupancyDrawPlot.reset();
         for (int id = 0; id < (47 * 11); id++) {
             int row = EcalMonitoringUtilities.getRowFromHistoID(id);
             int column = EcalMonitoringUtilities.getColumnFromHistoID(id);
-            double mean = occupancyFill[id]/NoccupancyFill;
+            double mean = occupancyFill[id] / NoccupancyFill;
 
-            occupancyFill[id]=0;
+            occupancyFill[id] = 0;
             if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column)))
                 occupancyDrawPlot.fill(column, row, mean);
         }
         plotter.region(2).clear();
-        if (occupancyDrawPlot.sumAllBinHeights()> 0) plotter.region(2).plot(occupancyDrawPlot);
-//        plotter.region(2).refresh();
+        if (occupancyDrawPlot.sumAllBinHeights() > 0)
+            plotter.region(2).plot(occupancyDrawPlot);
+        // plotter.region(2).refresh();
     }
 
     private IHistogram2D makeCopy(IHistogram2D hist) {
-        return aida.histogram2D(hist.title() + "_copy", hist.xAxis().bins(), hist.xAxis().lowerEdge(), hist.xAxis().upperEdge(), hist.yAxis().bins(), hist.yAxis().lowerEdge(), hist.yAxis().upperEdge());
+        return aida.histogram2D(hist.title() + "_copy", hist.xAxis().bins(), hist.xAxis().lowerEdge(), hist.xAxis()
+                .upperEdge(), hist.yAxis().bins(), hist.yAxis().lowerEdge(), hist.yAxis().upperEdge());
     }
 }

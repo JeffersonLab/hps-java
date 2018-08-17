@@ -665,8 +665,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public void setConnectionProperties(final File file) {
         LOG.config("Setting connection properties file '" + file.getPath() + "'");
         if (!file.exists()) {
-            throw new IllegalArgumentException("The connection properties file does not exist: "
-                    + this.connectionPropertiesFile.getPath());
+            throw new IllegalArgumentException("The connection properties file does not exist: " + file.getPath());
         }
         this.connectionParameters = ConnectionParameters.fromProperties(file);
     }
@@ -691,10 +690,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         
         if (!this.isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
             
-            LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
-            
             if (!this.isFrozen) {
                 
+                LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
+
                 // Set flag if run number is from Test Run 2012 data.
                 if (isTestRun(runNumber)) {
                     this.isTestRun = true;

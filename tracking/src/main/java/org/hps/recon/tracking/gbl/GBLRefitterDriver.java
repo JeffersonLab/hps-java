@@ -25,8 +25,7 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Does not require GBL collections to
- * be present in the event.
+ * A Driver which refits tracks using GBL. Does not require GBL collections to be present in the event.
  */
 public class GBLRefitterDriver extends Driver {
 
@@ -36,6 +35,15 @@ public class GBLRefitterDriver extends Driver {
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
+    private boolean storeTrackStates = false;
+
+    public void setStoreTrackStates(boolean input) {
+        storeTrackStates = input;
+    }
+
+    public boolean getStoreTrackStates() {
+        return storeTrackStates;
+    }
 
     public void setInputCollectionName(String inputCollectionName) {
         this.inputCollectionName = inputCollectionName;
@@ -70,8 +78,8 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield);
-            //            newTrack.getFirst().
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+            if(newTrack==null) continue;
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());

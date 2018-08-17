@@ -2,12 +2,36 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-ECalCommissioning-v2" />
-    <generator name="GeomConverter" version="1.0" file="detectors/HPS-ECalCommissioning-v2/compact.xml" checksum="411482069" />
+    <generator name="lcsim" version="1.0" file="./detectors/HPS-ECalCommissioning-v2/compact.xml" checksum="615309858" />
     <author name="NONE" />
-    <comment>HPS ECal commissioning for pass2 with no SVT By=-0.3309</comment>
+    <comment>HPS ECal commissioning for pass2 with no SVT, By=-0.3309</comment>
   </header>
   <iddict>
+    <idspec name="TrackerHitsFieldDef" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
     <idspec name="TrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+    <idspec name="EcalHits" length="22">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="layer" length="2" start="6" />
+      <idfield signed="true" label="ix" length="8" start="8" />
+      <idfield signed="true" label="iy" length="6" start="16" />
+    </idspec>
+    <idspec name="TrackerHitsRecoil" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
@@ -25,38 +49,10 @@
       <idfield signed="true" label="side" length="2" start="32" />
       <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
-    <idspec name="TrackerHitsFieldDef" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="TrackerHitsRecoil" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="EcalHits" length="22">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="layer" length="2" start="6" />
-      <idfield signed="true" label="ix" length="8" start="8" />
-      <idfield signed="true" label="iy" length="6" start="16" />
-    </idspec>
   </iddict>
   <sensitive_detectors>
     <tracker name="Tracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
       <idspecref ref="TrackerHits" />
-    </tracker>
-    <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsFieldDef">
-      <idspecref ref="TrackerHitsFieldDef" />
-      <hit_processor type="ScoringTrackerHitProcessor" />
     </tracker>
     <tracker name="ECalScoring" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsECal">
       <idspecref ref="TrackerHitsECal" />
@@ -66,20 +62,24 @@
       <idspecref ref="EcalHits" />
       <grid_xyz grid_size_x="0.0" grid_size_y="0.0" grid_size_z="0.0" />
     </calorimeter>
+    <tracker name="TrackerFieldDef" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsFieldDef">
+      <idspecref ref="TrackerHitsFieldDef" />
+      <hit_processor type="ScoringTrackerHitProcessor" />
+    </tracker>
   </sensitive_detectors>
   <limits />
   <regions>
     <region name="TrackingRegion" store_secondaries="true" kill_tracks="false" cut="10.0" lunit="mm" threshold="1.0" eunit="MeV" />
   </regions>
   <display>
+    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
+      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
+    </vis>
     <vis name="InvisibleNoDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="false" visible="false">
       <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
-    </vis>
-    <vis name="InvisibleWithDaughters" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
-      <color R="0.0" G="0.0" B="0.0" alpha="0.0" />
     </vis>
     <vis name="WorldVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="false">
       <color R="1.0" G="1.0" B="1.0" alpha="1.0" />
@@ -93,144 +93,145 @@
       <rotation name="identity_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
       <rotation name="reflect_rot" x="3.141592653589793" y="0.0" z="0.0" unit="radian" />
       <position name="identity_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <constant name="y7t" value="26.669668753164046" />
-      <constant name="beam_angle" value="0.03052" />
-      <constant name="x3t" value="0.0" />
-      <constant name="a10b" value="0.0" />
-      <constant name="z4t" value="196.185" />
-      <constant name="a4b" value="0.0" />
-      <constant name="y7b" value="-26.669668753164046" />
-      <constant name="x3b" value="0.0" />
-      <constant name="vertModLength" value="40.34" />
-      <constant name="a10t" value="0.0" />
-      <constant name="a3t" value="0.0" />
-      <constant name="z4b" value="211.185" />
-      <constant name="x_rot_bot_add" value="0.0" />
-      <constant name="ecal_z" value="80.0" />
-      <constant name="x4t" value="0.0" />
-      <constant name="y8t" value="26.669668753164046" />
-      <constant name="ecal_dface" value="1393.0" />
-      <constant name="z3t" value="188.815" />
-      <constant name="x_rot_top" value="0.0" />
-      <constant name="y8b" value="-26.669668753164046" />
-      <constant name="a5b" value="0.0" />
-      <constant name="SA2" value="0.05" />
-      <constant name="SA1" value="0.1" />
-      <constant name="tracking_region_min" value="50.0" />
-      <constant name="x4b" value="0.0" />
-      <constant name="a4t" value="0.0" />
-      <constant name="z3b" value="203.815" />
-      <constant name="ecal_back" value="8.0" />
-      <constant name="moduleWidth" value="40.34" />
-      <constant name="x_rot_bot" value="0.0" />
-      <constant name="world_side" value="5000.0" />
-      <constant name="z12b" value="911.185" />
-      <constant name="z6t" value="296.185" />
-      <constant name="a2b" value="0.0" />
-      <constant name="a12b" value="0.0" />
-      <constant name="y_rot" value="0.03052" />
-      <constant name="x5t" value="0.0" />
-      <constant name="y5t" value="23.669781251898428" />
-      <constant name="pivot" value="791.0" />
-      <constant name="y5b" value="-23.669781251898428" />
-      <constant name="dipoleMagnetLength" value="1080.0" />
-      <constant name="x_rot_top_add" value="0.0" />
-      <constant name="z6b" value="311.185" />
-      <constant name="sensorLength" value="98.33" />
-      <constant name="vertSensLength" value="38.3399" />
-      <constant name="z12t" value="896.185" />
-      <constant name="x5b" value="0.0" />
-      <constant name="a12t" value="0.0" />
-      <constant name="a1t" value="0.0" />
-      <constant name="ztar" value="0.0" />
-      <constant name="y6t" value="23.669781251898428" />
-      <constant name="sensorWidth" value="38.3399" />
-      <constant name="a3b" value="0.0" />
-      <constant name="world_y" value="5000.0" />
-      <constant name="z11b" value="903.815" />
-      <constant name="world_z" value="5000.0" />
-      <constant name="z5t" value="288.815" />
-      <constant name="x6t" value="0.0" />
-      <constant name="a11b" value="0.0" />
-      <constant name="world_x" value="5000.0" />
-      <constant name="y6b" value="-23.669781251898428" />
-      <constant name="zst" value="1.0" />
-      <constant name="ecal_front" value="6.65" />
-      <constant name="vertModWidth" value="40.34" />
-      <constant name="PI" value="3.14159265359" />
-      <constant name="z5b" value="303.815" />
-      <constant name="a2t" value="0.0" />
-      <constant name="z11t" value="888.815" />
-      <constant name="a11t" value="0.0" />
-      <constant name="x6b" value="0.0" />
-      <constant name="y3b" value="-22.16983750126562" />
-      <constant name="x7t" value="0.0" />
-      <constant name="vertSensWidth" value="38.3399" />
-      <constant name="z10b" value="711.185" />
-      <constant name="x12t" value="0.0" />
-      <constant name="z8b" value="511.185" />
-      <constant name="y12b" value="-32.66944375569528" />
-      <constant name="a8b" value="0.0" />
-      <constant name="y3t" value="22.16983750126562" />
-      <constant name="electronGapLeftEdge" value="382.492" />
-      <constant name="x12b" value="0.0" />
-      <constant name="x7b" value="0.0" />
-      <constant name="z10t" value="696.185" />
-      <constant name="a8t" value="0.0" />
-      <constant name="y12t" value="32.66944375569528" />
-      <constant name="z8t" value="496.185" />
-      <constant name="x8t" value="0.0" />
-      <constant name="x11t" value="0.0" />
-      <constant name="a1b" value="0.0" />
-      <constant name="dipoleMagnetWidth" value="1000.0" />
-      <constant name="z7b" value="503.815" />
-      <constant name="a9b" value="0.0" />
-      <constant name="y4b" value="-22.16983750126562" />
-      <constant name="scoringThickness" value="0.001" />
-      <constant name="y4t" value="22.16983750126562" />
-      <constant name="x11b" value="0.0" />
-      <constant name="ytar" value="0.0" />
-      <constant name="x8b" value="0.0" />
-      <constant name="z7t" value="488.815" />
-      <constant name="a9t" value="0.0" />
-      <constant name="moduleLength" value="100.0" />
       <constant name="a5t" value="0.0" />
-      <constant name="x9t" value="0.0" />
-      <constant name="x10t" value="0.0" />
-      <constant name="electronGapRightEdge" value="474.962" />
-      <constant name="y1b" value="-20.66989375063281" />
-      <constant name="tracking_region_radius" value="2000.0" />
-      <constant name="z2t" value="96.185" />
-      <constant name="x1b" value="0.0" />
-      <constant name="y9t" value="29.669556254429665" />
-      <constant name="a6b" value="0.0" />
-      <constant name="y10b" value="-29.669556254429665" />
-      <constant name="xtar" value="0.0" />
-      <constant name="z2b" value="111.185" />
-      <constant name="y1t" value="20.66989375063281" />
-      <constant name="x10b" value="0.0" />
-      <constant name="x9b" value="0.0" />
-      <constant name="y10t" value="29.669556254429665" />
-      <constant name="x1t" value="0.0" />
-      <constant name="y9b" value="-29.669556254429665" />
-      <constant name="dipoleMagnetHeight" value="1000.0" />
-      <constant name="a6t" value="0.0" />
-      <constant name="z1t" value="88.815" />
-      <constant name="dipoleMagnetPositionZ" value="457.2" />
-      <constant name="dipoleMagnetPositionX" value="21.17" />
-      <constant name="y2b" value="-20.66989375063281" />
-      <constant name="z9b" value="703.815" />
-      <constant name="x2b" value="0.0" />
-      <constant name="y11b" value="-32.66944375569528" />
-      <constant name="a7b" value="0.0" />
-      <constant name="x_off" value="0.0" />
-      <constant name="z1b" value="103.815" />
-      <constant name="y2t" value="20.66989375063281" />
-      <constant name="x2t" value="0.0" />
-      <constant name="tracking_region_zmax" value="1318.0" />
-      <constant name="a7t" value="0.0" />
-      <constant name="z9t" value="688.815" />
+      <constant name="z7b" value="503.815" />
+      <constant name="x_rot_top" value="0.0" />
+      <constant name="x3b" value="0.0" />
+      <constant name="y5b" value="-23.669781251898428" />
       <constant name="y11t" value="32.66944375569528" />
+      <constant name="a6b" value="0.0" />
+      <constant name="a10b" value="0.0" />
+      <constant name="xtar" value="0.0" />
+      <constant name="z7t" value="488.815" />
+      <constant name="x3t" value="0.0" />
+      <constant name="a10t" value="0.0" />
+      <constant name="ecal_back" value="8.0" />
+      <constant name="pivot" value="791.0" />
+      <constant name="y5t" value="23.669781251898428" />
+      <constant name="y11b" value="-32.66944375569528" />
+      <constant name="a6t" value="0.0" />
+      <constant name="dipoleMagnetWidth" value="1000.0" />
+      <constant name="y6b" value="-23.669781251898428" />
+      <constant name="z8b" value="511.185" />
+      <constant name="x4b" value="0.0" />
+      <constant name="y10t" value="29.669556254429665" />
+      <constant name="a7b" value="0.0" />
+      <constant name="vertModWidth" value="40.34" />
+      <constant name="y6t" value="23.669781251898428" />
+      <constant name="z8t" value="496.185" />
+      <constant name="x4t" value="0.0" />
+      <constant name="y10b" value="-29.669556254429665" />
+      <constant name="dipoleMagnetHeight" value="1000.0" />
+      <constant name="a7t" value="0.0" />
+      <constant name="z9b" value="703.815" />
+      <constant name="z10t" value="696.185" />
+      <constant name="x5b" value="0.0" />
+      <constant name="y7b" value="-26.669668753164046" />
+      <constant name="tracking_region_zmax" value="1318.0" />
+      <constant name="z1b" value="103.815" />
+      <constant name="a8b" value="0.0" />
+      <constant name="a12b" value="0.0" />
+      <constant name="z10b" value="711.185" />
+      <constant name="z9t" value="688.815" />
+      <constant name="x5t" value="0.0" />
+      <constant name="y7t" value="26.669668753164046" />
+      <constant name="zst" value="1.0" />
+      <constant name="z1t" value="88.815" />
+      <constant name="a8t" value="0.0" />
+      <constant name="beam_angle" value="0.03052" />
+      <constant name="a12t" value="0.0" />
+      <constant name="ecal_front" value="6.65" />
+      <constant name="y8b" value="-26.669668753164046" />
+      <constant name="vertModLength" value="40.34" />
+      <constant name="dipoleMagnetPositionX" value="21.17" />
+      <constant name="x6b" value="0.0" />
+      <constant name="dipoleMagnetPositionZ" value="457.2" />
+      <constant name="z2b" value="111.185" />
+      <constant name="a9b" value="0.0" />
+      <constant name="y12t" value="32.66944375569528" />
+      <constant name="a11b" value="0.0" />
+      <constant name="a1b" value="0.0" />
+      <constant name="y8t" value="26.669668753164046" />
+      <constant name="vertSensLength" value="38.3399" />
+      <constant name="x6t" value="0.0" />
+      <constant name="moduleLength" value="100.0" />
+      <constant name="z2t" value="96.185" />
+      <constant name="a9t" value="0.0" />
+      <constant name="y12b" value="-32.66944375569528" />
+      <constant name="a11t" value="0.0" />
+      <constant name="z12t" value="896.185" />
+      <constant name="x7b" value="0.0" />
+      <constant name="y9b" value="-29.669556254429665" />
+      <constant name="a1t" value="0.0" />
+      <constant name="z3b" value="203.815" />
+      <constant name="x10t" value="0.0" />
+      <constant name="y1b" value="-20.66989375063281" />
+      <constant name="a2b" value="0.0" />
+      <constant name="scoringThickness" value="0.001" />
+      <constant name="x7t" value="0.0" />
+      <constant name="y9t" value="29.669556254429665" />
+      <constant name="z3t" value="188.815" />
+      <constant name="x10b" value="0.0" />
+      <constant name="y1t" value="20.66989375063281" />
+      <constant name="z12b" value="911.185" />
+      <constant name="SA1" value="0.1" />
+      <constant name="z11t" value="888.815" />
+      <constant name="a2t" value="0.0" />
+      <constant name="x8b" value="0.0" />
+      <constant name="x_rot_top_add" value="0.0" />
+      <constant name="SA2" value="0.05" />
+      <constant name="y2b" value="-20.66989375063281" />
+      <constant name="z4b" value="211.185" />
+      <constant name="tracking_region_min" value="50.0" />
+      <constant name="world_side" value="5000.0" />
+      <constant name="sensorLength" value="98.33" />
+      <constant name="sensorWidth" value="38.3399" />
+      <constant name="z11b" value="903.815" />
+      <constant name="a3b" value="0.0" />
+      <constant name="ytar" value="0.0" />
+      <constant name="x8t" value="0.0" />
+      <constant name="y2t" value="20.66989375063281" />
+      <constant name="x_rot_bot" value="0.0" />
+      <constant name="z4t" value="196.185" />
+      <constant name="x9b" value="0.0" />
+      <constant name="a3t" value="0.0" />
+      <constant name="z5b" value="303.815" />
+      <constant name="y_rot" value="0.03052" />
+      <constant name="x1b" value="0.0" />
+      <constant name="y3b" value="-22.16983750126562" />
+      <constant name="dipoleMagnetLength" value="1080.0" />
+      <constant name="x12t" value="0.0" />
+      <constant name="x_rot_bot_add" value="0.0" />
+      <constant name="a4b" value="0.0" />
+      <constant name="ztar" value="0.0" />
+      <constant name="x9t" value="0.0" />
+      <constant name="z5t" value="288.815" />
+      <constant name="x1t" value="0.0" />
+      <constant name="y3t" value="22.16983750126562" />
+      <constant name="x12b" value="0.0" />
+      <constant name="electronGapLeftEdge" value="382.492" />
+      <constant name="a4t" value="0.0" />
+      <constant name="world_x" value="5000.0" />
+      <constant name="world_y" value="5000.0" />
+      <constant name="world_z" value="5000.0" />
+      <constant name="y4b" value="-22.16983750126562" />
+      <constant name="tracking_region_radius" value="2000.0" />
+      <constant name="z6b" value="311.185" />
+      <constant name="moduleWidth" value="40.34" />
+      <constant name="x2b" value="0.0" />
+      <constant name="x11t" value="0.0" />
+      <constant name="x_off" value="0.0" />
+      <constant name="a5b" value="0.0" />
+      <constant name="electronGapRightEdge" value="474.962" />
+      <constant name="vertSensWidth" value="38.3399" />
+      <constant name="y4t" value="22.16983750126562" />
+      <constant name="PI" value="3.14159265359" />
+      <constant name="z6t" value="296.185" />
+      <constant name="ecal_dface" value="1393.0" />
+      <constant name="x2t" value="0.0" />
+      <constant name="x11b" value="0.0" />
+      <constant name="ecal_z" value="80.0" />
+      <position name="tracking_region_pos" x="0.0" y="0.0" z="0.0" unit="mm" />
       <position name="TestRunModuleVolume_component0_position" x="0.0" y="0.0" z="-0.04200000000000001" unit="mm" />
       <rotation name="TestRunModuleVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="TestRunModuleVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -309,18 +310,6 @@
       <rotation name="Tracker_TestRunModule_layer12_module2_rotation" x="0.0" y="3.11107265359" z="-4.762388980385" unit="radian" />
       <position name="Tracker_TestRunModule_layer12_module3_position" x="77.78176418167736" y="-32.66944375569528" z="909.7611277105613" unit="mm" />
       <rotation name="Tracker_TestRunModule_layer12_module3_rotation" x="0.0" y="3.11107265359" z="-4.7123889803850005" unit="radian" />
-      <position name="TestRunModuleFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefFlare2Volume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefFlare2Volume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
-      <rotation name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
-      <position name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
-      <rotation name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
       <position name="BeamLeftVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="BeamLeftVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
       <position name="BeamLeftVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -1229,14 +1218,24 @@
       <rotation name="crystal23-5_rot_pos_top" x="0.0759356980444989" y="-0.3796784902224945" z="0.0" unit="radian" />
       <position name="crystal23-5_pos_neg_top" x="-298.89084923246253" y="90.7427015552106" z="1470.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_neg_top" x="0.0759356980444989" y="0.3796784902224945" z="0.0" unit="radian" />
-      <constant name="front_x" value="0.0" />
-      <constant name="front_z" value="10.0" />
-      <constant name="back_x" value="-147.505" />
-      <constant name="back_z" value="440.0" />
-      <constant name="chamber_x" value="-140.828" />
-      <constant name="chamber_z" value="225.0" />
-      <constant name="ecal_flange_x" value="21.17" />
-      <constant name="ecal_flange_z" value="1318" />
+      <position name="TestRunModuleFieldDefVolume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefVolume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefVolume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefVolume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefFlare2Volume_component0_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefFlare2Volume_component0_rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" x="0.0" y="0.0" z="0.0" unit="radian" />
+      <position name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_position" x="21.17" y="0.0" z="-82.80000000000001" unit="mm" />
+      <rotation name="TrackerFieldDef_TestRunModuleFieldDef_layer1_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <position name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_position" x="21.17" y="0.0" z="997.2" unit="mm" />
+      <rotation name="TrackerFieldDef_TestRunModuleFieldDefFlare2_layer2_module0_rotation" x="0.0" y="0.0" z="-1.570796326795" unit="radian" />
+      <constant name="svt_chamber_box_z" value="609.6" />
+      <constant name="svt_chamber_flare1_z" value="1285.621" />
+      <constant name="svt_chamber_flare2_z" value="1478.407" />
+      <constant name="svt_chamber_flange_z" value="1614.297" />
+      <constant name="svt_chamber_x" value="21.17" />
+      <constant name="svt_chamber_z" value="1318-1623.822" />
     </define>
     <materials>
       <element Z="1" formula="H" name="H">
@@ -1287,25 +1286,123 @@
         <D type="density" unit="g/cm3" value="2" />
         <composite n="1" ref="C" />
       </material>
-      <material Z="1" name="G4_Galactic" state="gas">
+      <material Z="13" name="G4_Al" state="solid">
+        <D unit="g/cm3" value="2.699" />
+        <atom unit="g/mole" value="26.9815" />
+      </material>
+      <material Z="13" name="AlHoneycomb" state="solid">
+        <D unit="g/cm3" value="0.13" />
+        <atom unit="g/mole" value="26.982" />
+      </material>
+      <isotope N="63" Z="29" name="Cu63">
+        <atom unit="g/mole" value="62.9296" />
+      </isotope>
+      <isotope N="65" Z="29" name="Cu65">
+        <atom unit="g/mole" value="64.9278" />
+      </isotope>
+      <element name="Cu">
+        <fraction n="0.6917" ref="Cu63" />
+        <fraction n="0.3083" ref="Cu65" />
+      </element>
+      <material name="G4_Cu" state="solid">
+        <D unit="g/cm3" value="8.96" />
+        <fraction n="1" ref="Cu" />
+      </material>
+      <isotope N="55" Z="25" name="Mn55">
+        <atom unit="g/mole" value="54.938" />
+      </isotope>
+      <element name="Manganese">
+        <fraction n="1" ref="Mn55" />
+      </element>
+      <isotope N="28" Z="14" name="Si28">
+        <atom unit="g/mole" value="27.9769" />
+      </isotope>
+      <isotope N="29" Z="14" name="Si29">
+        <atom unit="g/mole" value="28.9765" />
+      </isotope>
+      <isotope N="30" Z="14" name="Si30">
+        <atom unit="g/mole" value="29.9738" />
+      </isotope>
+      <isotope N="50" Z="24" name="Cr50">
+        <atom unit="g/mole" value="49.946" />
+      </isotope>
+      <isotope N="52" Z="24" name="Cr52">
+        <atom unit="g/mole" value="51.9405" />
+      </isotope>
+      <isotope N="53" Z="24" name="Cr53">
+        <atom unit="g/mole" value="52.9407" />
+      </isotope>
+      <isotope N="54" Z="24" name="Cr54">
+        <atom unit="g/mole" value="53.9389" />
+      </isotope>
+      <element name="Chromium">
+        <fraction n="0.04345" ref="Cr50" />
+        <fraction n="0.83789" ref="Cr52" />
+        <fraction n="0.09501" ref="Cr53" />
+        <fraction n="0.02365" ref="Cr54" />
+      </element>
+      <isotope N="58" Z="28" name="Ni58">
+        <atom unit="g/mole" value="57.9353" />
+      </isotope>
+      <isotope N="60" Z="28" name="Ni60">
+        <atom unit="g/mole" value="59.9308" />
+      </isotope>
+      <isotope N="61" Z="28" name="Ni61">
+        <atom unit="g/mole" value="60.9311" />
+      </isotope>
+      <isotope N="62" Z="28" name="Ni62">
+        <atom unit="g/mole" value="61.9283" />
+      </isotope>
+      <isotope N="64" Z="28" name="Ni64">
+        <atom unit="g/mole" value="63.928" />
+      </isotope>
+      <element name="Nickel">
+        <fraction n="0.680769" ref="Ni58" />
+        <fraction n="0.262231" ref="Ni60" />
+        <fraction n="0.011399" ref="Ni61" />
+        <fraction n="0.036345" ref="Ni62" />
+        <fraction n="0.009256" ref="Ni64" />
+      </element>
+      <isotope N="54" Z="26" name="Fe54">
+        <atom unit="g/mole" value="53.9396" />
+      </isotope>
+      <isotope N="56" Z="26" name="Fe56">
+        <atom unit="g/mole" value="55.9349" />
+      </isotope>
+      <isotope N="57" Z="26" name="Fe57">
+        <atom unit="g/mole" value="56.9354" />
+      </isotope>
+      <isotope N="58" Z="26" name="Fe58">
+        <atom unit="g/mole" value="57.9333" />
+      </isotope>
+      <element name="Fe">
+        <fraction n="0.05845" ref="Fe54" />
+        <fraction n="0.91754" ref="Fe56" />
+        <fraction n="0.02119" ref="Fe57" />
+        <fraction n="0.00282" ref="Fe58" />
+      </element>
+      <material name="StainlessSteel" state="solid">
+        <D unit="g/cm3" value="8.02" />
+        <fraction n="0.02" ref="Manganese" />
+        <fraction n="0.01" ref="Si" />
+        <fraction n="0.19" ref="Chromium" />
+        <fraction n="0.1" ref="Nickel" />
+        <fraction n="0.68" ref="Fe" />
+      </material>
+      <isotope N="1" Z="1" name="H1">
+        <atom unit="g/mole" value="1.00782503081372" />
+      </isotope>
+      <isotope N="2" Z="1" name="H2">
+        <atom unit="g/mole" value="2.01410199966617" />
+      </isotope>
+      <material name="G4_Galactic" state="gas">
         <T unit="K" value="2.73" />
         <P unit="pascal" value="3e-18" />
-        <!-- <MEE unit="eV" value="21.8"/> -->
-        <D unit="g/cm3" value="2e-25" />
-        <atom unit="g/mole" value="1.01" />
-      </material>
-      <material Z="13" formula=" " name="Aluminum">
-        <D value="2.7" />
-        <atom value="26.9815" />
+        <D unit="g/cm3" value="1e-25" />
+        <fraction n="1" ref="H" />
       </material>
       <element Z="26" formula="Fe" name="Iron">
         <atom value="55.845" />
-      </element>
-      <element Z="24" formula="Cr" name="Chromium">
-        <atom value="51.9961" />
-      </element>
-      <element Z="28" formula="Ni" name="Nickel">
-        <atom value="58.6934" />
       </element>
       <material formula=" " name="Stainless_304">
         <D value="8.00" />
@@ -1321,12 +1418,6 @@
       <box name="TestRunModuleVolume_component0Box" x="40.34" y="100.0" z="0.32" />
       <box name="TestRunModuleVolume_component0Sensor0Box" x="38.3399" y="98.33" z="0.32" />
       <box name="TestRunModuleVolume_component1Box" x="40.34" y="100.0" z="0.08399999999999999" />
-      <box name="TestRunModuleFieldDefBox" x="177.8" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefVolume_component0Box" x="177.8" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefFlare2Box" x="210.37903820816865" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefFlare2Volume_component0Box" x="210.37903820816865" y="416.052" z="0.001" />
-      <box name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" x="210.37903820816865" y="416.052" z="0.001" />
       <box name="BeamLeftBox" x="211.6" y="382.492" z="0.001" />
       <box name="BeamLeftVolume_component0Box" x="211.6" y="382.492" z="0.001" />
       <box name="BeamLeftVolume_component0Sensor0Box" x="211.6" y="382.492" z="0.001" />
@@ -1337,191 +1428,416 @@
       <box name="BeamRightVolume_component0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Sensor0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <trd name="crystal_trap" x1="13.3" x2="16.0" y1="13.3" y2="16.0" z="160.0" />
-      <eltube name="flange_egap_inside_tube" lunit="mm" dx="26.33" dy="26.33" dz="30" />
-      <eltube name="flange_photontube_inside" lunit="mm" dx="11" dy="11" dz="30" />
-      <box lunit="mm" name="front_flange_box" x="768.35" y="457.2" z="20" />
-      <trap name="front_egap_trap" aunit="deg" lunit="mm" z="30" theta="-4.796" phi="0" y1="52.66" x1="25.683" x2="25.683" alpha1="0" y2="52.66" x3="29.716" x4="29.716" alpha2="0" />
-      <trap name="front_chamber_trap" aunit="deg" lunit="mm" z="30" theta="-0.988" phi="0" y1="16" x1="331.198" x2="331.198" alpha1="0" y2="16" x3="334.064" x4="334.064" alpha2="0" />
-      <subtraction name="front_minus_chamber">
-        <first ref="front_flange_box" />
-        <second ref="front_chamber_trap" />
-        <position name="front_chamber_pos" unit="mm" x="-146.309" y="0" z="0" />
-      </subtraction>
-      <subtraction name="front_minus_photontube">
-        <first ref="front_minus_chamber" />
-        <second ref="flange_photontube_inside" />
-        <position name="front_photontube_pos" unit="mm" x="20.007" y="0" z="0" />
-        <rotation name="front_photontube_rot" unit="deg" x="0" y="1.748" z="0" />
-      </subtraction>
-      <subtraction name="front_minus_egap">
-        <first ref="front_minus_photontube" />
-        <second ref="front_egap_trap" />
-        <position name="front_egap_pos" unit="mm" x="-44.683" y="0" z="0" />
-      </subtraction>
-      <subtraction name="front_minus_egapleft">
-        <first ref="front_minus_egap" />
-        <second ref="flange_egap_inside_tube" />
-        <position name="front_egapleft_pos" unit="mm" x="-30.833" y="0" z="0" />
-        <rotation name="front_egapleft_rot" unit="deg" x="0" y="-0.956" z="0" />
-      </subtraction>
-      <subtraction name="front_minus_egapright">
-        <first ref="front_minus_egapleft" />
-        <second ref="flange_egap_inside_tube" />
-        <position name="front_egapright_pos" unit="mm" x="-58.532" y="0" z="0" />
-        <rotation name="front_egapright_rot" unit="deg" x="0" y="-8.594" z="0" />
-      </subtraction>
-      <box lunit="mm" name="back_flange_box" x="505" y="160" z="20" />
-      <trap name="back_egap_trap" aunit="deg" lunit="mm" z="30" theta="-4.796" phi="0" y1="52.66" x1="83.493" x2="83.493" alpha1="0" y2="52.66" x3="87.526" x4="87.526" alpha2="0" />
-      <trap name="back_chamber_trap" aunit="deg" lunit="mm" z="30" theta="-0.988" phi="0" y1="16" x1="372.279" x2="372.279" alpha1="0" y2="16" x3="375.145" x4="375.145" alpha2="0" />
-      <subtraction name="back_minus_chamber">
-        <first ref="back_flange_box" />
-        <second ref="back_chamber_trap" />
-        <position name="back_chamber_pos" unit="mm" x="-153.726-back_x" y="0" z="0" />
-      </subtraction>
-      <subtraction name="back_minus_photontube">
-        <first ref="back_minus_chamber" />
-        <second ref="flange_photontube_inside" />
-        <position name="back_photontube_pos" unit="mm" x="33.130-back_x" y="0" z="0" />
-        <rotation name="back_photontube_rot" unit="deg" x="0" y="1.748" z="0" />
-      </subtraction>
-      <subtraction name="back_minus_egap">
-        <first ref="back_minus_photontube" />
-        <second ref="back_egap_trap" />
-        <position name="back_egap_pos" unit="mm" x="-80.763-back_x" y="0" z="0" />
-      </subtraction>
-      <subtraction name="back_minus_egapleft">
-        <first ref="back_minus_egap" />
-        <second ref="flange_egap_inside_tube" />
-        <position name="back_egapleft_pos" unit="mm" x="-38.008-back_x" y="0" z="0" />
-        <rotation name="back_egapleft_rot" unit="deg" x="0" y="-0.956" z="0" />
-      </subtraction>
-      <subtraction name="back_minus_egapright">
-        <first ref="back_minus_egapleft" />
-        <second ref="flange_egap_inside_tube" />
-        <position name="back_egapright_pos" unit="mm" x="-123.518-back_x" y="0" z="0" />
-        <rotation name="back_egapright_rot" unit="deg" x="0" y="-8.594" z="0" />
-      </subtraction>
-      <trap name="chamber_trap" aunit="deg" lunit="mm" z="450" theta="-1.864" phi="0" y1="28" x1="377" x2="377" alpha1="0" y2="28" x3="406.29" x4="406.29" alpha2="0" />
+      <box name="TestRunModuleFieldDefBox" x="177.8" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefVolume_component0Box" x="177.8" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefVolume_component0Sensor0Box" x="177.8" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefFlare2Box" x="210.37903820816865" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefFlare2Volume_component0Box" x="210.37903820816865" y="416.052" z="0.001" />
+      <box name="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" x="210.37903820816865" y="416.052" z="0.001" />
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="chamber_trap" phi="-180" theta="1.864" x1="377" x2="377" x3="406.29" x4="406.29" y1="28" y2="28" z="450" />
       <box lunit="mm" name="chamber_cutaway_box" x="500" y="10" z="300" />
       <subtraction name="chamber_trim1">
         <first ref="chamber_trap" />
         <second ref="chamber_cutaway_box" />
         <position name="chamber_trim1_pos" unit="mm" x="0" y="16" z="-90" />
       </subtraction>
+      <box lunit="mm" name="chamber_cutaway_box2" x="500" y="10" z="300" />
       <subtraction name="chamber_trim2">
         <first ref="chamber_trim1" />
-        <second ref="chamber_cutaway_box" />
+        <second ref="chamber_cutaway_box2" />
         <position name="chamber_trim2_pos" unit="mm" x="0" y="-16" z="-90" />
       </subtraction>
-      <eltube name="photontube_outside" lunit="mm" dx="13" dy="13" dz="235" />
+      <eltube dx="13" dy="13" dz="235" lunit="mm" name="photontube_outside" />
       <union name="chamber_with_photontube">
         <first ref="chamber_trim2" />
         <second ref="photontube_outside" />
-        <position name="photontube_outside_pos" unit="mm" x="26.569-chamber_x" y="0" z="0" />
-        <rotation name="photontube_outside_rot" unit="deg" x="0" y="1.748" z="0" />
+        <position name="chamber_with_photontube_pos" unit="mm" x="167.397" y="0" z="0" />
+        <rotation name="chamber_with_photontube_rot" unit="deg" x="0" y="1.748" z="0" />
       </union>
-      <trap name="egap_outside_trap_upper" aunit="deg" lunit="mm" z="450" theta="-4.796" phi="0" y1="32.33" x1="106.912" x2="52.344" alpha1="0.269" y2="32.33" x3="167.411" x4="112.843" alpha2="0.269" />
-      <trap name="egap_outside_trap_lower" aunit="deg" lunit="mm" z="450" theta="-4.796" phi="0" y1="32.33" x2="106.912" x1="52.344" alpha1="-0.269" y2="32.33" x4="167.411" x3="112.843" alpha2="-0.269" />
+      <trap alpha1="0.269" alpha2="0.269" aunit="deg" lunit="mm" name="egap_outside_trap_upper" phi="-180" theta="4.796" x1="106.912" x2="52.344" x3="167.411" x4="112.843" y1="32.33" y2="32.33" z="450" />
       <union name="chamber_with_egap_upper">
         <first ref="chamber_with_photontube" />
         <second ref="egap_outside_trap_upper" />
-        <position name="egap_upper_pos" unit="mm" x="-63.810-chamber_x" y="16.165" z="0" />
+        <position name="chamber_with_egap_upper_pos" unit="mm" x="77.018" y="16.165" z="0" />
       </union>
+      <trap alpha1="-0.269" alpha2="-0.269" aunit="deg" lunit="mm" name="egap_outside_trap_lower" phi="-180" theta="4.796" x1="52.344" x2="106.912" x3="112.843" x4="167.411" y1="32.33" y2="32.33" z="450" />
       <union name="chamber_with_egap_lower">
         <first ref="chamber_with_egap_upper" />
         <second ref="egap_outside_trap_lower" />
-        <position name="egap_lower_pos" unit="mm" x="-63.810-chamber_x" y="-16.165" z="0" />
+        <position name="chamber_with_egap_lower_pos" unit="mm" x="77.018" y="-16.165" z="0" />
       </union>
+      <box lunit="mm" name="chamber_cutaway_box3" x="500" y="10" z="300" />
       <subtraction name="chamber_with_egap_trimtop">
         <first ref="chamber_with_egap_lower" />
-        <second ref="chamber_cutaway_box" />
-        <position name="egap_trimtop_pos" unit="mm" x="0" y="34.33" z="-90" />
+        <second ref="chamber_cutaway_box3" />
+        <position name="chamber_with_egap_trimtop_pos" unit="mm" x="0" y="34.33" z="-90" />
       </subtraction>
+      <box lunit="mm" name="chamber_cutaway_box4" x="500" y="10" z="300" />
       <subtraction name="chamber_with_egap_trimbot">
         <first ref="chamber_with_egap_trimtop" />
-        <second ref="chamber_cutaway_box" />
-        <position name="egap_trimbot_pos" unit="mm" x="0" y="-34.33" z="-90" />
+        <second ref="chamber_cutaway_box4" />
+        <position name="chamber_with_egap_trimbot_pos" unit="mm" x="0" y="-34.33" z="-90" />
       </subtraction>
-      <box lunit="mm" name="chamber_end_box" x="768.35" y="457.2" z="50" />
+      <box lunit="mm" name="back_end_box" x="768.35" y="457.2" z="50" />
       <subtraction name="chamber_outside_trim1">
         <first ref="chamber_with_egap_trimbot" />
-        <second ref="chamber_end_box" />
-        <position name="outside_trim1_pos" unit="mm" x="0" y="0" z="-230" />
+        <second ref="back_end_box" />
+        <position name="chamber_outside_trim1_pos" unit="mm" x="0" y="0" z="-230" />
       </subtraction>
+      <box lunit="mm" name="back_end_box2" x="768.35" y="457.2" z="50" />
       <subtraction name="chamber_outside_trim2">
         <first ref="chamber_outside_trim1" />
-        <second ref="chamber_end_box" />
-        <position name="outside_trim2_pos" unit="mm" x="0" y="0" z="230" />
+        <second ref="back_end_box2" />
+        <position name="chamber_outside_trim2_pos" unit="mm" x="0" y="0" z="230" />
       </subtraction>
-      <eltube name="photontube_inside" lunit="mm" dx="11" dy="11" dz="235" />
+      <eltube dx="11" dy="11" dz="235" lunit="mm" name="photontube_inside" />
       <subtraction name="chamber_minus_photontube">
         <first ref="chamber_outside_trim2" />
         <second ref="photontube_inside" />
-        <position name="photontube_inside_pos" unit="mm" x="26.569-chamber_x" y="0" z="0" />
-        <rotation name="photontube_inside_rot" unit="deg" x="0" y="1.748" z="0" />
+        <position name="chamber_minus_photontube_pos" unit="mm" x="167.397" y="0" z="0" />
+        <rotation name="chamber_minus_photontube_rot" unit="deg" x="0" y="1.748" z="0" />
       </subtraction>
-      <trap name="chamber_inside_trap" aunit="deg" lunit="mm" z="450" theta="-0.988" phi="0" y1="16" x1="331.676" x2="331.676" alpha1="0" y2="16" x3="374.667" x4="374.667" alpha2="0" />
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="chamber_inside_trap" phi="-180" theta="0.988" x1="331.676" x2="331.676" x3="374.667" x4="374.667" y1="16" y2="16" z="450.001" />
       <subtraction name="chamber_minus_inside">
         <first ref="chamber_minus_photontube" />
         <second ref="chamber_inside_trap" />
-        <position name="chamber_inside_pos" unit="mm" x="-150.017-chamber_x" y="0" z="0" />
+        <position name="chamber_minus_inside_pos" unit="mm" x="-9.189" y="0" z="0" />
       </subtraction>
-      <trap name="egap_inside_trap" aunit="deg" lunit="mm" z="450" theta="-4.796" phi="0" y1="52.66" x1="26.355" x2="26.355" alpha1="0" y2="52.66" x3="86.854" x4="86.854" alpha2="0" />
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="egap_inside_trap" phi="-180" theta="4.796" x1="26.355" x2="26.355" x3="86.854" x4="86.854" y1="52.66" y2="52.66" z="450.001" />
       <subtraction name="chamber_minus_egapinside">
         <first ref="chamber_minus_inside" />
         <second ref="egap_inside_trap" />
-        <position name="egap_inside_pos" unit="mm" x="-62.723-chamber_x" y="0" z="0" />
+        <position name="chamber_minus_egapinside_pos" unit="mm" x="78.105" y="0" z="0" />
       </subtraction>
-      <eltube name="egap_inside_tube" lunit="mm" dx="26.33" dy="26.33" dz="240" />
+      <eltube dx="26.33" dy="26.33" dz="240" lunit="mm" name="egap_inside_tube" />
       <subtraction name="chamber_minus_egap_left">
         <first ref="chamber_minus_egapinside" />
         <second ref="egap_inside_tube" />
-        <position name="egap_inside_left_pos" unit="mm" x="-34.4205-chamber_x" y="0" z="0" />
-        <rotation name="egap_inside_left_rot" unit="deg" x="0" y="-0.956" z="0" />
+        <position name="chamber_minus_egap_left_pos" unit="mm" x="106.4075" y="0" z="0" />
+        <rotation name="chamber_minus_egap_left_rot" unit="deg" x="0" y="-0.956" z="0" />
       </subtraction>
-      <subtraction name="chamber_minus_egap_right">
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="egap_inside_tube2" rmax="26.33" rmin="0" startphi="0" z="480" />
+      <subtraction name="ECAL_chamber">
         <first ref="chamber_minus_egap_left" />
-        <second ref="egap_inside_tube" />
-        <position name="egap_inside_right_pos" unit="mm" x="-91.025-chamber_x" y="0" z="0" />
-        <rotation name="egap_inside_right_rot" unit="deg" x="0" y="-8.594" z="0" />
+        <second ref="egap_inside_tube2" />
+        <position name="ECAL_chamber_pos" unit="mm" x="49.803" y="0" z="0" />
+        <rotation name="ECAL_chamber_rot" unit="deg" x="0" y="-8.594" z="0" />
       </subtraction>
-      <box lunit="mm" name="WorldBox" x="80000" y="80000" z="80000" />
+      <box lunit="mm" name="al_honeycomb" x="60" y="16" z="60" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="al_pipe_across_bottom1" rmax="4" rmin="3" startphi="0" z="700" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="al_pipe_across_bottom2" rmax="4" rmin="3" startphi="0" z="780" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="al_pipe_across_top1" rmax="4" rmin="3" startphi="0" z="660" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="al_pipe_across_top2" rmax="4" rmin="3" startphi="0" z="740" />
+      <box lunit="mm" name="back_flange_box" x="505" y="160" z="20" />
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="back_chamber_trap" phi="-180" theta="0.988" x1="372.279" x2="372.279" x3="375.145" x4="375.145" y1="16" y2="16" z="30" />
+      <subtraction name="back_minus_chamber">
+        <first ref="back_flange_box" />
+        <second ref="back_chamber_trap" />
+        <position name="back_minus_chamber_pos" unit="mm" x="-6.221" y="0" z="0" />
+      </subtraction>
+      <eltube dx="11" dy="11" dz="30" lunit="mm" name="flange_photontube_inside2" />
+      <subtraction name="back_minus_photontube">
+        <first ref="back_minus_chamber" />
+        <second ref="flange_photontube_inside2" />
+        <position name="back_minus_photontube_pos" unit="mm" x="180.635" y="0" z="0" />
+        <rotation name="back_minus_photontube_rot" unit="deg" x="0" y="1.748" z="0" />
+      </subtraction>
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="back_egap_trap" phi="-180" theta="4.796" x1="83.493" x2="83.493" x3="87.526" x4="87.526" y1="52.66" y2="52.66" z="30" />
+      <subtraction name="back_minus_egap">
+        <first ref="back_minus_photontube" />
+        <second ref="back_egap_trap" />
+        <position name="back_minus_egap_pos" unit="mm" x="66.742" y="0" z="0" />
+      </subtraction>
+      <eltube dx="26.33" dy="26.33" dz="30" lunit="mm" name="flange_egap_inside_tube3" />
+      <subtraction name="back_minus_egapleft">
+        <first ref="back_minus_egap" />
+        <second ref="flange_egap_inside_tube3" />
+        <position name="back_minus_egapleft_pos" unit="mm" x="109.497" y="0" z="0" />
+        <rotation name="back_minus_egapleft_rot" unit="deg" x="0" y="-0.956" z="0" />
+      </subtraction>
+      <eltube dx="26.33" dy="26.33" dz="30" lunit="mm" name="flange_egap_inside_tube4" />
+      <subtraction name="back_flange">
+        <first ref="back_minus_egapleft" />
+        <second ref="flange_egap_inside_tube4" />
+        <position name="back_flange_pos" unit="mm" x="23.987" y="0" z="0" />
+        <rotation name="back_flange_rot" unit="deg" x="0" y="-8.594" z="0" />
+      </subtraction>
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="cu_Bpipe_inner_left" rmax="4" rmin="3" startphi="0" z="201" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="cu_Bpipe_inner_right" rmax="4" rmin="3" startphi="0" z="201" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="cu_Bpipe_outer_right" rmax="4" rmin="3" startphi="0" z="80" />
+      <eltube dx="5" dy="1" dz="100" lunit="mm" name="cu_Bpipe_outer_right1" />
+      <eltube dx="5" dy="1" dz="100" lunit="mm" name="cu_Bpipe_outer_right2" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="cu_Tpipe_inner_left" rmax="4" rmin="3" startphi="0" z="201" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="cu_Tpipe_inner_right" rmax="4" rmin="3" startphi="0" z="201" />
+      <eltube dx="5" dy="1" dz="100" lunit="mm" name="cu_Tpipe_outer_right1" />
+      <eltube dx="5" dy="1" dz="100" lunit="mm" name="cu_Tpipe_outer_right2" />
+      <tube aunit="deg" deltaphi="360" lunit="mm" name="cu_Tpipe_outer_right3" rmax="4" rmin="3" startphi="0" z="80" />
+      <para alpha="0" aunit="deg" lunit="mm" name="cu_plate_bottom_left" phi="0" theta="0.97" x="400" y="1" z="200" />
+      <trd lunit="mm" name="cu_plate_bottom_middle" x1="70" x2="98" y1="1" y2="1" z="200" />
+      <para alpha="0" aunit="deg" lunit="mm" name="cu_plate_bottom_right" phi="-180" theta="9.68" x="220" y="1" z="200" />
+      <para alpha="0" aunit="deg" lunit="mm" name="cu_plate_top_left" phi="0" theta="0.97" x="400" y="1" z="200" />
+      <trd lunit="mm" name="cu_plate_top_middle" x1="70" x2="98" y1="1" y2="1" z="200" />
+      <para alpha="0" aunit="deg" lunit="mm" name="cu_plate_top_right" phi="180" theta="9.68" x="220" y="1" z="200" />
+      <box lunit="mm" name="front_flange_box" x="768.35" y="457.2" z="20" />
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="front_chamber_trap" phi="-180" theta="0.988" x1="331.198" x2="331.198" x3="334.064" x4="334.064" y1="16" y2="16" z="30" />
+      <subtraction name="front_minus_chamber">
+        <first ref="front_flange_box" />
+        <second ref="front_chamber_trap" />
+        <position name="front_minus_chamber_pos" unit="mm" x="-146.309" y="0" z="0" />
+      </subtraction>
+      <eltube dx="11" dy="11" dz="30" lunit="mm" name="flange_photontube_inside" />
+      <subtraction name="front_minus_photontube">
+        <first ref="front_minus_chamber" />
+        <second ref="flange_photontube_inside" />
+        <position name="front_minus_photontube_pos" unit="mm" x="20.007" y="0" z="0" />
+        <rotation name="front_minus_photontube_rot" unit="deg" x="0" y="1.748" z="0" />
+      </subtraction>
+      <trap alpha1="0" alpha2="0" aunit="deg" lunit="mm" name="front_egap_trap" phi="-180" theta="4.796" x1="25.683" x2="25.683" x3="29.716" x4="29.716" y1="52.66" y2="52.66" z="30" />
+      <subtraction name="front_minus_egap">
+        <first ref="front_minus_photontube" />
+        <second ref="front_egap_trap" />
+        <position name="front_minus_egap_pos" unit="mm" x="-44.683" y="0" z="0" />
+      </subtraction>
+      <eltube dx="26.33" dy="26.33" dz="30" lunit="mm" name="flange_egap_inside_tube" />
+      <subtraction name="front_minus_egapleft">
+        <first ref="front_minus_egap" />
+        <second ref="flange_egap_inside_tube" />
+        <position name="front_minus_egapleft_pos" unit="mm" x="-30.833" y="0" z="0" />
+        <rotation name="front_minus_egapleft_rot" unit="deg" x="0" y="-0.956" z="0" />
+      </subtraction>
+      <eltube dx="26.33" dy="26.33" dz="30" lunit="mm" name="flange_egap_inside_tube2" />
+      <subtraction name="front_flange">
+        <first ref="front_minus_egapleft" />
+        <second ref="flange_egap_inside_tube2" />
+        <position name="front_flange_pos" unit="mm" x="-58.532" y="0" z="0" />
+        <rotation name="front_flange_rot" unit="deg" x="0" y="-8.594" z="0" />
+      </subtraction>
+      <box lunit="mm" name="ecal_box_outer1" x="800" y="14" z="201" />
+      <box lunit="mm" name="ecal_box_inner1" x="780" y="20" z="210" />
+      <subtraction name="ecal_box_minus_inner1">
+        <first ref="ecal_box_outer1" />
+        <second ref="ecal_box_inner1" />
+        <position name="ecal_box_minus_inner1_pos" unit="mm" x="0" y="1.6" z="18.5" />
+      </subtraction>
+      <box lunit="mm" name="ecal_box_inner2" x="680" y="12" z="74.2" />
+      <subtraction name="ecal_box_minus_inner2">
+        <first ref="ecal_box_minus_inner1" />
+        <second ref="ecal_box_inner2" />
+        <position name="ecal_box_minus_inner2_pos" unit="mm" x="0" y="1.6" z="-100.5" />
+      </subtraction>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_0" phi="0" theta="0" x="6" y="14" z="15" />
+      <union name="box_with_ppd">
+        <first ref="ecal_box_minus_inner2" />
+        <second ref="ppd_0" />
+        <position name="box_with_ppd_pos" unit="mm" x="0" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_1" phi="-180" theta="3.87" x="6" y="14" z="15" />
+      <union name="box_with_ppd1">
+        <first ref="box_with_ppd" />
+        <second ref="ppd_1" />
+        <position name="box_with_ppd1_pos" unit="mm" x="-52.4" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_2" phi="-180" theta="7.74" x="6" y="14" z="15" />
+      <union name="box_with_ppd2">
+        <first ref="box_with_ppd1" />
+        <second ref="ppd_2" />
+        <position name="box_with_ppd2_pos" unit="mm" x="-105" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_3" phi="-180" theta="11.62" x="6" y="14" z="15" />
+      <union name="box_with_ppd3">
+        <first ref="box_with_ppd2" />
+        <second ref="ppd_3" />
+        <position name="box_with_ppd3_pos" unit="mm" x="-158" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_4" phi="-180" theta="15.49" x="6" y="14" z="15" />
+      <union name="box_with_ppd4">
+        <first ref="box_with_ppd3" />
+        <second ref="ppd_4" />
+        <position name="box_with_ppd4_pos" unit="mm" x="-211.7" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_5" phi="-180" theta="19.36" x="6" y="14" z="15" />
+      <union name="box_with_ppd5">
+        <first ref="box_with_ppd4" />
+        <second ref="ppd_5" />
+        <position name="box_with_ppd5_pos" unit="mm" x="-266.4" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_6" phi="0" theta="3.87" x="6" y="14" z="15" />
+      <union name="box_with_ppd6">
+        <first ref="box_with_ppd5" />
+        <second ref="ppd_6" />
+        <position name="box_with_ppd6_pos" unit="mm" x="52.4" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_7" phi="0" theta="7.74" x="6" y="14" z="15" />
+      <union name="box_with_ppd7">
+        <first ref="box_with_ppd6" />
+        <second ref="ppd_7" />
+        <position name="box_with_ppd7_pos" unit="mm" x="105" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_8" phi="0" theta="11.62" x="6" y="14" z="15" />
+      <union name="box_with_ppd8">
+        <first ref="box_with_ppd7" />
+        <second ref="ppd_8" />
+        <position name="box_with_ppd8_pos" unit="mm" x="158" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_9" phi="0" theta="15.49" x="6" y="14" z="15" />
+      <union name="box_with_ppd9">
+        <first ref="box_with_ppd8" />
+        <second ref="ppd_9" />
+        <position name="box_with_ppd9_pos" unit="mm" x="211.7" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_10" phi="0" theta="19.36" x="6" y="14" z="15" />
+      <union name="layer_1_bottom">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_1_bottom_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_1_top">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_1_top_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_2_bottom">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_2_bottom_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_2_top">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_2_top_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_3_bottom">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_3_bottom_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_3_top">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_3_top_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_4_bottom">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_4_bottom_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_4_top">
+        <first ref="box_with_ppd9" />
+        <second ref="ppd_10" />
+        <position name="layer_4_top_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_left2" phi="0" theta="0.97" x="4" y="14" z="201" />
+      <union name="layer_5a1_1">
+        <first ref="ecal_box_minus_inner2" />
+        <second ref="ppd_left2" />
+        <position name="layer_5a1_1_pos" unit="mm" x="-19.03" y="0" z="0" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_left1" phi="0" theta="0.97" x="5.02" y="14" z="15" />
+      <union name="layer_5a1">
+        <first ref="layer_5a1_1" />
+        <second ref="ppd_left1" />
+        <position name="layer_5a1_pos" unit="mm" x="-16.5" y="0" z="-93" />
+      </union>
+      <trd lunit="mm" name="electron_hole_left" x1="381.77" x2="388.57" y1="40" y2="40" z="202" />
+      <subtraction name="layer_5a2">
+        <first ref="layer_5a1" />
+        <second ref="electron_hole_left" />
+        <position name="layer_5a2_pos" unit="mm" x="-213.615" y="0" z="0" />
+      </subtraction>
+      <union name="layer_5a3">
+        <first ref="layer_5a2" />
+        <second ref="ppd_6" />
+        <position name="layer_5a3_pos" unit="mm" x="52.4" y="0" z="-93" />
+      </union>
+      <union name="layer_5a4">
+        <first ref="layer_5a3" />
+        <second ref="ppd_7" />
+        <position name="layer_5a4_pos" unit="mm" x="105" y="0" z="-93" />
+      </union>
+      <union name="layer_5a5">
+        <first ref="layer_5a4" />
+        <second ref="ppd_8" />
+        <position name="layer_5a5_pos" unit="mm" x="158" y="0" z="-93" />
+      </union>
+      <union name="layer_5a6">
+        <first ref="layer_5a5" />
+        <second ref="ppd_9" />
+        <position name="layer_5a6_pos" unit="mm" x="211.7" y="0" z="-93" />
+      </union>
+      <union name="layer_5a7">
+        <first ref="layer_5a6" />
+        <second ref="ppd_10" />
+        <position name="layer_5a7_pos" unit="mm" x="266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_5B_left">
+        <first ref="layer_5a7" />
+        <second ref="ppd_0" />
+        <position name="layer_5B_left_pos" unit="mm" x="0" y="0" z="-93" />
+      </union>
+      <para alpha="0" aunit="deg" lunit="mm" name="electron_hole_right" phi="-180" theta="9.68" x="662.65" y="30" z="202" />
+      <subtraction name="layer_5b1">
+        <first ref="ecal_box_minus_inner2" />
+        <second ref="electron_hole_right" />
+        <position name="layer_5b1_pos" unit="mm" x="192.095" y="0" z="0" />
+      </subtraction>
+      <para alpha="0" aunit="deg" lunit="mm" name="ppd_right" phi="-180" theta="9.68" x="9" y="14" z="200.4" />
+      <union name="layer_5b2">
+        <first ref="layer_5b1" />
+        <second ref="ppd_right" />
+        <position name="layer_5b2_pos" unit="mm" x="-143.853" y="0" z="0" />
+      </union>
+      <union name="layer_5b3">
+        <first ref="layer_5b2" />
+        <second ref="ppd_3" />
+        <position name="layer_5b3_pos" unit="mm" x="-158" y="0" z="-93" />
+      </union>
+      <union name="layer_5b4">
+        <first ref="layer_5b3" />
+        <second ref="ppd_4" />
+        <position name="layer_5b4_pos" unit="mm" x="-211.7" y="0" z="-93" />
+      </union>
+      <union name="layer_5B_right">
+        <first ref="layer_5b4" />
+        <second ref="ppd_5" />
+        <position name="layer_5B_right_pos" unit="mm" x="-266.4" y="0" z="-93" />
+      </union>
+      <union name="layer_5T_left">
+        <first ref="layer_5a7" />
+        <second ref="ppd_0" />
+        <position name="layer_5T_left_pos" unit="mm" x="0" y="0" z="-93" />
+      </union>
+      <union name="layer_5T_right">
+        <first ref="layer_5b4" />
+        <second ref="ppd_5" />
+        <position name="layer_5T_right_pos" unit="mm" x="-266.4" y="0" z="-93" />
+      </union>
+      <box lunit="mm" name="steel_bar" x="30" y="15" z="200" />
+      <box lunit="mm" name="ECAL" x="860" y="457.2" z="4000" />
       <box lunit="mm" name="svt_chamber_outer_box" x="454.152" y="203.2" z="1219.2" />
-      <trd lunit="mm" name="svt_chamber_outer_flare1" x1="454.152" x2="454.152" y1="203.2" y2="412.8008" z="384.622" />
-      <union name="svt_chamber_1">
-        <first ref="svt_chamber_outer_box" />
-        <second ref="svt_chamber_outer_flare1" />
-        <position name="svt_chamber_outer_flare1_pos" unit="mm" x="0" y="0" z="801.911" />
-      </union>
-      <trd lunit="mm" name="svt_chamber_outer_flare2" x1="454.152" x2="736.6" y1="283.48644796186" y2="412.8008" z="237.269369075406" />
-      <union name="svt_chamber_2">
-        <first ref="svt_chamber_1" />
-        <second ref="svt_chamber_outer_flare2" />
-        <position name="svt_chamber_outer_flare2_pos" unit="mm" x="0" y="0" z="875.587315462297" />
-      </union>
-      <box lunit="mm" name="svt_chamber_outer_flange" x="768.35" y="457.2" z="25.4" />
-      <union name="svt_chamber_3">
-        <first ref="svt_chamber_2" />
-        <second ref="svt_chamber_outer_flange" />
-        <position name="svt_chamber_outer_flange_pos" unit="mm" x="0" y="0" z="981.522" />
-      </union>
       <box lunit="mm" name="svt_chamber_inner_box" x="416.052" y="177.8" z="1221.2" />
-      <subtraction name="svt_chamber_4">
-        <first ref="svt_chamber_3" />
+      <subtraction name="svt_chamber_box">
+        <first ref="svt_chamber_outer_box" />
         <second ref="svt_chamber_inner_box" />
       </subtraction>
-      <trd lunit="mm" name="svt_chamber_inner_flare1" x1="416.052" x2="416.052" y1="177.8" y2="387.4008" z="394.622" />
-      <subtraction name="svt_chamber_5">
-        <first ref="svt_chamber_4" />
+      <trd lunit="mm" name="svt_chamber_outer_flare1" x1="454.152" x2="454.152" y1="203.2" y2="254.832" z="132.842" />
+      <trd lunit="mm" name="svt_chamber_inner_flare1" x1="416.052" x2="416.052" y1="172.864" y2="234.368" z="158.242" />
+      <subtraction name="svt_chamber_flare1">
+        <first ref="svt_chamber_outer_flare1" />
         <second ref="svt_chamber_inner_flare1" />
-        <position name="svt_chamber_inner_flare1_pos" unit="mm" x="0" y="0" z="801.911" />
       </subtraction>
-      <trd lunit="mm" name="svt_chamber_inner_flare2" x1="416.052" x2="698.5" y1="258.08644796186" y2="387.4008" z="247.269369075406" />
-      <subtraction name="svt_chamber">
-        <first ref="svt_chamber_5" />
+      <trd lunit="mm" name="svt_chamber_outer_flare2" x1="454.152" x2="679.704" y1="254.832" y2="353.06" z="252.73" />
+      <trd lunit="mm" name="svt_chamber_inner_flare2" x1="404.718" x2="652.938" y1="224.496" y2="332.596" z="278.13" />
+      <subtraction name="svt_chamber_flare2">
+        <first ref="svt_chamber_outer_flare2" />
         <second ref="svt_chamber_inner_flare2" />
-        <position name="svt_chamber_inner_flare2_pos" unit="mm" x="0" y="0" z="875.587315462297" />
       </subtraction>
+      <box lunit="mm" name="svt_chamber_outer_flange" x="768.35" y="457.2" z="19.05" />
+      <box lunit="mm" name="svt_chamber_inner_flange" x="654.05" y="342.9" z="25.4" />
+      <subtraction name="svt_chamber_flange">
+        <first ref="svt_chamber_outer_flange" />
+        <second ref="svt_chamber_inner_flange" />
+      </subtraction>
+      <box lunit="mm" name="WorldBox" x="80000" y="80000" z="80000" />
     </solids>
     <structure>
       <volume name="TestRunModuleVolume_component0Sensor0">
@@ -1557,56 +1873,6 @@
           <positionref ref="TestRunModuleVolume_component1_position" />
           <rotationref ref="TestRunModuleVolume_component1_rotation" />
           <physvolid field_name="component" value="1" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefVolume_component0Sensor0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefVolume_component0Sensor0Box" />
-        <sdref ref="TrackerFieldDef" />
-      </volume>
-      <volume name="TestRunModuleFieldDefVolume_component0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefVolume_component0Box" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefVolume_component0Sensor0" />
-          <positionref ref="TestRunModuleFieldDefVolume_component0Sensor0Position" />
-          <rotationref ref="TestRunModuleFieldDefVolume_component0Sensor0Rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefVolume">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefBox" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefVolume_component0" />
-          <positionref ref="TestRunModuleFieldDefVolume_component0_position" />
-          <rotationref ref="TestRunModuleFieldDefVolume_component0_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefFlare2Volume_component0Sensor0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" />
-        <sdref ref="TrackerFieldDef" />
-      </volume>
-      <volume name="TestRunModuleFieldDefFlare2Volume_component0">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Box" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0" />
-          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" />
-          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-      </volume>
-      <volume name="TestRunModuleFieldDefFlare2Volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="TestRunModuleFieldDefFlare2Box" />
-        <physvol>
-          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0" />
-          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0_position" />
-          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0_rotation" />
-          <physvolid field_name="component" value="0" />
         </physvol>
       </volume>
       <volume name="BeamLeftVolume_component0Sensor0">
@@ -1690,21 +1956,219 @@
         <sdref ref="Ecal" />
         <visref ref="ECALVis" />
       </volume>
-      <volume name="ecal_front_flange_vol">
-        <materialref ref="Aluminum" />
-        <solidref ref="front_minus_egapright" />
+      <volume name="TestRunModuleFieldDefVolume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefVolume_component0Sensor0Box" />
+        <sdref ref="TrackerFieldDef" />
       </volume>
-      <volume name="ecal_back_flange_vol">
-        <materialref ref="Aluminum" />
-        <solidref ref="back_minus_egapright" />
+      <volume name="TestRunModuleFieldDefVolume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefVolume_component0Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefVolume_component0Sensor0" />
+          <positionref ref="TestRunModuleFieldDefVolume_component0Sensor0Position" />
+          <rotationref ref="TestRunModuleFieldDefVolume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
       </volume>
-      <volume name="ecal_chamber_vol">
-        <materialref ref="Aluminum" />
-        <solidref ref="chamber_minus_egap_right" />
+      <volume name="TestRunModuleFieldDefVolume">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefBox" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefVolume_component0" />
+          <positionref ref="TestRunModuleFieldDefVolume_component0_position" />
+          <rotationref ref="TestRunModuleFieldDefVolume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
       </volume>
-      <volume name="svt_chamber_vol">
+      <volume name="TestRunModuleFieldDefFlare2Volume_component0Sensor0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Box" />
+        <sdref ref="TrackerFieldDef" />
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume_component0">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Volume_component0Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0" />
+          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Position" />
+          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0Sensor0Rotation" />
+          <physvolid field_name="sensor" value="0" />
+        </physvol>
+      </volume>
+      <volume name="TestRunModuleFieldDefFlare2Volume">
+        <materialref ref="Vacuum" />
+        <solidref ref="TestRunModuleFieldDefFlare2Box" />
+        <physvol>
+          <volumeref ref="TestRunModuleFieldDefFlare2Volume_component0" />
+          <positionref ref="TestRunModuleFieldDefFlare2Volume_component0_position" />
+          <rotationref ref="TestRunModuleFieldDefFlare2Volume_component0_rotation" />
+          <physvolid field_name="component" value="0" />
+        </physvol>
+      </volume>
+      <volume name="V_ECAL_chamber">
+        <materialref ref="G4_Al" />
+        <solidref ref="ECAL_chamber" />
+      </volume>
+      <volume name="V_al_honeycomb">
+        <materialref ref="AlHoneycomb" />
+        <solidref ref="al_honeycomb" />
+      </volume>
+      <volume name="V_al_pipe_across_bottom1">
+        <materialref ref="G4_Al" />
+        <solidref ref="al_pipe_across_bottom1" />
+      </volume>
+      <volume name="V_al_pipe_across_bottom2">
+        <materialref ref="G4_Al" />
+        <solidref ref="al_pipe_across_bottom2" />
+      </volume>
+      <volume name="V_al_pipe_across_top1">
+        <materialref ref="G4_Al" />
+        <solidref ref="al_pipe_across_top1" />
+      </volume>
+      <volume name="V_al_pipe_across_top2">
+        <materialref ref="G4_Al" />
+        <solidref ref="al_pipe_across_top2" />
+      </volume>
+      <volume name="V_back_flange">
+        <materialref ref="G4_Al" />
+        <solidref ref="back_flange" />
+      </volume>
+      <volume name="V_cu_Bpipe_inner_left">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Bpipe_inner_left" />
+      </volume>
+      <volume name="V_cu_Bpipe_inner_right">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Bpipe_inner_right" />
+      </volume>
+      <volume name="V_cu_Bpipe_outer_right">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Bpipe_outer_right" />
+      </volume>
+      <volume name="V_cu_Bpipe_outer_right1">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Bpipe_outer_right1" />
+      </volume>
+      <volume name="V_cu_Bpipe_outer_right2">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Bpipe_outer_right2" />
+      </volume>
+      <volume name="V_cu_Tpipe_inner_left">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Tpipe_inner_left" />
+      </volume>
+      <volume name="V_cu_Tpipe_inner_right">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Tpipe_inner_right" />
+      </volume>
+      <volume name="V_cu_Tpipe_outer_right1">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Tpipe_outer_right1" />
+      </volume>
+      <volume name="V_cu_Tpipe_outer_right2">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Tpipe_outer_right2" />
+      </volume>
+      <volume name="V_cu_Tpipe_outer_right3">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_Tpipe_outer_right3" />
+      </volume>
+      <volume name="V_cu_plate_bottom_left">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_plate_bottom_left" />
+      </volume>
+      <volume name="V_cu_plate_bottom_middle">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_plate_bottom_middle" />
+      </volume>
+      <volume name="V_cu_plate_bottom_right">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_plate_bottom_right" />
+      </volume>
+      <volume name="V_cu_plate_top_left">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_plate_top_left" />
+      </volume>
+      <volume name="V_cu_plate_top_middle">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_plate_top_middle" />
+      </volume>
+      <volume name="V_cu_plate_top_right">
+        <materialref ref="G4_Cu" />
+        <solidref ref="cu_plate_top_right" />
+      </volume>
+      <volume name="V_front_flange">
+        <materialref ref="G4_Al" />
+        <solidref ref="front_flange" />
+      </volume>
+      <volume name="V_layer_1_bottom">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_1_bottom" />
+      </volume>
+      <volume name="V_layer_1_top">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_1_top" />
+      </volume>
+      <volume name="V_layer_2_bottom">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_2_bottom" />
+      </volume>
+      <volume name="V_layer_2_top">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_2_top" />
+      </volume>
+      <volume name="V_layer_3_bottom">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_3_bottom" />
+      </volume>
+      <volume name="V_layer_3_top">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_3_top" />
+      </volume>
+      <volume name="V_layer_4_bottom">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_4_bottom" />
+      </volume>
+      <volume name="V_layer_4_top">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_4_top" />
+      </volume>
+      <volume name="V_layer_5B_left">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_5B_left" />
+      </volume>
+      <volume name="V_layer_5B_right">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_5B_right" />
+      </volume>
+      <volume name="V_layer_5T_left">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_5T_left" />
+      </volume>
+      <volume name="V_layer_5T_right">
+        <materialref ref="G4_Al" />
+        <solidref ref="layer_5T_right" />
+      </volume>
+      <volume name="V_steel_bar">
+        <materialref ref="StainlessSteel" />
+        <solidref ref="steel_bar" />
+      </volume>
+      <volume name="svt_chamber_box_vol">
         <materialref ref="Stainless_304" />
-        <solidref ref="svt_chamber" />
+        <solidref ref="svt_chamber_box" />
+      </volume>
+      <volume name="svt_chamber_flare1_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_flare1" />
+      </volume>
+      <volume name="svt_chamber_flare2_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_flare2" />
+      </volume>
+      <volume name="svt_chamber_flange_vol">
+        <materialref ref="Stainless_304" />
+        <solidref ref="svt_chamber_flange" />
       </volume>
       <volume name="tracking_volume">
         <materialref ref="TrackingMaterial" />
@@ -2052,8 +2516,20 @@
           <physvolid field_name="module" value="0" />
         </physvol>
         <physvol>
-          <volumeref ref="svt_chamber_vol" />
-          <position name="svt_chamber_position" x="21.17" y="0" z="323.778" />
+          <volumeref ref="svt_chamber_box_vol" />
+          <position name="svt_chamber_box_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_box_z" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_flare1_vol" />
+          <position name="svt_chamber_flare1_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flare1_z" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_flare2_vol" />
+          <position name="svt_chamber_flare2_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flare2_z" />
+        </physvol>
+        <physvol>
+          <volumeref ref="svt_chamber_flange_vol" />
+          <position name="svt_chamber_flange_position" x="svt_chamber_x" y="0" z="svt_chamber_z+svt_chamber_flange_z" />
         </physvol>
         <regionref ref="TrackingRegion" />
         <visref ref="TrackingVis" />
@@ -2063,7 +2539,7 @@
         <solidref ref="world_box" />
         <physvol>
           <volumeref ref="tracking_volume" />
-          <positionref ref="identity_pos" />
+          <positionref ref="tracking_region_pos" />
           <rotationref ref="identity_rot" />
         </physvol>
         <physvol>
@@ -5657,16 +6133,164 @@
           <physvolid field_name="iy" value="5" />
         </physvol>
         <physvol>
-          <volumeref ref="ecal_front_flange_vol" />
-          <position name="ecal_front_flange_pos" unit="mm" x="ecal_flange_x" y="0" z="ecal_flange_z+front_z" />
+          <volumeref ref="V_ECAL_chamber" />
+          <position name="V_ECAL_chamber_pos" unit="mm" x="-119.408" y="0" z="1543" />
         </physvol>
         <physvol>
-          <volumeref ref="ecal_back_flange_vol" />
-          <position name="ecal_back_flange_pos" unit="mm" x="ecal_flange_x+back_x" y="0" z="ecal_flange_z+back_z" />
+          <volumeref ref="V_al_honeycomb" />
+          <position name="V_al_honeycomb_pos" unit="mm" x="-188.58" y="0" z="1508" />
         </physvol>
         <physvol>
-          <volumeref ref="ecal_chamber_vol" />
-          <position name="ecal_chamber_pos" unit="mm" x="ecal_flange_x+chamber_x" y="0" z="ecal_flange_z+chamber_z" />
+          <volumeref ref="V_al_pipe_across_bottom1" />
+          <position name="V_al_pipe_across_bottom1_pos" unit="mm" x="21.42" y="-90" z="1371" />
+          <rotation name="al_pipe_across_bottom1_rot" unit="deg" x="90" y="87" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_al_pipe_across_bottom2" />
+          <position name="V_al_pipe_across_bottom2_pos" unit="mm" x="21.42" y="-40" z="1371" />
+          <rotation name="al_pipe_across_bottom2_rot" unit="deg" x="90" y="89" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_al_pipe_across_top1" />
+          <position name="V_al_pipe_across_top1_pos" unit="mm" x="21.42" y="90" z="1371" />
+          <rotation name="al_pipe_across_top1_rot" unit="deg" x="-90" y="87" z="180" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_al_pipe_across_top2" />
+          <position name="V_al_pipe_across_top2_pos" unit="mm" x="21.42" y="40" z="1371" />
+          <rotation name="al_pipe_across_top2_rot" unit="deg" x="-90" y="89" z="180" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_back_flange" />
+          <position name="V_back_flange_pos" unit="mm" x="-126.085" y="0" z="1758" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Bpipe_inner_left" />
+          <position name="V_cu_Bpipe_inner_left_pos" unit="mm" x="16.42" y="-27" z="1478" />
+          <rotation name="cu_Bpipe_inner_left_rot" unit="deg" x="0" y="-0.956" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Bpipe_inner_right" />
+          <position name="V_cu_Bpipe_inner_right_pos" unit="mm" x="-91.58" y="-27" z="1478" />
+          <rotation name="cu_Bpipe_inner_right_rot" unit="deg" x="0" y="9.68" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Bpipe_outer_right" />
+          <position name="V_cu_Bpipe_outer_right_pos" unit="mm" x="-348.58" y="-15" z="1371" />
+          <rotation name="cu_Bpipe_outer_right_rot" unit="deg" x="0" y="90" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Bpipe_outer_right1" />
+          <position name="V_cu_Bpipe_outer_right1_pos" unit="mm" x="-108.58" y="-14" z="1493" />
+          <rotation name="cu_Bpipe_outer_right1_rot" unit="deg" x="0" y="10" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Bpipe_outer_right2" />
+          <position name="V_cu_Bpipe_outer_right2_pos" unit="mm" x="-278.58" y="-14" z="1493" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Tpipe_inner_left" />
+          <position name="V_cu_Tpipe_inner_left_pos" unit="mm" x="16.42" y="27" z="1478" />
+          <rotation name="cu_Tpipe_inner_left_rot" unit="deg" x="0" y="-0.956" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Tpipe_inner_right" />
+          <position name="V_cu_Tpipe_inner_right_pos" unit="mm" x="-91.58" y="27" z="1478" />
+          <rotation name="cu_Tpipe_inner_right_rot" unit="deg" x="0" y="9.68" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Tpipe_outer_right1" />
+          <position name="V_cu_Tpipe_outer_right1_pos" unit="mm" x="-108.58" y="14" z="1493" />
+          <rotation name="cu_Tpipe_outer_right1_rot" unit="deg" x="0" y="10" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Tpipe_outer_right2" />
+          <position name="V_cu_Tpipe_outer_right2_pos" unit="mm" x="-278.58" y="14" z="1493" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_Tpipe_outer_right3" />
+          <position name="V_cu_Tpipe_outer_right3_pos" unit="mm" x="-348.58" y="15" z="1371" />
+          <rotation name="cu_Tpipe_outer_right3_rot" unit="deg" x="0" y="90" z="0" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_plate_bottom_left" />
+          <position name="V_cu_plate_bottom_left_pos" unit="mm" x="221.42" y="-16" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_plate_bottom_middle" />
+          <position name="V_cu_plate_bottom_middle_pos" unit="mm" x="-33.58" y="-31" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_plate_bottom_right" />
+          <position name="V_cu_plate_bottom_right_pos" unit="mm" x="-208.58" y="-16" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_plate_top_left" />
+          <position name="V_cu_plate_top_left_pos" unit="mm" x="221.42" y="16" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_plate_top_middle" />
+          <position name="V_cu_plate_top_middle_pos" unit="mm" x="-33.58" y="31" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_cu_plate_top_right" />
+          <position name="V_cu_plate_top_right_pos" unit="mm" x="-208.58" y="16" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_front_flange" />
+          <position name="V_front_flange_pos" unit="mm" x="21.42" y="0" z="1328" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_1_bottom" />
+          <position name="V_layer_1_bottom_pos" unit="mm" x="41.92" y="-41" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_1_top" />
+          <position name="V_layer_1_top_pos" unit="mm" x="41.92" y="81" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_2_bottom" />
+          <position name="V_layer_2_bottom_pos" unit="mm" x="41.92" y="-55.1" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_2_top" />
+          <position name="V_layer_2_top_pos" unit="mm" x="41.92" y="66.9" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_3_bottom" />
+          <position name="V_layer_3_bottom_pos" unit="mm" x="41.92" y="-69.2" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_3_top" />
+          <position name="V_layer_3_top_pos" unit="mm" x="41.92" y="52.8" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_4_bottom" />
+          <position name="V_layer_4_bottom_pos" unit="mm" x="41.92" y="-83.3" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_4_top" />
+          <position name="V_layer_4_top_pos" unit="mm" x="41.92" y="38.7" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_5B_left" />
+          <position name="V_layer_5B_left_pos" unit="mm" x="41.92" y="-26.9" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_5B_right" />
+          <position name="V_layer_5B_right_pos" unit="mm" x="41.92" y="-26.9" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_5T_left" />
+          <position name="V_layer_5T_left_pos" unit="mm" x="41.92" y="24.6" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_layer_5T_right" />
+          <position name="V_layer_5T_right_pos" unit="mm" x="41.92" y="24.6" z="1478" />
+        </physvol>
+        <physvol>
+          <volumeref ref="V_steel_bar" />
+          <position name="V_steel_bar_pos" unit="mm" x="-353.58" y="9" z="1478" />
         </physvol>
         <visref ref="WorldVis" />
       </volume>

@@ -30,7 +30,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class TrackTimePlots extends Driver {
 
-    //private AIDAFrame plotterFrame;
+    // private AIDAFrame plotterFrame;
     private AIDA aida = AIDA.defaultInstance();
     private String hitCollection = "StripClusterer_SiTrackerHitStrip1D";
     private String trackCollectionName = "MatchedTracks";
@@ -57,7 +57,8 @@ public class TrackTimePlots extends Driver {
 
         aida.tree().cd("/");
 
-        List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement().findDescendants(HpsSiSensor.class);
+        List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement()
+                .findDescendants(HpsSiSensor.class);
 
         IPlotterFactory fac = aida.analysisFactory().createPlotterFactory("Timing");
 
@@ -66,7 +67,7 @@ public class TrackTimePlots extends Driver {
         IPlotterStyle style2d = store.getStyle("DefaultColorMapStyle");
         style2d.setParameter("hist2DStyle", "colorMap");
         style2d.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        //style2d.zAxisStyle().setParameter("scale", "log");
+        // style2d.zAxisStyle().setParameter("scale", "log");
         style2d.zAxisStyle().setVisible(false);
         style2d.dataBoxStyle().setVisible(false);
 
@@ -121,23 +122,26 @@ public class TrackTimePlots extends Driver {
         plotter.show();
         plotter3.show();
         plotter4.show();
-        plotter5.show();//"Track Time vs. dt"
+        plotter5.show();// "Track Time vs. dt"
         plotter6.show();// "Track dt vs. Channel"
 
         for (int module = 0; module < 2; module++) {
             trackT0[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Time", 80, -20, 20.0);
             plot(plotter2, trackT0[module], null, module);
-            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time", 80, -20, 20.0, 6, 0, 24);
+            trackTrigTime[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " Track Time vs. Trig Time",
+                    80, -20, 20.0, 6, 0, 24);
             plot(plotter2, trackTrigTime[module], style2d, module + 2);
 
-            trackTimeRange[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Hit Time Range", 75, 0, 30.0);
+            trackTimeRange[module] = aida.histogram1D((module == 0 ? "Top" : "Bottom") + " Track Hit Time Range", 75,
+                    0, 30.0);
             plot(plotter7, trackTimeRange[module], null, module);
-            trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom") + " First and Last Track Hit Times", 80, -20, 20.0, 80, -20, 20.0);
+            trackTimeMinMax[module] = aida.histogram2D((module == 0 ? "Top" : "Bottom")
+                    + " First and Last Track Hit Times", 80, -20, 20.0, 80, -20, 20.0);
             plot(plotter7, trackTimeMinMax[module], style2d, module + 2);
         }
 
         plotter2.show();
-        plotter7.show(); //"Track Hit Time Range"
+        plotter7.show(); // "Track Hit Time Range"
     }
 
     public void setHitCollection(String hitCollection) {
@@ -148,18 +152,18 @@ public class TrackTimePlots extends Driver {
     public void process(EventHeader event) {
         int trigTime = (int) (event.getTimeStamp() % 24);
 
-        //===> IIdentifierHelper helper = SvtUtils.getInstance().getHelper();
+        // ===> IIdentifierHelper helper = SvtUtils.getInstance().getHelper();
         List<SiTrackerHitStrip1D> hits = event.get(SiTrackerHitStrip1D.class, hitCollection);
         for (SiTrackerHitStrip1D hit : hits) {
-            //===> IIdentifier id = hit.getSensor().getIdentifier();
-            //===> int layer = helper.getValue(id, "layer");
+            // ===> IIdentifier id = hit.getSensor().getIdentifier();
+            // ===> int layer = helper.getValue(id, "layer");
             int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
             int module = ((HpsSiSensor) hit.getSensor()).getModuleNumber();
-            //===> int module = helper.getValue(id, "module");
-//            System.out.format("%d, %d, %d\n",hit.getCellID(),layer,module);
+            // ===> int module = helper.getValue(id, "module");
+            // System.out.format("%d, %d, %d\n",hit.getCellID(),layer,module);
             t0[module][layer - 1].fill(hit.getTime());
         }
-//
+        //
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track track : tracks) {
@@ -211,23 +215,23 @@ public class TrackTimePlots extends Driver {
 
     @Override
     public void endOfData() {
-        //plotterFrame.dispose();
+        // plotterFrame.dispose();
     }
 
-//    private int computePlotterRegion(int layer, int module) {
-//        int iy = (layer) / 2;
-//        int ix = 0;
-//        if (module > 0)
-//            ix += 2;
-//        if (layer % 2 == 0)
-//            ix += 1;
-//        int region = ix * 5 + iy;
-//        return region;
-//    }
-    //layer 1-12
-    //module 0-4...0,2 = top; 1,3=bottom
-    //this computePlotterRegion puts top&bottom modules on same region
-    //and assume plotter is split in 3 columns, 4 rows...L0-5 on top 2 rows; L6-11 on bottom 2
+    // private int computePlotterRegion(int layer, int module) {
+    // int iy = (layer) / 2;
+    // int ix = 0;
+    // if (module > 0)
+    // ix += 2;
+    // if (layer % 2 == 0)
+    // ix += 1;
+    // int region = ix * 5 + iy;
+    // return region;
+    // }
+    // layer 1-12
+    // module 0-4...0,2 = top; 1,3=bottom
+    // this computePlotterRegion puts top&bottom modules on same region
+    // and assume plotter is split in 3 columns, 4 rows...L0-5 on top 2 rows; L6-11 on bottom 2
     private int computePlotterRegion(int layer) {
 
         if (layer == 0) {

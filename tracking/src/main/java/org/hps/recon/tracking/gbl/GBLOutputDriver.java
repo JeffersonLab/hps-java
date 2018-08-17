@@ -20,16 +20,12 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This driver class is used to 
- * 1) write LCIO collection of GBL info objects, or, 
- * 2) write GBL info into a structured text-based output
- *
- * It uses a helper class that does the actual work. 
+ * This driver class is used to 1) write LCIO collection of GBL info objects, or, 2) write GBL info into a structured
+ * text-based output It uses a helper class that does the actual work.
  *
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $
- * $Date: 2013/11/07 03:54:58 $ $Author: phansson $
- *
+ * @version $Id: GBLOutputDriver.java,v 1.9 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author:
+ *          phansson $
  */
 public class GBLOutputDriver extends Driver {
 
@@ -47,12 +43,6 @@ public class GBLOutputDriver extends Driver {
     private int totalTracksProcessed = 0;
     private int iTrack = 0;
     private int iEvent = 0;
-    private boolean addBeamspot = false;
-    private double beamspotScatAngle = 0.000001;
-    private double beamspotWidthZ = 0.05;
-    private double beamspotWidthY = 0.15;
-    private double beamspotTiltZOverY = 15.0 * 180.0 / Math.PI;
-    private double beamspotPosition[] = {0, 0, 0};
 
     public GBLOutputDriver() {
     }
@@ -65,18 +55,12 @@ public class GBLOutputDriver extends Driver {
         gbl = new GBLOutput(gblFileName, bfield); // if filename is empty no text file is written
         gbl.setDebug(_debug);
         gbl.buildModel(detector);
-        gbl.setXPlaneFlag(false);
-        gbl.setAddBeamspot(addBeamspot);
-        gbl.setBeamspotScatAngle(beamspotScatAngle);
-        gbl.setBeamspotWidthY(beamspotWidthY);
-        gbl.setBeamspotWidthZ(beamspotWidthZ);
-        gbl.setBeamspotTiltZOverY(beamspotTiltZOverY);
-        gbl.setBeamspotPosition(beamspotPosition);
+        gbl.setIsMC(this.isMC);
 
-        //Create the class that makes residual plots for cross-checking
-        //truthRes = new TruthResiduals(bfield);
-        //truthRes.setDebug(_debug);
-        //truthRes.setHideFrame(hideFrame);
+        // Create the class that makes residual plots for cross-checking
+        // truthRes = new TruthResiduals(bfield);
+        // truthRes.setDebug(_debug);
+        // truthRes.setHideFrame(hideFrame);
     }
 
     @Override
@@ -112,7 +96,7 @@ public class GBLOutputDriver extends Driver {
             }
         }
 
-        // GBLData 
+        // GBLData
         // containers and data
         List<GBLEventData> gblEventData = new ArrayList<GBLEventData>();
         gblEventData.add(new GBLEventData(event.getEventNumber(), gbl.get_B().z()));
@@ -139,16 +123,16 @@ public class GBLOutputDriver extends Driver {
                     System.out.printf("%s: Print GBL output for this track\n", this.getClass().getSimpleName());
                 }
 
-                //GBLDATA
+                // GBLDATA
                 GBLTrackData gblTrackData = new GBLTrackData(iTrack);
                 gblTrackDataList.add(gblTrackData);
 
-                //print to text file
+                // print to text file
                 gbl.printTrackID(iTrack);
                 gbl.printGBL(trk, stripHits, gblTrackData, gblStripDataList, mcParticles, simTrackerHits, this.isMC);
 
-                //GBLDATA
-                //add relation to normal track object
+                // GBLDATA
+                // add relation to normal track object
                 trackToGBLTrackRelationListAll.add(new MyLCRelation(trk, gblTrackData));
                 // add strip clusters to lists
                 for (GBLStripClusterData gblStripClusterData : gblStripDataList) {
@@ -210,50 +194,6 @@ public class GBLOutputDriver extends Driver {
 
     public void setIsMC(boolean isMC) {
         this.isMC = isMC;
-    }
-
-    public void setAddBeamspot(boolean add) {
-        this.addBeamspot = add;
-    }
-
-    public double getBeamspotScatAngle() {
-        return beamspotScatAngle;
-    }
-
-    public void setBeamspotScatAngle(double beamspotScatAngle) {
-        this.beamspotScatAngle = beamspotScatAngle;
-    }
-
-    public double getBeamspotWidthZ() {
-        return beamspotWidthZ;
-    }
-
-    public void setBeamspotWidthZ(double beamspotWidthZ) {
-        this.beamspotWidthZ = beamspotWidthZ;
-    }
-
-    public double getBeamspotWidthY() {
-        return beamspotWidthY;
-    }
-
-    public void setBeamspotWidthY(double beamspotWidthY) {
-        this.beamspotWidthY = beamspotWidthY;
-    }
-
-    public double getBeamspotTiltZOverY() {
-        return beamspotTiltZOverY;
-    }
-
-    public void setBeamspotTiltZOverY(double beamspotTiltZOverY) {
-        this.beamspotTiltZOverY = beamspotTiltZOverY;
-    }
-
-    public double[] getBeamspotPosition() {
-        return beamspotPosition;
-    }
-
-    public void setBeamspotPosition(double beamspotPosition[]) {
-        this.beamspotPosition = beamspotPosition;
     }
 
     public void setTrackCollectionName(String trackCollectionName) {

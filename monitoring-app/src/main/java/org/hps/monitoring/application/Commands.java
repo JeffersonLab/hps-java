@@ -156,6 +156,11 @@ final class Commands {
      * Action when plot is selected from a tab.
      */
     static final String PLOT_SELECTED = "PlotSelected";
+    
+    /**
+     * Enable plot pop-up window.
+     */
+    static final String PLOT_POPUP = "PlotPopup";
 
     /**
      * Processing stage changed.
@@ -251,6 +256,6 @@ final class Commands {
      * Do not allow class instantiation.
      */
     private Commands() {
-        throw new UnsupportedOperationException("Do no instantiate this class.");
+        throw new UnsupportedOperationException("Do not instantiate this class.");
     }
 }

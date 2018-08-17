@@ -12,6 +12,5 @@ public class HPSTracker2014v1JavaBuilder extends HPSTracker2014JavaBuilder {
     public HPSTrackerGeometryDefinition createGeometryDefinition(boolean debug, Element node) {
         return new HPSTracker2014v1GeometryDefinition(debug, node);
     }
-    
-    
+
 }

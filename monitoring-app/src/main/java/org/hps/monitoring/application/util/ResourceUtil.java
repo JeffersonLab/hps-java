@@ -13,7 +13,7 @@ import org.reflections.Reflections;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ResourceUtil {
-    
+
     /**
      * Find all classes that implement {@link org.hps.record.LCSimEventBuilder} and return a list of their canonical
      * names.
@@ -29,14 +29,22 @@ public final class ResourceUtil {
         }
         return classNames.toArray(new String[classNames.size()]);
     }
-  
+
     /**
      * Get the list of available conditions tags from the conditions system.
      *
      * @return the list of available conditions tags
      */
     public static String[] getConditionsTags() {
-        return DatabaseConditionsManager.getInstance().getAvailableTags().toArray(new String[] {});
+        // FIXME: New database manager should probably not be instantiated here.
+        DatabaseConditionsManager mgr = new DatabaseConditionsManager();
+        String[] tags = mgr.getAvailableTags().toArray(new String[]{});
+        try {
+            mgr.getConnection().close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tags;
     }
 
     /**

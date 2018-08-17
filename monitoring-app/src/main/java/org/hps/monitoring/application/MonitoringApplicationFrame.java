@@ -35,11 +35,6 @@ final class MonitoringApplicationFrame extends JFrame {
     private static final int PIXEL_WIDTH_MAX = (int) BOUNDS.getWidth();
 
     /**
-     * The conditions panel.
-     */
-    //private final ConditionsPanel conditionsPanel;
-
-    /**
      * The dashboard panel.
      */
     private final EventDashboard dashboardPanel;
@@ -95,12 +90,6 @@ final class MonitoringApplicationFrame extends JFrame {
     private final ToolbarPanel toolbarPanel;
 
     /**
-     * The trigger diagnostics panel.
-     */
-    // TODO: Trigger diagnostics panel is now removed; to-be-replaced with plots.
-    //private final TriggerDiagnosticsPanel triggerPanel;
-
-    /**
      * Class constructor.
      *
      * @param application the associated application object
@@ -145,15 +134,6 @@ final class MonitoringApplicationFrame extends JFrame {
         // Create the log table and add it to the tabs.
         this.logPanel = new LogPanel(application.getConfigurationModel(), application);
         tableTabbedPane.addTab("Log Messages", this.logPanel);
-
-        // Add the trigger diagnostics tables.
-        // TODO: Trigger diagnostics panel is removed.
-        //this.triggerPanel = new TriggerDiagnosticsPanel();
-        //tableTabbedPane.addTab("Trigger Diagnostics", this.triggerPanel);
-
-        // Add the conditions panel.
-        //this.conditionsPanel = new ConditionsPanel();
-        //tableTabbedPane.addTab("Detector Conditions", this.conditionsPanel);
 
         // Vertical split pane in left panel.
         this.leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.dashboardPanel, tableTabbedPane);
@@ -205,15 +185,6 @@ final class MonitoringApplicationFrame extends JFrame {
     MenuBar getApplicationMenu() {
         return this.menu;
     }
-
-    /**
-     * Get the panel showing conditions information.
-     *
-     * @return the conditions panel
-     */
-    //ConditionsPanel getConditionsPanel() {
-    //    return this.conditionsPanel;
-    //}
 
     /**
      * Get the panel for the dashboard.
@@ -277,16 +248,6 @@ final class MonitoringApplicationFrame extends JFrame {
     ToolbarPanel getToolbarPanel() {
         return this.toolbarPanel;
     }
-
-    /**
-     * Get the trigger diagnostics panel.
-     *
-     * @return the trigger diagnostics panel
-     */
-    // TODO: Trigger diagnostics panel is removed.
-    //TriggerDiagnosticsPanel getTriggerPanel() {
-    //    return this.triggerPanel;
-    //}
 
     /**
      * Restore default window settings.

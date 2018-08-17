@@ -49,17 +49,22 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
     private int ecalMode = EventConstants.ECAL_PULSE_INTEGRAL_MODE;
     List<MCParticle> mcParticles = null;
     List<SimTrackerHit> trackerHits = null;
+    List<SimTrackerHit> trackerHitsInactive = null;
     List<SimCalorimeterHit> ecalHits = null;
     List<SimTrackerHit> ecalScoringPlaneHits = null;
     //MC collections from the last 500n'th event (trident or preselected trigger event)
     List<MCParticle> triggerMCParticles = null;
     List<SimTrackerHit> triggerTrackerHits = null;
+    List<SimTrackerHit> triggerTrackerHitsInactive = null;
     List<SimCalorimeterHit> triggerECalHits = null;
     List<SimTrackerHit> triggerECalScoringPlaneHits = null;
+    List<SimTrackerHit> inactiveSiHits = null;
     static final String ecalCollectionName = "EcalHits";
     static final String trackerCollectionName = "TrackerHits";
+    static final String trackerInactiveCollectionName = "TrackerHits_Inactive";
     private final String relationCollectionName = "SVTTrueHitRelations";
     String ecalScoringPlaneHitsCollectionName = "TrackerHitsECal";
+    static final String inactiveSiCollectionName = "TrackerHits_Inactive";
     private int verbosity = 1;
     private boolean writeSvtData = true;
     private boolean writeEcalData = true;
@@ -200,6 +205,9 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
             if (event.hasCollection(SimTrackerHit.class, trackerCollectionName)) {
                 trackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
             }
+            if (event.hasCollection(SimTrackerHit.class, trackerInactiveCollectionName)) {
+                trackerHitsInactive = event.get(SimTrackerHit.class, trackerInactiveCollectionName);
+            }
             if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
                 ecalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
             }
@@ -211,13 +219,20 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
                 if (event.hasCollection(SimTrackerHit.class, trackerCollectionName)) {
                     triggerTrackerHits = event.get(SimTrackerHit.class, trackerCollectionName);
                 }
+                if (event.hasCollection(SimTrackerHit.class, trackerInactiveCollectionName)) {
+                    triggerTrackerHitsInactive = event.get(SimTrackerHit.class, trackerInactiveCollectionName);
+                }
                 if (event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) {
                     triggerECalScoringPlaneHits = event.get(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName);
+                }
+                if (event.hasCollection(SimTrackerHit.class, inactiveSiCollectionName)) {
+                    inactiveSiHits = event.get(SimTrackerHit.class, inactiveSiCollectionName);
                 }
             } else {
                 triggerMCParticles = null;
                 triggerECalHits = null;
                 triggerTrackerHits = null;
+                triggerTrackerHitsInactive = null;
                 triggerECalScoringPlaneHits = null;
             }
         }
@@ -309,6 +324,12 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
                     System.out.println("Adding " + trackerHits.size() + " SimTrackerHits");
                 }
             }
+            if (trackerHitsInactive != null) {
+                lcsimEvent.put(trackerInactiveCollectionName, trackerHitsInactive, SimTrackerHit.class, 0xc0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + trackerHitsInactive.size() + " SimTrackerHitsInactive");
+                }
+            }
             if (ecalScoringPlaneHits != null) {
                 lcsimEvent.put(ecalScoringPlaneHitsCollectionName, ecalScoringPlaneHits, SimTrackerHit.class, 0xc0000000);
                 if (verbosity >= 1) {
@@ -332,13 +353,28 @@ public class TestRunTriggeredReconToLcio extends TriggerableDriver {
                     System.out.println("Adding " + triggerTrackerHits.size() + " SimTrackerHits");
                 }
             }
+            if (triggerTrackerHitsInactive != null) {
+                lcsimEvent.put(trackerInactiveCollectionName, triggerTrackerHitsInactive, SimTrackerHit.class, 0xc0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + triggerTrackerHitsInactive.size() + " SimTrackerHitsInactive");
+                }
+            }
             if (triggerECalScoringPlaneHits != null) {
                 lcsimEvent.put(ecalScoringPlaneHitsCollectionName, triggerECalScoringPlaneHits, SimTrackerHit.class, 0xc0000000);
                 if (verbosity >= 1) {
                     System.out.println("Adding " + triggerECalScoringPlaneHits.size() + " ECalTrackerHits");
                 }
             }
-        }
+            // iss221: Write inactive Si hits. --JM
+            if (inactiveSiHits != null) {
+                lcsimEvent.put(inactiveSiCollectionName, this.inactiveSiHits, SimTrackerHit.class, 0xc0000000);
+                if (verbosity >= 1) {
+                    System.out.println("Adding " + this.inactiveSiHits.size() + " to " + inactiveSiCollectionName);
+                }
+            }
+            
+        }               
+        
         lcsimEvent.put(ReadoutTimestamp.collectionName, event.get(ReadoutTimestamp.class, ReadoutTimestamp.collectionName));
         ++eventNum;
     }

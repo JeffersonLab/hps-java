@@ -2,7 +2,6 @@
 # Monitoring Application configuration
 
 # job settings
-AIDAServerName=hps-monitoring-app
 DetectorName=HPS-Proposal2014-v8-6pt6
 DisconnectOnError=true
 DisconnectOnEndRun=true

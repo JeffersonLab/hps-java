@@ -73,11 +73,6 @@ import org.lcsim.lcio.LCIOWriter;
 public final class EvioToLcio {
 
     /**
-     * The default steering resource, which basically does nothing except print event numbers.
-     */
-    private static final String DEFAULT_STEERING_RESOURCE = "/org/hps/steering/EventMarker.lcsim";
-
-    /**
      * Setup logging for this class.
      */
     private static Logger LOGGER = Logger.getLogger(EvioToLcio.class.getPackage().getName());
@@ -333,12 +328,6 @@ public final class EvioToLcio {
             }
         }
 
-        // Setup the default steering which just prints event numbers.
-        if (steeringStream == null) {
-            steeringStream = EvioToLcio.class.getResourceAsStream(DEFAULT_STEERING_RESOURCE);
-            LOGGER.config("using default steering resource " + DEFAULT_STEERING_RESOURCE);
-        }
-
         // Get the max number of events to process.
         if (cl.hasOption("n")) {
             maxEvents = Integer.valueOf(cl.getOptionValue("n"));
@@ -396,7 +385,14 @@ public final class EvioToLcio {
         }
 
         // Configure the LCSim job manager.
-        jobManager.setup(steeringStream);
+        if (steeringStream != null) {
+            // Running a steering file with the job; use full job manager setup.
+            jobManager.setup(steeringStream);            
+        } else {
+            // No steering file is being used; configure job manager manually.
+            jobManager.initializeLoop(); /* enables event printing */
+            jobManager.getConditionsSetup().configure(); /* activates SVT detector setup */
+        }       
         jobManager.configure();
         LOGGER.config("LCSim job manager was successfully configured.");
 

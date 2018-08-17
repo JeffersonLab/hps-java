@@ -23,11 +23,11 @@ public abstract class SurveyVolumeImpl extends SurveyVolumeVisualization {
     public String getName() {
         return surveyVolume.getName();
     }
-    
+
     protected Hep3Vector getBoxDim() {
         return surveyVolume.getBoxDim();
     }
-    
+
     protected String getMaterial() {
         return surveyVolume.getMaterial();
     }

@@ -23,14 +23,14 @@ import org.srs.datacat.model.DatasetModel;
 public final class DatacatAddFile {
 
     private static final Logger LOGGER = Logger.getLogger(DatacatCrawler.class.getPackage().getName());
-    
+
     private List<File> paths = new ArrayList<File>();
-    
+
     private String folder = null;
     private Site site = Site.JLAB;
     private String datacatUrl = DatacatConstants.DATACAT_URL;
     private boolean dryRun = false;
-    
+
     /**
      * Command line options.
      */
@@ -61,9 +61,9 @@ public final class DatacatAddFile {
      * The options parser.
      */
     private final PosixParser parser = new PosixParser();
-    
+
     private boolean patch = false;
-    
+
     /**
      * Parse command line options.
      *
@@ -71,7 +71,7 @@ public final class DatacatAddFile {
      * @return this object (for method chaining)
      */
     private DatacatAddFile parse(final String[] args) {
-        
+
         LOGGER.config("parsing command line options");
 
         try {
@@ -94,24 +94,24 @@ public final class DatacatAddFile {
             if (cl.hasOption("D")) {
                 this.dryRun = true;
             }
-                        
+
             // List of paths.
             if (!cl.getArgList().isEmpty()) {
-                for (String arg : cl.getArgList()) {                    
+                for (String arg : cl.getArgList()) {
                     paths.add(new File(arg));
                 }
             }
-            
+
             if (this.paths.isEmpty()) {
                 throw new RuntimeException("Missing at least one file to process.");
             }
-            
+
             // Dataset site (defaults to JLAB).
             if (cl.hasOption("s")) {
                 this.site = Site.valueOf(cl.getOptionValue("s"));
             }
             LOGGER.config("datacat site: " + site);
-                        
+
             // Data catalog URL.
             if (cl.hasOption("u")) {
                 datacatUrl = cl.getOptionValue("u");
@@ -121,7 +121,7 @@ public final class DatacatAddFile {
             if (cl.hasOption("p")) {
                 this.patch = true;
             }
-            
+
         } catch (final ParseException e) {
             throw new RuntimeException("Error parsing the command line options.", e);
         }
@@ -143,14 +143,14 @@ public final class DatacatAddFile {
     /**
      * Run the job.
      */
-    private void run() {        
+    private void run() {
         List<DatasetModel> datasets = DatacatHelper.createDatasets(paths, folder, site.toString());
         DatacatUtilities util = new DatacatUtilities();
         if (!dryRun) {
             util.updateDatasets(datasets, folder, patch);
-            //LOGGER.info("Added " + datasets.size() + " datasets to datacat.");
+            // LOGGER.info("Added " + datasets.size() + " datasets to datacat.");
         } else {
             LOGGER.info("Dry run is enabled; skipped adding dataset.");
         }
-     }
+    }
 }
