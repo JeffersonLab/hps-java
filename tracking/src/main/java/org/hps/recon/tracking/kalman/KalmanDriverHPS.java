@@ -191,7 +191,7 @@ public class KalmanDriverHPS extends Driver {
                     fullKalmanTrack.print("fullKalmanTrack");
             }
 
-            Track fullKalmanTrackHPS = KalmanInterface.createTrack(fullKalmanTrack, false);
+            Track fullKalmanTrackHPS = KalmanInterface.createTrack(fullKalmanTrack, true);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman full track converted to HPS track:");
                 printExtendedTrackInfo(fullKalmanTrackHPS);

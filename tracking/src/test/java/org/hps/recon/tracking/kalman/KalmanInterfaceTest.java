@@ -15,7 +15,7 @@ import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 public class KalmanInterfaceTest extends TestCase {
-    static final String testInput = "tst_4-1.slcio";
+    static final String testInput = "fullGBL.slcio";
     private final int nEvents = 1;
     static final String testOutput = "KalmanTest_" + testInput;
     static final String aidaOutput = "target/test-output/KalmanTestPlots_" + testInput.replaceAll("slcio", "aida");
