@@ -28,6 +28,7 @@ public class KalTrack {
     private Vec tB;
 
     KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
+        System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         this.SiteList = SiteList;
         this.nHits = nHits;
         this.chi2 = chi2;
@@ -85,6 +86,7 @@ public class KalTrack {
         if (propagated)
             return helixAtOrigin.v.clone();
 
+        // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
         double minY = 9999.;
         for (MeasurementSite site : SiteList) {

@@ -22,7 +22,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
 
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 1; // The number of test events to generate for fitting
         int startModule = 5; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int numbLayers = 6; // Number of layers to use for the linear fit
@@ -832,6 +832,8 @@ public class HelixTest { // Program for testing the Kalman fitting code
             if (!kF.success) {
                 continue;
             }
+            KalTrack KalmanTrack = kF.tkr;
+            if (verbose) KalmanTrack.print("KalmanTrack");
 
             ArrayList<MeasurementSite> sites = kF.sites;
             Iterator<MeasurementSite> itr = sites.iterator();

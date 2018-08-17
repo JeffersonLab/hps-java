@@ -22,7 +22,6 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     private boolean verbose;
-    double B;
 
     // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
     // will never have a hit and thus will be handled the same as physical layers that lack hits
@@ -73,7 +72,7 @@ class MeasurementSite {
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
         Vec Bfield = m.Bfield.getField(m.p.X());
-        B = Bfield.mag();
+        double B = Bfield.mag();
         alpha = conFac / B; // Convert from pt in GeV to curvature in mm
         predicted = false;
         filtered = false;
@@ -99,9 +98,8 @@ class MeasurementSite {
 
         Vec X0 = pS.atPhi(phi); // Intersection point in local coordinate system of pS
         if (verbose) {
-            pS.a.print("helix parameters in makePrediction");
-            X0.print("intersection in local coordinates in makePrediction");
-            pS.toGlobal(X0).print("intersection in global coordinates in makePrediction");
+            X0.print("intersection in local coordinates");
+            pS.toGlobal(X0).print("intersection in global coordinates");
             Plane pRot = m.p.toLocal(pS.Rot, pS.origin);
             double check = (X0.dif(pRot.X())).dot(pRot.T());
             System.out.format("MeasurementSite.makePrediction: dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
@@ -121,7 +119,7 @@ class MeasurementSite {
         }
 
         // Move pivot point to X0 to generate the predicted helix
-        aP = pS.predict(thisSite, X0, B, tB, origin, XL / Math.abs(ct), deltaE);
+        aP = pS.predict(thisSite, X0, B, tB, origin, XL / ct, deltaE);
         if (verbose) {
             pS.a.print("original helix in MeasurementSite.makePrediction");
             aP.a.print("pivot transformed helix in MeasurementSite.makePrediction");
@@ -224,16 +222,11 @@ class MeasurementSite {
     }
 
     boolean filter() { // Produce the filtered state vector for this site
-
-        // debug
-        //double phi = aP.planeIntersect(m.p);
-        //System.out.format("    phiNew=%10.7f\n", phi);
-        //Vec xGlobal = aP.atPhi(phi);
-        //xGlobal.print("xGlobal");
-        //Vec xLocal = m.R.rotate(xGlobal.dif(m.p.X()));
-        //xLocal.print("MeasurementSite.filter: local intersection");
-        // end debug
-
+        /*
+         * // For debugging only double phi = aP.planeIntersect(p); System.out.format("    phiNew=%10.7f\n", phi); Vec xGlobal =
+         * aP.atPhi(phi); xGlobal.print("xGlobal"); Vec xLocal = R.rotate(xGlobal.dif(p.X()));
+         * xLocal.print("MeasurementSite.filter: local intersection"); // end debug
+         */
         if (smoothed || filtered || !predicted) {
             System.out.format("******MeasurementSite.filter: Warning, this site is not in the correct state!\n");
             // this.print("in the wrong state for filtering");
@@ -255,11 +248,9 @@ class MeasurementSite {
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
-            //if (verbose)
-            System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
-            aF.a.print("helix parameters (state vector)");
-            m.p.print("for the intersection");
-            //return false;
+            if (verbose)
+                System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+            return false;
         }
         aF.mPred = h(aF, phiF);
         aF.r = hit.v - aF.mPred;
