@@ -1,13 +1,20 @@
 package org.hps.recon.tracking.kalman;
 
+import hep.physics.vec.Hep3Vector;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.hps.recon.tracking.MaterialSupervisor;
+import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.util.Pair;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
@@ -24,11 +31,13 @@ public class KalmanDriverHPS extends Driver {
 
     private ArrayList<SiModule> testData;
     private ArrayList<SiStripPlane> detPlanes;
+    private List<HpsSiSensor> sensors;
     private MaterialSupervisor _materialManager;
     private FieldMap fm;
     private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
     private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
+    private double bField;
     private boolean verbose = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
@@ -129,6 +138,8 @@ public class KalmanDriverHPS extends Driver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        bField = TrackUtils.getBField(det).magnitude();
+        sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         KI = new KalmanInterface();
         KI.createSiModules(detPlanes, fm);
@@ -166,7 +177,7 @@ public class KalmanDriverHPS extends Driver {
                 System.out.println("\nPrinting info for original HPS SeedTrack:");
                 printTrackInfo(trk, MatchedToGbl);
                 System.out.println("\nPrinting info for original HPS GBLTrack:");
-                printExtendedTrackInfo(trk);
+                printExtendedTrackInfo(trk, true);
             }
 
             //seedtrack
@@ -191,10 +202,10 @@ public class KalmanDriverHPS extends Driver {
                     fullKalmanTrack.print("fullKalmanTrack");
             }
 
-            Track fullKalmanTrackHPS = KalmanInterface.createTrack(fullKalmanTrack, true);
+            Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman full track converted to HPS track:");
-                printExtendedTrackInfo(fullKalmanTrackHPS);
+                printExtendedTrackInfo(fullKalmanTrackHPS, false);
             }
             outputFullTracks.add(fullKalmanTrackHPS);
 
@@ -210,13 +221,48 @@ public class KalmanDriverHPS extends Driver {
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
 
-    private void printExtendedTrackInfo(Track HPStrk) {
+    private List<Pair<double[], double[]>> printExtendedTrackInfo(Track HPStrk, boolean isHps) {
         printTrackInfo(HPStrk, null);
-        for (TrackState ts : HPStrk.getTrackStates()) {
-            double[] ref = ts.getReferencePoint();
-            System.out.printf("   TrackState: intercept %f %f %f \n", ref[0], ref[1], ref[2]);
-            double[] params = ts.getParameters();
-            System.out.printf("       params %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);
+        List<Pair<double[], double[]>> ParamsLocs = new ArrayList<Pair<double[], double[]>>();
+        if (isHps) {
+            for (HpsSiSensor sensor : sensors) {
+                //Hep3Vector trackPosition = TrackUtils.extrapolateTrackPositionToSensor(HPStrk, sensor, sensors, bField);
+                TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(HPStrk, sensor.getMillepedeId());
+                if (tsAtSensor == null)
+                    continue;
+                double[] params = tsAtSensor.getParameters();
+                Hep3Vector loc = TrackStateUtils.getLocationAtSensor(tsAtSensor, sensor, bField);
+                if (loc == null)
+                    continue;
+                double[] ref = loc.v();
+                ParamsLocs.add(new Pair(params, ref));
+            }
+        } else {
+            for (TrackState ts : HPStrk.getTrackStates()) {
+                if (ts.getLocation() == TrackState.AtIP)
+                    continue;
+                double[] ref = ts.getReferencePoint();
+                double[] params = ts.getParameters();
+                if (params[0] == 0 && params[1] == 0 && params[2] == 0)
+                    continue;
+                ParamsLocs.add(new Pair(params, ref));
+            }
+        }
+        Collections.sort(ParamsLocs, new SortByZ());
+
+        for (Pair<double[], double[]> entry : ParamsLocs) {
+            System.out.printf("   TrackState: intercept %f %f %f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
+            System.out.printf("       params %f %f %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2], entry.getFirstElement()[3], entry.getFirstElement()[4]);
+        }
+
+        return ParamsLocs;
+    }
+
+    class SortByZ implements Comparator<Pair<double[], double[]>> {
+
+        @Override
+        public int compare(Pair<double[], double[]> o1, Pair<double[], double[]> o2) {
+            return (int) (o1.getSecondElement()[2] - o2.getSecondElement()[2]);
         }
     }
 
@@ -230,8 +276,8 @@ public class KalmanDriverHPS extends Driver {
         } else
             ts = HPStrk.getTrackStates().get(0);
         double[] params = ts.getParameters();
-        System.out.printf("Track hits: %d \n", HPStrk.getTrackerHits().size());
-        System.out.printf("      params: %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);
+        System.out.printf("Track 3D hits: %d \n", HPStrk.getTrackerHits().size());
+        System.out.printf("params: %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);
     }
 
 }

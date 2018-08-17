@@ -13,6 +13,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -32,6 +33,7 @@ public class KalmanInterface {
     private Map<Measurement, TrackerHit> hitMap;
     private Map<SiModule, SiStripPlane> moduleMap;
     public static SquareMatrix HpsToKalman;
+    public static SquareMatrix KalmanToHps;
     public static BasicHep3Matrix HpsToKalmanMatrix;
     private ArrayList<int[]> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
@@ -59,6 +61,7 @@ public class KalmanInterface {
             for (int j = 0; j < 3; j++)
                 HpsToKalmanMatrix.setElement(i, j, HpsToKalmanVals[i][j]);
         }
+        KalmanToHps = HpsToKalman.invert();
 
     }
 
@@ -114,7 +117,7 @@ public class KalmanInterface {
 
     }
 
-    public static BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
+    public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null)
             return null;
         kT.sortSites(true);
@@ -125,13 +128,28 @@ public class KalmanInterface {
         // track states at each layer
         for (int i = 0; i < kT.SiteList.size(); i++) {
             MeasurementSite site = kT.SiteList.get(i);
-            int lay = site.m.Layer;
             TrackState ts = null;
             int loc = TrackState.AtOther;
 
-            if (i == 0)
-                loc = TrackState.AtIP;
-            else if (i == kT.SiteList.size() - 1)
+            HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
+            int lay = hssd.getMillepedeId();
+            //System.out.printf("ssp id %d \n", hssd.getMillepedeId());
+
+            if (i == 0) {
+                loc = TrackState.AtFirstHit;
+                // add trackstate at IP as first trackstate
+                // make this trackstate's params the overall track params
+                Vec refPoint = kT.interceptVects.get(site);
+                double[] refPointTransformed = refPoint.leftMultiply(KalmanToHps).v;
+                Hep3Vector temp = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(refPointTransformed));
+                ts = createTrackState(site, temp.v(), TrackState.AtIP, true);
+                if (ts != null) {
+                    newTrack.getTrackStates().add(ts);
+                    // take first TrackState as overall Track params
+                    newTrack.setTrackParameters(ts.getParameters(), kT.Bmag);
+                    newTrack.setCovarianceMatrix(new SymmetricMatrix(5, ts.getCovMatrix(), true));
+                }
+            } else if (i == kT.SiteList.size() - 1)
                 loc = TrackState.AtLastHit;
 
             if (storeTrackStates) {
@@ -144,10 +162,11 @@ public class KalmanInterface {
                 prevID = lay;
             }
 
-            if (loc == TrackState.AtIP || loc == TrackState.AtLastHit || storeTrackStates) {
+            if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 Vec refPoint = kT.interceptVects.get(site);
-                double[] refPointTransformed = refPoint.leftMultiply(HpsToKalman).v;
-                ts = createTrackState(site, refPointTransformed, loc, true);
+                double[] refPointTransformed = refPoint.leftMultiply(KalmanToHps).v;
+                Hep3Vector temp = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(refPointTransformed));
+                ts = createTrackState(site, temp.v(), loc, true);
                 if (ts != null) {
                     newTrack.getTrackStates().add(ts);
                 }
@@ -161,9 +180,6 @@ public class KalmanInterface {
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
 
-        // take first TrackState as overall Track params
-        newTrack.setTrackParameters(newTrack.getTrackStates().get(0).getParameters(), kT.Bmag);
-        newTrack.setCovarianceMatrix(new SymmetricMatrix(5, newTrack.getTrackStates().get(0).getCovMatrix(), true));
         return newTrack;
     }
 
