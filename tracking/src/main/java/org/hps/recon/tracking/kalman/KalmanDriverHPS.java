@@ -1,5 +1,6 @@
 package org.hps.recon.tracking.kalman;
 
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
@@ -21,6 +23,7 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -177,7 +180,7 @@ public class KalmanDriverHPS extends Driver {
                 System.out.println("\nPrinting info for original HPS SeedTrack:");
                 printTrackInfo(trk, MatchedToGbl);
                 System.out.println("\nPrinting info for original HPS GBLTrack:");
-                printExtendedTrackInfo(trk, true);
+                printExtendedTrackInfo(trk);
             }
 
             //seedtrack
@@ -197,16 +200,14 @@ public class KalmanDriverHPS extends Driver {
             KalmanTrackFit2 ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
             KalTrack fullKalmanTrack = ktf2.tkr;
             if (verbose) {
-                ktf2.printFit("fullKalmanTrackFit");
-                if (fullKalmanTrack != null)
+                //ktf2.printFit("fullKalmanTrackFit");
+                if (fullKalmanTrack != null) {
                     fullKalmanTrack.print("fullKalmanTrack");
+                    printExtendedTrackInfo(fullKalmanTrack);
+                }
             }
 
             Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
-            if (verbose) {
-                System.out.println("\nPrinting info for Kalman full track converted to HPS track:");
-                printExtendedTrackInfo(fullKalmanTrackHPS, false);
-            }
             outputFullTracks.add(fullKalmanTrackHPS);
 
             // clearing for next track
@@ -221,41 +222,51 @@ public class KalmanDriverHPS extends Driver {
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
 
-    private List<Pair<double[], double[]>> printExtendedTrackInfo(Track HPStrk, boolean isHps) {
+    private List<Pair<double[], double[]>> printExtendedTrackInfo(Track HPStrk) {
         printTrackInfo(HPStrk, null);
-        List<Pair<double[], double[]>> ParamsLocs = new ArrayList<Pair<double[], double[]>>();
-        if (isHps) {
-            for (HpsSiSensor sensor : sensors) {
-                //Hep3Vector trackPosition = TrackUtils.extrapolateTrackPositionToSensor(HPStrk, sensor, sensors, bField);
-                TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(HPStrk, sensor.getMillepedeId());
-                if (tsAtSensor == null)
-                    continue;
-                double[] params = tsAtSensor.getParameters();
-                Hep3Vector loc = TrackStateUtils.getLocationAtSensor(tsAtSensor, sensor, bField);
-                if (loc == null)
-                    continue;
-                double[] ref = loc.v();
-                ParamsLocs.add(new Pair(params, ref));
-            }
-        } else {
-            for (TrackState ts : HPStrk.getTrackStates()) {
-                if (ts.getLocation() == TrackState.AtIP)
-                    continue;
-                double[] ref = ts.getReferencePoint();
-                double[] params = ts.getParameters();
-                if (params[0] == 0 && params[1] == 0 && params[2] == 0)
-                    continue;
-                ParamsLocs.add(new Pair(params, ref));
-            }
+        List<Pair<double[], double[]>> MomsLocs = new ArrayList<Pair<double[], double[]>>();
+        for (HpsSiSensor sensor : sensors) {
+            //Hep3Vector trackPosition = TrackUtils.extrapolateTrackPositionToSensor(HPStrk, sensor, sensors, bField);
+            TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(HPStrk, sensor.getMillepedeId());
+            if (tsAtSensor == null)
+                continue;
+            double[] mom = ((BaseTrackState) (tsAtSensor)).computeMomentum(bField);
+            double[] momTransformed = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(mom)).v();
+            Hep3Vector loc = TrackStateUtils.getLocationAtSensor(tsAtSensor, sensor, bField);
+            if (loc == null)
+                continue;
+            double[] ref = loc.v();
+            MomsLocs.add(new Pair(momTransformed, ref));
         }
-        Collections.sort(ParamsLocs, new SortByZ());
 
-        for (Pair<double[], double[]> entry : ParamsLocs) {
+        Collections.sort(MomsLocs, new SortByZ());
+        for (Pair<double[], double[]> entry : MomsLocs) {
             System.out.printf("   TrackState: intercept %f %f %f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
-            System.out.printf("       params %f %f %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2], entry.getFirstElement()[3], entry.getFirstElement()[4]);
+            System.out.printf("       mom %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
         }
 
-        return ParamsLocs;
+        return MomsLocs;
+    }
+
+    private List<Pair<double[], double[]>> printExtendedTrackInfo(KalTrack trk) {
+        List<Pair<double[], double[]>> MomsLocs = new ArrayList<Pair<double[], double[]>>();
+        System.out.println("KalTrack intercepts and momenta:");
+        for (MeasurementSite site : trk.interceptVects.keySet()) {
+            Vec mom = trk.interceptMomVects.get(site).scale(0.001);
+            Vec loc = trk.interceptVects.get(site);
+            double[] locTransformed = loc.leftMultiply(KalmanInterface.KalmanToHps).v;
+            double[] locTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(locTransformed)).v();
+            double[] momTransformed = mom.leftMultiply(KalmanInterface.KalmanToHps).v;
+            double[] momTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(momTransformed)).v();
+            MomsLocs.add(new Pair(momTrans, locTrans));
+        }
+        Collections.sort(MomsLocs, new SortByZ());
+        for (Pair<double[], double[]> entry : MomsLocs) {
+            System.out.printf("   TrackState: intercept %f %f %f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
+            System.out.printf("       mom %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
+        }
+
+        return MomsLocs;
     }
 
     class SortByZ implements Comparator<Pair<double[], double[]>> {

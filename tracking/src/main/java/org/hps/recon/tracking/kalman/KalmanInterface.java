@@ -13,7 +13,6 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
-import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -27,6 +26,7 @@ import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+import static org.lcsim.constants.Constants.fieldConversion;
 
 public class KalmanInterface {
 
@@ -39,6 +39,10 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose = false;
+
+    static Vec convertMomentumToHps(Vec kalMom, double bfield) {
+        return kalMom.scale(fieldConversion * bfield);
+    }
 
     public void setSeedTrackLayers(List<Integer> input) {
         SeedTrackLayers = input;
@@ -91,7 +95,7 @@ public class KalmanInterface {
         }
     }
 
-    public static TrackState createTrackState(MeasurementSite ms, double[] refPoint, int loc, boolean useSmoothed) {
+    public static TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
         // public BaseTrackState(double[] trackParameters, double[] covarianceMatrix, double[] position, int location)
         StateVector sv = null;
         if (useSmoothed) {
@@ -113,7 +117,7 @@ public class KalmanInterface {
         SquareMatrix globalCov = localCov.similarity(fRot);
         double[] newCov = getLCSimCov(globalCov, sv.alpha).asPackedArray(true);
 
-        return new BaseTrackState(newParams, newCov, refPoint, loc);
+        return new BaseTrackState(newParams, newCov, new double[] { 0, 0, 0 }, loc);
 
     }
 
@@ -139,10 +143,7 @@ public class KalmanInterface {
                 loc = TrackState.AtFirstHit;
                 // add trackstate at IP as first trackstate
                 // make this trackstate's params the overall track params
-                Vec refPoint = kT.interceptVects.get(site);
-                double[] refPointTransformed = refPoint.leftMultiply(KalmanToHps).v;
-                Hep3Vector temp = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(refPointTransformed));
-                ts = createTrackState(site, temp.v(), TrackState.AtIP, true);
+                ts = createTrackState(site, TrackState.AtIP, true);
                 if (ts != null) {
                     newTrack.getTrackStates().add(ts);
                     // take first TrackState as overall Track params
@@ -163,10 +164,7 @@ public class KalmanInterface {
             }
 
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
-                Vec refPoint = kT.interceptVects.get(site);
-                double[] refPointTransformed = refPoint.leftMultiply(KalmanToHps).v;
-                Hep3Vector temp = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(refPointTransformed));
-                ts = createTrackState(site, temp.v(), loc, true);
+                ts = createTrackState(site, loc, true);
                 if (ts != null) {
                     newTrack.getTrackStates().add(ts);
                 }

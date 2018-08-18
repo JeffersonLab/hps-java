@@ -15,6 +15,7 @@ public class KalTrack {
     ArrayList<MeasurementSite> SiteList;
     public Map<MeasurementSite, Double> intercepts;
     public Map<MeasurementSite, Vec> interceptVects;
+    public Map<MeasurementSite, Vec> interceptMomVects;
     private Vec helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
@@ -52,6 +53,7 @@ public class KalTrack {
         Cp = null;
         intercepts = new HashMap<MeasurementSite, Double>();
         interceptVects = new HashMap<MeasurementSite, Vec>();
+        interceptMomVects = new HashMap<MeasurementSite, Vec>();
     }
 
     public void print(String s) {
