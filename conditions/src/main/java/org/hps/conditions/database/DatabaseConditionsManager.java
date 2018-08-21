@@ -67,6 +67,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private static final int TEST_RUN_MAX_RUN = 1365;
 
+    private static String DEFAULT_URL = "jdbc:mysql://hpsdb.jlab.org/:3306/";
+    private static String DEFAULT_USER = "hpsuser";
+    private static String DEFAULT_PASSWORD = "darkphoton";
+    // jdbc:mysql://mysql-node03.slac.stanford.edu:3306/
+    // jdbc:mysql://hpsdb.jlab.org/:3306/
+
     static {
         DriverManager.setLoginTimeout(30);
     }
@@ -580,21 +586,48 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public synchronized void openConnection() {
         try {
             if (this.connection == null || this.connection.isClosed()) {
+
                 // Do the connection parameters need to be figured out automatically?
-                if (this.connectionParameters == null) {
+                //if (this.connectionParameters == null) {
                     // Setup the default read-only connection, which will choose a SLAC or JLab database.
-                    this.connectionParameters = ConnectionParameters.fromResource(CONNECTION_RESOURCE);
+                //    this.connectionParameters = ConnectionParameters.fromResource(CONNECTION_RESOURCE);
+                //}
+                String url = System.getProperty("org.hps.conditions.url");
+                if (url == null) {
+                    url = DEFAULT_URL;
+                }
+                String user = System.getProperty("org.hps.conditions.user");
+                if (user == null) {
+                    user = DEFAULT_USER;
+                }
+                String password = System.getProperty("org.hps.conditions.password");
+                if (password == null) {
+                    password = DEFAULT_PASSWORD;
                 }
 
+                Properties p = new Properties();
+                p.setProperty("user", user);
+                p.setProperty("password", password);
+
+                LOG.info("Opening connection ..." + '\n'
+                        + "url: " + url + '\n'
+                        + "user: " + user + '\n'
+                        + "password: " + password + '\n'
+                );
+
+                connection = DriverManager.getConnection(url, connectionProperties);
+
                 // Print connection info to the log.
+                /*
                 LOG.info("Opening connection ... " + '\n' + "connection: "
                         + this.connectionParameters.getConnectionString() + '\n' + "host: "
                         + this.connectionParameters.getHostname() + '\n' + "port: "
                         + this.connectionParameters.getPort() + '\n' + "user: " + this.connectionParameters.getUser()
                         + '\n' + "database: " + this.connectionParameters.getDatabase());
+                */
 
                 // Create the connection using the parameters.
-                this.connection = this.connectionParameters.createConnection();
+                //this.connection = this.connectionParameters.createConnection();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
