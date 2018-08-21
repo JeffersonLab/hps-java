@@ -68,7 +68,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private static final int TEST_RUN_MAX_RUN = 1365;
 
-    private static String DEFAULT_URL = "jdbc:mysql://hpsdb.jlab.org/:3306/";
+    private static String DEFAULT_URL = "jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions";
     private static String DEFAULT_USER = "hpsuser";
     private static String DEFAULT_PASSWORD = "darkphoton";
 
