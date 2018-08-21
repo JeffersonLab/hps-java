@@ -336,7 +336,7 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
         this.logFileNameField.setEditable(false);
         
         /*
-        final JTextField testField = this.addField("Testes", "", "herp derp", 50, true);
+        final JTextField testField = this.addField("Testes", "", "This is a test field", 50, true);
         final AbstractProperty<?> testProp = model.getProperties().get("Test");
         testField.addPropertyChangeListener(testProp)); // Send property changes.
         testProp.addPropertyChangeListener(new PropertyChangeListener() { // Receive property changes.
