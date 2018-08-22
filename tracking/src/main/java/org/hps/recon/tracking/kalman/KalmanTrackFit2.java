@@ -256,7 +256,7 @@ public class KalmanTrackFit2 {
             if (Double.isNaN(phiS))
                 phiS = 0.;
             tkr.interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
-            tkr.interceptMomVects.put(site, site.aS.toGlobal(site.aS.getMom(phiS)));
+            tkr.interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
             tkr.intercepts.put(site, site.h(site.aS, phiS));
         }
 
