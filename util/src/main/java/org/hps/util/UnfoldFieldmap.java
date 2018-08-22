@@ -20,10 +20,6 @@ import static java.lang.Math.abs;
  */
 public class UnfoldFieldmap {
 
-    // Storage space for the table
-    private double[][][] _xField;
-    private double[][][] _yField;
-    private double[][][] _zField;
     // The dimensions of the table
     private int _nx, _ny, _nz;
     // The physical limits of the defined region
@@ -41,9 +37,9 @@ public class UnfoldFieldmap {
     // maximum field strength
     private double _bMax;
     List<double[]> lines = new ArrayList<double[]>();
-    double[][] Bx;
-    double[][] By;
-    double[][] Bz;
+    double[][][] Bx;
+    double[][][] By;
+    double[][][] Bz;
     double[] xVals;
     double[] zVals;
     double[] yVals;
@@ -80,16 +76,13 @@ public class UnfoldFieldmap {
             _ny = 15;
             _nz = 301;
 
-            Bx = new double[_nx][_nz];
-            By = new double[_nx][_nz];
-            Bz = new double[_nx][_nz];
+            Bx = new double[_nx][_ny][_nz];
+            By = new double[_nx][_ny][_nz];
+            Bz = new double[_nx][_ny][_nz];
             xVals = new double[_nx];
             yVals = new double[_ny];
             zVals = new double[_nz];
-            // Set up storage space for table
-            _xField = new double[_nx + 1][_ny + 1][_nz + 1];
-            _yField = new double[_nx + 1][_ny + 1][_nz + 1];
-            _zField = new double[_nx + 1][_ny + 1][_nz + 1];
+
 
             // Ignore other header information
             // The first line whose second character is '0' is considered to
@@ -138,10 +131,10 @@ public class UnfoldFieldmap {
                         // System.out.println("bz "+bz);
                         double[] line = {xval, yval, zval, bx, by, bz};
                         lines.add(line);
-                        Bx[ix][iz] = _scaleFactor * bx / fieldConversionFactor; // convert to magnetic field units used
+                        Bx[ix][iy][iz] = _scaleFactor * bx / fieldConversionFactor; // convert to magnetic field units used
                                                                                 // by Geant4
-                        By[ix][iz] = _scaleFactor * by / fieldConversionFactor; //
-                        Bz[ix][iz] = _scaleFactor * bz / fieldConversionFactor; //
+                        By[ix][iy][iz] = _scaleFactor * by / fieldConversionFactor; //
+                        Bz[ix][iy][iz] = _scaleFactor * bz / fieldConversionFactor; //
                         xVals[ix] = xval * lengthConversionFactor;
                         yVals[iy] = yval * lengthConversionFactor;
                         zVals[iz] = zval * lengthConversionFactor;
@@ -150,9 +143,6 @@ public class UnfoldFieldmap {
                             _miny = yval;
                             _minz = zval;
                         }
-                        _xField[ix][iy][iz] = bx;
-                        _yField[ix][iy][iz] = by;
-                        _zField[ix][iy][iz] = bz;
                         double b = bx * bx + by * by + bz * bz;
                         if (b > _bMax) {
                             _bMax = b;
@@ -226,8 +216,8 @@ public class UnfoldFieldmap {
                         // double y = (j < 0) ? -yVals[abs(j)] : yVals[abs(j)];
                         // double z = (k < 0) ? -zVals[abs(k)] : zVals[abs(k)];
                         w.write(xSign * xVals[abs(i)] + " " + ySign * yVals[abs(j)] + " " + zSign * zVals[abs(k)] + " "
-                                + xSign * Bx[abs(i)][abs(k)] + " " + By[abs(i)][abs(k)] + " " + zSign
-                                * Bz[abs(i)][abs(k)] + " \n");
+                                + xSign * Bx[abs(i)][abs(j)][abs(k)] + " " + By[abs(i)][abs(j)][abs(k)] + " " + zSign
+                                * Bz[abs(i)][abs(j)][abs(k)] + " \n");
                     }
                 }
             }
