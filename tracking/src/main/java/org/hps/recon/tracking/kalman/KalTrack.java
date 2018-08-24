@@ -29,7 +29,7 @@ public class KalTrack {
     private Vec tB;
 
     KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
-        System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
+        //System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         this.SiteList = SiteList;
         this.nHits = nHits;
         this.chi2 = chi2;
@@ -100,7 +100,12 @@ public class KalTrack {
         }
 
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
-        helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov);
+        Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
+        double ct = pMom.unitVec().dot(innerSite.m.p.T());
+        double XL = innerSite.XL/ct;
+        helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
+        
+        // Find the position and momentum of the particle near the origin, including covariance
         Vec XonHelix = innerSite.aS.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
         Vec PofHelix = innerSite.aS.aTOp(helixAtOrigin);
         originMomentum = Rot.inverseRotate(PofHelix);

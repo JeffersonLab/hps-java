@@ -17,7 +17,7 @@ class MeasurementSite {
     Vec H; // Derivatives of the transformation from state vector to measurement
     private double conFac; // Conversion from B to alpha
     private double alpha;
-    private double XL; // Thickness of the detector in radiation lengths
+    double XL; // Thickness of the detector in radiation lengths
     private double dEdx; // in GeV/mm
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
