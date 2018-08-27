@@ -81,9 +81,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
         double[] widths = { 150., 150., 150., 300., 300., 300. };
 
         String mapType = "binary";
-        // String mapFile =
-        // "C:\\Users\\Robert\\Desktop\\Kalman\\125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
-        String mapFile = "C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin";
+        String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
         FieldMap fM = null;
         try {
             fM = new FieldMap(mapFile, mapType, 21.17, 0., 457.2);
@@ -92,7 +90,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
             return;
         }
         if (mapType != "binary") {
-            fM.writeBinaryFile("C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin");
+            fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v2.bin");
         }
         Vec Bpivot = fM.getField(helixOrigin);
         Bpivot.print("magnetic field at the initial pivot");

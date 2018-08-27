@@ -37,7 +37,7 @@ public class KalmanDriverHPS extends Driver {
     private List<HpsSiSensor> sensors;
     private MaterialSupervisor _materialManager;
     private FieldMap fm;
-    private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
+    private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.dat";
     private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
     private double bField;
