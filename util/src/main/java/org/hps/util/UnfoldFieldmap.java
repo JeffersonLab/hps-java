@@ -43,6 +43,10 @@ public class UnfoldFieldmap {
     double[] xVals;
     double[] zVals;
     double[] yVals;
+    
+    // absolute value of field below fuzz will be re-set to exactly 0
+    // set fuzz to 0 to disable this feature
+    private double fuzz = 1e-10;
 
     private double _scaleFactor;
     private String _map2read;
@@ -56,13 +60,17 @@ public class UnfoldFieldmap {
         _scaleFactor = scaleFactor;
     }
 
+    public void setFuzz(double input) {
+        fuzz = input;
+    }
+    
     void setup() {
         // System.out.println(this.getClass().getClassLoader().getResource(map2read));
         // InputStream is = this.getClass().getClassLoader().getResourceAsStream(map2read);
 
         System.out.println("\n-----------------------------------------------------------"
                 + "\n      Reading Magnetic Field map " + _map2read + "\n      Scaling values by " + _scaleFactor
-                + "\n      Flipping sign of By " + "\n-----------------------------------------------------------");
+                + "\n-----------------------------------------------------------");
 
         try {
             FileInputStream fin = new FileInputStream(_map2read);
@@ -212,11 +220,17 @@ public class UnfoldFieldmap {
                         double xSign = (i < 0) ? -1. : 1.;
                         double ySign = (j < 0) ? -1. : 1.;
                         double zSign = (k < 0) ? -1. : 1.;
-                        // double x = (i < 0) ? -xVals[abs(i)] : xVals[abs(i)];
-                        // double y = (j < 0) ? -yVals[abs(j)] : yVals[abs(j)];
-                        // double z = (k < 0) ? -zVals[abs(k)] : zVals[abs(k)];
+                        // fuzz
+                        if (fuzz > 0) {
+                            if (abs(Bx[abs(i)][abs(j)][abs(k)]) < fuzz)
+                                Bx[abs(i)][abs(j)][abs(k)] = 0;
+                            if (abs(By[abs(i)][abs(j)][abs(k)]) < fuzz)
+                                By[abs(i)][abs(j)][abs(k)] = 0;
+                            if (abs(Bz[abs(i)][abs(j)][abs(k)]) < fuzz)
+                                Bz[abs(i)][abs(j)][abs(k)] = 0;
+                        }
                         w.write(xSign * xVals[abs(i)] + " " + ySign * yVals[abs(j)] + " " + zSign * zVals[abs(k)] + " "
-                                + xSign * Bx[abs(i)][abs(j)][abs(k)] + " " + By[abs(i)][abs(j)][abs(k)] + " " + zSign
+                                + (xSign*ySign) * Bx[abs(i)][abs(j)][abs(k)] + " " + By[abs(i)][abs(j)][abs(k)] + " " + (zSign*ySign)
                                 * Bz[abs(i)][abs(j)][abs(k)] + " \n");
                     }
                 }
