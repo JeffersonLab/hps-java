@@ -18,7 +18,7 @@ public class KalmanInterfaceTest extends TestCase {
     static final String testInput = "fullGBL.slcio";
     private final int nEvents = 1;
     static final String testOutput = "KalmanTest_" + testInput;
-    static final String aidaOutput = "target/test-output/KalmanTestPlots_" + testInput.replaceAll("slcio", "aida");
+    static final String aidaOutput = "target/test-output/KalmanTestPlots.root";
 
     public void testKalman() throws Exception {
         File lcioInputFile = new File(testInput);
@@ -51,6 +51,7 @@ public class KalmanInterfaceTest extends TestCase {
         loop2.add(dthd);
 
         KalmanDriverHPS kdhps = new KalmanDriverHPS();
+        kdhps.setOutputPlotsFilename(aidaOutput);
         loop2.add(kdhps);
 
         TrackingReconstructionPlots trp = new TrackingReconstructionPlots();

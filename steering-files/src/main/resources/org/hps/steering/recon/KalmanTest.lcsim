@@ -11,6 +11,7 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="KalmanDriverHPS"/>
+        <driver name="TrackingReconstructionPlots"/>  
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -33,7 +34,14 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
-        <driver name="KalmanDriverHPS" type="org.hps.recon.tracking.kalman.KalmanDriverHPS"/>
+        <driver name="KalmanDriverHPS" type="org.hps.recon.tracking.kalman.KalmanDriverHPS">
+            <outputPlotsFilename>KalmanTestPlots.root</outputPlotsFilename>
+            <outputSeedTrackCollectionName>KalmanSeedTracks</outputSeedTrackCollectionName>
+        </driver>
+        <driver name="TrackingReconstructionPlots" type="org.hps.recon.tracking.TrackingReconstructionPlots">    
+            <outputPlots>KalmanTestPlots.root</outputPlots>     
+            <trackCollectionName>KalmanSeedTracks</trackCollectionName>     
+        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>

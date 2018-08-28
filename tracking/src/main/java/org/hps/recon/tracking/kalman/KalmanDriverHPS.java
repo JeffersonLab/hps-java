@@ -8,11 +8,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.util.Pair;
@@ -27,12 +30,12 @@ import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 
 // $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
 
 public class KalmanDriverHPS extends Driver {
 
-    private ArrayList<SiModule> testData;
     private ArrayList<SiStripPlane> detPlanes;
     private List<HpsSiSensor> sensors;
     private MaterialSupervisor _materialManager;
@@ -44,13 +47,27 @@ public class KalmanDriverHPS extends Driver {
     private boolean verbose = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
+    public AIDA aida;
+    private String outputPlots = "TrackingRecoPlots.aida";
+
+    public void setOutputPlotsFilename(String input) {
+        outputPlots = input;
+    }
 
     public String getOutputSeedTrackCollectionName() {
         return outputSeedTrackCollectionName;
     }
 
+    public String getOutputFullTrackCollectionName() {
+        return outputFullTrackCollectionName;
+    }
+
     public void setOutputSeedTrackCollectionName(String input) {
         outputSeedTrackCollectionName = input;
+    }
+
+    public void setOutputFullTrackCollectionName(String input) {
+        outputFullTrackCollectionName = input;
     }
 
     public void setVerbose(boolean input) {
@@ -69,65 +86,22 @@ public class KalmanDriverHPS extends Driver {
         fieldMapFileName = input;
     }
 
-    public void setTestData(ArrayList<SiModule> input) {
-        testData = input;
-    }
+    private void setupPlots() {
+        if (aida == null)
+            aida = AIDA.defaultInstance();
+        aida.tree().cd("/");
 
-    public void constructTestData() {
-        // SiModules
-        double[] location = { 100., 200., 300., 500., 700., 900. };
-        double delta = 5.0;
-        double[] heights = { 100., 100., 100., 100., 100., 100. };
-        double[] widths = { 150., 150., 150., 300., 300., 300. };
-        double[] stereoAngle = { 0.1, 0.1, 0.1, 0.05, 0.05, 0.05 };
-        double thickness = 0.3;
-        Vec tInt = new Vec(0., 1., 0.);
-
-        testData = new ArrayList<SiModule>(12);
-        for (int pln = 0; pln < 6; pln++) {
-            Vec rInt1 = new Vec(0., location[pln], 0.);
-
-            Plane pInt1 = new Plane(rInt1, tInt);
-            SiModule newModule1 = new SiModule(pln, pInt1, 0., widths[pln], heights[pln], thickness, fm);
-            testData.add(newModule1);
-
-            Vec rInt2 = new Vec(0., location[pln] + delta, 0.);
-            Plane pInt2 = new Plane(rInt2, tInt);
-            SiModule newModule2 = new SiModule(pln, pInt2, stereoAngle[pln], widths[pln], heights[pln], thickness, fm);
-            testData.add(newModule2);
-        }
-
-        // helix
-        double p = 1.0; // momentum
-        double Phi = 90. * Math.PI / 180.;
-        double Theta = 90. * Math.PI / 180.;
-        Vec initialDirection = new Vec(Math.cos(Phi) * Math.sin(Theta), Math.sin(Phi) * Math.sin(Theta), Math.cos(Theta));
-        Vec momentum = new Vec(p * initialDirection.v[0], p * initialDirection.v[1], p * initialDirection.v[2]);
-        Helix TkInitial = new Helix(1, new Vec(2., 90., 2.), momentum, new Vec(2., 90., 2.), fm);
-        TkInitial.print("TestHelix");
-
-        // measurements
-        HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-        for (int pln = 0; pln < 12; pln++) {
-            SiModule thisSi = testData.get(pln);
-            double phiInt = TkInitial.planeIntersect(thisSi.p);
-            if (Double.isNaN(phiInt))
-                break;
-            Vec rscat = new Vec(3);
-            Vec pInt = new Vec(3);
-            rscat = hpi.rkIntersect(thisSi.p, TkInitial.atPhiGlobal(0.), TkInitial.getMomGlobal(0.), 1, fm, pInt);
-            Vec rDet = thisSi.toLocal(rscat);
-            double resolution = 0.012;
-            double m1 = rDet.v[1] + resolution;
-            Measurement thisM1 = new Measurement(m1, resolution, rscat, rDet.v[1]);
-            thisSi.addMeasurement(thisM1);
-        }
+        // TODO: example plot. Placeholder for something useful.
+        // arguments to histogram1D: name, nbins, min, max
+        aida.histogram1D("Kalman Track Chi2", 50, 0, 100);
     }
 
     @Override
     public void detectorChanged(Detector det) {
         _materialManager = new MaterialSupervisor();
         _materialManager.buildModel(det);
+
+        setupPlots();
 
         detPlanes = new ArrayList<SiStripPlane>();
         List<ScatteringDetectorVolume> materialVols = ((MaterialSupervisor) (_materialManager)).getMaterialVolumes();
@@ -169,12 +143,6 @@ public class KalmanDriverHPS extends Driver {
             }
         }
 
-        //        constructTestData();
-        //        System.out.println("Printing info for test-data SiMods:");
-        //        for (SiModule SiM : testData) {
-        //            SiM.print("SiModFromTestData");
-        //        }
-
         for (Track trk : tracks) {
             if (verbose) {
                 System.out.println("\nPrinting info for original HPS SeedTrack:");
@@ -209,6 +177,9 @@ public class KalmanDriverHPS extends Driver {
 
             Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
             outputFullTracks.add(fullKalmanTrackHPS);
+
+            // TODO: placeholder for useful plot-filling
+            aida.histogram1D("Kalman Track Chi2").fill(fullKalmanTrackHPS.getChi2());
 
             // clearing for next track
             KI.clearInterface();
@@ -289,6 +260,17 @@ public class KalmanDriverHPS extends Driver {
         double[] params = ts.getParameters();
         System.out.printf("Track 3D hits: %d \n", HPStrk.getTrackerHits().size());
         System.out.printf("params: %f %f %f %f %f \n", params[0], params[1], params[2], params[3], params[4]);
+    }
+
+    @Override
+    public void endOfData() {
+        if (outputPlots != null) {
+            try {
+                aida.saveAs(outputPlots);
+            } catch (IOException ex) {
+                Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
 }
