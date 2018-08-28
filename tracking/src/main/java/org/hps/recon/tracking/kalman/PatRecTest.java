@@ -15,7 +15,7 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1; // The number of test events to generate for fitting
+        int nTrials = 10000; // The number of test events to generate for fitting
         boolean MCplot = false; // true to plot MC tracks, otherwise fitted tracks
         boolean perfect = false;
         double thickness = 0.3; // Silicon thickness in mm
@@ -25,7 +25,7 @@ public class PatRecTest {
         boolean rungeKutta = true; // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = nTrials < 2;
 
-        int nHelices = 2; // Number of helix tracks to simulate
+        int nHelices = 1; // Number of helix tracks to simulate
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
@@ -75,9 +75,7 @@ public class PatRecTest {
         double[] widths = { 150., 150., 150., 300., 300., 300. };
 
         String mapType = "binary";
-        // String mapFile =
-        // "C:\\Users\\Robert\\Desktop\\Kalman\\125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
-        String mapFile = "C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin";
+        String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
         FieldMap fM = null;
         try {
             fM = new FieldMap(mapFile, mapType, 21.17, 0., 457.2);
@@ -86,7 +84,7 @@ public class PatRecTest {
             return;
         }
         if (mapType != "binary") {
-            fM.writeBinaryFile("C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin");
+            fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\fieldmap.bin");
         }
         Vec Bpivot = fM.getField(helixOrigin);
         helixOrigin.print("initial pivot point");
@@ -148,13 +146,17 @@ public class PatRecTest {
         Histogram hXerr = new Histogram(100, -20., 0.4, "error on the vertex x coordinate", "sigmas", "tracks");
         Histogram hYerr = new Histogram(100, -20., 0.4, "error on the vertex y coordinate", "sigmas", "tracks");
         Histogram hZerr = new Histogram(100, -20., 0.4, "error on the vertex z coordinate", "sigmas", "tracks");
-
+        Histogram hEdrhoS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter drho error at lyr1", "sigmas", "track");
+        Histogram hEphi0S1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter phi0 error at lyr1", "sigmas", "track");
+        Histogram hEkS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter K error at lyr1", "sigmas", "track");
+        Histogram hEdzS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter dz error at lyr1", "sigmas", "track");
+        Histogram hEtanlS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter tanl error at lyr1", "sigmas", "track");
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
-        Vec[] helixSaved = new Vec[2 * nPlanes];
+        Helix[] TkSaved = new Helix[nHelices];
         Helix helixBegin = TkInitial[0].copy();
         helixBegin.print("helixBegin");
         TkInitial[0].print("TkInitial");
@@ -278,7 +280,9 @@ public class PatRecTest {
                         Tk[ih].getMomGlobal(phiInt).print("helix global momentum before scatter");
                     }
                     Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
-                    helixSaved[2 * pln] = Tk[ih].p.copy();
+                    if (pln == 0) {
+                        TkSaved[ih] = Tk[ih].copy();
+                    }
                     Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
                     if (verbose) {
                         Tk[ih].print("scattered from the first layer of the detector plane");
@@ -354,7 +358,6 @@ public class PatRecTest {
                             System.out.format("Scattering angle from 2nd layer=%10.7f\n", scattAng);
                         }
                     }
-                    helixSaved[2 * pln + 1] = Tk[ih].p.copy();
                 }
                 if (verbose)
                     printWriter2.format("EOD\n");
@@ -414,6 +417,10 @@ public class PatRecTest {
             int nTracks = patRec.TkrList.size();
             hNtracks.entry(nTracks);
             for (KalTrack tkr : patRec.TkrList) {
+                tkr.sortSites(true);
+                if (verbose) {
+                    System.out.format("Track %d, %d hits, chi^2=%10.5f, 1st layer=%d\n",tkr.ID,tkr.nHits,tkr.chi2,tkr.SiteList.get(0).m.Layer);
+                }
                 hNhits.entry(tkr.nHits);
                 hTkChi2.entry(tkr.chi2);
                 // Compare with the generated particles
@@ -429,15 +436,13 @@ public class PatRecTest {
                         iBest = ih;
                     }
                 }
-                if (iBest == -1)
-                    continue;
-                if (verbose)
-                    TkInitial[iBest].print("Best MC track");
+                if (iBest == -1) continue;
                 Vec trueErr = helixAtOrigin.dif(TkInitial[iBest].p);
                 if (verbose) {
+                    TkInitial[iBest].print("Best MC track");
                     for (int i = 0; i < 5; i++) {
                         double diff = (trueErr.v[i]) / tkr.helixErr(i);
-                        System.out.format("     Helix parameter %d after smoothing, error = %10.5f sigma\n", i, diff);
+                        System.out.format("     Helix parameter %d after smoothing, error = %10.5f sigma, true error=%10.7f, estimate=%10.7f\n", i, diff,trueErr.v[i],tkr.helixErr(i));
                     }
                 }
                 hEdrhoS.entry(trueErr.v[0] / tkr.helixErr(0));
@@ -457,6 +462,30 @@ public class PatRecTest {
                 hYerr.entry(yErr);
                 double zErr = (tkr.originX()[2] - helixOrigin.v[2]) / Math.sqrt(tkr.originXcov()[2][2]);
                 hZerr.entry(zErr);
+                
+                // Repeat comparison just after the first tracker plane 
+                if (tkr.SiteList.get(0).m.Layer == 0) {
+                    StateVector S = tkr.SiteList.get(0).aS;
+                    Vec helixAtLayer1 = S.pivotTransform(TkSaved[iBest].X0);
+                    trueErr = helixAtLayer1.dif(TkSaved[iBest].p);
+                    Vec helErrs = tkr.SiteList.get(0).aS.helixErrors();
+                    if (verbose) {
+                        helixAtLayer1.print("reconstructed helix at layer 1");
+                        S.origin.print("reconstructed helix origin at layer 1");
+                        S.X0.print("reconstructed helix pivot at layer 1");
+                        TkSaved[iBest].p.print(String.format("generated helix at layer 1 for iBest=%d",iBest));
+                        TkSaved[iBest].X0.print("generated helix pivot at layer 1");
+                        TkSaved[iBest].origin.print("generated helix origin at layer 1");
+                        for (int i = 0; i < 5; i++) {
+                            System.out.format("     Helix parameter %d after smoothing, true error=%10.7f, estimate=%10.7f\n",i,trueErr.v[i],helErrs.v[i]);
+                        }
+                    }
+                    hEdrhoS1.entry(trueErr.v[0] / helErrs.v[0]);
+                    hEphi0S1.entry(trueErr.v[1] / helErrs.v[1]);
+                    hEkS1.entry(trueErr.v[2] / helErrs.v[2]);
+                    hEdzS1.entry(trueErr.v[3] / helErrs.v[3]);
+                    hEtanlS1.entry(trueErr.v[4] / helErrs.v[4]);
+                }
             }
         }
         timestamp = Instant.now();
@@ -472,6 +501,11 @@ public class PatRecTest {
         hEkS.plot(path + "kErrorS.gp", true, " ", " ");
         hEdzS.plot(path + "dzErrorS.gp", true, " ", " ");
         hEtanlS.plot(path + "tanlErrorS.gp", true, " ", " ");
+        hEdrhoS1.plot(path + "drhoErrorS1.gp", true, " ", " ");
+        hEphi0S1.plot(path + "phi0ErrorS1.gp", true, " ", " ");
+        hEkS1.plot(path + "kErrorS1.gp", true, " ", " ");
+        hEdzS1.plot(path + "dzErrorS1.gp", true, " ", " ");
+        hEtanlS1.plot(path + "tanlErrorS1.gp", true, " ", " ");
         hEdrho.plot(path + "drhoError.gp", true, " ", " ");
         hEphi0.plot(path + "phi0Error.gp", true, " ", " ");
         hEk.plot(path + "kError.gp", true, " ", " ");

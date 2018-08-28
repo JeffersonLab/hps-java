@@ -22,7 +22,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
 
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1; // The number of test events to generate for fitting
+        int nTrials = 10000; // The number of test events to generate for fitting
         int startModule = 5; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int numbLayers = 6; // Number of layers to use for the linear fit
@@ -39,8 +39,8 @@ public class HelixTest { // Program for testing the Kalman fitting code
         int nPlanes = 6;
         Vec tInt = new Vec(0., 1., 0.); // Nominal detector plane orientation
         double[] location = { 100., 200., 300., 500., 700., 900. }; // Detector positions in y (origin of detector local system)
-        double[] xdet = { 50., 55., 60., 65., 70., 75. }; // x coordinate of origin of the detector local system
-        double[] zdet = { 5., -5., 0., 10., 12., 2. }; // z coordinate (along B) of origin of the detector local system
+        double[] xdet = { 0., 0., 0., 0., 0., 0. }; // x coordinate of origin of the detector local system
+        double[] zdet = { 0., 0., 0., 0., 0., 0. }; // z coordinate (along B) of origin of the detector local system
         double delta = 5.0; // Distance between stereo pairs
         double[] stereoAngle = { 0.1, 0.1, 0.1, 0.05, 0.05, 0.05 }; // Angles of the stereo layers in radians
         double resolution = 0.012; // SSD point resolution, in mm
@@ -81,9 +81,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
         double[] widths = { 150., 150., 150., 300., 300., 300. };
 
         String mapType = "binary";
-        // String mapFile =
-        // "C:\\Users\\Robert\\Desktop\\Kalman\\125acm2_3kg_corrected_unfolded_scaled_0.7992.dat";
-        String mapFile = "C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin";
+        String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
         FieldMap fM = null;
         try {
             fM = new FieldMap(mapFile, mapType, 21.17, 0., 457.2);
@@ -92,7 +90,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
             return;
         }
         if (mapType != "binary") {
-            fM.writeBinaryFile("C:\\Users\\Robert\\Desktop\\Kalman\\fieldmap.bin");
+            fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v2.bin");
         }
         Vec Bpivot = fM.getField(helixOrigin);
         Bpivot.print("magnetic field at the initial pivot");
@@ -100,6 +98,8 @@ public class HelixTest { // Program for testing the Kalman fitting code
             Vec bf = fM.getField(new Vec(xdet[pln], location[pln], zdet[pln]));
             System.out.format("B field at plane %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
         }
+        
+        // Field map plots
         File file = new File(path + "field.gp");
         file.getParentFile().mkdirs();
         PrintWriter printWriter3 = null;
@@ -133,6 +133,51 @@ public class HelixTest { // Program for testing the Kalman fitting code
             double y = ((location[5] - 0.) / 200.) * (double) i;
             Vec bf = fM.getField(new Vec(-150., y, 0.));
             printWriter3.format("  %10.6f %10.6f\n", y, bf.v[2]);
+        }
+        printWriter3.format("EOD\n");
+        printWriter3.format("plot $field1 with lines lw 1, $field2 with lines lw 1, $field3 with lines lw 1\n");
+        printWriter3.close();
+        
+        // More field map plots
+        file = new File(path + "field1.gp");
+        file.getParentFile().mkdirs();
+        printWriter3 = null;
+        try {
+            printWriter3 = new PrintWriter(file);
+        } catch (FileNotFoundException e1) {
+            System.out.println("Could not create the gnuplot output file.");
+            e1.printStackTrace();
+            return;
+        }
+        // printWriter3.format("set xrange [-1900.:100.]\n");
+        printWriter3.format("set yrange [-1.:1.]\n");
+        printWriter3.format("set xlabel 'Z'\n");
+        printWriter3.format("set ylabel 'By/Bz0'\n");
+        printWriter3.format("$field1 << EOD\n");
+        Vec bf0 = fM.getField(new Vec(0.,0.,0.));
+        double Bz0 = bf0.v[2];
+        for (int i = 0; i < 200; i++) {
+            double z = -70. + (140. / 200.) * (double) i;
+            Vec bf = fM.getField(new Vec(0., 0, z));
+            printWriter3.format("  %10.6f %10.6f\n", z, bf.v[1]/Bz0);
+        }
+        bf0 = fM.getField(new Vec(0.,-460.,0.));
+        Bz0 = bf0.v[2];
+        printWriter3.format("EOD\n");
+        printWriter3.format("$field2 << EOD\n");
+        for (int i = 0; i < 200; i++) {
+            double z = -70. + (140. / 200.) * (double) i;
+            Vec bf = fM.getField(new Vec(0., -460., z));
+            printWriter3.format("  %10.6f %10.6f\n", z, bf.v[1]/Bz0);
+        }
+        printWriter3.format("EOD\n");
+        printWriter3.format("$field3 << EOD\n");
+        bf0 = fM.getField(new Vec(-25.,-460.,0.));
+        Bz0 = bf0.v[2];
+        for (int i = 0; i < 200; i++) {
+            double z = -70. + (140. / 200.) * (double) i;
+            Vec bf = fM.getField(new Vec(-25., -460., z));
+            printWriter3.format("  %10.6f %10.6f\n", z, bf.v[1]/Bz0);
         }
         printWriter3.format("EOD\n");
         printWriter3.format("plot $field1 with lines lw 1, $field2 with lines lw 1, $field3 with lines lw 1\n");
@@ -833,6 +878,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
                 continue;
             }
             KalTrack KalmanTrack = kF.tkr;
+            KalmanTrack.originHelix();
             if (verbose) KalmanTrack.print("KalmanTrack");
 
             ArrayList<MeasurementSite> sites = kF.sites;

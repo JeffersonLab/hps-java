@@ -236,20 +236,11 @@ public class KalmanTrackFit2 {
             startSite = currentSite;
         }
 
-        if (verbose) {
-            System.out.format("KalmanTrackFit2: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
-            Vec afF = sites.get(sites.size() - 1).aF.a;
-            Vec afC = sites.get(sites.size() - 1).aF.helixErrors();
-            afF.print("KalmanFit helix parameters at final filtered site");
-            afC.print("KalmanFit helix parameter errors");
-            if (startSite != null) {
-                startSite.aS.a.print("KalmanFit helix parameters at the final smoothed site");
-                startSite.aS.helixErrors().print("KalmanFit helix parameter errors:");
-            }
-        }
         finalSite = sites.size() - 1;
 
-        tkr = new KalTrack(0, nHits, sites, chi2s);
+        tkr = new KalTrack(0, nHits, sites, chi2s);  // Store the fit information as a KalTrack object
+        double[] hp = tkr.originHelix();             // Propagates the track to the origin region
+        
         // Storing intercepts at each plane
         for (MeasurementSite site : sites) {
             double phiS = site.aS.planeIntersect(site.m.p);
@@ -259,7 +250,19 @@ public class KalmanTrackFit2 {
             tkr.interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
             tkr.intercepts.put(site, site.h(site.aS, phiS));
         }
-
+        
+        if (verbose) {
+            System.out.format("KalmanTrackFit2: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
+            System.out.format("   At origin, drho=%10.7f, phi0=%10.7f, K=%10.7f, dz=%10.7f, tanl=%10.7f\n", hp[0],hp[1],hp[2],hp[3],hp[4]);
+            Vec afF = sites.get(sites.size() - 1).aF.a;
+            Vec afC = sites.get(sites.size() - 1).aF.helixErrors();
+            afF.print("KalmanFit helix parameters at final filtered site");
+            afC.print("KalmanFit helix parameter errors");
+            if (startSite != null) {
+                startSite.aS.a.print("KalmanFit helix parameters at the final smoothed site");
+                startSite.aS.helixErrors().print("KalmanFit helix parameter errors:");
+            }
+        }
     }
 
     public StateVector fittedStateBegin() {

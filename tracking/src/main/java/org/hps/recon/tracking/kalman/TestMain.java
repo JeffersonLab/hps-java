@@ -12,8 +12,8 @@ public class TestMain {
         } else {
             path = args[0];
         }
-        HelixTest t1 = new HelixTest(path);
-        //PatRecTest t1 = new PatRecTest(path);
+        //HelixTest t1 = new HelixTest(path);
+        PatRecTest t1 = new PatRecTest(path);
     }
 
     public TestMain() {
