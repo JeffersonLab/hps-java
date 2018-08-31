@@ -115,7 +115,7 @@ public class KalmanInterface {
         double[] newParams = getLCSimParams(globalParams, sv.alpha);
         SquareMatrix localCov = sv.C;
         SquareMatrix globalCov = localCov.similarity(fRot);
-        double[] newCov = getLCSimCov(globalCov, sv.alpha).asPackedArray(true);
+        double[] newCov = getLCSimCov(globalCov.M, sv.alpha).asPackedArray(true);
 
         return new BaseTrackState(newParams, newCov, new double[] { 0, 0, 0 }, loc);
 
@@ -187,8 +187,8 @@ public class KalmanInterface {
         params[ParameterName.d0.ordinal()] = oldParams[0];
         params[ParameterName.phi0.ordinal()] = -1.0 * oldParams[1];
         params[ParameterName.omega.ordinal()] = oldParams[2] / alpha * -1.0;
-        params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
         params[ParameterName.z0.ordinal()] = oldParams[3] * -1.0;
+        params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
         //System.out.printf("d0 ordinal = %d\n", ParameterName.d0.ordinal());
         //System.out.printf("phi0 ordinal = %d\n", ParameterName.phi0.ordinal());
         //System.out.printf("omega ordinal = %d\n", ParameterName.omega.ordinal());
@@ -198,9 +198,15 @@ public class KalmanInterface {
         return params;
     }
 
-    static SymmetricMatrix getLCSimCov(SquareMatrix oldCov, double alpha) {
-        // TODO: fix omega cov
+    static SymmetricMatrix getLCSimCov(double[][] oldCov, double alpha) {
+        double [] d = {1.0, -1.0, -1.0/alpha, -1.0, -1.0};
         SymmetricMatrix cov = new SymmetricMatrix(5);
+        for (int i=0; i<5; i++) {
+            for (int j=0; j<5; j++) {
+                cov.setElement(i, j, d[i]*d[j]*oldCov[i][j]);
+            }
+        }
+        /*
         for (int i = 0; i <= 2; i++) {
             for (int j = 0; j <= 2; j++) {
                 cov.setElement(i, j, oldCov.M[i][j]);
@@ -212,6 +218,7 @@ public class KalmanInterface {
                 cov.setElement(j, i, oldCov.M[i][j]);
             }
         }
+        */
         return cov;
     }
 
@@ -233,7 +240,7 @@ public class KalmanInterface {
 
         double[] newPivot = { 0., 0., 0. };
         double[] params = getLCSimParams(trk.pivotTransform(newPivot), trk.getAlpha());
-        SymmetricMatrix cov = getLCSimCov(trk.covariance(), trk.getAlpha());
+        SymmetricMatrix cov = getLCSimCov(trk.covariance().M, trk.getAlpha());
         BaseTrack newTrack = new BaseTrack();
         newTrack.setTrackParameters(params, trk.B());
         newTrack.setCovarianceMatrix(cov);

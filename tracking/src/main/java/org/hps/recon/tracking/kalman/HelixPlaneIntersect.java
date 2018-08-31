@@ -59,14 +59,15 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         Plane pLocal = P.toLocal(R, X1);
 
         // helix.print("helix parameters close to the plane in rkIntersect");
+        // Note: this call to planeIntersect fills in X0 and a
         double phiInt = planeIntersect(helix, X1local, alpha, pLocal); // helix intersection
         if (Double.isNaN(phiInt)) {
             System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
             return X0;
         }
         // System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
-        Vec xInt = this.atPhi(phiInt); // Note: the helix parameter vector 'a' got filled in planeIntersect
-        Vec temp = R.inverseRotate(this.getMom(phiInt));
+        Vec xInt = StateVector.atPhi(X1local, helix, phiInt, alpha);
+        Vec temp = R.inverseRotate(StateVector.getMom(phiInt, helix));
         pInt.v[0] = temp.v[0];
         pInt.v[1] = temp.v[1];
         pInt.v[2] = temp.v[2];
@@ -77,7 +78,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     // assuming a reference frame in which the magnetic field is in the z direction!
     // The new pivot point is the location provided, so rho0 and z0 will always be
     // zero.
-    Vec pToHelix(Vec x, Vec p, double Q) {
+    static Vec pToHelix(Vec x, Vec p, double Q) {
         double E = p.mag();
         Vec t = p.unitVec(E);
         double tanl = t.v[2] / Math.sqrt(1.0 - t.v[2] * t.v[2]);
@@ -193,20 +194,6 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     }
 
     private double S(double phi) {
-        return (atPhi(phi).dif(p.X())).dot(p.T());
-    }
-
-    private Vec atPhi(double phi) { // point on the helix at the angle phi
-        double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * Math.cos(a.v[1]) - (alpha / a.v[2]) * Math.cos(a.v[1] + phi);
-        double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (alpha / a.v[2]) * Math.sin(a.v[1] + phi);
-        double z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
-        return new Vec(x, y, z);
-    }
-
-    private Vec getMom(double phi) {
-        double px = -Math.sin(a.v[1] + phi) / Math.abs(a.v[2]);
-        double py = Math.cos(a.v[1] + phi) / Math.abs(a.v[2]);
-        double pz = a.v[4] / Math.abs(a.v[2]);
-        return new Vec(px, py, pz);
+        return (StateVector.atPhi(X0, a, phi, alpha).dif(p.X())).dot(p.T());
     }
 }

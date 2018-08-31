@@ -1,5 +1,6 @@
 package org.hps.recon.tracking.kalman;
 
+import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -94,6 +95,7 @@ public class KalmanDriverHPS extends Driver {
         // TODO: example plot. Placeholder for something useful.
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman Track Chi2", 50, 0, 100);
+        aida.histogram1D("Omega % difference", 50, -10., 10.);
     }
 
     @Override
@@ -174,13 +176,25 @@ public class KalmanDriverHPS extends Driver {
                     printExtendedTrackInfo(fullKalmanTrack);
                 }
             }
-
-            Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
-            outputFullTracks.add(fullKalmanTrackHPS);
-
-            // TODO: placeholder for useful plot-filling
-            aida.histogram1D("Kalman Track Chi2").fill(fullKalmanTrackHPS.getChi2());
-
+            if (fullKalmanTrack != null) {
+                Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
+                outputFullTracks.add(fullKalmanTrackHPS);
+    
+                // Fill histograms here
+                double [] hprms = KalmanInterface.getLCSimParams(fullKalmanTrack.originHelix(), fullKalmanTrack.alpha);
+                SymmetricMatrix hCov = KalmanInterface.getLCSimCov(fullKalmanTrack.originCovariance(), fullKalmanTrack.alpha);
+                TrackState ts = null;
+                if (MatchedToGbl != null) {
+                    Track tmp = (Track) (MatchedToGbl.from(HPStrk));
+                    if (tmp == null)
+                        return;
+                    ts = tmp.getTrackStates().get(0);
+                } else
+                    ts = HPStrk.getTrackStates().get(0);
+                double[] params = ts.getParameters();
+                aida.histogram1D("Omega % difference").fill(100.*(hprms[2]-params[2])/params[2]);
+                aida.histogram1D("Kalman Track Chi2").fill(fullKalmanTrackHPS.getChi2());
+            }
             // clearing for next track
             KI.clearInterface();
 
@@ -229,7 +243,7 @@ public class KalmanDriverHPS extends Driver {
             double[] locTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(locTransformed)).v();
             double[] momTransformed = mom.leftMultiply(KalmanInterface.KalmanToHps).v;
             double[] momTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(momTransformed)).v();
-            MomsLocs.add(new Pair(momTrans, locTrans));
+            MomsLocs.add(new Pair<double[], double[]>(momTrans, locTrans));
         }
         Collections.sort(MomsLocs, new SortByZ());
         for (Pair<double[], double[]> entry : MomsLocs) {
