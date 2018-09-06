@@ -38,7 +38,7 @@ public class KalmanInterface {
     private ArrayList<int[]> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
-    public boolean verbose = false;
+    public boolean verbose = true;
 
     static Vec convertMomentumToHps(Vec kalMom, double bfield) {
         return kalMom.scale(fieldConversion * bfield);
@@ -88,6 +88,9 @@ public class KalmanInterface {
     }
 
     public void clearInterface() {
+        if (verbose) {
+            System.out.println("Clearing the Kalman interface\n");
+        }
         hitMap.clear();
         trackHitsKalman.clear();
         for (SiModule SiM : SiMlist) {

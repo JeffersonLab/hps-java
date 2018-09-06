@@ -45,7 +45,7 @@ public class KalmanDriverHPS extends Driver {
     private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
     private double bField;
-    private boolean verbose = true;
+    private boolean verbose = false;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
@@ -140,9 +140,11 @@ public class KalmanDriverHPS extends Driver {
         RelationalTable MatchedToGbl = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> trkrelations = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
         for (LCRelation relation : trkrelations) {
+            System.out.println("trkrelation: " + relation.toString());
             if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 MatchedToGbl.add(relation.getFrom(), relation.getTo());
             }
+            System.out.format("MatchedToGbl size = %d, string=%s\n", MatchedToGbl.size(), MatchedToGbl.toString());
         }
 
         for (Track trk : tracks) {
@@ -153,11 +155,14 @@ public class KalmanDriverHPS extends Driver {
                 printExtendedTrackInfo(trk);
             }
 
-            //seedtrack
             SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
             if (verbose) {
                 System.out.println("\nPrinting info for Kalman SeedTrack:");
                 seedKalmanTrack.print("testKalmanTrack");
+            }
+            if (!seedKalmanTrack.success) {
+                KI.clearInterface();
+                continue;
             }
             Track HPStrk = KI.createTrack(seedKalmanTrack);
             if (verbose) {
@@ -186,8 +191,11 @@ public class KalmanDriverHPS extends Driver {
                 TrackState ts = null;
                 if (MatchedToGbl != null) {
                     Track tmp = (Track) (MatchedToGbl.from(HPStrk));
-                    if (tmp == null)
-                        return;
+                    if (tmp == null) {
+                        KI.clearInterface();
+                        System.out.println("MatchedToGbl relation is null");
+                        continue;
+                    }
                     ts = tmp.getTrackStates().get(0);
                 } else
                     ts = HPStrk.getTrackStates().get(0);
@@ -197,7 +205,6 @@ public class KalmanDriverHPS extends Driver {
             }
             // clearing for next track
             KI.clearInterface();
-
         }
         if (verbose)
             System.out.println("\n DONE event ");

@@ -26,6 +26,8 @@ class SeedTrack {
     public double yOrigin;
     private static Plane p0; // x,z plane at y=0
     private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting
+    int Nbending;
+    int Nnonbending;
 
     double getAlpha() {
         return alpha;
@@ -34,6 +36,7 @@ class SeedTrack {
     void print(String s) {
         if (success) {
             System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
+            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n",Nbending,Nnonbending);
             hParm.print("helix parameters rotated into magnetic field frame");
             System.out.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
             double [] pivot = {0., 0., 0.};
@@ -75,6 +78,12 @@ class SeedTrack {
         double[] yMC = null;
         double[] mTrue = null;
         if (verbose) {
+            System.out.format("Entering SeedTrack, yOrigin=%10.7f\n", yOrigin);
+            int n = 0;
+            for (int[] hit : hitList) {
+                System.out.format("      Hit %d is number %d in SiModule %d\n", n, hit[1], hit[0]);
+                ++n;
+            }
             xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
             zMC = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
             t = new double[hitList.size()]; // Stereo angle
@@ -86,8 +95,8 @@ class SeedTrack {
         double[][] delta = new double[hitList.size()][3];
         double[][] R2 = new double[hitList.size()][3];
         int N = 0;
-        int Nbending = 0;
-        int Nnonbending = 0;
+        Nbending = 0;
+        Nnonbending = 0;
 
         // First find the average field
         Vec Bvec = new Vec(0., 0., 0.);
@@ -101,7 +110,7 @@ class SeedTrack {
         Bvec = Bvec.scale(sF);
         Bavg = Bvec.mag();
         if (verbose) {
-            System.out.format("Entering SeedTrack: Npnt=%d, Bavg=%10.5e\n", Npnt, Bavg);
+            System.out.format("*** SeedTrack: Npnt=%d, Bavg=%10.5e\n", Npnt, Bavg);
         }
         double c = 2.99793e8; // Speed of light in m/s
         alpha = 1000.0 * 1.0e9 / (c * Bavg); // Convert from pt in GeV to curvature in mm

@@ -87,6 +87,7 @@ public class KalmanTrackFit2 {
 
                 prevSite = thisSite;
             }
+            if (!success) return;
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
                 newSite.aF.a.print("filtered helix parameters at innermost site.");
@@ -107,8 +108,6 @@ public class KalmanTrackFit2 {
                     cnt++;
                 }
             }
-            if (!success)
-                return;
             startSite = newSite;
         }
 
@@ -170,6 +169,9 @@ public class KalmanTrackFit2 {
 
                 previousSite = newSite;
             }
+            if (!success) {
+                return;
+            }
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after first full filtering = %12.4e\n", chi2f);
                 previousSite.aF.a.print("filtered helix parameters at last site filtered");
@@ -189,9 +191,6 @@ public class KalmanTrackFit2 {
                     System.out.format("\n");
                     cnt++;
                 }
-            }
-            if (!success) {
-                return;
             }
             chi2s = 0.;
             MeasurementSite nextSite = null;
