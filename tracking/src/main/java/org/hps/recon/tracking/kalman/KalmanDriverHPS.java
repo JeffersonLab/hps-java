@@ -270,7 +270,7 @@ public class KalmanDriverHPS extends Driver {
     private void printTrackInfo(Track HPStrk, RelationalTable MatchedToGbl) {
         TrackState ts = null;
         if (MatchedToGbl != null) {
-            Track tmp = (Track) (MatchedToGbl.to(HPStrk));
+            Track tmp = (Track) (MatchedToGbl.from(HPStrk));
             if (tmp == null)
                 return;
             ts = tmp.getTrackStates().get(0);
