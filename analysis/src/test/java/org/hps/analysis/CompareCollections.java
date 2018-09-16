@@ -25,7 +25,8 @@ import org.lcsim.util.loop.LCSimLoop;
 
 public class CompareCollections extends TestCase {
     String oldFileName = "/nfs/slac/g/hps3/data/objectStandardization/engrun2015/5772_pass8_goldenV0.slcio";
-    String[] newFileName = {"/nfs/slac/work/mdiamond/hps-java/output2.slcio"};
+    //String oldFileName = "/nfs/slac/work/mdiamond/hps-java/output2.slcio";
+    String[] newFileName = {"/nfs/slac/work/mdiamond/hps-java/outputMouse.slcio"};
     int nEvents = 1000;
 
     public void testClear() throws Exception {
@@ -194,6 +195,7 @@ public class CompareCollections extends TestCase {
                 boolean passPID = true;
                 boolean passChi2 = true;
                 boolean passTiming = true;
+		double maxChi2 = 0;
                 if (parts != null && !parts.isEmpty()) {
                     for (ReconstructedParticle part : parts) {
                         if (part.getCharge() == -1) {
@@ -213,10 +215,11 @@ public class CompareCollections extends TestCase {
                         if (!part.getTracks().isEmpty()) {
                             Track trk = part.getTracks().get(0);
                             if (trk != null) {
-                                aida.histogram1D("Track Chi2").fill(trk.getChi2());
+
                                 if (trk.getChi2() > cuts.getMaxTrackChisq(trk.getTrackerHits().size()))
                                     passChi2 = false;
-                                
+			        if (trk.getChi2() > maxChi2)
+				    maxChi2 = trk.getChi2();
                                 if (!part.getClusters().isEmpty()) {
                                     Cluster clus = part.getClusters().get(0);
                                     double clusTime = ClusterUtilities.getSeedHitTime(clus);
@@ -232,9 +235,10 @@ public class CompareCollections extends TestCase {
                     if (passes) {
                         if (passPID) {
                             aida.histogram1D("cut flow").fill(6);
-                            if (passChi2) {
+                            if (passTiming) {
                                 aida.histogram1D("cut flow").fill(7);
-                                if (passTiming) {
+				aida.histogram1D("Track Chi2").fill(maxChi2);
+                                if (passChi2) {
                                     aida.histogram1D("cut flow").fill(8);
                                 }
                             }   
