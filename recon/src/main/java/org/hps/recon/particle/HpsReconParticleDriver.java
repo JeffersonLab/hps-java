@@ -410,6 +410,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if ((eleIsTop == posIsTop) && (!makeConversionCols))
             return;
         
+        if (electron.getClusters() == null || positron.getClusters() == null)
+            return;
+        if (electron.getClusters().isEmpty() || positron.getClusters().isEmpty())
+            return;
         double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
         double posClusTime = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
       
