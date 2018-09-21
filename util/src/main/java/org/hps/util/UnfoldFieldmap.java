@@ -230,17 +230,25 @@ public class UnfoldFieldmap {
                                 Bz[abs(i)][abs(j)][abs(k)] = 0;
                         }
                         w.write(xSign * xVals[abs(i)] + " " + ySign * yVals[abs(j)] + " " + zSign * zVals[abs(k)] + " "
-                                + (xSign*ySign) * Bx[abs(i)][abs(j)][abs(k)] + " " + By[abs(i)][abs(j)][abs(k)] + " " + (zSign*ySign)
-                                * Bz[abs(i)][abs(j)][abs(k)] + " \n");
+                                + formatMe((xSign*ySign) * Bx[abs(i)][abs(j)][abs(k)]) + " " + formatMe(By[abs(i)][abs(j)][abs(k)]) + " " + formatMe((zSign*ySign)
+                                * Bz[abs(i)][abs(j)][abs(k)]) + " \n");
                     }
                 }
             }
+            // String.format("%.3E",productPrice)
 
             w.flush();
             w.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private String formatMe(double dbl) {
+        if (dbl == 0)
+            return "0";
+        else
+            return String.format("%.3E",dbl);
     }
 
     // public void writeoutGnuplot()
