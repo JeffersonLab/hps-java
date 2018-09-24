@@ -2,7 +2,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-EngRun2015-Nominal-v2-nofield">
+    <info name="HPS-EngRun2015-Nominal-v2-align">
         <comment>HPS detector for 2015 Engineering Run field off running 
                  Uses SVT mechanical survey but no further corrections.
         </comment>
@@ -816,7 +816,6 @@
     </readouts>
 
     <fields>
-        <!--
         <field 
             type="FieldMap3D"
             name="HPSDipoleFieldMap3D" 
@@ -826,8 +825,6 @@
             yoffset="0.0*cm"
             zoffset="45.72*cm"
         />
-        -->
-        <field type="BoxDipole" name="AnalyzingDipole" x="dipoleMagnetPositionX" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="0.0" bz="0.0" />
     </fields>
 
 <!--    
