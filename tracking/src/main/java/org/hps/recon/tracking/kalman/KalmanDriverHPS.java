@@ -19,9 +19,11 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.recon.tracking.gbl.GBLKinkData;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
@@ -124,6 +126,13 @@ public class KalmanDriverHPS extends Driver {
         KI.createSiModules(detPlanes, fm);
     }
 
+    private void printGBLkinks(RelationalTable GBLtoKinks, Track GBLtrack) {
+        GenericObject kinks = (GenericObject) GBLtoKinks.from(GBLtrack);
+        for (int i = 0; i < kinks.getNDouble(); i++) {
+            System.out.printf("sensor %d  lambda-kink %f phi-kink %f \n", i, kinks.getFloatVal(i), kinks.getDoubleVal(i));
+        }
+    }
+
     @Override
     public void process(EventHeader event) {
         if (!event.hasCollection(Track.class, trackCollectionName)) {
@@ -147,12 +156,16 @@ public class KalmanDriverHPS extends Driver {
             System.out.format("MatchedToGbl size = %d, string=%s\n", MatchedToGbl.size(), MatchedToGbl.toString());
         }
 
+        RelationalTable GBLtoKinks = GBLKinkData.getKinkDataToTrackTable(event);
+
         for (Track trk : tracks) {
+
             if (verbose) {
                 System.out.println("\nPrinting info for original HPS SeedTrack:");
                 printTrackInfo(trk, MatchedToGbl);
                 System.out.println("\nPrinting info for original HPS GBLTrack:");
                 printExtendedTrackInfo(trk);
+                //printGBLkinks(GBLtoKinks, trk);
             }
 
             SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
@@ -184,9 +197,9 @@ public class KalmanDriverHPS extends Driver {
             if (fullKalmanTrack != null) {
                 Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
                 outputFullTracks.add(fullKalmanTrackHPS);
-    
+
                 // Fill histograms here
-                double [] hprms = KalmanInterface.getLCSimParams(fullKalmanTrack.originHelix(), fullKalmanTrack.alpha);
+                double[] hprms = KalmanInterface.getLCSimParams(fullKalmanTrack.originHelix(), fullKalmanTrack.alpha);
                 SymmetricMatrix hCov = KalmanInterface.getLCSimCov(fullKalmanTrack.originCovariance(), fullKalmanTrack.alpha);
                 TrackState ts = null;
                 //    Track tmp = (Track) (MatchedToGbl.to(trk));
@@ -198,7 +211,7 @@ public class KalmanDriverHPS extends Driver {
                 //} else
                 ts = HPStrk.getTrackStates().get(0);
                 double[] params = ts.getParameters();
-                aida.histogram1D("Omega % difference").fill(100.*(hprms[2]-params[2])/params[2]);
+                aida.histogram1D("Omega % difference").fill(100. * (hprms[2] - params[2]) / params[2]);
                 aida.histogram1D("Kalman Track Chi2").fill(fullKalmanTrackHPS.getChi2());
             }
             // clearing for next track
