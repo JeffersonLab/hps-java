@@ -49,14 +49,16 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
 //    KFParticle p;
 //    KFTrack kft1;
 //    int nTracksInVertex = 0;
-    Map<String, List<org.hps.analysis.alignment.straighttrack.vertex.Track>> tracksToVertexMap = new HashMap<>();
+    Map<String, List<org.hps.analysis.alignment.straighttrack.vertex.Track>> topTracksToVertexMap = new HashMap<>();
+    Map<String, List<org.hps.analysis.alignment.straighttrack.vertex.Track>> bottomTracksToVertexMap = new HashMap<>();
 //    List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracksToVertex = new ArrayList<org.hps.analysis.alignment.straighttrack.vertex.Track>();
 
     @Override
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
         for (String s : fitNames) {
-            tracksToVertexMap.put(s, new ArrayList<org.hps.analysis.alignment.straighttrack.vertex.Track>());
+            topTracksToVertexMap.put(s, new ArrayList<org.hps.analysis.alignment.straighttrack.vertex.Track>());
+            bottomTracksToVertexMap.put(s, new ArrayList<org.hps.analysis.alignment.straighttrack.vertex.Track>());
         }
     }
 
@@ -174,12 +176,12 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
                     double[] pars13 = fit13.pars();
                     double[] pars46 = fit46.pars();
                     aida.cloud2D(" X vs Y at z = " + z34 + " chisq < " + chisqCut).fill(pars13[0], pars13[1]);
-                    aida.histogram1D(half + " dX at z = " + z34 + " chisq < " + chisqCut,100, -2.5, 2.5).fill(pars13[0] - pars46[0]);
+                    aida.histogram1D(half + " dX at z = " + z34 + " chisq < " + chisqCut, 100, -2.5, 2.5).fill(pars13[0] - pars46[0]);
                     aida.cloud2D(half + " dY vs X at z = " + z34 + " chisq < " + chisqCut).fill(pars13[0], pars13[1] - pars46[1]);
-                    aida.histogram1D(half + " dY at z = " + z34 + " chisq < " + chisqCut,100,-0.25, 0.25).fill(pars13[1] - pars46[1]);
+                    aida.histogram1D(half + " dY at z = " + z34 + " chisq < " + chisqCut, 100, -0.25, 0.25).fill(pars13[1] - pars46[1]);
                     aida.profile1D(half + " dY vs X at z = " + z34 + " chisq < " + chisqCut + " profile", 100, -40., 10.).fill(pars13[0], pars13[1] - pars46[1]);
-                    aida.histogram1D(half + " ddXdZ at z = " + z34 + " chisq < " + chisqCut,100,-0.01, 0.01).fill(pars13[2] - pars46[2]);
-                    aida.histogram1D(half + " ddYdZ at z = " + z34 + " chisq < " + chisqCut,100, -0.001, 0.001).fill(pars13[3] - pars46[3]);
+                    aida.histogram1D(half + " ddXdZ at z = " + z34 + " chisq < " + chisqCut, 100, -0.01, 0.01).fill(pars13[2] - pars46[2]);
+                    aida.histogram1D(half + " ddYdZ at z = " + z34 + " chisq < " + chisqCut, 100, -0.001, 0.001).fill(pars13[3] - pars46[3]);
 
                     // try some vertexing here...
 //                    double mass = 0.511;
@@ -219,15 +221,15 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
                     //refit L13 and L14 so we can vertex at target
                     fit13 = FitTracks.STR_LINFIT(planes13, hits13, A0, B0);
                     fit46 = FitTracks.STR_LINFIT(planes46, hits46, A0, B0);
-                    addTrackToVertexList("full fit", fit, A0);
-                    addTrackToVertexList("L1-3 fit", fit13, A0);
-                    addTrackToVertexList("L4-6 fit", fit46, A0);
+                    addTrackToVertexList("full fit", half, fit, A0);
+                    addTrackToVertexList("L1-3 fit", half, fit13, A0);
+                    addTrackToVertexList("L4-6 fit", half, fit46, A0);
 
                     // if we have enogh tracks, try to vertex them
                     for (String s : fitNames) {
-                        List<org.hps.analysis.alignment.straighttrack.vertex.Track> trackList = tracksToVertexMap.get(s);
+                        List<org.hps.analysis.alignment.straighttrack.vertex.Track> trackList = half.equals("top")? topTracksToVertexMap.get(s) : bottomTracksToVertexMap.get(s);
                         if (trackList.size() == 100) {
-                            vertexThem(s, trackList, A0);
+                            vertexThem(s, half, trackList, A0);
                             trackList.clear();
                         }
                     }
@@ -376,13 +378,13 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
             double dz = -50. + i;
             double x = pars[0] + dz * pars[2];
             double y = pars[1] + dz * pars[3];
-            aida.histogram2D("x vs y at "+(z0+dz),100, -75., -50., 100,-10., 10.).fill(x,y);
+            aida.histogram2D("x vs y at " + (z0 + dz), 100, -75., -50., 100, -10., 10.).fill(x, y);
         }
         aida.tree().cd("/");
     }
 
-    void addTrackToVertexList(String s, TrackFit fit, double[] A0) {
-        List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracks = tracksToVertexMap.get(s);
+    void addTrackToVertexList(String s, String half, TrackFit fit, double[] A0) {
+        List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracks = half.equals("top")? topTracksToVertexMap.get(s) : bottomTracksToVertexMap.get(s);;
         double[] tpars = {0., 0., 0., 0., 1., A0[2]};
         double[] tcov = new double[15];
         System.arraycopy(fit.pars(), 0, tpars, 0, 4);
@@ -391,12 +393,12 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
         tracks.add(new org.hps.analysis.alignment.straighttrack.vertex.Track(tpars, tcov));
     }
 
-    void vertexThem(String s, List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracksToVertex, double[] A0) {
-        List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracks = tracksToVertexMap.get(s);
-        aida.tree().mkdirs(s);
-        aida.tree().cd(s);
+    void vertexThem(String s, String half, List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracksToVertex, double[] A0) {
+//        List<org.hps.analysis.alignment.straighttrack.vertex.Track> tracks = tracksToVertexMap.get(s);
+        aida.tree().mkdirs(s+" "+half);
+        aida.tree().cd(s+" "+half);
         Vertex v = new Vertex();
-        StraightLineVertexFitter.fitPrimaryVertex(tracks, A0, v);
+        StraightLineVertexFitter.fitPrimaryVertex(tracksToVertex, A0, v);
         aida.histogram1D("vertex x", 50, -100., -50.).fill(v.x());
         aida.histogram1D("vertex y", 50, -20., 20.).fill(v.y());
         aida.histogram1D("vertex z", 100, -4000., -1500.).fill(v.z());
