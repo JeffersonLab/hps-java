@@ -68,6 +68,11 @@ public class KalmanInterface {
         KalmanToHps = HpsToKalman.invert();
 
     }
+    
+    static Vec vectorGlbToKalman(double [] HPSvec) { // Convert a vector from global coordinates to Kalman coordinates
+        Vec kalVec = new Vec(HPSvec[0], HPSvec[2], -HPSvec[1]);
+        return kalVec;
+    }
 
     public ArrayList<SiModule> getSiModuleList() {
         return SiMlist;
@@ -200,6 +205,15 @@ public class KalmanInterface {
 
         return params;
     }
+    static double[] unGetLCSimParams(double[] oldParams, double alpha) {
+        double[] params = new double[5];
+        params[0] = oldParams[ParameterName.d0.ordinal()];
+        params[1] = -1.0 * oldParams[ParameterName.phi0.ordinal()];
+        params[2] = oldParams[ParameterName.omega.ordinal()] * alpha * -1.0;
+        params[3] = oldParams[ParameterName.z0.ordinal()] * -1.0;
+        params[4] = oldParams[ParameterName.tanLambda.ordinal()] * -1.0;
+        return params;
+    }
 
     static SymmetricMatrix getLCSimCov(double[][] oldCov, double alpha) {
         double [] d = {1.0, -1.0, -1.0/alpha, -1.0, -1.0};
@@ -222,6 +236,32 @@ public class KalmanInterface {
             }
         }
         */
+        return cov;
+    }
+    
+    static double[][] ungetLCSimCov(double[] oldCov, double alpha) {
+        double [] d = {1.0, -1.0, -1.0*alpha, -1.0, -1.0};
+        double [][] cov = new double[5][5];
+        cov[0][0] = oldCov[0]*d[0]*d[0];
+        cov[1][0] = oldCov[1]*d[1]*d[0];
+        cov[1][1] = oldCov[2]*d[1]*d[1];
+        cov[2][0] = oldCov[3]*d[2]*d[0];
+        cov[2][1] = oldCov[4]*d[2]*d[1];
+        cov[2][2] = oldCov[5]*d[2]*d[2];
+        cov[3][0] = oldCov[6]*d[3]*d[0];
+        cov[3][1] = oldCov[7]*d[3]*d[1];
+        cov[3][2] = oldCov[8]*d[3]*d[2];
+        cov[3][3] = oldCov[9]*d[3]*d[3];
+        cov[4][0] = oldCov[10]*d[4]*d[0];
+        cov[4][1] = oldCov[11]*d[4]*d[1];
+        cov[4][2] = oldCov[12]*d[4]*d[2];
+        cov[4][3] = oldCov[13]*d[4]*d[3];
+        cov[4][4] = oldCov[14]*d[4]*d[4];
+        for (int i=0; i<5; ++i) {
+            for (int j=i+1; j<5; ++j) {
+                cov[i][j] = cov[j][i];
+            }
+        }
         return cov;
     }
 
@@ -332,6 +372,7 @@ public class KalmanInterface {
 
                 double umeas = local.getPosition()[0];
                 double du = Math.sqrt(local.getCovarianceAsMatrix().diagonal(0));
+                System.out.format("Measurement %d, the measurement uncertainty is set to %10.7f\n", i, du);
                 // if hps measured coord axis is opposite to kalman measured coord axis
                 if (planeMeasuredVec.z() * mod.p.V().v[2] < 0)
                     umeas *= -1.0;
@@ -375,6 +416,7 @@ public class KalmanInterface {
     public KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
         double firstHitZ = 10000;
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+        System.out.format("createKalmanTrackFit: number of hits on track = %d\n", hitsOnTrack.size());
         for (TrackerHit hit1D : hitsOnTrack) {
             if (hit1D.getPosition()[2] < firstHitZ)
                 firstHitZ = hit1D.getPosition()[2];
@@ -406,6 +448,32 @@ public class KalmanInterface {
         cov.scale(1000.0);
 
         return new KalmanTrackFit2(SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm, verbose);
+    }
+    public KalmanTrackFit2 createKalmanTrackFit(Vec helixParams, Vec pivot, SquareMatrix cov, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
+        List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+        System.out.format("createKalmanTrackFit: using GBL fit as start; number of hits on track = %d\n", hitsOnTrack.size());
+
+        ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
+
+        fillMeasurements(hitsOnTrack, 2);
+        for (SiModule SiM : SiMlist) {
+            if (!SiM.hits.isEmpty())
+                SiMoccupied.add(SiM);
+        }
+        Collections.sort(SiMoccupied, new SortByLayer());
+
+        for (int i = 0; i < SiMoccupied.size(); i++) {
+            SiModule SiM = SiMoccupied.get(i);
+            if (verbose)
+                SiM.print(String.format("SiMoccupied%d", i));
+        }
+ 
+        int startIndex = 0;
+        if (verbose) {
+            System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex);
+        }
+        cov.scale(1000.0);
+        return new KalmanTrackFit2(SiMoccupied, startIndex, nIt, pivot, helixParams, cov, fm, verbose);
     }
 
     //    public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {

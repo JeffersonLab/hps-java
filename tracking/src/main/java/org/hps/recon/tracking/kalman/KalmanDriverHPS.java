@@ -155,24 +155,105 @@ public class KalmanDriverHPS extends Driver {
                 printExtendedTrackInfo(trk);
             }
 
-            SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
-            if (verbose) {
-                System.out.println("\nPrinting info for Kalman SeedTrack:");
-                seedKalmanTrack.print("testKalmanTrack");
-            }
-            if (!seedKalmanTrack.success) {
-                KI.clearInterface();
-                continue;
-            }
-            Track HPStrk = KI.createTrack(seedKalmanTrack);
-            if (verbose) {
-                System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
-                printTrackInfo(HPStrk, null);
-            }
-            outputSeedTracks.add(HPStrk);
+            boolean createSeed = false;
+            KalmanTrackFit2 ktf2 = null;
+            if (createSeed) { // Start with the linear helix fit
+                if (verbose) System.out.println("Use a linear helix fit to get a starting guess for the Kalman filter\n");
+                SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
+                if (verbose) {
+                    System.out.println("\nPrinting info for Kalman SeedTrack:");
+                    seedKalmanTrack.print("testKalmanTrack");
+                }
+                if (!seedKalmanTrack.success) {
+                    KI.clearInterface();
+                    continue;
+                }
+                Track HPStrk = KI.createTrack(seedKalmanTrack);
+                if (verbose) {
+                    System.out.println("\nPrinting info for Kalman SeedTrack converted to HPS track:");
+                    printTrackInfo(HPStrk, null);
+                }
+                outputSeedTracks.add(HPStrk);
+    
+                //full track
+                ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
+                if (!ktf2.success) {
+                    KI.clearInterface();
+                    continue;
+                }
+            } else { // Or use the GBL fit to start with
+                if (verbose) System.out.println("Use the GBL fit results to start the Kalman filter\n");
+                double minz = 999.;
+                TrackState ts1 = null;
+                HpsSiSensor sensor1 = null;
+                for (HpsSiSensor sensor : sensors) {
+                    //Hep3Vector trackPosition = TrackUtils.extrapolateTrackPositionToSensor(HPStrk, sensor, sensors, bField);
+                    TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(trk, sensor.getMillepedeId());
+                    if (tsAtSensor == null) {
+                        continue;
+                    }
+                    Hep3Vector loc = TrackStateUtils.getLocationAtSensor(tsAtSensor, sensor, bField);
+                    if (loc == null) {
+                        continue;
+                    }
+                    if (verbose) {
+                        System.out.format("   location at sensor: %10.7f %10.7f %10.7f\n", loc.v()[0], loc.v()[1], loc.v()[2]);
+                    }
+                    double zs = loc.v()[2];
+                    if (zs < minz) {
+                        minz = zs;
+                        ts1 = tsAtSensor;
+                        sensor1 = sensor;
+                    }
+                }
+                if (ts1 == null) {
+                    System.out.format("  No first-sensor track state found.\n");
+                    continue;
+                }
+                double D0 = ts1.getD0();
+                double Phi0 = ts1.getPhi();
+                double Omega = ts1.getOmega();
+                double Z0 = ts1.getZ0();
+                double tanl = ts1.getTanLambda();            
+                // Transform to Kalman parameters     
+                double c = 2.99793e8; // Speed of light in m/s
+                double alpha = 1000.0 * 1.0e9 / (c * bField);
+                double[] params = {D0, Phi0, Omega, Z0, tanl};
+                Vec kalParams = new Vec(5,KalmanInterface.unGetLCSimParams(params, alpha));
+                // Move the pivot point to the sensor position
+                Vec oldPivot = KalmanInterface.vectorGlbToKalman(ts1.getReferencePoint());
+                Hep3Vector loc = TrackStateUtils.getLocationAtSensor(ts1, sensor1, bField);
+                Vec newPivot=  KalmanInterface.vectorGlbToKalman(loc.v());
+                kalParams = StateVector.pivotTransform(newPivot, kalParams, oldPivot, alpha, 0.);
+                double[] covHPS = ts1.getCovMatrix();
+                SquareMatrix cov = new SquareMatrix(5,KalmanInterface.ungetLCSimCov(covHPS, alpha));
+                if (verbose) {
+                    System.out.format("   1st sensor: D0=%10.7f phi0=%10.7f Omega=%10.7f Z0=%10.7f tanl=%10.7f\n", D0,Phi0,Omega,Z0,tanl);   
+                    oldPivot.print("Old pivot point for GBL track");
+                    newPivot.print("New pivot point, near the first layer");
+                    kalParams.print("GBL pivot-transformed helix params for starting Kalman fit");
+                    newPivot.print("New pivot for starting Kalman fit");
+                    cov.print("GBL covariance for starting Kalman fit");
+                }
+                //full track
+                ktf2 = KI.createKalmanTrackFit(kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, fm, 2);
+                if (!ktf2.success) {
+                    KI.clearInterface();
+                    continue;
+                }
+                StateVector iniState = ktf2.fittedStateBegin();
+                if (iniState != null) {
+                    newPivot.print("Pivot point for the Kalman initial guess:");
+                    Vec finalPivot = iniState.origin.sum(iniState.X0);
+                    finalPivot.print("Pivot point for the Kalman fitted helix: ");
+                    Vec kalParamsF = StateVector.pivotTransform(finalPivot, kalParams, newPivot, alpha, 0.);
+                    kalParams.print("Kalman initial guess helix parameters, from GBL fit: ");
+                    kalParamsF.print("Kalman initial guess helix parameters at final pivot:");
+                    iniState.a.print("Kalman fitted helix parameters, from GBL fit:        ");
+                    System.out.format("  >> GBL chi2=%10.4e,  Kalman chi2=%10.4e\n", trk.getChi2(), ktf2.tkr.chi2);
 
-            //full track
-            KalmanTrackFit2 ktf2 = KI.createKalmanTrackFit(seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
+                }
+            }
             KalTrack fullKalmanTrack = ktf2.tkr;
             if (verbose) {
                 //ktf2.printFit("fullKalmanTrackFit");
@@ -188,15 +269,7 @@ public class KalmanDriverHPS extends Driver {
                 // Fill histograms here
                 double [] hprms = KalmanInterface.getLCSimParams(fullKalmanTrack.originHelix(), fullKalmanTrack.alpha);
                 SymmetricMatrix hCov = KalmanInterface.getLCSimCov(fullKalmanTrack.originCovariance(), fullKalmanTrack.alpha);
-                TrackState ts = null;
-                //    Track tmp = (Track) (MatchedToGbl.to(trk));
-                //    if (tmp == null) {
-                //        System.out.println("MatchedToGbl relation is null");
-                //        continue;
-                //    }
-                //    ts = tmp.getTrackStates().get(0);
-                //} else
-                ts = HPStrk.getTrackStates().get(0);
+                TrackState ts = trk.getTrackStates().get(0);
                 double[] params = ts.getParameters();
                 aida.histogram1D("Omega % difference").fill(100.*(hprms[2]-params[2])/params[2]);
                 aida.histogram1D("Kalman Track Chi2").fill(fullKalmanTrackHPS.getChi2());
@@ -216,23 +289,36 @@ public class KalmanDriverHPS extends Driver {
         printTrackInfo(HPStrk, null);
         List<Pair<double[], double[]>> MomsLocs = new ArrayList<Pair<double[], double[]>>();
         for (HpsSiSensor sensor : sensors) {
+            System.out.format("Sensor %d, Layer %d, is axial? %b\n", sensor.getModuleNumber(), sensor.getLayerNumber(), sensor.isAxial());
             //Hep3Vector trackPosition = TrackUtils.extrapolateTrackPositionToSensor(HPStrk, sensor, sensors, bField);
             TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(HPStrk, sensor.getMillepedeId());
-            if (tsAtSensor == null)
+            if (tsAtSensor == null) {
+                System.out.format("     Null track state at sensor for this sensor\n");
                 continue;
+            }
             double[] mom = ((BaseTrackState) (tsAtSensor)).computeMomentum(bField);
             double[] momTransformed = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(mom)).v();
             Hep3Vector loc = TrackStateUtils.getLocationAtSensor(tsAtSensor, sensor, bField);
             if (loc == null)
                 continue;
             double[] ref = loc.v();
+            System.out.format("   Location at sensor= %10.7f %10.7f %10.7f\n", ref[0], ref[1], ref[2]);
+            System.out.format("   Momentum at sensor= %10.7f %10.7f %10.7f\n", mom[0], mom[1], mom[2]);
+            double D0 = tsAtSensor.getD0();
+            double Omega = tsAtSensor.getOmega();
+            double Phi0 = tsAtSensor.getPhi();
+            double Z0 = tsAtSensor.getZ0();
+            double tanl = tsAtSensor.getTanLambda();
+            System.out.format("   D0=%10.7f phi0=%10.7f Omega=%10.7f Z0=%10.7f tanl=%10.7f\n", D0,Phi0,Omega,Z0,tanl);
+            double[] pnt = tsAtSensor.getReferencePoint();
+            System.out.format("   Reference point = %10.7f, %10.7f, %10.7f\n", pnt[0],pnt[1],pnt[2]);
             MomsLocs.add(new Pair(momTransformed, ref));
         }
 
         Collections.sort(MomsLocs, new SortByZ());
         for (Pair<double[], double[]> entry : MomsLocs) {
-            System.out.printf("   TrackState: intercept %f %f %f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
-            System.out.printf("       mom %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
+            System.out.printf("   TrackState: intercept %10.6f %10.6f %10.6f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
+            System.out.printf("               momentum  %10.6f %10.6f %10.6f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
         }
 
         return MomsLocs;
