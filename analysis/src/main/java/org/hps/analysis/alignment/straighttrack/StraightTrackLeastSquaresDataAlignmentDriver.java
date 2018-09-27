@@ -149,7 +149,7 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
                 aida.histogram1D(half + " dYdZ at HARP wire", 100, -0.025, 0.025).fill(pars[3]);
                 double chisqCut = 25.;
                 if (chisqNdf < chisqCut) {
-                    scanVertexZ(fit, A0[2]);
+                    scanVertexZ(half, fit, A0[2]);
                     aida.histogram1D(half + " X at HARP wire chisq < " + chisqCut, 100, -100., 0.).fill(pars[0]);
                     aida.histogram1D(half + " Y at HARP wire chisq < " + chisqCut, 100, -20., 20.).fill(pars[1]);
                     aida.histogram2D(half + " X vs Y at HARP wire chisq < " + chisqCut, 100, -90., -45., 100, -10., 10.).fill(pars[0], pars[1]);
@@ -370,9 +370,9 @@ public class StraightTrackLeastSquaresDataAlignmentDriver extends Driver {
         }
     }
 
-    void scanVertexZ(TrackFit fit, double z0) {
-        aida.tree().mkdirs("vertexZscan");
-        aida.tree().cd("vertexZscan");
+    void scanVertexZ(String half, TrackFit fit, double z0) {
+        aida.tree().mkdirs(half+" vertexZscan");
+        aida.tree().cd(half+" vertexZscan");
         double[] pars = fit.pars();
         for (int i = 0; i < 100; ++i) {
             double dz = -50. + i;
