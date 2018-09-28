@@ -26,7 +26,9 @@ import java.util.Set;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
+import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
+import org.hps.util.RK4integrator;
 import org.lcsim.constants.Constants;
 
 import static org.lcsim.constants.Constants.fieldConversion;
@@ -96,6 +98,31 @@ public class TrackUtils {
                 extrapPos = TrackStateUtils.getLocationAtSensor(TrackStateUtils.getTrackStateAtIP(track), sensor, bfield);
         }
         return extrapPos;
+    }
+
+    public static Hep3Vector extrapolateTrackPositionToSensorRK(TrackState ts, SiStripPlane sens, Hep3Vector startPos, FieldMap fM) {
+        if (ts == null || sens == null)
+            return null;
+        HpsSiSensor sensor = (HpsSiSensor) (sens.getSensor());
+        if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer())) {
+            // distance to extrapolate
+            double dPerp = Math.abs(VecOp.dot(VecOp.sub(startPos, sens.origin()), sens.normal()));
+            Hep3Vector pHat = VecOp.mult(1.0 / startPos.magnitude(), startPos);
+            double distance = dPerp / VecOp.dot(pHat, sens.normal());
+
+            Hep3Vector p0 = new BasicHep3Vector(ts.getMomentum());
+            double charge = -1.0 * Math.signum(TrackUtils.getR(ts));
+            RK4integrator RKint = new RK4integrator(charge, distance / 100.0, fM);
+            return RKint.integrationPosition(startPos, p0, distance);
+        }
+        return null;
+    }
+
+    public static Hep3Vector extrapolateTrackPositionToSensorRK(TrackState ts, SiStripPlane sens1, SiStripPlane sens2, FieldMap fM) {
+        HpsSiSensor sensor1 = (HpsSiSensor) (sens1.getSensor());
+        double bfieldY = fM.getField(sens1.origin()).y();
+        Hep3Vector startPos = TrackStateUtils.getLocationAtSensor(ts, sensor1, bfieldY);
+        return extrapolateTrackPositionToSensorRK(ts, sens1, startPos, fM);
     }
 
     /**
@@ -479,29 +506,6 @@ public class TrackUtils {
         return intercept_point;
     }
 
-    /*
-     * Calculates the point on the helix in the x-y plane at the intercept with
-     * plane The normal of the plane is in the same x-y plane as the circle.
-     * 
-     * @param helix
-     * 
-     * @param vector normal to plane
-     * 
-     * @param origin of plane
-     * 
-     * @return point in the x-y plane of the intercept
-     */
-    public Hep3Vector getHelixXPlaneIntercept(HelicalTrackFit helix, Hep3Vector w, Hep3Vector origin) {
-        throw new RuntimeException("this function is not working properly; don't use it");
-
-        // FInd the intercept point x_int,y_int, between the circle and sensor,
-        // which becomes a
-        // line in the x-y plane in this case.
-        // y_int = k*x_int + m
-        // R^2 = (y_int-y_c)^2 + (x_int-x_c)^2
-        // solve for x_int
-    }
-
     /**
      * Get position of a track extrapolated to the HARP in the HPS test run 2012
      *
@@ -529,6 +533,21 @@ public class TrackUtils {
     public static BaseTrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap) {
         // extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap)
         BaseTrackState bts = extrapolateTrackUsingFieldMap(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN, BeamlineConstants.ECAL_FACE, 5.0, fieldMap);
+        bts.setLocation(TrackState.AtCalorimeter);
+        return bts;
+    }
+
+    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM) {
+        return getTrackExtrapAtEcalRK(ts, fM, 0);
+    }
+
+    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double epsilon) {
+
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        double distance = BeamlineConstants.ECAL_FACE - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        if (epsilon == 0)
+            epsilon = distance / 100.0;
+        BaseTrackState bts = extrapolateTrackUsingFieldMapRK(ts, startPos, distance, epsilon, fM);
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
     }
@@ -1404,6 +1423,37 @@ public class TrackUtils {
         return extrapolateTrackUsingFieldMap(track, startPositionX, endPosition, stepSize, 0.005, fieldMap);
     }
 
+    public static BaseTrackState extrapolateTrackUsingFieldMapRK(TrackState ts, Hep3Vector startPosition, double distance, double stepSize, FieldMap fM) {
+        Hep3Vector p0 = new BasicHep3Vector(ts.getMomentum());
+        double charge = -1.0 * Math.signum(getR(ts));
+
+        RK4integrator RKint = new RK4integrator(charge, stepSize, fM);
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = RKint.integrate(startPosition, p0, distance);
+
+        return makeTrackStateFromParams(RKresults.getFirstElement(), RKresults.getSecondElement(), charge, fM.getField(RKresults.getFirstElement()).y());
+    }
+
+    public static BaseTrackState makeTrackStateFromParams(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, double bFieldY) {
+        // Calculate the track parameters at the Extrapolation point
+        double doca = currentPosition.x() * currentPosition.x() + currentPosition.y() * currentPosition.y();
+        double phi = TrackUtils.calculatePhi(currentMomentum.x(), currentMomentum.y());
+        double curvature = TrackUtils.calculateCurvature(currentMomentum.magnitude(), q, bFieldY);
+        double z = currentPosition.z();
+        double tanLambda = TrackUtils.calculateTanLambda(currentMomentum.z(), currentMomentum.magnitude());
+
+        double[] trackParameters = new double[5];
+        trackParameters[ParameterName.d0.ordinal()] = Math.sqrt(doca);
+        trackParameters[ParameterName.phi0.ordinal()] = phi;
+        trackParameters[ParameterName.omega.ordinal()] = curvature;
+        trackParameters[ParameterName.z0.ordinal()] = z;
+        trackParameters[ParameterName.tanLambda.ordinal()] = tanLambda;
+
+        // Create a track state at the extrapolation point
+        BaseTrackState trackState = new BaseTrackState(trackParameters, bFieldY);
+        trackState.setReferencePoint(currentPosition.v());
+        return trackState;
+    }
+
     public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
         // Start by extrapolating the track to the approximate point where the
         // fringe field begins.
@@ -1474,25 +1524,8 @@ public class TrackUtils {
             currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
         }
 
-        // Calculate the track parameters at the Extrapolation point
-        double doca = currentPosition.x() * currentPosition.x() + currentPosition.y() * currentPosition.y();
-        double phi = TrackUtils.calculatePhi(currentMomentum.x(), currentMomentum.y());
-        double curvature = TrackUtils.calculateCurvature(currentMomentum.magnitude(), q, bFieldY);
-        double z = currentPosition.z();
-        double tanLambda = TrackUtils.calculateTanLambda(currentMomentum.z(), currentMomentum.magnitude());
+        return makeTrackStateFromParams(currentPosition, currentMomentum, q, bFieldY);
 
-        double[] trackParameters = new double[5];
-        trackParameters[ParameterName.d0.ordinal()] = Math.sqrt(doca);
-        trackParameters[ParameterName.phi0.ordinal()] = phi;
-        trackParameters[ParameterName.omega.ordinal()] = curvature;
-        trackParameters[ParameterName.z0.ordinal()] = z;
-        trackParameters[ParameterName.tanLambda.ordinal()] = tanLambda;
-
-        // Create a track state at the extrapolation point
-        BaseTrackState trackState = new BaseTrackState(trackParameters, bFieldY);
-        trackState.setReferencePoint(currentPosition.v());
-
-        return trackState;
     }
 
     public static double calculatePhi(double x, double y, double xc, double yc, double sign) {
@@ -1615,11 +1648,11 @@ public class TrackUtils {
         }
         writer.close();
     }
-    
+
     //This method transforms vector from tracking detector frame to sensor frame
-    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor){
+    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor) {
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
-        if(electrodes == null){
+        if (electrodes == null) {
             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
             System.out.println("Charge Carrier is NULL");
         }

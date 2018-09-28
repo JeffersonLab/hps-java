@@ -37,7 +37,15 @@ public class RK4integrator {
         h2 = h / 2.0;
     }
     
-    Pair<Hep3Vector, Hep3Vector> integrate(Hep3Vector r0, Hep3Vector p0, double s) {
+    public Hep3Vector integrationPosition(Hep3Vector r0, Hep3Vector p0, double s) {
+        return integrate(r0, p0, s).getFirstElement();
+    }
+    
+    public Hep3Vector integrationMomentum(Hep3Vector r0, Hep3Vector p0, double s) {
+        return integrate(r0, p0, s).getFirstElement();
+    }
+    
+    public Pair<Hep3Vector, Hep3Vector> integrate(Hep3Vector r0, Hep3Vector p0, double s) {
         // r0 is the initial point in mm
         // p0 is the initial momentum in GeV/c
         // s is the distance to propagate (approximate to distance dx)
