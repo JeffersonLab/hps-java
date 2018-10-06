@@ -15,12 +15,16 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
+//import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.Pair;
+import org.hps.util.RK4integrator;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 //import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
@@ -36,8 +40,8 @@ public class TrackExtrapTest extends TestCase {
 
     public void testIt() throws Exception
     {
-        int nEvents = -1;
-        String fileName = "RecoCopy_tritrig-wab-beam.slcio";
+        int nEvents = 10000;
+        String fileName = "ap_0000.slcio";
         File inputFile = new File(fileName);
         String aidaOutput = fileName.replaceAll("slcio", "root");
         LCSimLoop loop2 = new LCSimLoop();
@@ -70,7 +74,7 @@ public class TrackExtrapTest extends TestCase {
         private double epsilon = 0.05;
         public AIDA aida = null;
         private String outputPlots = null;
-        private double lowMomThresh = 0.3;
+        //private double lowMomThresh = 0.3;
        // private boolean foundWeird = false;
         
         @Override
@@ -223,10 +227,14 @@ public class TrackExtrapTest extends TestCase {
                 Hep3Vector hitMomentum = new BasicHep3Vector(lastHit.getMomentum());
                 //System.out.printf("starting mom %s \n", CoordinateTransformations.transformVectorToTracking(hitMomentum).toString());
                 
-                Hep3Vector extrapPos = doTrackExtrap(CoordinateTransformations.transformVectorToTracking(hitPosition), CoordinateTransformations.transformVectorToTracking(hitMomentum), part.getCharge(), false);
-                if (extrapPos == null)
+                Hep3Vector extrapPosOld = doTrackExtrap(CoordinateTransformations.transformVectorToTracking(hitPosition), CoordinateTransformations.transformVectorToTracking(hitMomentum), part.getCharge(), false);
+                if (extrapPosOld == null)
                     continue;                
-                extrapPos=CoordinateTransformations.transformVectorToDetector(extrapPos);
+                extrapPosOld=CoordinateTransformations.transformVectorToDetector(extrapPosOld);
+                
+                Hep3Vector extrapPos = doTrackExtrapRK(hitPosition, hitMomentum, part.getCharge(), false);
+                //System.out.printf("extrapPos: %s \n", extrapPos.toString());
+                //System.out.printf("   extrapPosRK: %s \n", extrapPosRK.toString());
 
                 caloHit = findClosestCaloHit(caloHitList, extrapPos);
                 Hep3Vector caloHitPos = caloHit.getPositionVec();
@@ -247,47 +255,47 @@ public class TrackExtrapTest extends TestCase {
                 }
                 else 
                     aida.histogram2D("Y vs X Pos Extrapolated to ECal").fill(extrapPos.x(), extrapPos.y());
-                
+
                 // filling plots
-                if (Math.abs(part.getPZ()) < lowMomThresh) {
-                    aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
-                    aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit X").fill(caloHitPos.x(), residualVec.x());
-                    aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit Y").fill(caloHitPos.y(), residualVec.x());
-                    aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit X").fill(caloHitPos.x(), residualVec.y());
-                    aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit Y").fill(caloHitPos.y(), residualVec.y());
-                }
+                //                if (Math.abs(part.getPZ()) < lowMomThresh) {
+                aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
+                aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit X").fill(caloHitPos.x(), residualVec.x());
+                aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit Y").fill(caloHitPos.y(), residualVec.x());
+                aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit X").fill(caloHitPos.x(), residualVec.y());
+                aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit Y").fill(caloHitPos.y(), residualVec.y());
+                //                }
                 aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                 aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
-                
+
                 //System.out.printf("residual %s  caloHitPos %s  partPZ %f  lastHitPos %f \n", residualVec.toString(), caloHitPos.toString(), part.getPZ(), lastHit.getPosition()[2]);
-              
+
                 if (lastHit.getPosition()[1] > 0) {
-                    if (Math.abs(part.getPZ()) < lowMomThresh)
-                        aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
+                    //if (Math.abs(part.getPZ()) < lowMomThresh)
+                    aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
                 else {
-                    if (Math.abs(part.getPZ()) < lowMomThresh)
-                        aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
+                    //if (Math.abs(part.getPZ()) < lowMomThresh)
+                    aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
-                
+
                 if (part.getCharge() > 0) {
-                    if (Math.abs(part.getPZ()) < lowMomThresh)
-                        aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
+                    //if (Math.abs(part.getPZ()) < lowMomThresh)
+                    aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
                 else {
-                    if (Math.abs(part.getPZ()) < lowMomThresh)
-                        aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
+                    //if (Math.abs(part.getPZ()) < lowMomThresh)
+                    aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
-                
-                    //Hep3Vector endPositionrot = VecOp.mult(beamAxisRotation, endPosition);
+
+                //Hep3Vector endPositionrot = VecOp.mult(beamAxisRotation, endPosition);
             }
         }
         
@@ -312,6 +320,24 @@ public class TrackExtrapTest extends TestCase {
             aida.histogram2D("Weird Events: Y vs X Mom of MCParticle").fill(partMom.x(), partMom.y());
             aida.histogram1D("Weird Events: Z Mom of MCParticle").fill(partMom.z());
             
+        }
+        
+        public Hep3Vector doTrackExtrapRK(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, boolean debug) {
+            double distanceZ = ecalPosition - currentPosition.z();
+            double distance = distanceZ / VecOp.cosTheta(currentMomentum);
+                    
+            RK4integrator RKint = new RK4integrator(q, epsilon, bFieldMap);
+            Pair<Hep3Vector,Hep3Vector> RKresults = RKint.integrate(currentPosition, currentMomentum, distance);
+            //System.out.printf("   RK approx: %s \n", RKresults.getFirstElement().toString());
+            
+            
+            Hep3Vector posTransformed = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+            Hep3Vector momTransformed = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
+            Hep3Vector refPt = new BasicHep3Vector(0,0,0);
+            BaseTrackState bts = TrackUtils.makeTrackStateFromParams(posTransformed, momTransformed, q, bFieldMap.getField(RKresults.getFirstElement()).y(), refPt);
+            
+            Hep3Vector returnMe = TrackUtils.extrapolateHelixToXPlane(bts, ecalPosition);
+            return CoordinateTransformations.transformVectorToDetector(returnMe);
         }
 
         // everything in tracking frame
@@ -385,6 +411,14 @@ public class TrackExtrapTest extends TestCase {
                 
                
             }
+//            
+//            
+//            Hep3Vector refPt = new BasicHep3Vector(0,0,0);
+//            BaseTrackState bts = TrackUtils.makeTrackStateFromParams(currentPosition, currentMomentum, q, bFieldY, refPt);
+//            Hep3Vector testMe = TrackUtils.extrapolateHelixToXPlane(bts, ecalPosition);
+//            
+//            System.out.printf("  testMe %s \n", testMe.toString());
+            
             return currentPosition;
         }
     }

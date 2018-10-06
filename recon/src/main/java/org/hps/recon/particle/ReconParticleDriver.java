@@ -55,6 +55,11 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
+    protected boolean enableTrackClusterMatchPlots = false;
+    
+    public void setTrackClusterMatchPlots(boolean input) {
+        enableTrackClusterMatchPlots = input;
+    }
    
     public void setUseCorrectedClusterPositionsForMatching(boolean val){
         useCorrectedClusterPositionsForMatching = val;
@@ -351,7 +356,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void detectorChanged(Detector detector) {
-        matcher.enablePlots(false);
+        matcher.enablePlots(enableTrackClusterMatchPlots);
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
@@ -457,6 +462,10 @@ public abstract class ReconParticleDriver extends Driver {
                     
                     // normalized distance between this cluster and track:
                     final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
+                    if (enableTrackClusterMatchPlots) {
+                        if (TrackUtils.getTrackStateAtECal(track) != null)
+                            matcher.isMatch(cluster, track);
+                    }
 
                     // ignore if matching quality doesn't make the cut:
                     if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
@@ -738,7 +747,8 @@ public abstract class ReconParticleDriver extends Driver {
 
     @Override
     protected void endOfData() {
-        // matcher.saveHistograms();
+        if (enableTrackClusterMatchPlots)
+            matcher.saveHistograms();
     }
 
     

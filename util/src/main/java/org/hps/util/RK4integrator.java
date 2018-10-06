@@ -62,8 +62,8 @@ public class RK4integrator {
             Hep3Vector r2 = VecOp.add(r, VecOp.mult(h2, k2.getFirstElement()));;
             Hep3Vector p2 = VecOp.add(p, VecOp.mult(h2, k2.getSecondElement()));
             Pair<Hep3Vector, Hep3Vector> k3 = f(r2, p2);
-            Hep3Vector r3 = VecOp.add(r, VecOp.mult(h2, k3.getFirstElement()));;
-            Hep3Vector p3 = VecOp.add(p, VecOp.mult(h2, k3.getSecondElement()));
+            Hep3Vector r3 = VecOp.add(r, VecOp.mult(h, k3.getFirstElement()));;
+            Hep3Vector p3 = VecOp.add(p, VecOp.mult(h, k3.getSecondElement()));
             Pair<Hep3Vector, Hep3Vector> k4 = f(r3, p3);
             
             Hep3Vector rtemp = VecOp.add(VecOp.mult(1.0/6.0, k1.getFirstElement()), VecOp.mult(1.0/3.0, k2.getFirstElement()));
