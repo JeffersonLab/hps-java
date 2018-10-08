@@ -664,30 +664,54 @@ public class BilliorVertexer {
         //calculate the variance terms for sigmaX^2        
         double sigX2 = sX * sX * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(xInd, xInd) + covMom2.e(xInd, xInd)
                 + sX * sX * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + covVtx.e(xInd, xInd);
-        ////calculate the variance terms for sigmaX^2  
         // Vz-p covariances
-        sigX2 += 2 * (sX * delZ / pvZ * (covVtxMom1.e(zInd, xInd) + covVtxMom2.e(zInd, xInd)
+//        sigX2 += 2 * (sX * delZ / pvZ * (covVtxMom1.e(zInd, xInd) + covVtxMom2.//e(zInd, xInd)
+//                + sX * (covVtxMom1.e(zInd, zInd) + covVtxMom2.e(zInd, zInd))));
+        sigX2 += 2 * (sX * delZ / pvZ * (-covVtxMom1.e(zInd, xInd) - covVtxMom2.e(zInd, xInd)  //  signs get flipped because of my (vz-zt)-->(zt-vz) mistake
                 + sX * (covVtxMom1.e(zInd, zInd) + covVtxMom2.e(zInd, zInd))));
         // p-p covariances  (I'm assuming covMom12 == covMom21
-        sigX2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom1.e(zInd, xInd) - sX * (covMom1.e(xInd, zInd) + covMom12.e(xInd, zInd)
+ //       sigX2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom1.e(zInd, xInd) - sX * (covMom1.e(xInd, zInd) + covMom12.e(xInd, zInd)
+ //               + covMom12.e(zInd, xInd) + covMom2.e(xInd, zInd)) + Math.pow(sX, 2) * covMom12.e(zInd, zInd)));
+        sigX2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom12.e(xInd, xInd) - sX * (covMom1.e(xInd, zInd) + covMom12.e(xInd, zInd)//  signs get flipped because of my (vz-zt)-->(zt-vz) mistake
                 + covMom12.e(zInd, xInd) + covMom2.e(xInd, zInd)) + Math.pow(sX, 2) * covMom12.e(zInd, zInd)));
+ 
         // Vx-Vz and Vx-p covariances
-        sigX2 += 2 * (sX * covVtx.e(xInd, zInd) + delZ / pvZ * (covVtxMom1.e(xInd, xInd) + covVtxMom2.e(xInd, xInd)
+        sigX2 += 2 * (-sX * covVtx.e(xInd, zInd) + delZ / pvZ * (covVtxMom1.e(xInd, xInd) + covVtxMom2.e(xInd, xInd)
                 - sX * (covVtxMom1.e(xInd, zInd) + covVtxMom2.e(xInd, zInd))));
+
         //calculate the variance terms for sigmaY^2        
-        double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
-                + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + covVtx.e(yInd, yInd);
-        ////calculate the variance terms for sigmaY^2  
+//        double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
+//                + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + covVtx.e(yInd, yInd);
+//        ////calculate the variance terms for sigmaY^2  
+//        // Vz-p covariances
+//        sigY2 += 2 * (sY * delZ / pvZ * (covVtxMom1.e(zInd, yInd) + covVtxMom2.e(zInd, yInd)
+//                + sY * (covVtxMom1.e(zInd, zInd) + covVtxMom2.e(zInd, zInd))));
+//        // p-p covariances  (I'm assuming covMom12 == covMom21
+//        sigY2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom1.e(zInd, yInd) - sY * (covMom1.e(yInd, zInd) + covMom12.e(yInd, zInd)
+//                + covMom12.e(zInd, yInd) + covMom2.e(yInd, zInd)) + Math.pow(sY, 2) * covMom12.e(zInd, zInd)));
+//        // Vy-Vz and Vx-p covariances
+//        sigY2 += 2 * (sY * covVtx.e(yInd, zInd) + delZ / pvZ * (covVtxMom1.e(yInd, yInd) + covVtxMom2.e(yInd, yInd)
+//                - sY * (covVtxMom1.e(yInd, zInd) + covVtxMom2.e(yInd, zInd))));
+//  double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
+ //               + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + covVtx.e(yInd, yInd);
+  
+    double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
+                + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + (2.7*2.7)*covVtx.e(yInd, yInd);
         // Vz-p covariances
-        sigY2 += 2 * (sY * delZ / pvZ * (covVtxMom1.e(zInd, yInd) + covVtxMom2.e(zInd, yInd)
+//        sigY2 += 2 * (sY * delZ / pvZ * (covVtxMom1.e(zInd, yInd) + covVtxMom2.//e(zInd, yInd)
+//                + sY * (covVtxMom1.e(zInd, zInd) + covVtxMom2.e(zInd, zInd))));
+        sigY2 += 2 * (sY * delZ / pvZ * (-covVtxMom1.e(zInd, yInd) - covVtxMom2.e(zInd, yInd)  //  signs get flipped because of my (vz-zt)-->(zt-vz) mistake
                 + sY * (covVtxMom1.e(zInd, zInd) + covVtxMom2.e(zInd, zInd))));
         // p-p covariances  (I'm assuming covMom12 == covMom21
-        sigY2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom1.e(zInd, yInd) - sY * (covMom1.e(yInd, zInd) + covMom12.e(yInd, zInd)
+ //       sigY2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom1.e(zInd, yInd) - sY * (covMom1.e(yInd, zInd) + covMom12.e(yInd, zInd)
+ //               + covMom12.e(zInd, yInd) + covMom2.e(yInd, zInd)) + Math.pow(sY, 2) * covMom12.e(zInd, zInd)));
+        sigY2 += 2 * (delZ / Math.pow(pvZ, 2) * (covMom12.e(yInd, yInd) - sY * (covMom1.e(yInd, zInd) + covMom12.e(yInd, zInd)//  signs get flipped because of my (vz-zt)-->(zt-vz) mistake
                 + covMom12.e(zInd, yInd) + covMom2.e(yInd, zInd)) + Math.pow(sY, 2) * covMom12.e(zInd, zInd)));
-        // Vy-Vz and Vx-p covariances
-        sigY2 += 2 * (sY * covVtx.e(yInd, zInd) + delZ / pvZ * (covVtxMom1.e(yInd, yInd) + covVtxMom2.e(yInd, yInd)
+ 
+        // Vx-Vz and Vx-p covariances
+        sigY2 += 2 * (-sY * covVtx.e(yInd, zInd) + delZ / pvZ * (covVtxMom1.e(yInd, yInd) + covVtxMom2.e(yInd, yInd)
                 - sY * (covVtxMom1.e(yInd, zInd) + covVtxMom2.e(yInd, zInd))));
-        double[] sigXY = {Math.sqrt(sigX2), Math.sqrt(sigY2)};
+double[] sigXY = {Math.sqrt(sigX2), Math.sqrt(sigY2)};
         return sigXY;
     }
 
