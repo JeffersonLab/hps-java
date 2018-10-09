@@ -359,7 +359,7 @@ public abstract class TupleMaker extends Driver {
     protected void addEventVariables() {
         String[] newVars = new String[] {"run/I", "event/I", "tupleevent/I", "nPos/I", "nCl/I", "isCalib/B", "isPulser/B",
                 "isSingle0/B", "isSingle1/B", "isPair0/B", "isPair1/B", "evTime/D", "evTx/I", "evTy/I", "rfT1/D",
-                "rfT2/D", "nEcalHits/I", "nSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
+                "rfT2/D", "nEcalHits/I", "nSVTHits/I", "n3DSVTHits/I", "nEcalCl/I", "nEcalClele/I", "nEcalClpos/I", "nEcalClpho/I",
                 "nEcalClEleSide/I", "nEcalClPosSide/I", "nSVTHitsL1/I", "nSVTHitsL2/I", "nSVTHitsL3/I", "nSVTHitsL4/I",
                 "nSVTHitsL5/I", "nSVTHitsL6/I", "nSVTHitsL1b/I", "nSVTHitsL2b/I", "nSVTHitsL3b/I", "nSVTHitsL4b/I",
                 "nSVTHitsL5b/I", "nSVTHitsL6b/I", "topL1HitX/D", "topL1HitY/D", "botL1HitX/D", "botL1HitY/D"};
@@ -371,7 +371,7 @@ public abstract class TupleMaker extends Driver {
     }
     protected void addVertexVariables(boolean doBsc, boolean doTar, boolean doVzc) {
         String[] newVars = new String[] {"uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D", "uncVX/D", "uncVY/D", "uncVZ/D",
-                "uncChisq/D", "uncM/D", "uncCovXX/D", "uncCovXY/D", "uncCovXZ/D", "uncCovYX/D", "uncCovYY/D",
+                "uncChisq/D", "uncM/D", "uncMErr/D", "uncCovXX/D", "uncCovXY/D", "uncCovXZ/D", "uncCovYX/D", "uncCovYY/D",
                 "uncCovYZ/D", "uncCovZX/D", "uncCovZY/D", "uncCovZZ/D", "uncElePX/D", "uncElePY/D", "uncElePZ/D",
                 "uncPosPX/D", "uncPosPY/D", "uncPosPZ/D", "uncEleP/D", "uncPosP/D", "uncEleWtP/D", "uncPosWtP/D", "uncWtM/D",
                 "uncMom/D","uncMomX/D","uncMomY/D","uncMomZ/D","uncMomErr/D","uncMomXErr/D","uncMomYErr/D","uncMomZErr/D",
@@ -405,9 +405,10 @@ public abstract class TupleMaker extends Driver {
                 "TrkT/D", "TrkTsd/D", "TrkZ0/D", "TrkLambda/D", "TrkD0/D", "TrkPhi/D", "TrkOmega/D", "TrkEcalX/D",
                 "TrkEcalY/D", "HasL1/B", "HasL2/B", "HasL3/B", "HasL4/B", "HasL5/B", "HasL6/B", "FirstHitX/D",
                 "FirstHitY/D", "FirstHitT1/D", "FirstHitT2/D", "FirstHitDEDx1/D", "FirstHitDEDx2/D",
-                "FirstClusterSize1/I", "FirstClusterSize2/I", "NHitsShared/I", "HitsSharedP/D", "LambdaKink1/D",
-                "LambdaKink2/D", "LambdaKink3/D", "PhiKink1/D", "PhiKink2/D", "PhiKink3/D", "NTrackHits/I",  
-                "HitsSharedP/D", "MaxHitsShared/I", "SharedTrkChisq/D", "SharedTrkEcalX/D", "SharedTrkEcalY/D", "MatchChisq/D", "ClT/D",
+                "FirstClusterSize1/I", "FirstClusterSize2/I", "NHitsShared/I", "HitsSharedP/D", "LambdaKink0/D", "LambdaKink1/D",
+                "LambdaKink2/D", "LambdaKink3/D", "LambdaKink4/D", "LambdaKink5/D", "LambdaKink6/D", "PhiKink0/D", "PhiKink1/D", 
+                "PhiKink2/D", "PhiKink3/D", "PhiKink4/D", "PhiKink5/D", "PhiKink6/D","NTrackHits/I",  "HitsSharedP/D", 
+                "MaxHitsShared/I", "SharedTrkChisq/D", "SharedTrkEcalX/D", "SharedTrkEcalY/D", "MatchChisq/D", "ClT/D",
                 "ClE/D", "ClSeedE/D", "ClX/D", "ClY/D", "ClZ/D", "ClHits/I", "Clix/I", "Cliy/I", "UncorrClT/D",
                 "UncorrClE/D", "UncorrClX/D", "UncorrClY/D", "UncorrClZ/D", "TrkD0Err/D", "TrkZ0Err/D", "TrkLambdaErr/D", "TrkPhiErr/D", "TrkOmegaErr/D"};
         for (int i = 0; i < newVars.length; i++) {
@@ -581,6 +582,7 @@ public abstract class TupleMaker extends Driver {
         // contains all 3D hits in the event and not just those associated
         // with a track.
         List<TrackerHit> hits = event.get(TrackerHit.class, "RotatedHelicalTrackHits");
+        tupleMap.put("n3DSVTHits/I", (double) hits.size());
 
         // Loop over the collection of 3D hits in the event and map them to
         // their corresponding layer.
@@ -1106,12 +1108,20 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(prefix + "MaxHitsShared/I", (double) maxShared);
         tupleMap.put(prefix + "SharedTrkChisq/D", trackShared.getChi2());
 
+        tupleMap.put(prefix + "LambdaKink0/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 0) : 0);
         tupleMap.put(prefix + "LambdaKink1/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 1) : 0);
         tupleMap.put(prefix + "LambdaKink2/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 2) : 0);
         tupleMap.put(prefix + "LambdaKink3/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 3) : 0);
+        tupleMap.put(prefix + "LambdaKink4/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 4) : 0);
+        tupleMap.put(prefix + "LambdaKink5/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 5) : 0);
+        tupleMap.put(prefix + "LambdaKink6/D", kinks != null ? GBLKinkData.getLambdaKink(kinks, 6) : 0);
+        tupleMap.put(prefix + "PhiKink0/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 0) : 0);
         tupleMap.put(prefix + "PhiKink1/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 1) : 0);
         tupleMap.put(prefix + "PhiKink2/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 2) : 0);
         tupleMap.put(prefix + "PhiKink3/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 3) : 0);
+        tupleMap.put(prefix + "PhiKink4/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 4) : 0);
+        tupleMap.put(prefix + "PhiKink5/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 5) : 0);
+        tupleMap.put(prefix + "PhiKink6/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 6) : 0);
 
         tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
 
@@ -1210,6 +1220,7 @@ public abstract class TupleMaker extends Driver {
             tupleMap.put(prefix + "TargProjY/D", vtxFit.getParameters().get("V0TargProjY"));
             tupleMap.put(prefix + "TargProjXErr/D", vtxFit.getParameters().get("V0TargProjXErr"));
             tupleMap.put(prefix + "TargProjYErr/D", vtxFit.getParameters().get("V0TargProjYErr"));
+            tupleMap.put(prefix + "MErr/D", vtxFit.getParameters().get("invMassError"));
         }
         
         fillVertexCov(prefix, theV0);
