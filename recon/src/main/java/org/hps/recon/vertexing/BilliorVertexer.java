@@ -695,7 +695,7 @@ public class BilliorVertexer {
 //  double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
  //               + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + covVtx.e(yInd, yInd);
   
-    double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
+        double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
                 + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + (2.7*2.7)*covVtx.e(yInd, yInd);
         // Vz-p covariances
 //        sigY2 += 2 * (sY * delZ / pvZ * (covVtxMom1.e(zInd, yInd) + covVtxMom2.//e(zInd, yInd)
@@ -711,7 +711,8 @@ public class BilliorVertexer {
         // Vx-Vz and Vx-p covariances
         sigY2 += 2 * (-sY * covVtx.e(yInd, zInd) + delZ / pvZ * (covVtxMom1.e(yInd, yInd) + covVtxMom2.e(yInd, yInd)
                 - sY * (covVtxMom1.e(yInd, zInd) + covVtxMom2.e(yInd, zInd))));
-double[] sigXY = {Math.sqrt(sigX2), Math.sqrt(sigY2)};
+        
+        double[] sigXY = {Math.sqrt(sigX2), Math.sqrt(sigY2)};
         return sigXY;
     }
 
