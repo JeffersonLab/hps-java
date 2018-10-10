@@ -4,3 +4,4 @@
 target
 *.diff
 *.log
+/analysis/nbproject/
