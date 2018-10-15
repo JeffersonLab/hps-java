@@ -173,6 +173,11 @@ public class TrackClusterMatcher {
     
 
     /**
+     * Constant denoting the index of the {@link TrackState} at the Ecal
+     */
+    private static final int ECAL_TRACK_STATE_INDEX = 1;
+
+    /**
      * Constructor
      */
     public TrackClusterMatcher() {

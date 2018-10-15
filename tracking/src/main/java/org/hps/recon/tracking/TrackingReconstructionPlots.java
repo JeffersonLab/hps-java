@@ -25,7 +25,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.Vertex;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
@@ -54,7 +53,6 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doMatchedClusterPlots = false;
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
-    private boolean doVertexPlots = true;
 
     private String trackCollectionName = "GBLTracks";
     String ecalSubdetectorName = "Ecal";
@@ -450,23 +448,6 @@ public class TrackingReconstructionPlots extends Driver {
         }
     }
 
-    private void doVertices(List<Vertex> ucV0v, List<Vertex> tcV0v, List<Vertex> bcV0v) {
-        for (Vertex ucV : ucV0v) {
-            aida.histogram1D("Unconstrained Vertex X Position").fill(ucV.getPosition().x());
-            aida.histogram1D("Unconstrained Vertex Y Position").fill(ucV.getPosition().y());
-            aida.histogram1D("Unconstrained Vertex Z Position").fill(ucV.getPosition().z());
-        }
-        for (Vertex tcV : tcV0v) {
-            aida.histogram1D("T-constrained Vertex X Position").fill(tcV.getPosition().x());
-            aida.histogram1D("T-constrained Vertex Y Position").fill(tcV.getPosition().y());
-        }
-        for (Vertex bcV : bcV0v) {
-            aida.histogram1D("B-constrained Vertex X Position").fill(bcV.getPosition().x());
-            aida.histogram1D("B-constrained Vertex Y Position").fill(bcV.getPosition().y());
-            aida.histogram1D("B-constrained Vertex Z Position").fill(bcV.getPosition().z());
-        }
-    }
-
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
@@ -506,24 +487,6 @@ public class TrackingReconstructionPlots extends Driver {
             doStripHitPlots = false;
         }
 
-        List<Vertex> bcV0v = null;
-        if (event.hasCollection(Vertex.class, "BeamspotConstrainedV0Vertices"))
-            bcV0v = event.get(Vertex.class, "BeamspotConstrainedV0Vertices");
-        else
-            doVertexPlots = false;
-
-        List<Vertex> tcV0v = null;
-        if (event.hasCollection(Vertex.class, "TargetConstrainedV0Vertices"))
-            tcV0v = event.get(Vertex.class, "TargetConstrainedV0Vertices");
-        else
-            doVertexPlots = false;
-
-        List<Vertex> ucV0v = null;
-        if (event.hasCollection(Vertex.class, "UnconstrainedV0Vertices"))
-            ucV0v = event.get(Vertex.class, "UnconstrainedV0Vertices");
-        else
-            doVertexPlots = false;
-
         //RelationalTable hitToRotatedTable = TrackUtils.getHitToRotatedTable(event);
         //RelationalTable hitToStripsTable = TrackUtils.getHitToStripsTable(event);
 
@@ -551,8 +514,6 @@ public class TrackingReconstructionPlots extends Driver {
         }
 
         doBasicTracks(tracks);
-        if (doVertexPlots)
-            doVertices(ucV0v, tcV0v, bcV0v);
 
         if (doECalClusterPlots)
             doECalClusters(clusters, tracks.size() > 0);
@@ -705,19 +666,6 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D nHits = aida.histogram1D("Hits per Track", 4, 3, 7);
         IHistogram1D nTracks = aida.histogram1D("Tracks per Event", 10, 0, 10);
 
-        if (doVertexPlots) {
-            aida.histogram1D("Unconstrained Vertex X Position", 100, 0, 0.5);
-            aida.histogram1D("Unconstrained Vertex Y Position", 200, 0, 1);
-            aida.histogram1D("Unconstrained Vertex Z Position", 500, 0, 10);
-
-            aida.histogram1D("B-constrained Vertex X Position", 100, 0, 0.5);
-            aida.histogram1D("B-constrained Vertex Y Position", 100, 0, 0.1);
-            aida.histogram1D("B-constrained Vertex Z Position", 500, 0, 10);
-
-            aida.histogram1D("T-constrained Vertex X Position", 100, 0, 0.1);
-            aida.histogram1D("T-constrained Vertex Y Position", 100, 0, 0.1);
-
-        }
         if (doStripHitPlots) {
             int i = 0;
             for (SiSensor sensor : sensors) {
