@@ -348,8 +348,6 @@ public class TrackClusterMatcher {
         int charge = TrackUtils.getCharge(track);
         
         boolean use1pt05parameters = false, use2pt3parameters;
-        
-        //Why is the following done like that? Causes problems when trying to just run the HpsReconParticleDriver - Matt Solt
         if(beamEnergy < 2){
             use1pt05parameters = true;
             use2pt3parameters = false;
