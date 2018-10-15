@@ -15,14 +15,12 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
-//import org.hps.recon.tracking.BeamlineConstants;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.Pair;
 import org.hps.util.RK4integrator;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
-//import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
@@ -32,7 +30,6 @@ import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.swim.Trajectory;
 
 import junit.framework.TestCase;
 
@@ -40,10 +37,10 @@ public class TrackExtrapTest extends TestCase {
 
     public void testIt() throws Exception
     {
-        int nEvents = 10000;
-        String fileName = "ap_0000.slcio";
+        int nEvents = -1;
+        String fileName = "ap_prompt_raw.slcio";
         File inputFile = new File(fileName);
-        String aidaOutput = fileName.replaceAll("slcio", "root");
+        String aidaOutput = "target/test-output/TrackExtrapPlots_" + fileName.replaceAll("slcio", "aida");
         LCSimLoop loop2 = new LCSimLoop();
         
         final DatabaseConditionsManager manager = new DatabaseConditionsManager();
@@ -70,12 +67,10 @@ public class TrackExtrapTest extends TestCase {
         private static final String ECAL_POSITION_CONSTANT_NAME = "ecal_dface";
         FieldMap bFieldMap = null;
         private double ecalPosition = 1338.0;
-        private double stepSize = 5.0;
         private double epsilon = 0.05;
         public AIDA aida = null;
         private String outputPlots = null;
-        //private double lowMomThresh = 0.3;
-       // private boolean foundWeird = false;
+
         
         @Override
         public void endOfData() {
@@ -92,9 +87,6 @@ public class TrackExtrapTest extends TestCase {
             outputPlots = input;
         }
         
-        public void setStepSize(double input) {
-            stepSize=input;
-        }
         public void setEpsilon(double input) {
             epsilon=input;
         }
@@ -108,7 +100,6 @@ public class TrackExtrapTest extends TestCase {
                 aida = AIDA.defaultInstance();
             aida.tree().cd("/");
             setupPlots();
-            //foundWeird = false;
         }
 
         
@@ -155,17 +146,13 @@ public class TrackExtrapTest extends TestCase {
         
         @Override
         protected void process(EventHeader event) {
-            //System.out.printf("processing event %d \n", event.getEventNumber());
+
             List<SimTrackerHit> trackerHits = null;
             if (event.hasCollection(SimTrackerHit.class, "TrackerHits"))
                 trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
             else
                 return;
-//            List<SimCalorimeterHit> calHits = null;
-//            if (event.hasCollection(SimCalorimeterHit.class, "EcalHits"))
-//                calHits = event.get(SimCalorimeterHit.class, "EcalHits");
-//            else
-//                return;
+
             List<MCParticle> particles = null;
             if (event.hasCollection(MCParticle.class, "MCParticle"))
                 particles = event.get(MCParticle.class, "MCParticle");  
@@ -186,8 +173,7 @@ public class TrackExtrapTest extends TestCase {
             }         
             
             Map<MCParticle, List<SimTrackerHit>> trackerHitMap = MCFullDetectorTruth.BuildTrackerHitMap(trackerHits);
-            //Map<MCParticle, List<SimCalorimeterHit>> calHitMap = MCFullDetectorTruth.BuildCalHitMap(calHits);
-            
+           
             for (MCParticle part : particles) {
                 if (part.getCharge() == 0)
                     continue;
@@ -215,87 +201,47 @@ public class TrackExtrapTest extends TestCase {
                     continue;
                     
                 SimTrackerHit caloHit = caloHitList.get(0);
-//                if (caloHitList.size() > 1) {
-//                    for (SimTrackerHit scoringHit : caloHitList) {
-//                        if (scoringHit.getTime() < caloHit.getTime())
-//                            caloHit = scoringHit;
-//                        System.out.printf("Multiple caloHit %s MCPart %s \n", scoringHit.getPositionVec().toString(), scoringHit.getMCParticle().toString());
-//                    }
-//                }
-                
-                Hep3Vector hitPosition = lastHit.getPositionVec();
-                Hep3Vector hitMomentum = new BasicHep3Vector(lastHit.getMomentum());
-                //System.out.printf("starting mom %s \n", CoordinateTransformations.transformVectorToTracking(hitMomentum).toString());
-                
-                Hep3Vector extrapPosOld = doTrackExtrap(CoordinateTransformations.transformVectorToTracking(hitPosition), CoordinateTransformations.transformVectorToTracking(hitMomentum), part.getCharge(), false);
-                if (extrapPosOld == null)
-                    continue;                
-                extrapPosOld=CoordinateTransformations.transformVectorToDetector(extrapPosOld);
-                
-                Hep3Vector extrapPos = doTrackExtrapRK(hitPosition, hitMomentum, part.getCharge(), false);
-                //System.out.printf("extrapPos: %s \n", extrapPos.toString());
-                //System.out.printf("   extrapPosRK: %s \n", extrapPosRK.toString());
 
+                Hep3Vector hitPosition = lastHit.getPositionVec();
+                Hep3Vector hitMomentum = new BasicHep3Vector(lastHit.getMomentum());   
+                Hep3Vector extrapPos = doTrackExtrapRK(hitPosition, hitMomentum, part.getCharge(), false);
+              
                 caloHit = findClosestCaloHit(caloHitList, extrapPos);
                 Hep3Vector caloHitPos = caloHit.getPositionVec();
                 Hep3Vector residualVec = VecOp.sub(extrapPos, caloHitPos);
                 
-                // weird events?
-                if (Math.abs(residualVec.x()) > 30) {
-                    doWeirdPlots(hitPosition, hitMomentum, part.getMomentum(), extrapPos);
-                    //if (!foundWeird) {
-                        //System.out.printf("bad residual MCpart %s \n", part.toString());
-//                    for (SimTrackerHit hit : hits) {
-//                        System.out.printf("hit %s \n", hit.getPositionVec().toString());
-//                    }
-//                    System.out.printf("momentum %s \n", hitMomentum.toString());
-                    //    doTrackExtrap(CoordinateTransformations.transformVectorToTracking(hitPosition), CoordinateTransformations.transformVectorToTracking(hitMomentum), part.getCharge(), true);
-                    //}
-                    //foundWeird=true;
-                }
-                else 
-                    aida.histogram2D("Y vs X Pos Extrapolated to ECal").fill(extrapPos.x(), extrapPos.y());
 
-                // filling plots
-                //                if (Math.abs(part.getPZ()) < lowMomThresh) {
                 aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                 aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit X").fill(caloHitPos.x(), residualVec.x());
                 aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit Y").fill(caloHitPos.y(), residualVec.x());
                 aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit X").fill(caloHitPos.x(), residualVec.y());
                 aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit Y").fill(caloHitPos.y(), residualVec.y());
-                //                }
+
                 aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                 aida.histogram2D("Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
 
-                //System.out.printf("residual %s  caloHitPos %s  partPZ %f  lastHitPos %f \n", residualVec.toString(), caloHitPos.toString(), part.getPZ(), lastHit.getPosition()[2]);
-
                 if (lastHit.getPosition()[1] > 0) {
-                    //if (Math.abs(part.getPZ()) < lowMomThresh)
                     aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("Top: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
                 else {
-                    //if (Math.abs(part.getPZ()) < lowMomThresh)
                     aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("Bot: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
 
                 if (part.getCharge() > 0) {
-                    //if (Math.abs(part.getPZ()) < lowMomThresh)
                     aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("e+: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
                 else {
-                    //if (Math.abs(part.getPZ()) < lowMomThresh)
                     aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit: Y vs X").fill(residualVec.x(), residualVec.y());
                     aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit Y vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.y());
                     aida.histogram2D("e-: Extrapolated SimTrackerHit - SimCalorimeterHit X vs MCParticle Pz").fill(Math.abs(part.getPZ()), residualVec.x());
                 }
 
-                //Hep3Vector endPositionrot = VecOp.mult(beamAxisRotation, endPosition);
             }
         }
         
@@ -312,15 +258,6 @@ public class TrackExtrapTest extends TestCase {
             return closestHit;
         }
 
-        private void doWeirdPlots(Hep3Vector lay6Pos, Hep3Vector lay6Mom, Hep3Vector partMom, Hep3Vector extrapPos) {
-            aida.histogram2D("Weird Events: Y vs X Pos at Layer6").fill(lay6Pos.x(), lay6Pos.y());
-            aida.histogram2D("Weird Events: Y vs X Pos Extrapolated to ECal").fill(extrapPos.x(), extrapPos.y());
-            aida.histogram2D("Weird Events: Y vs X Mom at Layer6").fill(lay6Mom.x(), lay6Mom.y());
-            aida.histogram1D("Weird Events: Z Mom at Layer6").fill(lay6Mom.z());
-            aida.histogram2D("Weird Events: Y vs X Mom of MCParticle").fill(partMom.x(), partMom.y());
-            aida.histogram1D("Weird Events: Z Mom of MCParticle").fill(partMom.z());
-            
-        }
         
         public Hep3Vector doTrackExtrapRK(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, boolean debug) {
             double distanceZ = ecalPosition - currentPosition.z();
@@ -328,8 +265,7 @@ public class TrackExtrapTest extends TestCase {
                     
             RK4integrator RKint = new RK4integrator(q, epsilon, bFieldMap);
             Pair<Hep3Vector,Hep3Vector> RKresults = RKint.integrate(currentPosition, currentMomentum, distance);
-            //System.out.printf("   RK approx: %s \n", RKresults.getFirstElement().toString());
-            
+           
             
             Hep3Vector posTransformed = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
             Hep3Vector momTransformed = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
@@ -340,87 +276,7 @@ public class TrackExtrapTest extends TestCase {
             return CoordinateTransformations.transformVectorToDetector(returnMe);
         }
 
-        // everything in tracking frame
-        public Hep3Vector doTrackExtrap(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, boolean debug) {
 
-            double bFieldY = 0;
-            Hep3Vector currentPositionDet = null;
-            double distance = ecalPosition - currentPosition.x();
-            
-            if (debug)
-                System.out.printf("Track extrap, q %f field %f distance %f pos %s mom %s \n", q, bFieldY, distance, currentPosition.toString(), currentMomentum.toString());
-            
-            if (stepSize == 0)
-                stepSize = distance / 100.0;
-            double sign = Math.signum(distance);
-            distance = Math.abs(distance);
-
-            while (distance > epsilon) {
-                // The field map coordinates are in the detector frame so the
-                // extrapolated track position needs to be transformed from the
-                // track frame to detector.
-                currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
-
-                // Get the field at the current position along the track.
-                bFieldY = bFieldMap.getField(currentPositionDet).y();
-                
-                // Get a trajectory (Helix or Line objects) created with the
-                // track parameters at the current position.
-                Trajectory trajectory = TrackUtils.getTrajectory(currentMomentum, new org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
-
-                // Using the new trajectory, extrapolated the track by a step and
-                // update the extrapolated position.
-                Hep3Vector currentPositionTry = trajectory.getPointAtDistance(stepSize);
-                if (debug)
-                    System.out.printf("  > currentPositionTry %f %f %f , bfieldY %f \n", currentPositionTry.x(), currentPositionTry.y(), currentPositionTry.z(), bFieldY);
-
-                if (Math.signum(currentPositionTry.x() - currentPosition.x()) != sign) {
-                    System.out.println("looper, abort");
-                    return null;
-                }
-                
-                if ((Math.abs(ecalPosition - currentPositionTry.x()) > epsilon) && (Math.signum(ecalPosition - currentPositionTry.x()) != sign)) {
-                    // went too far, try again with smaller step-size
-                    if (Math.abs(stepSize) > 0.01) {
-                        stepSize /= 2.0;
-                        if (debug)
-                            System.out.println(" >>went too far");
-                        continue;
-                    } else {
-                        if (debug)
-                            System.out.println(" >>had to break");
-                        break;
-                    }
-                }
-                currentPosition = currentPositionTry;
-                
-                if (debug) {
-                    aida.histogram2D("Y vs X extrap-path").fill(currentPosition.x(), currentPosition.y());
-                    aida.histogram2D("Y vs Z extrap-path").fill(currentPosition.z(), currentPosition.y());
-                    aida.histogram2D("X vs Z extrap-path").fill(currentPosition.z(), currentPosition.x());
-                    aida.histogram2D("Bfield Y vs Z Pos").fill(currentPosition.x(), bFieldY);
-                }
-
-                distance = Math.abs(ecalPosition - currentPosition.x());
-                // Calculate the momentum vector at the new position. This will
-                // be used when creating the trajectory that will be used to
-                // extrapolate the track in the next iteration.
-                currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
-                //if (debug)
-                //    System.out.printf("  > new distance %f mom %s \n", distance, currentMomentum.toString());
-                
-               
-            }
-//            
-//            
-//            Hep3Vector refPt = new BasicHep3Vector(0,0,0);
-//            BaseTrackState bts = TrackUtils.makeTrackStateFromParams(currentPosition, currentMomentum, q, bFieldY, refPt);
-//            Hep3Vector testMe = TrackUtils.extrapolateHelixToXPlane(bts, ecalPosition);
-//            
-//            System.out.printf("  testMe %s \n", testMe.toString());
-            
-            return currentPosition;
-        }
     }
     
 }
