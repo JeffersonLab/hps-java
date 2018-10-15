@@ -1,0 +1,58 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="CleanupDriver"/>
+        <driver name="RawTrackerHitSensorSetup"/> 
+        <driver name="ReconParticleDriver" />
+        <!--<driver name="TridentTuple"/>-->
+        <!--<driver name="MollerTuple"/>-->
+        <!--<driver name="FEETuple"/>-->
+        <driver name="FullTruthTuple"/>
+    </execute>    
+    <drivers>    
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+		<driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver"> 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>         
+            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>
+	        <isMC>true</isMC>
+	        <unconstrainedV0CandidatesColName>UnconstrainedV0CandidatesWithPErrs</unconstrainedV0CandidatesColName>
+	        <unconstrainedV0VerticesColName>UnconstrainedV0VerticesWithPErrs</unconstrainedV0VerticesColName>
+	        <targetConV0CandidatesColName>TargetConstrainedV0CandidatesWithPErrs</targetConV0CandidatesColName>
+	        <targetConV0VerticesColName>TargetConstrainedV0VerticesWithPErrs</targetConV0VerticesColName>
+	        <beamConV0CandidatesColName>BeamspotConstrainedV0CandidatesWithPErrs</beamConV0CandidatesColName>
+	        <beamConV0VerticesColName>BeamspotConstrainedV0VerticesWithPErrs</beamConV0VerticesColName>
+	        <disablePID>true</disablePID>
+	        <beamPositionZ>0.5</beamPositionZ>
+        </driver>
+        <driver name="TridentTuple" type="org.hps.analysis.tuple.TridentMCTupleDriver">
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+            <tupleFile>${outputFile}_tri.txt</tupleFile>
+            <cutTuple>true</cutTuple>
+        </driver>
+        <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+            <tupleFile>${outputFile}_moller.txt</tupleFile>
+            <cutTuple>true</cutTuple>
+        </driver>
+        <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
+            <triggerType>all</triggerType>
+            <isGBL>true</isGBL>
+            <tupleFile>${outputFile}_fee.txt</tupleFile>
+            <cutTuple>true</cutTuple>
+        </driver>
+        <!--<driver name="FullTruthTuple" type="org.hps.analysis.tuple.WABTridentFullTupleDriver">-->
+		<driver name="FullTruthTuple" type="org.hps.analysis.tuple.TridentFullTupleDriver">
+            <nEcalHit>1</nEcalHit>
+	    	<nTrackingLayers>3</nTrackingLayers>
+            <tupleFile>${outputFile}_fulltruth.txt</tupleFile>
+            <isGBL>true</isGBL>
+            <candidatesColName>V0CandidatesWithPErrs</candidatesColName>
+            <unconstrainedV0VerticeColName>UnconstrainedV0VerticesWithPErrs</unconstrainedV0VerticeColName>
+        </driver>
+    </drivers>
+</lcsim>

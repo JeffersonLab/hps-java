@@ -102,6 +102,10 @@ public class GblTrajectory {
     // * [in] flagU2dir Use in u2 direction
     // */
     GblTrajectory(List<GblPoint> aPointList, boolean flagCurv, boolean flagU1dir, boolean flagU2dir) {
+        
+//        System.out.println("aPointList Size = "+aPointList.size());
+//        System.out.println("aPointList:  "+aPointList.toString());
+        
         numAllPoints = aPointList.size();
         numOffsets = 0;
         numInnerTrans = 0;
@@ -644,6 +648,11 @@ public class GblTrajectory {
         buildLinearEquationSystem();
         lostWeight = 0.;
         int ierr = 0;
+//        System.out.println("numParameters="+numParameters);
+//        System.out.println("Printing Data");
+//        System.out.println(theData.toString());
+//        System.out.println("Printing Vector");
+        theVector.print();
         theMatrix.solveAndInvertBorderedBand(theVector, theVector);
         predict();
         Ndf = theData.size() - numParameters;
