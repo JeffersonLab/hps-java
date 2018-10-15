@@ -147,7 +147,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         event.put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.class, 0);
         event.put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.class, 0);
     }
-    
+
     protected void setStoreVertexCovars(boolean input) {
         _storeCovTrkMomList = input;
     }
@@ -287,14 +287,20 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             recoList.add(electron);
             recoList.add(positron);
             List<BilliorTrack> shiftedTracks = shiftTracksToVertex(recoList, vtx.getPosition());
-            if (constraint == Constraint.BS_CONSTRAINED) {
-                Hep3Vector beamRelToNewRef = new BasicHep3Vector(-vtx.getPosition().z() + beamPosition[0], -vtx.getPosition().x() + beamPosition[1], 0);
-                vtxFitter.setBeamPosition(beamRelToNewRef.v());
-            }
+//            if (constraint == Constraint.BS_CONSTRAINED) {
+//                Hep3Vector beamRelToNewRef = new BasicHep3Vector(-vtx.getPosition().z() + beamPosition[0], -vtx.getPosition().x() + beamPosition[1], 0);
+////                vtxFitter.setBeamPosition(beamRelToNewRef.v());
+//                //mg 5/11/2018:  use referencePostion, separate from beam position  
+//                vtxFitter.setReferencePosition(beamRelToNewRef.v());
+//            }
+ //mg 5/11/2018:  use referencePosition, separate from beam position  
+            Hep3Vector newRefPoint = new BasicHep3Vector(vtx.getPosition().z() , vtx.getPosition().x() , 0);          
+            vtxFitter.setReferencePosition(newRefPoint.v());
 
             BilliorVertex vtxNew = vtxFitter.fitVertex(shiftedTracks);
-            Hep3Vector vtxPosNew = VecOp.add(vtx.getPosition(), vtxNew.getPosition());//the refit vertex is measured wrt the original vertex position
-            vtxNew.setPosition(vtxPosNew);//just change the position...the errors and momenta are correct in re-fit
+            //  mg 5/11/2018:  correct for the beamspot position in the fitter instead of HPSReconParticle...
+//            Hep3Vector vtxPosNew = VecOp.add(vtx.getPosition(), vtxNew.getPosition());//the refit vertex is measured wrt the original vertex position
+//            vtxNew.setPosition(vtxPosNew);//just change the position...the errors and momenta are correct in re-fit
             return vtxNew;
         } else
             return vtx;
