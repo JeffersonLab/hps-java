@@ -6,6 +6,7 @@ import hep.physics.vec.VecOp;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,17 +30,27 @@ import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSet
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
 public class TrackExtrapTest extends TestCase {
+    
+    static final String testURLBase = "http://www.lcsim.org/test/hps-java";
 
     public void testIt() throws Exception
     {
         int nEvents = -1;
         String fileName = "ap_prompt_raw.slcio";
-        File inputFile = new File(fileName);
+        File inputFile = null;
+        if (testURLBase == null) {
+            inputFile = new File(fileName);
+        } else {
+            URL testURL = new URL(testURLBase + "/" + fileName);
+            FileCache cache = new FileCache();
+            inputFile = cache.getCachedFile(testURL);
+        }
         String aidaOutput = "target/test-output/TrackExtrapPlots_" + fileName.replaceAll("slcio", "aida");
         LCSimLoop loop2 = new LCSimLoop();
         
@@ -110,13 +121,6 @@ public class TrackExtrapTest extends TestCase {
             aida.histogram2D("Bfield Y vs Z Pos", 1000, 890, ecalPosition,220, -0.22, 0);
             
             aida.histogram2D("Y vs X Pos Extrapolated to ECal", 300,-300,300,300,-300,300);
-            
-            aida.histogram2D("Weird Events: Y vs X Pos at Layer6", 300,-300,300,300,-300,300);
-            aida.histogram2D("Weird Events: Y vs X Pos Extrapolated to ECal", 300,-300,300,300,-300,300);
-            aida.histogram2D("Weird Events: Y vs X Mom at Layer6", 100,-0.5,0.5,100,-0.5,0.5);
-            aida.histogram1D("Weird Events: Z Mom at Layer6", 100,0,1.5);
-            aida.histogram2D("Weird Events: Y vs X Mom of MCParticle", 100,-0.5,0.5,100,-0.5,0.5);
-            aida.histogram1D("Weird Events: Z Mom of MCParticle", 100,0,1.5);
             
             aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] Y vs SimCalorimeterHit Y", 300, -300, 300, 200, -5.0, 5.0);
             aida.histogram2D("[Extrapolated SimTrackerHit - SimCalorimeterHit] X vs SimCalorimeterHit Y", 300, -300, 300, 200, -5.0, 5.0);
