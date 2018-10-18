@@ -16,14 +16,11 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
-import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.Pair;
 import org.hps.util.RK4integrator;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
-import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
@@ -78,7 +75,7 @@ public class TrackExtrapTest extends TestCase {
         private static final String ECAL_POSITION_CONSTANT_NAME = "ecal_dface";
         FieldMap bFieldMap = null;
         private double ecalPosition = 1338.0;
-        private double epsilon = 0.05;
+        private double epsilon = 1;
         public AIDA aida = null;
         private String outputPlots = null;
 
@@ -209,9 +206,10 @@ public class TrackExtrapTest extends TestCase {
                 Hep3Vector hitPosition = lastHit.getPositionVec();
                 Hep3Vector hitMomentum = new BasicHep3Vector(lastHit.getMomentum());   
                 Hep3Vector extrapPos = doTrackExtrapRK(hitPosition, hitMomentum, part.getCharge(), false);
-              
+                //System.out.printf("   end pos %s \n", extrapPos.toString());
                 caloHit = findClosestCaloHit(caloHitList, extrapPos);
                 Hep3Vector caloHitPos = caloHit.getPositionVec();
+                //System.out.printf("   calo hit pos %s \n", caloHitPos.toString());
                 Hep3Vector residualVec = VecOp.sub(extrapPos, caloHitPos);
                 
 
@@ -269,15 +267,14 @@ public class TrackExtrapTest extends TestCase {
                     
             RK4integrator RKint = new RK4integrator(q, epsilon, bFieldMap);
             Pair<Hep3Vector,Hep3Vector> RKresults = RKint.integrate(currentPosition, currentMomentum, distance);
-           
+           // System.out.printf("RKpos %s \n", RKresults.getFirstElement().toString());
+          
+            Hep3Vector mom = RKresults.getSecondElement();            
+            double dz = ecalPosition - RKresults.getFirstElement().z();
+            Hep3Vector delta = new BasicHep3Vector(dz * mom.x() / mom.z(), dz * mom.y() / mom.z(), dz);
+            Hep3Vector finalPos = VecOp.add(delta, RKresults.getFirstElement());
             
-            Hep3Vector posTransformed = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
-            Hep3Vector momTransformed = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
-            Hep3Vector refPt = new BasicHep3Vector(0,0,0);
-            BaseTrackState bts = TrackUtils.makeTrackStateFromParams(posTransformed, momTransformed, q, bFieldMap.getField(RKresults.getFirstElement()).y(), refPt);
-            
-            Hep3Vector returnMe = TrackUtils.extrapolateHelixToXPlane(bts, ecalPosition);
-            return CoordinateTransformations.transformVectorToDetector(returnMe);
+            return finalPos;
         }
 
 

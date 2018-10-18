@@ -581,38 +581,20 @@ public class TrackUtils {
 
     public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize) {
 
-        // extrapolateTrackUsingFieldMapRK(TrackState ts, Hep3Vector startPosition, double distanceZ, double stepSize, FieldMap fM)
-        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
-        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
-
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN));
         double distanceZ = BeamlineConstants.ECAL_FACE - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
         double charge = -1.0 * Math.signum(getR(ts));
 
         org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
 
-        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
-        //System.out.printf("    RK pos %s  mom %s  bFieldY %f \n", RKresults.getFirstElement().toString(), RKresults.getSecondElement().toString(), bFieldY);
-        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        Hep3Vector mom = RKresults.getSecondElement();
+        double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
+        Hep3Vector delta = new BasicHep3Vector(dz * mom.x() / mom.z(), dz * mom.y() / mom.z(), dz);
+        Hep3Vector finalPos = VecOp.add(delta, RKresults.getFirstElement());
+        Hep3Vector finalPosTrans = CoordinateTransformations.transformVectorToTracking(finalPos);
         Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
-        BaseTrackState bts = makeTrackStateFromParams(posTrans, momTrans, charge, fM.getField(RKresults.getFirstElement()).y(), new BasicHep3Vector(0, 0, 0));
+        BaseTrackState bts = makeTrackStateFromParams(finalPosTrans, momTrans, charge, fM.getField(finalPos).y());
 
-        Hep3Vector finalPos = posTrans;
-        if (RKresults.getFirstElement().z() != BeamlineConstants.ECAL_FACE) {
-            if (bFieldY != 0) {
-                finalPos = TrackUtils.extrapolateHelixToXPlane(bts, BeamlineConstants.ECAL_FACE);
-
-            } else {
-                Hep3Vector mom = RKresults.getSecondElement();
-                double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
-                double dy = dz * mom.y() / mom.z();
-                double dx = dz * mom.x() / mom.z();
-                Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
-                finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
-            }
-            double[] params = getParametersAtNewRefPoint(finalPos.v(), bts);
-            bts = new BaseTrackState(params, fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y());
-        }
-        bts.setReferencePoint(finalPos.v());
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
 
@@ -1548,16 +1530,14 @@ public class TrackUtils {
 
     }
 
-    public static BaseTrackState makeTrackStateFromParams(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, double bFieldY, Hep3Vector point) {
+    public static BaseTrackState makeTrackStateFromParams(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, double bFieldY) {
 
         double[] params = getParametersFromPointAndMomentum(currentPosition, currentMomentum, (int) q, bFieldY);
-        //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
-        double[] oldReferencePoint = { currentPosition.x(), currentPosition.y(), 0 };
-        double[] newParameters = getParametersAtNewRefPoint(point.v(), oldReferencePoint, params);
 
         // Create a track state at the extrapolation point
-        BaseTrackState trackState = new BaseTrackState(newParameters, bFieldY);
-        trackState.setReferencePoint(point.v());
+        BaseTrackState trackState = new BaseTrackState(params, bFieldY);
+        Hep3Vector refPt = CoordinateTransformations.transformVectorToDetector(currentPosition);
+        trackState.setReferencePoint(refPt.v());
         return trackState;
     }
 
@@ -1629,7 +1609,7 @@ public class TrackUtils {
             currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
         }
 
-        return makeTrackStateFromParams(currentPosition, currentMomentum, q, bFieldY, currentPosition);
+        return makeTrackStateFromParams(currentPosition, currentMomentum, q, bFieldY);
 
     }
 
