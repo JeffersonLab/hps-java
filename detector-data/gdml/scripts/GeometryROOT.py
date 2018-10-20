@@ -71,6 +71,23 @@ class GeometryROOT():
         registering the manager class to the browser. """
         self._geom.CloseGeometry()
 
+    def AddMaterial(self,matname,material,trans):
+        """ Add a material with matname to the list of known materials.
+        Parameters:
+        * matname  = Name of the material
+        * material = Fully specified ROOT TGeoMaterial or TGeoMixture
+        * trans    = transparency (for visualization)
+        """
+        if matname in self._mediums:
+            print("ERROR: Trying to define a material that already exists.")
+            return(None)
+
+        med_index=len(self._mediums)
+        self._materials[matname] = material
+        self._mediums[matname] = ROOT.TGeoMedium(matname,med_index, self._materials[matname])
+        self._materials[matname].SetTransparency(trans)
+        return( self._mediums[matname])
+
 
     def FindMaterial(self,material,trans=0):
         """ Find the material (actually medium in ROOT speak) for a volume.
@@ -86,7 +103,7 @@ class GeometryROOT():
 
 
         if trans:
-            matname= material+"_"+str(trans/10)
+            matname= material+"_"+str(int(trans//10))
         else:
             matname= material
 
@@ -101,64 +118,64 @@ class GeometryROOT():
 
         if material == "Vacuum":
 
-            self._materials[matname] = ROOT.TGeoMaterial(matname, 0,0,0)
+            new_material = ROOT.TGeoMaterial(matname, 0,0,0)
 
         elif material == "Air":
 
-            self._materials[matname] = ROOT.TGeoMixture(matname,2,1.29*g/cm3)
-            self._materials[matname].AddElement(self._mats_table.FindElement("N"), 0.7)
-            self._materials[matname].AddElement(self._mats_table.FindElement("O"), 0.3)
+            new_material = ROOT.TGeoMixture(matname,2,1.29*g/cm3)
+            new_material.AddElement(self._mats_table.FindElement("N"), 0.7)
+            new_material.AddElement(self._mats_table.FindElement("O"), 0.3)
 
         elif material == "Fe" or material == "Iron" or material == "G4_Fe":
 
-            self._materials[matname] =  ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Fe"),7.87);
+            new_material =  ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Fe"),7.87);
 
         elif material == "Cu" or material == "Copper" or material == "G4_Cu":
 
-        #    self._materials[matname] =  ROOT.TGeoMaterial("Cu",63.546,29,8.96);
-        #    self._materials[matname].AddElement(self._mats_table.FindElement("Cu"),1.0)
+        #    new_material =  ROOT.TGeoMaterial("Cu",63.546,29,8.96);
+        #    new_material.AddElement(self._mats_table.FindElement("Cu"),1.0)
             cu63=ROOT.TGeoIsotope("Cu63",29,63,62.9296)
             cu65=ROOT.TGeoIsotope("Cu65",29,65,64.9278)
             Cu = ROOT.TGeoElement("Cu","Copper",2)
-            self._materials[matname] = ROOT.TGeoMaterial(matname,Cu,8.96*g/cm3)
+            new_material = ROOT.TGeoMaterial(matname,Cu,8.96*g/cm3)
 
         elif material == "StainlessSteel":
 
-                self._materials[matname]=ROOT.TGeoMixture(matname,5, 8.02*g/cm3)
-                self._materials[matname].AddElement(self._mats_table.FindElement("Mn"), 0.02)
-                self._materials[matname].AddElement(self._mats_table.FindElement("Si"), 0.01)
-                self._materials[matname].AddElement(self._mats_table.FindElement("Cr"), 0.19)
-                self._materials[matname].AddElement(self._mats_table.FindElement("Ni"), 0.10)
-                self._materials[matname].AddElement(self._mats_table.FindElement("Fe"), 0.68)
+                new_material=ROOT.TGeoMixture(matname,5, 8.02*g/cm3)
+                new_material.AddElement(self._mats_table.FindElement("Mn"), 0.02)
+                new_material.AddElement(self._mats_table.FindElement("Si"), 0.01)
+                new_material.AddElement(self._mats_table.FindElement("Cr"), 0.19)
+                new_material.AddElement(self._mats_table.FindElement("Ni"), 0.10)
+                new_material.AddElement(self._mats_table.FindElement("Fe"), 0.68)
 
         elif material == "G4_W" or material == "Tungsten" or material=="W":
 
-            self._materials[matname] =  ROOT.TGeoMaterial("W",self._mats_table.FindElement("W"),19.25*g/cm3);
+            new_material =  ROOT.TGeoMaterial("W",self._mats_table.FindElement("W"),19.25*g/cm3);
 
         elif material == "LeadTungsten":
 
-            self._materials[matname]= ROOT.TGeoMixture(matname, 3, 8.28*g/cm3)
-            self._materials[matname].AddElement(self._mats_table.FindElement("Pb"),1)
-            self._materials[matname].AddElement(self._mats_table.FindElement("W"), 1)
-            self._materials[matname].AddElement(self._mats_table.FindElement("O"), 4)
+            new_material= ROOT.TGeoMixture(matname, 3, 8.28*g/cm3)
+            new_material.AddElement(self._mats_table.FindElement("Pb"),1)
+            new_material.AddElement(self._mats_table.FindElement("W"), 1)
+            new_material.AddElement(self._mats_table.FindElement("O"), 4)
 
         elif material == "Scintillator" or material=="ScintillatorB":
 
-            self._materials[matname]= ROOT.TGeoMixture(matname, 2, 1.032*g/cm3)
-            self._materials[matname].AddElement(self._mats_table.FindElement("C"),9)
-            self._materials[matname].AddElement(self._mats_table.FindElement("H"), 10)
+            new_material= ROOT.TGeoMixture(matname, 2, 1.032*g/cm3)
+            new_material.AddElement(self._mats_table.FindElement("C"),9)
+            new_material.AddElement(self._mats_table.FindElement("H"), 10)
 
 
         elif material == "Aluminum" or material=="G4_Al":
 
-            self._materials[matname]= ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Al"),2.699)     # A,Z,rho
+            new_material= ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Al"),2.699)     # A,Z,rho
 
         elif material == "AlHoneycomb":
 
-            self._materials[matname]= ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Al"),0.13)    # A,Z,rho
+            new_material= ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Al"),0.13)    # A,Z,rho
 
         elif material == "Lead" or material == "Pb":
-            self._materials[matname] = ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Pb"),11.34)
+            new_material = ROOT.TGeoMaterial(matname,self._mats_table.FindElement("Pb"),11.34)
 
          # G4Material *LeadTungsten = new G4Material("LeadTungsten",   density = 8.28*g/cm3, nel=3);
          #  LeadTungsten->AddElement(Pb,1);
@@ -166,19 +183,59 @@ class GeometryROOT():
          #  LeadTungsten->AddElement(O, 4);
 
         elif material == "LeadTungsten" or material == "PbWO" or material == "G4_PbWO4":
-             self._materials[matname]= ROOT.TGeoMixture(matname, 3, 8.28*g/cm3)
-             self._materials[matname].AddElement(self._mats_table.FindElement("Pb"),1)
-             self._materials[matname].AddElement(self._mats_table.FindElement("W"),1)
-             self._materials[matname].AddElement(self._mats_table.FindElement("O"),1)
+             new_material= ROOT.TGeoMixture(matname, 3, 8.28*g/cm3)
+             new_material.AddElement(self._mats_table.FindElement("Pb"),1)
+             new_material.AddElement(self._mats_table.FindElement("W"),1)
+             new_material.AddElement(self._mats_table.FindElement("O"),1)
+
+        elif material == "Epoxy":
+            new_material = ROOT.TGeoMixture("Epoxy",2,1.2)
+            new_material.AddElement(self._mats_table.FindElement("C"),1)
+            new_material.AddElement(self._mats_table.FindElement("H"),2)
+
+
+
+        elif material == "SiO2":
+            new_material = ROOT.TGeoMixture("SiO2",2,2.2)
+            new_material.AddElement(self._mats_table.FindElement("Si"),1)
+            new_material.AddElement(self._mats_table.FindElement("O"),2)
+
+        elif material == "G10_FR4":
+        # G10-FR4: https://en.wikipedia.org/wiki/FR-4
+        # https://indico.cern.ch/event/568427/contributions/2336556/attachments/1366767/2070787/8667K43_Properties_4.pdf
+        # http://personalpages.to.infn.it/~tosello/EngMeet/ITSmat/SDD/SDD_G10FR4.html
+        # from: https://www.phenix.bnl.gov/~suhanov/ncc/geant/rad-source/src/ExN03DetectorConstruction.cc
+        # G4Material* SiO2 =
+        # new G4Material("quartz",density= 2.200*g/cm3, ncomponents=2);
+        # SiO2->AddElement(Si, natoms=1);
+        # SiO2->AddElement(O , natoms=2);
+        #//from http://www.physi.uni-heidelberg.de/~adler/TRD/TRDunterlagen/RadiatonLength/tgc2.htm
+        #//Epoxy (for FR4 )
+        #density = 1.2*g/cm3;
+        #G4Material* Epoxy = new G4Material("Epoxy" , density, ncomponents=2);
+        #Epoxy->AddElement(H, natoms=2);
+        #Epoxy->AddElement(C, natoms=2);
+        #//FR4 (Glass + Epoxy)
+        #density = 1.86*g/cm3;
+        #G4Material* FR4 = new G4Material("FR4"  , density, ncomponents=2);
+        #FR4->AddMaterial(SiO2, fractionmass=0.528);
+        #FR4->AddMaterial(Epoxy, fractionmass=0.472);
+
+            new_material = ROOT.TGeoMixture("G10_FR4",2,1.85)
+            SiO2 = self.FindMaterial("SiO2")
+            Epoxy = self.FindMaterial("Epoxy")
+            new_material.AddElement(self._materials["SiO2"],0.528)
+            new_material.AddElement(self._materials["Epoxy"],0.472)
 
         else:
             print("OOPS, the material: " + material + " has not yet been defined in Python world.")
             print("I'll pretend it is Aluminum...")
             return(self.FindMaterial("Aluminum", trans))
 
-        self._mediums[matname] = ROOT.TGeoMedium(matname,med_index, self._materials[matname])
-        self._materials[matname].SetTransparency(trans)
-        return( self._mediums[matname])
+#        self._mediums[matname] = ROOT.TGeoMedium(matname,med_index, new_material)
+#        new_material.SetTransparency(trans)
+        new_medium = self.AddMaterial(matname,new_material,trans)
+        return( new_medium)
 
 
     def Create_root_volume(self,rmaterial="Vacuum",size=[1000,1000,1000]):
@@ -621,19 +678,31 @@ class GeometryROOT():
     def Draw(self,option=""):
         """ Draw an wireframe version of the objects """
         topvol = self._geom.GetTopVolume()
-        topvol.Draw(option)
         self._geom.SetVisOption(0)
+        topvol.Draw(option)
+
+
+    def GetROOTVolume(self,vol):
+        """ Return a (C++) ROOT Volume object with the name 'vol' from the known volumesself.
+        If the object is not found, returns None """
+        if vol in self._volumes:
+            return(self._volumes[vol])
+        else:
+            return(None)
 
     def __str__(self):
         """ Print information about this class """
         strout = "GeometryROOT object, containing:\n"
-        for name,vol in self._volumes.iteritems():
-            match = re.match('<ROOT\.(.*) .*',str(vol.GetShape()))
-            shape_name = match.group(1)
+        max_len = max([len(x) for x in self._volumes.keys()])
+        for name,vol in self._volumes.items():
+            shape = vol.GetShape()
+            shape_name = shape.ClassName()
 
-            match = re.match('.*\(\"(.*)\"\) .*',str(vol.GetMedium()))
-            medium_name = match.group(1)
-            strout+= name+" rname:" + vol.GetName() + " type: " + shape_name + " medium:" + str(vol.GetMedium())+"\n"
+            medium = vol.GetMedium()
+            medium_name = medium.GetName()
+            strout+= name+" "*(1+max_len-len(name))
+            strout+= " type: " + shape_name  +" "*(24-len(shape_name))
+            strout+= " medium:" + medium_name+"\n"
 
         return(strout)
 
