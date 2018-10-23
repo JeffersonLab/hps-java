@@ -40,7 +40,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Utility used to determine if a track and cluster are matched
      */
-    TrackClusterMatcher matcher = new TrackClusterMatcher();
+    TrackClusterMatcher matcher;
 
     String[] trackCollectionNames = null;
 
@@ -352,6 +352,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void detectorChanged(Detector detector) {
+        matcher = new TrackClusterMatcher();
         matcher.enablePlots(false);
 
         // Set the magnetic field parameters to the appropriate values.
