@@ -41,7 +41,7 @@ public class TrackClusterMatcher {
     private IHistogramFactory histogramFactory;
     private Map<String, IHistogram1D> plots1D;
     private Map<String, IHistogram2D> plots2D;
-     
+
     // parameterization
     private Map<String, double[]> paramMap;
 
@@ -73,13 +73,13 @@ public class TrackClusterMatcher {
      */
 
     private boolean snapToEdge = true;
-    
+
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
-    
+
     public void initializeParameterization(String fname) {
-        
+
         File fin = new File(fname);
         java.io.FileInputStream fis = null;
         java.io.BufferedReader br = null;
@@ -90,10 +90,10 @@ public class TrackClusterMatcher {
         catch (IOException x) {
             System.err.format("TrackClusterMatcher error opening parameterization file: %s%n", x);
         }
-        
+
         paramMap = new HashMap<String, double[]>();
         String line = null;
-        
+
         try {
             while ((line = br.readLine()) != null) {
                 // test line length
@@ -103,23 +103,23 @@ public class TrackClusterMatcher {
                     continue;
                 }
                 double[] paramVals = new double[arrOfStr.length - 1];
-                
+
                 for (int i=1; i<arrOfStr.length; i++) {
                     paramVals[i-1] = new Double(arrOfStr[i]);
                 }
                 paramMap.put(arrOfStr[0], paramVals);
-//                Scanner s = new Scanner(line);
-//                String paramName = s.next();
-//                
-//                while (s.hasNext()) {
-//                float f = s.nextFloat();
-                
-                
+                //                Scanner s = new Scanner(line);
+                //                String paramName = s.next();
+                //                
+                //                while (s.hasNext()) {
+                //                float f = s.nextFloat();
+
+
             }
         } catch (IOException x) {
             System.err.format("TrackClusterMatcher error reading parameterization file: %s%n", x);
         }
- 
+
         try {
             br.close();
         } catch (IOException x) {
@@ -131,9 +131,9 @@ public class TrackClusterMatcher {
      * Constructor
      */
     public TrackClusterMatcher() {
-        this("ClusterParameterization.dat");
+        this("ClusterParameterization2015.dat");
     }
-    
+
     public TrackClusterMatcher(String fname) {
         initializeParameterization(fname);
     }
@@ -181,10 +181,10 @@ public class TrackClusterMatcher {
      * @return distance between cluster and track
      */
     public double getDistance(Cluster cluster,Track track) {
-        
+
         // Get the cluster position
         Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
-        
+
         // Extrapolate the track to the Ecal cluster position
         Hep3Vector tPos = null;
         if (this.useAnalyticExtrapolator) {
@@ -194,10 +194,10 @@ public class TrackClusterMatcher {
             tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
             tPos = CoordinateTransformations.transformVectorToDetector(tPos);
         }
-       
+
         return Math.sqrt(Math.pow(cPos.x()-tPos.x(),2)+Math.pow(cPos.y()-tPos.y(),2));
     }
-    
+
     /**
      * Calculate #sigma between cluster-track x/y position at calorimeter.
      *
@@ -215,8 +215,8 @@ public class TrackClusterMatcher {
         return getNSigmaPosition(cluster, track, new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude());
     }
     public double getNSigmaPosition(Cluster cluster, Track track, double p){
-        
-        
+
+
         if (this.useAnalyticExtrapolator)
             throw new RuntimeException("This is to be used with non-analytic extrapolator only.");
 
@@ -237,58 +237,58 @@ public class TrackClusterMatcher {
         }
         Hep3Vector tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
         tPos = CoordinateTransformations.transformVectorToDetector(tPos);
-       
+
         boolean hasL6 = false;
         for(TrackerHit hit : track.getTrackerHits()){
             if(TrackUtils.getLayer(hit) == 11)
                 hasL6 = true;
         }
-        
+
         // choose which parameterization of mean and sigma to use:
         double dxMean[],dyMean[],dxSigm[],dySigm[];
         int charge = TrackUtils.getCharge(track);
 
-            if (charge>0) {
-                if (isTopTrack) {
-                    dxMean = !hasL6 ? paramMap.get("dxMeanTopPosiGBL_noL6") : paramMap.get("dxMeanTopPosiGBL_hasL6");
-                    dxSigm = !hasL6 ? paramMap.get("dxSigmTopPosiGBL_noL6") : paramMap.get("dxSigmTopPosiGBL_hasL6");
-                    dyMean = !hasL6 ? paramMap.get("dyMeanTopPosiGBL_noL6") : paramMap.get("dyMeanTopPosiGBL_hasL6");
-                    dySigm = !hasL6 ? paramMap.get("dySigmTopPosiGBL_noL6") : paramMap.get("dySigmTopPosiGBL_hasL6");
-                }
-                else {
-                    dxMean = !hasL6 ? paramMap.get("dxMeanBotPosiGBL_noL6") : paramMap.get("dxMeanBotPosiGBL_hasL6");
-                    dxSigm = !hasL6 ? paramMap.get("dxSigmBotPosiGBL_noL6") : paramMap.get("dxSigmBotPosiGBL_hasL6");
-                    dyMean = !hasL6 ? paramMap.get("dyMeanBotPosiGBL_noL6") : paramMap.get("dyMeanBotPosiGBL_hasL6");
-                    dySigm = !hasL6 ? paramMap.get("dySigmBotPosiGBL_noL6") : paramMap.get("dySigmBotPosiGBL_hasL6");
-                }
+        if (charge>0) {
+            if (isTopTrack) {
+                dxMean = !hasL6 ? paramMap.get("dxMeanTopPosiGBL_noL6") : paramMap.get("dxMeanTopPosiGBL_hasL6");
+                dxSigm = !hasL6 ? paramMap.get("dxSigmTopPosiGBL_noL6") : paramMap.get("dxSigmTopPosiGBL_hasL6");
+                dyMean = !hasL6 ? paramMap.get("dyMeanTopPosiGBL_noL6") : paramMap.get("dyMeanTopPosiGBL_hasL6");
+                dySigm = !hasL6 ? paramMap.get("dySigmTopPosiGBL_noL6") : paramMap.get("dySigmTopPosiGBL_hasL6");
             }
-            else if (charge<0) {
-                if (isTopTrack) {
-                    dxMean = !hasL6 ? paramMap.get("dxMeanTopElecGBL_noL6") : paramMap.get("dxMeanTopElecGBL_hasL6");
-                    dxSigm = !hasL6 ? paramMap.get("dxSigmTopElecGBL_noL6") : paramMap.get("dxSigmTopElecGBL_hasL6");
-                    dyMean = !hasL6 ? paramMap.get("dyMeanTopElecGBL_noL6") : paramMap.get("dyMeanTopElecGBL_hasL6");
-                    dySigm = !hasL6 ? paramMap.get("dySigmTopElecGBL_noL6") : paramMap.get("dySigmTopElecGBL_hasL6");
-                }
-                else {
-                    dxMean = !hasL6 ? paramMap.get("dxMeanBotElecGBL_noL6") : paramMap.get("dxMeanBotElecGBL_hasL6");
-                    dxSigm = !hasL6 ? paramMap.get("dxSigmBotElecGBL_noL6") : paramMap.get("dxSigmBotElecGBL_hasL6");
-                    dyMean = !hasL6 ? paramMap.get("dyMeanBotElecGBL_noL6") : paramMap.get("dyMeanBotElecGBL_hasL6");
-                    dySigm = !hasL6 ? paramMap.get("dySigmBotElecGBL_noL6") : paramMap.get("dySigmBotElecGBL_hasL6");
-                }
+            else {
+                dxMean = !hasL6 ? paramMap.get("dxMeanBotPosiGBL_noL6") : paramMap.get("dxMeanBotPosiGBL_hasL6");
+                dxSigm = !hasL6 ? paramMap.get("dxSigmBotPosiGBL_noL6") : paramMap.get("dxSigmBotPosiGBL_hasL6");
+                dyMean = !hasL6 ? paramMap.get("dyMeanBotPosiGBL_noL6") : paramMap.get("dyMeanBotPosiGBL_hasL6");
+                dySigm = !hasL6 ? paramMap.get("dySigmBotPosiGBL_noL6") : paramMap.get("dySigmBotPosiGBL_hasL6");
             }
-            else return Double.MAX_VALUE;
-        
+        }
+        else if (charge<0) {
+            if (isTopTrack) {
+                dxMean = !hasL6 ? paramMap.get("dxMeanTopElecGBL_noL6") : paramMap.get("dxMeanTopElecGBL_hasL6");
+                dxSigm = !hasL6 ? paramMap.get("dxSigmTopElecGBL_noL6") : paramMap.get("dxSigmTopElecGBL_hasL6");
+                dyMean = !hasL6 ? paramMap.get("dyMeanTopElecGBL_noL6") : paramMap.get("dyMeanTopElecGBL_hasL6");
+                dySigm = !hasL6 ? paramMap.get("dySigmTopElecGBL_noL6") : paramMap.get("dySigmTopElecGBL_hasL6");
+            }
+            else {
+                dxMean = !hasL6 ? paramMap.get("dxMeanBotElecGBL_noL6") : paramMap.get("dxMeanBotElecGBL_hasL6");
+                dxSigm = !hasL6 ? paramMap.get("dxSigmBotElecGBL_noL6") : paramMap.get("dxSigmBotElecGBL_hasL6");
+                dyMean = !hasL6 ? paramMap.get("dyMeanBotElecGBL_noL6") : paramMap.get("dyMeanBotElecGBL_hasL6");
+                dySigm = !hasL6 ? paramMap.get("dySigmBotElecGBL_noL6") : paramMap.get("dySigmBotElecGBL_hasL6");
+            }
+        }
+        else return Double.MAX_VALUE;
+
 
 
         // Beyond the edges of the fits in momentum, assume that the parameters are constant:
-            if ((p > paramMap.get("pHigh_hasL6")[0]) && hasL6) 
-                p = paramMap.get("pHigh_hasL6")[0];
-            else if ((p > paramMap.get("pHigh_noL6")[0]) && !hasL6) 
-                p= paramMap.get("pHigh_noL6")[0];
-            else if ((p < paramMap.get("pLow_hasL6")[0]) && hasL6)
-                p = paramMap.get("pLow_hasL6")[0];
-            else if ((p < paramMap.get("pLow_noL6")[0]) && !hasL6)
-                p = paramMap.get("pLow_noL6")[0];
+        if ((p > paramMap.get("pHigh_hasL6")[0]) && hasL6) 
+            p = paramMap.get("pHigh_hasL6")[0];
+        else if ((p > paramMap.get("pHigh_noL6")[0]) && !hasL6) 
+            p= paramMap.get("pHigh_noL6")[0];
+        else if ((p < paramMap.get("pLow_hasL6")[0]) && hasL6)
+            p = paramMap.get("pLow_hasL6")[0];
+        else if ((p < paramMap.get("pLow_noL6")[0]) && !hasL6)
+            p = paramMap.get("pLow_noL6")[0];
 
         // calculate measured mean and sigma of deltaX and deltaY for this energy:
         double aDxMean=0,aDxSigm=0,aDyMean=0,aDySigm=0;
@@ -297,21 +297,21 @@ public class TrackClusterMatcher {
         for (int ii=dyMean.length-1; ii>=0; ii--) aDyMean = dyMean[ii] + p*aDyMean;
         for (int ii=dySigm.length-1; ii>=0; ii--) aDySigm = dySigm[ii] + p*aDySigm;
 
-      //if the track's extrapolated position is within 1/2 a crystal width of the edge of 
+        //if the track's extrapolated position is within 1/2 a crystal width of the edge of 
         // the ecal edge, then move it to be 1/2 a crystal from the edge in y.  
-       
+
         Hep3Vector originalTPos = tPos;
-        
+
         if(snapToEdge )
             tPos= snapper.snapToEdge(tPos,cluster);
-        
-        
+
+
         // calculate nSigma between track and cluster:
         final double nSigmaX = (cPos.x() - tPos.x() - aDxMean) / aDxSigm;
         final double nSigmaY = (cPos.y() - tPos.y() - aDyMean) / aDySigm;
-        
+
         double nSigma = Math.sqrt(nSigmaX*nSigmaX + nSigmaY*nSigmaY);
-        
+
         if(debug && Math.abs(cPos.x()-tPos.x())<50 &&  Math.abs(cPos.y()-tPos.y())<50){
             System.out.println("TC MATCH RESULTS:");
             System.out.println("isTop:  " + isTopTrack);
@@ -322,18 +322,18 @@ public class TrackClusterMatcher {
             System.out.println("cy: " + cPos.y());
             System.out.println("tx: " + originalTPos.x());
             System.out.println("ty: " + originalTPos.y());
-            
+
             System.out.println("nSigmaX: " + nSigmaX);
             System.out.println("nSigmaY: " + nSigmaY);
             System.out.println("nSigma: " + nSigma);
         }
-        
+
         return nSigma;
         //return Math.sqrt( 1 / ( 1/nSigmaX/nSigmaX + 1/nSigmaY/nSigmaY ) );
     }
 
     boolean debug = false;
-    
+
     SnapToEdge snapper = new SnapToEdge();
 
     /**
@@ -406,14 +406,14 @@ public class TrackClusterMatcher {
         if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaX > paramMap.get("topClusterTrackMatchDeltaXHigh")[0]
                 || deltaX < paramMap.get("topClusterTrackMatchDeltaXLow")[0]))
                 || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaX > paramMap.get("bottomClusterTrackMatchDeltaXHigh")[0]
-                || deltaX < paramMap.get("bottomClusterTrackMatchDeltaXLow")[0]))) {
+                        || deltaX < paramMap.get("bottomClusterTrackMatchDeltaXLow")[0]))) {
             return false;
         }
 
         if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaY > paramMap.get("topClusterTrackMatchDeltaYHigh")[0]
                 || deltaY < paramMap.get("topClusterTrackMatchDeltaYLow")[0]))
                 || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaY > paramMap.get("bottomClusterTrackMatchDeltaYHigh")[0]
-                || deltaY < paramMap.get("bottomClusterTrackMatchDeltaYLow")[0]))) {
+                        || deltaY < paramMap.get("bottomClusterTrackMatchDeltaYLow")[0]))) {
             return false;
         }
 
@@ -526,16 +526,4 @@ public class TrackClusterMatcher {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Class to store track-cluster matching qualities.
-     */
-    public class TrackClusterMatch {
-        private double nSigmaPositionMatch=Double.MAX_VALUE;
-        public TrackClusterMatch(ReconstructedParticle pp, Cluster cc) {
-            nSigmaPositionMatch = getNSigmaPosition(cc,pp);
-        }
-        public double getNSigmaPositionMatch() { return nSigmaPositionMatch; }
-    }
-
 }

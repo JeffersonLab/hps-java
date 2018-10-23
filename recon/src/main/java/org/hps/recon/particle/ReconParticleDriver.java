@@ -43,6 +43,7 @@ public abstract class ReconParticleDriver extends Driver {
     TrackClusterMatcher matcher;
 
     String[] trackCollectionNames = null;
+    private String clusterParamFileName = null;
 
     public static final int ELECTRON = 0;
     public static final int POSITRON = 1;
@@ -71,11 +72,6 @@ public abstract class ReconParticleDriver extends Driver {
      * Indicates whether debug text should be output or not.
      */
     protected boolean debug = false;
-
-    /**
-     * Indicates whether this is Monte Carlo or data
-     */
-    public boolean isMonteCarlo = false;
 
     /**
      * The simple name of the class used for debug print statements.
@@ -128,7 +124,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for tracks.
      */
-    private String trackCollectionName = "MatchedTracks";
+    private String trackCollectionName = "GBLTracks";
     /**
      * LCIO collection name for reconstructed particles.
      */
@@ -346,13 +342,25 @@ public abstract class ReconParticleDriver extends Driver {
     public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
     }
+    
+    public void setClusterParamFileName(String input) {
+        clusterParamFileName = input;
+    }
 
     /**
      * Updates the magnetic field parameters to match the appropriate values for the current detector settings.
      */
     @Override
     protected void detectorChanged(Detector detector) {
-        matcher = new TrackClusterMatcher();
+        BeamEnergyCollection beamEnergyCollection = 
+                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        if (clusterParamFileName == null) {
+            if (beamEnergyCollection.get(0).getBeamEnergy() > 2)
+                setClusterParamFileName("ClusterParameterization2016.dat");
+            else
+                setClusterParamFileName("ClusterParameterization2015.dat");
+        }
+        matcher = new TrackClusterMatcher(clusterParamFileName);
         matcher.enablePlots(false);
 
         // Set the magnetic field parameters to the appropriate values.
@@ -364,11 +372,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
         matcher.setBFieldMap(detector.getFieldMap());
-        BeamEnergyCollection beamEnergyCollection = 
-                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-            
-        matcher.setBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy()); 
-
+         
     }
 
     /**
