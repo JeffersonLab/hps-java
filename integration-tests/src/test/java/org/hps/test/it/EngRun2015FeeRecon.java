@@ -172,7 +172,7 @@ public class EngRun2015FeeRecon extends Driver {
                 if (debug) {
                     aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
                     aida.cloud1D("Track chisq prob").fill(chisqProb);
-                    aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
+                    //aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
                     aida.cloud1D("Track momentum").fill(p);
                     aida.cloud1D("Track deDx").fill(t.getdEdx());
                     aida.cloud1D("Track theta").fill(theta);
