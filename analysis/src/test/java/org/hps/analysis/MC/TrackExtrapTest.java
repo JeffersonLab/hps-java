@@ -34,12 +34,12 @@ import junit.framework.TestCase;
 
 public class TrackExtrapTest extends TestCase {
     
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java";
+    static final String testURLBase = null;
 
     public void testIt() throws Exception
     {
         int nEvents = -1;
-        String fileName = "ap_prompt_raw.slcio";
+        String fileName = "ap_0000.slcio";
         File inputFile = null;
         if (testURLBase == null) {
             inputFile = new File(fileName);
