@@ -581,20 +581,37 @@ public class TrackUtils {
 
     public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize) {
 
-        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN));
+        // extrapolateTrackUsingFieldMapRK(TrackState ts, Hep3Vector startPosition, double distanceZ, double stepSize, FieldMap fM)
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
         double distanceZ = BeamlineConstants.ECAL_FACE - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
         double charge = -1.0 * Math.signum(getR(ts));
+        //System.out.printf("      startPosTrans %s  distanceZ %f \n", startPosTrans.toString(), distanceZ);
 
         org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        //System.out.printf("      RKresults %s \n", RKresults.getFirstElement().toString());
 
-        Hep3Vector mom = RKresults.getSecondElement();
-        double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
-        Hep3Vector delta = new BasicHep3Vector(dz * mom.x() / mom.z(), dz * mom.y() / mom.z(), dz);
-        Hep3Vector finalPos = VecOp.add(delta, RKresults.getFirstElement());
-        Hep3Vector finalPosTrans = CoordinateTransformations.transformVectorToTracking(finalPos);
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        //System.out.printf("    RK pos %s  mom %s  bFieldY %f \n", RKresults.getFirstElement().toString(), RKresults.getSecondElement().toString(), bFieldY);
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
         Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
-        BaseTrackState bts = makeTrackStateFromParams(finalPosTrans, momTrans, charge, fM.getField(finalPos).y());
+        //BaseTrackState bts = makeTrackStateFromParams(posTrans, momTrans, charge, fM.getField(RKresults.getFirstElement()).y(), new BasicHep3Vector(0, 0, 0));
 
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != BeamlineConstants.ECAL_FACE) {
+
+            Hep3Vector mom = RKresults.getSecondElement();
+            double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        bts.setReferencePoint(finalPos.v());
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
 
