@@ -580,33 +580,24 @@ public class TrackUtils {
     }
 
     public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize) {
-
-        // extrapolateTrackUsingFieldMapRK(TrackState ts, Hep3Vector startPosition, double distanceZ, double stepSize, FieldMap fM)
         Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
         Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
         double distanceZ = BeamlineConstants.ECAL_FACE - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
         double charge = -1.0 * Math.signum(getR(ts));
-        //System.out.printf("      startPosTrans %s  distanceZ %f \n", startPosTrans.toString(), distanceZ);
 
         org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
-        //System.out.printf("      RKresults %s \n", RKresults.getFirstElement().toString());
-
         double bFieldY = fM.getField(RKresults.getFirstElement()).y();
-        //System.out.printf("    RK pos %s  mom %s  bFieldY %f \n", RKresults.getFirstElement().toString(), RKresults.getSecondElement().toString(), bFieldY);
         Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
         Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
-        //BaseTrackState bts = makeTrackStateFromParams(posTrans, momTrans, charge, fM.getField(RKresults.getFirstElement()).y(), new BasicHep3Vector(0, 0, 0));
 
         Hep3Vector finalPos = posTrans;
         if (RKresults.getFirstElement().z() != BeamlineConstants.ECAL_FACE) {
-
             Hep3Vector mom = RKresults.getSecondElement();
             double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
             double dy = dz * mom.y() / mom.z();
             double dx = dz * mom.x() / mom.z();
             Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
             finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
-
         }
         bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
         double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
@@ -614,7 +605,6 @@ public class TrackUtils {
         bts.setReferencePoint(finalPos.v());
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
-
     }
 
     public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, double stepSize) {
@@ -1541,21 +1531,8 @@ public class TrackUtils {
 
         double charge = -1.0 * Math.signum(getR(ts));
         RK4integrator RKint = new RK4integrator(charge, stepSize, fM);
-        //System.out.printf("    startPos %s  p0 %s \n", startPosition.toString(), p0Trans.toString());
+
         return RKint.integrate(startPosition, p0Trans, distance);
-        //System.out.printf("    RK res %s \n", RKresults.getFirstElement().toString());
-
-    }
-
-    public static BaseTrackState makeTrackStateFromParams(Hep3Vector currentPosition, Hep3Vector currentMomentum, double q, double bFieldY) {
-
-        double[] params = getParametersFromPointAndMomentum(currentPosition, currentMomentum, (int) q, bFieldY);
-
-        // Create a track state at the extrapolation point
-        BaseTrackState trackState = new BaseTrackState(params, bFieldY);
-        Hep3Vector refPt = CoordinateTransformations.transformVectorToDetector(currentPosition);
-        trackState.setReferencePoint(refPt.v());
-        return trackState;
     }
 
     public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
@@ -1626,8 +1603,12 @@ public class TrackUtils {
             currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
         }
 
-        return makeTrackStateFromParams(currentPosition, currentMomentum, q, bFieldY);
+        double[] params = getParametersFromPointAndMomentum(currentPosition, currentMomentum, (int) q, bFieldY);
 
+        // Create a track state at the extrapolation point
+        BaseTrackState trackState = new BaseTrackState(params, bFieldY);
+        trackState.setReferencePoint(currentPosition.v());
+        return trackState;
     }
 
     public static double calculatePhi(double x, double y, double xc, double yc, double sign) {
