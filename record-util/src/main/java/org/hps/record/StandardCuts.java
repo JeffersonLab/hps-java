@@ -137,7 +137,7 @@ public class StandardCuts {
     }
     
     public StandardCuts(double ebeam) {
-        maxSharedHitsPerTrack = 7;
+        maxSharedHitsPerTrack = 5;
         maxMatchChisq = 10.0;
         maxMatchDt = 6.0;
         maxVertexClusterDt = 2.0;

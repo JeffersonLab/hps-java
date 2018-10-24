@@ -386,7 +386,7 @@ public abstract class ReconParticleDriver extends Driver {
         matcher.setBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy()); 
         
         if (cuts == null)
-            cuts = new StandardCuts();
+            cuts = new StandardCuts(beamEnergyCollection.get(0).getBeamEnergy());
         else
             cuts.changeBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy());
     }
@@ -477,6 +477,7 @@ public abstract class ReconParticleDriver extends Driver {
                 for (Cluster cluster : clusters) {
                     double clusTime = ClusterUtilities.getSeedHitTime(cluster);
                     double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+                    
                     if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
                         continue;
                     
