@@ -9,11 +9,9 @@ import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-//import java.util.Scanner;
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
@@ -80,16 +78,9 @@ public class TrackClusterMatcher {
 
     public void initializeParameterization(String fname) {
 
-        File fin = new File(fname);
-        java.io.FileInputStream fis = null;
-        java.io.BufferedReader br = null;
-        try {
-            fis = new java.io.FileInputStream(fin);
-            br = new java.io.BufferedReader(new java.io.InputStreamReader(fis));
-        }
-        catch (IOException x) {
-            System.err.format("TrackClusterMatcher error opening parameterization file: %s%n", x);
-        }
+        java.io.InputStream fis = TrackClusterMatcher.class.getResourceAsStream(fname);
+        //fis = new java.io.FileInputStream(fin);
+        java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(fis));
 
         paramMap = new HashMap<String, double[]>();
         String line = null;
