@@ -24,7 +24,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_007796_feeskim.evio";
-    static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4__globalAlign";
+    static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
     static final String steeringFileName = "/org/hps/steering/recon/PhysicsRun2016FullRecon.lcsim";
     private final int nEvents = 5000;
     private String aidaOutputFile = "target/test-output/PhysRun2016FeeReconTest/PhysRun2016FeeReconTest";
