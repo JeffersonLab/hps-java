@@ -41,6 +41,11 @@ public class GBLRefitterDriver extends Driver {
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
     private boolean writeMilleBinary = false;
+    private double writeMilleChi2Cut = 20;
+
+    public void setWriteMilleChi2Cut(int input) {
+        writeMilleChi2Cut = input;
+    }
 
     public void setMilleBinaryFileName(String filename) {
         milleBinaryFileName = filename;
@@ -109,11 +114,13 @@ public class GBLRefitterDriver extends Driver {
             Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
             if (newTrack == null)
                 continue;
+
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
             if (writeMilleBinary) {
-                newTrackTraj.getSecond().get_traj().milleOut(mille);
+                if (newTrack.getFirst().getChi2() < writeMilleChi2Cut)
+                    newTrackTraj.getSecond().get_traj().milleOut(mille);
             }
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), newTrack.getFirst()));

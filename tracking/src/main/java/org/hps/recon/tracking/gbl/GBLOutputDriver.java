@@ -45,6 +45,11 @@ public class GBLOutputDriver extends Driver {
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
     public boolean debug = false;
+    private double chi2Cut = 20;
+
+    public void setChi2Cut(double input) {
+        chi2Cut = input;
+    }
 
     public void setOutputPlotsFilename(String fname) {
         outputPlots = fname;
@@ -85,6 +90,8 @@ public class GBLOutputDriver extends Driver {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         for (Track trk : tracks) {
+            if (trk.getChi2() > chi2Cut)
+                continue;
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
             Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
