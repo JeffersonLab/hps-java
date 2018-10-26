@@ -245,14 +245,16 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     arms_block_dy_mz = 37.071  # Epoxy block, delta y, at -z
     arms_block_dz    = 15.     # Depth of block.
     arms_block_dx    = 25.     # Width of block.
-    skew_angle = math.atan((arms_block_dy_mz -arms_block_dy_pz)/(2*arms_block_dz))*180./math.pi
+    tan_skew_angle = (arms_block_dy_mz -arms_block_dy_pz)/(2*arms_block_dz)
+    skew_angle = math.atan(tan_skew_angle)*180./math.pi
+    arms_block_y_loc = 334.8/2 - arms_block_dy_pz/2. - arms_block_dz/2 * tan_skew_angle
     # 1/2 Angle of top (bottom) of the block trapezoid
 
     geo = Geometry(
             name = "arms1_block1",
             mother=mother,
-            description="Block at flange side of epoxy arm",
-            pos=[origin[0]+extrusion_x_1,origin[1]+extrusion_y_1,
+            description="Block at left top flange side of epoxy arm",
+            pos=[origin[0]+extrusion_x_1,origin[1]+arms_block_y_loc,
                 origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
@@ -268,8 +270,8 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     geo = Geometry(
             name = "arms1_block2",
             mother=mother,
-            description="Block at flange side of epoxy arm",
-            pos=[origin[0]+extrusion_x_2,origin[1]+extrusion_y_1,
+            description="Block right top at flange side of epoxy arm",
+            pos=[origin[0]+extrusion_x_2,origin[1]+arms_block_y_loc,
                 origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
@@ -285,8 +287,8 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     geo = Geometry(
             name = "arms1_block3",
             mother=mother,
-            description="Block at flange side of epoxy arm",
-            pos=[origin[0]+extrusion_x_1,origin[1]-extrusion_y_1,
+            description="Block left bottom at flange side of epoxy arm",
+            pos=[origin[0]+extrusion_x_1,origin[1]-arms_block_y_loc,
                 origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
@@ -302,8 +304,8 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     geo = Geometry(
             name = "arms1_block4",
             mother=mother,
-            description="Block at flange side of epoxy arm",
-            pos=[origin[0]+extrusion_x_2,origin[1]-extrusion_y_1,
+            description="Block right bottom at flange side of epoxy arm",
+            pos=[origin[0]+extrusion_x_2,origin[1]-arms_block_y_loc,
                 origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
@@ -316,45 +318,11 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             material='G10_FR4')
     g_en.add(geo)
 
-    #
-    #
-    # geo = Geometry(
-    #         name = "arms1_block3",
-    #         mother=mother,
-    #         description="Block at flange side of epoxy arm",
-    #         pos=[origin[0]+extrusion_x_1,origin[1]-extrusion_y_1,
-    #             origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
-    #         pos_units=['mm', 'mm', 'mm'],
-    #         rot=[0.0, 0.0, 0.0],
-    #         rot_units=['deg', 'deg', 'deg'],
-    #         col='ff0000',
-    #         g4type="Box",
-    #         dimensions=[extrusion_width/2.,34.8/2.,arms_block_dz/2.],
-    #         dims_units=['mm', 'mm', 'mm'],
-    #         material='G10_FR4')
-    # g_en.add(geo)
-    #
-    # geo = Geometry(
-    #         name = "arms1_block4",
-    #         mother=mother,
-    #         description="Block at flange side of epoxy arm",
-    #         pos=[origin[0]+extrusion_x_2,origin[1]-extrusion_y_1,
-    #             origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
-    #         pos_units=['mm', 'mm', 'mm'],
-    #         rot=[0.0, 0.0, 0.0],
-    #         rot_units=['deg', 'deg', 'deg'],
-    #         col='ff0000',
-    #         g4type="Box",
-    #         dimensions=[extrusion_width/2.,34.8/2.,arms_block_dz/2.],
-    #         dims_units=['mm', 'mm', 'mm'],
-    #         material='G10_FR4')
-    # g_en.add(geo)
-
     geo = Geometry(
             name = "cross_bar_top",
             mother=mother,
             description="cross bar block of epoxy arm",
-            pos=[origin[0]+(extrusion_x_1+extrusion_x_2)/2.,origin[1]+334.8/2-4.,
+            pos=[origin[0]+(extrusion_x_1+extrusion_x_2)/2.,origin[1]+334.8/2-8./2,
                 origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
@@ -364,6 +332,55 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             dimensions=[95./2.,8./2.,arms_block_dz/2.],
             dims_units=['mm', 'mm', 'mm'],
             material='G10_FR4')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "cross_bar_bottom",
+        mother=mother,
+        description="cross bar block of epoxy arm",
+        pos=[origin[0]+(extrusion_x_1+extrusion_x_2)/2.,origin[1]-334.8/2+8./2,
+            origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Box",
+        dimensions=[95./2.,8./2.,arms_block_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+    # Support Arm:
+    support_arm_dz = 217.0
+    support_arm_dx =   6.0
+    support_arm_dy_pz = 32.271
+
+    tmp_top_rise_tan_angle = 30.729/203.
+    tmp_top_end_location = support_arm_dy_pz + support_arm_dz * tmp_top_rise_tan_angle  # y location of top at mz
+    tmp_bot_rise_tan_angle = 40.608/208.908
+    tmp_bot_end_location = support_arm_dz * tmp_bot_rise_tan_angle  # y location of bottom at mz
+    support_arm_dy_mz = tmp_top_end_location - tmp_bot_end_location #
+    pos_at_block_bottom_left =[origin[0]+extrusion_x_1,origin[1]-334.8/2.,origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz]
+    mid_point_z = support_arm_dz/2
+    support_arm_skew_angle = (math.atan(tmp_top_rise_tan_angle)+math.atan(tmp_bot_rise_tan_angle))/2
+#    support_arm_skew_angle = 0
+    mid_point_y = arms_block_dy_mz - support_arm_dy_pz/2. + mid_point_z*math.tan( support_arm_skew_angle)
+    pos_support_arm_bot_left = [pos_at_block_bottom_left[0],pos_at_block_bottom_left[1]+mid_point_y,pos_at_block_bottom_left[2]-mid_point_z]
+
+    geo = Geometry(
+        name = "support_arm_bottom_left",
+        mother=mother,
+        description="epoxy support arm on the left bottom",
+        pos=pos_support_arm_bot_left,
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="G4Trap",
+        dimensions=[support_arm_dz/2.,-support_arm_skew_angle,90.,support_arm_dy_mz /2.,support_arm_dx/2.,support_arm_dx/2.,0.,
+                    support_arm_dy_pz /2.,support_arm_dx/2.,support_arm_dx/2.,0.],
+        dims_units=['mm', 'rad','deg','mm', 'mm','mm','deg','mm', 'mm','mm','deg'],
+        material='G10_FR4')
     g_en.add(geo)
 
 
