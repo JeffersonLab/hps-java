@@ -510,13 +510,13 @@ public class BilliorVertexer {
     }
     //return fitted track parameters (theta,phiv,rho) for track index i
     public double[] getFittedTrackParameters(int index){
-     BasicMatrix pi = (BasicMatrix) _pFit.get(index);
-     double[] mom={pi.e(0,0),pi.e(1,0),pi.e(2,0)};
-     return mom;
+        BasicMatrix pi = (BasicMatrix) _pFit.get(index);
+        double[] mom={pi.e(0,0),pi.e(1,0),pi.e(2,0)};
+        return mom;
     }
 
     public BasicMatrix getFittedTrackCovariance(int index){     
-     return  (BasicMatrix) covMomList[index][index];
+        return  (BasicMatrix) covMomList[index][index];
     }
 
     

@@ -191,7 +191,7 @@ public class BilliorVertex implements Vertex {
         _fitTrkParsList=pars;
     }
     
-      public void setFittedTrackCovariance(List<Matrix> covs){
+    public void setFittedTrackCovariance(List<Matrix> covs){
         _fitTrkCovList=covs;
     }
 
