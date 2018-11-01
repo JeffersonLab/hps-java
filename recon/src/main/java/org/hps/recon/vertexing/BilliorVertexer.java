@@ -642,8 +642,8 @@ public class BilliorVertexer {
     public Hep3Vector getV0Momentum() {
         double[] p1 = getFittedMomentum(0);
         double[] p2 = getFittedMomentum(1);
-        System.out.println("getFittedMomentum track1::  " + p1[0] + "; " + p1[1] + "; " + p1[2]);
-        System.out.println("getFittedMomentum track2::  " + p2[0] + "; " + p2[1] + "; " + p2[2]);
+        //System.out.println("getFittedMomentum track1::  " + p1[0] + "; " + p1[1] + "; " + p1[2]);
+        //System.out.println("getFittedMomentum track2::  " + p2[0] + "; " + p2[1] + "; " + p2[2]);
         return new BasicHep3Vector(p1[0] + p2[0], p1[1] + p2[1], p1[2] + p2[2]);
 
     }
@@ -658,9 +658,9 @@ public class BilliorVertexer {
         double pxErr = Math.sqrt(covMom1.e(0, 0) + covMom2.e(0, 0) + 2 * covMom12.e(0, 0));
         double pyErr = Math.sqrt(covMom1.e(1, 1) + covMom2.e(1, 1) + 2 * covMom12.e(1, 1));
         double pzErr = Math.sqrt(covMom1.e(2, 2) + covMom2.e(2, 2) + 2 * covMom12.e(2, 2));
-        System.out.println("px1Err = " + Math.sqrt(covMom1.e(0, 0)) + "; px2Err = " + Math.sqrt(covMom2.e(0, 0)) + "; px12Err = " + covMom12.e(0, 0));
-        System.out.println("py1Err = " + Math.sqrt(covMom1.e(1, 1)) + "; py2Err = " + Math.sqrt(covMom2.e(1, 1)) + "; py12Err = " + covMom12.e(1, 1));
-        System.out.println("pz1Err = " + Math.sqrt(covMom1.e(2, 2)) + "; pz2Err = " + Math.sqrt(covMom2.e(2, 2)) + "; pz12Err = " + covMom12.e(2, 2));
+        //System.out.println("px1Err = " + Math.sqrt(covMom1.e(0, 0)) + "; px2Err = " + Math.sqrt(covMom2.e(0, 0)) + "; px12Err = " + covMom12.e(0, 0));
+        //System.out.println("py1Err = " + Math.sqrt(covMom1.e(1, 1)) + "; py2Err = " + Math.sqrt(covMom2.e(1, 1)) + "; py12Err = " + covMom12.e(1, 1));
+        //System.out.println("pz1Err = " + Math.sqrt(covMom1.e(2, 2)) + "; pz2Err = " + Math.sqrt(covMom2.e(2, 2)) + "; pz12Err = " + covMom12.e(2, 2));
         return new BasicHep3Vector(pxErr, pyErr, pzErr);
     }
 
