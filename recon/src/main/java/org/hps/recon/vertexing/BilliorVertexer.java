@@ -500,12 +500,12 @@ public class BilliorVertexer {
         Matrix fitMomCov=getFittedMomentumCovariance(index);
         double pzErrFromMethod=Math.sqrt(fitMomCov.e(2,2));
         
-        System.out.println("debugMomentumUncertainty::(theta,phiv,rho) =  (" + theta + "; " + phiv + "; " + rho + ")");
-        System.out.println("debugMomentumUncertainty::  " + mom[0] + "; " + mom[1] + "; " + mom[2]);
-        System.out.println("debugMomentumUncertainty::(c20,c22) =  (" + c20 + "; " + c22 + ")");
-        System.out.println("debugMomentumUncertainty::(pz2c20,pz2c22) =  (" + pz2c20 + "; " + pz2c22 + ")");
-        System.out.println("debugMomentumUncertainty::(pzErrFromHere,pzErrFromMethod) = ("+pzErrFromHere+"; "+pzErrFromMethod+")");
-        System.out.println("debugMomentumUncertainty::(sigma(rho)/rho,sigma(pz)/pz) =  (" + sigmaRhoOverRho + "; " + sigmaPzOverPz + ")");
+        //System.out.println("debugMomentumUncertainty::(theta,phiv,rho) =  (" + theta + "; " + phiv + "; " + rho + ")");
+        //System.out.println("debugMomentumUncertainty::  " + mom[0] + "; " + mom[1] + "; " + mom[2]);
+        //System.out.println("debugMomentumUncertainty::(c20,c22) =  (" + c20 + "; " + c22 + ")");
+        //System.out.println("debugMomentumUncertainty::(pz2c20,pz2c22) =  (" + pz2c20 + "; " + pz2c22 + ")");
+        //System.out.println("debugMomentumUncertainty::(pzErrFromHere,pzErrFromMethod) = ("+pzErrFromHere+"; "+pzErrFromMethod+")");
+        //System.out.println("debugMomentumUncertainty::(sigma(rho)/rho,sigma(pz)/pz) =  (" + sigmaRhoOverRho + "; " + sigmaPzOverPz + ")");
 
     }
     //return fitted track parameters (theta,phiv,rho) for track index i
