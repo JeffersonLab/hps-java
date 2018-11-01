@@ -17,10 +17,10 @@ import junit.framework.TestCase;
 
 public class RecoToRawMC extends TestCase {
 
-    protected String testInputFileName = "apsignalv2_displaced_100mm_epsilon-6_HPS-EngRun2015-Nominal-v5-0-fieldmap_3.11-SNAPSHOT_pairs1_V0Skim.slcio";
+    protected String testInputFileName = "ap_raw_0000-new.slcio";
     protected String testOutputFileName = "raw_" + testInputFileName;
-    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
-    protected long nEvents = -1;
+    protected String testURLBase = null;
+    protected long nEvents = 1000;
 
     public void testClearMC() throws Exception {
 
@@ -81,7 +81,7 @@ public class RecoToRawMC extends TestCase {
             toRemove.add("HelicalTrackHits");
             toRemove.add("MatchedToGBLTrackRelations");
             toRemove.add("MatchedTracks");
-            toRemove.add("PartialTracks");
+            //toRemove.add("PartialTracks");
             toRemove.add("RotatedHelicalTrackHitRelations");
             toRemove.add("RotatedHelicalTrackHits");
             toRemove.add("TrackData");
