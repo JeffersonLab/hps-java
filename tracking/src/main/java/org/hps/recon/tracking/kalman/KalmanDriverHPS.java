@@ -123,6 +123,7 @@ public class KalmanDriverHPS extends Driver {
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         KI = new KalmanInterface();
+        KI.verbose = this.verbose;
         KI.createSiModules(detPlanes, fm);
     }
 
