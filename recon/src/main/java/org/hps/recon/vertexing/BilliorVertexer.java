@@ -547,9 +547,10 @@ public class BilliorVertexer {
         BasicMatrix Jac1 = (BasicMatrix) getJacobianThetaPhiRhoToPxPyPz(theta1, phiv1, rho1);
         BasicMatrix Jac2 = (BasicMatrix) getJacobianThetaPhiRhoToPxPyPz(theta2, phiv2, rho2);
         BasicMatrix Jac2T = (BasicMatrix) MatrixOp.transposed(Jac2);
-
 //        System.out.println("Jac "+Jac.toString());
         return MatrixOp.mult(Jac1, MatrixOp.mult(covpi, Jac2T));
+//        return MatrixOp.mult(Jac1, MatrixOp.mult(covpi, Jac2T));
+  
     }
 
     public Matrix getFittedVertexCovariance() {
@@ -703,9 +704,13 @@ public class BilliorVertexer {
         double pvY = p1[2] + p2[2];
         double sX = pvX / pvZ;
         double sY = pvY / pvZ;
-        double vZ = _vertexPosition.e(0, 0);
-        double vX = _vertexPosition.e(1, 0);
-        double vY = _vertexPosition.e(2, 0);
+//        double vZ = _vertexPosition.e(0, 0);
+//        double vX = _vertexPosition.e(1, 0);
+//        double vY = _vertexPosition.e(2, 0);
+//   mg 11/1/2018...forgot to add on reference positions!
+        double vZ = _vertexPosition.e(0, 0)+ _referencePosition[0];
+        double vX = _vertexPosition.e(1, 0)+ _referencePosition[1];
+        double vY = _vertexPosition.e(2, 0)+ _referencePosition[2];
         double delZ = _beamPosition[0] - vZ;
         // get all of the covariance matrices we need
         Matrix covMom1 = getFittedMomentumCovariance(0);
