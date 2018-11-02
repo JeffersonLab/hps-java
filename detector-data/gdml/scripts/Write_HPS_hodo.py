@@ -52,7 +52,9 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     """Computes the geometry of all the support structures for the 2019 Hodoscope  """
 
     front_flange_center_z = zloc - 50.0/2.
-
+    front_flange_dz = 50.
+    front_flange_inner_dy = 334.8
+    front_flange_inner_dx = 650.350
     print(origin)
 
     geo = Geometry(
@@ -65,7 +67,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
           rot_units=['deg', 'deg', 'deg'],
           col='ffff00',
           g4type='Box',
-          dimensions=[768.35/2.,457.2/2.,50./2.],
+          dimensions=[768.35/2,457.2/2,front_flange_dz/2.],
           dims_units=['mm', 'mm', 'mm'],
           material='Component')
     g_en.add(geo)
@@ -80,7 +82,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
           rot_units=['deg', 'deg', 'deg'],
           col='ee0000',
           g4type='Box',
-          dimensions=[650.350/2.,334.8/2.,50.01/2.],
+          dimensions=[front_flange_inner_dx/2.,front_flange_inner_dy/2.,(front_flange_dz+.01)/2.],
           dims_units=['mm', 'mm', 'mm'],
           material='Component')
     g_en.add(geo)
@@ -102,11 +104,12 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     extrusion_height = 35.
     extrusion_depth = 15.
     # 650.35/2 = inner edge of flange. 118.675 = distance of side to inner edge.
-    extrusion_x_1 = 650.350/2.- 118.675 - extrusion_width/2.
+    extrusion_x_1 = front_flange_inner_dx/2.- 118.675 - extrusion_width/2.
     # 95.0 is the distance between sides of the two extrusions.
-    extrusion_x_2 = 650.350/2.- 118.675 - extrusion_width- 95.0 -extrusion_width/2.
-    # 334.8/2 = inner edge of flange.
-    extrusion_y_1 = (334.8-extrusion_height)/2
+    extrusion_x_2 = front_flange_inner_dx/2.- 118.675 - extrusion_width- 95.0 -extrusion_width/2.
+    # front_flange_inner_dy/2 = inner edge of flange.
+    extrusion_y_1 = (front_flange_inner_dy-extrusion_height)/2
+    extrusions_center = (extrusion_x_1+extrusion_x_2)/2.
     geo = Geometry(
           name = 'Flange_extrusion_1',
           mother=mother,
@@ -247,7 +250,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     arms_block_dx    = 25.     # Width of block.
     tan_skew_angle = (arms_block_dy_mz -arms_block_dy_pz)/(2*arms_block_dz)
     skew_angle = math.atan(tan_skew_angle)*180./math.pi
-    arms_block_y_loc = 334.8/2 - arms_block_dy_pz/2. - arms_block_dz/2 * tan_skew_angle
+    arms_block_y_loc = front_flange_inner_dy/2 - arms_block_dy_pz/2. - arms_block_dz/2 * tan_skew_angle
     # 1/2 Angle of top (bottom) of the block trapezoid
 
     geo = Geometry(
@@ -322,7 +325,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             name = "cross_bar_top",
             mother=mother,
             description="cross bar block of epoxy arm",
-            pos=[origin[0]+(extrusion_x_1+extrusion_x_2)/2.,origin[1]+334.8/2-8./2,
+            pos=[origin[0]+extrusions_center,origin[1]+front_flange_inner_dy/2-8./2,
                 origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
@@ -338,7 +341,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         name = "cross_bar_bottom",
         mother=mother,
         description="cross bar block of epoxy arm",
-        pos=[origin[0]+(extrusion_x_1+extrusion_x_2)/2.,origin[1]-334.8/2+8./2,
+        pos=[origin[0]+extrusions_center,origin[1]-front_flange_inner_dy/2+8./2,
             origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz/2.],
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
@@ -360,18 +363,25 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     tmp_bot_rise_tan_angle = 40.608/208.908
     tmp_bot_end_location = support_arm_dz * tmp_bot_rise_tan_angle  # y location of bottom at mz
     support_arm_dy_mz = tmp_top_end_location - tmp_bot_end_location #
-    pos_at_block_bottom_left =[origin[0]+extrusion_x_1,origin[1]-334.8/2.,origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz]
+    pos_at_block_bottom_left =[origin[0]+extrusion_x_1,origin[1]-front_flange_inner_dy/2.,origin[2]+front_flange_center_z-1.-extrusion_depth/2.-arms_block_dz]
+    pos_at_block_top_left =[origin[0]+extrusion_x_1,origin[1]+front_flange_inner_dy/2.,pos_at_block_bottom_left[2]]
     mid_point_z = support_arm_dz/2
     support_arm_skew_angle = (math.atan(tmp_top_rise_tan_angle)+math.atan(tmp_bot_rise_tan_angle))/2
+    print("Arm angles: bottom={}   top={}   skew={}".format(math.degrees(math.atan(tmp_bot_rise_tan_angle)),
+        math.degrees(math.atan(tmp_top_rise_tan_angle)),math.degrees(support_arm_skew_angle)))
 #    support_arm_skew_angle = 0
     mid_point_y = arms_block_dy_mz - support_arm_dy_pz/2. + mid_point_z*math.tan( support_arm_skew_angle)
     pos_support_arm_bot_left = [pos_at_block_bottom_left[0],pos_at_block_bottom_left[1]+mid_point_y,pos_at_block_bottom_left[2]-mid_point_z]
+    pos_support_arm_bot_right = [origin[0]+extrusion_x_2,pos_support_arm_bot_left[1],pos_support_arm_bot_left[2]]
+    pos_support_arm_top_left = [pos_at_block_bottom_left[0],pos_at_block_top_left[1]-mid_point_y,pos_at_block_top_left[2]-mid_point_z]
+    pos_support_arm_top_right = [origin[0]+extrusion_x_2,pos_support_arm_top_left[1],pos_support_arm_top_left[2]]
+
 
     geo = Geometry(
-        name = "support_arm_bottom_left",
+        name = "support_arm_bottom_left_arm",
         mother=mother,
-        description="epoxy support arm on the left bottom",
-        pos=pos_support_arm_bot_left,
+        description="epoxy support arm on the left bottom, arm component",
+        pos=[0,0,0],
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
@@ -380,9 +390,228 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         dimensions=[support_arm_dz/2.,-support_arm_skew_angle,90.,support_arm_dy_mz /2.,support_arm_dx/2.,support_arm_dx/2.,0.,
                     support_arm_dy_pz /2.,support_arm_dx/2.,support_arm_dx/2.,0.],
         dims_units=['mm', 'rad','deg','mm', 'mm','mm','deg','mm', 'mm','mm','deg'],
+        material='Component')
+    g_en.add(geo)
+
+    end_block_dz = 14.
+    end_block_dx = 20.
+    end_block_dy =  5. + 2.8
+    # Position of the block is relative to the *center* of the arm. In z, that is 1/2 the arm length.
+    # In y, this is trickier due to the slant. The CAD measured bottom edge at the flange end (+z) of the block
+    # to the bottom edge at the flange end of the arm is 55.2 mm in y, 203.0 mm in z.
+    # mid_point_z*math.tan( support_arm_skew_angle) is the y distance of the mid point in y at +z of the arm, to
+    # the center y of the arm. So 55.2 minus that distance minus the 1/2 height at +z
+    # (support_arm_dy_pz /2.) gives the position of the bottom of the block.
+    relative_end_block_y = 55.2 -mid_point_z*math.tan( support_arm_skew_angle) -support_arm_dy_pz /2. + end_block_dy/2.
+    relative_end_block_z =  -mid_point_z + end_block_dz/2.
+
+    geo = Geometry(
+        name = "support_arm_bottom_left_notch",
+        mother=mother,
+        description="notch at the end of the epoxy support arm, bottom left.",
+        pos=[0,relative_end_block_y+5.,(relative_end_block_z-0.01)],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Box",
+        dimensions=[end_block_dx/2,(end_block_dy+10.)/2,(end_block_dz+0.01)/2],
+        dims_units=['mm', 'mm', 'mm'],
+        material='Component')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "support_arm_bottom_left_with_notch",
+        mother=mother,
+        description="epoxy support arm with notch subtracted, bottom left",
+        pos=[0,0,0],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ffff00',
+        g4type="Operation: support_arm_bottom_left_arm - support_arm_bottom_left_notch",
+        material='Component')
+    g_en.add(geo)
+
+
+    geo = Geometry(
+        name = "end_block_bottom_left_block",
+        mother=mother,
+        description="end block of epoxy arm bottom left",
+        pos=[0,0,0],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Box",
+        dimensions=[end_block_dx/2,end_block_dy/2,end_block_dz/2],
+        dims_units=['mm', 'mm', 'mm'],
+        material='Component')
+    g_en.add(geo)
+
+    end_block_ridge_dz = 3.0   # 3 mm ridge at +z side of block
+    # relative_end_block_y-end_block_dy/2 = The bottom of the end block.
+    # Thickness of block at subtracted part is 5 (since we do not have the 1mm notch in the support bar.)
+    geo = Geometry(
+        name = "end_block_bottom_left_subs",
+        mother=mother,
+        description="end block of epoxy arm bottom left subtract",
+        pos=[0,5.- end_block_dy/2+10./2,-end_block_ridge_dz-0.01], # 3 mm ridge at the +z side of block.
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ffff00',
+        g4type="Box",
+        dimensions=[(end_block_dx+0.01)/2,10./2,(end_block_dz+0.01)/2],
+        dims_units=['mm', 'mm', 'mm'],
+        material='Component')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "end_block_bottom_left",
+        mother=mother,
+        description="epoxy support arm on the left bottom",
+        pos=[0,relative_end_block_y,relative_end_block_z],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ffff00',
+        g4type="Operation: end_block_bottom_left_block - end_block_bottom_left_subs",
+        material='Component')
+    g_en.add(geo)
+
+
+    geo = Geometry(
+        name = "support_arm_bottom_left_plus_block",
+        mother=mother,
+        description="epoxy support arm on the left bottom",
+        pos=pos_support_arm_bot_left,
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
         material='G10_FR4')
     g_en.add(geo)
 
+    # geo = Geometry(
+    #     name = "support_arm_bottom_left",
+    #     mother=mother,
+    #     description="epoxy support arm with block on the left bottom",
+    #     pos=pos_support_arm_bot_left,
+    #     pos_units=['mm', 'mm', 'mm'],
+    #     rot=[0.0, 0.0, 0.0],
+    #     rot_units=['deg', 'deg', 'deg'],
+    #     col='ff0000',
+    #     g4type="Operation: support_arm_bottom_left_plus_block - end_block_bottom_left_subs",
+    #     material='G10_FR4')
+    # g_en.add(geo)
+
+    geo = Geometry(                               # Duplicate on the right
+        name = "support_arm_bottom_right",
+        mother=mother,
+        description="epoxy support arm with block on the left bottom",
+        pos=pos_support_arm_bot_right,
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
+        material='G10_FR4')
+    g_en.add(geo)
+
+    geo = Geometry(                               # Duplicate rotated on the top left
+        name = "support_arm_top_left",
+        mother=mother,
+        description="epoxy support arm with block on the left bottom",
+        pos=pos_support_arm_top_left,
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 180.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
+        material='G10_FR4')
+    g_en.add(geo)
+
+
+    geo = Geometry(                               # Duplicate rotated on the top right
+        name = "support_arm_top_right",
+        mother=mother,
+        description="epoxy support arm with block on the left bottom",
+        pos=pos_support_arm_top_right,
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 180.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff0000',
+        g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
+        material='G10_FR4')
+    g_en.add(geo)
+
+    usupport_bot_dz = 9.0
+    usupport_bot_dy = 8.0
+    usupport_dx = 160.0
+    usupport_top_dz = 4.0
+    usupport_top_dy = 18.0
+#   usupport_x = origin[0] + extrusions_center
+    # (pos_at_block_bottom_left[1]+ arms_block_dy_mz - support_arm_dy_pz) is the flange side lower edge of the arm.
+    # The CAD measurement is 55.2 mm from that point to the bottom of the support block.
+    # The support block is 5.0 mm thick at that point (5+2.8 - subtraction)
+    #
+    usupport_y = pos_at_block_bottom_left[1]+ arms_block_dy_mz - support_arm_dy_pz + 55.2 + 5. + usupport_bot_dy/2.
+    # pos_at_block_bottom_left[2] + relative_end_block_z is z-center of end block in global coords.
+    usupport_z = pos_at_block_bottom_left[2] - support_arm_dz + end_block_dz - end_block_ridge_dz - usupport_bot_dz/2.
+    geo = Geometry(
+        name = "u_support_bar_bottom",
+        mother=mother,
+        description="U support bar for hodoscope, bottom",
+        pos=[origin[0]+extrusions_center,usupport_y,usupport_z],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff5500',
+        g4type="Box",
+        dimensions=[usupport_dx/2.,usupport_bot_dy/2.,usupport_bot_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "u_support_bar_top",
+        mother=mother,
+        description="U support bar for hodoscope, bottom",
+        pos=[origin[0]+extrusions_center,-usupport_y,usupport_z],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff5500',
+        g4type="Box",
+        dimensions=[usupport_dx/2.,usupport_bot_dy/2.,usupport_bot_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+
+
+
+
+def post_process_gdml_file(file):
+    """The LCSIM LCDD schema cannot handle the full GDML written by ROOT.
+    This routine processes the file so that it can be included into an LCDD geometry. """
+    import os
+    import re
+    os.rename(file,file+".bak")
+    inf = open(file+".bak","r")
+    of  = open(file,"w")
+    for line in inf:
+        if re.search('copynumber=',line):
+            wr_line=re.sub('copynumber=".*"','',line)
+        elif re.search('<solidref ref="world_volume"/>',line) or  re.search('.*<box name="world_volume"',line):
+            # world_volume is the name of both the solidref and the volume, LCDD doesn't like that.
+            wr_line=re.sub('world_volume','world_volume_solid',line)
+        else:
+            wr_line=line
+
+        of.write(wr_line)
 
 
 if __name__ == "__main__":
