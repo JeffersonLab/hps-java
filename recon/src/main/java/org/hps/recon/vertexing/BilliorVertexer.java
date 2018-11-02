@@ -500,23 +500,23 @@ public class BilliorVertexer {
         Matrix fitMomCov=getFittedMomentumCovariance(index);
         double pzErrFromMethod=Math.sqrt(fitMomCov.e(2,2));
         
-        System.out.println("debugMomentumUncertainty::(theta,phiv,rho) =  (" + theta + "; " + phiv + "; " + rho + ")");
-        System.out.println("debugMomentumUncertainty::  " + mom[0] + "; " + mom[1] + "; " + mom[2]);
-        System.out.println("debugMomentumUncertainty::(c20,c22) =  (" + c20 + "; " + c22 + ")");
-        System.out.println("debugMomentumUncertainty::(pz2c20,pz2c22) =  (" + pz2c20 + "; " + pz2c22 + ")");
-        System.out.println("debugMomentumUncertainty::(pzErrFromHere,pzErrFromMethod) = ("+pzErrFromHere+"; "+pzErrFromMethod+")");
-        System.out.println("debugMomentumUncertainty::(sigma(rho)/rho,sigma(pz)/pz) =  (" + sigmaRhoOverRho + "; " + sigmaPzOverPz + ")");
+        //System.out.println("debugMomentumUncertainty::(theta,phiv,rho) =  (" + theta + "; " + phiv + "; " + rho + ")");
+        //System.out.println("debugMomentumUncertainty::  " + mom[0] + "; " + mom[1] + "; " + mom[2]);
+        //System.out.println("debugMomentumUncertainty::(c20,c22) =  (" + c20 + "; " + c22 + ")");
+        //System.out.println("debugMomentumUncertainty::(pz2c20,pz2c22) =  (" + pz2c20 + "; " + pz2c22 + ")");
+        //System.out.println("debugMomentumUncertainty::(pzErrFromHere,pzErrFromMethod) = ("+pzErrFromHere+"; "+pzErrFromMethod+")");
+        //System.out.println("debugMomentumUncertainty::(sigma(rho)/rho,sigma(pz)/pz) =  (" + sigmaRhoOverRho + "; " + sigmaPzOverPz + ")");
 
     }
     //return fitted track parameters (theta,phiv,rho) for track index i
     public double[] getFittedTrackParameters(int index){
-     BasicMatrix pi = (BasicMatrix) _pFit.get(index);
-     double[] mom={pi.e(0,0),pi.e(1,0),pi.e(2,0)};
-     return mom;
+        BasicMatrix pi = (BasicMatrix) _pFit.get(index);
+        double[] mom={pi.e(0,0),pi.e(1,0),pi.e(2,0)};
+        return mom;
     }
 
     public BasicMatrix getFittedTrackCovariance(int index){     
-     return  (BasicMatrix) covMomList[index][index];
+        return  (BasicMatrix) covMomList[index][index];
     }
 
     
@@ -643,8 +643,8 @@ public class BilliorVertexer {
     public Hep3Vector getV0Momentum() {
         double[] p1 = getFittedMomentum(0);
         double[] p2 = getFittedMomentum(1);
-        System.out.println("getFittedMomentum track1::  " + p1[0] + "; " + p1[1] + "; " + p1[2]);
-        System.out.println("getFittedMomentum track2::  " + p2[0] + "; " + p2[1] + "; " + p2[2]);
+        //System.out.println("getFittedMomentum track1::  " + p1[0] + "; " + p1[1] + "; " + p1[2]);
+        //System.out.println("getFittedMomentum track2::  " + p2[0] + "; " + p2[1] + "; " + p2[2]);
         return new BasicHep3Vector(p1[0] + p2[0], p1[1] + p2[1], p1[2] + p2[2]);
 
     }
@@ -659,9 +659,9 @@ public class BilliorVertexer {
         double pxErr = Math.sqrt(covMom1.e(0, 0) + covMom2.e(0, 0) + 2 * covMom12.e(0, 0));
         double pyErr = Math.sqrt(covMom1.e(1, 1) + covMom2.e(1, 1) + 2 * covMom12.e(1, 1));
         double pzErr = Math.sqrt(covMom1.e(2, 2) + covMom2.e(2, 2) + 2 * covMom12.e(2, 2));
-        System.out.println("px1Err = " + Math.sqrt(covMom1.e(0, 0)) + "; px2Err = " + Math.sqrt(covMom2.e(0, 0)) + "; px12Err = " + covMom12.e(0, 0));
-        System.out.println("py1Err = " + Math.sqrt(covMom1.e(1, 1)) + "; py2Err = " + Math.sqrt(covMom2.e(1, 1)) + "; py12Err = " + covMom12.e(1, 1));
-        System.out.println("pz1Err = " + Math.sqrt(covMom1.e(2, 2)) + "; pz2Err = " + Math.sqrt(covMom2.e(2, 2)) + "; pz12Err = " + covMom12.e(2, 2));
+        //System.out.println("px1Err = " + Math.sqrt(covMom1.e(0, 0)) + "; px2Err = " + Math.sqrt(covMom2.e(0, 0)) + "; px12Err = " + covMom12.e(0, 0));
+        //System.out.println("py1Err = " + Math.sqrt(covMom1.e(1, 1)) + "; py2Err = " + Math.sqrt(covMom2.e(1, 1)) + "; py12Err = " + covMom12.e(1, 1));
+        //System.out.println("pz1Err = " + Math.sqrt(covMom1.e(2, 2)) + "; pz2Err = " + Math.sqrt(covMom2.e(2, 2)) + "; pz12Err = " + covMom12.e(2, 2));
         return new BasicHep3Vector(pxErr, pyErr, pzErr);
     }
 
