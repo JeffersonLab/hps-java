@@ -652,7 +652,7 @@ public class GblTrajectory {
 //        System.out.println("Printing Data");
 //        System.out.println(theData.toString());
 //        System.out.println("Printing Vector");
-        theVector.print();
+//        theVector.print();
         theMatrix.solveAndInvertBorderedBand(theVector, theVector);
         predict();
         Ndf = theData.size() - numParameters;
