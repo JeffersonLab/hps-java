@@ -551,6 +551,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     usupport_bot_dy = 8.0
     usupport_dx = 160.0
     usupport_top_dz = 4.0
+    usupport_top2_dz = 3.0
     usupport_top_dy = 18.0
 #   usupport_x = origin[0] + extrusions_center
     # (pos_at_block_bottom_left[1]+ arms_block_dy_mz - support_arm_dy_pz) is the flange side lower edge of the arm.
@@ -574,6 +575,38 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         dims_units=['mm', 'mm', 'mm'],
         material='G10_FR4')
     g_en.add(geo)
+
+    geo = Geometry(
+        name = "u_support_bar_upper1",
+        mother=mother,
+        description="U support bar for hodoscope plate1, bottom",
+        pos=[origin[0]+extrusions_center,usupport_y+usupport_bot_dy/2+usupport_top_dy/2,usupport_z-usupport_bot_dz/2+usupport_top_dz/2],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff5500',
+        g4type="Box",
+        dimensions=[usupport_dx/2.,usupport_top_dy/2.,usupport_top_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "u_support_bar_upper2",
+        mother=mother,
+        description="U support bar for hodoscope plate2, bottom",
+        pos=[origin[0]+extrusions_center,usupport_y+usupport_bot_dy/2+usupport_top_dy/2,usupport_z+usupport_bot_dz/2-usupport_top2_dz/2],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='ff5500',
+        g4type="Box",
+        dimensions=[usupport_dx/2.,usupport_top_dy/2.,usupport_top2_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+
 
     geo = Geometry(
         name = "u_support_bar_top",
@@ -621,7 +654,7 @@ if __name__ == "__main__":
 #
 #################################################################################################
 
-    Detector = "hps_hodo"
+    Detector = "hps_hodoscope_assembly"
     Variation= "original"
 
     geo_en = GeometryEngine(Detector)
