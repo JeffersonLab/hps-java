@@ -38,7 +38,7 @@ public class KalTrack {
         propagated = false;
         originCov = new SquareMatrix(5);
         MeasurementSite site = SiteList.get(0);
-        Vec B = site.m.Bfield.getField(new Vec(0., 0., 0.));
+        Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), site.m.Bfield);
         Bmag = B.mag();
         tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
@@ -102,12 +102,12 @@ public class KalTrack {
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
         Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
         double ct = pMom.unitVec().dot(innerSite.m.p.T());
-        double XL = innerSite.XL/Math.abs(ct);
+        double XL = innerSite.XL / Math.abs(ct);
         helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
-        
+
         // Find the position and momentum of the particle near the origin, including covariance
-        Vec XonHelix = innerSite.aS.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
-        Vec PofHelix = innerSite.aS.aTOp(helixAtOrigin);
+        Vec XonHelix = StateVector.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
+        Vec PofHelix = StateVector.aTOp(helixAtOrigin);
         originMomentum = Rot.inverseRotate(PofHelix);
         originPoint = Rot.inverseRotate(XonHelix);
         double[][] Dx = DxTOa(helixAtOrigin);
@@ -155,7 +155,8 @@ public class KalTrack {
     }
 
     public double[][] originCovariance() {
-        if (!propagated) originHelix();
+        if (!propagated)
+            originHelix();
         return originCov.M.clone();
     }
 

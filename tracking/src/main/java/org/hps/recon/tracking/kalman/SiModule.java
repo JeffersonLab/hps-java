@@ -18,15 +18,15 @@ public class SiModule {
                     // and v is the measurement direction.
     double stereo; // Stereo angle of the detectors in radians
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
-    FieldMap Bfield;
+    org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
-    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, FieldMap Bfield) {
+    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with stand-alone development code: assume axial layers have stereo angle=0
         this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield);
     }
 
-    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, FieldMap Bfield) {
+    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         this.Layer = Layer;
         this.Bfield = Bfield;
         this.p = p;
@@ -54,7 +54,7 @@ public class SiModule {
             System.out.format("This is an axial detector layer");
         }
         p.X().print("origin of Si layer coordinates in the global system");
-        Vec Bf = Bfield.getField(p.X());
+        Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
         System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1], tBf.v[2]);
         R.print("from detector coordinates to global coordinates");

@@ -36,7 +36,7 @@ public class KalmanTrackFit {
             SquareMatrix C, // Full covariance matrix for the starting "guess" helix
             double B, // Magnetic field strength at helix beginning
             Vec t, // Magnetic field direction at helix beginning; defines the helix coordinate system
-            FieldMap fM, boolean verbose) {
+            org.lcsim.geometry.FieldMap fM, boolean verbose) {
 
         success = true;
         if (direction > 0) {

@@ -17,15 +17,15 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     private HelixPlaneIntersect hpi;
     RotMatrix R; // Rotation from global coordinates to the B field frame
     Vec origin; // Origin of the B-field reference frame in global coordinates
-    private FieldMap fM;
+    private org.lcsim.geometry.FieldMap fM;
     private Random rndm;
 
     // Construct a helix starting from a momentum vector
-    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, FieldMap fM) {
+    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, org.lcsim.geometry.FieldMap fM) {
         this.Q = Q;
         this.origin = origin.copy();
         this.fM = fM;
-        Vec Bf = fM.getField(Xinit);
+        Vec Bf = KalmanInterface.getField(Xinit, fM);
         B = Bf.mag();
         double c = 2.99793e8;
         alpha = 1000.0 * 1.0E9 / (c * B); // Units are Tesla, mm, GeV
@@ -53,11 +53,11 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     }
 
     // Construct a helix from given helix parameters (given in B field frame)
-    Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, FieldMap fM) {
+    Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, org.lcsim.geometry.FieldMap fM) {
         this.origin = origin.copy();
         this.fM = fM;
         p = HelixParams.copy();
-        Vec Bf = fM.getField(pivotGlobal);
+        Vec Bf = KalmanInterface.getField(pivotGlobal, fM);
         B = Bf.mag();
         double c = 2.99793e8;
         alpha = 1000.0 * 1.0E9 / (c * B); // Units are Tesla, mm, GeV
@@ -100,7 +100,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         System.out.format("         Pivot in B-field frame=%10.5f, %10.5f, %10.5f\n", X0.v[0], X0.v[1], X0.v[2]);
         Vec pivotGlobal = R.inverseRotate(X0).sum(origin);
         System.out.format("         Pivot in global frame=%10.5f, %10.5f, %10.5f\n", pivotGlobal.v[0], pivotGlobal.v[1], pivotGlobal.v[2]);
-        Vec Bf = fM.getField(pivotGlobal);
+        Vec Bf = KalmanInterface.getField(pivotGlobal, fM);
         Bf.print("B field in global frame at the pivot point");
         Vec Bflocal = R.rotate(Bf);
         Bflocal.print("B field in its local frame; should be in +z direction");
@@ -230,7 +230,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         // System.out.format("recalculated scattered angle=%10.7f\n", check);
 
         // Rotate the direction into the frame of the new field (evaluated at the new pivot)
-        Vec Bf = fM.getField(r);
+        Vec Bf = KalmanInterface.getField(r, fM);
         double Bnew = Bf.mag();
         Vec tBnew = Bf.unitVec(Bnew);
         Vec yhat = new Vec(0., 1., 0.);

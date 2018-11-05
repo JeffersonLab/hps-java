@@ -42,8 +42,7 @@ public class KalmanDriverHPS extends Driver {
     private ArrayList<SiStripPlane> detPlanes;
     private List<HpsSiSensor> sensors;
     private MaterialSupervisor _materialManager;
-    private FieldMap fm;
-    private String fieldMapFileName = "fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.dat";
+    private org.lcsim.geometry.FieldMap fm;
     private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
     private double bField;
@@ -116,6 +115,8 @@ public class KalmanDriverHPS extends Driver {
         _materialManager = new MaterialSupervisor();
         _materialManager.buildModel(det);
 
+        fm = det.getFieldMap();
+
         setupPlots();
 
         detPlanes = new ArrayList<SiStripPlane>();
@@ -123,19 +124,18 @@ public class KalmanDriverHPS extends Driver {
         for (ScatteringDetectorVolume vol : materialVols) {
             detPlanes.add((SiStripPlane) (vol));
         }
-        try {
-            //FIXME
-            // fetch offsets from compact.xml, *10 for cm->mm
-            fm = new FieldMap(fieldMapFileName, "HPS", 21.17, 0., 457.2);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
         bField = TrackUtils.getBField(det).magnitude();
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         KI = new KalmanInterface();
         KI.verbose = this.verbose;
         KI.createSiModules(detPlanes, fm);
+
+        // test
+        //KalmanInterface.getField(new Vec(0., 500., 0.), det.getFieldMap()).print("new field");
+        //fm.getField(new Vec(0., 500., 0.)).print("old field");
+
     }
 
     private void printGBLkinks(RelationalTable GBLtoKinks, Track GBLtrack) {

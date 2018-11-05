@@ -19,7 +19,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
 
     // Runge Kutta integration extrapolation to a plane through a non-uniform field
     // When close to the plane, then a helix is used to find the exact intersection
-    Vec rkIntersect(Plane P, Vec X0, Vec P0, double Q, FieldMap fM, Vec pInt) {
+    Vec rkIntersect(Plane P, Vec X0, Vec P0, double Q, org.lcsim.geometry.FieldMap fM, Vec pInt) {
         // P definition of the plane to which to extrapolate
         // X0 3-D starting point for the extrapolation
         // P0 3-momentum at the start of the extrapolation
@@ -45,7 +45,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         // X1.print("point close to the plane in rkIntersect");
 
         // Transform to the local B-field reference frame at this location
-        Vec B = fM.getField(X1);
+        Vec B = KalmanInterface.getField(X1, fM);
         double Bmag = B.mag();
         this.alpha = 1.0e12 / (c * Bmag);
         Vec t = B.unitVec(Bmag);

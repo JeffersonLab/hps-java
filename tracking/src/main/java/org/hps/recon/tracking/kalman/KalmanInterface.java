@@ -26,6 +26,7 @@ import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+
 import static org.lcsim.constants.Constants.fieldConversion;
 
 public class KalmanInterface {
@@ -39,6 +40,12 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose = true;
+
+    static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
+        double[] hpsPos = { kalPos.v[0], -1.0 * kalPos.v[2], kalPos.v[1] };
+        double[] hpsField = hpsFm.getField(hpsPos);
+        return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
+    }
 
     static Vec convertMomentumToHps(Vec kalMom, double bfield) {
         return kalMom.scale(fieldConversion * bfield);
@@ -119,7 +126,7 @@ public class KalmanInterface {
         //local params, rotated
         Vec localParams = sv.a;
         SquareMatrix fRot = new SquareMatrix(5);
-        double[] globalParams = sv.rotateHelix(localParams, sv.Rot.invert(), fRot).v;
+        double[] globalParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot).v;
         double[] newParams = getLCSimParams(globalParams, sv.alpha);
         SquareMatrix localCov = sv.C;
         SquareMatrix globalCov = localCov.similarity(fRot);
@@ -295,7 +302,7 @@ public class KalmanInterface {
         return newTrack;
     }
 
-    public void createSiModules(List<SiStripPlane> inputPlanes, FieldMap fm) {
+    public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
         SiMlist.clear();
 
         for (SiStripPlane inputPlane : inputPlanes) {
@@ -415,7 +422,7 @@ public class KalmanInterface {
         return new SeedTrack(SiMlist, firstHitZ, trackHitsKalman, verbose);
     }
 
-    public KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
+    public KalmanTrackFit2 createKalmanTrackFit(SeedTrack seed, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, org.lcsim.geometry.FieldMap fm, int nIt) {
         double firstHitZ = 10000;
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         if (verbose)
@@ -453,7 +460,7 @@ public class KalmanInterface {
         return new KalmanTrackFit2(SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm, verbose);
     }
 
-    public KalmanTrackFit2 createKalmanTrackFit(Vec helixParams, Vec pivot, SquareMatrix cov, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, FieldMap fm, int nIt) {
+    public KalmanTrackFit2 createKalmanTrackFit(Vec helixParams, Vec pivot, SquareMatrix cov, Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, org.lcsim.geometry.FieldMap fm, int nIt) {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         if (verbose)
             System.out.format("createKalmanTrackFit: using GBL fit as start; number of hits on track = %d\n", hitsOnTrack.size());

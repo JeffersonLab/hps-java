@@ -42,8 +42,8 @@ class MeasurementSite {
         }
         System.out.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, mxResid);
         m.print("for this site");
-        double B = m.Bfield.getField(m.p.X()).mag();
-        Vec tB = m.Bfield.getField(m.p.X()).unitVec();
+        double B = KalmanInterface.getField(m.p.X(), m.Bfield).mag();
+        Vec tB = KalmanInterface.getField(m.p.X(), m.Bfield).unitVec();
         System.out.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
         tB.print("magnetic field direction");
         System.out.format("    chi^2 increment=%12.4e\n", chi2inc);
@@ -72,7 +72,7 @@ class MeasurementSite {
         hitID = -1;
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
-        Vec Bfield = m.Bfield.getField(m.p.X());
+        Vec Bfield = KalmanInterface.getField(m.p.X(), m.Bfield);
         B = Bfield.mag();
         alpha = conFac / B; // Convert from pt in GeV to curvature in mm
         predicted = false;
@@ -112,7 +112,7 @@ class MeasurementSite {
         double deltaE = 0.; // dEdx*thickness/ct;
 
         Vec origin = m.p.X();
-        Vec Bfield = m.Bfield.getField(pS.toGlobal(X0));
+        Vec Bfield = KalmanInterface.getField(pS.toGlobal(X0), m.Bfield);
         double B = Bfield.mag();
         Vec tB = Bfield.unitVec(B);
         if (verbose) {

@@ -36,12 +36,12 @@ class SeedTrack {
     void print(String s) {
         if (success) {
             System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
-            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n",Nbending,Nnonbending);
+            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
             hParm.print("helix parameters rotated into magnetic field frame");
             System.out.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
-            double [] pivot = {0., 0., 0.};
-            double [] a = this.pivotTransform(pivot);
-            System.out.format("    helix parameters transformed to global origin: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n",a[0],a[1],a[2],a[3],a[4]);
+            double[] pivot = { 0., 0., 0. };
+            double[] a = this.pivotTransform(pivot);
+            System.out.format("    helix parameters transformed to global origin: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", a[0], a[1], a[2], a[3], a[4]);
             System.out.format("  seed track hits:");
             for (int j = 0; j < hits.length; j++) {
                 System.out.format(" %d ", hits[j]);
@@ -102,7 +102,7 @@ class SeedTrack {
         Vec Bvec = new Vec(0., 0., 0.);
         for (int[] pnt : hitList) {
             SiModule thisSi = data.get(pnt[0]);
-            Vec thisB = thisSi.Bfield.getField(thisSi.toGlobal(new Vec(0., 0., 0.))); // Taking the field from the center of the module
+            Vec thisB = KalmanInterface.getField(thisSi.toGlobal(new Vec(0., 0., 0.)), thisSi.Bfield);
             Bvec = Bvec.sum(thisB);
         }
         int Npnt = hitList.size();
@@ -130,7 +130,7 @@ class SeedTrack {
                 if (thisSi.isStereo) {
                     System.out.format("itr=%d %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n", itr[0], itr[1], N, m.v, thisSi.stereo);
                 } else {
-                    System.out.format("itr=%d %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", itr[0], itr[1], N, m.v, thisSi.stereo);                   
+                    System.out.format("itr=%d %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", itr[0], itr[1], N, m.v, thisSi.stereo);
                 }
                 pnt.print("point global");
                 t[N] = thisSi.stereo;
@@ -168,8 +168,7 @@ class SeedTrack {
             System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, R2[0..2] theta\n");
             for (int i = 0; i < N; i++) {
                 double vcheck = R2[i][0] * (xMC[i] - delta[i][0]) + R2[i][2] * (zMC[i] - delta[i][2]) + R2[i][1] * (yMC[i] - delta[i][1]);
-                System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f %10.7f %10.7f %10.7f %8.5f\n", 
-                        i, y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], R2[i][0], R2[i][1], R2[i][2], t[i]);
+                System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f %10.7f %10.7f %10.7f %8.5f\n", i, y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], R2[i][0], R2[i][1], R2[i][2], t[i]);
             }
         }
 
@@ -229,7 +228,7 @@ class SeedTrack {
         // Rotate the result into the frame of the B field at the specified origin
         int[] itr = hitList.get(0);
         SiModule firstSi = data.get(itr[0]);
-        Vec firstB = firstSi.Bfield.getField(new Vec(0., yOrigin, 0.));
+        Vec firstB = KalmanInterface.getField(new Vec(0., yOrigin, 0.), firstSi.Bfield);
         Vec zhat = firstB.unitVec();
         Vec yhat = new Vec(0., 1., 0.);
         Vec xhat = (yhat.cross(zhat)).unitVec();
@@ -286,7 +285,8 @@ class SeedTrack {
         if (R < 0.) {
             r[1] += Math.PI;
         }
-        if (r[1] > Math.PI) r[1] -= 2.0*Math.PI; 
+        if (r[1] > Math.PI)
+            r[1] -= 2.0 * Math.PI;
         r[2] = alpha / R;
         r[0] = xc / Math.cos(r[1]) - R;
         if (verbose) {
@@ -327,7 +327,8 @@ class SeedTrack {
         double phi0 = Math.atan2(-p.v[0], p.v[1]);
         double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
         double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
-        if (phi0 > Math.PI) phi0 = phi0 - 2.0*Math.PI;
+        if (phi0 > Math.PI)
+            phi0 = phi0 - 2.0 * Math.PI;
         if (verbose) {
             System.out.format("SeedTrack pTOa: Q=%5.1f phi0=%10.7f K=%10.6f tanl=%10.7f\n", Q, phi0, K, tanl);
             p.print("input momentum vector in SeedTrack.pTOa");
@@ -386,8 +387,8 @@ class SeedTrack {
         double z = dz - (alpha / K) * phi * tanl;
         return new Vec(x, y, z);
     }
-    
-    double [] pivotTransform(double [] pivot) {
+
+    double[] pivotTransform(double[] pivot) {
         Vec X0 = new Vec(0., yOrigin, 0.);
         double xC = X0.v[0] + (drho + alpha / K) * Math.cos(phi0); // Center of the helix circle
         double yC = X0.v[1] + (drho + alpha / K) * Math.sin(phi0);
@@ -406,8 +407,8 @@ class SeedTrack {
         aP[0] = (xC - pivot[0]) * Math.cos(aP[1]) + (yC - pivot[1]) * Math.sin(aP[1]) - alpha / K;
         aP[3] = X0.v[2] - pivot[2] + dz - (alpha / K) * (aP[1] - phi0) * tanl;
 
-        xC = pivot[0] + (aP[0]+alpha/aP[2])*Math.cos(aP[1]);
-        yC = pivot[1] + (aP[0]+alpha/aP[2])*Math.sin(aP[1]);
+        xC = pivot[0] + (aP[0] + alpha / aP[2]) * Math.cos(aP[1]);
+        yC = pivot[1] + (aP[0] + alpha / aP[2]) * Math.sin(aP[1]);
         //System.out.format("pivotTransform new center=%10.6f, %10.6f\n", xC, yC);
 
         return aP;

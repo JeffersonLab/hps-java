@@ -82,7 +82,7 @@ public class KalmanPatRecHPS {
                 SiModule m0 = data.get(list[4]);
                 double yOrigin = m0.p.X().v[1];
                 Vec pivot = new Vec(0, yOrigin, 0.);
-                Vec Bfield = m0.Bfield.getField(pivot);
+                Vec Bfield = KalmanInterface.getField(pivot, m0.Bfield);
                 double Bmag = Bfield.mag();
                 Vec tB = Bfield.unitVec(Bmag);
                 if (verbose) {

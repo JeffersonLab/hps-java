@@ -21,13 +21,13 @@ public class KalmanTrackFit2 {
             Vec pivot, // Pivot point for the starting "guess" helix
             Vec helixParams, // 5 helix parameters for the starting "guess" helix
             SquareMatrix C, // Full covariance matrix for the starting "guess" helix
-            FieldMap fM, boolean verbose) {
+            org.lcsim.geometry.FieldMap fM, boolean verbose) {
 
         success = true;
         tkr = null;
 
         // Create an state vector from the input seed to initialize the Kalman filter
-        Vec Bfield = fM.getField(pivot);
+        Vec Bfield = KalmanInterface.getField(pivot, fM);
         double B = Bfield.mag();
         Vec t = Bfield.unitVec(B);
         StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, false);
@@ -87,7 +87,8 @@ public class KalmanTrackFit2 {
 
                 prevSite = thisSite;
             }
-            if (!success) return;
+            if (!success)
+                return;
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
                 newSite.aF.a.print("filtered helix parameters at innermost site.");
@@ -237,9 +238,9 @@ public class KalmanTrackFit2 {
 
         finalSite = sites.size() - 1;
 
-        tkr = new KalTrack(0, nHits, sites, chi2s);  // Store the fit information as a KalTrack object
-        double[] hp = tkr.originHelix();             // Propagates the track to the origin region
-        
+        tkr = new KalTrack(0, nHits, sites, chi2s); // Store the fit information as a KalTrack object
+        double[] hp = tkr.originHelix(); // Propagates the track to the origin region
+
         // Storing intercepts at each plane
         for (MeasurementSite site : sites) {
             double phiS = site.aS.planeIntersect(site.m.p);
@@ -249,10 +250,10 @@ public class KalmanTrackFit2 {
             tkr.interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
             tkr.intercepts.put(site, site.h(site.aS, phiS));
         }
-        
+
         if (verbose) {
             System.out.format("KalmanTrackFit2: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
-            System.out.format("   At origin, drho=%10.7f, phi0=%10.7f, K=%10.7f, dz=%10.7f, tanl=%10.7f\n", hp[0],hp[1],hp[2],hp[3],hp[4]);
+            System.out.format("   At origin, drho=%10.7f, phi0=%10.7f, K=%10.7f, dz=%10.7f, tanl=%10.7f\n", hp[0], hp[1], hp[2], hp[3], hp[4]);
             Vec afF = sites.get(sites.size() - 1).aF.a;
             Vec afC = sites.get(sites.size() - 1).aF.helixErrors();
             afF.print("KalmanFit helix parameters at final filtered site");

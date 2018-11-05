@@ -6,9 +6,9 @@ public class RungeKutta4 {
     private double h;
     private double h2;
     private double alpha;
-    private FieldMap fM;
+    private org.lcsim.geometry.FieldMap fM;
 
-    public RungeKutta4(double Q, double dx, FieldMap fM) {
+    public RungeKutta4(double Q, double dx, org.lcsim.geometry.FieldMap fM) {
         alpha = Q * 2.99792458e-4; // Q is the charge in units of the proton charge
         h = dx; // Step size in mm
         h2 = h / 2.0;
@@ -46,7 +46,7 @@ public class RungeKutta4 {
     }
 
     private double[] f(Vec x, double[] p) { // Return all the derivatives
-        Vec B = fM.getField(x);
+        Vec B = KalmanInterface.getField(x, fM);
         // B.print("magnetic field");
         double[] d = new double[6];
         double pmag = Math.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
