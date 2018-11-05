@@ -155,8 +155,8 @@ public class TrackUtils {
         //System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
 
         //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
-        double[] oldReferencePoint = { point.x(), point.y(), 0 };
-        double[] newReferencePoint = { 0, 0, 0 };
+        double[] oldReferencePoint = {point.x(), point.y(), 0};
+        double[] newReferencePoint = {0, 0, 0};
 
         //System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
         double[] newParameters = getParametersAtNewRefPoint(newReferencePoint, oldReferencePoint, params);
@@ -205,10 +205,12 @@ public class TrackUtils {
         // take care of phi0 range if needed (this matters for dphi below I
         // think)
         // L3 defines it in the range [-pi,pi]
-        while (phi0 > Math.PI / 2)
+        while (phi0 > Math.PI / 2) {
             phi0 -= Math.PI;
-        while (phi0 < -Math.PI / 2)
+        }
+        while (phi0 < -Math.PI / 2) {
             phi0 += Math.PI;
+        }
 
         double dx = newRefPoint[0] - __refPoint[0];
         double dy = newRefPoint[1] - __refPoint[1];
@@ -261,10 +263,12 @@ public class TrackUtils {
         double z0 = par[HelicalTrackFit.z0Index];
         double tanLambda = par[HelicalTrackFit.slopeIndex];
 
-        while (phi0 > Math.PI)
+        while (phi0 > Math.PI) {
             phi0 -= Math.PI * 2;
-        while (phi0 < -Math.PI / 2)
+        }
+        while (phi0 < -Math.PI / 2) {
             phi0 += Math.PI;
+        }
 
         BasicMatrix jac = new BasicMatrix(5, 5);
         //
@@ -788,7 +792,7 @@ public class TrackUtils {
     }
 
     public static int[] getHitsInTopBottom(Track track) {
-        int n[] = { 0, 0 };
+        int n[] = {0, 0};
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
         for (TrackerHit hit : hitsOnTrack) {
             HelicalTrackHit hth = (HelicalTrackHit) hit;
@@ -951,7 +955,7 @@ public class TrackUtils {
     }
 
     public static int passTrackSelections(Track track, List<Track> tracklist, EventQuality.Quality trk_quality) {
-        int cuts[] = { 0 };
+        int cuts[] = {0};
         if (trk_quality.compareTo(Quality.NONE) != 0) {
             if (track.getTrackStates().get(0).getMomentum()[0] < EventQuality.instance().getCutValue(EventQuality.Cut.PZ, trk_quality))
                 cut(cuts, EventQuality.Cut.PZ);
@@ -1046,8 +1050,8 @@ public class TrackUtils {
         if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
         else {
-            double[] chisq = { track.getChi2(), 0 };
-            int[] ndf = { track.getNDF(), 0 };
+            double[] chisq = {track.getChi2(), 0};
+            int[] ndf = {track.getNDF(), 0};
             TrackState ts = track.getTrackStates().get(0);
             double par[] = ts.getParameters();
             SymmetricMatrix cov = new SymmetricMatrix(5, ts.getCovMatrix(), true);
@@ -1127,15 +1131,15 @@ public class TrackUtils {
         // first make the HelicalTrackFit Object
         double[] covArray = trkState.getCovMatrix();
         SymmetricMatrix cov = new SymmetricMatrix(5, covArray, true);
-        double[] chisq = { track.getChi2(), 0 };
-        int[] ndf = { track.getNDF(), 0 };
+        double[] chisq = {track.getChi2(), 0};
+        int[] ndf = {track.getNDF(), 0};
         Map<HelicalTrackHit, Double> smap = new HashMap<>(); // just leave these
         // empty
         Map<HelicalTrackHit, MultipleScatter> msmap = new HashMap<>();// just
         // leave
         // these
         // empty
-        double[] pars = { trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda() };
+        double[] pars = {trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda()};
         HelicalTrackFit htf = new HelicalTrackFit(pars, cov, chisq, ndf, smap, msmap);
         // now get the hits and make them helicaltrackhits
         List<TrackerHit> rth = track.getTrackerHits();
@@ -1186,14 +1190,23 @@ public class TrackUtils {
     private static Pair<EventHeader, RelationalTable> hitToRotatedCache = null;
 
     public static RelationalTable getHitToRotatedTable(EventHeader event) {
+//        if (hitToRotatedCache != null)
+//            System.out.println("getHitToRotatedTable:  Already have a hitToRotatedCache");
+//        if (hitToRotatedCache != null && hitToRotatedCache.getFirst() == event)
+//            System.out.println("getHitToRotatedTable:  getFirst()==event");
+
         if (hitToRotatedCache == null || hitToRotatedCache.getFirst() != event) {
+  //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
             List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
             for (LCRelation relation : rotaterelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+ //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
                     hitToRotated.add(relation.getFrom(), relation.getTo());
+                }
             hitToRotatedCache = new Pair<EventHeader, RelationalTable>(event, hitToRotated);
         }
+ //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
         return hitToRotatedCache.getSecond();
     }
 
@@ -1220,8 +1233,10 @@ public class TrackUtils {
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
-        for (TrackerHit hit : track.getTrackerHits())
+        for (TrackerHit hit : track.getTrackerHits()) {
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+        }
+        
         return hits;
     }
 
@@ -1276,6 +1291,11 @@ public class TrackUtils {
     }
 
     public static int getLayer(TrackerHit strip) {
+        if (strip == null)
+            System.out.println("Strip is null?????");
+        if (strip.getRawHits() == null)
+            System.out.println("No raw hits associated with this strip????");
+
         return ((RawTrackerHit) strip.getRawHits().get(0)).getLayerNumber();
     }
 
@@ -1353,7 +1373,11 @@ public class TrackUtils {
             Set<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
             TrackerHit[] strips = new TrackerHit[2];
             htsList.toArray(strips);
+            if (strips[0] == null)
+                continue;
             isolations[TrackUtils.getLayer(strips[0]) - 1] = TrackUtils.getIsolation(strips[0], strips[1], hitToStrips, hitToRotated);
+            if (strips[1] == null)
+                continue;
             isolations[TrackUtils.getLayer(strips[1]) - 1] = TrackUtils.getIsolation(strips[1], strips[0], hitToStrips, hitToRotated);
         }
         return isolations;
@@ -1456,15 +1480,13 @@ public class TrackUtils {
             // update the extrapolated position.
             Hep3Vector currentPositionTry = trajectory.getPointAtDistance(stepSize);
 
-            if ((Math.abs(endPosition - currentPositionTry.x()) > epsilon) && (Math.signum(endPosition - currentPositionTry.x()) != sign)) {
+            if ((Math.abs(endPosition - currentPositionTry.x()) > epsilon) && (Math.signum(endPosition - currentPositionTry.x()) != sign))
                 // went too far, try again with smaller step-size
                 if (Math.abs(stepSize) > 0.001) {
                     stepSize /= 2.0;
                     continue;
-                } else {
+                } else
                     break;
-                }
-            }
             currentPosition = currentPositionTry;
 
             distance = Math.abs(endPosition - currentPosition.x());
@@ -1615,11 +1637,11 @@ public class TrackUtils {
         }
         writer.close();
     }
-    
+
     //This method transforms vector from tracking detector frame to sensor frame
-    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor){
+    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor) {
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
-        if(electrodes == null){
+        if (electrodes == null) {
             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
             System.out.println("Charge Carrier is NULL");
         }

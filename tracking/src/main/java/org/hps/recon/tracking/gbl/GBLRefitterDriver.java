@@ -25,7 +25,8 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Does not require GBL collections to be present in the event.
+ * A Driver which refits tracks using GBL. Does not require GBL collections to
+ * be present in the event.
  */
 public class GBLRefitterDriver extends Driver {
 
@@ -62,11 +63,12 @@ public class GBLRefitterDriver extends Driver {
 
     @Override
     protected void process(EventHeader event) {
-        if (!event.hasCollection(Track.class, inputCollectionName)) {
+        if (!event.hasCollection(Track.class, inputCollectionName))
             return;
-        }
+
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
+        //       System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
@@ -78,8 +80,13 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
+//            System.out.println("GBLRefitterDriver::process  number of hits on track = "+track.getTrackerHits().size());
+            if (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0)
+                //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
+                continue;
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            if(newTrack==null) continue;
+            if (newTrack == null)
+                continue;
             refittedTracks.add(newTrack.getFirst());
             trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
             inputToRefitted.put(track, newTrack.getFirst());
@@ -98,12 +105,10 @@ public class GBLRefitterDriver extends Driver {
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
+        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        }
-        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits")) {
+        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
-        }
 
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
@@ -122,23 +127,20 @@ public class GBLRefitterDriver extends Driver {
             IIdentifier strippedId = dict.pack(expId);
             // Find the sensor DetectorElement.
             List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
-            if (des == null || des.size() == 0) {
+            if (des == null || des.size() == 0)
                 throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
-            } else if (des.size() == 1) {
+            else if (des.size() == 1)
                 hit.setDetectorElement((SiSensor) des.get(0));
-            } else {
+            else
                 // Use first sensor found, which should work unless there are sensors with duplicate IDs.
-                for (IDetectorElement de : des) {
+                for (IDetectorElement de : des)
                     if (de instanceof SiSensor) {
                         hit.setDetectorElement((SiSensor) de);
                         break;
                     }
-                }
-            }
             // No sensor was found.
-            if (hit.getDetectorElement() == null) {
+            if (hit.getDetectorElement() == null)
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
-            }
         }
     }
 }
