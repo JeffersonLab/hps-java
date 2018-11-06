@@ -10,7 +10,7 @@ import org.lcsim.event.ReconstructedParticle;
  */
 public class V0SkimDriver extends EventReconFilter {
 
-    private String mollerCollectionName = "UnconstrainedV0Candidates";
+    private String v0CollectionName = "UnconstrainedV0Candidates";
 
     /**
      * sets the V0 candidate collection to use.
@@ -18,13 +18,13 @@ public class V0SkimDriver extends EventReconFilter {
      * @param val
      */
     public void setV0CollectionName(String val) {
-        this.mollerCollectionName = val;
+        this.v0CollectionName = val;
     }
 
     public void process(EventHeader event) {
         incrementEventProcessed();
-        List<ReconstructedParticle> mollers = event.get(ReconstructedParticle.class, mollerCollectionName);
-        if (mollers.size() == 0) {
+        List<ReconstructedParticle> vertices = event.get(ReconstructedParticle.class, v0CollectionName);
+        if (vertices.size() == 0) {
             skipEvent();
         }
         incrementEventPassed();
