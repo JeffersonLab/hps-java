@@ -51,7 +51,7 @@ public class FeeSvtAlignmentDriver extends Driver {
     boolean debug = false;
     private AIDA aida = AIDA.defaultInstance();
 
-    private final String finalStateParticlesColName = "FinalStateParticles";
+    private String finalStateParticlesColName = "FinalStateParticles";
 
     private Double _beamEnergy = 1.056;
     private double _percentFeeCut = 0.8;
@@ -145,9 +145,16 @@ public class FeeSvtAlignmentDriver extends Driver {
 //        if (!isSingles) {
 //            return;
 //        }
+        if (event.hasCollection(ReconstructedParticle.class, "OtherElectrons")) {
+//            System.out.println("found OtherElectrons collection, switching to that");
+            finalStateParticlesColName = "OtherElectrons";
+        }
+
+        // changes for pass2 recon
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
         }
+
         // only keep events with one and only one cluster
 //        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
 //        if (ecalClusters.size() != 1) {
