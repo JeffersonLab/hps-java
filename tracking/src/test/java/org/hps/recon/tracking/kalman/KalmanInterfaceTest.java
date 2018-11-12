@@ -7,22 +7,23 @@ import junit.framework.TestCase;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
 import org.hps.recon.tracking.RawTrackerHitFitterDriver;
-import org.hps.recon.tracking.TrackingReconstructionPlots;
+//import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
-import org.lcsim.util.loop.LCIODriver;
+//import org.lcsim.util.loop.LCIODriver;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil.TestOutputFile;
+
+//import org.lcsim.util.test.TestUtil.TestOutputFile;
 
 public class KalmanInterfaceTest extends TestCase {
-    static final String testInput = "fullGBL.slcio";
-    private final int nEvents = 1;
+    static final String testInput = "ap_recon_0000-fullGBL-new.slcio";
+    private final int nEvents = -1;
     static final String testOutput = "KalmanTest_" + testInput;
-    static final String aidaOutput = "target/test-output/KalmanTestPlots.root";
+    static final String aidaOutput = "target/test-output/KalmanTestPlots.aida";
 
     public void testKalman() throws Exception {
         File lcioInputFile = new File(testInput);
-        File outputFile = new TestOutputFile(testOutput);
+        //File outputFile = new TestOutputFile(testOutput);
 
         final DatabaseConditionsManager manager = new DatabaseConditionsManager();
         manager.addConditionsListener(new SvtDetectorSetup());
@@ -54,15 +55,15 @@ public class KalmanInterfaceTest extends TestCase {
         kdhps.setOutputPlotsFilename(aidaOutput);
         loop2.add(kdhps);
 
-        TrackingReconstructionPlots trp = new TrackingReconstructionPlots();
-        trp.setOutputPlots(aidaOutput);
-        trp.setTrackCollectionName(kdhps.getOutputSeedTrackCollectionName());
-        loop2.add(trp);
+        //        TrackingReconstructionPlots trp = new TrackingReconstructionPlots();
+        //        trp.setOutputPlots(aidaOutput);
+        //        trp.setTrackCollectionName(kdhps.getOutputSeedTrackCollectionName());
+        //        loop2.add(trp);
 
         ReadoutCleanupDriver rcd = new ReadoutCleanupDriver();
         loop2.add(rcd);
 
-        loop2.add(new LCIODriver(outputFile));
+        //loop2.add(new LCIODriver(outputFile));
 
         loop2.loop(nEvents, null);
         loop2.dispose();

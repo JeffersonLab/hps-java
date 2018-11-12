@@ -28,6 +28,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
@@ -51,6 +52,8 @@ public class KalmanDriverHPS extends Driver {
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
     private String outputPlots = "KalmanTestPlots.aida";
+    private RelationalTable hitToStrips;
+    private RelationalTable hitToRotated;
 
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
@@ -84,10 +87,6 @@ public class KalmanDriverHPS extends Driver {
         trackCollectionName = input;
     }
 
-    public void setFieldMapFilename(String input) {
-        fieldMapFileName = input;
-    }
-
     private void setupPlots() {
         if (aida == null)
             aida = AIDA.defaultInstance();
@@ -103,11 +102,26 @@ public class KalmanDriverHPS extends Driver {
             aida.histogram1D(String.format("5hit Kalman Track Chi2 Layer %d", i), 100, 0, 50);
             aida.histogram1D(String.format("5hit Kalman Track Res Layer %d", i), 100, -0.05, 0.05);
             aida.histogram1D(String.format("5hit Kalman Hit Error Layer %d", i), 100, 0, 0.02);
+
+            //            aida.histogram1D(String.format("5hit Kalman Track ResX Layer %d", i), 500, -50, 50);
+            //            aida.histogram1D(String.format("5hit Kalman Track ResY Layer %d", i), 500, -50, 50);
+            //            aida.histogram1D(String.format("5hit GBL Track ResX Layer %d", i), 500, -50, 50);
+            //            aida.histogram1D(String.format("5hit GBL Track ResY Layer %d", i), 500, -50, 50);
+            aida.histogram1D(String.format("5hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
+            aida.histogram1D(String.format("5hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
+
+            //            aida.histogram1D(String.format("6hit Kalman Track ResX Layer %d", i), 500, -50, 50);
+            //            aida.histogram1D(String.format("6hit Kalman Track ResY Layer %d", i), 500, -50, 50);
+            //            aida.histogram1D(String.format("6hit GBL Track ResX Layer %d", i), 500, -50, 50);
+            //            aida.histogram1D(String.format("6hit GBL Track ResY Layer %d", i), 500, -50, 50);
+            aida.histogram1D(String.format("6hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
+            aida.histogram1D(String.format("6hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
         }
         aida.histogram1D("6hit Kalman Track Chi2", 100, 0, 200);
         aida.histogram1D("5hit Kalman Track Chi2", 100, 0, 200);
         aida.histogram1D("5hit GBL Track Chi2", 100, 0, 200);
         aida.histogram1D("6hit GBL Track Chi2", 100, 0, 200);
+
     }
 
     @Override
@@ -155,8 +169,8 @@ public class KalmanDriverHPS extends Driver {
         List<Track> outputSeedTracks = new ArrayList<Track>();
         List<Track> outputFullTracks = new ArrayList<Track>();
 
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        hitToStrips = TrackUtils.getHitToStripsTable(event);
+        hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         RelationalTable MatchedToGbl = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> trkrelations = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
@@ -299,6 +313,7 @@ public class KalmanDriverHPS extends Driver {
 
                 Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
                 outputFullTracks.add(fullKalmanTrackHPS);
+                doResiduals(fullKalmanTrack, trk);
 
                 //                double[] hprms = KalmanInterface.getLCSimParams(fullKalmanTrack.originHelix(), fullKalmanTrack.alpha);
                 //                SymmetricMatrix hCov = KalmanInterface.getLCSimCov(fullKalmanTrack.originCovariance(), fullKalmanTrack.alpha);
@@ -335,15 +350,38 @@ public class KalmanDriverHPS extends Driver {
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
 
+    private void doResiduals(KalTrack kTrack, Track gblTrack) {
+
+        List<Pair<double[], double[]>> gblMomsLocs = printExtendedTrackInfo(gblTrack);
+        List<Pair<double[], double[]>> kalMomsLocs = printExtendedTrackInfo(kTrack);
+        //List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(gblTrack, hitToStrips, hitToRotated);
+        //kTrack.sortSites(true);
+        //Collections.sort(hitsOnTrack, new SortByZ2());
+        for (int i = 0; i < gblMomsLocs.size(); i++) {
+            //double[] hitPos = hitsOnTrack.get(i).getPosition();
+            double[] kalPos = kalMomsLocs.get(i).getSecondElement();
+            double[] gblPos = gblMomsLocs.get(i).getSecondElement();
+            int layer = kTrack.SiteList.get(i).m.Layer;
+            if (verbose)
+                System.out.printf("lay %d kalPos0 %f kalPos1 %f gblPos0 %f gblPos1 %f \n", layer, kalPos[0], kalPos[1], gblPos[0], gblPos[1]);
+            aida.histogram1D(String.format("%dhit GBL-Kalman Track X Layer %d", gblTrack.getTrackerHits().size(), layer)).fill(gblPos[0] - kalPos[0]);
+            aida.histogram1D(String.format("%dhit GBL-Kalman Track Y Layer %d", gblTrack.getTrackerHits().size(), layer)).fill(gblPos[1] - kalPos[1]);
+        }
+
+    }
+
     private List<Pair<double[], double[]>> printExtendedTrackInfo(Track HPStrk) {
-        printTrackInfo(HPStrk, null);
+        if (verbose)
+            printTrackInfo(HPStrk, null);
         List<Pair<double[], double[]>> MomsLocs = new ArrayList<Pair<double[], double[]>>();
         for (HpsSiSensor sensor : sensors) {
-            System.out.format("Sensor %d, Layer %d, is axial? %b\n", sensor.getModuleNumber(), sensor.getLayerNumber(), sensor.isAxial());
+            if (verbose)
+                System.out.format("Sensor %d, Layer %d, is axial? %b\n", sensor.getModuleNumber(), sensor.getLayerNumber(), sensor.isAxial());
             //Hep3Vector trackPosition = TrackUtils.extrapolateTrackPositionToSensor(HPStrk, sensor, sensors, bField);
             TrackState tsAtSensor = TrackStateUtils.getTrackStateAtSensor(HPStrk, sensor.getMillepedeId());
             if (tsAtSensor == null) {
-                System.out.format("     Null track state at sensor for this sensor\n");
+                if (verbose)
+                    System.out.format("     Null track state at sensor for this sensor\n");
                 continue;
             }
             double[] mom = ((BaseTrackState) (tsAtSensor)).computeMomentum(bField);
@@ -352,31 +390,37 @@ public class KalmanDriverHPS extends Driver {
             if (loc == null)
                 continue;
             double[] ref = loc.v();
-            System.out.format("   Location at sensor= %10.7f %10.7f %10.7f\n", ref[0], ref[1], ref[2]);
-            System.out.format("   Momentum at sensor= %10.7f %10.7f %10.7f\n", mom[0], mom[1], mom[2]);
+            if (verbose) {
+                System.out.format("   Location at sensor= %10.7f %10.7f %10.7f\n", ref[0], ref[1], ref[2]);
+                System.out.format("   Momentum at sensor= %10.7f %10.7f %10.7f\n", mom[0], mom[1], mom[2]);
+            }
             double D0 = tsAtSensor.getD0();
             double Omega = tsAtSensor.getOmega();
             double Phi0 = tsAtSensor.getPhi();
             double Z0 = tsAtSensor.getZ0();
             double tanl = tsAtSensor.getTanLambda();
-            System.out.format("   D0=%10.7f phi0=%10.7f Omega=%10.7f Z0=%10.7f tanl=%10.7f\n", D0, Phi0, Omega, Z0, tanl);
+            if (verbose)
+                System.out.format("   D0=%10.7f phi0=%10.7f Omega=%10.7f Z0=%10.7f tanl=%10.7f\n", D0, Phi0, Omega, Z0, tanl);
             double[] pnt = tsAtSensor.getReferencePoint();
-            System.out.format("   Reference point = %10.7f, %10.7f, %10.7f\n", pnt[0], pnt[1], pnt[2]);
+            if (verbose)
+                System.out.format("   Reference point = %10.7f, %10.7f, %10.7f\n", pnt[0], pnt[1], pnt[2]);
             MomsLocs.add(new Pair(momTransformed, ref));
         }
 
         Collections.sort(MomsLocs, new SortByZ());
-        for (Pair<double[], double[]> entry : MomsLocs) {
-            System.out.printf("   TrackState: intercept %10.6f %10.6f %10.6f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
-            System.out.printf("               momentum  %10.6f %10.6f %10.6f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
+        if (verbose) {
+            for (Pair<double[], double[]> entry : MomsLocs) {
+                System.out.printf("   TrackState: intercept %10.6f %10.6f %10.6f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
+                System.out.printf("               momentum  %10.6f %10.6f %10.6f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
+            }
         }
-
         return MomsLocs;
     }
 
     private List<Pair<double[], double[]>> printExtendedTrackInfo(KalTrack trk) {
         List<Pair<double[], double[]>> MomsLocs = new ArrayList<Pair<double[], double[]>>();
-        System.out.println("KalTrack intercepts and momenta:");
+        if (verbose)
+            System.out.println("KalTrack intercepts and momenta:");
         for (MeasurementSite site : trk.interceptVects.keySet()) {
             Vec mom = trk.interceptMomVects.get(site);
             Vec loc = trk.interceptVects.get(site);
@@ -387,9 +431,11 @@ public class KalmanDriverHPS extends Driver {
             MomsLocs.add(new Pair<double[], double[]>(momTrans, locTrans));
         }
         Collections.sort(MomsLocs, new SortByZ());
-        for (Pair<double[], double[]> entry : MomsLocs) {
-            System.out.printf("   TrackState: intercept %f %f %f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
-            System.out.printf("       mom %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
+        if (verbose) {
+            for (Pair<double[], double[]> entry : MomsLocs) {
+                System.out.printf("   TrackState: intercept %f %f %f \n", entry.getSecondElement()[0], entry.getSecondElement()[1], entry.getSecondElement()[2]);
+                System.out.printf("       mom %f %f %f \n", entry.getFirstElement()[0], entry.getFirstElement()[1], entry.getFirstElement()[2]);
+            }
         }
 
         return MomsLocs;
@@ -400,6 +446,14 @@ public class KalmanDriverHPS extends Driver {
         @Override
         public int compare(Pair<double[], double[]> o1, Pair<double[], double[]> o2) {
             return (int) (o1.getSecondElement()[2] - o2.getSecondElement()[2]);
+        }
+    }
+
+    class SortByZ2 implements Comparator<TrackerHit> {
+
+        @Override
+        public int compare(TrackerHit o1, TrackerHit o2) {
+            return (int) (o1.getPosition()[2] - o2.getPosition()[2]);
         }
     }
 

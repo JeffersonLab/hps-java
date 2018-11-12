@@ -41,6 +41,18 @@ public class KalmanInterface {
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose = true;
 
+    public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
+        if (moduleMap == null)
+            return null;
+        else {
+            SiStripPlane temp = moduleMap.get(kalmanSiMod);
+            if (temp == null)
+                return null;
+            else
+                return (HpsSiSensor) (temp.getSensor());
+        }
+    }
+
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         double[] hpsPos = { kalPos.v[0], -1.0 * kalPos.v[2], kalPos.v[1] };
         double[] hpsField = hpsFm.getField(hpsPos);

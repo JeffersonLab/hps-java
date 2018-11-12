@@ -34,7 +34,6 @@
         </driver>
         <driver name="KalmanDriverHPS" type="org.hps.recon.tracking.kalman.KalmanDriverHPS">
             <outputSeedTrackCollectionName>KalmanSeedTracks</outputSeedTrackCollectionName>
-             <outputPlotsFilename>KalmanTestPlots.root</outputPlotsFilename>
         </driver>
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>

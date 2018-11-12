@@ -155,8 +155,8 @@ public class TrackUtils {
         //System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
 
         //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
-        double[] oldReferencePoint = {point.x(), point.y(), 0};
-        double[] newReferencePoint = {0, 0, 0};
+        double[] oldReferencePoint = { point.x(), point.y(), 0 };
+        double[] newReferencePoint = { 0, 0, 0 };
 
         //System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
         double[] newParameters = getParametersAtNewRefPoint(newReferencePoint, oldReferencePoint, params);
@@ -792,7 +792,7 @@ public class TrackUtils {
     }
 
     public static int[] getHitsInTopBottom(Track track) {
-        int n[] = {0, 0};
+        int n[] = { 0, 0 };
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
         for (TrackerHit hit : hitsOnTrack) {
             HelicalTrackHit hth = (HelicalTrackHit) hit;
@@ -955,7 +955,7 @@ public class TrackUtils {
     }
 
     public static int passTrackSelections(Track track, List<Track> tracklist, EventQuality.Quality trk_quality) {
-        int cuts[] = {0};
+        int cuts[] = { 0 };
         if (trk_quality.compareTo(Quality.NONE) != 0) {
             if (track.getTrackStates().get(0).getMomentum()[0] < EventQuality.instance().getCutValue(EventQuality.Cut.PZ, trk_quality))
                 cut(cuts, EventQuality.Cut.PZ);
@@ -1050,8 +1050,8 @@ public class TrackUtils {
         if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
         else {
-            double[] chisq = {track.getChi2(), 0};
-            int[] ndf = {track.getNDF(), 0};
+            double[] chisq = { track.getChi2(), 0 };
+            int[] ndf = { track.getNDF(), 0 };
             TrackState ts = track.getTrackStates().get(0);
             double par[] = ts.getParameters();
             SymmetricMatrix cov = new SymmetricMatrix(5, ts.getCovMatrix(), true);
@@ -1131,15 +1131,15 @@ public class TrackUtils {
         // first make the HelicalTrackFit Object
         double[] covArray = trkState.getCovMatrix();
         SymmetricMatrix cov = new SymmetricMatrix(5, covArray, true);
-        double[] chisq = {track.getChi2(), 0};
-        int[] ndf = {track.getNDF(), 0};
+        double[] chisq = { track.getChi2(), 0 };
+        int[] ndf = { track.getNDF(), 0 };
         Map<HelicalTrackHit, Double> smap = new HashMap<>(); // just leave these
         // empty
         Map<HelicalTrackHit, MultipleScatter> msmap = new HashMap<>();// just
         // leave
         // these
         // empty
-        double[] pars = {trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda()};
+        double[] pars = { trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda() };
         HelicalTrackFit htf = new HelicalTrackFit(pars, cov, chisq, ndf, smap, msmap);
         // now get the hits and make them helicaltrackhits
         List<TrackerHit> rth = track.getTrackerHits();
@@ -1190,23 +1190,23 @@ public class TrackUtils {
     private static Pair<EventHeader, RelationalTable> hitToRotatedCache = null;
 
     public static RelationalTable getHitToRotatedTable(EventHeader event) {
-//        if (hitToRotatedCache != null)
-//            System.out.println("getHitToRotatedTable:  Already have a hitToRotatedCache");
-//        if (hitToRotatedCache != null && hitToRotatedCache.getFirst() == event)
-//            System.out.println("getHitToRotatedTable:  getFirst()==event");
+        //        if (hitToRotatedCache != null)
+        //            System.out.println("getHitToRotatedTable:  Already have a hitToRotatedCache");
+        //        if (hitToRotatedCache != null && hitToRotatedCache.getFirst() == event)
+        //            System.out.println("getHitToRotatedTable:  getFirst()==event");
 
         if (hitToRotatedCache == null || hitToRotatedCache.getFirst() != event) {
-  //          System.out.println("getHitToRotatedTable:  making new table");
+            //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
             List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
             for (LCRelation relation : rotaterelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
- //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
+                    //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
                     hitToRotated.add(relation.getFrom(), relation.getTo());
                 }
             hitToRotatedCache = new Pair<EventHeader, RelationalTable>(event, hitToRotated);
         }
- //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
+        //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
         return hitToRotatedCache.getSecond();
     }
 
@@ -1236,7 +1236,7 @@ public class TrackUtils {
         for (TrackerHit hit : track.getTrackerHits()) {
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
         }
-        
+
         return hits;
     }
 
@@ -1246,7 +1246,7 @@ public class TrackUtils {
         return hitList;
     }
 
-    private static class LayerComparator implements Comparator<TrackerHit> {
+    public static class LayerComparator implements Comparator<TrackerHit> {
 
         @Override
         public int compare(TrackerHit o1, TrackerHit o2) {
