@@ -24,6 +24,7 @@
         <configuration>
           <excludes>
             <exclude>**/TupleDriverTest.java</exclude>
+            <exclude>**/MC/TrackExtrapTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>
