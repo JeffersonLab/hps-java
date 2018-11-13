@@ -54,6 +54,10 @@ public class KalmanInterface {
     }
 
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
+        if (FieldMap.class.isInstance(hpsFm)) {
+            return ((FieldMap) (hpsFm)).getField(kalPos);
+        }
+
         double[] hpsPos = { kalPos.v[0], -1.0 * kalPos.v[2], kalPos.v[1] };
         double[] hpsField = hpsFm.getField(hpsPos);
         return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
