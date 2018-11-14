@@ -7,6 +7,7 @@ import hep.physics.vec.VecOp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
@@ -64,6 +65,15 @@ public class TrackStateUtils {
             return null;
         if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer()))
             return getLocationAtSensor(TrackUtils.getHTF(ts), sensor, bfield);
+        return null;
+    }
+
+    public static SiStripPlane sensorToPlane(HpsSiSensor sens, List<SiStripPlane> planes) {
+        for (SiStripPlane plane : planes) {
+            HpsSiSensor sensor = (HpsSiSensor) (plane.getSensor());
+            if (sensor == sens)
+                return plane;
+        }
         return null;
     }
 
