@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.StandardCuts;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -37,6 +39,7 @@ public class GBLRefitterDriver extends Driver {
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
+    private StandardCuts cuts = null;
 
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
@@ -54,11 +57,28 @@ public class GBLRefitterDriver extends Driver {
         this.outputCollectionName = outputCollectionName;
     }
 
+    public void setMaxTrackChisq(int nhits, double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisq(nhits, input);
+    }
+
+    public void setMaxTrackChisq(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.changeChisqTrackProb(input);
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+
+        if (cuts == null) {
+            cuts = new StandardCuts();
+            //System.out.printf("in constructor 5 %f 6 %f \n", cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+        }
     }
 
     @Override
@@ -80,19 +100,23 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-//            System.out.println("GBLRefitterDriver::process  number of hits on track = "+track.getTrackerHits().size());
+            //            System.out.println("GBLRefitterDriver::process  number of hits on track = "+track.getTrackerHits().size());
             if (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
             if (newTrack == null)
                 continue;
-            refittedTracks.add(newTrack.getFirst());
-            trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
-            inputToRefitted.put(track, newTrack.getFirst());
+            Track gblTrk = newTrack.getFirst();
+            //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
+                continue;
+            refittedTracks.add(gblTrk);
+            trackRelations.add(new BaseLCRelation(track, gblTrk));
+            inputToRefitted.put(track, gblTrk);
 
             kinkDataCollection.add(newTrack.getSecond());
-            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), newTrack.getFirst()));
+            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
 
         // Put the tracks back into the event and exit
