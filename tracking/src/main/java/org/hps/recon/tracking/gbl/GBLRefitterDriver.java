@@ -63,6 +63,12 @@ public class GBLRefitterDriver extends Driver {
         cuts.setMaxTrackChisq(nhits, input);
     }
 
+    public void setMaxTrackChisq(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.changeChisqTrackProb(input);
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());

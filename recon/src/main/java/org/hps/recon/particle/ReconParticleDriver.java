@@ -177,6 +177,7 @@ public abstract class ReconParticleDriver extends Driver {
     /* TODO get the beam position from the conditions db */
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
+    protected double beamEnergy = 1.056;
 
     // flipSign is a kludge...
     // HelicalTrackFitter doesn't deal with B-fields in -ive Z correctly
@@ -371,8 +372,9 @@ public abstract class ReconParticleDriver extends Driver {
     protected void detectorChanged(Detector detector) {
         BeamEnergyCollection beamEnergyCollection = 
                 this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
         if (clusterParamFileName == null) {
-            if (beamEnergyCollection.get(0).getBeamEnergy() > 2)
+            if (beamEnergy > 2)
                 setClusterParamFileName("ClusterParameterization2016.dat");
             else
                 setClusterParamFileName("ClusterParameterization2015.dat");
@@ -389,17 +391,37 @@ public abstract class ReconParticleDriver extends Driver {
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
         matcher.setBFieldMap(detector.getFieldMap());
+        matcher.setBeamEnergy(beamEnergy); 
         
         if (cuts == null)
-            cuts = new StandardCuts(beamEnergyCollection.get(0).getBeamEnergy());
+            cuts = new StandardCuts(beamEnergy);
         else
-            cuts.changeBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy());
+            cuts.changeBeamEnergy(beamEnergy);
     }
     
     public void setMaxMatchChisq(double input) {
         if (cuts == null)
-            cuts = new StandardCuts();
+            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchChisq(input);
+    }
+    
+    
+    public void setMaxElectronP(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxElectronP(input);
+    }
+    
+    public void setMaxMatchDt(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxMatchDt(input);
+    }
+    
+    public void setTrackClusterTimeOffset(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setTrackClusterTimeOffset(input);
     }
     
     protected abstract List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles);

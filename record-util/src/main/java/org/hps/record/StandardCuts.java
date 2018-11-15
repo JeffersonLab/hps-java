@@ -88,14 +88,14 @@ public class StandardCuts {
         minVertexChisqProb = input;
     }
     public void setMinMollerChisqProb(double input) {
-        minVertexChisqProb = input;
+        minMollerChisqProb = input;
     }
     
     public double getMinVertexChisqProb() {
         return minVertexChisqProb;
     }
     public double getMinMollerChisqProb() {
-        return minVertexChisqProb;
+        return minMollerChisqProb;
     }
     
     public void setMaxMatchDt(double input) {

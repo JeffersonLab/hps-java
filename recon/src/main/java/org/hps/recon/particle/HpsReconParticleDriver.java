@@ -25,6 +25,7 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
+import org.hps.record.StandardCuts;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
@@ -138,8 +139,45 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     
     private boolean _patchVertexTrackParameters = false;
     private boolean _storeCovTrkMomList = false;
-    
 
+    
+    public void setMaxMollerP(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxMollerP(input);
+    }
+    
+    public void setMinMollerP(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMinMollerP(input);
+    }
+    
+    public void setMaxVertexClusterDt(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxVertexClusterDt(input);
+    }
+    
+    public void setMaxVertexP(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxVertexP(input);
+    }
+    
+    public void setMinMollerChisqProb(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMinMollerChisqProb(input);
+    }
+
+    public void setMinVertexChisqProb(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMinVertexChisqProb(input);
+    }
+    
+    
     /**
      * Processes the track and cluster collections in the event into
      * reconstructed particles and V0 candidate particles and vertices. These

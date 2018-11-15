@@ -117,8 +117,7 @@ abstract class AbstractCommand {
      */
     public DatabaseConditionsManager getManager() {
         if (manager == null) {
-            manager = new DatabaseConditionsManager();
-            manager.openConnection();
+            manager = DatabaseConditionsManager.getInstance();
         }
         return manager;
     }
