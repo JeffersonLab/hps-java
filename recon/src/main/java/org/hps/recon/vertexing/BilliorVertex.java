@@ -61,7 +61,7 @@ public class BilliorVertex implements Vertex {
         _vertexPosition = vtxPos;
         _invMass = invMass;
         _fittedMomentum = pFitMap;
-        _constraintType = constraintType;        
+        _constraintType = constraintType;
     }
 
     BilliorVertex(Hep3Vector vtxPos, Matrix covVtx, double chiSq, double invMass) {
