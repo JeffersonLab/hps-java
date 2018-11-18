@@ -137,6 +137,8 @@ class GeometryROOT():
             cu63=ROOT.TGeoIsotope("Cu63",29,63,62.9296)
             cu65=ROOT.TGeoIsotope("Cu65",29,65,64.9278)
             Cu = ROOT.TGeoElement("Cu","Copper",2)
+            Cu.AddIsotope(cu63,0.6917)
+            Cu.AddIsotope(cu65,0.3083)
             new_material = ROOT.TGeoMaterial(matname,Cu,8.96*g/cm3)
 
         elif material == "StainlessSteel":
@@ -680,6 +682,11 @@ class GeometryROOT():
         topvol = self._geom.GetTopVolume()
         self._geom.SetVisOption(0)
         topvol.Draw(option)
+
+    def CheckOverlaps(self,accuracy,options=""):
+        """Run the root overlap checker, and print any overlaps found """
+        self._geom.CheckOverlaps(accuracy)
+        self._geom.PrintOverlaps()
 
 
     def GetROOTVolume(self,vol):

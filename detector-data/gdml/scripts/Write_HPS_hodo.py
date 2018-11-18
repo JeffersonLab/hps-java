@@ -32,6 +32,7 @@ if __name__ == "__main__":
                 epilog="""For more information, or errors, please email: maurik@physics.unh.edu """)
     parser.add_argument('-s','--show',action='store_true',help='show the geometry using the ROOT TGeoManager mechanism.')
     parser.add_argument('-g','--gdml',action='store_true',help='Produce a GDML file for output.')
+    parser.add_argument('-r','--root',action='store_true',help='Produce a ROOT file for output.')
     parser.add_argument('-t','--txt',action='store_true',help='Produce a TEXT file for output.')
     parser.add_argument('-m','--mysql',action='store_true',help='Produce a MySQL table for output. You must also specify --host --database --user --password')
     parser.add_argument('-H','--host',help='Name of the database host computer',default="localhost")
@@ -95,7 +96,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
           pos_units=['mm', 'mm', 'mm'],
           rot=[0.0, 0.0, 0.0],
           rot_units=['deg', 'deg', 'deg'],
-          col='ffffbb',
+          col='cccccc',
           g4type="Operation: hodo_flange_outer - hodo_flange_inner",
           material='Component')
     g_en.add(geo)
@@ -219,7 +220,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
           pos_units=['mm', 'mm', 'mm'],
           rot=[0.0, 0.0, 0.0],
           rot_units=['deg', 'deg', 'deg'],
-          col='ffffbb',
+          col='cccccc',
           g4type="Operation: hodo_flange_ex3 + Flange_extrusion_4",
           material='Aluminum')
     g_en.add(geo)
@@ -262,7 +263,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
             rot_units=['deg', 'deg', 'deg'],
-            col='ff0000',
+            col='e5a575',
             g4type="G4Trap",
             dimensions=[arms_block_dz/2.,skew_angle,90.,arms_block_dy_mz /2.,arms_block_dx/2.,arms_block_dx/2.,0.,
                         arms_block_dy_pz /2.,arms_block_dx/2.,arms_block_dx/2.,0.],
@@ -279,7 +280,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
             rot_units=['deg', 'deg', 'deg'],
-            col='ff0000',
+            col='e5a575',
             g4type="G4Trap",
             dimensions=[arms_block_dz/2.,skew_angle,90.,arms_block_dy_mz /2.,arms_block_dx/2.,arms_block_dx/2.,0.,
                         arms_block_dy_pz /2.,arms_block_dx/2.,arms_block_dx/2.,0.],
@@ -296,7 +297,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
             rot_units=['deg', 'deg', 'deg'],
-            col='ff0000',
+            col='e5a575',
             g4type="G4Trap",
             dimensions=[arms_block_dz/2.,-skew_angle,90.,arms_block_dy_mz /2.,arms_block_dx/2.,arms_block_dx/2.,0.,
                         arms_block_dy_pz /2.,arms_block_dx/2.,arms_block_dx/2.,0.],
@@ -313,7 +314,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
             rot_units=['deg', 'deg', 'deg'],
-            col='ff0000',
+            col='e5a575',
             g4type="G4Trap",
             dimensions=[arms_block_dz/2.,-skew_angle,90.,arms_block_dy_mz /2.,arms_block_dx/2.,arms_block_dx/2.,0.,
                         arms_block_dy_pz /2.,arms_block_dx/2.,arms_block_dx/2.,0.],
@@ -330,7 +331,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
             pos_units=['mm', 'mm', 'mm'],
             rot=[0.0, 0.0, 0.0],
             rot_units=['deg', 'deg', 'deg'],
-            col='ff0000',
+            col='d6a678',
             g4type="Box",
             dimensions=[95./2.,8./2.,arms_block_dz/2.],
             dims_units=['mm', 'mm', 'mm'],
@@ -346,7 +347,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="Box",
         dimensions=[95./2.,8./2.,arms_block_dz/2.],
         dims_units=['mm', 'mm', 'mm'],
@@ -385,7 +386,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="G4Trap",
         dimensions=[support_arm_dz/2.,-support_arm_skew_angle,90.,support_arm_dy_mz /2.,support_arm_dx/2.,support_arm_dx/2.,0.,
                     support_arm_dy_pz /2.,support_arm_dx/2.,support_arm_dx/2.,0.],
@@ -413,7 +414,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="Box",
         dimensions=[end_block_dx/2,(end_block_dy+10.)/2,(end_block_dz+0.01)/2],
         dims_units=['mm', 'mm', 'mm'],
@@ -442,7 +443,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="Box",
         dimensions=[end_block_dx/2,end_block_dy/2,end_block_dz/2],
         dims_units=['mm', 'mm', 'mm'],
@@ -489,7 +490,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
         material='G10_FR4')
     g_en.add(geo)
@@ -502,7 +503,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
     #     pos_units=['mm', 'mm', 'mm'],
     #     rot=[0.0, 0.0, 0.0],
     #     rot_units=['deg', 'deg', 'deg'],
-    #     col='ff0000',
+    #     col='d6a678',
     #     g4type="Operation: support_arm_bottom_left_plus_block - end_block_bottom_left_subs",
     #     material='G10_FR4')
     # g_en.add(geo)
@@ -515,7 +516,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
         material='G10_FR4')
     g_en.add(geo)
@@ -528,7 +529,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 180.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d60000',
         g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
         material='G10_FR4')
     g_en.add(geo)
@@ -542,7 +543,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 180.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff0000',
+        col='d6a678',
         g4type="Operation: support_arm_bottom_left_with_notch + end_block_bottom_left",
         material='G10_FR4')
     g_en.add(geo)
@@ -565,11 +566,11 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         name = "u_support_bar_bottom",
         mother=mother,
         description="U support bar for hodoscope, bottom",
-        pos=[origin[0]+extrusions_center,usupport_y,usupport_z],
+        pos=[origin[0]+extrusions_center,usupport_y,usupport_z-.01],
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff5500',
+        col='e5a555',
         g4type="Box",
         dimensions=[usupport_dx/2.,usupport_bot_dy/2.,usupport_bot_dz/2.],
         dims_units=['mm', 'mm', 'mm'],
@@ -584,7 +585,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff5500',
+        col='e5a555',
         g4type="Box",
         dimensions=[usupport_dx/2.,usupport_top_dy/2.,usupport_top_dz/2.],
         dims_units=['mm', 'mm', 'mm'],
@@ -599,7 +600,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff5500',
+        col='e5a555',
         g4type="Box",
         dimensions=[usupport_dx/2.,usupport_top_dy/2.,usupport_top2_dz/2.],
         dims_units=['mm', 'mm', 'mm'],
@@ -612,13 +613,43 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
         name = "u_support_bar_top",
         mother=mother,
         description="U support bar for hodoscope, bottom",
-        pos=[origin[0]+extrusions_center,-usupport_y,usupport_z],
+        pos=[origin[0]+extrusions_center,-usupport_y,usupport_z-0.01],
         pos_units=['mm', 'mm', 'mm'],
         rot=[0.0, 0.0, 0.0],
         rot_units=['deg', 'deg', 'deg'],
-        col='ff5500',
+        col='00FF00',
         g4type="Box",
         dimensions=[usupport_dx/2.,usupport_bot_dy/2.,usupport_bot_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "u_support_bar_upper3",
+        mother=mother,
+        description="U support bar for hodoscope plate1, top",
+        pos=[origin[0]+extrusions_center,-(usupport_y+usupport_bot_dy/2+usupport_top_dy/2),usupport_z-usupport_bot_dz/2+usupport_top_dz/2],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='e5a555',
+        g4type="Box",
+        dimensions=[usupport_dx/2.,usupport_top_dy/2.,usupport_top_dz/2.],
+        dims_units=['mm', 'mm', 'mm'],
+        material='G10_FR4')
+    g_en.add(geo)
+
+    geo = Geometry(
+        name = "u_support_bar_upper4",
+        mother=mother,
+        description="U support bar for hodoscope plate2, top",
+        pos=[origin[0]+extrusions_center,-(usupport_y+usupport_bot_dy/2+usupport_top_dy/2),usupport_z+usupport_bot_dz/2-usupport_top2_dz/2],
+        pos_units=['mm', 'mm', 'mm'],
+        rot=[0.0, 0.0, 0.0],
+        rot_units=['deg', 'deg', 'deg'],
+        col='e5a555',
+        g4type="Box",
+        dimensions=[usupport_dx/2.,usupport_top_dy/2.,usupport_top2_dz/2.],
         dims_units=['mm', 'mm', 'mm'],
         material='G10_FR4')
     g_en.add(geo)
@@ -627,7 +658,7 @@ def calculate_hodo_support_geometry(g_en,origin=[0,0,0],mother="root",style=1,zl
 
 
 
-def post_process_gdml_file(file):
+def post_process_gdml_file(file,mother):
     """The LCSIM LCDD schema cannot handle the full GDML written by ROOT.
     This routine processes the file so that it can be included into an LCDD geometry. """
     import os
@@ -638,9 +669,12 @@ def post_process_gdml_file(file):
     for line in inf:
         if re.search('copynumber=',line):
             wr_line=re.sub('copynumber=".*"','',line)
-        elif re.search('<solidref ref="world_volume"/>',line) or  re.search('.*<box name="world_volume"',line):
+        elif re.search('<solidref ref="'+mother+'"/>',line) or  re.search('.*<box name="'+mother+'"',line):
             # world_volume is the name of both the solidref and the volume, LCDD doesn't like that.
-            wr_line=re.sub('world_volume','world_volume_solid',line)
+            wr_line=re.sub(mother,mother+'_solid',line)
+        elif re.search('<box *name="'+mother+'.*"/>',line) or  re.search('.*<box name="'+mother+'"',line):
+            wr_line= '' # Remove    <box name="tracking_volume" x="2000" y="2000" z="2000" lunit="cm"/>
+
         else:
             wr_line=line
 
@@ -660,12 +694,14 @@ if __name__ == "__main__":
     geo_en = GeometryEngine(Detector)
 
     try:
-        z_location
+        from Write_HPS_ecal import Box_Start_z
+        print("Box_Start_z = ",Box_Start_z)
     except NameError:
+        print("Warning: z_location is set to zero.")
         z_location = 0
-    origin=[21.17,0,z_location]
+    origin=[21.17,0,Box_Start_z]
 
-    calculate_hodo_support_geometry(geo_en,origin=origin,mother="world_volume")
+    calculate_hodo_support_geometry(geo_en,origin=origin,mother="tracking_volume")
     print("geo_en     length = ",len(geo_en._Geometry))
 #    print "geo_en_vac length = ",len(geo_en_vac._Geometry)
     #
@@ -680,15 +716,18 @@ if __name__ == "__main__":
     if args.txt:
         geo_en.TXT_Write(Variation)
 
-    if args.gdml or args.show:
+    if args.gdml or args.show or args.root:
         from GeometryROOT import GeometryROOT
-        rr = GeometryROOT("world_volume")
+        rr = GeometryROOT("tracking_volume")
         rr.Create_root_volume()
         rr.Build_volumes(geo_en)
         if args.gdml:
             rr._geom.Export(Detector+".gdml")
-            post_process_gdml_file(Detector+".gdml")
+            post_process_gdml_file(Detector+".gdml",mother="tracking_volume")
         if args.show:
+            rr.CheckOverlaps(0.00001)
             topvol = rr.Draw("ogl")
             print("Type return to end program.")
             ans=input("...")
+        if args.root:
+            rr._geom.Export(Detector+".root")

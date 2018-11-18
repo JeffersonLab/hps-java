@@ -299,10 +299,11 @@ public class Hodoscope_v1 extends LCDDSubdetector {
                 xShift += widths[layer][pixel] + (2 * params.reflectorDepth);// + 1;
             }
         }
-        
+
+        System.out.println("Hodo y dimension: "+(params.scintillatorHeight + (2 * params.reflectorDepth) + 20.0) );
         // Create the foam shape and define its material.
         Box bufferShape = new Box("hodo_buffer", bufferWidth,
-                params.scintillatorHeight + (2 * params.reflectorDepth), bufferDepth);
+                params.scintillatorHeight + (2 * params.reflectorDepth) + 20.0, bufferDepth);
         Volume bufferVolume = new Volume("hodo_buffer_vol", bufferShape, bufferMaterial);
         setVisAttributes(lcdd, getNode(), bufferVolume);
         lcdd.add(bufferShape);
@@ -312,7 +313,7 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
             Position bufferPos = new Position("hodo_buffer" + (topBot == TOP ? 'T' : 'B') + "_pos",
                     X_SHIFT + bufferX + (bufferShape.getX() / 2),
-                    (topBot == TOP ? 1 : -1) * (positionValues[LAYER1][topBot][Y] + params.reflectorDepth
+                    (topBot == TOP ? 1 : -1) * (positionValues[LAYER1][topBot][Y] + params.reflectorDepth+10.0
                             + (params.scintillatorHeight / 2)),
                     positionValues[LAYER1][topBot][Z] + params.scintillatorDepth + (2 * params.coverDepth)
                     + (bufferDepth / 2));
@@ -327,20 +328,20 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // Takes two strings - GDML object references? Does it take references to Solid, Volume, or PhysVol objects?
         org.lcsim.geometry.compact.converter.lcdd.util.Tube testTube 
                 = new org.lcsim.geometry.compact.converter.lcdd.util.Tube("testTube", 0.1, 1, 2.5);
-        Box testBox = new Box("testBox", 5, 5, 5);
-        
-        testSolid.setFirstSolid(testBox);
-        testSolid.setSecondSolid(testTube);
-        Position origin = new Position("origin", 0, 0, 1090);
-        testSolid.setPosition(origin);
-        testSolid.setRotation(PIXEL_ROTATION);
-        Volume testVolume = new Volume("testVolume", testSolid, params.scintillatorMaterial);
-        lcdd.add(testBox);
-        lcdd.add(testTube);
-        lcdd.add(testSolid);
-        lcdd.add(testVolume);
-        lcdd.add(origin);
-        new PhysVol(testVolume, lcdd.pickMotherVolume(this), origin, PIXEL_ROTATION);
+        //Box testBox = new Box("testBox", 5, 5, 5);
+        //
+        //testSolid.setFirstSolid(testBox);
+        //testSolid.setSecondSolid(testTube);
+        //Position origin = new Position("origin", 0, 0, 1090);
+        //testSolid.setPosition(origin);
+        //testSolid.setRotation(PIXEL_ROTATION);
+        //Volume testVolume = new Volume("testVolume", testSolid, params.scintillatorMaterial);
+        //lcdd.add(testBox);
+        //lcdd.add(testTube);
+        //lcdd.add(testSolid);
+        //lcdd.add(testVolume);
+        //lcdd.add(origin);
+        //new PhysVol(testVolume, lcdd.pickMotherVolume(this), origin, PIXEL_ROTATION);
         
     }
     
