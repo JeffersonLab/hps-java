@@ -68,10 +68,9 @@ public class PhysRun2016FeeRecon extends Driver
     private IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
     private String _aidaFileName = "PhysRun2016FeeRecon";
-    private final String finalStateParticlesColName = "FinalStateParticles";
+    private final String finalStateParticlesColName = "OtherElectrons";
 
     private Double _beamEnergy = 1.056;
-    private double _percentFeeCut = 0.8;
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 
     //Set min seed energy value, default to 2015 run 
@@ -171,7 +170,7 @@ public class PhysRun2016FeeRecon extends Driver
                 if (debug) {
                     aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
                     aida.cloud1D("Track chisq prob").fill(chisqProb);
-                    aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
+                    //aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
                     aida.cloud1D("Track momentum").fill(p);
                     aida.cloud1D("Track deDx").fill(t.getdEdx());
                     aida.cloud1D("Track theta").fill(theta);

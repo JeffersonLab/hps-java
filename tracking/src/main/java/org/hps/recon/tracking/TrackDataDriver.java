@@ -50,16 +50,6 @@ public final class TrackDataDriver extends Driver {
      * objects.
      */
     private static final String TRK_RESIDUALS_REL_COL_NAME = "TrackResidualsRelations";
-
-    /** 
-     * Name of the constant denoting the position of the Ecal face in the 
-     * compact description.
-     */
-    private static final String ECAL_POSITION_CONSTANT_NAME = "ecal_dface";
-
-    /** Position of the Ecal face */
-    private double ecalPosition = 0; // mm
-
     List<HpsSiSensor> sensors = null;
 
     //    public AIDA aida = AIDA.defaultInstance();
@@ -70,10 +60,6 @@ public final class TrackDataDriver extends Driver {
 
     public void setTrackCollectionName(String input) {
         TRK_COLLECTION_NAME = input;
-    }
-
-    public void setECalPosition(double input) {
-        ecalPosition = input;
     }
 
     /**
@@ -91,9 +77,6 @@ public final class TrackDataDriver extends Driver {
         bField = TrackUtils.getBField(detector).magnitude();
         sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        // Get the position of the Ecal from the compact description
-        if (ecalPosition == 0)
-            ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
     }
 
     /**
@@ -174,13 +157,7 @@ public final class TrackDataDriver extends Driver {
                 trackResidualsY.clear();
                 stereoLayers.clear();
 
-                // Change the position of a HelicalTrackHit to be the corrected
-                // one.
-                // FIXME: Now that multiple track collections are being used, 
-                //        which track should be used to apply the correction? 
-                //        The best track from each of the collections?  
-                //        How is the "best track" defined? --OM
-                //
+                // Change the position of a HelicalTrackHit to be the corrected one.
                 // Loop over all stereo hits comprising a track
                 for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
                     HpsSiSensor sensor = null;
@@ -233,7 +210,7 @@ public final class TrackDataDriver extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
-                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcal(track, bFieldMap);
+                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap);
                     if (stateEcal != null)
                         track.getTrackStates().add(stateEcal);
                 }

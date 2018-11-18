@@ -646,11 +646,13 @@ public class GblTrajectory {
         buildLinearEquationSystem();
         lostWeight = 0.;
         int ierr = 0;
+
         //        System.out.println("numParameters="+numParameters);
         //        System.out.println("Printing Data");
         //        System.out.println(theData.toString());
         //        System.out.println("Printing Vector");
         //theVector.print();
+
         theMatrix.solveAndInvertBorderedBand(theVector, theVector);
         predict();
         Ndf = theData.size() - numParameters;
