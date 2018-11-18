@@ -26,7 +26,9 @@ import java.util.Set;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.EventQuality.Quality;
+//import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
+import org.hps.util.RK4integrator;
 import org.lcsim.constants.Constants;
 
 import static org.lcsim.constants.Constants.fieldConversion;
@@ -41,7 +43,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCIOParameters.ParameterName;
+//import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
@@ -73,7 +75,7 @@ import org.lcsim.util.swim.Trajectory;
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-// TODO: Switch to tracking/LCsim coordinates for the extrapolation output!
+
 public class TrackUtils {
 
     /**
@@ -98,6 +100,28 @@ public class TrackUtils {
         return extrapPos;
     }
 
+    //    public static Hep3Vector extrapolateTrackPositionToSensorRK(TrackState ts, SiStripPlane sens, Hep3Vector startPos, FieldMap fM) {
+    //        if (ts == null || sens == null)
+    //            return null;
+    //        HpsSiSensor sensor = (HpsSiSensor) (sens.getSensor());
+    //        if ((ts.getTanLambda() > 0 && sensor.isTopLayer()) || (ts.getTanLambda() < 0 && sensor.isBottomLayer())) {
+    //            // distance to extrapolate
+    //            double dPerp = Math.abs(VecOp.dot(VecOp.sub(startPos, sens.origin()), sens.normal()));
+    //            Hep3Vector pHat = VecOp.mult(1.0 / startPos.magnitude(), startPos);
+    //            double distance = dPerp / VecOp.dot(pHat, sens.normal());
+    //            TrackState bts = extrapolateTrackUsingFieldMapRK(ts, startPos, distance, 0, fM, new BasicHep3Vector(0, 0, 0));
+    //            return getHelixPlaneIntercept(getHTF(bts), sens.normal(), sens.origin(), fM.getField(sens.origin()).y());
+    //        }
+    //        return null;
+    //    }
+    //
+    //    public static Hep3Vector extrapolateTrackPositionToSensorRK(TrackState ts, SiStripPlane sens1, SiStripPlane sens2, FieldMap fM) {
+    //        HpsSiSensor sensor1 = (HpsSiSensor) (sens1.getSensor());
+    //        double bfieldY = fM.getField(sens1.origin()).y();
+    //        Hep3Vector startPos = TrackStateUtils.getLocationAtSensor(ts, sensor1, bfieldY);
+    //        return extrapolateTrackPositionToSensorRK(ts, sens2, startPos, fM);
+    //    }
+
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
      * helix object in order to use HelixUtils.
@@ -114,11 +138,36 @@ public class TrackUtils {
         return extrapolateHelixToXPlane(getHTF(track), x);
     }
 
+    public static double[] getParametersFromPointAndMomentum(Hep3Vector point, Hep3Vector momentum, int charge, double BField) {
+
+        double px = momentum.x();
+        double py = momentum.y();
+        double pz = momentum.z();
+
+        double R = charge * momentum.magnitude() / (Constants.fieldConversion * BField);
+        double tanL = calculateTanLambda(pz, momentum.magnitude());
+        double phi = calculatePhi(px, py);
+        //reference position is at x=pointX, y=pointY, z=0
+        //so dca=0, z0=pointZ
+        double dca = 0;
+        double z0 = point.z();
+
+        double[] params = new double[5];
+        params[HelicalTrackFit.phi0Index] = phi;
+        params[HelicalTrackFit.curvatureIndex] = 1.0 / R;
+        params[HelicalTrackFit.dcaIndex] = dca;
+        params[HelicalTrackFit.slopeIndex] = tanL;
+        params[HelicalTrackFit.z0Index] = z0;
+
+        return params;
+    }
+
     /*      
     *   mg 9/11/2017  ... get the perigee parameters from a known point on the helix and momentum at that point
     *   I though this was done elsewhere, but stuff like the HelixParamCaluculator seems to give crappy answers
     *   this is particularly useful for getting the helix parameters for MC truth
      */
+    @Deprecated
     public static double[] getParametersFromPointAndMomentum(Hep3Vector point, Hep3Vector momentum, int charge, double BField, boolean writeIt) throws FileNotFoundException {
 
         //print out the original trajectory
@@ -202,37 +251,50 @@ public class TrackUtils {
         double slope = parameters[HelicalTrackFit.slopeIndex];
         double z0 = parameters[HelicalTrackFit.z0Index];
 
+        double dx = newRefPoint[0] - __refPoint[0];
+        double dy = newRefPoint[1] - __refPoint[1];
+        double phinew = phi0;
+        double dcanew = dca;
+        double z0new = z0;
+
         // take care of phi0 range if needed (this matters for dphi below I
         // think)
         // L3 defines it in the range [-pi,pi]
-        while (phi0 > Math.PI / 2)
+        while (phi0 > Math.PI / 2) {
             phi0 -= Math.PI;
-        while (phi0 < -Math.PI / 2)
+        }
+        while (phi0 < -Math.PI / 2) {
             phi0 += Math.PI;
+        }
 
-        double dx = newRefPoint[0] - __refPoint[0];
-        double dy = newRefPoint[1] - __refPoint[1];
         double sinphi = Math.sin(phi0);
         double cosphi = Math.cos(phi0);
-        double R = 1.0 / curvature;
 
-        // calculate new phi
-        double phinew = Math.atan2(sinphi - dx / (R - dca), cosphi + dy / (R - dca));
+        if (curvature != 0) {
+            double R = 1.0 / curvature;
+            // calculate new phi
+            phinew = Math.atan2(sinphi - dx / (R - dca), cosphi + dy / (R - dca));
 
-        // difference in phi
-        // watch out for ambiguity        
-        double dphi = phinew - phi0;
-        if (Math.abs(dphi) > Math.PI)
-            throw new RuntimeException("dphi is large " + dphi + " from phi0 " + phi0 + " and phinew " + phinew + " take care of the ambiguity!!??");
+            // difference in phi
+            // watch out for ambiguity        
+            double dphi = phinew - phi0;
+            if (Math.abs(dphi) > Math.PI)
+                throw new RuntimeException("dphi is large " + dphi + " from phi0 " + phi0 + " and phinew " + phinew + " take care of the ambiguity!!??");
 
-        // calculate new dca
-        double dcanew = dca + dx * sinphi - dy * cosphi + (dx * cosphi + dy * sinphi) * Math.tan(dphi / 2.);
+            // calculate new dca
+            dcanew += dx * sinphi - dy * cosphi + (dx * cosphi + dy * sinphi) * Math.tan(dphi / 2.);
 
-        // path length from old to new point
-        double s = -1.0 * dphi / curvature;
+            // path length from old to new point
+            double s = -1.0 * dphi / curvature;
 
-        // new z0
-        double z0new = z0 + s * slope;
+            // new z0
+            z0new += s * slope;
+        } else {
+            dcanew += dx * sinphi - dy * cosphi;
+            double dz = newRefPoint[2] - __refPoint[2];
+            double s = Math.sqrt(dz * dz + dy * dy + dx * dx);
+            z0new += s * slope * -1.0 * Math.signum(dz);
+        }
 
         // new array
         double[] params = new double[5];
@@ -261,10 +323,12 @@ public class TrackUtils {
         double z0 = par[HelicalTrackFit.z0Index];
         double tanLambda = par[HelicalTrackFit.slopeIndex];
 
-        while (phi0 > Math.PI)
+        while (phi0 > Math.PI) {
             phi0 -= Math.PI * 2;
-        while (phi0 < -Math.PI / 2)
+        }
+        while (phi0 < -Math.PI / 2) {
             phi0 += Math.PI;
+        }
 
         BasicMatrix jac = new BasicMatrix(5, 5);
         //
@@ -479,35 +543,13 @@ public class TrackUtils {
         return intercept_point;
     }
 
-    /*
-     * Calculates the point on the helix in the x-y plane at the intercept with
-     * plane The normal of the plane is in the same x-y plane as the circle.
-     * 
-     * @param helix
-     * 
-     * @param vector normal to plane
-     * 
-     * @param origin of plane
-     * 
-     * @return point in the x-y plane of the intercept
-     */
-    public Hep3Vector getHelixXPlaneIntercept(HelicalTrackFit helix, Hep3Vector w, Hep3Vector origin) {
-        throw new RuntimeException("this function is not working properly; don't use it");
-
-        // FInd the intercept point x_int,y_int, between the circle and sensor,
-        // which becomes a
-        // line in the x-y plane in this case.
-        // y_int = k*x_int + m
-        // R^2 = (y_int-y_c)^2 + (x_int-x_c)^2
-        // solve for x_int
-    }
-
     /**
      * Get position of a track extrapolated to the HARP in the HPS test run 2012
      *
      * @param track
      * @return position at HARP
      */
+    @Deprecated
     public static Hep3Vector getTrackPositionAtHarp(Track track) {
         return extrapolateTrack(track, BeamlineConstants.HARP_POSITION_TESTRUN);
     }
@@ -533,6 +575,50 @@ public class TrackUtils {
         return bts;
     }
 
+    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM) {
+        return getTrackExtrapAtEcalRK(ts, fM, 0);
+    }
+
+    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize) {
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
+        double distanceZ = BeamlineConstants.ECAL_FACE - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        double charge = -1.0 * Math.signum(getR(ts));
+
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
+
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != BeamlineConstants.ECAL_FACE) {
+            Hep3Vector mom = RKresults.getSecondElement();
+            double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        bts.setReferencePoint(finalPos.v());
+        bts.setLocation(TrackState.AtCalorimeter);
+        return bts;
+    }
+
+    public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, double stepSize) {
+        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtLast(trk);
+        if (ts != null) {
+            return getTrackExtrapAtEcalRK(ts, fM, stepSize);
+        }
+        return null;
+    }
+
+    public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM) {
+        return getTrackExtrapAtEcalRK(trk, fM, 0);
+    }
+
     /**
      * Extrapolate track to given position. For backwards compatibility.
      *
@@ -541,6 +627,7 @@ public class TrackUtils {
      * @param z
      * @return extrapolated position
      */
+    @Deprecated
     public static Hep3Vector extrapolateTrack(Track track, double z) {
         return extrapolateTrack(track.getTrackStates().get(0), z);
     }
@@ -563,6 +650,7 @@ public class TrackUtils {
      * @param z
      * @return extrapolated position
      */
+    @Deprecated
     public static Hep3Vector extrapolateTrack(TrackState track, double z) {
 
         Hep3Vector trackPosition;
@@ -646,6 +734,7 @@ public class TrackUtils {
      * - position along the x-axis of the helix in lcsim coordiantes
      * @return the extrapolated position
      */
+    @Deprecated
     public static Hep3Vector extrapolateTrack(HelicalTrackFit helix, double z) {
         SeedTrack trk = new SeedTrack();
         // bfield = Math.abs((detector.getFieldMap().getField(new
@@ -674,6 +763,7 @@ public class TrackUtils {
      * iteration
      * @return position in space at the intercept of the plane
      */
+    @Deprecated
     public static Hep3Vector getHelixPlanePositionIter(HelicalTrackFit helix, Hep3Vector origin, Hep3Vector normal, double eps) {
         boolean debug = false;
         if (debug) {
@@ -710,6 +800,7 @@ public class TrackUtils {
      * 
      * @return point on helix at x-coordinate
      */
+    @Deprecated
     private static Hep3Vector getHelixPosAtX(HelicalTrackFit helix, double x) {
         // double C = (double)Math.round(helix.curvature()*1000000)/1000000;
         // double R = 1.0/C;
@@ -1186,14 +1277,23 @@ public class TrackUtils {
     private static Pair<EventHeader, RelationalTable> hitToRotatedCache = null;
 
     public static RelationalTable getHitToRotatedTable(EventHeader event) {
+        //        if (hitToRotatedCache != null)
+        //            System.out.println("getHitToRotatedTable:  Already have a hitToRotatedCache");
+        //        if (hitToRotatedCache != null && hitToRotatedCache.getFirst() == event)
+        //            System.out.println("getHitToRotatedTable:  getFirst()==event");
+
         if (hitToRotatedCache == null || hitToRotatedCache.getFirst() != event) {
+            //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
             List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
             for (LCRelation relation : rotaterelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
                     hitToRotated.add(relation.getFrom(), relation.getTo());
+                }
             hitToRotatedCache = new Pair<EventHeader, RelationalTable>(event, hitToRotated);
         }
+        //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
         return hitToRotatedCache.getSecond();
     }
 
@@ -1220,8 +1320,10 @@ public class TrackUtils {
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
-        for (TrackerHit hit : track.getTrackerHits())
+        for (TrackerHit hit : track.getTrackerHits()) {
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+        }
+
         return hits;
     }
 
@@ -1276,6 +1378,11 @@ public class TrackUtils {
     }
 
     public static int getLayer(TrackerHit strip) {
+        if (strip == null)
+            System.out.println("Strip is null?????");
+        if (strip.getRawHits() == null)
+            System.out.println("No raw hits associated with this strip????");
+
         return ((RawTrackerHit) strip.getRawHits().get(0)).getLayerNumber();
     }
 
@@ -1353,7 +1460,11 @@ public class TrackUtils {
             Set<TrackerHit> htsList = hitToStrips.allFrom(hitToRotated.from(hit));
             TrackerHit[] strips = new TrackerHit[2];
             htsList.toArray(strips);
+            if (strips[0] == null)
+                continue;
             isolations[TrackUtils.getLayer(strips[0]) - 1] = TrackUtils.getIsolation(strips[0], strips[1], hitToStrips, hitToRotated);
+            if (strips[1] == null)
+                continue;
             isolations[TrackUtils.getLayer(strips[1]) - 1] = TrackUtils.getIsolation(strips[1], strips[0], hitToStrips, hitToRotated);
         }
         return isolations;
@@ -1402,6 +1513,26 @@ public class TrackUtils {
      */
     public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap) {
         return extrapolateTrackUsingFieldMap(track, startPositionX, endPosition, stepSize, 0.005, fieldMap);
+    }
+
+    public static org.hps.util.Pair<Hep3Vector, Hep3Vector> extrapolateTrackUsingFieldMapRK(TrackState ts, Hep3Vector startPosition, double distanceZ, double stepSize, FieldMap fM) {
+
+        // Get the momentum of the track
+        HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(ts);
+        double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition.z(), 0., 0).get(0);
+        double bFieldY = fM.getField(new BasicHep3Vector(0, 0, 500)).y();
+        double p = Math.abs(helicalTrackFit.p(bFieldY));
+        Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
+        Hep3Vector p0Trans = CoordinateTransformations.transformVectorToDetector(VecOp.mult(p, helixDirection));
+
+        double distance = distanceZ / VecOp.cosTheta(p0Trans);
+        if (stepSize == 0)
+            stepSize = distance / 100.0;
+
+        double charge = -1.0 * Math.signum(getR(ts));
+        RK4integrator RKint = new RK4integrator(charge, stepSize, fM);
+
+        return RKint.integrate(startPosition, p0Trans, distance);
     }
 
     public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
@@ -1456,15 +1587,13 @@ public class TrackUtils {
             // update the extrapolated position.
             Hep3Vector currentPositionTry = trajectory.getPointAtDistance(stepSize);
 
-            if ((Math.abs(endPosition - currentPositionTry.x()) > epsilon) && (Math.signum(endPosition - currentPositionTry.x()) != sign)) {
+            if ((Math.abs(endPosition - currentPositionTry.x()) > epsilon) && (Math.signum(endPosition - currentPositionTry.x()) != sign))
                 // went too far, try again with smaller step-size
                 if (Math.abs(stepSize) > 0.001) {
                     stepSize /= 2.0;
                     continue;
-                } else {
+                } else
                     break;
-                }
-            }
             currentPosition = currentPositionTry;
 
             distance = Math.abs(endPosition - currentPosition.x());
@@ -1474,24 +1603,11 @@ public class TrackUtils {
             currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
         }
 
-        // Calculate the track parameters at the Extrapolation point
-        double doca = currentPosition.x() * currentPosition.x() + currentPosition.y() * currentPosition.y();
-        double phi = TrackUtils.calculatePhi(currentMomentum.x(), currentMomentum.y());
-        double curvature = TrackUtils.calculateCurvature(currentMomentum.magnitude(), q, bFieldY);
-        double z = currentPosition.z();
-        double tanLambda = TrackUtils.calculateTanLambda(currentMomentum.z(), currentMomentum.magnitude());
-
-        double[] trackParameters = new double[5];
-        trackParameters[ParameterName.d0.ordinal()] = Math.sqrt(doca);
-        trackParameters[ParameterName.phi0.ordinal()] = phi;
-        trackParameters[ParameterName.omega.ordinal()] = curvature;
-        trackParameters[ParameterName.z0.ordinal()] = z;
-        trackParameters[ParameterName.tanLambda.ordinal()] = tanLambda;
+        double[] params = getParametersFromPointAndMomentum(currentPosition, currentMomentum, (int) q, bFieldY);
 
         // Create a track state at the extrapolation point
-        BaseTrackState trackState = new BaseTrackState(trackParameters, bFieldY);
+        BaseTrackState trackState = new BaseTrackState(params, bFieldY);
         trackState.setReferencePoint(currentPosition.v());
-
         return trackState;
     }
 
@@ -1615,11 +1731,11 @@ public class TrackUtils {
         }
         writer.close();
     }
-    
+
     //This method transforms vector from tracking detector frame to sensor frame
-    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor){
+    public static Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor) {
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
-        if(electrodes == null){
+        if (electrodes == null) {
             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
             System.out.println("Charge Carrier is NULL");
         }

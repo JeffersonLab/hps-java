@@ -7,7 +7,7 @@ import org.lcsim.event.ReconstructedParticle;
 
 public class FEETupleDriver extends TupleMaker {
 
-    private final String finalStateParticlesColName = "FinalStateParticles";
+    private final String finalStateParticlesColName = "OtherElectrons";
     private final double tupleTrkPCut = 0.7;
 
     @Override

@@ -3,12 +3,17 @@ package org.hps.test.it;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
+
 import java.io.File;
 import java.io.IOException;
+
 import static java.lang.Math.abs;
+
 import java.net.URL;
+
 import junit.framework.TestCase;
 import static junit.framework.TestCase.assertEquals;
+
 import org.hps.evio.EvioToLcio;
 import org.hps.test.util.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
@@ -24,7 +29,9 @@ public class EngRun2015FeeReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_feeskim_10k.evio";
-    private final int nEvents = -1;
+    private final int nEvents = 5000;
+    static final String fieldmapName = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
+    static final String steeringFileName = "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim";
     private String aidaOutputFile = "target/test-output/EngRun2015FeeReconTest/EngRun2015FeeReconTest";
 
     public void testIt() throws Exception {
@@ -32,8 +39,8 @@ public class EngRun2015FeeReconTest extends TestCase {
         FileCache cache = new FileCache();
         File evioInputFile = cache.getCachedFile(testURL);
         File outputFile = new TestOutputFile(EngRun2015FeeReconTest.class, "EngRun2015FeeReconTest");
-        String args[] = {"-r", "-x", "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim", "-d",
-            "HPS-EngRun2015-Nominal-v6-0-fieldmap", "-D", "outputFile=" + outputFile.getPath(), "-n", "5000",
+        String args[] = {"-r", "-x", steeringFileName, "-d",
+            fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "1000"};
         System.out.println("Running EngRun2015FeeReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());

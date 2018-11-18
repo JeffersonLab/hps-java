@@ -172,6 +172,8 @@ public class MakeGblTracks {
      * @return The refitted track.
      */
     public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
+//        System.out.println("refitTrack::number of striphits = "+stripHits.size());
+//        System.out.println("refitTrack::number of helicalhits = "+hth.size());
         List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
         List<TrackerHit> sortedStripHits = TrackUtils.sortHits(stripHits);
         FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
