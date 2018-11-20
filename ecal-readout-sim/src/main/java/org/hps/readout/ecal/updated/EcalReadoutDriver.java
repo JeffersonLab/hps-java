@@ -428,10 +428,26 @@ public class EcalReadoutDriver extends ReadoutDriver {
             inputWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
         }
         
+        System.out.println("Writing readout debug for event " + event.getEventNumber() + " and collection \"" + truthHitCollectionName + "\".");
+        System.out.println("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
+                + (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(truthHitCollectionName)) + " (Local)");
+        System.out.println("Input");
+        for(CalorimeterHit hit : hits) {
+            System.out.println(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+        }
+        System.out.println();
+        System.out.println();
+        
         // Add the truth hits to the truth hit buffer. The buffer is
         // only incremented when the ADC buffer is incremented, which
         // is handled below.
         for(SimCalorimeterHit hit : hits) {
+            // Make sure that the appropriate cells are instantiated.
+            if(!truthBufferMap.containsKey(hit.getCellID())) {
+                instantiateCell(hit.getCellID());
+            }
+            
+            // Store the truth data.
             ObjectRingBuffer<SimCalorimeterHit> hitBuffer = truthBufferMap.get(hit.getCellID());
             hitBuffer.addToCell(0, hit);
         }
@@ -448,7 +464,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
             
             // If noise should be added, calculate a random value for
             // the noise and add it to the truth energy deposition.
-            if(addNoise) {
+            // TODO" No data exists to perform this for the hodoscope. Skip it.
+            if(addNoise && truthHitCollectionName.compareTo("EcalHits") == 0) {
                 // Get the channel constants for the current channel.
                 EcalChannelConstants channelData = findChannel(hit.getCellID());
                 
@@ -1087,26 +1104,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Adds the argument particle and all of its direct parents to
-     * the particle set.
-     * @param particle - The base particle.
-     * @param particleSet - The set that is to contain the full tree
-     * of particles.
-     */
-    private static final void addParticleParents(MCParticle particle, Set<MCParticle> particleSet) {
-        // Add the particle itself to the set.
-        particleSet.add(particle);
-        
-        // If the particle has parents, run the same method for each
-        // parent.
-        if(!particle.getParents().isEmpty()) {
-            for(MCParticle parent : particle.getParents()) {
-                addParticleParents(parent, particleSet);
-            }
-        }
-    }
-    
-    /**
      * Clones an object of type {@link org.lcsim.event.CalorimeterHit
      * CalorimeterHit} and returns a copy that is shifted in time by
      * the specified amount.
@@ -1537,11 +1534,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
         truthBufferMap.clear();
         voltageBufferMap.clear();
         
+        /*
         // Get the set of all possible channel IDs.
         Set<Long> cells = calorimeterGeometry.getNeighborMap().keySet();
         
         // Insert a new buffer for each channel ID.
-        timeTestBuffer = new IntegerRingBuffer(PIPELINE_LENGTH);
         for(Long cellID : cells) {
             EcalChannelConstants channelData = findChannel(cellID);
             voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
@@ -1550,8 +1547,32 @@ public class EcalReadoutDriver extends ReadoutDriver {
             
             truthBufferMap.get(cellID).stepForward();
         }
+        */
         
+        timeTestBuffer = new IntegerRingBuffer(PIPELINE_LENGTH);
         timeTestBuffer.stepForward();
+    }
+    
+    public void instantiateCell(long cellID) {
+        // The truth buffer and the voltage buffer behave identically
+        // regardless whether the input is calorimeter or hodoscope
+        // truth data.
+        voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
+        truthBufferMap.put(cellID, new ObjectRingBuffer<SimCalorimeterHit>(PIPELINE_LENGTH));
+        
+        // The pedestals will differ depending on the input.
+        if(truthHitCollectionName.compareTo("EcalHits") == 0) {
+            EcalChannelConstants channelData = findChannel(cellID);
+            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(channelData.getCalibration().getPedestal())));
+        } else if(truthHitCollectionName.compareTo("HodoscopeHits") == 0) {
+            // TODO: Hodoscope pedestals are not implemented. Default to zero.
+            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, 0));
+        } else {
+            throw new IllegalArgumentException("Unrecognized truth input collection \"" + truthHitCollectionName + "\".");
+        }
+        
+        // Step the trith buffer forward one step.
+        truthBufferMap.get(cellID).stepForward();
     }
     
     /**
