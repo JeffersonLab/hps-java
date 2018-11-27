@@ -1,5 +1,6 @@
 package org.hps.analysis.tuple;
 
+import hep.physics.matrix.Matrix;
 import org.hps.analysis.vertex.*;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
@@ -178,6 +179,12 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
             "pPosXErrRefitUnc/D", "pPosYErrRefitUnc/D", "pPosZErrRefitUnc/D"};
         tupleVariables.addAll(Arrays.asList(refitUncVars));
 
+        String[] fitParsUncVars = new String[]{"thetaFitEleRefitUnc/D", "phivFitEleRefitUnc/D", "rhoFitEleRefitUnc/D",
+            "thetaFitErrEleRefitUnc/D", "phivFitErrEleRefitUnc/D", "rhoFitErrEleRefitUnc/D",
+            "thetaFitPosRefitUnc/D", "phivFitPosRefitUnc/D", "rhoFitPosRefitUnc/D",
+            "thetaFitErrPosRefitUnc/D", "phivFitErrPosRefitUnc/D", "rhoFitErrPosRefitUnc/D"};
+        tupleVariables.addAll(Arrays.asList(fitParsUncVars));
+
         String[] refitUncFromV0Vars = new String[]{"mRefitUncFromV0/D", "vtxXRefitUncFromV0/D", "vtxYRefitUncFromV0/D", "vtxZRefitUncFromV0/D",
             "pEleXRefitUncFromV0/D", "pEleYRefitUncFromV0/D", "pEleZRefitUncFromV0/D",
             "pPosXRefitUncFromV0/D", "pPosYRefitUncFromV0/D", "pPosZRefitUncFromV0/D", "chisqRefitUncFromV0/D",
@@ -218,7 +225,8 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
             "posMCOmega/D", "posMCD0/D", "posMCPhi0/D", "posMCSlope/D", "posMCZ0/D",
             "eleMCNewCalcOmega/D", "eleMCNewCalcD0/D", "eleMCNewCalcPhi0/D", "eleMCNewCalcSlope/D", "eleMCNewCalcZ0/D",
             "posMCNewCalcOmega/D", "posMCNewCalcD0/D", "posMCNewCalcPhi0/D", "posMCNewCalcSlope/D", "posMCNewCalcZ0/D",
-            "eleTrkChisq/D", "posTrkChisq/D"
+            "eleTrkChisq/D", "posTrkChisq/D", "elePxFromTrack/D","elePyFromTrack/D","elePzFromTrack/D",
+            "posPxFromTrack/D","posPyFromTrack/D","posPzFromTrack/D"
         };
 
         String[] v0UncVars = new String[]{"v0MomXUnc/D", "v0MomYUnc/D", "v0MomZUnc/D",
@@ -514,6 +522,12 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
                 + "; z0 = " + parCalcP.getZ0()
                 + "; slope = " + parCalcP.getSlopeSZPlane()
         );
+        double elePzFromTrack = electron.getTracks().get(0).getTrackStates().get(0).getMomentum()[0];
+        double elePxFromTrack = electron.getTracks().get(0).getTrackStates().get(0).getMomentum()[1];
+        double elePyFromTrack = electron.getTracks().get(0).getTrackStates().get(0).getMomentum()[2];
+        double posPzFromTrack = positron.getTracks().get(0).getTrackStates().get(0).getMomentum()[0];
+        double posPxFromTrack = positron.getTracks().get(0).getTrackStates().get(0).getMomentum()[1];
+        double posPyFromTrack = positron.getTracks().get(0).getTrackStates().get(0).getMomentum()[2];
         tupleMap.put("eleTrkChisq/D", electronBTrack.chisqtot());
         tupleMap.put("eleOmegaErr/D", Math.sqrt(emat.e(OMEGA, OMEGA)));//omega
         tupleMap.put("eleD0Err/D", Math.sqrt(emat.e(D0, D0)));//doca
@@ -537,6 +551,13 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
         tupleMap.put("posPhi0/D", positron.getTracks().get(0).getTrackStates().get(0).getPhi());
         tupleMap.put("posSlope/D", positron.getTracks().get(0).getTrackStates().get(0).getTanLambda());
         tupleMap.put("posZ0/D", positron.getTracks().get(0).getTrackStates().get(0).getZ0());
+
+        tupleMap.put("elePxFromTrack/D", elePxFromTrack);
+        tupleMap.put("elePyFromTrack/D", elePyFromTrack);
+        tupleMap.put("elePzFromTrack/D", elePzFromTrack);
+        tupleMap.put("posPxFromTrack/D", posPxFromTrack);
+        tupleMap.put("posPyFromTrack/D", posPyFromTrack);
+        tupleMap.put("posPzFromTrack/D", posPzFromTrack);
 
         tupleMap.put("eleMCSlope/D", parCalcM.getSlopeSZPlane());//emct.slope());
         tupleMap.put("eleMCD0/D", parCalcM.getDCA());//emct.dca());
@@ -650,6 +671,10 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
         Hep3Vector vtxPosRefitUnc = vtxFitShift.getPosition();
         Hep3Vector pEleRefitUnc = vtxFitShift.getFittedMomentum(0);
         Hep3Vector pPosRefitUnc = vtxFitShift.getFittedMomentum(1);
+        double[] eleTrkParsRefitUnc = vtxFitShift.getFittedTrackParameters(0);
+        Matrix eleTrkCovRefitUnc = vtxFitShift.getFittedTrackCovariance(0);
+        double[] posTrkParsRefitUnc = vtxFitShift.getFittedTrackParameters(1);
+        Matrix posTrkCovRefitUnc = vtxFitShift.getFittedTrackCovariance(1);
         double mUncRefitUnc = vtxFitShift.getInvMass();
         double chisqRefitUnc = vtxFitShift.getChi2();
         if (debug)
@@ -692,6 +717,20 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
         tupleMap.put("pPosXErrRefitUnc/D", vtxFitShift.getFittedMomentumError(1).x());
         tupleMap.put("pPosYErrRefitUnc/D", vtxFitShift.getFittedMomentumError(1).y());
         tupleMap.put("pPosZErrRefitUnc/D", vtxFitShift.getFittedMomentumError(1).z());
+
+        tupleMap.put("thetaFitEleRefitUnc/D", eleTrkParsRefitUnc[0]);
+        tupleMap.put("phivFitEleRefitUnc/D", eleTrkParsRefitUnc[1]);
+        tupleMap.put("rhoFitEleRefitUnc/D", eleTrkParsRefitUnc[2]);
+        tupleMap.put("thetaFitErrEleRefitUnc/D", eleTrkCovRefitUnc.e(0, 0));
+        tupleMap.put("phivFitErrEleRefitUnc/D", eleTrkCovRefitUnc.e(1, 1));
+        tupleMap.put("rhoFitErrEleRefitUnc/D", eleTrkCovRefitUnc.e(2, 2));
+
+        tupleMap.put("thetaFitPosRefitUnc/D", posTrkParsRefitUnc[0]);
+        tupleMap.put("phivFitPosRefitUnc/D", posTrkParsRefitUnc[1]);
+        tupleMap.put("rhoFitPosRefitUnc/D", posTrkParsRefitUnc[2]);
+        tupleMap.put("thetaFitErrPosRefitUnc/D", posTrkCovRefitUnc.e(0, 0));
+        tupleMap.put("phivFitErrPosRefitUnc/D", posTrkCovRefitUnc.e(1, 1));
+        tupleMap.put("rhoFitErrPosRefitUnc/D", posTrkCovRefitUnc.e(2, 2));
 
         if (unconstrainedV0List.size() == 1) {
             if (mUncRefitUnc != unconstrainedV0List.get(0).getMass())

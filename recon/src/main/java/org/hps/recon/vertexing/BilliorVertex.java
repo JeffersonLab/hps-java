@@ -50,7 +50,9 @@ public class BilliorVertex implements Vertex {
 
     private double[] _v0TargetProjectionXY;
     private double[] _v0TargetProjectionXYErr;
-
+    
+    private List<double[]> _fitTrkParsList=null;//fitted track parameters (theta,phiv,rho)   
+    private List<Matrix> _fitTrkCovList=null;  //list of trk covariances (theta,phiv,rho)
     /**
      * Dflt Ctor
      */
@@ -193,6 +195,14 @@ public class BilliorVertex implements Vertex {
     public void setV0TargetXY(double[] xy, double[] xyerr) {
         _v0TargetProjectionXY = xy;
         _v0TargetProjectionXYErr = xyerr;
+    }
+    
+    public void setFittedTrackParameters(List<double[]> pars){
+        _fitTrkParsList=pars;
+    }
+    
+    public void setFittedTrackCovariance(List<Matrix> covs){
+        _fitTrkCovList=covs;
     }
 
     @Override
@@ -390,6 +400,13 @@ public class BilliorVertex implements Vertex {
 
     public double[] getV0TargetXYError() {
         return _v0TargetProjectionXYErr;
+    }
+    
+    public double[] getFittedTrackParameters(int index){
+        return _fitTrkParsList.get(index);
+    }
+    public Matrix getFittedTrackCovariance(int index){
+        return _fitTrkCovList.get(index);
     }
 
 }
