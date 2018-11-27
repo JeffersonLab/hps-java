@@ -48,7 +48,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class FeeSvtAlignmentDriver extends Driver {
 
-    boolean debug = false;
+    boolean debug = true;
     private AIDA aida = AIDA.defaultInstance();
 
     private String finalStateParticlesColName = "FinalStateParticles";
