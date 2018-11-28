@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2016-Pass2" />
-    <generator name="lcsim" version="1.0" file="/data/HPS/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2/compact.xml" checksum="1200726097" />
+    <generator name="lcsim" version="1.0" file="/afs/slac.stanford.edu/u/ey/ngraf/git/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2/compact.xml" checksum="526158031" />
     <author name="NONE" />
     <comment>HPS detector for 2016 Physics Run with 2.3GeV field Uses SVT mechanical survey, SVT opening angle corrections plus millepede internal alignment. Uses new corrected fieldmap. Described in 2018 Collaboration Meeting at SLAC.</comment>
   </header>
@@ -8326,7 +8326,7 @@
     </setup>
   </gdml>
   <fields>
-    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/209acm2_5kg_corrected_unfolded_scaled_1.04545.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
+    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/209acm2_5kg_corrected_unfolded_scaled_1.04545_v4.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
   </fields>
 </lcdd>
 

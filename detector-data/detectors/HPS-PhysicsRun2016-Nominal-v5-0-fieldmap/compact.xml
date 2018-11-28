@@ -738,12 +738,12 @@
             
             <!-- top support tilt angles -->
  
-           <millepede_constant name="13100" value="0.00" /> <!-- + means opening-->
+           <millepede_constant name="13100" value="-0.00011" /> <!-- + means opening-->
             <millepede_constant name="13200" value="0.0" />
             <millepede_constant name="13300" value="0.0" />
             
             <!-- bottom support tilt angles -->
-           <millepede_constant name="23100" value="-0.000" />  <!-- - means opening -->
+           <millepede_constant name="23100" value="-0.00026" />  <!-- - means opening -->
             <millepede_constant name="23200" value="0.0" />
             <millepede_constant name="23300" value="0.0" />
             
