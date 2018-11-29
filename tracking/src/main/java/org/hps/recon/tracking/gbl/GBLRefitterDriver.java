@@ -63,6 +63,18 @@ public class GBLRefitterDriver extends Driver {
         cuts.setMaxTrackChisq(nhits, input);
     }
 
+    public void setMaxTrackChisq5hits(double input){
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisq(5, input);
+    }
+
+    public void setMaxTrackChisq6hits(double input){
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisq(6, input);
+    }
+
     public void setMaxTrackChisq(double input) {
         if (cuts == null)
             cuts = new StandardCuts();

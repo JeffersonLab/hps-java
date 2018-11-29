@@ -139,15 +139,19 @@
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
             <beamPositionX> -0.246 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.138 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -3.9 </beamPositionZ>
+	    <maxElectronP> 2.2 </maxElectronP>
         </driver>  
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+	  <maxTrackChisq5hits> 0.00000001 </maxTrackChisq5hits>
+	  <maxTrackChisq6hits> 0.00000001 </maxTrackChisq6hits>
+	</driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
