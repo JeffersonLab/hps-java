@@ -146,11 +146,14 @@
             <beamPositionY> -0.138 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -3.9 </beamPositionZ>
-	    <maxElectronP> 2.2 </maxElectronP>
+	    <maxElectronP> 2.6 </maxElectronP>
+	    <maxVertexP> 2.8 </maxVertexP>
+	    <minVertexChisqProb> 3.e-12 </minVertexChisqProb>
+	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-	  <maxTrackChisq5hits> 0.00000001 </maxTrackChisq5hits>
-	  <maxTrackChisq6hits> 0.00000001 </maxTrackChisq6hits>
+	  <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+	  <maxTrackChisq6hits> 72. </maxTrackChisq6hits>
 	</driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
