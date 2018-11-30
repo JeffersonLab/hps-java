@@ -21,7 +21,7 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  *
  * @author mdiamond <mdiamond@slac.stanford.edu>
  */
-public class ReconTestSkeleton extends TestCase {
+public class ReconGBLoutputTest extends TestCase {
 
     static {
         System.getProperties().setProperty("hep.aida.IAnalysisFactory", "hep.aida.ref.BatchAnalysisFactory");
@@ -29,10 +29,9 @@ public class ReconTestSkeleton extends TestCase {
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName;
     protected String testURLBase = "http://www.lcsim.org/test/hps-java";
-    protected long nEvents = 1;
+    protected long nEvents = 100;
     protected URL testURL;
     protected FileCache cache;
-    protected Driver testTrackingDriver = null;
 
     public void testRecon() throws Exception {
 
@@ -48,7 +47,6 @@ public class ReconTestSkeleton extends TestCase {
         testOutputFileName = "RecoTest_" + testInputFileName;
         File outputFile = new TestOutputFile(testOutputFileName);
         outputFile.getParentFile().mkdirs();
-        boolean loop1Success = true;
 
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
@@ -61,24 +59,11 @@ public class ReconTestSkeleton extends TestCase {
         try {
             loop.loop(nEvents);
         } catch (Exception e) {
-            System.out.println("Failure of main tracking sequence with following exception");
+            System.out.println("Failure of recon and GBLoutput test sequence with following exception");
             System.out.println(e.toString());
-            loop1Success = false;
         }
         loop.dispose();
 
-        if (loop1Success && (testTrackingDriver != null)) {
-            LCSimLoop loop2 = new LCSimLoop();
-            loop2.add(testTrackingDriver);
-            loop2.setLCIORecordSource(outputFile);
-            try {
-                loop2.loop(nEvents);
-            } catch (Exception e) {
-                System.out.println("Failure of testing sequence with following exception");
-                System.out.println(e.toString());
-            }
-            loop2.dispose();
-        }
     }
 
     protected class MainTrackingDriver extends Driver {
@@ -111,18 +96,6 @@ public class ReconTestSkeleton extends TestCase {
             hthd.setMaxDt(16.0);
             add(hthd);
 
-            org.hps.recon.tracking.TrackerReconDriver trd2 = new org.hps.recon.tracking.TrackerReconDriver();
-            trd2.setStrategyResource("HPS_s123_c4_e56.xml");
-            trd2.setRmsTimeCut(8.0);
-            trd2.setTrackCollectionName("s123_c5_e56");
-            add(trd2);
-
-            org.hps.recon.tracking.TrackerReconDriver trd3 = new org.hps.recon.tracking.TrackerReconDriver();
-            trd3.setStrategyResource("HPS_s456_c3_e21.xml");
-            trd3.setRmsTimeCut(8.0);
-            trd3.setTrackCollectionName("s456_c3_e21");
-            add(trd3);
-
             org.hps.recon.tracking.TrackerReconDriver trd4 = new org.hps.recon.tracking.TrackerReconDriver();
             trd4.setStrategyResource("HPS_s345_c2_e16.xml");
             trd4.setRmsTimeCut(8.0);
@@ -134,8 +107,17 @@ public class ReconTestSkeleton extends TestCase {
             mtc.setRemoveCollections(true);
             add(mtc);
 
-            add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
+            org.hps.recon.tracking.gbl.GBLRefitterDriver GBLrd = new org.hps.recon.tracking.gbl.GBLRefitterDriver();
+            GBLrd.setStoreTrackStates(true);
+            GBLrd.setWriteMilleBinary(true);
+            GBLrd.setMilleBinaryFileName("target/test-output/milleTest1.dat");
+            add(GBLrd);
+
             add(new org.hps.recon.tracking.TrackDataDriver());
+
+            org.hps.recon.tracking.gbl.GBLOutputDriver GBLod = new org.hps.recon.tracking.gbl.GBLOutputDriver();
+            GBLod.setOutputPlotsFilename("target/test-output/GBLplots.root");
+            add(GBLod);
 
             add(new ReadoutCleanupDriver());
         }
