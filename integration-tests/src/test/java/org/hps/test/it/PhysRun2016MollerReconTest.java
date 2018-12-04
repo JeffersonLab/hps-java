@@ -3,12 +3,17 @@ package org.hps.test.it;
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
+
 import java.io.File;
 import java.io.IOException;
+
 import static java.lang.Math.abs;
+
 import java.net.URL;
+
 import junit.framework.TestCase;
 import static junit.framework.TestCase.assertEquals;
+
 import org.hps.evio.EvioToLcio;
 import org.hps.test.util.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
@@ -24,7 +29,9 @@ public class PhysRun2016MollerReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_007796_mollerskim.evio";
-    private final int nEvents = -1;
+    static final String fieldmapFileName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
+    static final String steeringFileName = "/org/hps/steering/recon/PhysicsRun2016FullRecon.lcsim";
+    private final int nEvents = 5000;
     private String aidaOutputFile = "target/test-output/PhysRun2016MollerReconTest/PhysRun2016MollerReconTest";
 
     public void testIt() throws Exception {
@@ -32,8 +39,8 @@ public class PhysRun2016MollerReconTest extends TestCase {
         FileCache cache = new FileCache();
         File evioInputFile = cache.getCachedFile(testURL);
         File outputFile = new TestOutputFile(PhysRun2016MollerReconTest.class, "PhysRun2016MollerReconTest");
-        String args[] = {"-r", "-x", "/org/hps/steering/recon/PhysicsRun2016FullRecon.lcsim", "-d",
-            "HPS-PhysicsRun2016-v5-3-fieldmap_globalAlign", "-D", "outputFile=" + outputFile.getPath(), "-n", "5000",
+        String args[] = {"-r", "-x", steeringFileName, "-d",
+            fieldmapFileName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "1000"};
         System.out.println("Running PhysRun2016MollerReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());

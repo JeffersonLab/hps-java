@@ -9,11 +9,19 @@ import hep.aida.jfree.plotter.PlotterRegion;
 import hep.aida.jfree.plotter.StandalonePlotter;
 
 public class ChartPopup {
+    
+    private IPlotter plotter = null;
+    private PlotterRegion targetRegion = null;
 
     public void update(PlotterRegion region) {
-        IPlotter plotter = new StandalonePlotter();
-        plotter.createRegion(0);
-        PlotterRegion targetRegion = (PlotterRegion) plotter.region(0);
+        if (plotter == null) {
+            plotter = new StandalonePlotter();
+            plotter.createRegion(0);
+            targetRegion = (PlotterRegion) plotter.region(0);
+        } else {
+            plotter.hide();
+            targetRegion.clear();
+        }
         targetRegion.setStyle(region.style());
         for (Object object : region.getPlottedObjects()) {
             IPlotterStyle style = region.getState().findPlotterStyle(object);

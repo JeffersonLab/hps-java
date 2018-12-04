@@ -20,10 +20,6 @@ import static java.lang.Math.abs;
  */
 public class UnfoldFieldmap {
 
-    // Storage space for the table
-    private double[][][] _xField;
-    private double[][][] _yField;
-    private double[][][] _zField;
     // The dimensions of the table
     private int _nx, _ny, _nz;
     // The physical limits of the defined region
@@ -41,12 +37,16 @@ public class UnfoldFieldmap {
     // maximum field strength
     private double _bMax;
     List<double[]> lines = new ArrayList<double[]>();
-    double[][] Bx;
-    double[][] By;
-    double[][] Bz;
+    double[][][] Bx;
+    double[][][] By;
+    double[][][] Bz;
     double[] xVals;
     double[] zVals;
     double[] yVals;
+    
+    // absolute value of field below fuzz will be re-set to exactly 0
+    // set fuzz to 0 to disable this feature
+    private double fuzz = 1e-10;
 
     private double _scaleFactor;
     private String _map2read;
@@ -60,13 +60,17 @@ public class UnfoldFieldmap {
         _scaleFactor = scaleFactor;
     }
 
+    public void setFuzz(double input) {
+        fuzz = input;
+    }
+    
     void setup() {
         // System.out.println(this.getClass().getClassLoader().getResource(map2read));
         // InputStream is = this.getClass().getClassLoader().getResourceAsStream(map2read);
 
         System.out.println("\n-----------------------------------------------------------"
                 + "\n      Reading Magnetic Field map " + _map2read + "\n      Scaling values by " + _scaleFactor
-                + "\n      Flipping sign of By " + "\n-----------------------------------------------------------");
+                + "\n-----------------------------------------------------------");
 
         try {
             FileInputStream fin = new FileInputStream(_map2read);
@@ -80,16 +84,13 @@ public class UnfoldFieldmap {
             _ny = 15;
             _nz = 301;
 
-            Bx = new double[_nx][_nz];
-            By = new double[_nx][_nz];
-            Bz = new double[_nx][_nz];
+            Bx = new double[_nx][_ny][_nz];
+            By = new double[_nx][_ny][_nz];
+            Bz = new double[_nx][_ny][_nz];
             xVals = new double[_nx];
             yVals = new double[_ny];
             zVals = new double[_nz];
-            // Set up storage space for table
-            _xField = new double[_nx + 1][_ny + 1][_nz + 1];
-            _yField = new double[_nx + 1][_ny + 1][_nz + 1];
-            _zField = new double[_nx + 1][_ny + 1][_nz + 1];
+
 
             // Ignore other header information
             // The first line whose second character is '0' is considered to
@@ -138,10 +139,10 @@ public class UnfoldFieldmap {
                         // System.out.println("bz "+bz);
                         double[] line = {xval, yval, zval, bx, by, bz};
                         lines.add(line);
-                        Bx[ix][iz] = _scaleFactor * bx / fieldConversionFactor; // convert to magnetic field units used
+                        Bx[ix][iy][iz] = _scaleFactor * bx / fieldConversionFactor; // convert to magnetic field units used
                                                                                 // by Geant4
-                        By[ix][iz] = _scaleFactor * by / fieldConversionFactor; //
-                        Bz[ix][iz] = _scaleFactor * bz / fieldConversionFactor; //
+                        By[ix][iy][iz] = _scaleFactor * by / fieldConversionFactor; //
+                        Bz[ix][iy][iz] = _scaleFactor * bz / fieldConversionFactor; //
                         xVals[ix] = xval * lengthConversionFactor;
                         yVals[iy] = yval * lengthConversionFactor;
                         zVals[iz] = zval * lengthConversionFactor;
@@ -150,9 +151,6 @@ public class UnfoldFieldmap {
                             _miny = yval;
                             _minz = zval;
                         }
-                        _xField[ix][iy][iz] = bx;
-                        _yField[ix][iy][iz] = by;
-                        _zField[ix][iy][iz] = bz;
                         double b = bx * bx + by * by + bz * bz;
                         if (b > _bMax) {
                             _bMax = b;
@@ -222,21 +220,35 @@ public class UnfoldFieldmap {
                         double xSign = (i < 0) ? -1. : 1.;
                         double ySign = (j < 0) ? -1. : 1.;
                         double zSign = (k < 0) ? -1. : 1.;
-                        // double x = (i < 0) ? -xVals[abs(i)] : xVals[abs(i)];
-                        // double y = (j < 0) ? -yVals[abs(j)] : yVals[abs(j)];
-                        // double z = (k < 0) ? -zVals[abs(k)] : zVals[abs(k)];
+                        // fuzz
+                        if (fuzz > 0) {
+                            if (abs(Bx[abs(i)][abs(j)][abs(k)]) < fuzz)
+                                Bx[abs(i)][abs(j)][abs(k)] = 0;
+                            if (abs(By[abs(i)][abs(j)][abs(k)]) < fuzz)
+                                By[abs(i)][abs(j)][abs(k)] = 0;
+                            if (abs(Bz[abs(i)][abs(j)][abs(k)]) < fuzz)
+                                Bz[abs(i)][abs(j)][abs(k)] = 0;
+                        }
                         w.write(xSign * xVals[abs(i)] + " " + ySign * yVals[abs(j)] + " " + zSign * zVals[abs(k)] + " "
-                                + xSign * Bx[abs(i)][abs(k)] + " " + By[abs(i)][abs(k)] + " " + zSign
-                                * Bz[abs(i)][abs(k)] + " \n");
+                                + formatMe((xSign*ySign) * Bx[abs(i)][abs(j)][abs(k)]) + " " + formatMe(By[abs(i)][abs(j)][abs(k)]) + " " + formatMe((zSign*ySign)
+                                * Bz[abs(i)][abs(j)][abs(k)]) + " \n");
                     }
                 }
             }
+            // String.format("%.3E",productPrice)
 
             w.flush();
             w.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private String formatMe(double dbl) {
+        if (dbl == 0)
+            return "0";
+        else
+            return String.format("%.3E",dbl);
     }
 
     // public void writeoutGnuplot()

@@ -8,7 +8,6 @@ import hep.physics.vec.VecOp;
 import java.io.IOException;
 import static java.lang.Math.abs;
 import java.util.List;
-import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
@@ -17,7 +16,6 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
@@ -42,7 +40,6 @@ public class PhysRun2016MollerRecon extends Driver {
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 
     private Double _beamEnergy = 1.056;
-    private double _percentFeeCut = 0.8;
     private double _psumDelta = 0.06;
     private double _thetasumCut = 0.07;
     private double _trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
@@ -151,13 +148,12 @@ public class PhysRun2016MollerRecon extends Driver {
                     if (rp1.getMomentum().magnitude() > 1.5 * _beamEnergy || rp2.getMomentum().magnitude() > 1.5 * _beamEnergy) {
                         continue;
                     }
-                    // require both reconstructed particles to have a track and a cluster
-                    if (rp1.getClusters().size() != 1) {
+                    // require both reconstructed particles to have a track
+                    // and at least one to have a cluster
+                    if ((rp1.getClusters() == null) && (rp2.getClusters() == null)) {
                         continue;
                     }
-                    if (rp2.getClusters().size() != 1) {
-                        continue;
-                    }
+                    
                     if (rp1.getTracks().size() != 1) {
                         continue;
                     }
@@ -166,13 +162,6 @@ public class PhysRun2016MollerRecon extends Driver {
                     }
                     Track t1 = rp1.getTracks().get(0);
                     Track t2 = rp2.getTracks().get(0);
-                    Cluster c1 = rp1.getClusters().get(0);
-                    Cluster c2 = rp2.getClusters().get(0);
-                    double deltaT = ClusterUtilities.getSeedHitTime(c1) - ClusterUtilities.getSeedHitTime(c2);
-                    // require cluster times to be coincident within 2 ns
-                    if (abs(deltaT) > 2.0) {
-                        continue;
-                    }
                     // require momentum sum to equal beam energy +-
                     double psum = rp1.getMomentum().magnitude() + rp2.getMomentum().magnitude();
                     if (psum < psumMin || psum > psumMax) {
@@ -369,10 +358,6 @@ public class PhysRun2016MollerRecon extends Driver {
 
     public void setTrackChisqNdfCut(double d) {
         _trackChi2NdfCut = d;
-    }
-
-    public void setFeeFractionCut(double d) {
-        _percentFeeCut = d;
     }
 
     public void setESumPlusMinusPercentCut(double d) {

@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.StandardCuts;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -19,13 +21,15 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Does not require GBL collections to be present in the event.
+ * A Driver which refits tracks using GBL. Does not require GBL collections to
+ * be present in the event.
  */
 public class GBLRefitterDriver extends Driver {
 
@@ -36,6 +40,24 @@ public class GBLRefitterDriver extends Driver {
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
+    private StandardCuts cuts = null;
+
+    private MilleBinary mille;
+    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
+    private boolean writeMilleBinary = false;
+    private double writeMilleChi2Cut = 20;
+
+    public void setWriteMilleChi2Cut(int input) {
+        writeMilleChi2Cut = input;
+    }
+
+    public void setMilleBinaryFileName(String filename) {
+        milleBinaryFileName = filename;
+    }
+
+    public void setWriteMilleBinary(boolean writeMillepedeFile) {
+        writeMilleBinary = writeMillepedeFile;
+    }
 
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
@@ -53,20 +75,52 @@ public class GBLRefitterDriver extends Driver {
         this.outputCollectionName = outputCollectionName;
     }
 
+    public void setMaxTrackChisq(int nhits, double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisq(nhits, input);
+    }
+
+    public void setMaxTrackChisq(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.changeChisqTrackProb(input);
+    }
+
+    @Override
+    protected void startOfData() {
+        if (writeMilleBinary) {
+            mille = new MilleBinary(milleBinaryFileName);
+        }
+    }
+
+    @Override
+    protected void endOfData() {
+        if (writeMilleBinary) {
+            mille.close();
+        }
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+
+        if (cuts == null) {
+            cuts = new StandardCuts();
+            //System.out.printf("in constructor 5 %f 6 %f \n", cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+        }
     }
 
     @Override
     protected void process(EventHeader event) {
-        if (!event.hasCollection(Track.class, inputCollectionName)) {
+        if (!event.hasCollection(Track.class, inputCollectionName))
             return;
-        }
+
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
+        //       System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
@@ -78,14 +132,29 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            if(newTrack==null) continue;
-            refittedTracks.add(newTrack.getFirst());
-            trackRelations.add(new BaseLCRelation(track, newTrack.getFirst()));
-            inputToRefitted.put(track, newTrack.getFirst());
+            List<TrackerHit> temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+            if (temp.size() == 0)
+                //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
+                continue;
 
+            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+            Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
+            if (newTrack == null)
+                continue;
+            Track gblTrk = newTrack.getFirst();
+            if (writeMilleBinary) {
+                if (gblTrk.getChi2() < writeMilleChi2Cut)
+                    newTrackTraj.getSecond().get_traj().milleOut(mille);
+            }
+
+            //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
+                continue;
+            refittedTracks.add(gblTrk);
+            trackRelations.add(new BaseLCRelation(track, gblTrk));
+            inputToRefitted.put(track, gblTrk);
             kinkDataCollection.add(newTrack.getSecond());
-            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), newTrack.getFirst()));
+            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
 
         // Put the tracks back into the event and exit
@@ -98,12 +167,10 @@ public class GBLRefitterDriver extends Driver {
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
+        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        }
-        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits")) {
+        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
-        }
 
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
@@ -122,23 +189,20 @@ public class GBLRefitterDriver extends Driver {
             IIdentifier strippedId = dict.pack(expId);
             // Find the sensor DetectorElement.
             List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
-            if (des == null || des.size() == 0) {
+            if (des == null || des.size() == 0)
                 throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
-            } else if (des.size() == 1) {
+            else if (des.size() == 1)
                 hit.setDetectorElement((SiSensor) des.get(0));
-            } else {
+            else
                 // Use first sensor found, which should work unless there are sensors with duplicate IDs.
-                for (IDetectorElement de : des) {
+                for (IDetectorElement de : des)
                     if (de instanceof SiSensor) {
                         hit.setDetectorElement((SiSensor) de);
                         break;
                     }
-                }
-            }
             // No sensor was found.
-            if (hit.getDetectorElement() == null) {
+            if (hit.getDetectorElement() == null)
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
-            }
         }
     }
 }

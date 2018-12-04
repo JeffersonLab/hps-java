@@ -331,7 +331,7 @@
       <dependency>
         <groupId>jfreechart-aida-experimental</groupId>
         <artifactId>jfreechart-aida-experimental</artifactId>
-        <version>1.9-SNAPSHOT</version>
+        <version>1.9.0</version>
         <exclusions>
           <exclusion>
             <groupId>jdom</groupId>
@@ -455,6 +455,7 @@
             <java.util.logging.config.class>org.hps.logging.config.TestLoggingConfig</java.util.logging.config.class>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
             <hep.aida.IAnalysisFactory>hep.aida.ref.BatchAnalysisFactory</hep.aida.IAnalysisFactory>
+            <java.awt.headless>true</java.awt.headless>
           </systemPropertyVariables>
         </configuration>
       </plugin>
