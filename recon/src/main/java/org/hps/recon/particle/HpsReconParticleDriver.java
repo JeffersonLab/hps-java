@@ -435,14 +435,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             vtxFitter.setReferencePosition(newRefPoint.v());
 
             BilliorVertex vtxNew = vtxFitter.fitVertex(shiftedTracks);
-            Hep3Vector vtxPosNew = VecOp.add(vtx.getPosition(), vtxNew.getPosition());//the refit vertex is measured wrt the original vertex position
-            vtxNew.setPosition(vtxPosNew);//just change the position...the errors and momenta are correct in re-fit
             vtxNew.setLayerCode(vtx.getLayerCode());
             vtxNew.setProbability(DOF[constraint.ordinal()]);
-            //  mg 5/11/2018:  correct for the beamspot position in the fitter instead of HPSReconParticle...
-//            Hep3Vector vtxPosNew = VecOp.add(vtx.getPosition(), vtxNew.getPosition());//the refit vertex is measured wrt the original vertex position
-//            vtxNew.setPosition(vtxPosNew);//just change the position...the errors and momenta are correct in re-fit
-
             return vtxNew;
         } else
             return vtx;
