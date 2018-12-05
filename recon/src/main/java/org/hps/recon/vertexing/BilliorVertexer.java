@@ -757,7 +757,7 @@ public class BilliorVertexer {
 //  double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
         //               + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + covVtx.e(yInd, yInd);
         double sigY2 = sY * sY * covVtx.e(zInd, zInd) + Math.pow(delZ / pvZ, 2) * (covMom1.e(yInd, yInd) + covMom2.e(yInd, yInd)
-                + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) + (2.7 * 2.7) * covVtx.e(yInd, yInd);
+                + sY * sY * (covMom1.e(zInd, zInd) + covMom2.e(zInd, zInd))) +  covVtx.e(yInd, yInd);
         // Vz-p covariances
 //        sigY2 += 2 * (sY * delZ / pvZ * (covVtxMom1.e(zInd, yInd) + covVtxMom2.//e(zInd, yInd)
 //                + sY * (covVtxMom1.e(zInd, zInd) + covVtxMom2.e(zInd, zInd))));
