@@ -18,9 +18,11 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.record.StandardCuts;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
@@ -42,7 +44,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     TrackClusterMatcher matcher = new TrackClusterMatcher();
 
-    String[] trackCollectionNames = null;
+    String[] trackCollectionNames = {"GBLTracks"};
 
     public static final int ELECTRON = 0;
     public static final int POSITRON = 1;
@@ -56,6 +58,16 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
+    protected StandardCuts cuts = null;
+    RelationalTable hitToRotated = null;
+    RelationalTable hitToStrips = null;
+
+    protected boolean enableTrackClusterMatchPlots = false;
+    
+    public void setTrackClusterMatchPlots(boolean input) {
+        enableTrackClusterMatchPlots = input;
+    }
+
    
     public void setUseCorrectedClusterPositionsForMatching(boolean val){
         useCorrectedClusterPositionsForMatching = val;
@@ -133,6 +145,7 @@ public abstract class ReconParticleDriver extends Driver {
      * LCIO collection name for reconstructed particles.
      */
     private String finalStateParticlesColName = "FinalStateParticles";
+    private String OtherElectronsColName = "OtherElectrons";
     /**
      * LCIO collection name for V0 candidate particles generated without constraints.
      */
@@ -168,6 +181,7 @@ public abstract class ReconParticleDriver extends Driver {
     /* TODO get the beam position from the conditions db */
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
+    protected double beamEnergy = 1.056;
 
     // flipSign is a kludge...
     // HelicalTrackFitter doesn't deal with B-fields in -ive Z correctly
@@ -287,6 +301,10 @@ public abstract class ReconParticleDriver extends Driver {
     public void setTargetConV0CandidatesColName(String targetConV0CandidatesColName) {
         this.targetConV0CandidatesColName = targetConV0CandidatesColName;
     }
+    
+    public void setOtherElectronsColName(String input) {
+        OtherElectronsColName = input;
+    }
 
     /**
      * Sets the name of the LCIO collection for target constrained V0 candidate vertices.
@@ -352,7 +370,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     @Override
     protected void detectorChanged(Detector detector) {
-        matcher.enablePlots(false);
+        matcher.enablePlots(enableTrackClusterMatchPlots);
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
@@ -365,10 +383,41 @@ public abstract class ReconParticleDriver extends Driver {
         matcher.setBFieldMap(detector.getFieldMap());
         BeamEnergyCollection beamEnergyCollection = 
                 this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-            
-        matcher.setBeamEnergy(beamEnergyCollection.get(0).getBeamEnergy()); 
-
+        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        matcher.setBeamEnergy(beamEnergy); 
+        
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        else
+            cuts.changeBeamEnergy(beamEnergy);
     }
+    
+    public void setMaxMatchChisq(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxMatchChisq(input);
+    }
+    
+    
+    public void setMaxElectronP(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxElectronP(input);
+    }
+    
+    public void setMaxMatchDt(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setMaxMatchDt(input);
+    }
+    
+    public void setTrackClusterTimeOffset(double input) {
+        if (cuts == null)
+            cuts = new StandardCuts(beamEnergy);
+        cuts.setTrackClusterTimeOffset(input);
+    }
+    
+    protected abstract List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles);
 
     /**
      * Generates reconstructed V0 candidate particles and vertices from sets of positrons and electrons. Implementing
@@ -380,6 +429,7 @@ public abstract class ReconParticleDriver extends Driver {
      * @param positrons - The list of positrons.
      */
     protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
+    
 
     /**
      * Create the set of final state particles from the event tracks and clusters. Clusters will be matched with tracks
@@ -445,6 +495,11 @@ public abstract class ReconParticleDriver extends Driver {
                 // try to find a matching cluster:
                 Cluster matchedCluster = null;
                 for (Cluster cluster : clusters) {
+                    double clusTime = ClusterUtilities.getSeedHitTime(cluster);
+                    double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+                    
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
+                        continue;
                     
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
@@ -458,6 +513,10 @@ public abstract class ReconParticleDriver extends Driver {
                     
                     // normalized distance between this cluster and track:
                     final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
+                    if (enableTrackClusterMatchPlots) {
+                        if (TrackUtils.getTrackStateAtECal(track) != null)
+                            matcher.isMatch(cluster, track);
+                    }
 
                     // ignore if matching quality doesn't make the cut:
                     if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
@@ -629,6 +688,9 @@ public abstract class ReconParticleDriver extends Driver {
                 trackCollections.add(new ArrayList<Track>(0));
             }
         }
+        
+        hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        hitToStrips = TrackUtils.getHitToStripsTable(event);
 
         // Instantiate new lists to store reconstructed particles and
         // V0 candidate particles and vertices.
@@ -645,12 +707,6 @@ public abstract class ReconParticleDriver extends Driver {
         // Loop through all of the track collections present in the event and
         // create final state particles.
         finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
-
-        // VERBOSE :: Output the number of reconstructed particles.
-        printDebug("Final State Particles :: " + finalStateParticles.size());
-
-        // Add the final state ReconstructedParticles to the event
-        event.put(finalStateParticlesColName, finalStateParticles, ReconstructedParticle.class, 0);
 
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.
@@ -672,6 +728,17 @@ public abstract class ReconParticleDriver extends Driver {
         // Form V0 candidate particles and vertices from the electron
         // and positron reconstructed particles.
         findVertices(electrons, positrons);
+        
+        List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
+        // VERBOSE :: Output the number of reconstructed particles.
+        printDebug("Final State Particles :: " + goodFinalStateParticles.size());
+        // Add the final state ReconstructedParticles to the event
+        event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
+        for (ReconstructedParticle ele : goodFinalStateParticles) {
+            if (electrons.contains(ele))
+                electrons.remove(ele);
+        }
+        event.put(OtherElectronsColName, electrons, ReconstructedParticle.class, 0);
 
         // Store the V0 candidate particles and vertices for each type
         // of constraint in the appropriate collection in the event,
@@ -712,7 +779,7 @@ public abstract class ReconParticleDriver extends Driver {
             ecalClustersCollectionName = "EcalClusters";
         }
         if (trackCollectionName == null) {
-            trackCollectionName = "MatchedTracks";
+            trackCollectionName = "GBLTracks";
         }
         if (finalStateParticlesColName == null) {
             finalStateParticlesColName = "FinalStateParticles";
@@ -739,7 +806,8 @@ public abstract class ReconParticleDriver extends Driver {
 
     @Override
     protected void endOfData() {
-        // matcher.saveHistograms();
+        if (enableTrackClusterMatchPlots)
+            matcher.saveHistograms();
     }
 
     

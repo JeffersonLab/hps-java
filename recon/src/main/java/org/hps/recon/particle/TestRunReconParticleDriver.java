@@ -65,4 +65,10 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
     protected void startOfData(){
         if(unconstrainedV0CandidatesColName == null) { unconstrainedV0CandidatesColName = "V0Candidates"; }
     }
+
+    @Override
+    protected List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles) {
+        // TODO Auto-generated method stub
+        return finalStateParticles;
+    }
 }

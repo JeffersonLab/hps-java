@@ -54,7 +54,7 @@ public class TrackingReconstructionPlots extends Driver {
     private boolean doElectronPositronPlots = false;
     private boolean doStripHitPlots = false;
 
-    private String trackCollectionName = "MatchedTracks";
+    private String trackCollectionName = "GBLTracks";
     String ecalSubdetectorName = "Ecal";
     String ecalCollectionName = "EcalClusters";
     IDDecoder dec;

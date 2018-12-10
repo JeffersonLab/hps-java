@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.record.StandardCuts;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
@@ -36,6 +37,7 @@ public class MergeTrackCollections extends Driver {
     boolean isTransient = false;
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
+    private StandardCuts cuts = null;
 
     private AIDA aida2 = AIDA.defaultInstance();
 
@@ -54,6 +56,12 @@ public class MergeTrackCollections extends Driver {
     /**
      * Default constructor
      */
+
+    public void setMaxSharedHitsPerTrack(int input) {
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxSharedHitsPerTrack(input);
+    }
 
     public void setPlots(boolean value) {
         doPlots = value;
@@ -128,7 +136,8 @@ public class MergeTrackCollections extends Driver {
             numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
             numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
         }
-
+        if (cuts == null)
+            cuts = new StandardCuts();
     }
 
     @Override
@@ -162,7 +171,11 @@ public class MergeTrackCollections extends Driver {
         ambi.resolve();
         ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.PARTIALS);
         ambi.resolve();
+        ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.SHARED);
+        ((SimpleAmbiguityResolver) (ambi)).setShareThreshold(cuts.getMaxSharedHitsPerTrack());
+        ambi.resolve();
         List<Track> deduplicatedTracks = ambi.getTracks();
+
         // List<Track> partialTracks = ambi.getPartialTracks();
 
         if (doPlots) {

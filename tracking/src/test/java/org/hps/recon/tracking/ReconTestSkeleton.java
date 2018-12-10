@@ -135,7 +135,6 @@ public class ReconTestSkeleton extends TestCase {
             add(mtc);
 
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
-            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
             add(new org.hps.recon.tracking.TrackDataDriver());
 
             add(new ReadoutCleanupDriver());

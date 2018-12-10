@@ -17,9 +17,11 @@ import junit.framework.TestCase;
 
 public class RecoToRaw extends TestCase {
 
-    protected String testInputFileName = "hps_005772.0_recon_Rv4657-0-10000.slcio";
-    protected String testOutputFileName = "raw_" + testInputFileName;
-    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
+    protected String testInputFileName = "/nfs/slac/g/hps3/data/objectStandardization/engrun2015/5772_pass8_goldenV0.slcio";
+    protected String testOutputFileName = "/nfs/slac/work/mdiamond/5772_pass8_goldenV0_raw.slcio";
+	//"raw_" + testInputFileName;
+    protected String testURLBase = null; 
+	//"http://www.lcsim.org/test/hps-java";
     protected long nEvents = -1;
 
     public void testClear() throws Exception {
@@ -80,7 +82,7 @@ public class RecoToRaw extends TestCase {
             toRemove.add("HelicalTrackHits");
             toRemove.add("MatchedToGBLTrackRelations");
             toRemove.add("MatchedTracks");
-            toRemove.add("PartialTracks");
+	    //            toRemove.add("PartialTracks");
             toRemove.add("RotatedHelicalTrackHitRelations");
             toRemove.add("RotatedHelicalTrackHits");
             toRemove.add("TrackData");
@@ -90,7 +92,6 @@ public class RecoToRaw extends TestCase {
             toRemove.add("RFHits");
             toRemove.add("StripClusterer_SiTrackerHitStrip1D");
             toRemove.add("SVTShapeFitParameters");
-            toRemove.add("TriggerTime");
             toRemove.add("SVTFittedRawTrackerHits");
 
             for (String s : toRemove) {
