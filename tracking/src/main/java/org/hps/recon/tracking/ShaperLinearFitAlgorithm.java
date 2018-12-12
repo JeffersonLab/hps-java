@@ -15,7 +15,7 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.special.Gamma;
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
-import org.freehep.math.minuit.MnSimplex;
+import org.freehep.math.minuit.MnMigrad;
 import org.freehep.math.minuit.MnUserParameters;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 
@@ -352,8 +352,8 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             }
         }
 
-        MnSimplex simplex = new MnSimplex(this, myParams, 2);
-        FunctionMinimum min = simplex.minimize(0, 0.001);
+        MnMigrad migrad = new MnMigrad(this, myParams, 2);
+        FunctionMinimum min = migrad.minimize(0, 0.001);
         return min;
     }
 
