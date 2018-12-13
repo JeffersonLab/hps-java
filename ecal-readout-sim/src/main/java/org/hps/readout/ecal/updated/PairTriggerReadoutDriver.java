@@ -31,8 +31,8 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
     // ==================================================================
     private Queue<List<Cluster>> topClusterQueue = null;           // Store clusters on the top half of the calorimeter.
     private Queue<List<Cluster>> botClusterQueue = null;           // Store clusters on the bottom half of the calorimeter.
-    private double localTime = 2.0;                                // Stores the internal time clock for the driver.
-    private HPSEcal3 ecal = null;                                 // The calorimeter geometry object.
+    private double localTime = 0.0;                                // Stores the internal time clock for the driver.
+    private HPSEcal3 ecal = null;                                  // The calorimeter geometry object.
     
     /**
      * Outputs debug comparison data for both input clusters and
@@ -140,6 +140,12 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
         // dead time. If it is, no trigger may be issued, so this is
         // not necessary.
         debugWriter.write("Event " + event.getEventNumber());
+        debugWriter.write("\tDeadtime       :: " + getDeadTime());
+        debugWriter.write("\tLast Trigger   :: " + getLastTriggerTime());
+        debugWriter.write("\tCurrent Time   :: " + ReadoutDataManager.getCurrentTime());
+        debugWriter.write("\tTarget Time    :: " + (Double.isNaN(getLastTriggerTime()) ? "N/A" : getDeadTime() + getLastTriggerTime()));
+        debugWriter.write(String.format("\tDead Time Test :: %.0f + %.0f = %.0f < %.0f [ %s ]",
+                getLastTriggerTime(), getDeadTime(), getLastTriggerTime() + getDeadTime(), ReadoutDataManager.getCurrentTime(), (isInDeadTime() ? "DEADTIME" : "ACTIVE")));
         if(!isInDeadTime() && testTrigger()) { sendTrigger(); }
         
         // Increment the local time.
@@ -371,6 +377,7 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
         
         // Get the list of cluster pairs.
         List<Cluster[]> clusterPairs = getClusterPairsTopBot();
+        debugWriter.write("Cluster Pairs   :: " + clusterPairs.size());
         
         // Iterate over the cluster pairs and perform each of the cluster
         // pair cuts on them. A cluster pair that passes all of the
@@ -383,7 +390,6 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
             java.awt.Point ixy0 = ecal.getCellIndices(clusterPair[0].getCalorimeterHits().get(0).getCellID());
             java.awt.Point ixy1 = ecal.getCellIndices(clusterPair[1].getCalorimeterHits().get(0).getCellID());
             
-
             debugWriter.write("Testing pair...");
             debugWriter.write(String.format("\t%f;%f;%d;%d;%d;%d", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getTime(),
                     clusterPair[0].getCalorimeterHits().size(), clusterPair[0].getCalorimeterHits().get(0).getCellID(), ixy0.x, ixy0.y));
