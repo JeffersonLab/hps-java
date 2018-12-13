@@ -91,6 +91,8 @@ public class ReadoutDataManager extends Driver {
      */
     private static double bufferTotal = 0.0;
     
+    private static int triggers = 0;
+    
     @Override
     public void startOfData() {
         // Instantiate the readout LCIO file.
@@ -175,6 +177,8 @@ public class ReadoutDataManager extends Driver {
             e.printStackTrace();
             throw new RuntimeException();
         }
+        
+        System.out.println("Wrote " + triggers + " triggers.");
     }
     
     @Override
@@ -191,6 +195,7 @@ public class ReadoutDataManager extends Driver {
             if(isWritable) {
                 // Store the current trigger data.
                 TriggerTime trigger = triggerQueue.poll();
+                triggers++;
                 
                 // Make a new LCSim event.
                 int triggerEventNumber = event.getEventNumber() - ((int) Math.floor((getCurrentTime() - trigger.getTriggerTime()) / 2.0));
@@ -355,8 +360,8 @@ public class ReadoutDataManager extends Driver {
             LinkedList<TimedList<?>> dataBuffer = collectionData.getData();
             dataBuffer.add(new TimedList<T>(time, data));
             
-            System.out.printf("Added %d objects of type %s to collection \"%s\" at time t = %.0f.%n", data.size(),
-                    dataType.getSimpleName(), collectionName, time);
+            //System.out.printf("Added %d objects of type %s to collection \"%s\" at time t = %.0f.%n", data.size(),
+            //        dataType.getSimpleName(), collectionName, time);
         }
     }
     
