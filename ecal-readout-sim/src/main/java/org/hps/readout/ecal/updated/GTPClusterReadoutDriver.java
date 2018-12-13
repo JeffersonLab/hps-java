@@ -87,7 +87,7 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      * org.hps.readout.ecal.updated.EcalReadoutDriver
      * EcalReadoutDriver}.
      */
-    private double localTime = 2.0;
+    private double localTime = 0.0;
     /**
      * The length of time by which objects produced by this driver
      * are shifted due to the need to buffer data from later events.
