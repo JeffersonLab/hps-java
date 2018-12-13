@@ -13,7 +13,7 @@
 		<driver name="EcalReadoutDriver"/>
 		<driver name="RawConverterReadoutDriver"/>
 		<driver name="GTPReadoutDriver"/>
-		<driver name="Pair1TriggerDriver"/>
+		<driver name="PulserTrigger"/>
 		
 		<!-- LCIO Output and Data Management Driver -->
 		<driver name="ReadoutManagerDriver"/>
@@ -134,10 +134,10 @@
 			     Readout offset is not the same as the old system - it measures
 			     amount of samples that are included before the trigger time in
 				 the ADC readout window. The old version can be converted by
-				 selecting a readout window equal to (readoutLatency - 64).
+				 selecting a readout window equal to (readoutLatency - 63).
 			  -->
-			<readoutOffset>13</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
-			<readoutWindow>50</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
+			<readoutOffset>37</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+			<readoutWindow>100</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
 			<numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
 			<numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
 			<integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
@@ -234,41 +234,13 @@
 		</driver>
 		
 		<!--
-			The production pair trigger. This trigger allows the user to
-			specify the trigger deadtime (how much time must pass before a new
-			trigger can occur after a previous trigger has been created) and
-			the values of all the trigger cuts.
+			The pulser trigger automatically triggers every so often without
+			regard for the actual data signature. It only has one option, which
+			is the frequency at which it triggers.
 		-->
-		<driver name="Pair1TriggerDriver" type="org.hps.readout.ecal.updated.PairTriggerReadoutDriver">
-			<inputCollectionName>EcalClustersGTP</inputCollectionName>
-			
-			<!-- Units of 2 ns beam bunches. -->
-			<deadTime>15</deadTime>
-			
-			<!-- Units of GeV. -->
-			<seedEnergyLow>0.100</seedEnergyLow>
-			<!-- Units of cluster hits. -->
-			<minHitCount>2</minHitCount>
-			<!-- Units of 4 ns clock-cycles. -->
-			<pairCoincidence>3</pairCoincidence>
-			<!-- Units of GeV. -->
-			<clusterEnergyLow>0.150</clusterEnergyLow>
-			<!-- Units of GeV. -->
-			<clusterEnergyHigh>1.400</clusterEnergyHigh>
-			<!-- Units of GeV. -->
-			<energySumLow>0.600</energySumLow>
-			<!-- Units of GeV. -->
-			<energySumHigh>2.000</energySumHigh>
-			<!-- Units of GeV. -->
-			<energyDifferenceHigh>1.1</energyDifferenceHigh>
-			<!-- Units of degrees. -->
-			<coplanarityHigh>35</coplanarityHigh>
-			<!-- Units of GeV / mm. -->
-			<energySlopeParamF>0.0055</energySlopeParamF>
-			<!-- Units of GeV. -->
-			<energySlopeLow>0.700</energySlopeLow>
-			
-			<debug>false</debug>
+		<driver name="PulserTrigger" type="org.hps.readout.ecal.updated.PulserReadoutDriver">
+			<!-- Units of clock-cycles (4 ns, 2 events). -->
+			<pulserRate>50000</pulserRate>
 		</driver>
 		
 		<driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
