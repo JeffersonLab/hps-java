@@ -113,6 +113,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     
     private boolean makeConversionCols = true;
     private boolean makeMollerCols = true;
+    private boolean includeUnmatchedTracksInFSP=true;
 
     /**
      * Represents a type of constraint for vertex fitting.
@@ -176,6 +177,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             cuts = new StandardCuts(beamEnergy);
         cuts.setMinVertexChisqProb(input);
     }
+    public void setIncludeUnmatchedTracksInFSP(boolean setUMTrks){
+        includeUnmatchedTracksInFSP=setUMTrks;
+    }
     
     
     /**
@@ -238,13 +242,13 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // good electrons
             if (part.getCharge() == -1) {
                 if (part.getMomentum().magnitude() < cuts.getMaxElectronP()) {
-                    if (part.getGoodnessOfPID() < cuts.getMaxMatchChisq())
+                    if (includeUnmatchedTracksInFSP || part.getGoodnessOfPID() < cuts.getMaxMatchChisq())
                         goodFinalStateParticles.add(part);
                 }
             }
             // good positrons
             else if (part.getCharge() == 1) {
-                if (part.getGoodnessOfPID() < cuts.getMaxMatchChisq())
+                if (includeUnmatchedTracksInFSP || part.getGoodnessOfPID() < cuts.getMaxMatchChisq())
                     goodFinalStateParticles.add(part);
             }
             // photons
