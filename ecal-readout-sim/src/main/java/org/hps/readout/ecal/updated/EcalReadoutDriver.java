@@ -304,6 +304,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
     private final TempOutputWriter triggerWriter = new TempOutputWriter("raw_hits_trigger_new.log");
     private final TempOutputWriter truthWriter = new TempOutputWriter("raw_hits_truth_new.log");
     private final TempOutputWriter triggerTruthWriter = new TempOutputWriter("raw_hits_triggerpathtruth_new.log");
+    
+    
     private int triggers = 0;
     
     @Override
@@ -373,7 +375,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
         verboseWriter.write(String.format("\t%-30s :: %f", "fixedGain", fixedGain));
         verboseWriter.write(String.format("\t%-30s :: %s", "pulseShape", pulseShape.toString()));
         verboseWriter.write(String.format("\t%-30s :: %f", "tp", tp));
-        verboseWriter.write(String.format("\t%-30s :: %d", "integrationThreshold", integrationThreshold));
+        verboseWriter.write(String.format("\t%-30s :: %d", "readoutThreshold", integrationThreshold));
+        verboseWriter.write(String.format("\t%-30s :: %d", "triggerThreshold", integrationThreshold));
         verboseWriter.write(String.format("\t%-30s :: %d", "numSamplesBefore", numSamplesBefore));
         verboseWriter.write(String.format("\t%-30s :: %d", "numSamplesAfter", numSamplesAfter));
         verboseWriter.write(String.format("\t%-30s :: %d", "mode", mode));
@@ -384,6 +387,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
         verboseWriter.write(String.format("\t%-30s :: %d", "readoutOffset", readoutOffset));
         verboseWriter.write(String.format("\t%-30s :: %d", "BUFFER_LENGTH", BUFFER_LENGTH));
         verboseWriter.write(String.format("\t%-30s :: %d", "PIPELINE_LENGTH", PIPELINE_LENGTH));
+        verboseWriter.write(String.format("\t%-30s :: %s", "scaleFactor", "----"));
+        verboseWriter.write(String.format("\t%-30s :: %b", "use2014Gain", false));
+        verboseWriter.write(String.format("\t%-30s :: %s", "readoutLatency", "----"));
+        verboseWriter.write(String.format("\t%-30s :: %s", "delay0", "----"));
     }
     
     @Override
@@ -406,6 +413,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     @Override
     public void process(EventHeader event) {
+        
         /*
          * As a first step, truth energy depositions from SLIC must
          * be obtained and converted into voltage pulse amplitudes.
@@ -418,6 +426,18 @@ public class EcalReadoutDriver extends ReadoutDriver {
         Collection<SimCalorimeterHit> hits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
                 truthHitCollectionName, SimCalorimeterHit.class);
         
+        // DEBUG :: Write the event header information and truth hit
+        //          data to the verbose writer.
+        verboseWriter.write("\n\n\nEvent " + event.getEventNumber() + " at time t = " + ReadoutDataManager.getCurrentTime());
+        verboseWriter.write("Saw Input Truth Hits:");
+        if(hits.isEmpty()) {
+            verboseWriter.write("\tNone!");
+        } else {
+            for(CalorimeterHit hit : hits) {
+                verboseWriter.write(String.format("\tHit with %f GeV at time %f in cell %d.", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+            }
+        }
+        
         // DEBUG :: Write the truth hits seen.
         inputWriter.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
                 + (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(truthHitCollectionName)) + " (Local)");
@@ -428,25 +448,20 @@ public class EcalReadoutDriver extends ReadoutDriver {
             inputWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
         }
         
-        System.out.println("Writing readout debug for event " + event.getEventNumber() + " and collection \"" + truthHitCollectionName + "\".");
-        System.out.println("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
-                + (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(truthHitCollectionName)) + " (Local)");
-        System.out.println("Input");
-        for(CalorimeterHit hit : hits) {
-            System.out.println(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-        }
-        System.out.println();
-        System.out.println();
+        //System.out.println("Writing readout debug for event " + event.getEventNumber() + " and collection \"" + truthHitCollectionName + "\".");
+        //System.out.println("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
+        //        + (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(truthHitCollectionName)) + " (Local)");
+        //System.out.println("Input");
+        //for(CalorimeterHit hit : hits) {
+        //    System.out.println(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+        //}
+        //System.out.println();
+        //System.out.println();
         
         // Add the truth hits to the truth hit buffer. The buffer is
         // only incremented when the ADC buffer is incremented, which
         // is handled below.
         for(SimCalorimeterHit hit : hits) {
-            // Make sure that the appropriate cells are instantiated.
-            if(!truthBufferMap.containsKey(hit.getCellID())) {
-                instantiateCell(hit.getCellID());
-            }
-            
             // Store the truth data.
             ObjectRingBuffer<SimCalorimeterHit> hitBuffer = truthBufferMap.get(hit.getCellID());
             hitBuffer.addToCell(0, hit);
@@ -515,288 +530,257 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // Check whether the appropriate amount of time has passed to
         // perform another integration step. If so, create a list to
         // contain any newly integrated hits and perform integration.
-        boolean readHits = false;
+        //boolean readHits = false;
         List<RawCalorimeterHit> newHits = null;
         List<LCRelation> newTruthRelations = null;
         while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
-            newHits = new ArrayList<RawCalorimeterHit>();
-            newTruthRelations = new ArrayList<LCRelation>();
-            readHits = true;
+            if(newHits == null) { newHits = new ArrayList<RawCalorimeterHit>(); }
+            if(newTruthRelations == null) { newTruthRelations = new ArrayList<LCRelation>(); }
+            readHits(newHits, newTruthRelations);
             readoutCounter++;
-        }
-        
-        // Only perform hit integration on each readout period.
-        if(readHits) {
-            // DEBUG :: Declare that hit integration is processing.
-            verboseWriter.write("Starting hit integration...");
-            
-            // DEBUG :: Step the time map forward one step.
-            timeTestBuffer.stepForward();
-            
-            // Perform hit integration as needed for each calorimeter
-            // channel in the buffer map.
-            for(Long cellID : voltageBufferMap.keySet()) {
-                // Get the preamplifier pulse buffer for the channel.
-                DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
-                
-                // Get the ADC buffer for the channel.
-                IntegerRingBuffer adcBuffer = adcBufferMap.get(cellID);
-                adcBuffer.stepForward();
-                
-                // Get the calorimeter channel data.
-                EcalChannelConstants channelData = findChannel(cellID);
-                
-                // Scale the current value of the preamplifier buffer
-                // to a 12-bit ADC value where the maximum represents
-                // a value of maxVolt.
-                double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
-                
-                // Get the pedestal for the channel.
-                int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
-                
-                // An ADC value is not allowed to exceed 4095. If a
-                // larger value is observed, 4096 (overflow) is given
-                // instead. (This corresponds to >2 Volts.)
-                int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit));
-                
-                // Write this value to the ADC buffer.
-                adcBuffer.setValue(digitizedValue);
-                
-                // Store the pedestal subtracted value so that it may
-                // be checked against the integration threshold.
-                int pedestalSubtractedValue = digitizedValue - pedestal;
-                
-                // Get the total ADC value that has been integrated
-                // on this channel.
-                Integer sum = channelIntegrationSumMap.get(cellID);
-                
-                // DEBUG :: Output the calculations for this channel.
-                if(currentValue != 0) {
-                    verboseWriter.write("\tProcessing channel " + cellID);
-                    verboseWriter.write("\t\tcurrentValue = " + currentValue);
-                    verboseWriter.write("\t\tpedestal = " + pedestal);
-                    verboseWriter.write("\t\tdigitizedValue = " + digitizedValue);
-                    verboseWriter.write("\t\tpedestalSubtractedValue = " + pedestalSubtractedValue);
-                }
-                
-                // If any readout hits exist on this channel, add the
-                // current ADC values to them.
-                
-                // If the ADC sum is undefined, then there is not an
-                // ongoing integration. If the pedestal subtracted
-                // value is also over the integration threshold, then
-                // integration should be initiated.
-                if(sum == null && pedestalSubtractedValue > integrationThreshold) {
-                    // Store the current local time in units of
-                    // events (2 ns). This will indicate when the
-                    // integration started and, in turn, should end.
-                    channelIntegrationTimeMap.put(cellID, readoutCounter - 1);
-                    
-                    // Integrate the ADC values for a number of
-                    // samples defined by NSB from before threshold
-                    // crossing. Note that this stops one sample
-                    // before the current sample. This current sample
-                    // is handled in the subsequent code block.
-                    int sumBefore = 0;
-                    for(int i = 0; i < numSamplesBefore; i++) {
-                        sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
-                    }
-                    
-                    // This will represent the total integral sum at
-                    // the current point in time. Store it in the sum
-                    // buffer so that it may be incremented later as
-                    // additional samples are read.
-                    channelIntegrationSumMap.put(cellID, sumBefore);
-                    
-                    // If trigger path hit truth information should
-                    // be produced, collect and store it.
-                    if(writeTriggerTruth) {
-                        channelIntegrationADCMap.put(cellID, new ArrayList<Integer>());
-                        
-                        // Get the truth information in the
-                        // integration samples for this channel.
-                        Set<SimCalorimeterHit> truthHits = new HashSet<SimCalorimeterHit>();
-                        for(int i = 0; i < numSamplesBefore + 4; i++) {
-                            channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(-(numSamplesBefore - i)));
-                            truthHits.addAll(truthBufferMap.get(cellID).getValue(-(numSamplesBefore - i)));
-                        }
-                        
-                        // Store all the truth hits that occurred in
-                        // the truth buffer in the integration period
-                        // for this channel as well. These will be
-                        // passed through the chain to allow for the
-                        // accessing of truth information during the
-                        // trigger simulation.
-                        channelIntegrationTruthMap.put(cellID, truthHits);
-                    }
-                    
-                    // DEBUG :: Indicate that integration has started.
-                    if(currentValue != 0) {
-                        verboseWriter.write("\t\tIntegration Start " + cellID);
-                        verboseWriter.write("\t\tNo on-going integration; pedestal-subtracted value exceeds threshold. ["
-                                + pedestalSubtractedValue + " > " + integrationThreshold + "]");
-                        verboseWriter.write("\t\t\tCurrent value: " + sumBefore);
-                    }
-                } else if(sum == null) {
-                    // DEBUG :: Indicate that nothing is being done.
-                    if(currentValue != 0) {
-                        verboseWriter.write("\t\tNo on-going integration; pedestal-subtracted value does not exceed threshold. ["
-                                + pedestalSubtractedValue + " < " + integrationThreshold + "]");
-                    }
-                }
-                
-                // If the integration sum is defined, then pulse
-                // integration is ongoing.
-                if(sum != null) {
-                    // If the current time is less then the total
-                    // integration period, the current sample should
-                    // be added to the total sum.
-                    if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter - 1) {
-                        channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
-                        
-                        // Add the new ADC sample.
-                        channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
-                        
-                        // Add the new truth information, if trigger
-                        // path truth output is enabled.
-                        if(writeTriggerTruth) {
-                            channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
-                        }
-                        
-                        // DEBUG :: Indicate that integration is on-going.
-                        if(currentValue != 0) {
-                            verboseWriter.write("\t\tOn-going Integration " + cellID);
-                            verboseWriter.write("\t\t\tCurrent value: " + (sum + adcBuffer.getValue(0)));
-                        }
-                    }
-                    
-                    // If integration is complete, a hit may be added
-                    // to data manager.
-                    else if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 2) {
-                        // Add a new calorimeter hit.
-                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID));
-                        newHits.add(newHit);
-                        
-                        // Add the truth relations for this hit, if
-                        // trigger path truth is enabled.
-                        if(writeTriggerTruth) {
-                            Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
-                            for(SimCalorimeterHit truthHit : truthHits) {
-                                newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
-                            }
-                        }
-                        
-                        // DEBUG :: Indicate that integration is complete.
-                        if(currentValue != 0) {
-                            verboseWriter.write("\t\tIntegration Stop " + cellID);
-                            verboseWriter.write("\t\t\tFinal value: " + sum);
-                            verboseWriter.write("\t\t\tHit time: " + (64 * channelIntegrationTimeMap.get(cellID)));
-                        }
-                        
-                        if(channelIntegrationTruthMap.get(cellID).isEmpty()) {
-                            triggerTruthWriter.write("Completed Integration for Channel " + cellID);
-                            triggerTruthWriter.write("Integration Time: " + channelIntegrationTimeMap.get(cellID));
-                            triggerTruthWriter.write(String.format("Time Range: [%d, %d]",
-                                    (channelIntegrationTimeMap.get(cellID) - numSamplesBefore), (channelIntegrationTimeMap.get(cellID) + numSamplesAfter)));
-                            triggerTruthWriter.write("Truth Hits in Output Range: " + channelIntegrationTruthMap.get(cellID).size());
-                            triggerTruthWriter.write("ADC Buffer:");
-                            StringBuffer adcBufferBuffer = new StringBuffer();
-                            for(int i = 0; i < adcBuffer.size(); i++) {
-                                adcBufferBuffer.append(String.format("[%4d]%d;   ", timeTestBuffer.getValue(i), adcBuffer.getValue(i)));
-                            }
-                            triggerTruthWriter.write(adcBufferBuffer.toString());
-                            StringBuffer adcSumBuffer = new StringBuffer("Read ADC: ");
-                            for(int adc : channelIntegrationADCMap.get(cellID)) {
-                                adcSumBuffer.append(adc + "   ");
-                            }
-                            triggerTruthWriter.write(adcSumBuffer.toString());
-                            triggerTruthWriter.write("Truth Buffer:");
-                            StringBuffer truthBufferBuffer = new StringBuffer();
-                            for(int i = 0; i < truthBufferMap.get(cellID).size(); i++) {
-                                truthBufferBuffer.append(String.format("[%4d]", timeTestBuffer.getValue(i)));
-                                for(SimCalorimeterHit hit : truthBufferMap.get(cellID).getValue(i)) {
-                                    truthBufferBuffer.append(String.format("(%s)", String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID())));
-                                }
-                                truthBufferBuffer.append("   ");
-                            }
-                            triggerTruthWriter.write(truthBufferBuffer.toString());
-                        }
-                    }
-                    
-                    
-                    // A channel may only start integrating once per
-                    // 32 ns period. Do not clear the channel for
-                    // integration until that time has passed.
-                    else if(channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME <= readoutCounter - 1) {
-                        channelIntegrationSumMap.remove(cellID);
-                    }
-                }
-                
-                // Step to the next entry in the voltage buffer.
-                voltageBuffer.clearValue();
-                voltageBuffer.stepForward();
-                
-                // Step the truth buffer for this channel forward.
-                // The new cell should be cleared of any old values.
-                truthBufferMap.get(cellID).stepForward();
-                truthBufferMap.get(cellID).clearValue();
-            }
-            
-            // DEBUG :: Output the raw hits that were generated in
-            //          this event.
-            if(newHits != null && !newHits.isEmpty()) {
-                verboseWriter.write("\tProduced new raw hits:");
-                for(RawCalorimeterHit rawHit : newHits) {
-                    verboseWriter.write("\t\tRaw hit with amplitude " + rawHit.getAmplitude() + " in channel " + rawHit.getCellID()
-                            + " at system time " + rawHit.getTimeStamp() + " (" + (rawHit.getTimeStamp() / 64) + " ns).");
-                }
-            }
-            
-            // Write the trigger path output data to the readout data
-            // manager. Truth data is optional.
-            ReadoutDataManager.addData(outputHitCollectionName, newHits, RawCalorimeterHit.class);
-            if(writeTriggerTruth) {
-                ReadoutDataManager.addData(triggerTruthRelationsCollectionName, newTruthRelations, LCRelation.class);
-            }
-            
-            /*
-            for(RawCalorimeterHit hit : newHits) {
-                System.out.println(String.format("Saw Hit :: %d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
-                int observedTruths = 0;
-                for(LCRelation relation : newTruthRelations) {
-                    if(relation.getFrom() == hit) {
-                        observedTruths++;
-                        SimCalorimeterHit truth = (SimCalorimeterHit) relation.getTo();
-                        System.out.println(String.format("\tSaw Truth Hit :: %f;%f;%d", truth.getRawEnergy(), truth.getTime(), truth.getCellID()));
-                    }
-                }
-                if(observedTruths == 0) {
-                    System.out.println("\tNone!!");
-                }
-            }
-            */
-            
-            // DEBUG :: Write the raw hits seen.
-            outputWriter.write("Output");
-            for(RawCalorimeterHit hit : newHits) {
-                outputWriter.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
-            }
-        }
-        
-        // DEBUG :: Write the event header information and truth hit
-        //          data to the verbose writer.
-        verboseWriter.write("\n\n\nEvent " + event.getEventNumber() + " at time t = " + ReadoutDataManager.getCurrentTime());
-        verboseWriter.write("Saw Input Truth Hits:");
-        if(hits.isEmpty()) {
-            verboseWriter.write("\tNone!");
-        } else {
-            for(CalorimeterHit hit : hits) {
-                verboseWriter.write(String.format("\tHit with %f GeV at time %f in cell %d.", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-            }
         }
         
         // DEBUG :: Track the current event in the buffers.
         timeTestBuffer.setValue((int) Math.round(ReadoutDataManager.getCurrentTime()));
+    }
+    
+    private void readHits(List<RawCalorimeterHit> newHits, List<LCRelation> newTruthRelations) {
+        // DEBUG :: Declare that hit integration is processing.
+        verboseWriter.write("Starting hit integration...");
+        
+        // DEBUG :: Step the time map forward one step.
+        timeTestBuffer.stepForward();
+        
+        // Perform hit integration as needed for each calorimeter
+        // channel in the buffer map.
+        for(Long cellID : voltageBufferMap.keySet()) {
+            // Get the preamplifier pulse buffer for the channel.
+            DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
+            
+            // Get the ADC buffer for the channel.
+            IntegerRingBuffer adcBuffer = adcBufferMap.get(cellID);
+            adcBuffer.stepForward();
+            
+            // Get the calorimeter channel data.
+            EcalChannelConstants channelData = findChannel(cellID);
+            
+            // Scale the current value of the preamplifier buffer
+            // to a 12-bit ADC value where the maximum represents
+            // a value of maxVolt.
+            double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
+            
+            // Get the pedestal for the channel.
+            int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
+            
+            // An ADC value is not allowed to exceed 4095. If a
+            // larger value is observed, 4096 (overflow) is given
+            // instead. (This corresponds to >2 Volts.)
+            int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit));
+            
+            // Write this value to the ADC buffer.
+            adcBuffer.setValue(digitizedValue);
+            
+            // Store the pedestal subtracted value so that it may
+            // be checked against the integration threshold.
+            int pedestalSubtractedValue = digitizedValue - pedestal;
+            
+            // Get the total ADC value that has been integrated
+            // on this channel.
+            Integer sum = channelIntegrationSumMap.get(cellID);
+            
+            // DEBUG :: Output the calculations for this channel.
+            if(currentValue != 0) {
+                verboseWriter.write("\tProcessing channel " + cellID);
+                verboseWriter.write("\t\tTime = " + String.format("%d [%d]", 4 * (readoutCounter - 1), 64 * (readoutCounter - 1)));
+                verboseWriter.write("\t\tcurrentValue = " + currentValue);
+                verboseWriter.write("\t\tpedestal = " + pedestal);
+                verboseWriter.write("\t\tdigitizedValue = " + digitizedValue);
+                verboseWriter.write("\t\tpedestalSubtractedValue = " + pedestalSubtractedValue);
+            }
+            
+            // If any readout hits exist on this channel, add the
+            // current ADC values to them.
+            
+            // If the ADC sum is undefined, then there is not an
+            // ongoing integration. If the pedestal subtracted
+            // value is also over the integration threshold, then
+            // integration should be initiated.
+            if(sum == null && pedestalSubtractedValue > integrationThreshold) {
+                // Store the current local time in units of
+                // events (2 ns). This will indicate when the
+                // integration started and, in turn, should end.
+                channelIntegrationTimeMap.put(cellID, readoutCounter);
+                
+                // Integrate the ADC values for a number of
+                // samples defined by NSB from before threshold
+                // crossing. Note that this stops one sample
+                // before the current sample. This current sample
+                // is handled in the subsequent code block.
+                int sumBefore = 0;
+                for(int i = 0; i < numSamplesBefore; i++) {
+                    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
+                }
+                
+                // This will represent the total integral sum at
+                // the current point in time. Store it in the sum
+                // buffer so that it may be incremented later as
+                // additional samples are read.
+                channelIntegrationSumMap.put(cellID, sumBefore);
+                
+                // Collect and store truth information for trigger
+                // path hits.
+                channelIntegrationADCMap.put(cellID, new ArrayList<Integer>());
+                
+                // Get the truth information in the
+                // integration samples for this channel.
+                Set<SimCalorimeterHit> truthHits = new HashSet<SimCalorimeterHit>();
+                for(int i = 0; i < numSamplesBefore + 4; i++) {
+                    channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(-(numSamplesBefore - i)));
+                    truthHits.addAll(truthBufferMap.get(cellID).getValue(-(numSamplesBefore - i)));
+                }
+                
+                // Store all the truth hits that occurred in
+                // the truth buffer in the integration period
+                // for this channel as well. These will be
+                // passed through the chain to allow for the
+                // accessing of truth information during the
+                // trigger simulation.
+                channelIntegrationTruthMap.put(cellID, truthHits);
+                
+                // DEBUG :: Indicate that integration has started.
+                if(currentValue != 0) {
+                    verboseWriter.write("\t\tIntegration Start " + cellID);
+                    verboseWriter.write("\t\tNo on-going integration; pedestal-subtracted value exceeds threshold. ["
+                            + pedestalSubtractedValue + " > " + integrationThreshold + "]");
+                    verboseWriter.write("\t\t\tCurrent value: " + sumBefore);
+                }
+            } else if(sum == null) {
+                // DEBUG :: Indicate that nothing is being done.
+                if(currentValue != 0) {
+                    verboseWriter.write("\t\tNo on-going integration; pedestal-subtracted value does not exceed threshold. ["
+                            + pedestalSubtractedValue + " < " + integrationThreshold + "]");
+                }
+            }
+            
+            // If the integration sum is defined, then pulse
+            // integration is ongoing.
+            if(sum != null) {
+                // If the current time is less then the total
+                // integration period, the current sample should
+                // be added to the total sum.
+                if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) {
+                    channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+                    
+                    // Add the new ADC sample.
+                    channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+                    
+                    // Add the new truth information, if trigger
+                    // path truth output is enabled.
+                    if(writeTriggerTruth) {
+                        channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
+                    }
+                    
+                    // DEBUG :: Indicate that integration is on-going.
+                    if(currentValue != 0) {
+                        verboseWriter.write("\t\tOn-going Integration " + cellID);
+                        verboseWriter.write("\t\t\tCurrent value: " + (sum + adcBuffer.getValue(0)));
+                    }
+                }
+                
+                // If integration is complete, a hit may be added
+                // to data manager.
+                else if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {
+                    // Add a new calorimeter hit.
+                    RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID));
+                    newHits.add(newHit);
+                    
+                    // Add the truth relations for this hit, if
+                    // trigger path truth is enabled.
+                    if(writeTriggerTruth) {
+                        Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
+                        for(SimCalorimeterHit truthHit : truthHits) {
+                            newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                        }
+                    }
+                    
+                    // DEBUG :: Indicate that integration is complete.
+                    if(currentValue != 0) {
+                        verboseWriter.write("\t\tIntegration Stop " + cellID);
+                        verboseWriter.write("\t\t\tFinal value: " + sum);
+                        verboseWriter.write("\t\t\tHit time: " + (64 * channelIntegrationTimeMap.get(cellID)));
+                    }
+                    
+                    if(channelIntegrationTruthMap.get(cellID).isEmpty()) {
+                        triggerTruthWriter.write("Completed Integration for Channel " + cellID);
+                        triggerTruthWriter.write("Integration Time: " + channelIntegrationTimeMap.get(cellID));
+                        triggerTruthWriter.write(String.format("Time Range: [%d, %d]",
+                                (channelIntegrationTimeMap.get(cellID) - numSamplesBefore), (channelIntegrationTimeMap.get(cellID) + numSamplesAfter)));
+                        triggerTruthWriter.write("Truth Hits in Output Range: " + channelIntegrationTruthMap.get(cellID).size());
+                        triggerTruthWriter.write("ADC Buffer:");
+                        StringBuffer adcBufferBuffer = new StringBuffer();
+                        for(int i = 0; i < adcBuffer.size(); i++) {
+                            adcBufferBuffer.append(String.format("[%4d]%d;   ", timeTestBuffer.getValue(i), adcBuffer.getValue(i)));
+                        }
+                        triggerTruthWriter.write(adcBufferBuffer.toString());
+                        StringBuffer adcSumBuffer = new StringBuffer("Read ADC: ");
+                        for(int adc : channelIntegrationADCMap.get(cellID)) {
+                            adcSumBuffer.append(adc + "   ");
+                        }
+                        triggerTruthWriter.write(adcSumBuffer.toString());
+                        triggerTruthWriter.write("Truth Buffer:");
+                        StringBuffer truthBufferBuffer = new StringBuffer();
+                        for(int i = 0; i < truthBufferMap.get(cellID).size(); i++) {
+                            truthBufferBuffer.append(String.format("[%4d]", timeTestBuffer.getValue(i)));
+                            for(SimCalorimeterHit hit : truthBufferMap.get(cellID).getValue(i)) {
+                                truthBufferBuffer.append(String.format("(%s)", String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID())));
+                            }
+                            truthBufferBuffer.append("   ");
+                        }
+                        triggerTruthWriter.write(truthBufferBuffer.toString());
+                    }
+                }
+                
+                
+                // A channel may only start integrating once per
+                // 32 ns period. Do not clear the channel for
+                // integration until that time has passed.
+                else if(channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME <= readoutCounter - 1) {
+                    channelIntegrationSumMap.remove(cellID);
+                }
+            }
+            
+            // Step to the next entry in the voltage buffer.
+            voltageBuffer.clearValue();
+            voltageBuffer.stepForward();
+            
+            // Step the truth buffer for this channel forward.
+            // The new cell should be cleared of any old values.
+            truthBufferMap.get(cellID).stepForward();
+            truthBufferMap.get(cellID).clearValue();
+        }
+        
+        // DEBUG :: Output the raw hits that were generated in
+        //          this event.
+        if(newHits != null && !newHits.isEmpty()) {
+            verboseWriter.write("\tProduced new raw hits:");
+            for(RawCalorimeterHit rawHit : newHits) {
+                verboseWriter.write("\t\tRaw hit with amplitude " + rawHit.getAmplitude() + " in channel " + rawHit.getCellID()
+                        + " at system time " + rawHit.getTimeStamp() + " (" + (rawHit.getTimeStamp() / 64) + " ns).");
+            }
+        }
+        
+        // Write the trigger path output data to the readout data
+        // manager. Truth data is optional.
+        ReadoutDataManager.addData(outputHitCollectionName, newHits, RawCalorimeterHit.class);
+        if(writeTriggerTruth) {
+            ReadoutDataManager.addData(triggerTruthRelationsCollectionName, newTruthRelations, LCRelation.class);
+        }
+        
+        // DEBUG :: Write the raw hits seen.
+        outputWriter.write("Output");
+        for(RawCalorimeterHit hit : newHits) {
+            outputWriter.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
+        }
     }
     
     /**
@@ -1534,7 +1518,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
         truthBufferMap.clear();
         voltageBufferMap.clear();
         
-        /*
         // Get the set of all possible channel IDs.
         Set<Long> cells = calorimeterGeometry.getNeighborMap().keySet();
         
@@ -1547,32 +1530,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
             
             truthBufferMap.get(cellID).stepForward();
         }
-        */
         
         timeTestBuffer = new IntegerRingBuffer(PIPELINE_LENGTH);
         timeTestBuffer.stepForward();
-    }
-    
-    public void instantiateCell(long cellID) {
-        // The truth buffer and the voltage buffer behave identically
-        // regardless whether the input is calorimeter or hodoscope
-        // truth data.
-        voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
-        truthBufferMap.put(cellID, new ObjectRingBuffer<SimCalorimeterHit>(PIPELINE_LENGTH));
-        
-        // The pedestals will differ depending on the input.
-        if(truthHitCollectionName.compareTo("EcalHits") == 0) {
-            EcalChannelConstants channelData = findChannel(cellID);
-            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(channelData.getCalibration().getPedestal())));
-        } else if(truthHitCollectionName.compareTo("HodoscopeHits") == 0) {
-            // TODO: Hodoscope pedestals are not implemented. Default to zero.
-            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, 0));
-        } else {
-            throw new IllegalArgumentException("Unrecognized truth input collection \"" + truthHitCollectionName + "\".");
-        }
-        
-        // Step the trith buffer forward one step.
-        truthBufferMap.get(cellID).stepForward();
     }
     
     /**
