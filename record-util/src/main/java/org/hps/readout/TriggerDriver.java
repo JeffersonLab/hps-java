@@ -37,7 +37,8 @@ public abstract class TriggerDriver extends ReadoutDriver {
      * trigger may be issued.
      */
     protected boolean isInDeadTime() {
-        return !Double.isNaN(lastTrigger) && lastTrigger + deadTime >= ReadoutDataManager.getCurrentTime();
+        if(Double.isNaN(lastTrigger)) { return false; }
+        else { return (lastTrigger + deadTime) > ReadoutDataManager.getCurrentTime(); }
     }
     
     @Override
