@@ -63,7 +63,7 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
     /**
      * Tracks the current local time in nanoseconds for this driver.
      */
-    private double localTime = 2.0;
+    private double localTime = 0.0;
     /**
      * Stores a reference to the calorimeter subdetector model. This
      * is needed to extract the crystal indices from the cell ID.
@@ -96,10 +96,6 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
     private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
     private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
     
-    // TODO: This should probably be handled by the manager?
-    //private static final int DEADTIME = 32 * 4;
-    //private double lastTrigger = Double.NaN;
-    
     @Override
     public void detectorChanged(Detector detector) {
         // Get the calorimeter sub-detector.
@@ -130,7 +126,6 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
                     cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
         }
         StringBuffer triggerOutput = new StringBuffer("Output");
-        //writer.write("Output");
         
         // Track whether or not a trigger was seen.
         boolean triggered = false;
