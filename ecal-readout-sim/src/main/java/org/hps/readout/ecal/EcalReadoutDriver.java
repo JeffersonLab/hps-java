@@ -151,6 +151,10 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
                 if (newHits == null) {
                     newHits = new ArrayList<T>();
                 }
+                boolean pass = ClockSingleton.getTime() - readoutTime() + ClockSingleton.getDt() >= readoutPeriod;
+                //verboseWriter.write(String.format("\t\t%.0f - %.0f + %.0f [%.0f] >= %.0f [%s]%n", ClockSingleton.getTime(), readoutTime(),
+                //        ClockSingleton.getDt(), ClockSingleton.getTime() - readoutTime() + ClockSingleton.getDt(), readoutPeriod,
+                //        pass ? "PASS" : "FAIL"));
                 readHits(newHits);
                 readoutCounter++;
             }
