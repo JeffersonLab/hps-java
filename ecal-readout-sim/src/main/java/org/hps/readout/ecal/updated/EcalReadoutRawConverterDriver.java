@@ -96,7 +96,7 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
     /**
      * Tracks the current local time in nanoseconds for this driver.
      */
-    private double localTime = 2.0;
+    private double localTime = 0.0;
     
     // ==============================================================
     // ==== Debug Output Writers ====================================
@@ -129,7 +129,7 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         
         // Check the data management driver to determine whether the
         // input collection is available or not.
-        if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime)) {
+        if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + 4.0)) {
             return;
         }
         
@@ -174,12 +174,30 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
             // If the hit is on a bad channel, and these are set to
             // be skipped, ignore the hit. Otherwise, add it to the
             // output list.
+            /*
             if(!(skipBadChannels && isBadChannel(newHit))) {
                 if(truthHit == null) {
                     newHits.add(newHit);
                 } else {
                     newTruthHits.add(truthHit);
                 }
+            }
+            */
+            
+            // If the hit is on a bad channel, and these are set to
+            // be skipped, ignore the hit. Otherwise, add it to the
+            // output list.
+            if(skipBadChannels && isBadChannel(newHit)) {
+                continue;
+            }
+            
+            // If the truth data is not available, just output a
+            // CalorimeterHit. If truth data is available, then
+            // instead output a SimCalorimeterHit.
+            if(truthHit == null) {
+                newHits.add(newHit);
+            } else {
+                newTruthHits.add(truthHit);
             }
         }
         
@@ -192,8 +210,14 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         
         // DEBUG :: Write the converted hits seen.
         writer.write("Output");
-        for(CalorimeterHit hit : newHits) {
-            writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+        if(persistTruth) {
+            for(CalorimeterHit hit : newTruthHits) {
+                writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+            }
+        } else {
+            for(CalorimeterHit hit : newHits) {
+                writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
+            }
         }
     }
     
