@@ -129,14 +129,14 @@
 			
 			<!-- Driver Parameters -->
 			<mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
-			<addNoise>false</addNoise>
+			<addNoise>true</addNoise>
 			<!-- 
 			     Readout offset is not the same as the old system - it measures
 			     amount of samples that are included before the trigger time in
 				 the ADC readout window. The old version can be converted by
 				 selecting a readout window equal to (readoutLatency - 65).
 			  -->
-			<readoutOffset>14</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+			<readoutOffset>13</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
 			<readoutWindow>50</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
 			<numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
 			<numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
