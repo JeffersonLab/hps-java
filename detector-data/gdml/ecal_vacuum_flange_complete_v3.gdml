@@ -1,0 +1,743 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <define>
+    <position name="front_flange_1inworld_volumepos" x="2.1420000000000003" y="0" z="137.80000000000001" unit="cm"/>
+    <position name="back_flange_1inworld_volumepos" x="-12.608499999999999" y="0" z="180.80000000000001" unit="cm"/>
+    <position name="ECAL_chamber_1inworld_volumepos" x="-11.940800000000001" y="0" z="159.30000000000001" unit="cm"/>
+    <position name="al_honeycomb_1inworld_volumepos" x="-18.858000000000001" y="0" z="155.80000000000001" unit="cm"/>
+    <position name="layer_1_top_1inworld_volumepos" x="4.1920000000000002" y="8.0999999999999996" z="152.80000000000001" unit="cm"/>
+    <position name="layer_2_top_1inworld_volumepos" x="4.1920000000000002" y="6.6899999999999995" z="152.80000000000001" unit="cm"/>
+    <position name="layer_3_top_1inworld_volumepos" x="4.1920000000000002" y="5.2799999999999994" z="152.80000000000001" unit="cm"/>
+    <position name="layer_4_top_1inworld_volumepos" x="4.1920000000000002" y="3.8699999999999992" z="152.80000000000001" unit="cm"/>
+    <position name="layer_1_bottom_1inworld_volumepos" x="4.1920000000000002" y="-4.0999999999999996" z="152.80000000000001" unit="cm"/>
+    <position name="layer_2_bottom_1inworld_volumepos" x="4.1920000000000002" y="-5.5099999999999998" z="152.80000000000001" unit="cm"/>
+    <position name="layer_3_bottom_1inworld_volumepos" x="4.1920000000000002" y="-6.9199999999999999" z="152.80000000000001" unit="cm"/>
+    <position name="layer_4_bottom_1inworld_volumepos" x="4.1920000000000002" y="-8.3300000000000001" z="152.80000000000001" unit="cm"/>
+    <position name="layer_5T_left_1inworld_volumepos" x="4.1920000000000002" y="2.46" z="152.80000000000001" unit="cm"/>
+    <position name="layer_5B_left_1inworld_volumepos" x="4.1920000000000002" y="-2.6899999999999995" z="152.80000000000001" unit="cm"/>
+    <position name="steel_bar_1inworld_volumepos" x="-35.357999999999997" y="0.90000000000000002" z="152.80000000000001" unit="cm"/>
+    <position name="cu_Tpipe_inner_left_1inworld_volumepos" x="1.6420000000000003" y="2.7000000000000002" z="152.80000000000001" unit="cm"/>
+    <rotation name="cu_Tpipe_inner_left_1inworld_volumerot" x="0" y="-0.95599999999999996" z="0" unit="deg"/>
+    <position name="cu_Tpipe_inner_right_1inworld_volumepos" x="-9.1580000000000013" y="2.7000000000000002" z="152.80000000000001" unit="cm"/>
+    <rotation name="cu_Tpipe_inner_right_1inworld_volumerot" x="0" y="9.6799999999999997" z="0" unit="deg"/>
+    <position name="cu_Bpipe_inner_left_1inworld_volumepos" x="1.6420000000000003" y="-2.7000000000000002" z="152.80000000000001" unit="cm"/>
+    <rotation name="cu_Bpipe_inner_left_1inworld_volumerot" x="0" y="-0.95599999999999996" z="0" unit="deg"/>
+    <position name="cu_Bpipe_inner_right_1inworld_volumepos" x="-9.1580000000000013" y="-2.7000000000000002" z="152.80000000000001" unit="cm"/>
+    <rotation name="cu_Bpipe_inner_right_1inworld_volumerot" x="0" y="9.6799999999999997" z="0" unit="deg"/>
+    <position name="cu_Tpipe_outer_right1_1inworld_volumepos" x="-10.858000000000001" y="1.3999999999999999" z="154.30000000000001" unit="cm"/>
+    <rotation name="cu_Tpipe_outer_right1_1inworld_volumerot" x="0" y="10" z="0" unit="deg"/>
+    <position name="cu_Tpipe_outer_right2_1inworld_volumepos" x="-27.858000000000001" y="1.3999999999999999" z="154.30000000000001" unit="cm"/>
+    <position name="cu_Tpipe_outer_right3_1inworld_volumepos" x="-34.857999999999997" y="1.5" z="142.10000000000002" unit="cm"/>
+    <rotation name="cu_Tpipe_outer_right3_1inworld_volumerot" x="-0" y="90" z="0" unit="deg"/>
+    <position name="cu_Bpipe_outer_right_1inworld_volumepos" x="-34.857999999999997" y="-1.5" z="142.10000000000002" unit="cm"/>
+    <rotation name="cu_Bpipe_outer_right_1inworld_volumerot" x="-0" y="90" z="0" unit="deg"/>
+    <position name="cu_Bpipe_outer_right1_1inworld_volumepos" x="-10.858000000000001" y="-1.3999999999999999" z="154.30000000000001" unit="cm"/>
+    <rotation name="cu_Bpipe_outer_right1_1inworld_volumerot" x="0" y="10" z="0" unit="deg"/>
+    <position name="cu_Bpipe_outer_right2_1inworld_volumepos" x="-27.858000000000001" y="-1.3999999999999999" z="154.30000000000001" unit="cm"/>
+    <position name="al_pipe_across_top1_1inworld_volumepos" x="2.1420000000000003" y="9" z="142.10000000000002" unit="cm"/>
+    <rotation name="al_pipe_across_top1_1inworld_volumerot" x="-90" y="86.999999999999957" z="180" unit="deg"/>
+    <position name="al_pipe_across_top2_1inworld_volumepos" x="2.1420000000000003" y="4" z="142.10000000000002" unit="cm"/>
+    <rotation name="al_pipe_across_top2_1inworld_volumerot" x="-90" y="89.000000000000099" z="180" unit="deg"/>
+    <position name="al_pipe_across_bottom1_1inworld_volumepos" x="2.1420000000000003" y="-9" z="142.10000000000002" unit="cm"/>
+    <rotation name="al_pipe_across_bottom1_1inworld_volumerot" x="90" y="86.999999999999957" z="0" unit="deg"/>
+    <position name="al_pipe_across_bottom2_1inworld_volumepos" x="2.1420000000000003" y="-4" z="142.10000000000002" unit="cm"/>
+    <rotation name="al_pipe_across_bottom2_1inworld_volumerot" x="90" y="89.000000000000099" z="0" unit="deg"/>
+    <position name="cu_plate_top_left_1inworld_volumepos" x="22.141999999999999" y="1.6000000000000001" z="152.80000000000001" unit="cm"/>
+    <position name="cu_plate_bottom_left_1inworld_volumepos" x="22.141999999999999" y="-1.6000000000000001" z="152.80000000000001" unit="cm"/>
+    <position name="cu_plate_top_right_1inworld_volumepos" x="-20.858000000000001" y="1.6000000000000001" z="152.80000000000001" unit="cm"/>
+    <position name="cu_plate_bottom_right_1inworld_volumepos" x="-20.858000000000001" y="-1.6000000000000001" z="152.80000000000001" unit="cm"/>
+    <position name="cu_plate_top_middle_1inworld_volumepos" x="-3.3579999999999997" y="3.1000000000000001" z="152.80000000000001" unit="cm"/>
+    <position name="cu_plate_bottom_middle_1inworld_volumepos" x="-3.3579999999999997" y="-3.1000000000000001" z="152.80000000000001" unit="cm"/>
+  </define>
+  <materials>
+    <material name="Vacuum" Z="1">
+      <D unit="g/cm3" value="0"/>
+      <atom unit="g/mole" value="0"/>
+    </material>
+    <material name="G4_Al" Z="13">
+      <D unit="g/cm3" value="2.6989999999999998"/>
+      <atom unit="g/mole" value="26.981538"/>
+    </material>
+    <material name="AlHoneycomb" Z="13">
+      <D unit="g/cm3" value="0.13"/>
+      <atom unit="g/mole" value="26.981538"/>
+    </material>
+    <element name="MANGANESE_elm" formula="MN" Z="25">
+      <atom unit="g/mole" value="54.938048999999999"/>
+    </element>
+    <element name="SILICON_elm" formula="SI" Z="14">
+      <atom unit="g/mole" value="28.0855"/>
+    </element>
+    <element name="CHROMIUM_elm" formula="CR" Z="24">
+      <atom unit="g/mole" value="51.996099999999998"/>
+    </element>
+    <element name="NICKEL_elm" formula="NI" Z="28">
+      <atom unit="g/mole" value="58.693399999999997"/>
+    </element>
+    <element name="IRON_elm" formula="FE" Z="26">
+      <atom unit="g/mole" value="55.844999999999999"/>
+    </element>
+    <material name="StainlessSteel">
+      <D unit="g/cm3" value="8.0199999999999996"/>
+      <fraction n="0.18999999761581421" ref="CHROMIUM_elm"/>
+      <fraction n="0.68000000715255737" ref="IRON_elm"/>
+      <fraction n="0.019999999552965164" ref="MANGANESE_elm"/>
+      <fraction n="0.10000000149011612" ref="NICKEL_elm"/>
+      <fraction n="0.0099999997764825821" ref="SILICON_elm"/>
+    </material>
+    <material name="G4_Cu" Z="29">
+      <D unit="g/cm3" value="8.9600000000000009"/>
+      <atom unit="g/mole" value="63.545645059999998"/>
+    </material>
+  </materials>
+  <solids>
+    <box name="world_volume_solid" x="2000" y="2000" z="2000" lunit="cm"/>
+    <box name="front_flange_box_shape" x="76.835000000000008" y="45.719999999999999" z="2" lunit="cm"/>
+    <trap name="front_chamber_trap_shape" z="3" theta="-0.98799999999999999" phi="0" x1="33.119799999999998" x2="33.119799999999998" x3="33.406400000000005" x4="33.406400000000005" y1="1.6000000000000001" y2="1.6000000000000001" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <subtraction name="front_minus_chamber_shape">
+      <first ref="front_flange_box_shape"/>
+      <second ref="front_chamber_trap_shape"/>
+      <position name="front_minus_chamber_shapefront_chamber_trap_shapepos" x="-14.6309" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <eltube name="flange_photontube_inside_shape" dx="1.1000000000000001" dy="1.1000000000000001" dz="3" lunit="cm"/>
+    <subtraction name="front_minus_photontube_shape">
+      <first ref="front_minus_chamber_shape"/>
+      <second ref="flange_photontube_inside_shape"/>
+      <position name="front_minus_photontube_shapeflange_photontube_inside_shapepos" x="2.0007000000000001" y="0" z="0" unit="cm"/>
+      <rotation name="front_minus_photontube_shapeflange_photontube_inside_shaperot" x="0" y="1.7480000000000002" z="0" unit="deg"/>
+    </subtraction>
+    <trap name="front_egap_trap_shape" z="3" theta="-4.7960000000000003" phi="0" x1="2.5683000000000002" x2="2.5683000000000002" x3="2.9716000000000005" x4="2.9716000000000005" y1="5.266" y2="5.266" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <subtraction name="front_minus_egap_shape">
+      <first ref="front_minus_photontube_shape"/>
+      <second ref="front_egap_trap_shape"/>
+      <position name="front_minus_egap_shapefront_egap_trap_shapepos" x="-4.4683000000000002" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <eltube name="flange_egap_inside_tube_shape" dx="2.633" dy="2.633" dz="3" lunit="cm"/>
+    <subtraction name="front_minus_egapleft_shape">
+      <first ref="front_minus_egap_shape"/>
+      <second ref="flange_egap_inside_tube_shape"/>
+      <position name="front_minus_egapleft_shapeflange_egap_inside_tube_shapepos" x="-3.0832999999999999" y="0" z="0" unit="cm"/>
+      <rotation name="front_minus_egapleft_shapeflange_egap_inside_tube_shaperot" x="0" y="-0.95599999999999996" z="0" unit="deg"/>
+    </subtraction>
+    <eltube name="flange_egap_inside_tube2_shape" dx="2.633" dy="2.633" dz="3" lunit="cm"/>
+    <subtraction name="front_flange_shape">
+      <first ref="front_minus_egapleft_shape"/>
+      <second ref="flange_egap_inside_tube2_shape"/>
+      <position name="front_flange_shapeflange_egap_inside_tube2_shapepos" x="-5.8532000000000002" y="0" z="0" unit="cm"/>
+      <rotation name="front_flange_shapeflange_egap_inside_tube2_shaperot" x="0" y="-8.5939999999999994" z="0" unit="deg"/>
+    </subtraction>
+    <box name="back_flange_box_shape" x="50.5" y="16" z="2" lunit="cm"/>
+    <trap name="back_chamber_trap_shape" z="3" theta="-0.98799999999999999" phi="0" x1="37.227899999999998" x2="37.227899999999998" x3="37.514499999999998" x4="37.514499999999998" y1="1.6000000000000001" y2="1.6000000000000001" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <subtraction name="back_minus_chamber_shape">
+      <first ref="back_flange_box_shape"/>
+      <second ref="back_chamber_trap_shape"/>
+      <position name="back_minus_chamber_shapeback_chamber_trap_shapepos" x="-0.62210000000000043" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <eltube name="flange_photontube_inside2_shape" dx="1.1000000000000001" dy="1.1000000000000001" dz="3" lunit="cm"/>
+    <subtraction name="back_minus_photontube_shape">
+      <first ref="back_minus_chamber_shape"/>
+      <second ref="flange_photontube_inside2_shape"/>
+      <position name="back_minus_photontube_shapeflange_photontube_inside2_shapepos" x="18.063500000000001" y="0" z="0" unit="cm"/>
+      <rotation name="back_minus_photontube_shapeflange_photontube_inside2_shaperot" x="0" y="1.7480000000000002" z="0" unit="deg"/>
+    </subtraction>
+    <trap name="back_egap_trap_shape" z="3" theta="-4.7960000000000003" phi="0" x1="8.3492999999999995" x2="8.3492999999999995" x3="8.7525999999999993" x4="8.7525999999999993" y1="5.266" y2="5.266" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <subtraction name="back_minus_egap_shape">
+      <first ref="back_minus_photontube_shape"/>
+      <second ref="back_egap_trap_shape"/>
+      <position name="back_minus_egap_shapeback_egap_trap_shapepos" x="6.674199999999999" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <eltube name="flange_egap_inside_tube3_shape" dx="2.633" dy="2.633" dz="3" lunit="cm"/>
+    <subtraction name="back_minus_egapleft_shape">
+      <first ref="back_minus_egap_shape"/>
+      <second ref="flange_egap_inside_tube3_shape"/>
+      <position name="back_minus_egapleft_shapeflange_egap_inside_tube3_shapepos" x="10.9497" y="0" z="0" unit="cm"/>
+      <rotation name="back_minus_egapleft_shapeflange_egap_inside_tube3_shaperot" x="0" y="-0.95599999999999996" z="0" unit="deg"/>
+    </subtraction>
+    <eltube name="flange_egap_inside_tube4_shape" dx="2.633" dy="2.633" dz="3" lunit="cm"/>
+    <subtraction name="back_flange_shape">
+      <first ref="back_minus_egapleft_shape"/>
+      <second ref="flange_egap_inside_tube4_shape"/>
+      <position name="back_flange_shapeflange_egap_inside_tube4_shapepos" x="2.3986999999999994" y="0" z="0" unit="cm"/>
+      <rotation name="back_flange_shapeflange_egap_inside_tube4_shaperot" x="0" y="-8.5939999999999994" z="0" unit="deg"/>
+    </subtraction>
+    <trap name="chamber_trap_shape" z="45" theta="-1.8640000000000001" phi="0" x1="37.700000000000003" x2="37.700000000000003" x3="40.629000000000005" x4="40.629000000000005" y1="2.8000000000000003" y2="2.8000000000000003" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <box name="chamber_cutaway_box_shape" x="50" y="1" z="30" lunit="cm"/>
+    <subtraction name="chamber_trim1_shape">
+      <first ref="chamber_trap_shape"/>
+      <second ref="chamber_cutaway_box_shape"/>
+      <position name="chamber_trim1_shapechamber_cutaway_box_shapepos" x="0" y="1.6000000000000001" z="-9" unit="cm"/>
+    </subtraction>
+    <box name="chamber_cutaway_box2_shape" x="50" y="1" z="30" lunit="cm"/>
+    <subtraction name="chamber_trim2_shape">
+      <first ref="chamber_trim1_shape"/>
+      <second ref="chamber_cutaway_box2_shape"/>
+      <position name="chamber_trim2_shapechamber_cutaway_box2_shapepos" x="0" y="-1.6000000000000001" z="-9" unit="cm"/>
+    </subtraction>
+    <eltube name="photontube_outside_shape" dx="1.3" dy="1.3" dz="23.5" lunit="cm"/>
+    <union name="chamber_with_photontube_shape">
+      <first ref="chamber_trim2_shape"/>
+      <second ref="photontube_outside_shape"/>
+      <position name="chamber_with_photontube_shapephotontube_outside_shapepos" x="16.739699999999999" y="0" z="0" unit="cm"/>
+      <rotation name="chamber_with_photontube_shapephotontube_outside_shaperot" x="0" y="1.7480000000000002" z="0" unit="deg"/>
+    </union>
+    <trap name="egap_outside_trap_upper_shape" z="45" theta="-4.7960000000000003" phi="0" x1="10.691200000000002" x2="5.2344000000000008" x3="16.741099999999999" x4="11.284300000000002" y1="3.2330000000000001" y2="3.2330000000000001" alpha1="0.26900000000000002" alpha2="0.26900000000000002" aunit="deg" lunit="cm"/>
+    <union name="chamber_with_egap_upper_shape">
+      <first ref="chamber_with_photontube_shape"/>
+      <second ref="egap_outside_trap_upper_shape"/>
+      <position name="chamber_with_egap_upper_shapeegap_outside_trap_upper_shapepos" x="7.7018000000000004" y="1.6165" z="0" unit="cm"/>
+    </union>
+    <trap name="egap_outside_trap_lower_shape" z="45" theta="-4.7960000000000003" phi="0" x1="5.2344000000000008" x2="10.691200000000002" x3="11.284300000000002" x4="16.741099999999999" y1="3.2330000000000001" y2="3.2330000000000001" alpha1="-0.26900000000000002" alpha2="-0.26900000000000002" aunit="deg" lunit="cm"/>
+    <union name="chamber_with_egap_lower_shape">
+      <first ref="chamber_with_egap_upper_shape"/>
+      <second ref="egap_outside_trap_lower_shape"/>
+      <position name="chamber_with_egap_lower_shapeegap_outside_trap_lower_shapepos" x="7.7018000000000004" y="-1.6165" z="0" unit="cm"/>
+    </union>
+    <box name="chamber_cutaway_box3_shape" x="50" y="1" z="30" lunit="cm"/>
+    <subtraction name="chamber_with_egap_trimtop_shape">
+      <first ref="chamber_with_egap_lower_shape"/>
+      <second ref="chamber_cutaway_box3_shape"/>
+      <position name="chamber_with_egap_trimtop_shapechamber_cutaway_box3_shapepos" x="0" y="3.4329999999999998" z="-9" unit="cm"/>
+    </subtraction>
+    <box name="chamber_cutaway_box4_shape" x="50" y="1" z="30" lunit="cm"/>
+    <subtraction name="chamber_with_egap_trimbot_shape">
+      <first ref="chamber_with_egap_trimtop_shape"/>
+      <second ref="chamber_cutaway_box4_shape"/>
+      <position name="chamber_with_egap_trimbot_shapechamber_cutaway_box4_shapepos" x="0" y="-3.4329999999999998" z="-9" unit="cm"/>
+    </subtraction>
+    <box name="back_end_box_shape" x="76.835000000000008" y="45.719999999999999" z="5" lunit="cm"/>
+    <subtraction name="chamber_outside_trim1_shape">
+      <first ref="chamber_with_egap_trimbot_shape"/>
+      <second ref="back_end_box_shape"/>
+      <position name="chamber_outside_trim1_shapeback_end_box_shapepos" x="0" y="0" z="-23" unit="cm"/>
+    </subtraction>
+    <box name="back_end_box2_shape" x="76.835000000000008" y="45.719999999999999" z="5" lunit="cm"/>
+    <subtraction name="chamber_outside_trim2_shape">
+      <first ref="chamber_outside_trim1_shape"/>
+      <second ref="back_end_box2_shape"/>
+      <position name="chamber_outside_trim2_shapeback_end_box2_shapepos" x="0" y="0" z="23" unit="cm"/>
+    </subtraction>
+    <eltube name="photontube_inside_shape" dx="1.1000000000000001" dy="1.1000000000000001" dz="23.5" lunit="cm"/>
+    <subtraction name="chamber_minus_photontube_shape">
+      <first ref="chamber_outside_trim2_shape"/>
+      <second ref="photontube_inside_shape"/>
+      <position name="chamber_minus_photontube_shapephotontube_inside_shapepos" x="16.739699999999999" y="0" z="0" unit="cm"/>
+      <rotation name="chamber_minus_photontube_shapephotontube_inside_shaperot" x="0" y="1.7480000000000002" z="0" unit="deg"/>
+    </subtraction>
+    <trap name="chamber_inside_trap_shape" z="45.000100000000003" theta="-0.98799999999999999" phi="0" x1="33.1676" x2="33.1676" x3="37.466699999999996" x4="37.466699999999996" y1="1.6000000000000001" y2="1.6000000000000001" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <subtraction name="chamber_minus_inside_shape">
+      <first ref="chamber_minus_photontube_shape"/>
+      <second ref="chamber_inside_trap_shape"/>
+      <position name="chamber_minus_inside_shapechamber_inside_trap_shapepos" x="-0.91889999999999938" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <trap name="egap_inside_trap_shape" z="45.000100000000003" theta="-4.7960000000000003" phi="0" x1="2.6355000000000004" x2="2.6355000000000004" x3="8.6853999999999996" x4="8.6853999999999996" y1="5.266" y2="5.266" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <subtraction name="chamber_minus_egapinside_shape">
+      <first ref="chamber_minus_inside_shape"/>
+      <second ref="egap_inside_trap_shape"/>
+      <position name="chamber_minus_egapinside_shapeegap_inside_trap_shapepos" x="7.8105000000000011" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <eltube name="egap_inside_tube_shape" dx="2.633" dy="2.633" dz="24" lunit="cm"/>
+    <subtraction name="chamber_minus_egap_left_shape">
+      <first ref="chamber_minus_egapinside_shape"/>
+      <second ref="egap_inside_tube_shape"/>
+      <position name="chamber_minus_egap_left_shapeegap_inside_tube_shapepos" x="10.640750000000001" y="0" z="0" unit="cm"/>
+      <rotation name="chamber_minus_egap_left_shapeegap_inside_tube_shaperot" x="0" y="-0.95599999999999996" z="0" unit="deg"/>
+    </subtraction>
+    <tube name="egap_inside_tube2_shape" rmin="0" rmax="2.633" z="48" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <subtraction name="ECAL_chamber_shape">
+      <first ref="chamber_minus_egap_left_shape"/>
+      <second ref="egap_inside_tube2_shape"/>
+      <position name="ECAL_chamber_shapeegap_inside_tube2_shapepos" x="4.9802999999999997" y="0" z="0" unit="cm"/>
+      <rotation name="ECAL_chamber_shapeegap_inside_tube2_shaperot" x="0" y="-8.5939999999999994" z="0" unit="deg"/>
+    </subtraction>
+    <box name="al_honeycomb_shape" x="6" y="1.6000000000000001" z="6" lunit="cm"/>
+    <box name="ecal_box_outer1_shape" x="80" y="1.3999999999999999" z="20.100000000000001" lunit="cm"/>
+    <box name="ecal_box_inner1_shape" x="78" y="2" z="21" lunit="cm"/>
+    <subtraction name="ecal_box_minus_inner1_shape">
+      <first ref="ecal_box_outer1_shape"/>
+      <second ref="ecal_box_inner1_shape"/>
+      <position name="ecal_box_minus_inner1_shapeecal_box_inner1_shapepos" x="0" y="0.16" z="1.8500000000000001" unit="cm"/>
+    </subtraction>
+    <box name="ecal_box_inner2_shape" x="68" y="1.2" z="7.4199999999999999" lunit="cm"/>
+    <subtraction name="ecal_box_minus_inner2_shape">
+      <first ref="ecal_box_minus_inner1_shape"/>
+      <second ref="ecal_box_inner2_shape"/>
+      <position name="ecal_box_minus_inner2_shapeecal_box_inner2_shapepos" x="0" y="0.16" z="-10.050000000000001" unit="cm"/>
+    </subtraction>
+    <para name="ppd_0_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="0" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd_shape">
+      <first ref="ecal_box_minus_inner2_shape"/>
+      <second ref="ppd_0_shape"/>
+      <position name="box_with_ppd_shapeppd_0_shapepos" x="0" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_1_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="-3.8700000000000001" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd1_shape">
+      <first ref="box_with_ppd_shape"/>
+      <second ref="ppd_1_shape"/>
+      <position name="box_with_ppd1_shapeppd_1_shapepos" x="-5.2400000000000002" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_2_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="-7.7400000000000002" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd2_shape">
+      <first ref="box_with_ppd1_shape"/>
+      <second ref="ppd_2_shape"/>
+      <position name="box_with_ppd2_shapeppd_2_shapepos" x="-10.5" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_3_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="-11.619999999999999" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd3_shape">
+      <first ref="box_with_ppd2_shape"/>
+      <second ref="ppd_3_shape"/>
+      <position name="box_with_ppd3_shapeppd_3_shapepos" x="-15.800000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_4_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="-15.49" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd4_shape">
+      <first ref="box_with_ppd3_shape"/>
+      <second ref="ppd_4_shape"/>
+      <position name="box_with_ppd4_shapeppd_4_shapepos" x="-21.170000000000002" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_5_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="-19.359999999999999" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd5_shape">
+      <first ref="box_with_ppd4_shape"/>
+      <second ref="ppd_5_shape"/>
+      <position name="box_with_ppd5_shapeppd_5_shapepos" x="-26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_6_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="3.8700000000000001" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd6_shape">
+      <first ref="box_with_ppd5_shape"/>
+      <second ref="ppd_6_shape"/>
+      <position name="box_with_ppd6_shapeppd_6_shapepos" x="5.2400000000000002" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_7_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="7.7400000000000002" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd7_shape">
+      <first ref="box_with_ppd6_shape"/>
+      <second ref="ppd_7_shape"/>
+      <position name="box_with_ppd7_shapeppd_7_shapepos" x="10.5" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_8_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="11.619999999999999" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd8_shape">
+      <first ref="box_with_ppd7_shape"/>
+      <second ref="ppd_8_shape"/>
+      <position name="box_with_ppd8_shapeppd_8_shapepos" x="15.800000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_9_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="15.49" phi="0" aunit="deg" lunit="cm"/>
+    <union name="box_with_ppd9_shape">
+      <first ref="box_with_ppd8_shape"/>
+      <second ref="ppd_9_shape"/>
+      <position name="box_with_ppd9_shapeppd_9_shapepos" x="21.170000000000002" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_10_shape" x="0.59999999999999998" y="1.3999999999999999" z="1.5" alpha="0" theta="19.359999999999999" phi="0" aunit="deg" lunit="cm"/>
+    <union name="layer_1_top_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_1_top_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_2_top_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_2_top_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_3_top_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_3_top_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_4_top_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_4_top_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_1_bottom_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_1_bottom_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_2_bottom_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_2_bottom_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_3_bottom_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_3_bottom_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_4_bottom_shape">
+      <first ref="box_with_ppd9_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_4_bottom_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <para name="ppd_left2_shape" x="0.40000000000000002" y="1.3999999999999999" z="20.100000000000001" alpha="0" theta="0.96999999999999997" phi="0" aunit="deg" lunit="cm"/>
+    <union name="layer_5a1_1_shape">
+      <first ref="ecal_box_minus_inner2_shape"/>
+      <second ref="ppd_left2_shape"/>
+      <position name="layer_5a1_1_shapeppd_left2_shapepos" x="-1.903" y="0" z="0" unit="cm"/>
+    </union>
+    <para name="ppd_left1_shape" x="0.502" y="1.3999999999999999" z="1.5" alpha="0" theta="0.96999999999999997" phi="0" aunit="deg" lunit="cm"/>
+    <union name="layer_5a1_shape">
+      <first ref="layer_5a1_1_shape"/>
+      <second ref="ppd_left1_shape"/>
+      <position name="layer_5a1_shapeppd_left1_shapepos" x="-1.6499999999999999" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <trd name="electron_hole_left_shape" x1="38.177" x2="38.856999999999999" y1="4" y2="4" z="20.199999999999999" lunit="cm"/>
+    <subtraction name="layer_5a2_shape">
+      <first ref="layer_5a1_shape"/>
+      <second ref="electron_hole_left_shape"/>
+      <position name="layer_5a2_shapeelectron_hole_left_shapepos" x="-21.361499999999999" y="0" z="0" unit="cm"/>
+    </subtraction>
+    <union name="layer_5a3_shape">
+      <first ref="layer_5a2_shape"/>
+      <second ref="ppd_6_shape"/>
+      <position name="layer_5a3_shapeppd_6_shapepos" x="5.2400000000000002" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_5a4_shape">
+      <first ref="layer_5a3_shape"/>
+      <second ref="ppd_7_shape"/>
+      <position name="layer_5a4_shapeppd_7_shapepos" x="10.5" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_5a5_shape">
+      <first ref="layer_5a4_shape"/>
+      <second ref="ppd_8_shape"/>
+      <position name="layer_5a5_shapeppd_8_shapepos" x="15.800000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_5a6_shape">
+      <first ref="layer_5a5_shape"/>
+      <second ref="ppd_9_shape"/>
+      <position name="layer_5a6_shapeppd_9_shapepos" x="21.170000000000002" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_5a7_shape">
+      <first ref="layer_5a6_shape"/>
+      <second ref="ppd_10_shape"/>
+      <position name="layer_5a7_shapeppd_10_shapepos" x="26.640000000000001" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_5T_left_shape">
+      <first ref="layer_5a7_shape"/>
+      <second ref="ppd_0_shape"/>
+      <position name="layer_5T_left_shapeppd_0_shapepos" x="0" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <union name="layer_5B_left_shape">
+      <first ref="layer_5a7_shape"/>
+      <second ref="ppd_0_shape"/>
+      <position name="layer_5B_left_shapeppd_0_shapepos" x="0" y="0" z="-9.3000000000000007" unit="cm"/>
+    </union>
+    <box name="steel_bar_shape" x="3" y="1.5" z="20" lunit="cm"/>
+    <tube name="cu_Tpipe_inner_left_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="20.100000000000001" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="cu_Tpipe_inner_right_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="20.100000000000001" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="cu_Bpipe_inner_left_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="20.100000000000001" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="cu_Bpipe_inner_right_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="20.100000000000001" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <eltube name="cu_Tpipe_outer_right1_shape" dx="0.5" dy="0.10000000000000001" dz="10" lunit="cm"/>
+    <eltube name="cu_Tpipe_outer_right2_shape" dx="0.5" dy="0.10000000000000001" dz="10" lunit="cm"/>
+    <tube name="cu_Tpipe_outer_right3_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="8" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="cu_Bpipe_outer_right_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="8" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <eltube name="cu_Bpipe_outer_right1_shape" dx="0.5" dy="0.10000000000000001" dz="10" lunit="cm"/>
+    <eltube name="cu_Bpipe_outer_right2_shape" dx="0.5" dy="0.10000000000000001" dz="10" lunit="cm"/>
+    <tube name="al_pipe_across_top1_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="66" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="al_pipe_across_top2_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="74" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="al_pipe_across_bottom1_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="70" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <tube name="al_pipe_across_bottom2_shape" rmin="0.29999999999999999" rmax="0.40000000000000002" z="78" startphi="0" deltaphi="360" aunit="deg" lunit="cm"/>
+    <para name="cu_plate_top_left_shape" x="40" y="0.10000000000000001" z="20" alpha="0" theta="0.96999999999999997" phi="0" aunit="deg" lunit="cm"/>
+    <para name="cu_plate_bottom_left_shape" x="40" y="0.10000000000000001" z="20" alpha="0" theta="0.96999999999999997" phi="0" aunit="deg" lunit="cm"/>
+    <para name="cu_plate_top_right_shape" x="22" y="0.10000000000000001" z="20" alpha="0" theta="9.6799999999999997" phi="180" aunit="deg" lunit="cm"/>
+    <para name="cu_plate_bottom_right_shape" x="22" y="0.10000000000000001" z="20" alpha="0" theta="-9.6799999999999997" phi="0" aunit="deg" lunit="cm"/>
+    <trd name="cu_plate_top_middle_shape" x1="7" x2="9.8000000000000007" y1="0.10000000000000001" y2="0.10000000000000001" z="20" lunit="cm"/>
+    <trd name="cu_plate_bottom_middle_shape" x1="7" x2="9.8000000000000007" y1="0.10000000000000001" y2="0.10000000000000001" z="20" lunit="cm"/>
+  </solids>
+  <structure>
+    <volume name="front_flange">
+      <materialref ref="G4_Al"/>
+      <solidref ref="front_flange_shape"/>
+    </volume>
+    <volume name="back_flange">
+      <materialref ref="G4_Al"/>
+      <solidref ref="back_flange_shape"/>
+    </volume>
+    <volume name="ECAL_chamber">
+      <materialref ref="G4_Al"/>
+      <solidref ref="ECAL_chamber_shape"/>
+    </volume>
+    <volume name="al_honeycomb">
+      <materialref ref="AlHoneycomb"/>
+      <solidref ref="al_honeycomb_shape"/>
+    </volume>
+    <volume name="layer_1_top">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_1_top_shape"/>
+    </volume>
+    <volume name="layer_2_top">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_2_top_shape"/>
+    </volume>
+    <volume name="layer_3_top">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_3_top_shape"/>
+    </volume>
+    <volume name="layer_4_top">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_4_top_shape"/>
+    </volume>
+    <volume name="layer_1_bottom">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_1_bottom_shape"/>
+    </volume>
+    <volume name="layer_2_bottom">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_2_bottom_shape"/>
+    </volume>
+    <volume name="layer_3_bottom">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_3_bottom_shape"/>
+    </volume>
+    <volume name="layer_4_bottom">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_4_bottom_shape"/>
+    </volume>
+    <volume name="layer_5T_left">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_5T_left_shape"/>
+    </volume>
+    <volume name="layer_5B_left">
+      <materialref ref="G4_Al"/>
+      <solidref ref="layer_5B_left_shape"/>
+    </volume>
+    <volume name="steel_bar">
+      <materialref ref="StainlessSteel"/>
+      <solidref ref="steel_bar_shape"/>
+    </volume>
+    <volume name="cu_Tpipe_inner_left">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Tpipe_inner_left_shape"/>
+    </volume>
+    <volume name="cu_Tpipe_inner_right">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Tpipe_inner_right_shape"/>
+    </volume>
+    <volume name="cu_Bpipe_inner_left">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Bpipe_inner_left_shape"/>
+    </volume>
+    <volume name="cu_Bpipe_inner_right">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Bpipe_inner_right_shape"/>
+    </volume>
+    <volume name="cu_Tpipe_outer_right1">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Tpipe_outer_right1_shape"/>
+    </volume>
+    <volume name="cu_Tpipe_outer_right2">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Tpipe_outer_right2_shape"/>
+    </volume>
+    <volume name="cu_Tpipe_outer_right3">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Tpipe_outer_right3_shape"/>
+    </volume>
+    <volume name="cu_Bpipe_outer_right">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Bpipe_outer_right_shape"/>
+    </volume>
+    <volume name="cu_Bpipe_outer_right1">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Bpipe_outer_right1_shape"/>
+    </volume>
+    <volume name="cu_Bpipe_outer_right2">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_Bpipe_outer_right2_shape"/>
+    </volume>
+    <volume name="al_pipe_across_top1">
+      <materialref ref="G4_Al"/>
+      <solidref ref="al_pipe_across_top1_shape"/>
+    </volume>
+    <volume name="al_pipe_across_top2">
+      <materialref ref="G4_Al"/>
+      <solidref ref="al_pipe_across_top2_shape"/>
+    </volume>
+    <volume name="al_pipe_across_bottom1">
+      <materialref ref="G4_Al"/>
+      <solidref ref="al_pipe_across_bottom1_shape"/>
+    </volume>
+    <volume name="al_pipe_across_bottom2">
+      <materialref ref="G4_Al"/>
+      <solidref ref="al_pipe_across_bottom2_shape"/>
+    </volume>
+    <volume name="cu_plate_top_left">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_plate_top_left_shape"/>
+    </volume>
+    <volume name="cu_plate_bottom_left">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_plate_bottom_left_shape"/>
+    </volume>
+    <volume name="cu_plate_top_right">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_plate_top_right_shape"/>
+    </volume>
+    <volume name="cu_plate_bottom_right">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_plate_bottom_right_shape"/>
+    </volume>
+    <volume name="cu_plate_top_middle">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_plate_top_middle_shape"/>
+    </volume>
+    <volume name="cu_plate_bottom_middle">
+      <materialref ref="G4_Cu"/>
+      <solidref ref="cu_plate_bottom_middle_shape"/>
+    </volume>
+    <volume name="world_volume">
+      <materialref ref="Vacuum"/>
+      <solidref ref="world_volume_solid"/>
+      <physvol name="front_flange_1" >
+        <volumeref ref="front_flange"/>
+        <positionref ref="front_flange_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="back_flange_1" >
+        <volumeref ref="back_flange"/>
+        <positionref ref="back_flange_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="ECAL_chamber_1" >
+        <volumeref ref="ECAL_chamber"/>
+        <positionref ref="ECAL_chamber_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="al_honeycomb_1" >
+        <volumeref ref="al_honeycomb"/>
+        <positionref ref="al_honeycomb_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_1_top_1" >
+        <volumeref ref="layer_1_top"/>
+        <positionref ref="layer_1_top_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_2_top_1" >
+        <volumeref ref="layer_2_top"/>
+        <positionref ref="layer_2_top_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_3_top_1" >
+        <volumeref ref="layer_3_top"/>
+        <positionref ref="layer_3_top_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_4_top_1" >
+        <volumeref ref="layer_4_top"/>
+        <positionref ref="layer_4_top_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_1_bottom_1" >
+        <volumeref ref="layer_1_bottom"/>
+        <positionref ref="layer_1_bottom_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_2_bottom_1" >
+        <volumeref ref="layer_2_bottom"/>
+        <positionref ref="layer_2_bottom_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_3_bottom_1" >
+        <volumeref ref="layer_3_bottom"/>
+        <positionref ref="layer_3_bottom_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_4_bottom_1" >
+        <volumeref ref="layer_4_bottom"/>
+        <positionref ref="layer_4_bottom_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_5T_left_1" >
+        <volumeref ref="layer_5T_left"/>
+        <positionref ref="layer_5T_left_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="layer_5B_left_1" >
+        <volumeref ref="layer_5B_left"/>
+        <positionref ref="layer_5B_left_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="steel_bar_1" >
+        <volumeref ref="steel_bar"/>
+        <positionref ref="steel_bar_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_Tpipe_inner_left_1" >
+        <volumeref ref="cu_Tpipe_inner_left"/>
+        <positionref ref="cu_Tpipe_inner_left_1inworld_volumepos"/>
+        <rotationref ref="cu_Tpipe_inner_left_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Tpipe_inner_right_1" >
+        <volumeref ref="cu_Tpipe_inner_right"/>
+        <positionref ref="cu_Tpipe_inner_right_1inworld_volumepos"/>
+        <rotationref ref="cu_Tpipe_inner_right_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Bpipe_inner_left_1" >
+        <volumeref ref="cu_Bpipe_inner_left"/>
+        <positionref ref="cu_Bpipe_inner_left_1inworld_volumepos"/>
+        <rotationref ref="cu_Bpipe_inner_left_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Bpipe_inner_right_1" >
+        <volumeref ref="cu_Bpipe_inner_right"/>
+        <positionref ref="cu_Bpipe_inner_right_1inworld_volumepos"/>
+        <rotationref ref="cu_Bpipe_inner_right_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Tpipe_outer_right1_1" >
+        <volumeref ref="cu_Tpipe_outer_right1"/>
+        <positionref ref="cu_Tpipe_outer_right1_1inworld_volumepos"/>
+        <rotationref ref="cu_Tpipe_outer_right1_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Tpipe_outer_right2_1" >
+        <volumeref ref="cu_Tpipe_outer_right2"/>
+        <positionref ref="cu_Tpipe_outer_right2_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_Tpipe_outer_right3_1" >
+        <volumeref ref="cu_Tpipe_outer_right3"/>
+        <positionref ref="cu_Tpipe_outer_right3_1inworld_volumepos"/>
+        <rotationref ref="cu_Tpipe_outer_right3_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Bpipe_outer_right_1" >
+        <volumeref ref="cu_Bpipe_outer_right"/>
+        <positionref ref="cu_Bpipe_outer_right_1inworld_volumepos"/>
+        <rotationref ref="cu_Bpipe_outer_right_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Bpipe_outer_right1_1" >
+        <volumeref ref="cu_Bpipe_outer_right1"/>
+        <positionref ref="cu_Bpipe_outer_right1_1inworld_volumepos"/>
+        <rotationref ref="cu_Bpipe_outer_right1_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_Bpipe_outer_right2_1" >
+        <volumeref ref="cu_Bpipe_outer_right2"/>
+        <positionref ref="cu_Bpipe_outer_right2_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="al_pipe_across_top1_1" >
+        <volumeref ref="al_pipe_across_top1"/>
+        <positionref ref="al_pipe_across_top1_1inworld_volumepos"/>
+        <rotationref ref="al_pipe_across_top1_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="al_pipe_across_top2_1" >
+        <volumeref ref="al_pipe_across_top2"/>
+        <positionref ref="al_pipe_across_top2_1inworld_volumepos"/>
+        <rotationref ref="al_pipe_across_top2_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="al_pipe_across_bottom1_1" >
+        <volumeref ref="al_pipe_across_bottom1"/>
+        <positionref ref="al_pipe_across_bottom1_1inworld_volumepos"/>
+        <rotationref ref="al_pipe_across_bottom1_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="al_pipe_across_bottom2_1" >
+        <volumeref ref="al_pipe_across_bottom2"/>
+        <positionref ref="al_pipe_across_bottom2_1inworld_volumepos"/>
+        <rotationref ref="al_pipe_across_bottom2_1inworld_volumerot"/>
+      </physvol>
+      <physvol name="cu_plate_top_left_1" >
+        <volumeref ref="cu_plate_top_left"/>
+        <positionref ref="cu_plate_top_left_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_plate_bottom_left_1" >
+        <volumeref ref="cu_plate_bottom_left"/>
+        <positionref ref="cu_plate_bottom_left_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_plate_top_right_1" >
+        <volumeref ref="cu_plate_top_right"/>
+        <positionref ref="cu_plate_top_right_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_plate_bottom_right_1" >
+        <volumeref ref="cu_plate_bottom_right"/>
+        <positionref ref="cu_plate_bottom_right_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_plate_top_middle_1" >
+        <volumeref ref="cu_plate_top_middle"/>
+        <positionref ref="cu_plate_top_middle_1inworld_volumepos"/>
+      </physvol>
+      <physvol name="cu_plate_bottom_middle_1" >
+        <volumeref ref="cu_plate_bottom_middle"/>
+        <positionref ref="cu_plate_bottom_middle_1inworld_volumepos"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="world_volume"/>
+  </setup>
+</gdml>
