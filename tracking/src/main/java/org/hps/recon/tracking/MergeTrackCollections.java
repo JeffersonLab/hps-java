@@ -5,7 +5,10 @@ import hep.aida.IHistogram1D;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,7 +34,8 @@ public class MergeTrackCollections extends Driver {
 
     private String outputCollectionName = "MatchedTracks";
     // private String partialTrackCollectionName = "PartialTracks";
-    private String inputTrackCollectionName = "";
+    //private String inputTrackCollectionName = "";
+    private Set<String> inputTrackCollectionName = new HashSet<String>();
     private boolean removeCollections = true;
     private boolean doPlots = false;
     boolean isTransient = false;
@@ -102,10 +106,9 @@ public class MergeTrackCollections extends Driver {
      * @param inputTrackCollectionName
      *            Defaults to "" which means take all track collections in file
      */
-    public void setInputTrackCollectionName(String name) {
-        this.inputTrackCollectionName = name;
+    public void setInputTrackCollectionName(String[] name) {
+        this.inputTrackCollectionName = new HashSet<String>(Arrays.asList(name));
     }
-
     /**
      * Remove existing track collections after merging them.
      *
@@ -144,12 +147,17 @@ public class MergeTrackCollections extends Driver {
     public void process(EventHeader event) {
         List<List<Track>> trackCollections;
 
-        if (inputTrackCollectionName == "") {
+        //if (inputTrackCollectionName == "") {
+        if (inputTrackCollectionName.isEmpty()) {
             trackCollections = event.get(Track.class);
         } else {
             trackCollections = new ArrayList<List<Track>>();
-            List<Track> temp = event.get(Track.class, inputTrackCollectionName);
-            trackCollections.add(temp);
+            for(String inputTrack:inputTrackCollectionName){
+                List<Track> temp = event.get(Track.class, inputTrack);
+                trackCollections.add(temp);
+            }
+            //List<Track> temp = event.get(Track.class, inputTrackCollectionName);
+            //trackCollections.add(temp);
         }
 
         if (doPlots) {

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @brief Steering file that will be used for pass 1 reconstruction of 
+             the 2016 Engineering Run data. 
+      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
+    -->
+    <execute>
+
+        <!--RF driver-->
+        <driver name="RfFitter"/>
+ 
+        <!-- Ecal reconstruction drivers -->        
+        <!--<driver name="EcalRunningPedestal"/>-->
+        <driver name="EcalRawConverter" />
+        <driver name="HitTimeSmear"/>
+        <driver name="ReconClusterer" />
+        <driver name="CopyCluster" />
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <!-- 
+            Will run track finding algorithm using layers 345 as a seed, 
+            layer 2 to confirm and layers 1 and 6 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks".
+        -->
+        <driver name="TrackReconSeed345Conf2Extd16"/>       
+        <!-- 
+            Will run track finding algorithm using layers 456 as a seed, 
+            layer 3 to confirm and layers 2 and 1 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s456_c3_e21"
+        -->
+        <driver name="TrackReconSeed456Conf3Extd21"/>
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 4 to confirm and layers 5 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c4_e56"
+        -->
+        <driver name="TrackReconSeed123Conf4Extd56"/>
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 5 to confirm and layers 4 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c5_e46"
+        --> 
+        <driver name="TrackReconSeed123Conf5Extd46"/>
+        <!-- 
+           TrackDataDriver needs to be run before ReconParticleDriver so the
+           ReconstructedParticle types are properly set.
+        -->
+        <driver name="MergeTrackCollections"/>
+        <driver name="GBLRefitterDriver" />
+        <!--<driver name="TrackDataDriver" />-->
+        <driver name="IsolationRefit"/>
+        <driver name="RemoveCollections"/>
+        
+        <driver name="RawTrackerHitSensorSetupTruth"/>
+        <driver name="KeepTruthHits"/>
+        <driver name="RawTrackerHitFitterDriverTruth" />
+        <!--<driver name="TrackerHitDriverTruth"/>-->
+        <!--<driver name="HelicalTrackHitDriverTruth"/>-->
+        <!-- 
+            Will run track finding algorithm using layers 345 as a seed, 
+            layer 2 to confirm and layers 1 and 6 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks".
+        -->
+        <!--<driver name="TrackReconSeed345Conf2Extd16Truth"/>-->       
+        <!-- 
+            Will run track finding algorithm using layers 456 as a seed, 
+            layer 3 to confirm and layers 2 and 1 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s456_c3_e21"
+        -->
+        <!--<driver name="TrackReconSeed456Conf3Extd21Truth"/>-->
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 4 to confirm and layers 5 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c4_e56"
+        -->
+        <!--<driver name="TrackReconSeed123Conf4Extd56Truth"/>-->
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 5 to confirm and layers 4 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c5_e46"
+        --> 
+        <!--<driver name="TrackReconSeed123Conf5Extd46Truth"/>-->
+        <!-- 
+           TrackDataDriver needs to be run before ReconParticleDriver so the
+           ReconstructedParticle types are properly set.
+        -->
+        <!--<driver name="MergeTrackCollectionsTruth"/>-->
+        <!--<driver name="GBLRefitterDriverTruth" />-->
+        <!--<driver name="ReconParticleDriver" /> -->  
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>   
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+
+        <!-- Ecal reconstruction drivers -->
+        <!--<driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>-->
+
+        <!--<driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver>-->
+
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <fixShapeParameter>true</fixShapeParameter>
+            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
+        </driver>
+
+        <driver name="HitTimeSmear" type="org.hps.recon.ecal.cluster.HitTMCSmearDriver">
+        </driver>
+
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+        <driver name="RemoveCollections" type="org.hps.util.RemoveCollections">
+            <!--<collectionNames>UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices UnconstrainedMollerCandidates UnconstrainedMollerVertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices</collectionNames>-->
+            <collectionNames>GBLTracks GBLKinkData GBLKinkDataRelations HelicalTrackHits HelicalTrackHitRelations HelicalTrackMCRelations MatchedToGBLTrackRelations MatchedTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations RotatedHelicalTrackMCRelations SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackerHitEcal TrackerHits_Inactive TrackerHits SVTFittedRawTrackerHits</collectionNames>
+            <!--<collectionNames>MatchedToGBLTrackRelations MatchedTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations RotatedHelicalTrackMCRelations</collectionNames>-->
+            <!--<collectionNames>SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D</collectionNames>-->
+            <!--<collectionNames>TrackerHitEcal TrackHits_Inactive</collectionNames>-->
+            <!--<collectionNames>TrackerHits SVTFittedRawTrackerHits</collectionNames>-->
+        </driver>
+        <driver name="KeepTruthHits" type="org.hps.util.KeepTruthRawTrackerHits"/>
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+        <!-- SVT Track finding -->
+        <driver name="TrackReconSeed345Conf2Extd16" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s345_c2_e16</trackCollectionName>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed456Conf3Extd21" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s456_c3_e21</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e21.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed123Conf4Extd56" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
+            <strategyResource>HPS_s123_c4_e56.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>                
+        <driver name="TrackReconSeed123Conf5Extd46" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
+            <strategyResource>HPS_s123_c5_e46.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>             
+        <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections">
+            <removeCollections>true</removeCollections>
+        </driver>
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
+            <trackCollectionNames>GBLTracks</trackCollectionNames>
+        </driver>  
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="IsolationRefit" type="org.hps.analysis.MC.IsolationRefit"/>
+        <driver name="RawTrackerHitSensorSetupTruth" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>TrackerHits_truth</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriverTruth" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+            <rawHitCollectionName>SVTRawTrackerHits_truth</rawHitCollectionName>
+            <fitCollectionName>SVTShapeFitParameters_truth</fitCollectionName>
+            <fittedHitCollectionName>SVTFittedRawTrackerHits_truth</fittedHitCollectionName>
+        </driver>
+        <driver name="TrackerHitDriverTruth" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <stripHitOutputCollectionName>StripClusterer_SiTrackerHitStrip1D_truth</stripHitOutputCollectionName>
+        </driver>
+        <driver name="HelicalTrackHitDriverTruth" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+            <collection>StripClusterer_SiTrackerHitStrip1D_truth</collection>
+            <!--<stripHitsCollectionName>StripClusterer_SiTrackerHitStrip1D_truth</stripHitsCollectionName>-->
+            <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_truth</helicalTrackHitRelationsCollectionName>
+            <helicalTrackMCRelationsCollectionName>HelicalTrackMCRelations_truth</helicalTrackMCRelationsCollectionName>
+            <outputHitCollectionName>HelicalTrackHits_truth</outputHitCollectionName>
+        </driver>
+        <!-- SVT Track finding -->
+        <driver name="TrackReconSeed345Conf2Extd16Truth" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s345_c2_e16_truth</trackCollectionName>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+            <inputHitCollectionName>RotatedHelicalTrackHits_truth</inputHitCollectionName>
+        </driver>                
+        <driver name="TrackReconSeed456Conf3Extd21Truth" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s456_c3_e21_truth</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e21.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+            <inputHitCollectionName>RotatedHelicalTrackHits_truth</inputHitCollectionName>
+        </driver>                
+        <driver name="TrackReconSeed123Conf4Extd56Truth" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c4_e56_truth</trackCollectionName>
+            <strategyResource>HPS_s123_c4_e56.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+            <inputHitCollectionName>RotatedHelicalTrackHits_truth</inputHitCollectionName>
+        </driver>                
+        <driver name="TrackReconSeed123Conf5Extd46Truth" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c5_e46_truth</trackCollectionName>
+            <strategyResource>HPS_s123_c5_e46.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+            <inputHitCollectionName>RotatedHelicalTrackHits_truth</inputHitCollectionName>
+        </driver>             
+        <driver name="MergeTrackCollectionsTruth" type="org.hps.recon.tracking.MergeTrackCollections">
+            <inputTrackCollectionName>Tracks_s345_c2_e16_truth Tracks_s456_c3_e21_truth Tracks_s123_c4_e56_truth Tracks_s123_c5_e46_truth</inputTrackCollectionName>
+            <outputCollectionName>MatchedTracks_truth</outputCollectionName>
+        </driver>
+        <driver name="GBLRefitterDriverTruth" type="org.hps.recon.tracking.gbl.GBLRefitterDriver">
+            <inputCollectionName>MatchedTracks_truth</inputCollectionName>
+            <outputCollectionName>GBLTracks_truth</outputCollectionName>
+            <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_truth</helicalTrackHitRelationsCollectionName>
+            <rotatedHelicalTrackHitRelationsCollectionName>RotatedHelicalTrackhitRelations_truth</rotatedHelicalTrackHitRelationsCollectionName>
+            <trackRelationCollectionName>MatchedToGBLTrackRelations_truth</trackRelationCollectionName>
+            <rawHitCollectionName>SVTRawTrackerHits_truth</rawHitCollectionName>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>       
+    </drivers>
+</lcsim>

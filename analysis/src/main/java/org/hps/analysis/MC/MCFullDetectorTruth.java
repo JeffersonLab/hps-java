@@ -41,6 +41,7 @@ import org.lcsim.util.swim.Trajectory;
 public class MCFullDetectorTruth{
 
     private TrackTruthMatching _pTruth =  null;
+    private List<SimTrackerHit> _truthActHits = null;
     private Map<Integer,Hep3Vector> _actHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Hep3Vector> _inactHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Hep3Vector> _actHitP = new HashMap<Integer,Hep3Vector>();
@@ -93,10 +94,11 @@ public class MCFullDetectorTruth{
         if(truthp == null)
             return;
         
-        List<SimTrackerHit> truthActHits = trackerHitMap.get(truthp);
+        //List<SimTrackerHit> truthActHits = trackerHitMap.get(truthp);
+        _truthActHits = trackerHitMap.get(truthp);
         List<SimTrackerHit> truthInActHits = trackerInHitMap.get(truthp);
         
-        ComputeSVTVars(truthp, truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
+        ComputeSVTVars(truthp, _truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
         
         List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, ecalHitsCollectionName);
         Map<MCParticle, List<SimCalorimeterHit>> calHitMap = BuildCalHitMap(calHits);
@@ -641,6 +643,10 @@ public class MCFullDetectorTruth{
         return _pTruth.getHitMCParticleList(layer);
     }
 
+    //Returns all active hits associated with MC particle
+    public List<SimTrackerHit> getActiveHitListMCParticle(){
+        return _truthActHits;
+    }
     
     //Returns a boolean of which hits of MCParticle contribute
     //to the track
