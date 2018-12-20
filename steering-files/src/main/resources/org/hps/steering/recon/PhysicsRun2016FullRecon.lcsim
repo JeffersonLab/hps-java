@@ -141,11 +141,12 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <beamPositionX> -0.224  </beamPositionX>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <beamPositionX> -0.224 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -4 </beamPositionZ>
+            <beamPositionZ> -4.0 </beamPositionZ>
 	    <maxElectronP> 2.15 </maxElectronP>
 	    <maxVertexP> 2.8 </maxVertexP>
 	    <minVertexChisqProb> 1.7e-16 </minVertexChisqProb>
