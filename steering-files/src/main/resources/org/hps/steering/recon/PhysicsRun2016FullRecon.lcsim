@@ -153,7 +153,7 @@
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
 	  <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-	  <maxTrackChisq6hits> 72. </maxTrackChisq6hits>
+	  <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
 	</driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
