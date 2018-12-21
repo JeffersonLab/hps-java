@@ -22,6 +22,7 @@
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
+    <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
   </properties>
 
   <scm>
