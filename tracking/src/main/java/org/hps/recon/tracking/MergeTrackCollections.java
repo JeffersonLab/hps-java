@@ -37,7 +37,7 @@ public class MergeTrackCollections extends Driver {
     boolean isTransient = false;
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
-    private StandardCuts cuts = null;
+    private StandardCuts cuts = new StandardCuts();
 
     private AIDA aida2 = AIDA.defaultInstance();
 
@@ -58,8 +58,6 @@ public class MergeTrackCollections extends Driver {
      */
 
     public void setMaxSharedHitsPerTrack(int input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
         cuts.setMaxSharedHitsPerTrack(input);
     }
 
@@ -136,12 +134,12 @@ public class MergeTrackCollections extends Driver {
             numHitsPreAmbi = aida2.histogram1D("numHitsPreAmbi", 10, 0, 10);
             numHitsPostAmbi = aida2.histogram1D("numHitsPostAmbi", 10, 0, 10);
         }
-        if (cuts == null)
-            cuts = new StandardCuts();
+
     }
 
     @Override
     public void process(EventHeader event) {
+
         List<List<Track>> trackCollections;
 
         if (inputTrackCollectionName == "") {
