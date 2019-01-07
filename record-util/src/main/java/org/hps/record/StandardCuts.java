@@ -34,7 +34,7 @@ public class StandardCuts {
     private double trackClusterTimeOffset;
     
     
-    // these members can only be set ONCE: maxElectronP, minMollerP, maxMollerP, maxVertexP, trackClusterTimeOffset
+    // members that don't involve chi2 can only be set ONCE
     private boolean maxElectronPset = false;
     private boolean minMollerPset = false;
     private boolean maxMollerPset = false;
