@@ -34,7 +34,7 @@ public class StandardCuts {
     private double trackClusterTimeOffset;
     
     
-    // these members can only be set ONCE
+    // these members can only be set ONCE: maxElectronP, minMollerP, maxMollerP, maxVertexP, trackClusterTimeOffset
     private boolean maxElectronPset = false;
     private boolean minMollerPset = false;
     private boolean maxMollerPset = false;
@@ -165,7 +165,15 @@ public class StandardCuts {
         maxTrackChisq = new HashMap<Integer, Double>();
         maxTrackChisq.put(5, new ChiSquaredDistribution(5).inverseCumulativeProbability(1.0-maxTrackChisqProb));
         maxTrackChisq.put(7, new ChiSquaredDistribution(7).inverseCumulativeProbability(1.0-maxTrackChisqProb));
-        changeBeamEnergy(ebeam);
+        
+        maxElectronP = 0.75*ebeam;
+        minMollerP = 0.8*ebeam;
+        maxMollerP = 1.2*ebeam;
+        maxVertexP = 1.2*ebeam;
+        if (ebeam < 2)
+            trackClusterTimeOffset=43;
+        else
+            trackClusterTimeOffset=55;
     }
     
     public void changeChisqTrackProb(double prob) {        
