@@ -40,6 +40,10 @@ public class StandardCuts {
     private boolean maxMollerPset = false;
     private boolean maxVertexPset = false;
     private boolean OffsetSet = false;
+    private boolean maxSharedHitsPerTrackSet = false;
+    private boolean maxMatchDtSet = false;
+    private boolean maxVertexClusterDtSet = false;
+    
     
     public double getTrackClusterTimeOffset() {
         return trackClusterTimeOffset;
@@ -53,7 +57,10 @@ public class StandardCuts {
     }
     
     public void setMaxSharedHitsPerTrack(int input) {
-        maxSharedHitsPerTrack = input;
+        if (!maxSharedHitsPerTrackSet) {
+            maxSharedHitsPerTrack = input;
+            maxSharedHitsPerTrackSet = true;
+        }
     }
     public int getMaxSharedHitsPerTrack() {
         return maxSharedHitsPerTrack;
@@ -104,14 +111,20 @@ public class StandardCuts {
     }
     
     public void setMaxMatchDt(double input) {
-        maxMatchDt = input;
+        if (!maxMatchDtSet) {
+            maxMatchDt = input;
+            maxMatchDtSet = true;
+        }
     }
     public double getMaxMatchDt() {
         return maxMatchDt;
     }
     
     public void setMaxVertexClusterDt(double input) {
-        maxVertexClusterDt = input;
+        if (!maxVertexClusterDtSet) {
+            maxVertexClusterDt = input;
+            maxVertexClusterDtSet = true;
+        }
     }
     public double getMaxVertexClusterDt() {
         return maxVertexClusterDt;
