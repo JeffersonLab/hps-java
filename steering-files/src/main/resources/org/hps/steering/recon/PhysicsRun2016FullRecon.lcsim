@@ -142,6 +142,7 @@
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
             <beamPositionX> -0.224 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
