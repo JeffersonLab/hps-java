@@ -32,7 +32,6 @@ import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.geometry.Detector;
 
 /**
  * The main HPS implementation of ReconParticleDriver. Method generates V0
@@ -148,100 +147,100 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     private boolean _patchVertexTrackParameters = false;
     private boolean _storeCovTrkMomList = false;
 
-    @Override
-    protected void detectorChanged(Detector detector) {
-        super.detectorChanged(detector);
-        if (beamPositionMap == null) {
-            beamPositionMap = new HashMap<Integer, double[]>();
-            // now populate it
-            // Note that the vertexing code uses the tracking frame coordinates
-            // HPS X => TRACK Y
-            // HPS Y => TRACK Z
-            // HPS Z => TRACK X
-            // 20190111 Values from Matt Solt's analysis of tuple output from Pass2
-            //
-            beamPositionMap.put(7629, new double[]{beamPosition[0], -0.0791628849784, -0.100881180254});
-            beamPositionMap.put(7630, new double[]{beamPosition[0], -0.0793548292008, -0.075911100139});
-            beamPositionMap.put(7636, new double[]{beamPosition[0], -0.0831708588248, -0.0854630707633});
-            beamPositionMap.put(7637, new double[]{beamPosition[0], -0.169405954978, -0.0880955037455});
-            beamPositionMap.put(7644, new double[]{beamPosition[0], -0.196532341125, -0.0817381067467});
-            beamPositionMap.put(7653, new double[]{beamPosition[0], -0.198721549611, -0.0983257496963});
-            beamPositionMap.put(7779, new double[]{beamPosition[0], -0.0934718824142, -0.0926432721925});
-            beamPositionMap.put(7780, new double[]{beamPosition[0], -0.0885385844713, -0.0914053764809});
-            beamPositionMap.put(7781, new double[]{beamPosition[0], -0.108123325224, -0.114083152081});
-            beamPositionMap.put(7782, new double[]{beamPosition[0], -0.0942268781101, -0.127229930881});
-            beamPositionMap.put(7786, new double[]{beamPosition[0], -0.111774943241, -0.113948991206});
-            beamPositionMap.put(7795, new double[]{beamPosition[0], -0.0952764252351, -0.0748951810465});
-            beamPositionMap.put(7796, new double[]{beamPosition[0], -0.095424479259, -0.0726064572061});
-            beamPositionMap.put(7798, new double[]{beamPosition[0], -0.213006204264, -0.0945193903437});
-            beamPositionMap.put(7799, new double[]{beamPosition[0], -0.217402670181, -0.0748014778804});
-            beamPositionMap.put(7800, new double[]{beamPosition[0], -0.168632528907, -0.0759230249324});
-            beamPositionMap.put(7801, new double[]{beamPosition[0], -0.103112760318, -0.0918015939585});
-            beamPositionMap.put(7803, new double[]{beamPosition[0], -0.0944564457905, -0.0713924536635});
-            beamPositionMap.put(7804, new double[]{beamPosition[0], -0.209740498001, -0.0744603421424});
-            beamPositionMap.put(7805, new double[]{beamPosition[0], -0.0912840235302, -0.0732210784103});
-            beamPositionMap.put(7807, new double[]{beamPosition[0], -0.0969622502628, -0.0725365838661});
-            beamPositionMap.put(7947, new double[]{beamPosition[0], -0.162257961889, -0.127967279806});
-            beamPositionMap.put(7948, new double[]{beamPosition[0], -0.018963815004, -0.139302671713});
-            beamPositionMap.put(7949, new double[]{beamPosition[0], -0.023269931167, -0.143168645082});
-            beamPositionMap.put(7953, new double[]{beamPosition[0], -0.00724958891565, -0.145132091932});
-            beamPositionMap.put(7962, new double[]{beamPosition[0], -0.0402790783813, -0.145664018522});
-            beamPositionMap.put(7963, new double[]{beamPosition[0], -0.0238287637667, -0.149585005755});
-            beamPositionMap.put(7964, new double[]{beamPosition[0], -0.0266443008652, -0.146686158397});
-            beamPositionMap.put(7965, new double[]{beamPosition[0], -0.0152449666199, -0.145838841431});
-            beamPositionMap.put(7966, new double[]{beamPosition[0], -0.150865140239, -0.145453062995});
-            beamPositionMap.put(7968, new double[]{beamPosition[0], -0.121655034329, -0.136527551527});
-            beamPositionMap.put(7969, new double[]{beamPosition[0], -0.0349831469687, -0.145612169714});
-            beamPositionMap.put(7970, new double[]{beamPosition[0], -0.0337760620589, -0.132033136962});
-            beamPositionMap.put(7972, new double[]{beamPosition[0], 0.0730239123695, -0.109609945188});
-            beamPositionMap.put(7976, new double[]{beamPosition[0], -0.023180832632, -0.104488813104});
-            beamPositionMap.put(7982, new double[]{beamPosition[0], 0.0545796335914, -0.107751106818});
-            beamPositionMap.put(7983, new double[]{beamPosition[0], 0.0611634812004, -0.110057580866});
-            beamPositionMap.put(7984, new double[]{beamPosition[0], 0.0646503930637, -0.106534208011});
-            beamPositionMap.put(7985, new double[]{beamPosition[0], -0.0619945600296, -0.123487582717});
-            beamPositionMap.put(7986, new double[]{beamPosition[0], 0.069209698747, -0.138093513269});
-            beamPositionMap.put(7987, new double[]{beamPosition[0], 0.0618650861535, -0.144146895778});
-            beamPositionMap.put(7988, new double[]{beamPosition[0], 0.0658446812013, -0.143868733285});
-            beamPositionMap.put(8025, new double[]{beamPosition[0], 0.00880701675623, -0.128745769306});
-            beamPositionMap.put(8026, new double[]{beamPosition[0], 0.0352921618912, -0.126348406739});
-            beamPositionMap.put(8027, new double[]{beamPosition[0], 0.0383333561151, -0.124334604579});
-            beamPositionMap.put(8028, new double[]{beamPosition[0], 0.0369429530766, -0.120713596949});
-            beamPositionMap.put(8029, new double[]{beamPosition[0], 0.0403826879718, -0.122823602509});
-            beamPositionMap.put(8030, new double[]{beamPosition[0], 0.0443548491389, -0.124052270455});
-            beamPositionMap.put(8031, new double[]{beamPosition[0], -0.0413351446023, -0.122587574705});
-            beamPositionMap.put(8039, new double[]{beamPosition[0], 0.0437618095472, -0.119734455389});
-            beamPositionMap.put(8040, new double[]{beamPosition[0], -0.0427936480505, -0.120972720838});
-            beamPositionMap.put(8041, new double[]{beamPosition[0], 0.0423683786643, -0.119712058436});
-            beamPositionMap.put(8043, new double[]{beamPosition[0], 0.0435276300371, -0.118341587362});
-            beamPositionMap.put(8044, new double[]{beamPosition[0], -0.0423213402741, -0.117116179467});
-            beamPositionMap.put(8045, new double[]{beamPosition[0], -0.0492785634429, -0.117417822794});
-            beamPositionMap.put(8046, new double[]{beamPosition[0], 0.0358876049983, -0.0964774527115});
-            beamPositionMap.put(8047, new double[]{beamPosition[0], -0.0988136547181, -0.124116588147});
-            beamPositionMap.put(8048, new double[]{beamPosition[0], 0.0365375488404, -0.12404419283});
-            beamPositionMap.put(8049, new double[]{beamPosition[0], -0.0841610928757, -0.1022749723});
-            beamPositionMap.put(8051, new double[]{beamPosition[0], 0.0447977294183, -0.128038838878});
-            beamPositionMap.put(8055, new double[]{beamPosition[0], 0.0624638763618, -0.131866190941});
-            beamPositionMap.put(8057, new double[]{beamPosition[0], 0.04839746013, -0.122599559947});
-            beamPositionMap.put(8058, new double[]{beamPosition[0], -0.0354851454933, -0.127058292541});
-            beamPositionMap.put(8059, new double[]{beamPosition[0], -0.0434797869138, -0.129000881735});
-            beamPositionMap.put(8072, new double[]{beamPosition[0], 0.0593395205004, -0.113104874183});
-            beamPositionMap.put(8073, new double[]{beamPosition[0], 0.0463551620235, -0.130081967867});
-            beamPositionMap.put(8074, new double[]{beamPosition[0], -0.0735752355074, -0.130293245458});
-            beamPositionMap.put(8075, new double[]{beamPosition[0], 0.0374753170983, -0.12932633622});
-            beamPositionMap.put(8077, new double[]{beamPosition[0], 0.0535884321804, -0.126278230155});
-            beamPositionMap.put(8085, new double[]{beamPosition[0], 0.0830821402979, -0.106926086699});
-            beamPositionMap.put(8086, new double[]{beamPosition[0], 0.0945733220801, -0.0872131842199});
-            beamPositionMap.put(8087, new double[]{beamPosition[0], 0.0760167884392, -0.0695680417126});
-            beamPositionMap.put(8088, new double[]{beamPosition[0], 0.108478695049, -0.0771060692113});
-            beamPositionMap.put(8090, new double[]{beamPosition[0], 0.0636079331308, -0.0766736151046});
-            beamPositionMap.put(8092, new double[]{beamPosition[0], -0.0422128828168, -0.0735649140981});
-            beamPositionMap.put(8094, new double[]{beamPosition[0], -0.0428250316, -0.0668143678683});
-            beamPositionMap.put(8095, new double[]{beamPosition[0], -0.0400102373796, -0.0675622752104});
-            beamPositionMap.put(8096, new double[]{beamPosition[0], -0.0445908615332, -0.0730128261991});
-            beamPositionMap.put(8097, new double[]{beamPosition[0], 0.0488994245436, -0.0856183306017});
-            beamPositionMap.put(8098, new double[]{beamPosition[0], -0.0442950066019, -0.066105020122});
-            beamPositionMap.put(8099, new double[]{beamPosition[0], 0.0475573512582, -0.0716689576281});
-        }
+    public HpsReconParticleDriver() {
+        super();
+        beamPositionMap = new HashMap<Integer, double[]>();
+        // now populate it
+        // Note that the vertexing code uses the tracking frame coordinates
+        // HPS X => TRACK Y
+        // HPS Y => TRACK Z
+        // HPS Z => TRACK X
+        // 20190111 Values from Matt Solt's analysis of tuple output from Pass2
+        //
+        // For completeness, I am including the run-by-run z position as weel. Later we reset this to one
+        // global target z position for all of 2016
+        beamPositionMap.put(7629, new double[]{-4.17277481802, -0.12993997991, -0.0853344591497});
+        beamPositionMap.put(7630, new double[]{-4.14431582882, -0.131667930281, -0.0818403429116});
+        beamPositionMap.put(7636, new double[]{-4.21047915591, -0.133674849016, -0.089578068184});
+        beamPositionMap.put(7637, new double[]{-4.24645776407, -0.101418909471, -0.0910518478041});
+        beamPositionMap.put(7644, new double[]{-4.17901911124, -0.130285615341, -0.0822733438671});
+        beamPositionMap.put(7653, new double[]{-4.17260490817, -0.131034318083, -0.0791072417695});
+        beamPositionMap.put(7779, new double[]{-4.1787064368, -0.14063872959, -0.0964567926519});
+        beamPositionMap.put(7780, new double[]{-4.1728601751, -0.138420200972, -0.0946284667682});
+        beamPositionMap.put(7781, new double[]{-4.16985657657, -0.156226289295, -0.0968035162023});
+        beamPositionMap.put(7782, new double[]{-4.18257346152, -0.140219484074, -0.109736506045});
+        beamPositionMap.put(7783, new double[]{-4.18257346152, -0.140219484074, -0.109736506045});
+        beamPositionMap.put(7786, new double[]{-4.12972261841, -0.166377573933, -0.0970139372611});
+        beamPositionMap.put(7795, new double[]{-4.21859751579, -0.144244767944, -0.0853166371595});
+        beamPositionMap.put(7796, new double[]{-4.20194805564, -0.143712797497, -0.0814142818837});
+        beamPositionMap.put(7798, new double[]{-4.23579296792, -0.145096101419, -0.0763395379254});
+        beamPositionMap.put(7799, new double[]{-4.21915161348, -0.150063795069, -0.0747834605672});
+        beamPositionMap.put(7800, new double[]{-4.21341596102, -0.148070389758, -0.0759533031441});
+        beamPositionMap.put(7801, new double[]{-4.22235421469, -0.152015276101, -0.0771084658072});
+        beamPositionMap.put(7803, new double[]{-4.34166909052, -0.142164101651, -0.0737517199669});
+        beamPositionMap.put(7804, new double[]{-4.32755215514, -0.142501982627, -0.0736984742692});
+        beamPositionMap.put(7805, new double[]{-4.34001918433, -0.14128234629, -0.0719415420433});
+        beamPositionMap.put(7807, new double[]{-4.2913881367, -0.146538069491, -0.0713110421539});
+        beamPositionMap.put(7947, new double[]{-4.11570919432, -0.0910859069129, -0.115216742215});
+        beamPositionMap.put(7948, new double[]{-4.15441978567, -0.0686135478054, -0.129060986622});
+        beamPositionMap.put(7949, new double[]{-4.15625618167, -0.0732414149365, -0.133909636515});
+        beamPositionMap.put(7953, new double[]{-4.1247535341, -0.0498468870412, -0.136667869602});
+        beamPositionMap.put(7962, new double[]{-4.18892745552, -0.0888237919098, -0.133084782275});
+        beamPositionMap.put(7963, new double[]{-4.21544617772, -0.0746121484095, -0.138791648195});
+        beamPositionMap.put(7964, new double[]{-4.22151568434, -0.0767100152439, -0.138029976144});
+        beamPositionMap.put(7965, new double[]{-4.21982078088, -0.0633124399662, -0.13548854});
+        beamPositionMap.put(7966, new double[]{-4.22967441763, -0.074293601613, -0.136050581329});
+        beamPositionMap.put(7968, new double[]{-4.24234161374, -0.0898360310379, -0.1348398567});
+        beamPositionMap.put(7969, new double[]{-4.27252423462, -0.0870002501041, -0.133719459818});
+        beamPositionMap.put(7970, new double[]{-4.26842346064, -0.0857240792101, -0.116971022199});
+        beamPositionMap.put(7972, new double[]{-4.33363167982, 0.0345877733342, -0.100637477098});
+        beamPositionMap.put(7976, new double[]{-4.28593685326, 0.0248070264018, -0.102808747635});
+        beamPositionMap.put(7982, new double[]{-4.29646985597, 0.0127599017288, -0.101991281778});
+        beamPositionMap.put(7983, new double[]{-4.26170058486, 0.0189046639217, -0.107073001527});
+        beamPositionMap.put(7984, new double[]{-4.27436464212, 0.0245269396206, -0.108859729825});
+        beamPositionMap.put(7985, new double[]{-4.27834263863, 0.0236149343493, -0.114436070246});
+        beamPositionMap.put(7986, new double[]{-4.27263205142, 0.0290293298289, -0.129868804995});
+        beamPositionMap.put(7987, new double[]{-4.26816324002, 0.021546891022, -0.134582348971});
+        beamPositionMap.put(7988, new double[]{-4.25916023097, 0.0288738200402, -0.134675209766});
+        beamPositionMap.put(8025, new double[]{-4.26772080184, -0.0374515885847, -0.111794925212});
+        beamPositionMap.put(8026, new double[]{-4.26342349557, -0.0130037595274, -0.108269292234});
+        beamPositionMap.put(8027, new double[]{-4.26228873413, -0.00643925463781, -0.10675932599});
+        beamPositionMap.put(8028, new double[]{-4.24130730501, -0.00747575221052, -0.102814820173});
+        beamPositionMap.put(8029, new double[]{-4.22872103491, -0.00447916152702, -0.105249943381});
+        beamPositionMap.put(8030, new double[]{-4.23900754195, -0.000357473510209, -0.106146355534});
+        beamPositionMap.put(8031, new double[]{-4.20496275068, 0.000100290515539, -0.104054377677});
+        beamPositionMap.put(8039, new double[]{-4.22124716174, -0.0011390722464, -0.101544332935});
+        beamPositionMap.put(8040, new double[]{-4.2205668431, -0.00181385356273, -0.102991182594});
+        beamPositionMap.put(8041, new double[]{-4.28721393166, 0.00197335438837, -0.101551648105});
+        beamPositionMap.put(8043, new double[]{-4.22920389672, -0.000848565041975, -0.0995558470643});
+        beamPositionMap.put(8044, new double[]{-4.22870291956, -0.00175258909226, -0.0988413432517});
+        beamPositionMap.put(8045, new double[]{-4.20258011807, -0.00866029673502, -0.100045336346});
+        beamPositionMap.put(8046, new double[]{-4.22290557247, -0.00729779373861, -0.100652118073});
+        beamPositionMap.put(8047, new double[]{-4.14601676145, -0.0202991409332, -0.105998899874});
+        beamPositionMap.put(8048, new double[]{-4.20679634717, -0.00924325674287, -0.106248419021});
+        beamPositionMap.put(8049, new double[]{-4.21496917922, -0.00500571957867, -0.10725973208});
+        beamPositionMap.put(8051, new double[]{-4.2126457536, -0.00153038672528, -0.111092588541});
+        beamPositionMap.put(8055, new double[]{-4.28341733723, 0.0206565632476, -0.115598253441});
+        beamPositionMap.put(8057, new double[]{-4.2882639213, 0.00480487421616, -0.104316741434});
+        beamPositionMap.put(8058, new double[]{-4.29698307957, 0.00818999458705, -0.109941003868});
+        beamPositionMap.put(8059, new double[]{-4.28762465865, -0.00153129299044, -0.111814005204});
+        beamPositionMap.put(8072, new double[]{-4.13924541982, 0.0180721454354, -0.113772583512});
+        beamPositionMap.put(8073, new double[]{-4.15278781506, -0.00108521877967, -0.112893566712});
+        beamPositionMap.put(8074, new double[]{-4.15571729252, 0.00618781078807, -0.113017354596});
+        beamPositionMap.put(8075, new double[]{-4.1733104989, -0.00486744222345, -0.112424119993});
+        beamPositionMap.put(8077, new double[]{-4.20683436964, 0.0110201050856, -0.109299859828});
+        beamPositionMap.put(8085, new double[]{-4.13876392508, 0.0439497207201, -0.0903205833013});
+        beamPositionMap.put(8086, new double[]{-4.16507539815, 0.0597982603734, -0.0910001508689});
+        beamPositionMap.put(8087, new double[]{-4.20213132671, 0.0396348079161, -0.0784607661075});
+        beamPositionMap.put(8088, new double[]{-4.23374437206, 0.0741295264942, -0.0838311072439});
+        beamPositionMap.put(8090, new double[]{-4.18462908099, 0.0224605407948, -0.078660407208});
+        beamPositionMap.put(8092, new double[]{-4.23292219117, 0.00789727246464, -0.0745098357754});
+        beamPositionMap.put(8094, new double[]{-4.21308308691, 0.00356660582853, -0.072071620408});
+        beamPositionMap.put(8095, new double[]{-4.20185037174, 0.00805359635246, -0.0747092315702});
+        beamPositionMap.put(8096, new double[]{-4.23251278514, 0.00613811160073, -0.0741564828197});
+        beamPositionMap.put(8097, new double[]{-4.19022011872, 0.00740408472403, -0.0735952313026});
+        beamPositionMap.put(8098, new double[]{-4.20923479595, 0.00408775878779, -0.0755429310062});
+        beamPositionMap.put(8099, new double[]{-4.20773101369, 0.0051498614277, -0.0797183115611});
     }
 
     public void setMaxMollerP(double input) {
@@ -307,6 +306,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         int runNumber = event.getRunNumber();
         if (useInternalVertexXYPositions && beamPositionMap.containsKey(runNumber)) {
             beamPositionToUse = beamPositionMap.get(runNumber);
+            // only use one target z position
+            beamPositionToUse[0] = beamPosition[0];
         }
         if (makeMollerCols) {
             unconstrainedMollerCandidates = new ArrayList<ReconstructedParticle>();
@@ -326,30 +327,30 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
         if (makeMollerCols) {
             event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.class,
-                     0);
+                    0);
             event
                     .put(beamConMollerCandidatesColName, beamConMollerCandidates, ReconstructedParticle.class,
-                             0);
+                            0);
             event
                     .put(targetConMollerCandidatesColName, targetConMollerCandidates, ReconstructedParticle.class,
-                             0);
+                            0);
             event
                     .put(unconstrainedMollerVerticesColName, unconstrainedMollerVertices, Vertex.class,
-                             0);
+                            0);
             event
                     .put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.class,
-                             0);
+                            0);
             event
                     .put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.class,
-                             0);
+                            0);
 
         }
         if (makeConversionCols) {
             event.put(unconstrainedVcCandidatesColName, unconstrainedVcCandidates, ReconstructedParticle.class,
-                     0);
+                    0);
             event
                     .put(unconstrainedVcVerticesColName, unconstrainedVcVertices, Vertex.class,
-                             0);
+                            0);
         }
     }
 
