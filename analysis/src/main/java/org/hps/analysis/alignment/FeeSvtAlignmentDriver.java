@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackType;
@@ -53,6 +55,7 @@ public class FeeSvtAlignmentDriver extends Driver {
 
     private String finalStateParticlesColName = "FinalStateParticles";
 
+    Set<String> finalStateParticleCollections = new HashSet<String>();
     private Double _beamEnergy = 1.056;
     private double _percentFeeCut = 0.8;
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
@@ -114,6 +117,7 @@ public class FeeSvtAlignmentDriver extends Driver {
         if (bField < 0) {
             flipSign = -1;
         }
+        finalStateParticleCollections.add(finalStateParticlesColName);
     }
 
     protected void process(EventHeader event) {
@@ -148,6 +152,7 @@ public class FeeSvtAlignmentDriver extends Driver {
         if (event.hasCollection(ReconstructedParticle.class, "OtherElectrons")) {
 //            System.out.println("found OtherElectrons collection, switching to that");
             finalStateParticlesColName = "OtherElectrons";
+            finalStateParticleCollections.add("OtherElectrons");
         }
 
         // changes for pass2 recon
@@ -156,156 +161,166 @@ public class FeeSvtAlignmentDriver extends Driver {
         }
 
         // only keep events with one and only one cluster
-//        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+        int nClusters = ecalClusters.size();
 //        if (ecalClusters.size() != 1) {
 //            return;
 //        }
-        List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
-        setupSensors(event);
-        hitToStrips = TrackUtils.getHitToStripsTable(event);
-        hitToRotated = TrackUtils.getHitToRotatedTable(event);
-        for (ReconstructedParticle rp : rpList) {
-            if (!TrackType.isGBL(rp.getType())) {
-                continue;
-            }
-            if (rp.getMomentum().magnitude() > 1.5 * _beamEnergy) {
-                continue;
-            }
-            // require both track and cluster
-            if (rp.getClusters().size() != 1) {
-                continue;
-            }
+        for (String s : finalStateParticleCollections) {
+            List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, s);
+            setupSensors(event);
+            hitToStrips = TrackUtils.getHitToStripsTable(event);
+            hitToRotated = TrackUtils.getHitToRotatedTable(event);
+            for (ReconstructedParticle rp : rpList) {
+                if (!TrackType.isGBL(rp.getType())) {
+                    continue;
+                }
+                if (rp.getMomentum().magnitude() > 1.5 * _beamEnergy) {
+                    continue;
+                }
+                // require both track and cluster
+                if (rp.getClusters().size() != 1) {
+                    continue;
+                }
 
-            if (rp.getTracks().size() != 1) {
-                continue;
-            }
+                if (rp.getTracks().size() != 1) {
+                    continue;
+                }
 
-            Track t = rp.getTracks().get(0);
-            Hep3Vector pmom = rp.getMomentum();
-            double p = rp.getMomentum().magnitude();
-            Cluster c = rp.getClusters().get(0);
-            // debug diagnostics to set cuts
-            if (debug) {
-                aida.cloud1D("clusterSeedHit energy").fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
-                aida.cloud1D("cluster nHits").fill(c.getCalorimeterHits().size());
-                aida.cloud2D("clusterSeedHit energy vs p").fill(p, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
-                aida.cloud2D("cluster nHits vs p").fill(p, c.getCalorimeterHits().size());
-                aida.cloud2D("cluster time vs p").fill(p, ClusterUtilities.getSeedHitTime(c));
-            }
-            double ct = ClusterUtilities.getSeedHitTime(c);
-
-            if (c.getEnergy() > clusterCut
-                    && ClusterUtilities.findSeedHit(c).getCorrectedEnergy() > seedCut
-                    && c.getCalorimeterHits().size() >= minHits
-                    && ct > ctMin
-                    && ct < ctMax) {
-                double chiSquared = t.getChi2();
-                int ndf = t.getNDF();
-                double chi2Ndf = t.getChi2() / t.getNDF();
-                double chisqProb = ChisqProb.gammp(ndf, chiSquared);
-                int nHits = t.getTrackerHits().size();
-                double dEdx = t.getdEdx();
-                double e1 = rp.getEnergy();
-                double p1 = rp.getMomentum().magnitude();
-
-                double d0 = t.getTrackStates().get(0).getD0();
-                double z0 = t.getTrackStates().get(0).getZ0();
-                double thetaY = Math.asin(pmom.y() / pmom.magnitude());
-
-                Hep3Vector p1mom = rp.getMomentum();
-                //rotate into physiscs frame of reference
-                Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
-                double theta = Math.acos(rprot.z() / rprot.magnitude());
-
+                Track t = rp.getTracks().get(0);
+                Hep3Vector pmom = rp.getMomentum();
+                double p = rp.getMomentum().magnitude();
+                Cluster c = rp.getClusters().get(0);
                 // debug diagnostics to set cuts
                 if (debug) {
-                    aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
-                    aida.cloud1D("Track chisq prob").fill(chisqProb);
-                    aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
-                    aida.cloud1D("Track momentum").fill(p);
-                    aida.cloud1D("Track deDx").fill(t.getdEdx());
-                    aida.cloud1D("Track theta").fill(theta);
-                    aida.cloud2D("Track theta vs p").fill(theta, p);
-                    aida.cloud1D("rp x0").fill(TrackUtils.getX0(t));
-                    aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
-                    aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
+                    aida.cloud1D("clusterSeedHit energy").fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.cloud1D("cluster nHits").fill(c.getCalorimeterHits().size());
+                    aida.cloud2D("clusterSeedHit energy vs p").fill(p, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.cloud2D("cluster nHits vs p").fill(p, c.getCalorimeterHits().size());
+                    aida.cloud2D("cluster time vs p").fill(p, ClusterUtilities.getSeedHitTime(c));
                 }
-                double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
-                if (debug) {
-                    aida.cloud1D("track data time").fill(trackDataTime);
-                }
-                if (isTopTrack(t)) {
-                    if (nHits == 5) {
-                        aida.histogram1D("Fee top 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                    } else if (nHits == 6) {
-                        _topElectrons.add(rp);
-                        aida.histogram1D("Fee top 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                        aida.histogram1D("Fee top 6-hit track d0", 100, -2.0, 2.0).fill(d0);
-                        aida.profile1D("Fee top 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
-                        aida.histogram2D("Fee top 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
-                        aida.histogram1D("Fee top 6-hit track z0", 100, -0.6, 0.6).fill(z0);
-                        aida.profile1D("Fee top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
-                        aida.histogram2D("Fee top 6-hit track thetaY vs z0", 100, 0.015, 0.055, 100, -0.6, 0.6).fill(thetaY, z0);
-                        aida.cloud1D("Top Track theta").fill(theta);
-                        aida.cloud2D("Top Track theta vs p").fill(theta, p);
-                        aida.cloud1D("Top rp x0").fill(TrackUtils.getX0(t));
-                        aida.cloud1D("Top rp y0").fill(TrackUtils.getY0(t));
-                        aida.cloud1D("Top rp z0").fill(TrackUtils.getZ0(t));
-                        double[] strips = stripClusterSizes(t);
-                        // let's cut real hard here, require 2-strip clusters in all four first layers
-                        boolean keepit = true;
-                        for (double d : strips) {
-                            if (d != 2) {
-                                keepit = false;
+                double ct = ClusterUtilities.getSeedHitTime(c);
+
+                if (c.getEnergy() > clusterCut
+                        && ClusterUtilities.findSeedHit(c).getCorrectedEnergy() > seedCut
+                        && c.getCalorimeterHits().size() >= minHits
+                        && ct > ctMin
+                        && ct < ctMax) {
+                    double chiSquared = t.getChi2();
+                    int ndf = t.getNDF();
+                    double chi2Ndf = t.getChi2() / t.getNDF();
+                    double chisqProb = ChisqProb.gammp(ndf, chiSquared);
+                    int nHits = t.getTrackerHits().size();
+                    double dEdx = t.getdEdx();
+                    double e1 = rp.getEnergy();
+                    double p1 = rp.getMomentum().magnitude();
+
+                    double d0 = t.getTrackStates().get(0).getD0();
+                    double z0 = t.getTrackStates().get(0).getZ0();
+                    double thetaY = Math.asin(pmom.y() / pmom.magnitude());
+
+                    Hep3Vector p1mom = rp.getMomentum();
+                    //rotate into physiscs frame of reference
+                    Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
+                    double theta = Math.acos(rprot.z() / rprot.magnitude());
+
+                    // debug diagnostics to set cuts
+                    if (debug) {
+                        aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
+                        aida.cloud1D("Track chisq prob").fill(chisqProb);
+                        aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
+                        aida.cloud1D("Track momentum").fill(p);
+                        aida.cloud1D("Track deDx").fill(t.getdEdx());
+                        aida.cloud1D("Track theta").fill(theta);
+                        aida.cloud2D("Track theta vs p").fill(theta, p);
+                        aida.cloud1D("rp x0").fill(TrackUtils.getX0(t));
+                        aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
+                        aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
+                    }
+                    double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
+                    if (debug) {
+                        aida.cloud1D("track data time").fill(trackDataTime);
+                    }
+                    if (isTopTrack(t)) {
+                        if (nHits == 5) {
+                            aida.histogram1D("Fee top 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                        } else if (nHits == 6) {
+                            _topElectrons.add(rp);
+                            aida.histogram1D("Fee top 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                            if (nClusters == 1) {
+                                aida.histogram1D("Fee top 6-hit track single cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                aida.histogram2D("Fee 6-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                            }
+                            aida.histogram1D("Fee top 6-hit track d0", 100, -2.0, 2.0).fill(d0);
+                            aida.profile1D("Fee top 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
+                            aida.histogram2D("Fee top 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                            aida.histogram1D("Fee top 6-hit track z0", 100, -0.6, 0.6).fill(z0);
+                            aida.profile1D("Fee top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
+                            aida.histogram2D("Fee top 6-hit track thetaY vs z0", 100, 0.015, 0.055, 100, -0.6, 0.6).fill(thetaY, z0);
+                            aida.cloud1D("Top Track theta").fill(theta);
+                            aida.cloud2D("Top Track theta vs p").fill(theta, p);
+                            aida.cloud1D("Top rp x0").fill(TrackUtils.getX0(t));
+                            aida.cloud1D("Top rp y0").fill(TrackUtils.getY0(t));
+                            aida.cloud1D("Top rp z0").fill(TrackUtils.getZ0(t));
+                            double[] strips = stripClusterSizes(t);
+                            // let's cut real hard here, require 2-strip clusters in all four first layers
+                            boolean keepit = true;
+                            for (double d : strips) {
+                                if (d != 2) {
+                                    keepit = false;
+                                }
+                            }
+                            if (keepit) {
+                                _topBTracks.add(toBilliorTrack(t));
+                                aida.profile1D("Fee tight top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
+                                aida.histogram2D("Fee tight top 6-hit track thetaY vs z0", 100, 0.015, 0.055, 100, -0.6, 0.6).fill(thetaY, z0);
                             }
                         }
-                        if (keepit) {
-                            _topBTracks.add(toBilliorTrack(t));
-                            aida.profile1D("Fee tight top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
-                            aida.histogram2D("Fee tight top 6-hit track thetaY vs z0", 100, 0.015, 0.055, 100, -0.6, 0.6).fill(thetaY, z0);
-                        }
-                    }
-                } else {
+                    } else {
 
-                    if (nHits == 5) {
-                        aida.histogram1D("Fee bottom 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                    } else if (nHits == 6) {
-                        _bottomElectrons.add(rp);
-                        aida.histogram1D("Fee bottom 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                        aida.histogram1D("Fee bottom 6-hit track d0", 100, -2.0, 2.0).fill(d0);
-                        aida.profile1D("Fee bottom 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
-                        aida.histogram2D("Fee bottom 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
-                        aida.histogram1D("Fee bottom 6-hit track z0", 100, -0.6, 0.6).fill(z0);
-                        aida.profile1D("Fee bottom 6-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
-                        aida.histogram2D("Fee bottom 6-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
-                        aida.cloud1D("Bottom Track theta").fill(theta);
-                        aida.cloud2D("Bottom Track theta vs p").fill(theta, p);
-                        aida.cloud1D("Bottom rp x0").fill(TrackUtils.getX0(t));
-                        aida.cloud1D("Bottom rp y0").fill(TrackUtils.getY0(t));
-                        aida.cloud1D("Bottom rp z0").fill(TrackUtils.getZ0(t));
-                        double[] strips = stripClusterSizes(t);
-                        // let's cut real hard here, require 2-strip clusters in all four first layers
-                        boolean keepit = true;
-                        for (double d : strips) {
-                            if (d != 2) {
-                                keepit = false;
+                        if (nHits == 5) {
+                            aida.histogram1D("Fee bottom 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                        } else if (nHits == 6) {
+                            _bottomElectrons.add(rp);
+                            aida.histogram1D("Fee bottom 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                            if (nClusters == 1) {
+                                aida.histogram1D("Fee bottom 6-hit track single cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                aida.histogram2D("Fee 6-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                            }
+                            aida.histogram1D("Fee bottom 6-hit track d0", 100, -2.0, 2.0).fill(d0);
+                            aida.profile1D("Fee bottom 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
+                            aida.histogram2D("Fee bottom 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                            aida.histogram1D("Fee bottom 6-hit track z0", 100, -0.6, 0.6).fill(z0);
+                            aida.profile1D("Fee bottom 6-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
+                            aida.histogram2D("Fee bottom 6-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
+                            aida.cloud1D("Bottom Track theta").fill(theta);
+                            aida.cloud2D("Bottom Track theta vs p").fill(theta, p);
+                            aida.cloud1D("Bottom rp x0").fill(TrackUtils.getX0(t));
+                            aida.cloud1D("Bottom rp y0").fill(TrackUtils.getY0(t));
+                            aida.cloud1D("Bottom rp z0").fill(TrackUtils.getZ0(t));
+                            double[] strips = stripClusterSizes(t);
+                            // let's cut real hard here, require 2-strip clusters in all four first layers
+                            boolean keepit = true;
+                            for (double d : strips) {
+                                if (d != 2) {
+                                    keepit = false;
+                                }
+                            }
+                            if (keepit) {
+                                _bottomBTracks.add(toBilliorTrack(t));
+                                aida.profile1D("Fee tight bottom 6-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
+                                aida.histogram2D("Fee tight bottom 6-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
                             }
                         }
-                        if (keepit) {
-                            _bottomBTracks.add(toBilliorTrack(t));
-                            aida.profile1D("Fee tight bottom 6-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
-                            aida.histogram2D("Fee tight bottom 6-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
+                    }
+                    if (_alignit) {
+                        if (nHits == 6) {
+                            alignit(rp);
                         }
                     }
-                }
-                if (_alignit) {
-                    if (nHits == 6) {
-                        alignit(rp);
-                    }
-                }
-            }// end of cluster cuts
-        }// end of loop over ReconstructedParticles in this event
-
+                }// end of cluster cuts
+            }// end of loop over ReconstructedParticles in this event
+        }// end of loop over electron collections
         // can't accumulate over all the data as we run out of memory
         // stop every once in a while and process what we have, then release the memory
         if (_topElectrons.size() >= 2) {
@@ -414,7 +429,7 @@ public class FeeSvtAlignmentDriver extends Driver {
             nStrips[0] = tL1AxialNstrips;
             nStrips[1] = tL2AxialNstrips;
             nStrips[2] = tL1StereoNstrips;
-            nStrips[3] = tL1StereoNstrips;
+            nStrips[3] = tL2StereoNstrips;
         }
         return nStrips;
     }

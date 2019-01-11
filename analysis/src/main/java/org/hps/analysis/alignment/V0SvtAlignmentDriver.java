@@ -229,8 +229,9 @@ public class V0SvtAlignmentDriver extends Driver {
                 }
                 // should be good to go here
                 Hep3Vector vPos = v.getPosition();
-                aida.histogram1D("vertex x position", 100, -10., 10.).fill(vPos.x());
-                aida.histogram1D("vertex y position", 100, -10., 10.).fill(vPos.y());
+                aida.histogram1D("vertex x position", 100, -3., 3.).fill(vPos.x());
+                aida.histogram1D("vertex y position", 100, -2., 2.).fill(vPos.y());
+                aida.histogram2D("vertex x vs y position",100, -2., 2., 100, -2., 2.).fill(vPos.x(),vPos.y());
                 aida.histogram1D("vertex z position", 200, -50., 50.).fill(vPos.z());
                 electron = (rp1.getParticleIDUsed().getPDG() == 11) ? rp1 : rp2;
                 positron = (rp2.getParticleIDUsed().getPDG() == -11) ? rp2 : rp1;
