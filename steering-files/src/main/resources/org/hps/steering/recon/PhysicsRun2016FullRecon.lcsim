@@ -147,7 +147,7 @@
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -4.0 </beamPositionZ>
+            <beamPositionZ> -4.3 </beamPositionZ>
 	    <maxElectronP> 2.15 </maxElectronP>
 	    <maxVertexP> 2.8 </maxVertexP>
 	    <minVertexChisqProb> 1.7e-16 </minVertexChisqProb>
