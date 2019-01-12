@@ -326,31 +326,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         super.process(event);
 
         if (makeMollerCols) {
-            event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.class,
-                    0);
-            event
-                    .put(beamConMollerCandidatesColName, beamConMollerCandidates, ReconstructedParticle.class,
-                            0);
-            event
-                    .put(targetConMollerCandidatesColName, targetConMollerCandidates, ReconstructedParticle.class,
-                            0);
-            event
-                    .put(unconstrainedMollerVerticesColName, unconstrainedMollerVertices, Vertex.class,
-                            0);
-            event
-                    .put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.class,
-                            0);
-            event
-                    .put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.class,
-                            0);
+            event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.class,0);
+            event.put(beamConMollerCandidatesColName, beamConMollerCandidates, ReconstructedParticle.class,0);
+            event.put(targetConMollerCandidatesColName, targetConMollerCandidates, ReconstructedParticle.class,0);
+            event.put(unconstrainedMollerVerticesColName, unconstrainedMollerVertices, Vertex.class,0);
+            event.put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.class,0);
+            event.put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.class,0);
 
         }
         if (makeConversionCols) {
-            event.put(unconstrainedVcCandidatesColName, unconstrainedVcCandidates, ReconstructedParticle.class,
-                    0);
-            event
-                    .put(unconstrainedVcVerticesColName, unconstrainedVcVertices, Vertex.class,
-                            0);
+            event.put(unconstrainedVcCandidatesColName, unconstrainedVcCandidates, ReconstructedParticle.class,0);
+            event.put(unconstrainedVcVerticesColName, unconstrainedVcVertices, Vertex.class,0);
         }
     }
 
