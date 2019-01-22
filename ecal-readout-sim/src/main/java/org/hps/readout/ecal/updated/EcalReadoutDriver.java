@@ -307,6 +307,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     
     private int triggers = 0;
+    private Set<Long> hodoscopeChannels = new HashSet<Long>();
     
     @Override
     public void startOfData() {
@@ -391,6 +392,53 @@ public class EcalReadoutDriver extends ReadoutDriver {
         verboseWriter.write(String.format("\t%-30s :: %b", "use2014Gain", false));
         verboseWriter.write(String.format("\t%-30s :: %s", "readoutLatency", "----"));
         verboseWriter.write(String.format("\t%-30s :: %s", "delay0", "----"));
+        
+        // TEMP :: Store the hodoscope channels to work around the
+        // absence of a hodoscope conditions database.
+        hodoscopeChannels.add(Long.valueOf(5150));
+        hodoscopeChannels.add(Long.valueOf(62750));
+        hodoscopeChannels.add(Long.valueOf(64030));
+        hodoscopeChannels.add(Long.valueOf(64542));
+        hodoscopeChannels.add(Long.valueOf(64286));
+        hodoscopeChannels.add(Long.valueOf(65054));
+        hodoscopeChannels.add(Long.valueOf(65310));
+        hodoscopeChannels.add(Long.valueOf(64798));
+        hodoscopeChannels.add(Long.valueOf(62238));
+        hodoscopeChannels.add(Long.valueOf(62494));
+        hodoscopeChannels.add(Long.valueOf(63006));
+        hodoscopeChannels.add(Long.valueOf(63262));
+        hodoscopeChannels.add(Long.valueOf(63774));
+        hodoscopeChannels.add(Long.valueOf(63518));
+        hodoscopeChannels.add(Long.valueOf(4638));
+        hodoscopeChannels.add(Long.valueOf(542));
+        hodoscopeChannels.add(Long.valueOf(286));
+        hodoscopeChannels.add(Long.valueOf(30));
+        hodoscopeChannels.add(Long.valueOf(798));
+        hodoscopeChannels.add(Long.valueOf(1054));
+        hodoscopeChannels.add(Long.valueOf(1310));
+        hodoscopeChannels.add(Long.valueOf(1566));
+        hodoscopeChannels.add(Long.valueOf(1822));
+        hodoscopeChannels.add(Long.valueOf(2590));
+        hodoscopeChannels.add(Long.valueOf(2078));
+        hodoscopeChannels.add(Long.valueOf(2334));
+        hodoscopeChannels.add(Long.valueOf(4382));
+        hodoscopeChannels.add(Long.valueOf(4126));
+        hodoscopeChannels.add(Long.valueOf(2846));
+        hodoscopeChannels.add(Long.valueOf(3614));
+        hodoscopeChannels.add(Long.valueOf(3358));
+        hodoscopeChannels.add(Long.valueOf(3102));
+        hodoscopeChannels.add(Long.valueOf(3870));
+        hodoscopeChannels.add(Long.valueOf(61982));
+        hodoscopeChannels.add(Long.valueOf(61726));
+        hodoscopeChannels.add(Long.valueOf(61214));
+        hodoscopeChannels.add(Long.valueOf(61470));
+        hodoscopeChannels.add(Long.valueOf(60958));
+        hodoscopeChannels.add(Long.valueOf(60446));
+        hodoscopeChannels.add(Long.valueOf(60702));
+        hodoscopeChannels.add(Long.valueOf(60190));
+        hodoscopeChannels.add(Long.valueOf(5406));
+        hodoscopeChannels.add(Long.valueOf(59934));
+        hodoscopeChannels.add(Long.valueOf(4894));
     }
     
     @Override
@@ -482,10 +530,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
             // TODO" No data exists to perform this for the hodoscope. Skip it.
             if(addNoise && truthHitCollectionName.compareTo("EcalHits") == 0) {
                 // Get the channel constants for the current channel.
-                EcalChannelConstants channelData = findChannel(hit.getCellID());
+                //EcalChannelConstants channelData = findChannel(hit.getCellID());
                 
                 // Calculate a randomized noise value.
-                double noiseSigma = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2)
+                //double noiseSigma = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2)
+                //        + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
+                
+                double noiseSigma = Math.sqrt(Math.pow(getNoiseConditions(hit.getCellID()) * getGainConditions(hit.getCellID()) * EcalUtils.MeV, 2)
                         + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
                 double noise = RandomGaussian.getGaussian(0, noiseSigma);
                 
@@ -509,8 +560,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
             for(int i = 0; i < BUFFER_LENGTH; i++) {
                 // Calculate the voltage deposition for the current
                 // buffer time.
+                //double voltageDeposition = energyAmplitude * pulseAmplitude((i + 1) * READOUT_PERIOD + readoutTime()
+                //        - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - findChannel(hit.getCellID()).getTimeShift().getTimeShift(), hit.getCellID());
                 double voltageDeposition = energyAmplitude * pulseAmplitude((i + 1) * READOUT_PERIOD + readoutTime()
-                        - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - findChannel(hit.getCellID()).getTimeShift().getTimeShift(), hit.getCellID());
+                        - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - getTimeShiftConditions(hit.getCellID()), hit.getCellID());
                 
                 // Increase the current buffer time's voltage value
                 // by the calculated amount.
@@ -562,7 +615,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
             adcBuffer.stepForward();
             
             // Get the calorimeter channel data.
-            EcalChannelConstants channelData = findChannel(cellID);
+            //EcalChannelConstants channelData = findChannel(cellID);
             
             // Scale the current value of the preamplifier buffer
             // to a 12-bit ADC value where the maximum represents
@@ -570,7 +623,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
             double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
             
             // Get the pedestal for the channel.
-            int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
+            //int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
+            int pedestal = (int) Math.round(getPedestalConditions(cellID));
             
             // An ADC value is not allowed to exceed 4095. If a
             // larger value is observed, 4096 (overflow) is given
@@ -1163,6 +1217,26 @@ public class EcalReadoutDriver extends ReadoutDriver {
         return Math.exp(-t * t / (2 * sig * sig));
     }
     
+    private double getGainConditions(long channelID) {
+        if(hodoscopeChannels.contains(Long.valueOf(channelID))) { return 1.0; }
+        else { return findChannel(channelID).getGain().getGain(); }
+    }
+    
+    private double getNoiseConditions(long channelID) {
+        if(hodoscopeChannels.contains(Long.valueOf(channelID))) { return 0.0; }
+        else { return findChannel(channelID).getCalibration().getNoise(); }
+    }
+    
+    private double getTimeShiftConditions(long channelID) {
+        if(hodoscopeChannels.contains(Long.valueOf(channelID))) { return 0.0; }
+        else { return findChannel(channelID).getTimeShift().getTimeShift(); }
+    }
+    
+    private double getPedestalConditions(long channelID) {
+        if(hodoscopeChannels.contains(Long.valueOf(channelID))) { return 0.0; }
+        else { return findChannel(channelID).getCalibration().getPedestal(); }
+    }
+    
     /**
      * Generates the hits which should be output for a given trigger
      * time in Mode-1 format.
@@ -1211,7 +1285,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
             outputData.append("\n");
             
             // Get the channel constants for the current channel.
-            EcalChannelConstants channelData = findChannel(cellID);
+            //EcalChannelConstants channelData = findChannel(cellID);
             
             // Iterate across the ADC values. If the ADC value is
             // sufficiently high to produce a hit, then it should be
@@ -1220,7 +1294,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
             for(int i = 0; i < adcValues.length; i++) {
                 // Check that there is a threshold-crossing at some
                 // point in the ADC buffer.
-                if(adcValues[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
+                //if(adcValues[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
+                if(adcValues[i] > getPedestalConditions(cellID) + integrationThreshold) {
                     isAboveThreshold = true;
                     break;
                 }
@@ -1261,7 +1336,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
             short[] window = getTriggerADCValues(cellID, triggerTime);
             
             // Get the channel data.
-            EcalChannelConstants channelData = findChannel(cellID);
+            //EcalChannelConstants channelData = findChannel(cellID);
             
             for(int i = 0; i < ReadoutDataManager.getReadoutWindow(); i++) {
                 if(numSamplesToRead != 0) {
@@ -1270,8 +1345,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
                     if (numSamplesToRead == 0) {
                         hits.add(new BaseRawTrackerHit(cellID, thresholdCrossing, adcValues));
                     }
-                } else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold) && window[i]
-                        > channelData.getCalibration().getPedestal() + integrationThreshold) {
+                //} else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold) && window[i]
+                //        > channelData.getCalibration().getPedestal() + integrationThreshold) {
+                } else if ((i == 0 || window[i - 1] <= getPedestalConditions(cellID) + integrationThreshold) && window[i]
+                        > getPedestalConditions(cellID) + integrationThreshold) {
                     thresholdCrossing = i;
                     pointerOffset = Math.min(numSamplesBefore, i);
                     numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, ReadoutDataManager.getReadoutWindow() - i - pointerOffset - 1);
@@ -1304,7 +1381,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
             short[] window = getTriggerADCValues(cellID, triggerTime);
             
             // Get the channel data.
-            EcalChannelConstants channelData = findChannel(cellID);
+            //EcalChannelConstants channelData = findChannel(cellID);
             
             // Generate Mode-7 hits.
             if(window != null) {
@@ -1315,8 +1392,10 @@ public class EcalReadoutDriver extends ReadoutDriver {
                         if(numSamplesToRead == 0) {
                             hits.add(new BaseRawCalorimeterHit(cellID, adcSum, 64 * thresholdCrossing));
                         }
-                    } else if((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold)
-                            && window[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
+                    //} else if((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold)
+                    //        && window[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
+                    } else if((i == 0 || window[i - 1] <= getPedestalConditions(cellID) + integrationThreshold)
+                            && window[i] > getPedestalConditions(cellID) + integrationThreshold) {
                         thresholdCrossing = i;
                         pointerOffset = Math.min(numSamplesBefore, i);
                         numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, ReadoutDataManager.getReadoutWindow() - i - pointerOffset - 1);
@@ -1331,8 +1410,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     private int getReadoutLatency(double triggerTime) {
-        // TODO: Readout latency.
-        //return ((int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0)) + (readoutOffset + readoutCorrection);
         return ((int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0)) + readoutOffset;
     }
     
@@ -1428,7 +1505,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     private double pulseAmplitude(double time, long cellID) {
         // Get the channel parameter data.
-        EcalChannelConstants channelData = findChannel(cellID);
+        //EcalChannelConstants channelData = findChannel(cellID);
         
         //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
         // Determine the gain. Gain may either be fixed across all
@@ -1439,7 +1516,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
         if(fixedGain > 0) {
             gain = READOUT_PERIOD / (fixedGain * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
         } else {
-            gain = READOUT_PERIOD / (channelData.getGain().getGain() * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
+            //gain = READOUT_PERIOD / (channelData.getGain().getGain() * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
+            gain = READOUT_PERIOD / (getGainConditions(cellID) * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
         }
         
         // Calculate the correct pulse amplitude and return it.
@@ -1523,10 +1601,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         // Insert a new buffer for each channel ID.
         for(Long cellID : cells) {
-            EcalChannelConstants channelData = findChannel(cellID);
+            //EcalChannelConstants channelData = findChannel(cellID);
             voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
             truthBufferMap.put(cellID, new ObjectRingBuffer<SimCalorimeterHit>(PIPELINE_LENGTH));
-            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(channelData.getCalibration().getPedestal())));
+            //adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(channelData.getCalibration().getPedestal())));
+            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(getPedestalConditions(cellID))));
             
             truthBufferMap.get(cellID).stepForward();
         }
