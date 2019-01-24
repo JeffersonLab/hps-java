@@ -379,8 +379,11 @@ public abstract class TupleMaker extends Driver {
         tupleVariables.addAll(Arrays.asList(newVars));
         if (doBsc) {
             String[] newVars2 = new String[] {"bscPX/D", "bscPY/D", "bscPZ/D", "bscP/D", "bscVX/D", "bscVY/D", "bscVZ/D",
-                    "bscChisq/D", "bscM/D", "bscElePX/D", "bscElePY/D", "bscElePZ/D", "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D", 
-                    "bscEleWtP/D", "bscPosWtP/D", "bscWtM/D"};
+                    "bscChisq/D", "bscM/D", "bscMErr/D", "bscCovXX/D", "bscCovXY/D", "bscCovXZ/D", "bscCovYX/D", "bscCovYY/D",
+                    "bscCovYZ/D", "bscCovZX/D", "bscCovZY/D", "bscCovZZ/D", "bscElePX/D", "bscElePY/D", "bscElePZ/D",
+                    "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D", "bscEleWtP/D", "bscPosWtP/D", "bscWtM/D",
+                    "bscMom/D","bscMomX/D","bscMomY/D","bscMomZ/D","bscMomErr/D","bscMomXErr/D","bscMomYErr/D","bscMomZErr/D",
+                    "bscTargProjX/D","bscTargProjY/D","bscTargProjXErr/D","bscTargProjYErr/D","bscPosX/D","bscPosY/D","bscPosZ/D"};
             tupleVariables.addAll(Arrays.asList(newVars2));
         }
         if (doTar) {
