@@ -147,7 +147,7 @@ public final class ClusterEnergyCorrection {
             BEAMGAPBOT = -ecal.getNode().getChild("layout").getAttribute("beamgapBottom").getDoubleValue();
         } catch (Exception e) {
             try {
-                BEAMGAPBOT = ecal.getNode().getChild("layout").getAttribute("beamgap").getDoubleValue();
+                BEAMGAPBOT = -ecal.getNode().getChild("layout").getAttribute("beamgap").getDoubleValue();
             } catch (Exception ee) {
                 ee.printStackTrace();
             }
