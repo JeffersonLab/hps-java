@@ -362,7 +362,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit)); //ADC can't return a value larger than 4095; 4096 (overflow) is returned for any input >2V
             pipeline.writeValue(digitizedValue);
             int pedestalSubtractedValue = digitizedValue - pedestal;
-            // System.out.println(signalBuffer.currentValue() + "   " + currentValue + "   " + pipeline.currentValue());
+            //System.out.println(signalBuffer.currentValue() + "   " + currentValue + "   " + pipeline.currentValue());
+            
+            // DEBUG :: Output the calculations for this channel.
+            if(currentValue != 0) {
+                verboseWriter.write("\tProcessing channel " + cellID);
+                verboseWriter.write("\t\tTime = " + String.format("%d [%d]", 4 * (readoutCounter - 1), 64 * (readoutCounter - 1)));
+                verboseWriter.write("\t\tcurrentValue = " + currentValue);
+                verboseWriter.write("\t\tpedestal = " + pedestal);
+                verboseWriter.write("\t\tdigitizedValue = " + digitizedValue);
+                verboseWriter.write("\t\tpedestalSubtractedValue = " + pedestalSubtractedValue);
+            }
 
             Integer sum = triggerPathHitSums.get(cellID);
             if (sum == null && pedestalSubtractedValue > triggerThreshold) {
@@ -370,10 +380,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 if (constantTriggerWindow) {
                     int sumBefore = 0;
                     for (int i = 0; i < numSamplesBefore; i++) {
-                        if (debug) {
-                            System.out.format("trigger %d, %d: %d\n", cellID, i,
-                                    pipeline.getValue(numSamplesBefore - i - 1));
-                        }
                         sumBefore += pipeline.getValue(numSamplesBefore - i - 1);
                     }
                     triggerPathHitSums.put(cellID, sumBefore);
@@ -398,11 +404,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (sum != null) {
                 if (constantTriggerWindow) {
                     if (triggerPathHitTimes.get(cellID) + numSamplesAfter >= readoutCounter) {
-                        if (debug) {
-                            System.out.format("trigger %d, %d: %d\n", cellID,
-                                    readoutCounter - triggerPathHitTimes.get(cellID) + numSamplesBefore - 1,
-                                    pipeline.getValue(0));
-                        }
                         triggerPathHitSums.put(cellID, sum + pipeline.getValue(0));
                         
                         // DEBUG :: Indicate that integration is on-going.
@@ -664,10 +665,6 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (window != null) {
                 for (int i = 0; i < readoutWindow; i++) {
                     if (numSamplesToRead != 0) {
-                        if (debug) {
-                            System.out.format("readout %d, %d: %d\n", cellID, numSamplesBefore + numSamplesAfter
-                                    - numSamplesToRead, window[i - pointerOffset]);
-                        }
                         adcSum += window[i - pointerOffset];
                         numSamplesToRead--;
                         if (numSamplesToRead == 0) {
