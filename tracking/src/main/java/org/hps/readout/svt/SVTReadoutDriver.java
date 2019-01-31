@@ -854,6 +854,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
     @Override
     protected double getTimeNeededForLocalOutput() {
         // TODO: Probably should have some defined value - buffer seems to be filled enough from the ecal delay alone, though.
-        return 0;
+        return 100;
     }
 }
