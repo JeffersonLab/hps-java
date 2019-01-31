@@ -611,21 +611,26 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             return;
         }
 
+
+        BilliorVertex vtxFit = fitVertex(Constraint.UNCONSTRAINED, electron, positron);
+
+        ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
+
+        if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP()) {
+            return;
+        }
+
+        if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb()) {
+            return;
+        }
+        
         // Create candidate particles for each constraint.
         for (Constraint constraint : Constraint.values()) {
 
             // Generate a candidate vertex and particle.
-            BilliorVertex vtxFit = fitVertex(constraint, electron, positron);
+            vtxFit = fitVertex(constraint, electron, positron);
 
-            ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
-
-            if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP()) {
-                continue;
-            }
-
-            if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb()) {
-                continue;
-            }
+            candidate = makeReconstructedParticle(electron, positron, vtxFit);
 
             // Add the candidate vertex and particle to the
             // appropriate LCIO collection.
