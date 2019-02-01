@@ -150,7 +150,7 @@
             <beamPositionZ> -4.3 </beamPositionZ>
 	    <maxElectronP> 2.15 </maxElectronP>
 	    <maxVertexP> 2.8 </maxVertexP>
-	    <minVertexChisqProb> 1.7e-16 </minVertexChisqProb>
+	    <minVertexChisqProb> 0.0 </minVertexChisqProb>
 	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
