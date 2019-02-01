@@ -1245,7 +1245,6 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(prefix + "VZ/D", theVtx.z());
         tupleMap.put(prefix + "Chisq/D", theV0.getStartVertex().getChi2());
         tupleMap.put(prefix + "M/D", theV0.getMass());
-        tupleMap.put(prefix + "M/D", theV0.getMass());
         tupleMap.put(prefix + "ChisqProb/D", theV0.getStartVertex().getProbability());
         
         String particleNames[] = isMoller ? mollerParticleNames : v0ParticleNames;
