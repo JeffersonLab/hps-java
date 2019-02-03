@@ -611,7 +611,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             return;
         }
 
-
+        // Handle UNCONSTRAINED case, to make decisions whether we store the vertexes.
+        // This is done here so that we either store all types, or none, but never a mix.
         BilliorVertex vtxFit = fitVertex(Constraint.UNCONSTRAINED, electron, positron);
 
         ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
@@ -624,7 +625,19 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             return;
         }
         
-        // Create candidate particles for each constraint.
+        // patch the track parameters at the found vertex
+        if (_patchVertexTrackParameters) {
+            patchVertex(vtxFit);
+        }
+        if (eleIsTop != posIsTop) {
+            unconstrainedV0Vertices.add(vtxFit);
+            unconstrainedV0Candidates.add(candidate);
+        } else {
+            unconstrainedVcVertices.add(vtxFit);
+            unconstrainedVcCandidates.add(candidate);
+        }
+
+        // Create candidate particles for the other two constraints.
         for (Constraint constraint : Constraint.values()) {
 
             // Generate a candidate vertex and particle.
@@ -637,18 +650,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             switch (constraint) {
 
                 case UNCONSTRAINED:
-                    // patch the track parameters at the found vertex
-                    if (_patchVertexTrackParameters) {
-                        patchVertex(vtxFit);
-                    }
-                    if (eleIsTop != posIsTop) {
-                        unconstrainedV0Vertices.add(vtxFit);
-                        unconstrainedV0Candidates.add(candidate);
-                    } else {
-                        unconstrainedVcVertices.add(vtxFit);
-                        unconstrainedVcCandidates.add(candidate);
-                    }
-                    break;
+                    break;              // Done this one already.
 
                 case BS_CONSTRAINED:
                     if (eleIsTop != posIsTop) {
