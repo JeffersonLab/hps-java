@@ -1,0 +1,163 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">      
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <!--RF driver-->
+        <driver name="RfFitter"/> 
+        <!-- Ecal reconstruction drivers -->        
+        <driver name="EcalRunningPedestal"/>
+        <driver name="EcalRawConverter" />
+        <driver name="ReconClusterer" />
+        <driver name="CopyCluster" />
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>    	
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="HelicalTrackHitDriver"/>
+        <driver name="RemoveHelicalTrackHits"/>
+        <!--Missing L1-->
+        <driver name="TrackReconSeed345Conf2Extd16MissingL1"/>    
+        <driver name="TrackReconSeed456Conf3Extd21MissingL1"/>
+        <!--Missing L2--> 
+        <driver name="TrackReconSeed456Conf3Extd21MissingL2"/>
+        <!--Missing L3-->   
+        <driver name="TrackReconSeed456Conf2Extd1MissingL3"/>
+        <!--Missing L4-->
+        <driver name="TrackReconSeed123Conf5Extd46MissingL4"/>
+        <!--Missing L5-->
+        <driver name="TrackReconSeed123Conf4Extd56MissingL5"/>
+        <!--Missing L6-->
+        <driver name="TrackReconSeed345Conf2Extd16MissingL6"/> 
+        <driver name="TrackReconSeed123Conf4Extd56MissingL6"/>
+        <driver name="TrackReconSeed123Conf5Extd46MissingL6"/>
+        <driver name="MergeTrackCollections"/>
+        <driver name="GBLRefitterDriver"/>
+        <driver name="UnbiasedHitResiduals"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="CleanupDriver"/>
+    </execute>   
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+    <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+        </driver>             
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver> 
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>true</correctChanT0>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+        <driver name="RemoveHelicalTrackHits" type="org.hps.recon.tracking.RemoveHelicalTrackHit">
+            <nLay>6</nLay>
+        </driver>
+        <driver name="TrackReconSeed345Conf2Extd16MissingL1" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL1</inputHitCollectionName>
+            <trackCollectionName>Tracks_s345_c2_e16MissingL1</trackCollectionName>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed456Conf3Extd21MissingL1" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL1</inputHitCollectionName>
+            <trackCollectionName>Tracks_s456_c3_e21MissingL1</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e21.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed456Conf3Extd21MissingL2" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL2</inputHitCollectionName>
+            <trackCollectionName>Tracks_s456_c3_e21MissingL2</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e21.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed456Conf2Extd1MissingL3" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL3</inputHitCollectionName>
+            <trackCollectionName>Tracks_s456_c2_e1MissingL3</trackCollectionName>
+            <strategyResource>HPS_s456_c2_e1.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed123Conf5Extd46MissingL4" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL4</inputHitCollectionName>
+            <trackCollectionName>Tracks_s123_c5_e46MissingL4</trackCollectionName>
+            <strategyResource>HPS_s123_c5_e46.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed123Conf4Extd56MissingL5" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL5</inputHitCollectionName>
+            <trackCollectionName>Tracks_s123_c4_e56MissingL5</trackCollectionName>
+            <strategyResource>HPS_s123_c4_e56.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed345Conf2Extd16MissingL6" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL6</inputHitCollectionName>
+            <trackCollectionName>Tracks_s345_c2_e16MissingL6</trackCollectionName>
+            <strategyResource>HPS_s345_c2_e16.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed123Conf4Extd56MissingL6" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL6</inputHitCollectionName>
+            <trackCollectionName>Tracks_s123_c4_e56MissingL6</trackCollectionName>
+            <strategyResource>HPS_s123_c4_e56.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="TrackReconSeed123Conf5Extd46MissingL6" type="org.hps.recon.tracking.TrackerReconDriver">
+            <inputHitCollectionName>RotatedHelicalTrackHitsMissingL6</inputHitCollectionName>
+            <trackCollectionName>Tracks_s123_c5_e46MissingL6</trackCollectionName>
+            <strategyResource>HPS_s123_c5_e46.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections">
+            <removeCollections>true</removeCollections>
+        </driver> 
+       <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver">
+           <storeTrackStates>true</storeTrackStates>
+        </driver>
+        <driver name="UnbiasedHitResiduals" type="org.hps.svt.UnbiasedHitResidualsPlots">
+            <cleanFEE>true</cleanFEE>
+        </driver>	
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>   
+    </drivers>
+</lcsim>
