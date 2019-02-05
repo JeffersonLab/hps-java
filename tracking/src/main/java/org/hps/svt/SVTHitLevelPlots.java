@@ -235,7 +235,7 @@ public class SVTHitLevelPlots extends Driver {
     int nBins = 50;
     double maxPull = 7;
     double minPull = -maxPull;
-    double maxRes = 2;
+    double maxRes = 0.5;
     double minRes = -maxRes;
     double maxYerror = 1;
     double maxD0 = 5;
@@ -272,7 +272,7 @@ public class SVTHitLevelPlots extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
 
     String outputFileName = "channelEff.txt";
-    boolean cleanTridents = false;
+    boolean cleanFEE = false;
     int nLay = 6;
     double nSig = 5;
     boolean maskBadChannels = false;
@@ -284,10 +284,6 @@ public class SVTHitLevelPlots extends Driver {
     
     public void setOutputFileName(String outputFileName) {
         this.outputFileName = outputFileName;
-    }
-    
-    public void setCleanTridents(boolean cleanTridents) { 
-        this.cleanTridents = cleanTridents;
     }
     
     public void setNLay(int nLay) { 
@@ -304,6 +300,10 @@ public class SVTHitLevelPlots extends Driver {
     
     public void setMaskBadChannels(boolean maskBadChannels){
         this.maskBadChannels = maskBadChannels; 
+    }
+    
+    public void setCleanFEE(boolean cleanFEE) { 
+        this.cleanFEE = cleanFEE;
     }
     
     //Beam Energy
@@ -522,17 +522,6 @@ public class SVTHitLevelPlots extends Driver {
         
         //Grab all the clusters in the event
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, stripHitOutputCollectionName);
-        
-        if(cleanTridents){
-            // Require an event to have exactly two tracks
-            if (tracks.size() != 2) return;
-
-            // Require the two tracks to be in opposite volumes
-            if (tracks.get(0).getTrackStates().get(0).getTanLambda()*tracks.get(1).getTrackStates().get(0).getTanLambda() >= 0) return;
-
-            // Require the two tracks to be oppositely charged
-            if (tracks.get(0).getTrackStates().get(0).getOmega()*tracks.get(1).getTrackStates().get(0).getOmega() >= 0) return;
-        }
     
         for(Track track:tracks){
             //Grab the unused layer on the track
@@ -565,6 +554,15 @@ public class SVTHitLevelPlots extends Driver {
             Omega_err.get(atIP).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.curvatureIndex,HelicalTrackFit.curvatureIndex)));
         
             Hep3Vector p = toHep3(tState.getMomentum());
+            double q = track.getCharge();
+            
+            if(cleanFEE){
+                // Require track to be an electron
+                if(q < 0) continue;
+                
+                // Select around the FEE momentum peak
+                if(p.magnitude() < 0.75*ebeam || p.magnitude() > 1.25*ebeam) continue;
+            }
             
             //See if track is within acceptance of both the axial and stereo sensors of the unused layer
             Pair<HpsSiSensor,Pair<Integer,Hep3Vector>> axialSensorPair = isWithinSensorAcceptance(track,tState,unusedLay,true, p,bFieldMap);
@@ -612,8 +610,6 @@ public class SVTHitLevelPlots extends Driver {
             numberOfTracksYCorrected.get(sensorStereoName).fill(stereoExtrapPosSensor.x(),weightStereo);
             numberOfTracksPCorrected.get(sensorAxialName).fill(trackP,weightAxial);
             numberOfTracksPCorrected.get(sensorStereoName).fill(trackP,weightStereo);
-            
-            double q = track.getCharge();
             
             //Fill electron histograms
             if(q < 0){

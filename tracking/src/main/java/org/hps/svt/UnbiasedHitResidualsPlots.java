@@ -78,7 +78,7 @@ public class UnbiasedHitResidualsPlots extends Driver {
     
     //Histogram Settings
     int nBins = 100;
-    double maxYRes = 2;
+    double maxYRes = 0.5;
     double minYRes = -maxYRes;
 
     
