@@ -92,7 +92,6 @@ public class UnbiasedHitResidualsPlots extends Driver {
    
     private static final String SUBDETECTOR_NAME = "Tracker";
 
-    String outputFileName = "channelEff.txt";
     boolean cleanFEE = false;
     double nSig = 5;
     int chanExtd = 0;
@@ -100,10 +99,6 @@ public class UnbiasedHitResidualsPlots extends Driver {
     //Daq map
     SvtChannelCollection channelMap;
     SvtDaqMappingCollection daqMap;
-    
-    public void setOutputFileName(String outputFileName) {
-        this.outputFileName = outputFileName;
-    }
     
     public void setCleanFEE(boolean cleanFEE) { 
         this.cleanFEE = cleanFEE;
