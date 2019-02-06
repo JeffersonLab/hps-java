@@ -6,6 +6,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.svt.HPSSVTConstants;
+import org.hps.recon.ecal.cluster.TriggerTime;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -30,6 +31,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private SvtTimingConstants timingConstants;
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
     private int relationFlags = 0;
+    private double jitter;
     private boolean correctTimeOffset = false;
     private boolean correctT0Shift = false;
     private boolean useTimestamps = false;
@@ -37,6 +39,9 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean subtractTOF = false;
     private boolean subtractTriggerTime = false;
     private boolean correctChanT0 = true;
+    private boolean subtractRFTime = false;
+
+    private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
     /**
      * Report time relative to the nearest expected truth event time.
@@ -75,28 +80,30 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.correctChanT0 = correctChanT0;
     }
 
+    public void setSubtractRFTime(boolean subtractRFTime) {
+        this.subtractRFTime = subtractRFTime;
+    }
+
     public void setFitAlgorithm(String fitAlgorithm) {
-        if (fitAlgorithm.equals("Analytic")) {
+        if (fitAlgorithm.equals("Analytic"))
             fitter = new ShaperAnalyticFitAlgorithm();
-        } else if (fitAlgorithm.equals("Linear")) {
+        else if (fitAlgorithm.equals("Linear"))
             fitter = new ShaperLinearFitAlgorithm(1);
-        } else if (fitAlgorithm.equals("PileupAlways")) {
+        else if (fitAlgorithm.equals("PileupAlways"))
             fitter = new ShaperPileupFitAlgorithm(1.0);
-        } else if (fitAlgorithm.equals("Pileup")) {
+        else if (fitAlgorithm.equals("Pileup"))
             fitter = new ShaperPileupFitAlgorithm();
-        } else {
+        else
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
-        }
     }
 
     public void setPulseShape(String pulseShape) {
-        if (pulseShape.equals("CR-RC")) {
+        if (pulseShape.equals("CR-RC"))
             shape = new PulseShape.CRRC();
-        } else if (pulseShape.equals("FourPole")) {
+        else if (pulseShape.equals("FourPole"))
             shape = new PulseShape.FourPole();
-        } else {
+        else
             throw new RuntimeException("Unrecognized pulseShape: " + pulseShape);
-        }
     }
 
     public void setFitCollectionName(String fitCollectionName) {
@@ -114,9 +121,8 @@ public class RawTrackerHitFitterDriver extends Driver {
     @Override
     public void startOfData() {
         fitter.setDebug(debug);
-        if (rawHitCollectionName == null) {
-            throw new RuntimeException("The parameter ecalCollectionName was not set!");
-        }
+        if (rawHitCollectionName == null)
+            throw new RuntimeException("The parameter rawHitCollectionName1 was not set!");
     }
 
     protected void detectorChanged(Detector detector) {
@@ -125,15 +131,30 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName)) {
+        if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
             // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
-        }
+        jitter = -666;
+        if (subtractRFTime)
+            if (event.hasCollection(TriggerTime.class, "TriggerTime")) {
+                System.out.println("Getting TriggerTime Object");
+                List<TriggerTime> jitterList = event.get(TriggerTime.class, "TriggerTime");
+                if (debug)
+                    System.out.println("TriggerTime List Size = " + jitterList.size());
+                TriggerTime jitterObject = jitterList.get(0);
+//                jitter = jitterObject.getDoubleVal() - trigTimeScale;
+                  jitter = jitterObject.getDoubleVal() ;
+                if (debug)
+                    System.out.println("RF time jitter " + jitter);
+
+            } else {
+                System.out.println("Requested RF Time correction but TriggerTime Collection doesn't exist!!!");
+                return;
+            }
 
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitCollectionName);
-        if (rawHits == null) {
+        if (rawHits == null)
             throw new RuntimeException("Event is missing SVT hits collection!");
-        }
         List<FittedRawTrackerHit> hits = new ArrayList<FittedRawTrackerHit>();
         List<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
 
@@ -145,15 +166,30 @@ public class RawTrackerHitFitterDriver extends Driver {
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
                 if (correctTimeOffset) {
+                    if (debug)
+                        System.out.println("subtracting svt time offset " + timingConstants.getOffsetTime());
                     fit.setT0(fit.getT0() - timingConstants.getOffsetTime());
                 }
                 if (subtractTriggerTime) {
-                    fit.setT0(fit.getT0() - (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12));
+                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
+                    if (debug)
+                        System.out.println("subtracting trigger time from event " + tt);
+                    fit.setT0(fit.getT0() - tt);
+                }
+                if (subtractRFTime && jitter != -666) {
+//                    System.out.println("subtracting RF time jitter");
+                    if (debug)
+                        System.out.println("subtracting RF time jitter " + jitter);
+                    fit.setT0(fit.getT0() - jitter+43.0);
                 }
                 if (correctChanT0) {
+                    if (debug)
+                        System.out.println("subtracting channel t0 " + sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX]);
                     fit.setT0(fit.getT0() - sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX]);
                 }
                 if (correctT0Shift) {
+                    if (debug)
+                        System.out.println("subtracting sensor shift " + sensor.getT0Shift());
                     //===> fit.setT0(fit.getT0() - constants.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());
                 }
@@ -174,15 +210,14 @@ public class RawTrackerHitFitterDriver extends Driver {
 
                     fit.setT0(relativeHitTime);
                 }
-                if (debug) {
+                if (debug)
                     System.out.println(fit);
-                }
+//                System.out.println("Final t0 = " + fit.getT0());
                 fits.add(fit);
                 FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
                 hits.add(hth);
-                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) { // drop unbonded channel
+                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) // drop unbonded channel
                     continue;
-                }
                 hit.getDetectorElement().getReadout().addHit(hth);
             }
         }
