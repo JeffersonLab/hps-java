@@ -237,7 +237,7 @@ public class SVTHitLevelPlots extends Driver {
     double minPull = -maxPull;
     double maxRes = 0.5;
     double minRes = -maxRes;
-    double maxYerror = 1;
+    double maxYerror = 0.1;
     double maxD0 = 5;
     double minD0 = -maxD0;
     double maxZ0 = 10;
