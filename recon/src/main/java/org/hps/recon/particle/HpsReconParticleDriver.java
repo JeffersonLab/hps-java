@@ -639,18 +639,16 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
         // Create candidate particles for the other two constraints.
         for (Constraint constraint : Constraint.values()) {
-
+            if(constraint == Constraint.UNCONSTRAINED) continue;           // Skip the UNCONSTRAINED case, done already
+            
             // Generate a candidate vertex and particle.
             vtxFit = fitVertex(constraint, electron, positron);
 
             candidate = makeReconstructedParticle(electron, positron, vtxFit);
 
-            // Add the candidate vertex and particle to the
+            // Add the other candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
-
-                case UNCONSTRAINED:
-                    break;              // Done this one already.
 
                 case BS_CONSTRAINED:
                     if (eleIsTop != posIsTop) {
