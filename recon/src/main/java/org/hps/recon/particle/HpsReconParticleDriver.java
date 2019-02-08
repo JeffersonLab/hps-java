@@ -611,39 +611,44 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             return;
         }
 
-        // Create candidate particles for each constraint.
+        // Handle UNCONSTRAINED case, to make decisions whether we store the vertexes.
+        // This is done here so that we either store all types, or none, but never a mix.
+        BilliorVertex vtxFit = fitVertex(Constraint.UNCONSTRAINED, electron, positron);
+
+        ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
+
+        if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP()) {
+            return;
+        }
+
+        if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb()) {
+            return;
+        }
+        
+        // patch the track parameters at the found vertex
+        if (_patchVertexTrackParameters) {
+            patchVertex(vtxFit);
+        }
+        if (eleIsTop != posIsTop) {
+            unconstrainedV0Vertices.add(vtxFit);
+            unconstrainedV0Candidates.add(candidate);
+        } else {
+            unconstrainedVcVertices.add(vtxFit);
+            unconstrainedVcCandidates.add(candidate);
+        }
+
+        // Create candidate particles for the other two constraints.
         for (Constraint constraint : Constraint.values()) {
-
+            if(constraint == Constraint.UNCONSTRAINED) continue;           // Skip the UNCONSTRAINED case, done already
+            
             // Generate a candidate vertex and particle.
-            BilliorVertex vtxFit = fitVertex(constraint, electron, positron);
+            vtxFit = fitVertex(constraint, electron, positron);
 
-            ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
+            candidate = makeReconstructedParticle(electron, positron, vtxFit);
 
-            if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP()) {
-                continue;
-            }
-
-            if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb()) {
-                continue;
-            }
-
-            // Add the candidate vertex and particle to the
+            // Add the other candidate vertex and particle to the
             // appropriate LCIO collection.
             switch (constraint) {
-
-                case UNCONSTRAINED:
-                    // patch the track parameters at the found vertex
-                    if (_patchVertexTrackParameters) {
-                        patchVertex(vtxFit);
-                    }
-                    if (eleIsTop != posIsTop) {
-                        unconstrainedV0Vertices.add(vtxFit);
-                        unconstrainedV0Candidates.add(candidate);
-                    } else {
-                        unconstrainedVcVertices.add(vtxFit);
-                        unconstrainedVcCandidates.add(candidate);
-                    }
-                    break;
 
                 case BS_CONSTRAINED:
                     if (eleIsTop != posIsTop) {
