@@ -44,8 +44,6 @@ public class IsolationRefit extends Driver{
 
     @Override
     protected void process(EventHeader event){
-        
-        System.out.println("New Event!");
         List<Track> allTracks = event.get(Track.class, trackColName);
         List<Track> badTracks = new ArrayList<Track>();
         List<SimTrackerHit> truthHits = new ArrayList<SimTrackerHit>();
@@ -61,6 +59,7 @@ public class IsolationRefit extends Driver{
             badTracks.add(track);
             break;
         }
+
         event.put(simhitOutputColName, truthHits, SimTrackerHit.class, 0);
         event.put(badTrackColName, badTracks, Track.class, 0);
     }

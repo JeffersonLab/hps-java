@@ -21,7 +21,6 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
@@ -108,16 +107,10 @@ public class TruthGBLRefitterDriver extends Driver {
 
     @Override
     protected void process(EventHeader event) {
-        System.out.println(outputCollectionName + " Pass1");
-        if(outputCollectionName == "GBLTracks_truth")
-            System.out.println("New GBL");
         if (!event.hasCollection(Track.class, inputCollectionName)){
             System.out.println("System has no input collection");
             return;
         }
-        if(outputCollectionName == "GBLTracks_truth")
-            System.out.println("Has MatchedTracks_truth");
-        //System.out.println(outputCollectionName + " Pass2");
 
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
@@ -129,7 +122,6 @@ public class TruthGBLRefitterDriver extends Driver {
         if(event.hasCollection(HelicalTrackHit.class, "RotatedHelicalTrackHits_truth")){
             rotatedhits = event.get(HelicalTrackHit.class, "RotatedHelicalTrackHits_truth");
         }
-        System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size()+" "+inputCollectionName);
         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
         RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
@@ -141,58 +133,16 @@ public class TruthGBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            if(outputCollectionName == "GBLTracks_truth")
-                System.out.println("GBLRefitterDriver::process  number of hits on track = "+track.getTrackerHits().size());
-            System.out.println(outputCollectionName + " Pass3");
-            //System.out.println(outputCollectionName + track + " " + hitToStrips + " " + hitToRotated + " " + TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size());
-            /*List<TrackerHit> hits = new ArrayList<TrackerHit>();
-            for (TrackerHit hit : track.getTrackerHits()) {
-                hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
-            }
-            System.out.println(outputCollectionName + " " + hits);*/
             if (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0){
-                //if(outputCollectionName == "GBLTracks_truth")
-                System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
-                System.out.println("Tracker NHits " + track.getTrackerHits().size());
-                List<TrackerHit> hits = new ArrayList<TrackerHit>();
-                if(helicalhits == null || rotatedhits == null){
-                    continue;
-                }
-                for(HelicalTrackHit hit : helicalhits){
-                    System.out.println("Helical Hits " + hitToRotated.allFrom(hit));
-                }
-                for(HelicalTrackHit hit : rotatedhits){
-                    System.out.println("Rotated Hits " + hitToStrips.allFrom(hit));
-                }
-
-                for (TrackerHit hit : track.getTrackerHits()) {
-                    hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
-                    System.out.println(hit.getClass() + " " + hit.getRawHits().get(0).getClass());
-                    System.out.println("Raw Hits Size " + hit.getRawHits().size());
-                    System.out.println(hitToRotated.from(hit));
-                    System.out.println(hitToStrips.allFrom(hitToRotated.from(hit)));
-                }
-                System.out.println(hitToStrips.size());
-                System.out.println(hitToRotated.size());
                 continue;
             }
-            //System.out.println(outputCollectionName + " Pass4");
-            //if(outputCollectionName == "GBLTracks_truth")
-            //System.out.println("Track " + track);
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            //if(outputCollectionName == "GBLTracks_truth")
-            //System.out.println("NewTrack " + newTrack);
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            //System.out.println(outputCollectionName + " Pass5");
-            if(outputCollectionName == "GBLTracks_truth")
-                System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
             if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
                 continue;
-            //System.out.println(outputCollectionName + " Pass6");
-            //if(outputCollectionName == "GBLTracks_truth")
-            //System.out.println("gblTrk " + gblTrk);
+
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
             inputToRefitted.put(track, gblTrk);
@@ -203,9 +153,6 @@ public class TruthGBLRefitterDriver extends Driver {
 
         // Put the tracks back into the event and exit
         int flag = 1 << LCIOConstants.TRBIT_HITS;
-        //System.out.println(outputCollectionName + " Pass7");
-        if(outputCollectionName == "GBLTracks_truth")
-            System.out.println(outputCollectionName+" "+refittedTracks);
         event.put(outputCollectionName, refittedTracks, Track.class, flag);
         event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
         event.put(kinkDataCollectionName, kinkDataCollection, GBLKinkData.class, 0);

@@ -390,7 +390,12 @@ public class MCFullDetectorTruth{
                     return -1;
                 }
             }
-            return sensor.getLayerNumber();
+            if(sensor != null){
+                return sensor.getLayerNumber();
+            }
+            else{
+                return -1;
+            }
         }
     }
     

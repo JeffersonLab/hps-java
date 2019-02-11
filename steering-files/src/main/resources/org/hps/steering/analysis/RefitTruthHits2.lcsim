@@ -98,7 +98,7 @@
         <driver name="MergeTrackCollectionsTruth"/>
         <driver name="GBLRefitterDriverTruth"/>
         <driver name="ReconParticleDriverTruth"/>
-        <driver name="LCIOWriter"/>
+        <!--<driver name="LCIOWriter"/>-->
         <driver name="RefitVertexPlots"/>
         <driver name="CleanupDriver"/>
         <driver name="AidaSaveDriver"/>
@@ -277,7 +277,6 @@
         </driver>
         <driver name="ReconParticleDriverTruth" type="org.hps.recon.particle.HpsReconstructParticleTruthDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <debug>true</debug>        
         </driver>
         <driver name="RefitVertexPlots" type="org.hps.analysis.MC.TruthRefitVerticesPlots"/>
     </drivers>

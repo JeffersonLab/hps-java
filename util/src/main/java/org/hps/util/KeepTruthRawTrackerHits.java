@@ -78,17 +78,6 @@ public class KeepTruthRawTrackerHits extends Driver {
             }
         }
         
-        /*for(SiTrackerHitStrip1D hit:striphits){
-            for(SiTrackerHitStrip1D truthhit:truthStripHits){
-                if(!hit.equals(truthhit)){
-                    striphits.remove(hit);
-                }
-            }
-        }*/
-        //event.put(stripHitOutputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
-
-        //event.remove(stripHitInputCollectionName);
-        //event.put(stripHitInputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
         event.put(stripHitOutputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
     }
 }
