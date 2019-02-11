@@ -57,49 +57,51 @@
         <driver name="GBLRefitterDriver" />
         <!--<driver name="TrackDataDriver" />-->
         <driver name="IsolationRefit"/>
-        <driver name="RemoveCollections"/>
+        <!--<driver name="RemoveCollections"/>-->
         
-        <driver name="RawTrackerHitSensorSetupTruth"/>
+        <!--<driver name="RawTrackerHitSensorSetupTruth"/>-->
         <driver name="KeepTruthHits"/>
-        <driver name="RawTrackerHitFitterDriverTruth" />
+        <!--<driver name="RawTrackerHitFitterDriverTruth" />-->
         <!--<driver name="TrackerHitDriverTruth"/>-->
-        <!--<driver name="HelicalTrackHitDriverTruth"/>-->
+        <driver name="HelicalTrackHitDriverTruth"/>
         <!-- 
             Will run track finding algorithm using layers 345 as a seed, 
             layer 2 to confirm and layers 1 and 6 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
         -->
-        <!--<driver name="TrackReconSeed345Conf2Extd16Truth"/>-->       
+        <driver name="TrackReconSeed345Conf2Extd16Truth"/>       
         <!-- 
             Will run track finding algorithm using layers 456 as a seed, 
             layer 3 to confirm and layers 2 and 1 to extend.  The collection
             name of the tracks found with this strategy will be 
             "Tracks_s456_c3_e21"
         -->
-        <!--<driver name="TrackReconSeed456Conf3Extd21Truth"/>-->
+        <driver name="TrackReconSeed456Conf3Extd21Truth"/>
         <!-- 
             Will run track finding algorithm using layers 123 as a seed, 
             layer 4 to confirm and layers 5 and 6 to extend.  The collection
             name of the tracks found with this strategy will be 
             "Tracks_s123_c4_e56"
         -->
-        <!--<driver name="TrackReconSeed123Conf4Extd56Truth"/>-->
+        <driver name="TrackReconSeed123Conf4Extd56Truth"/>
         <!-- 
             Will run track finding algorithm using layers 123 as a seed, 
             layer 5 to confirm and layers 4 and 6 to extend.  The collection
             name of the tracks found with this strategy will be 
             "Tracks_s123_c5_e46"
         --> 
-        <!--<driver name="TrackReconSeed123Conf5Extd46Truth"/>-->
+        <driver name="TrackReconSeed123Conf5Extd46Truth"/>
         <!-- 
            TrackDataDriver needs to be run before ReconParticleDriver so the
            ReconstructedParticle types are properly set.
         -->
-        <!--<driver name="MergeTrackCollectionsTruth"/>-->
-        <!--<driver name="GBLRefitterDriverTruth" />-->
-        <!--<driver name="ReconParticleDriver" /> -->  
+        <driver name="MergeTrackCollectionsTruth"/>
+        <driver name="GBLRefitterDriverTruth"/>
+        <driver name="ReconParticleDriverTruth"/>
         <driver name="LCIOWriter"/>
+        <driver name="RefitVertexPlots"/>
         <driver name="CleanupDriver"/>
+        <driver name="AidaSaveDriver"/>
     </execute>    
     <drivers>   
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
@@ -131,7 +133,7 @@
         </driver>
         <driver name="RemoveCollections" type="org.hps.util.RemoveCollections">
             <!--<collectionNames>UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices UnconstrainedMollerCandidates UnconstrainedMollerVertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices</collectionNames>-->
-            <collectionNames>GBLTracks GBLKinkData GBLKinkDataRelations HelicalTrackHits HelicalTrackHitRelations HelicalTrackMCRelations MatchedToGBLTrackRelations MatchedTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations RotatedHelicalTrackMCRelations SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackerHitEcal TrackerHits_Inactive TrackerHits SVTFittedRawTrackerHits</collectionNames>
+            <collectionNames>GBLKinkData GBLKinkDataRelations HelicalTrackHits HelicalTrackHitRelations HelicalTrackMCRelations MatchedToGBLTrackRelations MatchedTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations RotatedHelicalTrackMCRelations SVTShapeFitParameters TrackerHitEcal TrackerHits_Inactive TrackerHits SVTFittedRawTrackerHits</collectionNames>
             <!--<collectionNames>MatchedToGBLTrackRelations MatchedTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations RotatedHelicalTrackMCRelations</collectionNames>-->
             <!--<collectionNames>SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D</collectionNames>-->
             <!--<collectionNames>TrackerHitEcal TrackHits_Inactive</collectionNames>-->
@@ -190,11 +192,7 @@
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections">
             <removeCollections>true</removeCollections>
         </driver>
-        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
-        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>GBLTracks</trackCollectionNames>
-        </driver>  
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
@@ -265,17 +263,22 @@
             <inputTrackCollectionName>Tracks_s345_c2_e16_truth Tracks_s456_c3_e21_truth Tracks_s123_c4_e56_truth Tracks_s123_c5_e46_truth</inputTrackCollectionName>
             <outputCollectionName>MatchedTracks_truth</outputCollectionName>
         </driver>
-        <driver name="GBLRefitterDriverTruth" type="org.hps.recon.tracking.gbl.GBLRefitterDriver">
+        <driver name="GBLRefitterDriverTruth" type="org.hps.recon.tracking.gbl.TruthGBLRefitterDriver">
             <inputCollectionName>MatchedTracks_truth</inputCollectionName>
             <outputCollectionName>GBLTracks_truth</outputCollectionName>
             <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_truth</helicalTrackHitRelationsCollectionName>
-            <rotatedHelicalTrackHitRelationsCollectionName>RotatedHelicalTrackhitRelations_truth</rotatedHelicalTrackHitRelationsCollectionName>
-            <trackRelationCollectionName>MatchedToGBLTrackRelations_truth</trackRelationCollectionName>
-            <rawHitCollectionName>SVTRawTrackerHits_truth</rawHitCollectionName>
+            <rotatedHelicalTrackHitRelationsCollectionName>RotatedHelicalTrackHitRelations_truth</rotatedHelicalTrackHitRelationsCollectionName>
+            <!--<trackRelationCollectionName>MatchedToGBLTrackRelations_truth</trackRelationCollectionName>-->
+            <!--<rawHitCollectionName>SVTRawTrackerHits_truth</rawHitCollectionName>-->
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>       
+        </driver>
+        <driver name="ReconParticleDriverTruth" type="org.hps.recon.particle.HpsReconstructParticleTruthDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <debug>true</debug>        
+        </driver>
+        <driver name="RefitVertexPlots" type="org.hps.analysis.MC.TruthRefitVerticesPlots"/>
     </drivers>
 </lcsim>

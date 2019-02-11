@@ -12,35 +12,30 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
 /**
  *
  * @author mrsolt
- * This driver removes all raw tracker hits except those that are truth hits
+ * This driver keeps all truth hits that correspond to a track's 1D strip hits
  */
 public class KeepTruthRawTrackerHits extends Driver {
 
-    private String rawHitCollectionName = "SVTRawTrackerHits";
     private String simHitCollectionName = "TrackerHits_truth";
-    private String rawHitTruthCollectionName = "SVTRawTrackesrHits_truth";
     private String rawHitRelationsCollectionName = "SVTTrueHitRelations";
+    
+    private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    private String stripHitOutputCollectionName = "StripClusterer_SiTrackerHitStrip1D_truth";
 
     protected Set<String> collections = new HashSet<String>();
 
     public KeepTruthRawTrackerHits() {
-    }
     
-    public void setRawHitCollectionName(String rawHitCollectionName) {
-        this.rawHitCollectionName = rawHitCollectionName;
     }
     
     public void setSimHitCollectionName(String simHitCollectionName) {
         this.simHitCollectionName = simHitCollectionName;
-    }
-    
-    public void setRawHitTruthCollectionName(String rawHitTruthCollectionName) {
-        this.rawHitTruthCollectionName = rawHitTruthCollectionName;
     }
 
     public void setRawHitRelationsCollectionName(String rawHitRelationsCollectionName) {
@@ -50,29 +45,50 @@ public class KeepTruthRawTrackerHits extends Driver {
     public static RelationalTable getRawToTruthTable(EventHeader event,String RawHitRelationsCollectionName) {
         RelationalTable hitToTruth = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> hitrelations = event.get(LCRelation.class, RawHitRelationsCollectionName);
+        List<LCRelation> hitrelations_truth = new ArrayList<LCRelation>();
         for (LCRelation relation : hitrelations)
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null){
                 hitToTruth.add(relation.getFrom(), relation.getTo());
+                hitrelations_truth.add(relation);
+            }
         Pair<EventHeader, RelationalTable> hitToTruthCache = new Pair<EventHeader, RelationalTable>(event, hitToTruth);
         return hitToTruthCache.getSecond();
     }
     
     protected void process(EventHeader event) {
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitCollectionName);
+        List<SiTrackerHitStrip1D> striphits = event.get(SiTrackerHitStrip1D.class, stripHitInputCollectionName);
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, simHitCollectionName);
+        List<SiTrackerHitStrip1D> truthStripHits = new ArrayList<SiTrackerHitStrip1D>();
         RelationalTable rawToTruth = getRawToTruthTable(event,rawHitRelationsCollectionName);
-        List<RawTrackerHit> truthRawhits = new ArrayList<RawTrackerHit>();
-        for (SimTrackerHit hit : simHits) {
-            System.out.println(rawToTruth.allTo(hit));
-            truthRawhits.addAll(rawToTruth.allTo(hit));
+        for(SiTrackerHitStrip1D hit:striphits){
+            boolean keepHit = false;
+            List<RawTrackerHit> rawhits = hit.getRawHits();
+            for(RawTrackerHit rawhit:rawhits){
+                for (SimTrackerHit simhit : simHits) {
+                    if(rawToTruth.allFrom(rawhit).contains(simhit)){
+                        keepHit = true;
+                        break;
+                    }
+                }
+                if(keepHit)
+                    break;
+            }
+            if(keepHit){
+                truthStripHits.add(hit);
+            }
         }
-        /*for (RawTrackerHit hit : rawHits) {
-            System.out.println(rawToTruth.allFrom(hit));
-            truthRawhits.addAll(rawToTruth.allFrom(hit));
+        
+        /*for(SiTrackerHitStrip1D hit:striphits){
+            for(SiTrackerHitStrip1D truthhit:truthStripHits){
+                if(!hit.equals(truthhit)){
+                    striphits.remove(hit);
+                }
+            }
         }*/
-        System.out.println(truthRawhits);
-        event.put(rawHitTruthCollectionName, truthRawhits, RawTrackerHit.class, 0);
-        if (event.hasItem(rawHitCollectionName))
-            event.remove(rawHitCollectionName);
+        //event.put(stripHitOutputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
+
+        //event.remove(stripHitInputCollectionName);
+        //event.put(stripHitInputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
+        event.put(stripHitOutputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
     }
 }
