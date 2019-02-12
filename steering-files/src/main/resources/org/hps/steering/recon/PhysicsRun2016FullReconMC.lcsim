@@ -58,6 +58,10 @@
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
         <driver name="LCIOWriter"/>
+        <driver name="RawSVTHitsTupleDriver"/>
+        <driver name="FittedSVTHitsTupleDriver"/>  
+        <driver name="SVTTimingTuple"/>  
+       
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
@@ -95,13 +99,32 @@
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
-            <useTimestamps>false</useTimestamps>
+            <!-- current default settings --> 
+<!--            <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>false</correctChanT0>
+            <correctChanT0>false</correctChanT0>-->
+            
+            <!-- new, better  settings -->           
+            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
+            <useTimestamps>true</useTimestamps>     
+            <!--offset to get times centered at 0 after timestamp correction-->                 
+            <tsCorrectionScale>240</tsCorrectionScale>    
+            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
+            <correctTimeOffset>true</correctTimeOffset>   
+            <!--per sensor shift...set false becasue it's not in readout sim-->       
+            <correctT0Shift>false</correctT0Shift>      
+            <!--use truth time for MC???  typically not used-->             
+            <useTruthTime>false</useTruthTime>    
+            <!--time of flight corrections-->              
+            <subtractTOF>true</subtractTOF>     
+            <!--set this false for MC, true for data-->              
+            <subtractTriggerTime>false</subtractTriggerTime>           
+            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
+            <correctChanT0>true</correctChanT0>          
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
@@ -152,5 +175,21 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>       
+        <driver name="RawSVTHitsTupleDriver" type="org.hps.analysis.tuple.RawSVTHitsTupleDriver">
+            <debug>false</debug>
+            <tupleFile>${outputFile}_rawhits.txt</tupleFile>
+        </driver>
+        <driver name="FittedSVTHitsTupleDriver" type="org.hps.analysis.tuple.FittedSVTHitsTupleDriver">
+            <debug>false</debug>
+            <tupleFile>${outputFile}_fittedhits.txt</tupleFile>
+        </driver>
+        <driver name="SVTTimingTuple" type="org.hps.analysis.tuple.SVTTimingTupleDriver">
+            <triggerType>pairs1</triggerType>
+            <!--            <triggerType>all</triggerType> -->
+            <debug>false</debug>
+            <tupleFile>${outputFile}_svttime.txt</tupleFile>
+        </driver>
+
+
     </drivers>
 </lcsim>

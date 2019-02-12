@@ -38,6 +38,8 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean subtractTriggerTime = false;
     private boolean correctChanT0 = true;
 
+    private double tsCorrectionScale=240;
+    
     /**
      * Report time relative to the nearest expected truth event time.
      *
@@ -61,6 +63,10 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
+    }
+    
+       public void setTsCorrectionScale(double tsCorrectionScale) {
+        this.tsCorrectionScale = tsCorrectionScale;
     }
 
     public void setSubtractTOF(boolean subtractTOF) {
@@ -164,7 +170,8 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (useTimestamps) {
                     double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                     double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
-                    double corMod = (t0Svt - t0Trig) + 200.0;
+                   // double corMod = (t0Svt - t0Trig) + 200.0;///where does 200.0 come from?  for 2016 MC, looks like should be 240
+                      double corMod = (t0Svt - t0Trig) + tsCorrectionScale;
                     fit.setT0(fit.getT0() + corMod);
                 }
                 if (useTruthTime) {
