@@ -77,7 +77,6 @@ public class KeepTruthRawTrackerHits extends Driver {
                 truthStripHits.add(hit);
             }
         }
-        
         event.put(stripHitOutputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
+//import org.hps.analysis.MC.MCFullDetectorTruth;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
@@ -15,9 +16,11 @@ import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
+//import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
@@ -25,6 +28,8 @@ import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.FieldMap;
+import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
@@ -42,6 +47,7 @@ public class TruthGBLRefitterDriver extends Driver {
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String kinkDataCollectionName = "GBLKinkData_truth";
     private String kinkDataRelationsName = "GBLKinkDataRelations_truth";
+    private String trackToMCParticleRelationsName = "trackTruthToMCParticleRelations";
     
 
     private double bfield;
@@ -49,6 +55,11 @@ public class TruthGBLRefitterDriver extends Driver {
     private boolean storeTrackStates = false;
     private StandardCuts cuts = null;
 
+    private List<HpsSiSensor> sensors = null;
+    FieldMap bFieldMap = null;
+    private static final String SUBDETECTOR_NAME = "Tracker";
+    protected static Subdetector trackerSubdet;
+    
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
     }
@@ -98,6 +109,14 @@ public class TruthGBLRefitterDriver extends Driver {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+        
+        bFieldMap = detector.getFieldMap();
+        
+        // Get the HpsSiSensor objects from the tracker detector element
+        sensors = detector.getSubdetector(SUBDETECTOR_NAME)
+                          .getDetectorElement().findDescendants(HpsSiSensor.class);
+        
+        trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
 
         if (cuts == null) {
             cuts = new StandardCuts();
@@ -130,6 +149,8 @@ public class TruthGBLRefitterDriver extends Driver {
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
+        
+        List<LCRelation> trackToMCParticleRelations = new ArrayList<LCRelation>();
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
@@ -140,12 +161,17 @@ public class TruthGBLRefitterDriver extends Driver {
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
-                continue;
+            //if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
+            //    continue;
 
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
             inputToRefitted.put(track, gblTrk);
+            /*MCFullDetectorTruth truthMatch = new MCFullDetectorTruth(event, track, bFieldMap, sensors, trackerSubdet);
+            if(truthMatch != null){
+                MCParticle p = truthMatch.GetMCParticle();
+                trackToMCParticleRelations.add(new BaseLCRelation(track,p));
+            }*/
 
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
@@ -157,6 +183,7 @@ public class TruthGBLRefitterDriver extends Driver {
         event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
         event.put(kinkDataCollectionName, kinkDataCollection, GBLKinkData.class, 0);
         event.put(kinkDataRelationsName, kinkDataRelations, LCRelation.class, 0);
+        //event.put(trackToMCParticleRelationsName, trackToMCParticleRelations, LCRelation.class, 0);
     }
 
     private void setupSensors(EventHeader event) {
