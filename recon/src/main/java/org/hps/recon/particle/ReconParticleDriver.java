@@ -693,6 +693,8 @@ public abstract class ReconParticleDriver extends Driver {
         if (trackCollectionNames != null) {
             for (String collectionName : trackCollectionNames) {
                 if (event.hasCollection(Track.class, collectionName)) {
+                         // VERBOSE :: Output the number of clusters in the event.
+                    printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
                     trackCollections.add(event.get(Track.class, collectionName));
                 }
             }
