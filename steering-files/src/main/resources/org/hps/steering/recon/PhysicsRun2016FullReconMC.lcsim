@@ -57,11 +57,7 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
-        <driver name="LCIOWriter"/>
-        <driver name="RawSVTHitsTupleDriver"/>
-        <driver name="FittedSVTHitsTupleDriver"/>  
-        <driver name="SVTTimingTuple"/>  
-       
+        <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
@@ -112,7 +108,7 @@
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>true</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 
-            <tsCorrectionScale>240</tsCorrectionScale>    
+            <tsCorrectionScale>239</tsCorrectionScale>    
             <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
             <correctTimeOffset>true</correctTimeOffset>   
             <!--per sensor shift...set false becasue it's not in readout sim-->       
@@ -165,8 +161,15 @@
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>GBLTracks</trackCollectionNames>
-        </driver>  
+            <trackCollectionNames>GBLTracks</trackCollectionNames>          
+            <beamPositionX> -0.246 </beamPositionX>
+            <beamSigmaX> 0.125 </beamSigmaX>
+            <beamPositionY> -0.138 </beamPositionY>
+            <beamSigmaY> 0.030 </beamSigmaY>
+            <beamPositionZ> -3.9 </beamPositionZ>
+            <trackClusterTimeOffset>43</trackClusterTimeOffset>
+            <isMC>true</isMC>      
+        </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
@@ -174,22 +177,6 @@
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>       
-        <driver name="RawSVTHitsTupleDriver" type="org.hps.analysis.tuple.RawSVTHitsTupleDriver">
-            <debug>false</debug>
-            <tupleFile>${outputFile}_rawhits.txt</tupleFile>
-        </driver>
-        <driver name="FittedSVTHitsTupleDriver" type="org.hps.analysis.tuple.FittedSVTHitsTupleDriver">
-            <debug>false</debug>
-            <tupleFile>${outputFile}_fittedhits.txt</tupleFile>
-        </driver>
-        <driver name="SVTTimingTuple" type="org.hps.analysis.tuple.SVTTimingTupleDriver">
-            <triggerType>pairs1</triggerType>
-            <!--            <triggerType>all</triggerType> -->
-            <debug>false</debug>
-            <tupleFile>${outputFile}_svttime.txt</tupleFile>
-        </driver>
-
-
+        </driver>             
     </drivers>
 </lcsim>
