@@ -17,7 +17,7 @@ public class DummyConditionsObjectConverterTest extends TestCase {
     public void testConditionsObjectConverter() throws Exception {
 
         final DatabaseConditionsManager manager = new DatabaseConditionsManager();
-        manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
+        //manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
         manager.registerConditionsConverter(new DummyConditionsObjectConverter());
         manager.setDetector("HPS-dummy-detector", 1);
         manager.openConnection();
