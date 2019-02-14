@@ -8,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.1-SNAPSHOT</version>
+    <version>4.3-SNAPSHOT</version>
   </parent>
   <dependencies>
     <dependency>
@@ -23,7 +23,8 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>**/*Test.java</exclude>
+            <exclude>**/TupleDriverTest.java</exclude>
+            <exclude>**/MC/TrackExtrapTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>
