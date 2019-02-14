@@ -44,6 +44,21 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * <p>
  * Differences between Test Run and Engineering Run configurations are handled
  * automatically.
+ * <p>
+ * The connection URL, username and password can be set via Java properties from
+ * the command line, e.g. for the default connection:</br>
+ * <code>java -Dorg.hps.conditions.url=jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions
+ *       -Dorg.hps.conditions.user=hpsuser -Dorg.hps.conditions.password=darkphoton [...]</code>
+ * <p>
+ * To use a local SQLite database, provide a URL that looks something like this:</br>
+ * <code>jdbc:sqlite:hps_conditions.db</code>
+ * <p>
+ * The last part should be the relative or absolute path to the SQLite db file.
+ * <p>
+ * When using a SQLite database, no username or password needs to be provided.
+ * <p>
+ * SQLite is not supported in write mode.  The local database should be a clone of a 
+ * particular version of the master MySQL database at JLab.
  *
  * @see org.lcsim.conditions.ConditionsManager
  * @author Jeremy McCormick, SLAC
@@ -61,8 +76,19 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private static final int TEST_RUN_MAX_RUN = 1365;
 
+    /**
+     * Default database URL.
+     */
     private static String DEFAULT_URL = "jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions";
+    
+    /**
+     * Default database user for read access.
+     */
     private static String DEFAULT_USER = "hpsuser";
+    
+    /**
+     * Password for default account 'hpsuser'.
+     */
     private static String DEFAULT_PASSWORD = "darkphoton";
 
     /**
@@ -76,6 +102,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private static final int RETRY_WAIT = 5000;
 
+    /**
+     * Get a connection to the conditions database, possibly using
+     * properties from the command line for the database URL, username,
+     * and password (otherwise the defaults are used to provide a 
+     * read only connection).
+     * 
+     * @return A connection to the conditions database
+     */
     private Connection createConnection() {
 
         Connection connection = null;
@@ -97,8 +131,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         props.setProperty("user", user);
         props.setProperty("password", password);
 
-        LOG.info("Opening connection ..." + '\n' + "url: " + url + '\n' + "user: " + user + '\n' + "password: "
-                + password + '\n');
+        LOG.info("Opening conditions db connection ..." + '\n' + "url: " + url + '\n' + "user: " + user);
+        //+ '\n' + "password: " + password + '\n');
 
         if (url.contains("mysql://")) {
             // Remote connection using MySQL with connection retry
@@ -108,6 +142,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 try {
                     connection = DriverManager.getConnection(url, props);
                 } catch (final SQLException x) {
+                    // FIXME: The message of the exception should be checked here, as there could be other problems
+                    //        other than max connections exceeded, such as the password or URL being wrong, in which case
+                    //        the method should just fail immediately.
                     Logger.getLogger(this.getClass().getPackage().getName())
                             .warning("Failed to connect to database " + url + " - " + x.getMessage());
                     if (attempt >= MAX_ATTEMPTS) {
@@ -130,9 +167,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         } else {
             // Local connection using SQLite
             try {
+                Class.forName("org.sqlite.JDBC");
                 connection = DriverManager.getConnection(url, props);
             } catch (final SQLException x) {
                 throw new RuntimeException("Error connecting to local SQLite database", x);
+            } catch (final ClassNotFoundException x) {
+                throw new RuntimeException("SQLite db driver not found", x);
             }
         }
         return connection;
