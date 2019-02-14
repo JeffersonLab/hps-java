@@ -7,16 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.lcsim.event.EventHeader;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.RelationalTable;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 

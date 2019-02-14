@@ -38,8 +38,8 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean subtractTriggerTime = false;
     private boolean correctChanT0 = true;
 
-    private double tsCorrectionScale=240;
-    
+    private double tsCorrectionScale = 240;
+
     /**
      * Report time relative to the nearest expected truth event time.
      *
@@ -64,8 +64,8 @@ public class RawTrackerHitFitterDriver extends Driver {
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
     }
-    
-       public void setTsCorrectionScale(double tsCorrectionScale) {
+
+    public void setTsCorrectionScale(double tsCorrectionScale) {
         this.tsCorrectionScale = tsCorrectionScale;
     }
 
@@ -82,27 +82,25 @@ public class RawTrackerHitFitterDriver extends Driver {
     }
 
     public void setFitAlgorithm(String fitAlgorithm) {
-        if (fitAlgorithm.equals("Analytic")) {
+        if (fitAlgorithm.equals("Analytic"))
             fitter = new ShaperAnalyticFitAlgorithm();
-        } else if (fitAlgorithm.equals("Linear")) {
+        else if (fitAlgorithm.equals("Linear"))
             fitter = new ShaperLinearFitAlgorithm(1);
-        } else if (fitAlgorithm.equals("PileupAlways")) {
+        else if (fitAlgorithm.equals("PileupAlways"))
             fitter = new ShaperPileupFitAlgorithm(1.0);
-        } else if (fitAlgorithm.equals("Pileup")) {
+        else if (fitAlgorithm.equals("Pileup"))
             fitter = new ShaperPileupFitAlgorithm();
-        } else {
+        else
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
-        }
     }
 
     public void setPulseShape(String pulseShape) {
-        if (pulseShape.equals("CR-RC")) {
+        if (pulseShape.equals("CR-RC"))
             shape = new PulseShape.CRRC();
-        } else if (pulseShape.equals("FourPole")) {
+        else if (pulseShape.equals("FourPole"))
             shape = new PulseShape.FourPole();
-        } else {
+        else
             throw new RuntimeException("Unrecognized pulseShape: " + pulseShape);
-        }
     }
 
     public void setFitCollectionName(String fitCollectionName) {
@@ -120,9 +118,8 @@ public class RawTrackerHitFitterDriver extends Driver {
     @Override
     public void startOfData() {
         fitter.setDebug(debug);
-        if (rawHitCollectionName == null) {
+        if (rawHitCollectionName == null)
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
-        }
     }
 
     protected void detectorChanged(Detector detector) {
@@ -131,15 +128,13 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName)) {
+        if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
             // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
-        }
 
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitCollectionName);
-        if (rawHits == null) {
+        if (rawHits == null)
             throw new RuntimeException("Event is missing SVT hits collection!");
-        }
         List<FittedRawTrackerHit> hits = new ArrayList<FittedRawTrackerHit>();
         List<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
 
@@ -150,19 +145,15 @@ public class RawTrackerHitFitterDriver extends Driver {
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
-                if (correctTimeOffset) {
+                if (correctTimeOffset)
                     fit.setT0(fit.getT0() - timingConstants.getOffsetTime());
-                }
-                if (subtractTriggerTime) {
+                if (subtractTriggerTime)
                     fit.setT0(fit.getT0() - (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12));
-                }
-                if (correctChanT0) {
+                if (correctChanT0)
                     fit.setT0(fit.getT0() - sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX]);
-                }
-                if (correctT0Shift) {
+                if (correctT0Shift)
                     //===> fit.setT0(fit.getT0() - constants.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());
-                }
                 if (subtractTOF) {
                     double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
                     fit.setT0(fit.getT0() - tof);
@@ -170,8 +161,8 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (useTimestamps) {
                     double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                     double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
-                   // double corMod = (t0Svt - t0Trig) + 200.0;///where does 200.0 come from?  for 2016 MC, looks like should be 240
-                      double corMod = (t0Svt - t0Trig) + tsCorrectionScale;
+                    // double corMod = (t0Svt - t0Trig) + 200.0;///where does 200.0 come from?  for 2016 MC, looks like should be 240
+                    double corMod = (t0Svt - t0Trig) + tsCorrectionScale;
                     fit.setT0(fit.getT0() + corMod);
                 }
                 if (useTruthTime) {
@@ -181,15 +172,13 @@ public class RawTrackerHitFitterDriver extends Driver {
 
                     fit.setT0(relativeHitTime);
                 }
-                if (debug) {
+                if (debug)
                     System.out.println(fit);
-                }
                 fits.add(fit);
                 FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
                 hits.add(hth);
-                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) { // drop unbonded channel
+                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) // drop unbonded channel
                     continue;
-                }
                 hit.getDetectorElement().getReadout().addHit(hth);
             }
         }

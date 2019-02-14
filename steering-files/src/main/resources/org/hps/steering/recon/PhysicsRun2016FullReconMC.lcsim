@@ -95,16 +95,6 @@
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
-            <!-- current default settings --> 
-<!--            <useTimestamps>false</useTimestamps>
-            <correctTimeOffset>true</correctTimeOffset>
-            <correctT0Shift>false</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
-            <subtractTOF>true</subtractTOF>
-            <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>false</correctChanT0>-->
-            
-            <!-- new, better  settings -->           
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>true</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 

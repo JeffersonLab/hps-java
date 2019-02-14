@@ -192,8 +192,8 @@ public class SVTTimingTupleDriver extends MCTupleMaker {
             "TrOmega/D", "TrD0/D", "TrPhi0/D", "TrSlope/D", "TrZ0/D", "ECalClTime"};
         tupleVariables.addAll(Arrays.asList(TrackVars));
 
-        String[] EventVars = new String[]{"rfT1/D", "rfT1/D", "TrigTime/D","RFJitter/D"};
-         tupleVariables.addAll(Arrays.asList(EventVars));
+        String[] EventVars = new String[]{"rfT1/D", "rfT1/D", "TrigTime/D", "RFJitter/D"};
+        tupleVariables.addAll(Arrays.asList(EventVars));
 
         addEventVariables();
         addVertexVariables();
@@ -332,7 +332,7 @@ public class SVTTimingTupleDriver extends MCTupleMaker {
                     if (AbstractIntData.getTag(data) == SSPData.BANK_TAG) {
                         SSPData sspData = new SSPData(data);
                         double trigTime = sspData.getTime();
-                         tupleMap.put("TrigTime/D", trigTime);
+                        tupleMap.put("TrigTime/D", trigTime);
                     }
             }
 
@@ -441,20 +441,20 @@ public class SVTTimingTupleDriver extends MCTupleMaker {
                     tupleMap.put(tString, chiProb);
                 }
             }
-            
+
             if (event.hasCollection(TriggerTime.class, "TriggerTime")) {
                 System.out.println("Getting TriggerTime Object");
                 List<TriggerTime> jitterList = event.get(TriggerTime.class, "TriggerTime");
-                 if (debug) System.out.println("TriggerTime List Size = " + jitterList.size());
+                if (debug)
+                    System.out.println("TriggerTime List Size = " + jitterList.size());
                 TriggerTime jitterObject = jitterList.get(0);
                 double jitter = jitterObject.getDoubleVal();
-                 if (debug) System.out.println("RF time jitter " + jitter);
-                 tupleMap.put("RFJitter/D",jitter);
+                if (debug)
+                    System.out.println("RF time jitter " + jitter);
+                tupleMap.put("RFJitter/D", jitter);
 
-            } else {
+            } else
                 System.out.println("Requested RF Time correction but TriggerTime Collection doesn't exist!!!");
-               
-            }
             if (tupleWriter != null) {
                 System.out.println("writing tuple");
                 writeTuple();
