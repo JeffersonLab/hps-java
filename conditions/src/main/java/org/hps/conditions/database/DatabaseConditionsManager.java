@@ -108,9 +108,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 try {
                     connection = DriverManager.getConnection(url, props);
                 } catch (final SQLException x) {
-                    if (!(x instanceof com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException)) {
-                        throw new RuntimeException("Error connecting to the MySQL database", x);
-                    }
                     Logger.getLogger(this.getClass().getPackage().getName())
                             .warning("Failed to connect to database " + url + " - " + x.getMessage());
                     if (attempt >= MAX_ATTEMPTS) {
