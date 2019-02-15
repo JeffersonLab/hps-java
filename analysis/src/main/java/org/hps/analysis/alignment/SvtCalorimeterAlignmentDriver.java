@@ -26,6 +26,9 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
 
     protected void process(EventHeader event) {
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
+        if (event.hasCollection(ReconstructedParticle.class, "OtherElectrons")) {
+            rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+        }
         for (ReconstructedParticle rp : rpList) {
 
             if (!TrackType.isGBL(rp.getType())) {
