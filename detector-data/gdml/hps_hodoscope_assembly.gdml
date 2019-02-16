@@ -1,0 +1,289 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <define>
+    <position name="hodo_flange_1intracking_volumepos" x="2.1170000000000004" y="0" z="134.30000000000001" unit="cm"/>
+    <position name="arms1_block1_1intracking_volumepos" x="21.517000000000003" y="14.938225000000001" z="132.70000000000002" unit="cm"/>
+    <position name="arms1_block2_1intracking_volumepos" x="9.5170000000000012" y="14.938225000000001" z="132.70000000000002" unit="cm"/>
+    <position name="arms1_block3_1intracking_volumepos" x="21.517000000000003" y="-14.938225000000001" z="132.70000000000002" unit="cm"/>
+    <position name="arms1_block4_1intracking_volumepos" x="9.5170000000000012" y="-14.938225000000001" z="132.70000000000002" unit="cm"/>
+    <position name="cross_bar_top_1intracking_volumepos" x="15.517000000000003" y="16.34" z="132.70000000000002" unit="cm"/>
+    <position name="cross_bar_bottom_1intracking_volumepos" x="15.517000000000003" y="-16.34" z="132.70000000000002" unit="cm"/>
+    <position name="support_arm_bottom_left_plus_block_1intracking_volumepos" x="21.517000000000003" y="-12.771562277258594" z="121.10000000000001" unit="cm"/>
+    <position name="support_arm_bottom_right_1intracking_volumepos" x="9.5170000000000012" y="-12.771562277258594" z="121.10000000000001" unit="cm"/>
+    <position name="support_arm_top_left_1intracking_volumepos" x="21.517000000000003" y="12.771562277258594" z="121.10000000000001" unit="cm"/>
+    <rotation name="support_arm_top_left_1intracking_volumerot" x="0" y="-0" z="180" unit="deg"/>
+    <position name="support_arm_top_right_1intracking_volumepos" x="9.5170000000000012" y="12.771562277258594" z="121.10000000000001" unit="cm"/>
+    <rotation name="support_arm_top_right_1intracking_volumerot" x="0" y="-0" z="180" unit="deg"/>
+    <position name="u_support_bar_bottom_1intracking_volumepos" x="15.517000000000003" y="-9.8400000000000034" z="110.899" unit="cm"/>
+    <position name="u_support_bar_upper1_1intracking_volumepos" x="15.517000000000003" y="-8.5400000000000027" z="110.65000000000001" unit="cm"/>
+    <position name="u_support_bar_upper2_1intracking_volumepos" x="15.517000000000003" y="-8.5400000000000027" z="111.2" unit="cm"/>
+    <position name="u_support_bar_top_1intracking_volumepos" x="15.517000000000003" y="9.8400000000000034" z="110.899" unit="cm"/>
+    <position name="u_support_bar_upper3_1intracking_volumepos" x="15.517000000000003" y="8.5400000000000027" z="110.65000000000001" unit="cm"/>
+    <position name="u_support_bar_upper4_1intracking_volumepos" x="15.517000000000003" y="8.5400000000000027" z="111.2" unit="cm"/>
+  </define>
+  <materials>
+    <material name="Vacuum" Z="1">
+      <D unit="g/cm3" value="0"/>
+      <atom unit="g/mole" value="0"/>
+    </material>
+    <material name="Aluminum" Z="13">
+      <D unit="g/cm3" value="2.6989999999999998"/>
+      <atom unit="g/mole" value="26.981538"/>
+    </material>
+    <element name="SILICON_elm" formula="SI" Z="14">
+      <atom unit="g/mole" value="28.0855"/>
+    </element>
+    <element name="OXYGEN_elm" formula="O" Z="8">
+      <atom unit="g/mole" value="15.9994"/>
+    </element>
+    <element name="CARBON_elm" formula="C" Z="6">
+      <atom unit="g/mole" value="12.0107"/>
+    </element>
+    <element name="HYDROGEN_elm" formula="H" Z="1">
+      <atom unit="g/mole" value="1.0079400000000001"/>
+    </element>
+    <material name="G10_FR4">
+      <D unit="g/cm3" value="1.8500000000000001"/>
+      <fraction n="0.40416482090950012" ref="CARBON_elm"/>
+      <fraction n="0.067835167050361633" ref="HYDROGEN_elm"/>
+      <fraction n="0.28119435906410217" ref="OXYGEN_elm"/>
+      <fraction n="0.24680563807487488" ref="SILICON_elm"/>
+    </material>
+    <material name="SiO2">
+      <D unit="g/cm3" value="2.2000000000000002"/>
+      <fraction n="0.53256505727767944" ref="OXYGEN_elm"/>
+      <fraction n="0.46743491291999817" ref="SILICON_elm"/>
+    </material>
+    <material name="Epoxy">
+      <D unit="g/cm3" value="1.2"/>
+      <fraction n="0.85628145933151245" ref="CARBON_elm"/>
+      <fraction n="0.14371857047080994" ref="HYDROGEN_elm"/>
+    </material>
+  </materials>
+  <solids>
+    <box name="tracking_volume_solid" x="2000" y="2000" z="2000" lunit="cm"/>
+    <box name="hodo_flange_outer_shape" x="76.835000000000008" y="45.719999999999999" z="5" lunit="cm"/>
+    <box name="hodo_flange_inner_shape" x="65.035000000000011" y="33.480000000000004" z="5.0010000000000003" lunit="cm"/>
+    <subtraction name="hodo_flange_only_shape">
+      <first ref="hodo_flange_outer_shape"/>
+      <second ref="hodo_flange_inner_shape"/>
+    </subtraction>
+    <box name="Flange_extrusion_1_shape" x="2.5" y="3.5" z="1.5" lunit="cm"/>
+    <union name="hodo_flange_ex1_shape">
+      <first ref="hodo_flange_only_shape"/>
+      <second ref="Flange_extrusion_1_shape"/>
+      <position name="hodo_flange_ex1_shapeFlange_extrusion_1_shapepos" x="19.400000000000002" y="14.990000000000002" z="-0.10000000000000001" unit="cm"/>
+    </union>
+    <box name="Flange_extrusion_2_shape" x="2.5" y="3.5" z="1.5" lunit="cm"/>
+    <union name="hodo_flange_ex2_shape">
+      <first ref="hodo_flange_ex1_shape"/>
+      <second ref="Flange_extrusion_2_shape"/>
+      <position name="hodo_flange_ex2_shapeFlange_extrusion_2_shapepos" x="19.400000000000002" y="-14.990000000000002" z="-0.10000000000000001" unit="cm"/>
+    </union>
+    <box name="Flange_extrusion_3_shape" x="2.5" y="3.5" z="1.5" lunit="cm"/>
+    <union name="hodo_flange_ex3_shape">
+      <first ref="hodo_flange_ex2_shape"/>
+      <second ref="Flange_extrusion_3_shape"/>
+      <position name="hodo_flange_ex3_shapeFlange_extrusion_3_shapepos" x="7.4000000000000004" y="14.990000000000002" z="-0.10000000000000001" unit="cm"/>
+    </union>
+    <box name="Flange_extrusion_4_shape" x="2.5" y="3.5" z="1.5" lunit="cm"/>
+    <union name="hodo_flange_shape">
+      <first ref="hodo_flange_ex3_shape"/>
+      <second ref="Flange_extrusion_4_shape"/>
+      <position name="hodo_flange_shapeFlange_extrusion_4_shapepos" x="7.4000000000000004" y="-14.990000000000002" z="-0.10000000000000001" unit="cm"/>
+    </union>
+    <trap name="arms1_block1_shape" z="1.5" theta="3.9490533936242498" phi="90" x1="2.5" x2="2.5" x3="2.5" x4="2.5" y1="3.7071000000000001" y2="3.5" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <trap name="arms1_block2_shape" z="1.5" theta="3.9490533936242498" phi="90" x1="2.5" x2="2.5" x3="2.5" x4="2.5" y1="3.7071000000000001" y2="3.5" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <trap name="arms1_block3_shape" z="1.5" theta="-3.9490533936242498" phi="90" x1="2.5" x2="2.5" x3="2.5" x4="2.5" y1="3.7071000000000001" y2="3.5" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <trap name="arms1_block4_shape" z="1.5" theta="-3.9490533936242498" phi="90" x1="2.5" x2="2.5" x3="2.5" x4="2.5" y1="3.7071000000000001" y2="3.5" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <box name="cross_bar_top_shape" x="9.5" y="0.80000000000000004" z="1.5" lunit="cm"/>
+    <box name="cross_bar_bottom_shape" x="9.5" y="0.80000000000000004" z="1.5" lunit="cm"/>
+    <trap name="support_arm_bottom_left_arm_shape" z="21.700000000000003" theta="-9.8039344658558196" phi="90" x1="0.60000000000000009" x2="0.60000000000000009" x3="0.60000000000000009" x4="0.60000000000000009" y1="2.2938300486668619" y2="3.2271000000000001" alpha1="0" alpha2="0" aunit="deg" lunit="cm"/>
+    <box name="support_arm_bottom_left_notch_shape" x="2" y="1.7800000000000002" z="1.401" lunit="cm"/>
+    <box name="end_block_bottom_left_block_shape" x="2" y="0.78000000000000003" z="1.4000000000000001" lunit="cm"/>
+    <box name="end_block_bottom_left_subs_shape" x="2.0010000000000003" y="1" z="1.401" lunit="cm"/>
+    <subtraction name="support_arm_bottom_left_with_notch_shape">
+      <first ref="support_arm_bottom_left_arm_shape"/>
+      <second ref="support_arm_bottom_left_notch_shape"/>
+      <position name="support_arm_bottom_left_with_notch_shapesupport_arm_bottom_left_notch_shapepos" x="0" y="2.9215622772585932" z="-10.151000000000002" unit="cm"/>
+    </subtraction>
+    <subtraction name="end_block_bottom_left_shape">
+      <first ref="end_block_bottom_left_block_shape"/>
+      <second ref="end_block_bottom_left_subs_shape"/>
+      <position name="end_block_bottom_left_shapeend_block_bottom_left_subs_shapepos" x="0" y="0.60999999999999999" z="-0.30099999999999999" unit="cm"/>
+    </subtraction>
+    <union name="support_arm_bottom_left_plus_block_shape">
+      <first ref="support_arm_bottom_left_with_notch_shape"/>
+      <second ref="end_block_bottom_left_shape"/>
+      <position name="support_arm_bottom_left_plus_block_shapeend_block_bottom_left_shapepos" x="0" y="2.4215622772585932" z="-10.15" unit="cm"/>
+    </union>
+    <union name="support_arm_bottom_right_shape">
+      <first ref="support_arm_bottom_left_with_notch_shape"/>
+      <second ref="end_block_bottom_left_shape"/>
+      <position name="support_arm_bottom_right_shapeend_block_bottom_left_shapepos" x="0" y="2.4215622772585932" z="-10.15" unit="cm"/>
+    </union>
+    <union name="support_arm_top_left_shape">
+      <first ref="support_arm_bottom_left_with_notch_shape"/>
+      <second ref="end_block_bottom_left_shape"/>
+      <position name="support_arm_top_left_shapeend_block_bottom_left_shapepos" x="0" y="2.4215622772585932" z="-10.15" unit="cm"/>
+    </union>
+    <union name="support_arm_top_right_shape">
+      <first ref="support_arm_bottom_left_with_notch_shape"/>
+      <second ref="end_block_bottom_left_shape"/>
+      <position name="support_arm_top_right_shapeend_block_bottom_left_shapepos" x="0" y="2.4215622772585932" z="-10.15" unit="cm"/>
+    </union>
+    <box name="u_support_bar_bottom_shape" x="16" y="0.80000000000000004" z="0.90000000000000002" lunit="cm"/>
+    <box name="u_support_bar_upper1_shape" x="16" y="1.8" z="0.40000000000000002" lunit="cm"/>
+    <box name="u_support_bar_upper2_shape" x="16" y="1.8" z="0.30000000000000004" lunit="cm"/>
+    <box name="u_support_bar_top_shape" x="16" y="0.80000000000000004" z="0.90000000000000002" lunit="cm"/>
+    <box name="u_support_bar_upper3_shape" x="16" y="1.8" z="0.40000000000000002" lunit="cm"/>
+    <box name="u_support_bar_upper4_shape" x="16" y="1.8" z="0.30000000000000004" lunit="cm"/>
+  </solids>
+  <structure>
+    <volume name="hodo_flange">
+      <materialref ref="Aluminum"/>
+      <solidref ref="hodo_flange_shape"/>
+    </volume>
+    <volume name="arms1_block1">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="arms1_block1_shape"/>
+    </volume>
+    <volume name="arms1_block2">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="arms1_block2_shape"/>
+    </volume>
+    <volume name="arms1_block3">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="arms1_block3_shape"/>
+    </volume>
+    <volume name="arms1_block4">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="arms1_block4_shape"/>
+    </volume>
+    <volume name="cross_bar_top">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="cross_bar_top_shape"/>
+    </volume>
+    <volume name="cross_bar_bottom">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="cross_bar_bottom_shape"/>
+    </volume>
+    <volume name="support_arm_bottom_left_plus_block">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="support_arm_bottom_left_plus_block_shape"/>
+    </volume>
+    <volume name="support_arm_bottom_right">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="support_arm_bottom_right_shape"/>
+    </volume>
+    <volume name="support_arm_top_left">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="support_arm_top_left_shape"/>
+    </volume>
+    <volume name="support_arm_top_right">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="support_arm_top_right_shape"/>
+    </volume>
+    <volume name="u_support_bar_bottom">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="u_support_bar_bottom_shape"/>
+    </volume>
+    <volume name="u_support_bar_upper1">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="u_support_bar_upper1_shape"/>
+    </volume>
+    <volume name="u_support_bar_upper2">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="u_support_bar_upper2_shape"/>
+    </volume>
+    <volume name="u_support_bar_top">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="u_support_bar_top_shape"/>
+    </volume>
+    <volume name="u_support_bar_upper3">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="u_support_bar_upper3_shape"/>
+    </volume>
+    <volume name="u_support_bar_upper4">
+      <materialref ref="G10_FR4"/>
+      <solidref ref="u_support_bar_upper4_shape"/>
+    </volume>
+    <volume name="tracking_volume">
+      <materialref ref="Vacuum"/>
+      <solidref ref="tracking_volume_solid"/>
+      <physvol name="hodo_flange_1" >
+        <volumeref ref="hodo_flange"/>
+        <positionref ref="hodo_flange_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="arms1_block1_1" >
+        <volumeref ref="arms1_block1"/>
+        <positionref ref="arms1_block1_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="arms1_block2_1" >
+        <volumeref ref="arms1_block2"/>
+        <positionref ref="arms1_block2_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="arms1_block3_1" >
+        <volumeref ref="arms1_block3"/>
+        <positionref ref="arms1_block3_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="arms1_block4_1" >
+        <volumeref ref="arms1_block4"/>
+        <positionref ref="arms1_block4_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="cross_bar_top_1" >
+        <volumeref ref="cross_bar_top"/>
+        <positionref ref="cross_bar_top_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="cross_bar_bottom_1" >
+        <volumeref ref="cross_bar_bottom"/>
+        <positionref ref="cross_bar_bottom_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="support_arm_bottom_left_plus_block_1" >
+        <volumeref ref="support_arm_bottom_left_plus_block"/>
+        <positionref ref="support_arm_bottom_left_plus_block_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="support_arm_bottom_right_1" >
+        <volumeref ref="support_arm_bottom_right"/>
+        <positionref ref="support_arm_bottom_right_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="support_arm_top_left_1" >
+        <volumeref ref="support_arm_top_left"/>
+        <positionref ref="support_arm_top_left_1intracking_volumepos"/>
+        <rotationref ref="support_arm_top_left_1intracking_volumerot"/>
+      </physvol>
+      <physvol name="support_arm_top_right_1" >
+        <volumeref ref="support_arm_top_right"/>
+        <positionref ref="support_arm_top_right_1intracking_volumepos"/>
+        <rotationref ref="support_arm_top_right_1intracking_volumerot"/>
+      </physvol>
+      <physvol name="u_support_bar_bottom_1" >
+        <volumeref ref="u_support_bar_bottom"/>
+        <positionref ref="u_support_bar_bottom_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="u_support_bar_upper1_1" >
+        <volumeref ref="u_support_bar_upper1"/>
+        <positionref ref="u_support_bar_upper1_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="u_support_bar_upper2_1" >
+        <volumeref ref="u_support_bar_upper2"/>
+        <positionref ref="u_support_bar_upper2_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="u_support_bar_top_1" >
+        <volumeref ref="u_support_bar_top"/>
+        <positionref ref="u_support_bar_top_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="u_support_bar_upper3_1" >
+        <volumeref ref="u_support_bar_upper3"/>
+        <positionref ref="u_support_bar_upper3_1intracking_volumepos"/>
+      </physvol>
+      <physvol name="u_support_bar_upper4_1" >
+        <volumeref ref="u_support_bar_upper4"/>
+        <positionref ref="u_support_bar_upper4_1intracking_volumepos"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="tracking_volume"/>
+  </setup>
+</gdml>

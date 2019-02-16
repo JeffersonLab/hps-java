@@ -21,6 +21,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
@@ -40,6 +41,23 @@ public class GBLRefitterDriver extends Driver {
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
     private StandardCuts cuts = null;
+
+    private MilleBinary mille;
+    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
+    private boolean writeMilleBinary = false;
+    private double writeMilleChi2Cut = 20;
+
+    public void setWriteMilleChi2Cut(int input) {
+        writeMilleChi2Cut = input;
+    }
+
+    public void setMilleBinaryFileName(String filename) {
+        milleBinaryFileName = filename;
+    }
+
+    public void setWriteMilleBinary(boolean writeMillepedeFile) {
+        writeMilleBinary = writeMillepedeFile;
+    }
 
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
@@ -63,10 +81,36 @@ public class GBLRefitterDriver extends Driver {
         cuts.setMaxTrackChisq(nhits, input);
     }
 
+    public void setMaxTrackChisq5hits(double input){
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisq(5, input);
+    }
+
+    public void setMaxTrackChisq6hits(double input){
+        if (cuts == null)
+            cuts = new StandardCuts();
+        cuts.setMaxTrackChisq(6, input);
+    }
+
     public void setMaxTrackChisq(double input) {
         if (cuts == null)
             cuts = new StandardCuts();
         cuts.changeChisqTrackProb(input);
+    }
+
+    @Override
+    protected void startOfData() {
+        if (writeMilleBinary) {
+            mille = new MilleBinary(milleBinaryFileName);
+        }
+    }
+
+    @Override
+    protected void endOfData() {
+        if (writeMilleBinary) {
+            mille.close();
+        }
     }
 
     @Override
@@ -100,21 +144,27 @@ public class GBLRefitterDriver extends Driver {
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            //            System.out.println("GBLRefitterDriver::process  number of hits on track = "+track.getTrackerHits().size());
-            if (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0)
+            List<TrackerHit> temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+            if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+
+            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+            Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
+            if (writeMilleBinary) {
+                if (gblTrk.getChi2() < writeMilleChi2Cut)
+                    newTrackTraj.getSecond().get_traj().milleOut(mille);
+            }
+
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
             if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
                 continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
             inputToRefitted.put(track, gblTrk);
-
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }

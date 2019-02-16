@@ -36,7 +36,7 @@ public class FEETupleDriver extends TupleMaker {
             tupleMap.clear();
             fillEventVariables(event, triggerData);
 
-            fillParticleVariables(event, fsp, "fsp");
+            fillParticleVariables(event, fsp, "fsp", false, false, false);
 
             if (tupleWriter != null) {
                 if (!cutTuple || (passesCuts())) {

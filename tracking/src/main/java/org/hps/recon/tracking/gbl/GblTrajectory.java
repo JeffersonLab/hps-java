@@ -684,6 +684,10 @@ public class GblTrajectory {
             d.getAllData(floats, indLocal, derLocal, labGlobal, derGlobal);
             aMille.addData(floats[0], floats[1], indLocal, derLocal, labGlobal, derGlobal);
         }
+
+        //for debug only
+        //aMille.printRecord();
+
         aMille.writeRecord();
     }
 
