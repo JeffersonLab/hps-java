@@ -391,7 +391,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
         matcher.setBFieldMap(detector.getFieldMap());
-        matcher.setBeamEnergy(beamEnergy); 
+//        matcher.setBeamEnergy(beamEnergy);              // TrackClusterMatcher no longer uses beamEnergy.
         
         if (cuts == null)
             cuts = new StandardCuts(beamEnergy);

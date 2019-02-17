@@ -517,4 +517,10 @@ public class TrackClusterMatcher {
             e.printStackTrace();
         }
     }
+   
+    @Deprecated
+    public void setBeamEnergy(double beamEnergy) {
+    //          this.beamEnergy = beamEnergy;
+    }
+
 }
