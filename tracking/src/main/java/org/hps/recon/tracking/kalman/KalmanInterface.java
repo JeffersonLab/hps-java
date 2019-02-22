@@ -72,6 +72,10 @@ public class KalmanInterface {
     }
 
     public KalmanInterface() {
+        this(false);
+    }
+
+    public KalmanInterface(boolean verbose) {
         hitMap = new HashMap<Measurement, TrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
         trackHitsKalman = new ArrayList<int[]>();
@@ -89,7 +93,7 @@ public class KalmanInterface {
                 HpsToKalmanMatrix.setElement(i, j, HpsToKalmanVals[i][j]);
         }
         KalmanToHps = HpsToKalman.invert();
-
+        this.verbose = verbose;
     }
 
     static Vec vectorGlbToKalman(double[] HPSvec) { // Convert a vector from global coordinates to Kalman coordinates

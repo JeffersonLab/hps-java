@@ -13,6 +13,7 @@ import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
+import org.lcsim.math.chisq.ChisqProb;
 
 /**
  *
@@ -35,8 +36,11 @@ public class BilliorVertex implements Vertex {
     private boolean _isPrimary = true;
     private double _chiSq;
     private double _invMass;
-    private double _probability;
+    private double _probability = -1.0;
 
+    // L1L1 = 2, L1L2 = 3, L2L2 = 4
+    private double layerCode = -1;
+    
     private List<Matrix> _covTrkMomList = null;
     private double _invMassError;
     private boolean storeCovTrkMomList = false;
@@ -60,6 +64,7 @@ public class BilliorVertex implements Vertex {
         _invMass = invMass;
         _fittedMomentum = pFitMap;
         _constraintType = constraintType;
+        
     }
 
     BilliorVertex(Hep3Vector vtxPos, Matrix covVtx, double chiSq, double invMass) {
@@ -67,7 +72,6 @@ public class BilliorVertex implements Vertex {
         _covVtx = covVtx;
         _vertexPosition = vtxPos;
         _invMass = invMass;
-
     }
 
     public BilliorVertex(Vertex lcioVtx) {
@@ -78,6 +82,8 @@ public class BilliorVertex implements Vertex {
         _particle = lcioVtx.getAssociatedParticle();
         _probability = lcioVtx.getProbability();
         Map<String, Double> paramMap = lcioVtx.getParameters();
+        if (paramMap.containsKey("layerCode")) 
+            layerCode = paramMap.get("layerCode");
         if (paramMap.containsKey("p1X")) {
             Hep3Vector v1 = new BasicHep3Vector(paramMap.get("p1X"), paramMap.get("p1Y"), paramMap.get("p1Z"));
             _fittedMomentum.put(0, v1);
@@ -132,6 +138,10 @@ public class BilliorVertex implements Vertex {
         if (paramMap.containsKey("V0TargProjXErr") && paramMap.containsKey("V0TargProjYErr")) {
             _v0TargetProjectionXYErr = new double[]{paramMap.get("V0TargProjXErr"),paramMap.get("V0TargProjYErr")};
         }
+    }
+    
+    public void setProbability(int dof) {
+        _probability = ChisqProb.gammq(dof, _chiSq);
     }
 
     public void setStoreCovTrkMomList(boolean input) {
@@ -226,6 +236,9 @@ public class BilliorVertex implements Vertex {
         Map<String, Double> pars = new HashMap<String, Double>();
         pars.put("invMass", _invMass);
         pars.put("invMassError", _invMassError);
+        if (layerCode != -1)
+            pars.put("layerCode", layerCode);
+        
         if (!_fittedMomentum.isEmpty()) {
             Hep3Vector p1Fit = _fittedMomentum.get(0);
             Hep3Vector p2Fit = _fittedMomentum.get(1);
@@ -299,6 +312,26 @@ public class BilliorVertex implements Vertex {
         }
         
         return pars;
+    }
+
+
+    
+    public void setLayerCode(String s) {
+        if (s == "L1L1")
+            layerCode = 2;
+        else if (s == "L1L2")
+            layerCode = 3;
+        else if (s == "L2L2")
+            layerCode = 4;        
+    }
+    
+    public void setLayerCode(int s) {
+        if (s >= 2 && s <= 4)
+            layerCode = s;
+    }
+    
+    public int getLayerCode() {
+        return (int) layerCode;
     }
 
     public double getInvMass() {

@@ -94,6 +94,25 @@ public class KalmanDriverHPS extends Driver {
 
         // TODO: example plot. Placeholder for something useful.
         // arguments to histogram1D: name, nbins, min, max
+        aida.histogram1D("Kalman Track Chi2", 50, 0., 400.);
+        aida.histogram1D("GBL track Chi2", 50, 0., 100.);
+        aida.histogram1D("Kalman chi2 over GBL chi2", 50, 0., 100.);
+        aida.histogram1D("rho0 difference, mm", 50, -1., 1.);
+        aida.histogram1D("phi0 difference, degrees", 50, -0.5, 0.5);
+        aida.histogram1D("pt % difference", 50, -30., 30.);
+        aida.histogram1D("z0 difference, mm", 50, -0.5, 0.5);
+        aida.histogram1D("tanl difference", 50, -.005, .005);
+        aida.histogram1D("rho0 difference lyr1, mm", 50, -1., 1.);
+        aida.histogram1D("phi0 difference lyr1, degrees", 50, -0.5, 0.5);
+        aida.histogram1D("pt % difference lyr1", 50, -30., 30.);
+        aida.histogram1D("z0 difference lyr1, mm", 50, -0.5, 0.5);
+        aida.histogram1D("tanl difference lyr1", 50, -.005, .005);
+        aida.histogram1D("tanl rotated difference lyr1", 50, -0.005, 0.005);
+        aida.histogram1D("rho0 Kalman", 100, -10., 10.);
+        aida.histogram1D("rho0 GBL", 100, -10., 10.);
+        aida.histogram1D("z0 Kalman", 100, -10., 10.);
+        aida.histogram1D("z0 GBL", 100, -10., 10.);
+
         for (int i = 1; i <= 12; i++) {
             aida.histogram1D(String.format("6hit Kalman Track Chi2 Layer %d", i), 100, 0, 50);
             aida.histogram1D(String.format("6hit Kalman Track Res Layer %d", i), 100, -0.05, 0.05);
@@ -142,13 +161,8 @@ public class KalmanDriverHPS extends Driver {
         bField = TrackUtils.getBField(det).magnitude();
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface();
-        KI.verbose = this.verbose;
+        KI = new KalmanInterface(this.verbose);
         KI.createSiModules(detPlanes, fm);
-
-        // test
-        //KalmanInterface.getField(new Vec(0., 500., 0.), det.getFieldMap()).print("new field");
-        //fm.getField(new Vec(0., 500., 0.)).print("old field");
 
     }
 
@@ -251,7 +265,8 @@ public class KalmanDriverHPS extends Driver {
                     }
                 }
                 if (ts1 == null) {
-                    System.out.format("  No first-sensor track state found.\n");
+                    if (verbose)
+                        System.out.format("  No first-sensor track state found.\n");
                     continue;
                 }
                 double D0 = ts1.getD0();
@@ -268,9 +283,13 @@ public class KalmanDriverHPS extends Driver {
                 Vec oldPivot = KalmanInterface.vectorGlbToKalman(ts1.getReferencePoint());
                 Hep3Vector loc = TrackStateUtils.getLocationAtSensor(ts1, sensor1, bField);
                 Vec newPivot = KalmanInterface.vectorGlbToKalman(loc.v());
-                kalParams = StateVector.pivotTransform(newPivot, kalParams, oldPivot, alpha, 0.);
+
+                double bflyr1 = KalmanInterface.getField(newPivot, fm).mag();
+                double alphaLyr1 = 1000.0 * 1.0e9 / (c * bflyr1);
+                kalParams = StateVector.pivotTransform(newPivot, kalParams, oldPivot, alphaLyr1, 0.);
+
                 double[] covHPS = ts1.getCovMatrix();
-                SquareMatrix cov = new SquareMatrix(5, KalmanInterface.ungetLCSimCov(covHPS, alpha));
+                SquareMatrix cov = new SquareMatrix(5, KalmanInterface.ungetLCSimCov(covHPS, alphaLyr1));
                 if (verbose) {
                     System.out.format("   1st sensor: D0=%10.7f phi0=%10.7f Omega=%10.7f Z0=%10.7f tanl=%10.7f\n", D0, Phi0, Omega, Z0, tanl);
                     oldPivot.print("Old pivot point for GBL track");
@@ -288,15 +307,31 @@ public class KalmanDriverHPS extends Driver {
                 StateVector iniState = ktf2.fittedStateBegin();
                 if (iniState != null) {
                     Vec finalPivot = iniState.origin.sum(iniState.X0);
-                    Vec kalParamsF = StateVector.pivotTransform(finalPivot, kalParams, newPivot, alpha, 0.);
+                    Vec kalParamsF = StateVector.pivotTransform(finalPivot, kalParams, newPivot, alphaLyr1, 0.);
+                    double[] hprms = KalmanInterface.getLCSimParams(iniState.a.v, alphaLyr1);
+                    Vec ptk = iniState.Rot.inverseRotate(iniState.getMom(0.));
+                    double tanLambda = (ptk.v[2] / Math.sqrt(ptk.v[0] * ptk.v[0] + ptk.v[1] * ptk.v[1]));
+
                     if (verbose) {
                         newPivot.print("Pivot point for the Kalman initial guess:");
                         finalPivot.print("Pivot point for the Kalman fitted helix: ");
-                        kalParams.print("Kalman initial guess helix parameters, from GBL fit: ");
-                        kalParamsF.print("Kalman initial guess helix parameters at final pivot:");
-                        iniState.a.print("Kalman fitted helix parameters, from GBL fit:        ");
+                        kalParams.print("Kalman initial guess helix parameters, from GBL fit  ");
+                        kalParamsF.print("Kalman initial guess helix parameters at final pivot ");
+                        iniState.a.print("Kalman fitted helix parameters, starting from GBL fit");
+                        iniState.getMom(0.).print("Kalman momentum");
+                        ptk.print("Kalman momentum rotated to global frame");
+                        System.out.format("Kalman rotated tanLambda = %10.4f", tanLambda);
+                        System.out.format("GBL Bfield=%10.4f, alpha=%12.4e    Layer 1 Bfield=%10.4f, alpha=%12.4e\n", bField, alpha, bflyr1, alphaLyr1);
+                        System.out.format("     In LCsim convention: %12.4e %12.4e %12.4e %12.4e %12.4e \n", hprms[0], hprms[1], hprms[2], hprms[3], hprms[4]);
                         System.out.format("  >> GBL chi2=%10.4e,  Kalman chi2=%10.4e\n", trk.getChi2(), ktf2.tkr.chi2);
+                        printGBLkinks(GBLtoKinks, trk);
                     }
+                    aida.histogram1D("phi0 difference lyr1, degrees").fill(180. * (iniState.a.v[1] - kalParamsF.v[1]) / Math.PI);
+                    aida.histogram1D("rho0 difference lyr1, mm").fill(iniState.a.v[0] - kalParamsF.v[0]);
+                    aida.histogram1D("z0 difference lyr1, mm").fill(iniState.a.v[3] - kalParamsF.v[3]);
+                    aida.histogram1D("tanl difference lyr1").fill(iniState.a.v[4] - kalParamsF.v[4]);
+                    aida.histogram1D("tanl rotated difference lyr1").fill(tanLambda - kalParamsF.v[4]);
+                    aida.histogram1D("pt % difference lyr1").fill(100. * (iniState.a.v[2] - kalParamsF.v[2]) / kalParamsF.v[2]);
                 }
             }
 
@@ -313,6 +348,36 @@ public class KalmanDriverHPS extends Driver {
 
                 Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
                 outputFullTracks.add(fullKalmanTrackHPS);
+
+                // Fill histograms here
+                double[] hprms = fullKalmanTrack.originHelix();
+                TrackState ts = trk.getTrackStates().get(0);
+                double c = 2.99793e8; // Speed of light in m/s
+                double alpha = 1000.0 * 1.0e9 / (c * bField); // Here we have to use the field from back where GBL measured curvature
+                double[] params = KalmanInterface.unGetLCSimParams(ts.getParameters(), alpha);
+                if (verbose) {
+                    Vec Borig = KalmanInterface.getField(new Vec(0., 0., 0.), fm);
+                    System.out.format("B-field at origin = %12.4e %12.4e %12.5e, magnitude %12.4e\n", Borig.v[0], Borig.v[1], Borig.v[2], Borig.mag());
+                    double alf = 1000.0 * 1.0e9 / (2.99793e8 * Borig.mag());
+                    System.out.format("Resulting alphs=%12.4e", alf);
+                    System.out.format("Comparison of track parameters at the origin, GBL vs Kalman, alpha=%12.4e:\n", fullKalmanTrack.alpha);
+                    for (int i = 0; i < 5; ++i) {
+                        System.out.format(" %d  %12.4e   %10.4e\n", i, params[i], hprms[i]);
+                    }
+                }
+                aida.histogram1D("phi0 difference, degrees").fill(180. * (hprms[1] - params[1]) / Math.PI);
+                aida.histogram1D("pt % difference").fill(100. * (hprms[2] - params[2]) / params[2]);
+                aida.histogram1D("rho0 difference, mm").fill(hprms[0] - params[0]);
+                aida.histogram1D("z0 difference, mm").fill(hprms[3] - params[3]);
+                aida.histogram1D("tanl difference").fill(hprms[4] - params[4]);
+                aida.histogram1D("Kalman Track Chi2").fill(fullKalmanTrackHPS.getChi2());
+                aida.histogram1D("GBL track Chi2").fill(trk.getChi2());
+                aida.histogram1D("Kalman chi2 over GBL chi2").fill(fullKalmanTrackHPS.getChi2() / trk.getChi2());
+                aida.histogram1D("rho0 Kalman").fill(hprms[0]);
+                aida.histogram1D("rho0 GBL").fill(params[0]);
+                aida.histogram1D("z0 Kalman").fill(hprms[3]);
+                aida.histogram1D("z0 GBL").fill(params[3]);
+
                 doResiduals(fullKalmanTrack, trk);
 
                 //                double[] hprms = KalmanInterface.getLCSimParams(fullKalmanTrack.originHelix(), fullKalmanTrack.alpha);

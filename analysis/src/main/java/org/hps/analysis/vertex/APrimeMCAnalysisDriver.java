@@ -60,7 +60,7 @@ public class APrimeMCAnalysisDriver extends Driver {
     private static final Translation3D transMat = new Translation3D(0., 0., -0.5);
     private static final Transform3D xformMat = new Transform3D(transMat, rotMat);
 
-    boolean debug = true;
+    boolean debug = false;
 
     private AIDA aida = AIDA.defaultInstance();
 
@@ -114,9 +114,11 @@ public class APrimeMCAnalysisDriver extends Driver {
         Hep3Vector aprimeVtx = electronMC.getOrigin();
         Lorentz4Vector l4v = lorentzVectorSum(electronMC, positronMC);
         double aprimeMass = l4v.mass();
-        System.out.println("aprime 4vec: " + l4v);
-        System.out.println("aprime vertex: " + aprimeVtx);
-
+        if (debug) {
+            System.out.println("aprime 4vec: " + l4v);
+            System.out.println("aprime vertex: " + aprimeVtx);
+        }
+        
         List<Vertex> vertices = event.get(Vertex.class, vertexCollectionName);
         aida.cloud1D("number of Vertices)").fill(vertices.size());
         if (vertices.size() == 2) {
@@ -216,10 +218,12 @@ public class APrimeMCAnalysisDriver extends Driver {
                     analyzeParticle("positron", positron);
 
                     BilliorVertex bvRefit = reVertex(v);
-                    System.out.println("aprime vertex: " + aprimeVtx);
-                    System.out.println("vertex pos: " + pos);
-                    System.out.println("bvRefit: " + bvRefit);
-
+                    if (debug) {
+                        System.out.println("aprime vertex: " + aprimeVtx);
+                        System.out.println("vertex pos: " + pos);
+                        System.out.println("bvRefit: " + bvRefit);
+                    }
+                    
                     vtxrf_zRes.fill(bvRefit.getPosition().z() - aprimeVtx.z());
                     // check mass correction here...
                     // corrM = events["uncM"]-0.15e-3*(events["elePX"]/events["eleP"]-events["posPX"]/events["posP"])*events["uncVZ"]/events["uncM"]
@@ -234,7 +238,9 @@ public class APrimeMCAnalysisDriver extends Driver {
                     double eleP = sqrt(elePX * elePX + elePY * elePY + elePZ * elePZ);
                     double posP = sqrt(posPX * posPX + posPY * posPY + posPZ * posPZ);
                     double corrM = uncM - 0.15e-3 * (elePX / eleP - posPX / posP) * uncVZ / uncM;
-                    System.out.println("uncM " + uncM + " corrM " + corrM);
+                    if (debug) {
+                        System.out.println("uncM " + uncM + " corrM " + corrM);
+                    }
                     vtxrf_mRes.fill(uncM - aprimeMass);
                     vtxrf_corrmRes.fill(corrM - aprimeMass);
                     vtxcorrMassResvsMCz.fill(aprimeVtx.z(), corrM - aprimeMass);
@@ -288,37 +294,44 @@ public class APrimeMCAnalysisDriver extends Driver {
         aida.cloud1D("vtx x diff").fill(vtxpos.x() - v0.getPosition().x());
         aida.cloud1D("vtx y diff").fill(vtxpos.y() - v0.getPosition().y());
         aida.cloud1D("vtx z diff").fill(vtxpos.z() - v0.getPosition().z());
-        System.out.println(bv);
+        if(debug) {
+            System.out.println(bv);
+        }
         // this looks good.
         // quick check of track states...
         List<TrackState> eleTrackStates = eletrk.getTrackStates();
-        System.out.println("electron track states:");
-        for (TrackState ts : eleTrackStates) {
-            System.out.println(ts);
-        }
-        System.out.println("positron track states:");
-        List<TrackState> posTrackStates = postrk.getTrackStates();
-        for (TrackState ts : posTrackStates) {
-            System.out.println(ts);
+        if(debug) {
+            System.out.println("electron track states:");
+            for (TrackState ts : eleTrackStates) {
+                System.out.println(ts);
+            }
+            System.out.println("positron track states:");
+            List<TrackState> posTrackStates = postrk.getTrackStates();
+            for (TrackState ts : posTrackStates) {
+                System.out.println(ts);
+            }
         }
         // now, transport track state to vtx position, revertex...
         // TODO transport covariance matrix as well...
         // TODO determine whether to iterate
         TrackState eleTrackState = eletrk.getTrackStates().get(0);
         TrackState posTrackState = postrk.getTrackStates().get(0);
-        System.out.println("eleTrackState: " + eleTrackState);
-        System.out.println("posTrackState: " + posTrackState);
+        if (debug) {
+            System.out.println("eleTrackState: " + eleTrackState);
+            System.out.println("posTrackState: " + posTrackState);
+        }
         double[] eleParams = eleTrackState.getParameters();
         double[] eleCovMat = eleTrackState.getCovMatrix();
         double[] eleParamsXtrap = TrackUtils.getParametersAtNewRefPoint(vtxpos.v(), eleTrackState.getReferencePoint(), eleParams);
         double[] posParams = posTrackState.getParameters();
         double[] posCovMat = posTrackState.getCovMatrix();
         double[] posParamsXtrap = TrackUtils.getParametersAtNewRefPoint(vtxpos.v(), posTrackState.getReferencePoint(), posParams);
-        System.out.println("ele before: " + Arrays.toString(eleParams));
-        System.out.println("ele after: " + Arrays.toString(eleParamsXtrap));
-        System.out.println("pos before: " + Arrays.toString(posParams));
-        System.out.println("pos after: " + Arrays.toString(posParamsXtrap));
-
+        if (debug) {
+            System.out.println("ele before: " + Arrays.toString(eleParams));
+            System.out.println("ele after: " + Arrays.toString(eleParamsXtrap));
+            System.out.println("pos before: " + Arrays.toString(posParams));
+            System.out.println("pos after: " + Arrays.toString(posParamsXtrap));
+        }
         // convert new parameters to a trackstate
         TrackState eleTsAtVtx = new BaseTrackState(eleParamsXtrap, eleCovMat, vtxpos.v(), 5);
         TrackState posTsAtVtx = new BaseTrackState(posParamsXtrap, posCovMat, vtxpos.v(), 5);
@@ -392,10 +405,11 @@ public class APrimeMCAnalysisDriver extends Driver {
         pp[2] = vals.get("p2Z");
         Hep3Vector epmc = e.getMomentum();
         Hep3Vector ppmc = p.getMomentum();
-        System.out.println("ep: "+Arrays.toString(ep));
-        System.out.println("pp: "+Arrays.toString(pp));
-        System.out.println("epmc: "+epmc);
-        System.out.println("ppmc: "+ppmc);
-
+        if (debug) {
+            System.out.println("ep: "+Arrays.toString(ep));
+            System.out.println("pp: "+Arrays.toString(pp));
+            System.out.println("epmc: "+epmc);
+            System.out.println("ppmc: "+ppmc);
+        }
     }
 }
