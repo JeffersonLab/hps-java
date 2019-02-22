@@ -96,7 +96,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         System.out.format(" phi0=%10.5f", p.v[1]);
         System.out.format(" K=%10.5f", p.v[2]);
         System.out.format(" dz=%10.5f", p.v[3]);
-        System.out.format(" tanlL=%10.5f\n", p.v[4]);
+        System.out.format(" tanL=%10.5f\n", p.v[4]);
         System.out.format("         Pivot in B-field frame=%10.5f, %10.5f, %10.5f\n", X0.v[0], X0.v[1], X0.v[2]);
         Vec pivotGlobal = R.inverseRotate(X0).sum(origin);
         System.out.format("         Pivot in global frame=%10.5f, %10.5f, %10.5f\n", pivotGlobal.v[0], pivotGlobal.v[1], pivotGlobal.v[2]);

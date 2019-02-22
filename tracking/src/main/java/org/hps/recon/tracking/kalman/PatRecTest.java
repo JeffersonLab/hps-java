@@ -424,7 +424,8 @@ public class PatRecTest {
                 hNhits.entry(tkr.nHits);
                 hTkChi2.entry(tkr.chi2);
                 // Compare with the generated particles
-                Vec helixAtOrigin = new Vec(5, tkr.originHelix());
+                tkr.originHelix();
+                Vec helixAtOrigin = new Vec(5, tkr.originHelixParms());
                 SquareMatrix Cinv = (new SquareMatrix(5, tkr.originCovariance())).invert();
                 double minChi2 = 9999.e33;
                 int iBest = -1;

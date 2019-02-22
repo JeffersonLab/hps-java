@@ -126,7 +126,7 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
         System.out.format("The 3 by 3 rotation matrix %s:\n", s);
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                System.out.format("  %10.7f", M[i][j]);
+                System.out.format("  %10.8f", M[i][j]);
             }
             System.out.format("\n");
         }

@@ -24,6 +24,7 @@ class SeedTrack {
     private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
     public double yOrigin;
+    double chi2;
     private static Plane p0; // x,z plane at y=0
     private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting
     int Nbending;
@@ -39,9 +40,10 @@ class SeedTrack {
             System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
             hParm.print("helix parameters rotated into magnetic field frame");
             System.out.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
-            double[] pivot = { 0., 0., 0. };
+            double yP = 0.;
+            double[] pivot = { 0., yP, 0. };
             double[] a = this.pivotTransform(pivot);
-            System.out.format("    helix parameters transformed to global origin: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", a[0], a[1], a[2], a[3], a[4]);
+            System.out.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", yP, a[0], a[1], a[2], a[3], a[4]);
             System.out.format("  seed track hits:");
             for (int j = 0; j < hits.length; j++) {
                 System.out.format(" %d ", hits[j]);
@@ -81,7 +83,9 @@ class SeedTrack {
             System.out.format("Entering SeedTrack, yOrigin=%10.7f\n", yOrigin);
             int n = 0;
             for (int[] hit : hitList) {
-                System.out.format("      Hit %d is number %d in SiModule %d\n", n, hit[1], hit[0]);
+                System.out.format("      Hit %d is number %d in SiModule %d", n, hit[1], hit[0]);
+                SiModule thisSi = data.get(hit[0]);
+                System.out.format("  Layer=%d, Detector=%d\n", thisSi.Layer, thisSi.detector);
                 ++n;
             }
             xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
@@ -177,6 +181,7 @@ class SeedTrack {
         if (verbose) {
             fit.print(N, xMC, y, zMC, v, s);
         }
+        chi2 = fit.chiSquared();
 
         // Now, derive the helix parameters and covariance from the two fits
         double sgn = -1.0; // Careful with this sign--->selects the correct half of the circle!
@@ -229,15 +234,24 @@ class SeedTrack {
         int[] itr = hitList.get(0);
         SiModule firstSi = data.get(itr[0]);
         Vec firstB = KalmanInterface.getField(new Vec(0., yOrigin, 0.), firstSi.Bfield);
-        Vec zhat = firstB.unitVec();
-        Vec yhat = new Vec(0., 1., 0.);
-        Vec xhat = (yhat.cross(zhat)).unitVec();
-        yhat = zhat.cross(xhat);
-        RotMatrix Rot = new RotMatrix(xhat, yhat, zhat);
-
-        hParm = rotateHelix(new Vec(drho, phi0, K, dz, tanl), Rot);
-        if (verbose) {
-            hParm.print("Seedtrack, rotated helix");
+        if (Math.abs(firstB.v[1]/firstB.v[2]) > 0.002) {
+            Vec zhat = firstB.unitVec();
+            Vec yhat = new Vec(0., 1., 0.);
+            Vec xhat = (yhat.cross(zhat)).unitVec();
+            yhat = zhat.cross(xhat);
+            RotMatrix Rot = new RotMatrix(xhat, yhat, zhat);
+    
+            hParm = rotateHelix(new Vec(drho, phi0, K, dz, tanl), Rot);
+            if (verbose) {
+                firstB.print("Seedtrack, B field");
+                Rot.print("Seedtrack, rotation matrix");
+                hParm.print("Seedtrack, rotated helix");
+            }
+        } else {
+            hParm = new Vec(drho, phi0, K, dz, tanl);
+            if (verbose) {
+                hParm.print("Seedtrack, rotated helix");
+            }
         }
 
         success = true;

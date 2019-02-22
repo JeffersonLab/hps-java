@@ -239,7 +239,7 @@ public class KalmanTrackFit2 {
         finalSite = sites.size() - 1;
 
         tkr = new KalTrack(0, nHits, sites, chi2s); // Store the fit information as a KalTrack object
-        double[] hp = tkr.originHelix(); // Propagates the track to the origin region
+        tkr.originHelix(); // Propagates the track to the origin region
 
         // Storing intercepts at each plane
         for (MeasurementSite site : sites) {
@@ -253,6 +253,7 @@ public class KalmanTrackFit2 {
 
         if (verbose) {
             System.out.format("KalmanTrackFit2: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
+            double[] hp = tkr.originHelixParms();
             System.out.format("   At origin, drho=%10.7f, phi0=%10.7f, K=%10.7f, dz=%10.7f, tanl=%10.7f\n", hp[0], hp[1], hp[2], hp[3], hp[4]);
             Vec afF = sites.get(sites.size() - 1).aF.a;
             Vec afC = sites.get(sites.size() - 1).aF.helixErrors();
@@ -290,8 +291,9 @@ public class KalmanTrackFit2 {
         double[] tB2 = { iS.Rot.M[2][0], iS.Rot.M[2][1], iS.Rot.M[2][2] };
         System.out.format("        B-field at the innermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB2[0], tB2[1], tB2[2]);
         if (tkr != null) {
-            a = tkr.originHelix();
-            System.out.format("    Helix parameters at the origin=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
+            tkr.originHelix();
+            double[] aO = tkr.originHelixParms();
+            System.out.format("    Helix parameters at the origin=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", aO[0], aO[1], aO[2], aO[3], aO[4]);
         }
     }
 

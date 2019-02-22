@@ -6,6 +6,7 @@ import java.util.Iterator;
 // Description of a single silicon-strip module, and a container for its hits
 public class SiModule {
     int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a non-uniform field
+    int detector; // Detector number within the layer
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global
              // coordinates (NOT rotated by the stereo angle)
@@ -23,11 +24,16 @@ public class SiModule {
 
     public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with stand-alone development code: assume axial layers have stereo angle=0
-        this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield);
+        this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield,  0);
     }
 
-    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
+    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {    
+        this(Layer, p, isStereo, stereo, width, height, thickness, Bfield,  0);
+    }
+    
+    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield, int detector) {
         this.Layer = Layer;
+        this.detector = detector;
         this.Bfield = Bfield;
         this.p = p;
         this.isStereo = isStereo;
@@ -47,7 +53,7 @@ public class SiModule {
     }
 
     public void print(String s) {
-        System.out.format("Si module %s, Layer=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        System.out.format("Si module %s, Layer=%2d, Detector=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer, detector, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         if (isStereo) {
             System.out.format("This is a stereo detector layer");
         } else {
@@ -66,6 +72,11 @@ public class SiModule {
         }
     }
 
+    // Delete all the existing hits
+    public void reset() {
+        hits = new ArrayList<Measurement>();
+    }
+    
     public void addMeasurement(Measurement m) {
         if (hits.size() == 0)
             hits.add(m);

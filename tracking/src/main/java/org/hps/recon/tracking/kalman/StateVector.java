@@ -398,7 +398,7 @@ class StateVector {
     // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
     public Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
 
-        //boolean verbose = true; //!!!!!!!!!!
+        boolean verbose = false; //!!!!!!!!!!
 
         Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), fM);
         double Bmag = B.mag();
@@ -428,7 +428,10 @@ class StateVector {
             System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1], origin.v[2]);
             System.out.format("    At origin B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             System.out.format("    alpha=%10.6f,  alpha at origin=%10.6f\n", alpha, alphaOrigin);
+            Rot.invert().print("from local system at layer 1 to global");
+            originRot.print("to Bfield system at origin");
             originPlane.print("at origin in B-field system");
+            origin.print("origin of local detector system in global coordinates");
             X0.print("helix pivot");
             a.print("local helix parameters at layer 1");
             xLocal.print("point on helix, local at layer 1");

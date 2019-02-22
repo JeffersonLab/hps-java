@@ -28,7 +28,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
         int numbLayers = 6; // Number of layers to use for the linear fit
         boolean cheat = false; // true to use the true helix parameters (smeared) for the starting guess
         boolean perfect = false;
-        double thickness = 0.00000000003; // Silicon thickness in mm
+        double thickness = 0.3; // Silicon thickness in mm
         if (perfect) {
             thickness = 0.0000000000001;
         }
@@ -878,6 +878,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
                 continue;
             }
             KalTrack KalmanTrack = kF.tkr;
+            if (KalmanTrack == null) continue;
             KalmanTrack.originHelix();
             if (verbose) KalmanTrack.print("KalmanTrack");
 
@@ -931,7 +932,8 @@ public class HelixTest { // Program for testing the Kalman fitting code
                     // now rotate to the original field frame
                     SquareMatrix fRot = new SquareMatrix(5);
                     RotMatrix Rcombo = helixBegin.R.multiply(kF.fittedStateBegin().Rot.invert());
-                    aF = kF.fittedStateBegin().rotateHelix(aF, Rcombo, fRot);
+                    kF.fittedStateBegin();
+                    aF = StateVector.rotateHelix(aF, Rcombo, fRot);
                     if (verbose) {
                         aF.print("final smoothed helix parameters at the track beginning");
                         newPivot.print("final smoothed helix pivot in local coordinates");

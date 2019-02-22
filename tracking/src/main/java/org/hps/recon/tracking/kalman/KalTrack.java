@@ -84,9 +84,10 @@ public class KalTrack {
     }
 
     // Runge Kutta propagation of the helix to the origin
-    public double[] originHelix() {
-        if (propagated)
-            return helixAtOrigin.v.clone();
+    public void originHelix() {
+        if (propagated) {
+            return;
+        }
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -131,12 +132,12 @@ public class KalTrack {
         temp = new SquareMatrix(3, Cp);
         Cp = temp.inverseRotate(Rot).M;
         propagated = true;
-        return helixAtOrigin.v.clone();
     }
 
     public double[] originX() {
-        if (!propagated)
+        if (!propagated) {
             originHelix();
+        }
         return originPoint.v.clone();
     }
 
@@ -149,17 +150,23 @@ public class KalTrack {
     }
 
     public double[] originP() {
-        if (!propagated)
+        if (!propagated) {
             originHelix();
+        }
         return originMomentum.v.clone();
     }
 
     public double[][] originCovariance() {
-        if (!propagated)
+        if (!propagated) {
             originHelix();
+        }
         return originCov.M.clone();
     }
 
+    public double[] originHelixParms() {
+        return helixAtOrigin.v.clone();
+    }
+    
     public double helixErr(int i) {
         return Math.sqrt(originCov.M[i][i]);
     }
