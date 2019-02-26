@@ -21,7 +21,10 @@ import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.ManagedLCIOCollection;
 import org.hps.readout.util.collection.ManagedLCIOData;
 import org.hps.readout.util.collection.TriggeredLCIOData;
+import org.hps.record.triggerbank.TestRunTriggerData;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
@@ -90,8 +93,20 @@ public class ReadoutDataManager extends Driver {
      * for readout to occur.
      */
     private static double bufferTotal = 0.0;
-    
+    /**
+     * The total number of triggers seen.
+     */
     private static int triggers = 0;
+    /**
+     * The delay between when a trigger occurs, and when readout is
+     * performed.
+     */
+    private static double triggerDelay = 0.0;
+    
+    /**
+     * Collection parameters for the dummy trigger bank object.
+     */
+    private static LCIOCollection<GenericObject> triggerBankParams = null;
     
     @Override
     public void startOfData() {
@@ -99,12 +114,16 @@ public class ReadoutDataManager extends Driver {
         if(outputFileName == null) {
             throw new IllegalArgumentException("Error: Output file name not defined!");
         }
-        //try { outputWriter = new LCIOWriter(new File("C:\\cygwin64\\home\\Kyle\\newReadout.slcio")); }
         try { outputWriter = new LCIOWriter(new File(outputFileName)); }
         catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
+        
+        // Create a collection for the dummy trigger bank.
+        LCIOCollectionFactory.setCollectionName("TriggerBank");
+        LCIOCollectionFactory.setFlags(0);
+        triggerBankParams = LCIOCollectionFactory.produceLCIOCollection(GenericObject.class);
         
         // Get the total amount of time that the readout system must
         // wait to make sure that all data has been safely buffered
@@ -157,15 +176,18 @@ public class ReadoutDataManager extends Driver {
         System.out.println("Default After : " + (readoutWindow - triggerTimeDisplacement));
         System.out.println("\n");
         
-        double totalNeededDisplacement = Math.max(longestTriggerDisplacement, longestDisplacedAfter);
-        totalNeededDisplacement = Math.max(totalNeededDisplacement, longestLocalBuffer) + longestBufferBefore + 150;
+        triggerDelay = Math.max(longestTriggerDisplacement, longestDisplacedAfter);
+        triggerDelay = Math.max(triggerDelay, longestLocalBuffer);
+        double totalNeededDisplacement = triggerDelay + longestBufferBefore + 150;
+        
+        //double totalNeededDisplacement = Math.max(longestTriggerDisplacement, longestDisplacedAfter);
+        //totalNeededDisplacement = Math.max(totalNeededDisplacement, longestLocalBuffer) + longestBufferBefore + 150;
+        
         System.out.println("Total Time Needed: " + totalNeededDisplacement);
-        
-        
         
         // Determine the total amount of time that must be included
         // in the data buffer in order to safely write out all data.
-        // An extra 100 ns of data is retained as a safety, just in
+        // An extra 150 ns of data is retained as a safety, just in
         // case some driver needs to look unusually far back.
         bufferTotal = totalNeededDisplacement;
     }
@@ -189,6 +211,8 @@ public class ReadoutDataManager extends Driver {
         if(!triggerQueue.isEmpty()) {
             // Check the earliest possible trigger write time.
             boolean isWritable = getCurrentTime() >= triggerQueue.peek().getTriggerTime() + bufferTotal;
+            //boolean isWritable = getCurrentTime() >= triggerQueue.peek().getTriggerTime() + triggerDelay + 40;
+            
             
             // If all collections are available to be written, the
             // event should be output.
@@ -246,11 +270,6 @@ public class ReadoutDataManager extends Driver {
                     
                     // Get the object data for the time range.
                     addDataToMap(collectionData.getCollectionParameters(), localStartTime, localEndTime, triggeredDataMap);
-                    
-                    // Persisted collection should be added to event
-                    // within the readout window time range.
-                    // TODO: Clear this.
-                    //storeCollection(localStartTime, localEndTime, collectionData, lcsimEvent);
                 }
                 
                 // Write out any special on-trigger collections into
@@ -266,32 +285,32 @@ public class ReadoutDataManager extends Driver {
                     if(onTriggerData != null) {
                         for(TriggeredLCIOData<?> triggerData : onTriggerData) {
                             addDataToMap(triggerData, triggerData.getCollectionParameters().getObjectType(), triggeredDataMap);
-                            /*
-                            // Get the triggered data stored in the
-                            // map, if it exists. If not, make a new
-                            // one and insert it.
-                            TriggeredLCIOData<?> mapCollection = triggeredDataMap.get(triggerData.getCollectionParameters().getCollectionName());
-                            if(mapCollection == null) {
-                                mapCollection = triggerData.cloneEmpty();
-                                triggeredDataMap.put(triggerData.getCollectionParameters().getCollectionName(), mapCollection);
-                            }
-                            
-                            // Check that the stored collection has
-                            // the same collection parameters as the
-                            // new one.
-                            if(!mapCollection.getCollectionParameters().equals(triggerData.getCollectionParameters())) {
-                                throw new RuntimeException("Error: Multiple on-trigger data sets were seen for collection \""
-                                        + triggerData.getCollectionParameters().getCollectionName() + "\" with differing parameters.");
-                            }
-                            
-                            // Otherwise, merge the sets.
-                            mapCollection.mergeDataList(triggerData);
-                            
-                            //storeCollection(triggerData, lcsimEvent);
-                             */
                         }
                     }
                 }
+                
+                // Create the dummy trigger bank data and store it.
+                TriggeredLCIOData<GenericObject> triggerBankData = new TriggeredLCIOData<GenericObject>(triggerBankParams);
+                triggerBankData.getData().add(new TestRunTriggerData(new int[8]));
+                addDataToMap(triggerBankData, triggerBankData.getCollectionParameters().getObjectType(), triggeredDataMap);
+                
+                // Readout timestamps should be generated for both
+                // the "system" and the trigger. This corresponds to
+                // the simulation time at which the trigger occurred.
+                // Note that there is a "trigger delay" parameter in
+                // the old readout, but this does not exist in the
+                // new system, so both timestamps are the same.
+                
+                // Calculate the simulation trigger time.
+                double simTriggerTime = trigger.getTriggerTime() + triggerTimeDisplacementMap.get(trigger.getTriggeringDriver()).doubleValue();
+                ReadoutTimestamp systemTimestamp = new ReadoutTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, simTriggerTime);
+                ReadoutTimestamp triggerTimestamp = new ReadoutTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERTIME, simTriggerTime);
+                LCIOCollectionFactory.setCollectionName(ReadoutTimestamp.collectionName);
+                LCIOCollection<ReadoutTimestamp> timestampCollection = LCIOCollectionFactory.produceLCIOCollection(ReadoutTimestamp.class);
+                TriggeredLCIOData<ReadoutTimestamp> timestampData = new TriggeredLCIOData<ReadoutTimestamp>(timestampCollection);
+                timestampData.getData().add(systemTimestamp);
+                timestampData.getData().add(triggerTimestamp);
+                addDataToMap(timestampData, timestampData.getCollectionParameters().getObjectType(), triggeredDataMap);
                 
                 // Store all of the data collections.
                 for(TriggeredLCIOData<?> triggerData : triggeredDataMap.values()) {
@@ -493,6 +512,15 @@ public class ReadoutDataManager extends Driver {
         } else {
             throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" does not exist.");
         }
+    }
+    
+    /**
+     * Gets the time displacement between when a trigger occurs, and
+     * when the triggered data is actually written out.
+     * @return Returns the trigger delay in units of nanoseconds.
+     */
+    public static final double getTriggerDelay() {
+        return bufferTotal;
     }
     
     /**
@@ -942,6 +970,26 @@ public class ReadoutDataManager extends Driver {
             Set<String> dependencySet = new HashSet<String>();
             dependencySet.addAll(dependents);
             validateDependencies(dependency, collectionData.getCollectionParameters().getProductionDriver(), dependencySet);
+        }
+    }
+    
+    /**
+     * Adds the argument particle and all of its direct parents to
+     * the particle set.
+     * @param particle - The base particle.
+     * @param particleSet - The set that is to contain the full tree
+     * of particles.
+     */
+    public static final void addParticleParents(MCParticle particle, Set<MCParticle> particleSet) {
+        // Add the particle itself to the set.
+        particleSet.add(particle);
+        
+        // If the particle has parents, run the same method for each
+        // parent.
+        if(!particle.getParents().isEmpty()) {
+            for(MCParticle parent : particle.getParents()) {
+                addParticleParents(parent, particleSet);
+            }
         }
     }
     
