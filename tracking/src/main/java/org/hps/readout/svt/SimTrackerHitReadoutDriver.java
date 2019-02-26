@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.SLICDataReadoutDriver;
@@ -13,6 +14,7 @@ import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
@@ -49,9 +51,28 @@ public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTracker
         TriggeredLCIOData<FpgaData> fpgaCollection = new TriggeredLCIOData<FpgaData>(fpgaDataParams);
         fpgaCollection.getData().addAll(fpgaData);
         
+        // Get the truth hits in the indicated time range.
+        Collection<SimTrackerHit> truthHits = ReadoutDataManager.getData(triggerTime - getReadoutWindowBefore(), triggerTime + getReadoutWindowAfter(), collectionName, SimTrackerHit.class);
+        
+        // MC particles need to be extracted from the truth hits
+        // and included in the readout data to ensure that the
+        // full truth chain is available.
+        Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
+        for(SimTrackerHit simHit : truthHits) {
+            ReadoutDataManager.addParticleParents(simHit.getMCParticle(), truthParticles);
+        }
+        
+        // Create the truth MC particle collection.
+        LCIOCollectionFactory.setCollectionName("MCParticle");
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollection<MCParticle> truthParticleCollection = LCIOCollectionFactory.produceLCIOCollection(MCParticle.class);
+        TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
+        truthParticleData.getData().addAll(truthParticles);
+        
         // Create a general list for the collection.
-        List<TriggeredLCIOData<?>> collectionsList = new ArrayList<TriggeredLCIOData<?>>(1);
+        List<TriggeredLCIOData<?>> collectionsList = new ArrayList<TriggeredLCIOData<?>>(2);
         collectionsList.add(fpgaCollection);
+        if(isPersistent()) { collectionsList.add(truthParticleData); }
         
         // Return the collections list result.
         return collectionsList;
@@ -78,6 +99,11 @@ public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTracker
         }
         
         return fpgaData;
+    }
+    
+    @Override
+    protected double getTimeNeededForLocalOutput() {
+        return isPersistent() ? getReadoutWindowAfter() : 0;
     }
     
     @Override
