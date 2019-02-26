@@ -4,13 +4,27 @@ import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+import static java.lang.Math.abs;
 import java.util.List;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackType;
+import org.lcsim.detector.DetectorElementStore;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierDictionary;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -21,14 +35,15 @@ import org.lcsim.util.aida.AIDA;
 public class SvtCalorimeterAlignmentDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
-    private IHistogram2D trkAtEcalXvsNSigmaTop = aida.histogram2D("trackY at Ecal vs nSigma top", 100, 0., 6., 500, 20., 60.);
-    private IHistogram2D trkAtEcalXvsNSigmaBottom = aida.histogram2D("-trackY at Ecal vs nSigma bottom", 100, 0., 6., 500, 20., 60.);
+    private IHistogram2D trkAtEcalYvsNSigmaTop = aida.histogram2D("trackY at Ecal vs nSigma top", 100, 0., 6., 500, 20., 60.);
+    private IHistogram2D trkAtEcalYvsNSigmaBottom = aida.histogram2D("-trackY at Ecal vs nSigma bottom", 100, 0., 6., 500, 20., 60.);
 
     protected void process(EventHeader event) {
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
         if (event.hasCollection(ReconstructedParticle.class, "OtherElectrons")) {
             rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
         }
+        setupSensors(event);
         for (ReconstructedParticle rp : rpList) {
 
             if (!TrackType.isGBL(rp.getType())) {
@@ -46,14 +61,50 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
 
             double nSigma = rp.getGoodnessOfPID();
             Track t = rp.getTracks().get(0);
-            TrackState trackAtEcal = TrackStateUtils.getTrackStateAtECal(t);
-            double[] tposAtEcal = trackAtEcal.getReferencePoint();
+            int nTrackHits = t.getTrackerHits().size();
+            TrackState trackStateAtEcal = TrackStateUtils.getTrackStateAtECal(t);
+            Hep3Vector atEcal = new BasicHep3Vector(Double.NaN, Double.NaN, Double.NaN);
+            if (trackStateAtEcal != null) {
+                atEcal = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+                atEcal = CoordinateTransformations.transformVectorToDetector(atEcal);
+            }
+            double[] tposAtEcal = atEcal.v();
+            Hep3Vector pmom = rp.getMomentum();
+            double p = rp.getMomentum().magnitude();
+            boolean isTopTrack = isTopTrack(t);
+            String topOrBottom = isTopTrack ? " top " : " bottom ";
+            boolean isFee = p > 1.6;
+            String isFeeString = isFee ? " Fee " : " not Fee ";
+            Cluster c = rp.getClusters().get(0);
+            int nClusterHits = c.getCalorimeterHits().size();
+            double[] cposAtEcal = c.getPosition();
+            double clusterEnergy = c.getEnergy();
+
+            aida.histogram2D("Cluster x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+            aida.histogram2D("Track x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(tposAtEcal[0], tposAtEcal[1]);
+            aida.histogram1D("Cluster z", 50, 1393., 1396.).fill(c.getPosition()[2]);
+            aida.histogram1D("Track z", 50, 1393., 1396.).fill(tposAtEcal[2]);
+
+            aida.histogram1D("Track momentum" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(p);
+            aida.histogram1D("Cluster energy" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(c.getEnergy());
+
+            double dX = tposAtEcal[0] - cposAtEcal[0];
+            double dY = tposAtEcal[1] - cposAtEcal[1];
+
+            aida.histogram2D("trackX at Ecal vs dY" + topOrBottom, 400, -300., 100., 500, -20., 20.).fill(tposAtEcal[0], dY);
+            aida.histogram2D("trackY at Ecal vs dY" + topOrBottom, 200, -100., 100., 500, -20., 20.).fill(tposAtEcal[1], dY);
+//            aida.cloud2D("dY vs track x" + topOrBottom).fill(tposAtEcal[0], dY);
+//            aida.cloud2D("dY vs track y" + topOrBottom).fill(tposAtEcal[1], dY);
+            double absdY = isTopTrack ? abs(dY) : -abs(dY);
+            aida.histogram2D("trackY at Ecal vs |dY|" + topOrBottom + isFeeString + nTrackHits + "hits on Track", 400, 20., 60., 500, -20., 20.).fill(abs(tposAtEcal[1]), absdY);
 
             // look for calorimeter edge wrt SVT
-            if (tposAtEcal[2] > 0) {
-                trkAtEcalXvsNSigmaTop.fill(nSigma, tposAtEcal[2]);
+            if (isTopTrack) {
+                trkAtEcalYvsNSigmaTop.fill(nSigma, tposAtEcal[1]);
+                //aida.cloud2D("trackY at Ecal vs nSigma top cloud").fill(nSigma, tposAtEcal[1]);
             } else {
-                trkAtEcalXvsNSigmaBottom.fill(nSigma, -tposAtEcal[2]);
+                trkAtEcalYvsNSigmaBottom.fill(nSigma, -tposAtEcal[1]);
+                //aida.cloud2D("trackY at Ecal vs nSigma bottom cloud").fill(nSigma, -tposAtEcal[1]);
             }
         }
     }
@@ -65,8 +116,64 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
         IHistogram1D[] bottomSlices = new IHistogram1D[25];
         IHistogram1D[] topSlices = new IHistogram1D[25];
         for (int i = 0; i < 25; ++i) {
-            bottomSlices[i] = hf.sliceY("bottom slice " + i, trkAtEcalXvsNSigmaBottom, i);
-            topSlices[i] = hf.sliceY("top slice " + i, trkAtEcalXvsNSigmaTop, i);
+            bottomSlices[i] = hf.sliceY("bottom slice " + i, trkAtEcalYvsNSigmaBottom, i);
+            topSlices[i] = hf.sliceY("top slice " + i, trkAtEcalYvsNSigmaTop, i);
+        }
+    }
+
+    private boolean isTopTrack(Track t) {
+        List<TrackerHit> hits = t.getTrackerHits();
+        int n[] = {0, 0};
+        int nHits = hits.size();
+        for (TrackerHit h : hits) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+            if (sensor.isTopLayer()) {
+                n[0] += 1;
+            } else {
+                n[1] += 1;
+            }
+        }
+        if (n[0] == nHits && n[1] == 0) {
+            return true;
+        }
+        if (n[1] == nHits && n[0] == 0) {
+            return false;
+        }
+        throw new RuntimeException("mixed top and bottom hits on same track");
+    }
+
+    private void setupSensors(EventHeader event) {
+        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+        // Get the ID dictionary and field information.
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        int fieldIdx = dict.getFieldIndex("side");
+        int sideIdx = dict.getFieldIndex("strip");
+        for (RawTrackerHit hit : rawTrackerHits) {
+            // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
+            IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+            expId.setValue(fieldIdx, 0);
+            expId.setValue(sideIdx, 0);
+            IIdentifier strippedId = dict.pack(expId);
+            // Find the sensor DetectorElement.
+            List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
+            if (des == null || des.size() == 0) {
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            } else if (des.size() == 1) {
+                hit.setDetectorElement((SiSensor) des.get(0));
+            } else {
+                // Use first sensor found, which should work unless there are sensors with duplicate IDs.
+                for (IDetectorElement de : des) {
+                    if (de instanceof SiSensor) {
+                        hit.setDetectorElement((SiSensor) de);
+                        break;
+                    }
+                }
+            }
+            // No sensor was found.
+            if (hit.getDetectorElement() == null) {
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            }
         }
     }
 }
