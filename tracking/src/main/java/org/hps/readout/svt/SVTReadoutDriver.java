@@ -29,6 +29,7 @@ import org.lcsim.recon.tracking.digitization.sisim.SiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDriver;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
+import org.hps.readout.ReadoutTimestamp;
 import org.hps.readout.TempOutputWriter;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
@@ -498,26 +499,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Adds the argument particle and all of its direct parents to
-     * the particle set.
-     * @param particle - The base particle.
-     * @param particleSet - The set that is to contain the full tree
-     * of particles.
-     */
-    private static final void addParticleParents(MCParticle particle, Set<MCParticle> particleSet) {
-        // Add the particle itself to the set.
-        particleSet.add(particle);
-        
-        // If the particle has parents, run the same method for each
-        // parent.
-        if(!particle.getParents().isEmpty()) {
-            for(MCParticle parent : particle.getParents()) {
-                addParticleParents(parent, particleSet);
-            }
-        }
-    }
-    
-    /**
      * Performs each of the three readout cuts, if they are enabled.
      * This is the equivalent of calling, as appropriate, the methods
      * {@link
@@ -624,6 +605,16 @@ public class SVTReadoutDriver extends ReadoutDriver {
         // Calculate time of first sample
         double firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
                 * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
+        
+        System.out.println("\t\tCalculating firstSample: Driver = \"" + getClass().getSimpleName());
+        System.out.println("\t\t\tsimTime = " + ReadoutDataManager.getCurrentTime());
+        System.out.println("\t\t\ttrueTriggerTime = " + triggerTime);
+        System.out.println("\t\t\treadoutLatency = " + readoutLatency);
+        System.out.println("\t\t\treadoutOffset = " + readoutOffset);
+        System.out.println("\t\t\tSampling Interval = " + HPSSVTConstants.SAMPLING_INTERVAL);
+        System.out.println("\t\t\tResult = " + firstSample);
+        
+        //double firstSample = Math.floor((ClockSingleton.getTime() - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL) * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
         
         outputWriter.write("> Event 0; t = " + ReadoutDataManager.getCurrentTime());
         List<StripHit> processedHits = new ArrayList<StripHit>();
@@ -793,7 +784,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
         // full truth chain is available.
         Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
         for(SimTrackerHit simHit : truthHits) {
-            addParticleParents(simHit.getMCParticle(), truthParticles);
+            ReadoutDataManager.addParticleParents(simHit.getMCParticle(), truthParticles);
         }
         
         // Create the truth MC particle collection.
@@ -803,12 +794,20 @@ public class SVTReadoutDriver extends ReadoutDriver {
         TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
         truthParticleData.getData().addAll(truthParticles);
         
+        // A trigger timestamp needs to be produced as well.
+        ReadoutTimestamp timestamp = new ReadoutTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, firstSample);
+        LCIOCollectionFactory.setCollectionName(ReadoutTimestamp.collectionName);
+        LCIOCollection<ReadoutTimestamp> timestampCollection = LCIOCollectionFactory.produceLCIOCollection(ReadoutTimestamp.class);
+        TriggeredLCIOData<ReadoutTimestamp> timestampData = new TriggeredLCIOData<ReadoutTimestamp>(timestampCollection);
+        timestampData.getData().add(timestamp);
+        
         // Store them in a single collection.
-        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(3);
+        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(5);
         eventOutput.add(hitCollection);
         eventOutput.add(truthParticleData);
         eventOutput.add(truthHitCollection);
         eventOutput.add(truthRelationCollection);
+        eventOutput.add(timestampData);
         
         // Return the event output.
         return eventOutput;
