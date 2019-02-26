@@ -18,6 +18,7 @@ import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
+import org.hps.readout.ReadoutTimestamp;
 import org.hps.readout.TempOutputWriter;
 import org.hps.readout.util.DoubleRingBuffer;
 import org.hps.readout.util.IntegerRingBuffer;
@@ -911,14 +912,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
         System.out.printf("\t%d = (%d) + %d%n", readoutLatency, (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0), readoutOffset);
         System.out.printf("\tBuffer Range: (%d, %d)%n", -(readoutLatency - 0 - 1), -(readoutLatency - (readoutWindow - 1) - 1));
         
-        /*
-        System.out.println("New Driver:");
-        System.out.println("\treadoutLatency = (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0) + (readoutOffset + readoutCorrection)");
-        System.out.printf("\t%d = (int) ((%.0f - %.0f) / 4.0) + (%d + %d)%n", readoutLatency, ReadoutDataManager.getCurrentTime(), triggerTime, readoutOffset, readoutCorrection);
-        System.out.printf("\t%d = (%d) + (%d)%n", readoutLatency, (int) ((ReadoutDataManager.getCurrentTime() - triggerTime) / 4.0), (readoutOffset + readoutCorrection));
-        System.out.printf("\tBuffer Range: (%d, %d)%n", -(readoutLatency - 0 - 1), -(readoutLatency - (readoutWindow - 1) - 1));
-        */
-        
         
         for(int i = 0; i < readoutWindow; i++) {
             timeBufferBuffer.append("    " + timeTestBuffer.getValue(-(readoutLatency - i - 1)).intValue());
@@ -952,10 +945,23 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // Create a list to store the extra collections.
         List<TriggeredLCIOData<?>> collectionsList = null;
         if(writeTruth) {
-            collectionsList = new ArrayList<TriggeredLCIOData<?>>(4);
+            collectionsList = new ArrayList<TriggeredLCIOData<?>>(5);
         } else {
-            collectionsList = new ArrayList<TriggeredLCIOData<?>>(1);
+            collectionsList = new ArrayList<TriggeredLCIOData<?>>(2);
         }
+        
+        // Readout drivers need to produce readout timestamps to
+        // specify when they occurred in terms of simulation time.
+        // The readout timestamp for the calorimeter data should be
+        // defined as the start simulation time of the ADC buffer.
+        ReadoutTimestamp timestamp = new ReadoutTimestamp(ReadoutTimestamp.SYSTEM_ECAL, triggerTime - (readoutOffset * 4) + 4);
+        
+        // Make the readout timestamp collection parameters object.
+        LCIOCollectionFactory.setCollectionName(ReadoutTimestamp.collectionName);
+        LCIOCollection<ReadoutTimestamp> timestampCollection = LCIOCollectionFactory.produceLCIOCollection(ReadoutTimestamp.class);
+        TriggeredLCIOData<ReadoutTimestamp> timestampData = new TriggeredLCIOData<ReadoutTimestamp>(timestampCollection);
+        timestampData.getData().add(timestamp);
+        collectionsList.add(timestampData);
         
         // Instantiate some lists to store truth data, if truth is to
         // be output.
@@ -1016,7 +1022,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
                     // TODO: Full particle tree test.
                     MCParticle rootParticle = getRootParticle(simHit.getMCParticle(i));
                     truthParticles.addAll(getParticleTreeAsSet(rootParticle));
-                    //addParticleParents(simHit.getMCParticle(i), truthParticles);
                 }
             }
             
@@ -1267,7 +1272,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             outputData.append("\tFull Buffer:\n");
             IntegerRingBuffer pipeline = adcBufferMap.get(cellID);
             outputData.append("\t\t");
-            //for(int value : pipeline) {
             for(int i = 0; i < pipeline.size(); i++) {
                 outputData.append(Long.toString(pipeline.getValue(-i)) + "[" + String.format("%4d", i) + "]");
                 outputData.append("    ");
@@ -1284,9 +1288,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             }
             outputData.append("\n");
             
-            // Get the channel constants for the current channel.
-            //EcalChannelConstants channelData = findChannel(cellID);
-            
             // Iterate across the ADC values. If the ADC value is
             // sufficiently high to produce a hit, then it should be
             // written out.
@@ -1294,7 +1295,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             for(int i = 0; i < adcValues.length; i++) {
                 // Check that there is a threshold-crossing at some
                 // point in the ADC buffer.
-                //if(adcValues[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
                 if(adcValues[i] > getPedestalConditions(cellID) + integrationThreshold) {
                     isAboveThreshold = true;
                     break;
