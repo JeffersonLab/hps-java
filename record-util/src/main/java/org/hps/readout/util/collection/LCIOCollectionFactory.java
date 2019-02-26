@@ -294,14 +294,14 @@ public class LCIOCollectionFactory {
      */
     private static final String verifyBaseCollectionParameters() {
         boolean setCollectionName = (collectionName != null);
-        boolean setProductionDriver = (productionDriver != null);
+        //boolean setProductionDriver = (productionDriver != null);
         
-        if(setCollectionName && setProductionDriver) {
+        if(setCollectionName) {// && setProductionDriver) {
             return null;
         } else {
             StringBuffer errorMessage = new StringBuffer("Error: The following parameters have not been set:");
             if(!setCollectionName) { errorMessage.append("\n\tCollection Name"); }
-            if(!setProductionDriver) { errorMessage.append("\n\tProduction Driver"); }
+            //if(!setProductionDriver) { errorMessage.append("\n\tProduction Driver"); }
             return errorMessage.toString();
         }
     }
