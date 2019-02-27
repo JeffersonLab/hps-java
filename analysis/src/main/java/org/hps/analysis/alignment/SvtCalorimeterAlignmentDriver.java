@@ -93,24 +93,36 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
             aida.histogram1D("Cluster z", 50, 1393., 1396.).fill(c.getPosition()[2]);
             aida.histogram1D("Track z", 50, 1393., 1396.).fill(tposAtEcal[2]);
 
-            aida.histogram1D("Track momentum" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(p);
-            aida.histogram1D("Cluster energy" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(c.getEnergy());
-            aida.histogram1D("cluster nHits", 10, 0., 10.).fill(c.getCalorimeterHits().size());
             double dX = tposAtEcal[0] - cposAtEcal[0];
             double dY = tposAtEcal[1] - cposAtEcal[1];
 
             // require fiducial cluster, more than two hits in y, plot dy as fn of x
             int[] rowsColumns = rowsColumns(c);
             aida.histogram2D("Cluster nColumns vs nRows", 6, 0.5, 6.5, 6, 0.5, 6.5).fill(rowsColumns[1], rowsColumns[0]);
+
+            aida.histogram1D("Track momentum" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(p);
+            aida.histogram1D("Cluster energy" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(c.getEnergy());
+            aida.histogram1D("cluster nHits", 20, 0., 20.).fill(c.getCalorimeterHits().size());
+
+            if (!isFiducial) {
+                continue;
+            }
+            if (abs(iy) != 3) {
+                continue;
+            }
+            if (rowsColumns[0] < 2 || rowsColumns[0] > 3) {
+                continue;
+            }
+
             if (isFiducial) {
-                aida.histogram2D("Fiducial Cluster nColumns vs nRows", 6, 0, 6, 6, 0, 6).fill(rowsColumns[1], rowsColumns[0]);
-                aida.histogram2D("Fiducial Cluster x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
-                aida.histogram2D("Fiducial Cluster trackX at Ecal row " + iy + " vs dY" + topOrBottom + isFeeString + nTrackHits + "hits on Track " + rowsColumns[0] + " rows", 400, -300., 100., 100, -10., 10.).fill(tposAtEcal[0], dY);
+                aida.histogram2D("Fiducial Cluster nColumns vs nRows", 6, 0.5, 6.5, 6, 0.5, 6.5).fill(rowsColumns[1], rowsColumns[0]);
+//                aida.histogram2D("Fiducial Cluster x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+//                aida.histogram2D("Fiducial Cluster trackX at Ecal row " + iy + " vs dY" + topOrBottom + isFeeString + nTrackHits + "hits on Track " + rowsColumns[0] + " rows", 400, -300., 100., 100, -10., 10.).fill(tposAtEcal[0], dY);
                 aida.histogram1D("Fiducial Cluster at Ecal row " + iy + " dY" + topOrBottom + isFeeString + nTrackHits + "hits on Track " + rowsColumns[0] + " rows", 100, -10., 10.).fill(dY);
             }
 
-            aida.histogram2D("trackX at Ecal vs dY" + topOrBottom, 400, -300., 100., 500, -20., 20.).fill(tposAtEcal[0], dY);
-            aida.histogram2D("trackY at Ecal vs dY" + topOrBottom, 200, -100., 100., 500, -20., 20.).fill(tposAtEcal[1], dY);
+//            aida.histogram2D("trackX at Ecal vs dY" + topOrBottom, 400, -300., 100., 500, -20., 20.).fill(tposAtEcal[0], dY);
+//            aida.histogram2D("trackY at Ecal vs dY" + topOrBottom, 200, -100., 100., 500, -20., 20.).fill(tposAtEcal[1], dY);
 //            aida.cloud2D("dY vs track x" + topOrBottom).fill(tposAtEcal[0], dY);
 //            aida.cloud2D("dY vs track y" + topOrBottom).fill(tposAtEcal[1], dY);
             double absdY = isTopTrack ? abs(dY) : -abs(dY);
