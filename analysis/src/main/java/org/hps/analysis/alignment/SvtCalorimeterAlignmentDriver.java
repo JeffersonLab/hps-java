@@ -7,7 +7,10 @@ import hep.aida.IHistogramFactory;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackType;
@@ -18,6 +21,7 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -79,6 +83,10 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
             int nClusterHits = c.getCalorimeterHits().size();
             double[] cposAtEcal = c.getPosition();
             double clusterEnergy = c.getEnergy();
+            CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+            int ix = seedHit.getIdentifierFieldValue("ix");
+            int iy = seedHit.getIdentifierFieldValue("iy");
+            boolean isFiducial = isFiducial(seedHit);
 
             aida.histogram2D("Cluster x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
             aida.histogram2D("Track x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(tposAtEcal[0], tposAtEcal[1]);
@@ -87,9 +95,19 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
 
             aida.histogram1D("Track momentum" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(p);
             aida.histogram1D("Cluster energy" + topOrBottom + nTrackHits + "hits on Track", 100, 0., 3.0).fill(c.getEnergy());
-
+            aida.histogram1D("cluster nHits", 10, 0., 10.).fill(c.getCalorimeterHits().size());
             double dX = tposAtEcal[0] - cposAtEcal[0];
             double dY = tposAtEcal[1] - cposAtEcal[1];
+
+            // require fiducial cluster, more than two hits in y, plot dy as fn of x
+            int[] rowsColumns = rowsColumns(c);
+            aida.histogram2D("Cluster nColumns vs nRows", 6, 0.5, 6.5, 6, 0.5, 6.5).fill(rowsColumns[1], rowsColumns[0]);
+            if (isFiducial) {
+                aida.histogram2D("Fiducial Cluster nColumns vs nRows", 6, 0, 6, 6, 0, 6).fill(rowsColumns[1], rowsColumns[0]);
+                aida.histogram2D("Fiducial Cluster x vs y " + isFeeString + nTrackHits + "hits on Track", 300, -300., 300., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                aida.histogram2D("Fiducial Cluster trackX at Ecal row " + iy + " vs dY" + topOrBottom + isFeeString + nTrackHits + "hits on Track " + rowsColumns[0] + " rows", 400, -300., 100., 100, -10., 10.).fill(tposAtEcal[0], dY);
+                aida.histogram1D("Fiducial Cluster at Ecal row " + iy + " dY" + topOrBottom + isFeeString + nTrackHits + "hits on Track " + rowsColumns[0] + " rows", 100, -10., 10.).fill(dY);
+            }
 
             aida.histogram2D("trackX at Ecal vs dY" + topOrBottom, 400, -300., 100., 500, -20., 20.).fill(tposAtEcal[0], dY);
             aida.histogram2D("trackY at Ecal vs dY" + topOrBottom, 200, -100., 100., 500, -20., 20.).fill(tposAtEcal[1], dY);
@@ -175,5 +193,66 @@ public class SvtCalorimeterAlignmentDriver extends Driver {
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
             }
         }
+    }
+
+    public boolean isFiducial(CalorimeterHit hit) {
+        int ix = hit.getIdentifierFieldValue("ix");
+        int iy = hit.getIdentifierFieldValue("iy");
+        // Get the x and y indices for the cluster.
+        int absx = Math.abs(ix);
+        int absy = Math.abs(iy);
+
+        // Check if the cluster is on the top or the bottom of the
+        // calorimeter, as defined by |y| == 5. This is an edge cluster
+        // and is not in the fiducial region.
+        if (absy == 5) {
+            return false;
+        }
+
+        // Check if the cluster is on the extreme left or right side
+        // of the calorimeter, as defined by |x| == 23. This is also
+        // an edge cluster and is not in the fiducial region.
+        if (absx == 23) {
+            return false;
+        }
+
+        // Check if the cluster is along the beam gap, as defined by
+        // |y| == 1. This is an internal edge cluster and is not in the
+        // fiducial region.
+        if (absy == 1) {
+            return false;
+        }
+
+        // Lastly, check if the cluster falls along the beam hole, as
+        // defined by clusters with -11 <= x <= -1 and |y| == 2. This
+        // is not the fiducial region.
+        if (absy == 2 && ix <= -1 && ix >= -11) {
+            return false;
+        }
+
+        // If all checks fail, the cluster is in the fiducial region.
+        return true;
+    }
+
+    //return the number of rows in in this cluster 
+    public int[] rowsColumns(Cluster c) {
+
+        CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+        int ix0 = seedHit.getIdentifierFieldValue("ix");
+        int iy0 = seedHit.getIdentifierFieldValue("iy");
+//        System.out.println("ix0 " + ix0 + " iy0 " + iy0);
+        List<CalorimeterHit> hits = c.getCalorimeterHits();
+        Set<Integer> rows = new HashSet<Integer>();
+        Set<Integer> columns = new HashSet<Integer>();
+
+        for (CalorimeterHit h : hits) {
+            int ix = h.getIdentifierFieldValue("ix");
+            columns.add(ix0 - ix);
+            int iy = h.getIdentifierFieldValue("iy");
+            rows.add(iy0 - iy);
+//            System.out.println("ix  " + ix + " iy  " + iy);
+        }
+//        System.out.println("rows " + rows.size() + " columns " + columns.size());
+        return new int[]{rows.size(), columns.size()};
     }
 }
