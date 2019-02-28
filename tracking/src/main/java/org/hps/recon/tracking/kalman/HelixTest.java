@@ -49,9 +49,9 @@ public class HelixTest { // Program for testing the Kalman fitting code
         double[] p = { 1.0, 1.1, 0.9 }; // momentum
 
         int nHelices = 1; // Number of helix tracks to simulate
-        Vec helixOrigin = new Vec(0., location[0], 0.); // Pivot point of initial helices
-        double Phi = 91. * Math.PI / 180.;
-        double Theta = 85. * Math.PI / 180.;
+        Vec helixOrigin = new Vec(1.45, location[0], 3.62); // Pivot point of initial helices
+        double Phi = 89. * Math.PI / 180.;
+        double Theta = 88. * Math.PI / 180.;
         Vec initialDirection = new Vec(Math.cos(Phi) * Math.sin(Theta), Math.sin(Phi) * Math.sin(Theta), Math.cos(Theta));
         initialDirection.print("initial particle direction");
         double[] drho = new double[nHelices]; // { -0., 0., 1. }; // Helix parameters
@@ -497,7 +497,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
             printWriter2.format("set xlabel 'X'\n");
             printWriter2.format("set ylabel 'Y'\n");
         }
-
+        Histogram hScat = new Histogram(100, 0.,0.0001, "Scattering Angle","radians","events");
         Histogram hps1 = new Histogram(100, -1., 0.02, "phi of scatter, non-stereo layer", "radians", "track");
         Histogram hsp1theta = new Histogram(100, -3.0e-3, 6.e-5, "projected scattering angle, non-stereo layer", "pi radians", "track");
         Histogram hps2 = new Histogram(100, -1., 0.02, "phi of scatter, stereo layer", "radians", "track");
@@ -670,11 +670,12 @@ public class HelixTest { // Program for testing the Kalman fitting code
                     Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
                     helixSaved[2 * pln] = Tk[ih].p.copy();
                     Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
+                    double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
+                    hScat.entry(scattAng);
                     if (verbose) {
                         Tk[ih].print("scattered from the first layer of the detector plane");
                         Vec p2 = Tk[ih].getMomGlobal(0.);
                         p2.print("momentum after scatter");
-                        double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
                         System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng, p2.mag());
                     }
                     Vec t2Loc = Rtmp.rotate(t2);
@@ -731,9 +732,10 @@ public class HelixTest { // Program for testing the Kalman fitting code
                         Rtmp = new RotMatrix(uhat, vhat, t1);
                         Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
                         t2 = Tk[ih].getMomGlobal(0.).unitVec();
+                        scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
+                        hScat.entry(scattAng);
                         if (verbose) {
                             Tk[ih].print("scattered from the second layer of the measurement plane");
-                            double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
                             System.out.format("Scattering angle from 2nd layer=%10.7f\n", scattAng);
                         }
                         t2Loc = Rtmp.rotate(t2);
@@ -1011,6 +1013,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
+        hScat.plot(path + "scatAng.gp", true, " " , " ");
         hps1.plot(path + "phiScat1.gp", true, " ", " ");
         hsp1theta.plot(path + "projScat1.gp", true, " ", " ");
         hps2.plot(path + "phiScat2.gp", true, " ", " ");

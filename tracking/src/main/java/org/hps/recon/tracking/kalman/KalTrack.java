@@ -99,11 +99,14 @@ public class KalTrack {
                 innerSite = site;
             }
         }
-
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
         Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
         double ct = pMom.unitVec().dot(innerSite.m.p.T());
-        double XL = innerSite.XL / Math.abs(ct);
+        
+        //  XL has to be set to zero below to get the correct result for the covariance, as the Kalman
+        //  filter has already accounted for scattering in the first layer. However, if there was no
+        //  hit in the first layer, then the scattering should be introduced, TBD
+        double XL = 0.; // innerSite.XL / Math.abs(ct);
         helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
 
         // Find the position and momentum of the particle near the origin, including covariance

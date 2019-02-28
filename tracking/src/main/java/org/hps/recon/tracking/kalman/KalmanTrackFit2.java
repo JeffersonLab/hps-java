@@ -55,6 +55,7 @@ public class KalmanTrackFit2 {
             for (int idx = start; idx > -1; idx--) {
                 finalSite = idx;
                 SiModule m = data.get(idx);
+                if (m.hits.size() == 0) continue;
                 thisSite++;
                 newSite = new MeasurementSite(idx, m, mxResid, mxResid);
                 if (idx == start) {
@@ -87,8 +88,9 @@ public class KalmanTrackFit2 {
 
                 prevSite = thisSite;
             }
-            if (!success)
+            if (!success) {
                 return;
+            }
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
                 newSite.aF.a.print("filtered helix parameters at innermost site.");
@@ -139,6 +141,7 @@ public class KalmanTrackFit2 {
             thisSite = -1;
             while (itr.hasNext()) {
                 SiModule m = itr.next();
+                if (m.hits.size() == 0) continue;
                 thisSite++;
                 MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
                 if (thisSite == 0) {

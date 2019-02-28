@@ -350,7 +350,8 @@ public class KalmanDriverHPS extends Driver {
                 outputFullTracks.add(fullKalmanTrackHPS);
 
                 // Fill histograms here
-                double[] hprms = fullKalmanTrack.originHelix();
+                fullKalmanTrack.originHelix();
+                double[] hprms = fullKalmanTrack.originHelixParms();
                 TrackState ts = trk.getTrackStates().get(0);
                 double c = 2.99793e8; // Speed of light in m/s
                 double alpha = 1000.0 * 1.0e9 / (c * bField); // Here we have to use the field from back where GBL measured curvature

@@ -258,7 +258,7 @@ package org.hps.recon.tracking.kalman;
                 printWriter2.format("set xlabel 'X'\n");
                 printWriter2.format("set ylabel 'Y'\n");
             }
-
+            Histogram hScat = new Histogram(100, 0.,0.0001, "Scattering Angle","radians","events");
             Histogram hnHit = new Histogram(15, 0., 1., "Number of hits on helix","hits","events");
             Histogram hps1 = new Histogram(100, -1., 0.02, "phi of scatter, non-stereo layer", "radians", "track");
             Histogram hsp1theta = new Histogram(100, -3.0e-3, 6.e-5, "projected scattering angle, non-stereo layer", "pi radians", "track");
@@ -404,6 +404,7 @@ package org.hps.recon.tracking.kalman;
                         }
                         continue;
                     }
+                    //if (thisSi.Layer == 7 || thisSi.Layer == 8) continue; // !!!!!!!!!!!!
                         
                     double[] gran = new double[2];
                     if (perfect) {
@@ -443,11 +444,12 @@ package org.hps.recon.tracking.kalman;
                         //pivotSaved[icm].print("saved pivot");
                         //System.out.format("%d location=%10.5f\n", icm, location[icm]);
                         Vec t2 = Tk.getMomGlobal(0.).unitVec();
+                        double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
+                        hScat.entry(scattAng);
                         if (verbose) {
                             Tk.print("scattered from the first layer of the detector plane");
                             Vec p2 = Tk.getMomGlobal(0.);
                             p2.print("momentum after scatter");
-                            double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
                             System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng, p2.mag());
                         }
                         Vec t2Loc = Rtmp.rotate(t2);
@@ -691,7 +693,7 @@ package org.hps.recon.tracking.kalman;
                             aF.print("final smoothed helix parameters at the track beginning");
                             newPivot.print("final smoothed helix pivot in local coordinates");
                         }
-                        Vec aFe = new Vec(5); // .fittedStateBegin().helixErrors(aF);
+                        Vec aFe = new Vec(5); 
                         SquareMatrix aFC = kF.fittedStateBegin().covariancePivotTransform(aF);
                         aFC = aFC.similarity(fRot);
                         for (int i = 0; i < 5; i++) {
@@ -812,6 +814,7 @@ package org.hps.recon.tracking.kalman;
             ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
             System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
+            hScat.plot(path + "scatAng.gp", true, " " , " ");
             hchi2G.plot(path + "chi2G.gp", true, " " , " ");
             hnHit.plot(path + "nHits.gp", true, " " , " ");
             hps1.plot(path + "phiScat1.gp", true, " ", " ");

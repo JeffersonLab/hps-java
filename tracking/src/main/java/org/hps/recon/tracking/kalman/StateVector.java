@@ -450,8 +450,15 @@ class StateVector {
         // Add in the multiple scattering contributions from the first silicon layer
         // *** This should be generalized to include scattering from more layers if starting point is not layer 1 ***
         double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
-        double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
-        SquareMatrix Covariance = C.sum(this.getQ(sigmaMS));
+        double sigmaMS;
+        SquareMatrix Covariance;
+        if (XL > 0.) {
+            sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+            Covariance = C.sum(this.getQ(sigmaMS));
+        } else {
+            sigmaMS = 0.;
+            Covariance = C.copy();
+        }
         Vec transHelix = helixStepper(4, Covariance, new Vec(0., 0., 0.), fM);
         newCovariance.M = Covariance.M;
         if (verbose) {
