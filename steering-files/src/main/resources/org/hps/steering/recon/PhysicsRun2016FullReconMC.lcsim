@@ -8,6 +8,7 @@
     -->
     <execute>
 
+         <driver name="PreCleanupDriver"/> 
         <!--RF driver-->
         <driver name="RfFitter"/>
  
@@ -57,10 +58,17 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
+        <driver name="VertexDebugTupleDriver"/>
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
+        
+               
+        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+<!--            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> -->
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
+        </driver>
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
@@ -94,14 +102,23 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Pileup</fitAlgorithm>
-            <useTimestamps>false</useTimestamps>
-            <correctTimeOffset>true</correctTimeOffset>
-            <correctT0Shift>false</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
-            <subtractTOF>true</subtractTOF>
-            <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>false</correctChanT0>
+           <fitAlgorithm>Pileup</fitAlgorithm>
+            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
+            <useTimestamps>true</useTimestamps>     
+            <!--offset to get times centered at 0 after timestamp correction-->                 
+            <tsCorrectionScale>239</tsCorrectionScale>    
+            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
+            <correctTimeOffset>true</correctTimeOffset>   
+            <!--per sensor shift...set false becasue it's not in readout sim-->       
+            <correctT0Shift>false</correctT0Shift>      
+            <!--use truth time for MC???  typically not used-->             
+            <useTruthTime>false</useTruthTime>    
+            <!--time of flight corrections-->              
+            <subtractTOF>true</subtractTOF>     
+            <!--set this false for MC, true for data-->              
+            <subtractTriggerTime>false</subtractTriggerTime>           
+            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
+            <correctChanT0>true</correctChanT0>          
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
@@ -143,6 +160,16 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
             <trackCollectionNames>GBLTracks</trackCollectionNames>
+<!--             <beamPositionX> -0.246 </beamPositionX>-->
+             <beamPositionX> 0 </beamPositionX>
+            <beamSigmaX> 0.125 </beamSigmaX>
+            <!--<beamPositionY> -0.138 </beamPositionY>-->
+            <beamPositionY> 0.0 </beamPositionY>
+            <beamSigmaY> 0.030 </beamSigmaY>
+            <beamPositionZ> -3.9 </beamPositionZ>
+            <trackClusterTimeOffset>43</trackClusterTimeOffset>
+            <debug>true</debug>
+            <isMC>true</isMC>      
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
@@ -152,5 +179,22 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>       
+        
+        
+	<driver name="VertexTupleDriver" type="org.hps.analysis.tuple.VertexTupleDriver">
+            <triggerType>pairs1</triggerType>
+<!--            <triggerType>all</triggerType> -->
+	    <debug>true</debug>            
+            <tupleFile>${outputFile}_vertex.txt</tupleFile>
+        </driver>
+        
+        <driver name="VertexDebugTupleDriver" type="org.hps.analysis.tuple.VertexDebugTupleDriver">
+            <triggerType>pairs1</triggerType>
+<!--            <triggerType>all</triggerType> -->
+	    <debug>true</debug>            
+            <tupleFile>${outputFile}_vertexdebug.txt</tupleFile>
+        </driver>
+        
+        
     </drivers>
 </lcsim>
