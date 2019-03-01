@@ -263,7 +263,7 @@
             <inputTrackCollectionName>Tracks_s345_c2_e16_truth Tracks_s456_c3_e21_truth Tracks_s123_c4_e56_truth Tracks_s123_c5_e46_truth</inputTrackCollectionName>
             <outputCollectionName>MatchedTracks_truth</outputCollectionName>
         </driver>
-        <driver name="GBLRefitterDriverTruth" type="org.hps.recon.tracking.gbl.TruthGBLRefitterDriver">
+        <driver name="GBLRefitterDriverTruth" type="org.hps.analysis.MC.TruthGBLRefitterDriver">
             <inputCollectionName>MatchedTracks_truth</inputCollectionName>
             <outputCollectionName>GBLTracks_truth</outputCollectionName>
             <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_truth</helicalTrackHitRelationsCollectionName>

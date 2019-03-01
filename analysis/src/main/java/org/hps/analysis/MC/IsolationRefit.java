@@ -29,7 +29,8 @@ public class IsolationRefit extends Driver{
     private final String badTrackColName = "GBLTracks_bad";
     private final String simhitOutputColName = "TrackerHits_truth";
     private final String truthMatchOutputColName = "MCFullDetectorTruth";
-    private final String trackToTruthMatchRelationsOutputColName = "TrackBadToMCParticleRelations";
+    private final String trackBadToTruthMatchRelationsOutputColName = "TrackBadToMCParticleRelations";
+    private final String trackToTruthMatchRelationsOutputColName = "TrackToMCParticleRelations";
 
   //List of Sensors
     private List<HpsSiSensor> sensors = null;
@@ -54,6 +55,7 @@ public class IsolationRefit extends Driver{
         List<Track> badTracks = new ArrayList<Track>();
         List<SimTrackerHit> truthHits = new ArrayList<SimTrackerHit>();
         List<MCFullDetectorTruth> truthMatchWithBadTrack = new ArrayList<MCFullDetectorTruth>();
+        List<LCRelation> trackBadToTruthMatchRelations = new ArrayList<LCRelation>();
         List<LCRelation> trackToTruthMatchRelations = new ArrayList<LCRelation>();
         
         for(Track track:allTracks){
@@ -61,18 +63,20 @@ public class IsolationRefit extends Driver{
             if(truthMatch.getMCParticle() == null){
                 continue;
             }
+            trackToTruthMatchRelations.add(new BaseLCRelation(track, truthMatch.getMCParticle()));
             if((truthMatch.getPurity() == 1.0)){
                 continue;
             }
             truthHits = truthMatch.getActiveHitListMCParticle();
             badTracks.add(track);
             truthMatchWithBadTrack.add(truthMatch);
-            trackToTruthMatchRelations.add(new BaseLCRelation(track, truthMatch.getMCParticle()));
+            trackBadToTruthMatchRelations.add(new BaseLCRelation(track, truthMatch.getMCParticle()));
         }
 
         event.put(simhitOutputColName, truthHits, SimTrackerHit.class, 0);
         event.put(badTrackColName, badTracks, Track.class, 0);
         //event.put(truthMatchOutputColName, truthMatchWithBadTrack, Truth.class, 0);
+        event.put(trackBadToTruthMatchRelationsOutputColName, trackBadToTruthMatchRelations, LCRelation.class, 0);
         event.put(trackToTruthMatchRelationsOutputColName, trackToTruthMatchRelations, LCRelation.class, 0);
     }
 }

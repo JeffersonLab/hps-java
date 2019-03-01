@@ -1,10 +1,14 @@
 package org.hps.analysis.tuple;
 
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hps.analysis.MC.MCFullDetectorTruth;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.vertexing.BilliorVertex;
@@ -13,10 +17,15 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.SimCalorimeterHit;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
-//import org.lcsim.event.TrackState;
 import org.lcsim.event.Vertex;
+import org.lcsim.event.base.BaseRelationalTable;
 
 public class RefitTrackTruthTupleDriver extends TupleMaker {
     
@@ -24,7 +33,13 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private final String badTrackColName = "GBLTracks_bad";
     private final String simhitOutputColName = "TrackerHits_truth";
     private final String truthMatchOutputColName = "MCFullDetectorTruth";
-    private final String trackToTruthMatchRelationsOutputColName = "TrackBadToMCParticleRelations";
+    private final String trackToMCParticleRelationsName = "TrackTruthToMCParticleRelations";
+    private final String trackBadToTruthMatchRelationsOutputColName = "TrackBadToMCParticleRelations";
+    private final String trackToTruthMatchRelationsOutputColName = "TrackToMCParticleRelations";
+    private String trackerHitsCollectionName = "TrackerHits";
+    private String inactiveTrackerHitsCollectionName = "TrackerHits_Inactive";
+    private String ecalHitsCollectionName = "EcalHits";
+    private final String mcParticleCollectionName = "MCParticle";
     
     private List<ReconstructedParticle> unConstrainedV0List = null;
     private List<ReconstructedParticle> bsConstrainedV0List = null;
@@ -41,6 +56,8 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private Map<ReconstructedParticle, ReconstructedParticle> unc2Truth = null;
     private Map<ReconstructedParticle, ReconstructedParticle> unc2bscTruth = null;
     private Map<ReconstructedParticle, ReconstructedParticle> unc2tarTruth = null;
+    private int truthVertexHasMatch = 0;
+    private int nEcalHit = 2;
     
     protected void setupVariables() {
         tupleVariables.clear();
@@ -53,7 +70,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         addParticleVariables("posBad");
         addParticleVariables("eleTruth");
         addParticleVariables("posTruth");
-        //TridentFullTupleDriver.addFullTruthVertexVariables();
+        addFullTruthVertexVariables();
         addTruthRefitVariables();
 
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
@@ -78,7 +95,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     }
 
     private void addTruthRefitVariables() {
-        String[] newVars = new String[] {"nTracksBad/I","nTracksTruth/I","nTracksBadEvent/I","nTracksTruthEvent/I"};
+        String[] newVars = new String[] {"nTracksBad/I","nTracksTruth/I","nTracksBadEvent/I","nTracksTruthEvent/I","truthVertexHasMatch/I"};
         tupleVariables.addAll(Arrays.asList(newVars));
     }
     
@@ -114,6 +131,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         tupleMap.put("nTracksTruthEvent/I", (double) tracksTruth.size());
         tupleMap.put("nTracksBad/I", (double) nTracksBad);
         tupleMap.put("nTracksTruth/I", (double) nTracksTruth);
+        tupleMap.put("truthVertexHasMatch/I", (double) truthVertexHasMatch);
     }
     
     private boolean fillBasicRefitTuple(EventHeader event, TIData triggerData, ReconstructedParticle uncV0) {
@@ -144,7 +162,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
 
         fillParticleVariables(event, electron, "eleBad");
         fillParticleVariables(event, positron, "posBad");
-        //fillFullVertexTruth(event,electron.getTracks().get(0),positron.getTracks().get(0));
+        fillFullVertexTruth(event, electron.getTracks().get(0),positron.getTracks().get(0));
         
         minPositiveIso = Math.min(tupleMap.get("eleBadMinPositiveIso/D"), tupleMap.get("posBadMinPositiveIso/D"));
         minNegativeIso = Math.min(Math.abs(tupleMap.get("eleBadMinNegativeIso/D")), Math.abs(tupleMap.get("posBadMinNegativeIso/D")));
@@ -158,6 +176,13 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         
         if (unc2Truth != null) {
             ReconstructedParticle temp = unc2Truth.get(uncV0);
+            if(!unConstrainedV0TruthList.isEmpty() && unc2Truth.isEmpty()){
+                truthVertexHasMatch = 0;
+                System.out.println("Truth vertex has NO MATCH!!");
+            }
+            else{
+                truthVertexHasMatch = 1;
+            }
             if (temp != null){
                 ReconstructedParticle electronTruth = temp.getParticles().get(ReconParticleDriver.ELECTRON);
                 ReconstructedParticle positronTruth = temp.getParticles().get(ReconParticleDriver.POSITRON);
@@ -301,6 +326,10 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             unc2tar = correlateCollections(unConstrainedV0List, tarConstrainedV0List);
         }
         
+        
+        List<LCRelation> trackTruthToMCParticleRelations = event.get(LCRelation.class,trackToMCParticleRelationsName);
+        List<LCRelation> trackBadToMCParticleRelations = event.get(LCRelation.class,trackBadToTruthMatchRelationsOutputColName);
+        List<LCRelation> trackToMCParticleRelations = event.get(LCRelation.class,trackToTruthMatchRelationsOutputColName);
         unConstrainedV0TruthList = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesTruthColName);
         
         if (unconstrainedV0VerticesTruthColName != null) {
@@ -316,7 +345,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             unc2tarTruth = correlateCollections(unConstrainedV0TruthList, tarConstrainedV0TruthList);
         }
         
-        unc2Truth = correlateBadAndTruthCollections(unConstrainedV0List,unConstrainedV0TruthList);
+        unc2Truth = correlateBadAndTruthCollections(unConstrainedV0List,unConstrainedV0TruthList,trackToMCParticleRelations,trackBadToMCParticleRelations,trackTruthToMCParticleRelations);
         
         triggerData = checkTrigger(event);
         if (triggerData == null)
@@ -371,14 +400,57 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     }
     
     protected Map<ReconstructedParticle, ReconstructedParticle> correlateBadAndTruthCollections(
-            List<ReconstructedParticle> listFrom, List<ReconstructedParticle> listTo) {
+            List<ReconstructedParticle> listFrom, List<ReconstructedParticle> listTo, List<LCRelation> trackRel, List<LCRelation> badRel, List<LCRelation> truthRel) {
         Map<ReconstructedParticle, ReconstructedParticle> map = new HashMap();
         
         for(ReconstructedParticle p1 : listFrom){
-            //p1.getParticles().get(0).getTracks().get(0)
-            //p1.getParticles().get(1).getTracks().get(0)
+            Track track1_p1 = p1.getParticles().get(0).getTracks().get(0);
+            Track track2_p1 = p1.getParticles().get(1).getTracks().get(0);
+            MCParticle p1_p1 = null;
+            MCParticle p2_p1 = null;
+            for (LCRelation relation : trackRel){
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null){
+                    if(relation.getFrom().equals(track1_p1)){
+                        p1_p1 = (MCParticle) relation.getTo();
+                    }
+                    if(relation.getFrom().equals(track2_p1))
+                        p2_p1 = (MCParticle) relation.getTo();
+                }
+            }
+            if(p1_p1 == null && p2_p1 == null)
+                System.out.println("Both BAD vertex tracks are NOT matched to MCParticle");
             for(ReconstructedParticle p2 : listTo){
-                map.put(p1, p2);
+                Track track1_p2 = p2.getParticles().get(0).getTracks().get(0);
+                Track track2_p2 = p2.getParticles().get(1).getTracks().get(0);
+                MCParticle p1_p2 = null;
+                MCParticle p2_p2 = null;
+                for (LCRelation relation : truthRel){
+                    if (relation != null && relation.getFrom() != null && relation.getTo() != null){
+                        if(relation.getFrom().equals(track1_p2))
+                            p1_p2 = (MCParticle) relation.getTo();
+                        if(relation.getFrom().equals(track2_p2))
+                            p2_p2 = (MCParticle) relation.getTo();
+                    }
+                }
+                if(p1_p2 == null && p2_p2 == null)
+                    System.out.println("Both TRUTH vertex tracks are NOT matched to MCParticle");
+                for (LCRelation relation : trackRel){
+                    if (relation != null && relation.getFrom() != null && relation.getTo() != null){
+                        if(relation.getFrom().equals(track1_p2) && p1_p2 == null)
+                            p1_p2 = (MCParticle) relation.getTo();
+                        if(relation.getFrom().equals(track2_p2)  && p2_p2 == null)
+                            p2_p2 = (MCParticle) relation.getTo();
+                    }
+                }
+                if(p1_p1 == null || p2_p1 == null || p1_p2 == null || p2_p2 == null){
+                    continue;
+                }
+                boolean match1 = p1_p1.equals(p1_p2) && p2_p1.equals(p2_p2);
+                boolean match2 = p1_p1.equals(p2_p2) && p2_p1.equals(p1_p2);
+                if(match1 || match2){
+                    System.out.println("Filling truth to bad map");
+                    map.put(p1, p2);
+                }
             }
         }
         
@@ -396,6 +468,234 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             }
         }      
         return map;
+    }
+    
+    protected void fillFullVertexTruth(EventHeader event, Track eleTrack, Track posTrack){
+        if (!event.hasCollection(SimTrackerHit.class, trackerHitsCollectionName)) {
+            return;
+        }
+        if (!event.hasCollection(SimTrackerHit.class, inactiveTrackerHitsCollectionName)) {
+            return;
+        }
+        if (!event.hasCollection(SimCalorimeterHit.class, ecalHitsCollectionName)) {
+            return;
+        }
+        if (!event.hasCollection(MCParticle.class, mcParticleCollectionName)) {
+            return;
+        }
+        MCFullDetectorTruth eleFullTruth = new MCFullDetectorTruth(event, eleTrack, bFieldMap, sensors, trackerSubdet);
+        MCFullDetectorTruth posFullTruth = new MCFullDetectorTruth(event, posTrack, bFieldMap, sensors, trackerSubdet);
+        
+        MCParticle ele = eleFullTruth.getMCParticle();
+        MCParticle pos = posFullTruth.getMCParticle();
+        
+        if(ele != null)
+            fillTruth("ele",eleFullTruth);
+        else
+            tupleMap.put("eleHasTruthMatch/I", (double) 0);
+        
+        if(pos != null)
+            fillTruth("pos",posFullTruth);
+        else
+            tupleMap.put("posHasTruthMatch/I", (double) 0);
+    }
+        
+    public void fillTruth(String MCprefix,MCFullDetectorTruth partTruth){
+        fillMCParticleVariables(MCprefix, partTruth.getMCParticle());
+        tupleMap.put(MCprefix+"HasTruthMatch/I", (double) 1);
+        tupleMap.put(MCprefix+"NTruthHits/I", (double) partTruth.getNHits());
+        tupleMap.put(MCprefix+"NGoodTruthHits/I", (double) partTruth.getNBadHits());
+        tupleMap.put(MCprefix+"NBadTruthHits/I", (double) partTruth.getNBadHits());
+        tupleMap.put(MCprefix+"Purity/D", partTruth.getPurity());
+        String isTop = "t";
+        if(!partTruth.isTop())
+            isTop = "b";
+        for(int i = 0; i < nLay*2; i++){
+            int layer = i + 1;
+            tupleMap.put(MCprefix+"L"+Integer.toString(layer)+isTop+"NTruthParticles/I", (double) partTruth.getNumberOfMCParticles(layer));
+            if(partTruth.getHitList(layer) != null)
+                tupleMap.put(MCprefix+"L"+Integer.toString(layer)+isTop+"IsGoodTruthHit/I", (double) ((partTruth.getHitList(layer)) ? 1 : 0));
+
+            String prefix = MCprefix + "L" + Integer.toString(layer);
+            if(partTruth.isTop())
+                prefix = prefix + "t";
+            else
+                prefix = prefix + "b";
+            if(partTruth.getActiveHitPosition(layer) != null){
+                tupleMap.put(prefix+"svthitX/D", partTruth.getActiveHitPosition(layer).x());
+                tupleMap.put(prefix+"svthitY/D", partTruth.getActiveHitPosition(layer).y());
+                tupleMap.put(prefix+"svthitZ/D", partTruth.getActiveHitPosition(layer).z());
+            }
+            if(partTruth.getActiveHitMomentum(layer) != null){
+                tupleMap.put(prefix+"svthitPx/D", partTruth.getActiveHitMomentum(layer).x());
+                tupleMap.put(prefix+"svthitPy/D", partTruth.getActiveHitMomentum(layer).y());
+                tupleMap.put(prefix+"svthitPz/D", partTruth.getActiveHitMomentum(layer).z());
+            }
+            if(partTruth.getActiveHitScatter(layer) != null){
+                tupleMap.put(prefix+"thetaX/D", partTruth.getActiveHitScatter(layer)[0]);
+                tupleMap.put(prefix+"thetaY/D", partTruth.getActiveHitScatter(layer)[1]);
+            }
+            if(partTruth.getActiveHitResidual(layer) != null){
+                tupleMap.put(prefix+"residualX/D", partTruth.getActiveHitResidual(layer)[0]);
+                tupleMap.put(prefix+"residualY/D", partTruth.getActiveHitResidual(layer)[1]);
+            }
+            
+            if(partTruth.getInactiveHitPosition(layer) != null){
+                tupleMap.put(prefix+"InsvthitX/D", partTruth.getInactiveHitPosition(layer).x());
+                tupleMap.put(prefix+"InsvthitY/D", partTruth.getInactiveHitPosition(layer).y());
+                tupleMap.put(prefix+"InsvthitZ/D", partTruth.getInactiveHitPosition(layer).z());
+            }
+            if(partTruth.getInactiveHitMomentum(layer) != null){
+                tupleMap.put(prefix+"InsvthitPx/D", partTruth.getInactiveHitMomentum(layer).x());
+                tupleMap.put(prefix+"InsvthitPy/D", partTruth.getInactiveHitMomentum(layer).y());
+                tupleMap.put(prefix+"InsvthitPz/D", partTruth.getInactiveHitMomentum(layer).z());
+            }
+            if(partTruth.getInactiveHitScatter(layer) != null){
+                tupleMap.put(prefix+"InthetaX/D", partTruth.getInactiveHitScatter(layer)[0]);
+                tupleMap.put(prefix+"InthetaY/D", partTruth.getInactiveHitScatter(layer)[1]);
+            }
+            if(partTruth.getInactiveHitResidual(layer) != null){
+                tupleMap.put(prefix+"InresidualX/D", partTruth.getInactiveHitResidual(layer)[0]);
+                tupleMap.put(prefix+"InresidualY/D", partTruth.getInactiveHitResidual(layer)[1]);
+            }
+        }
+        
+        for (int i = 0; i < partTruth.getEcalNHits(); i++) {
+            String HitNum = Integer.toString(i);
+            String prefix = MCprefix + "Hit" + HitNum;
+            if(partTruth.getEcalHitIndex(i) != null){
+                tupleMap.put(prefix+"ecalhitIx/I", (double) partTruth.getEcalHitIndex(i)[0]);
+                tupleMap.put(prefix+"ecalhitIy/I", (double) partTruth.getEcalHitIndex(i)[1]);
+            }
+            if(partTruth.getEcalHitPosition(i) != null){
+                tupleMap.put(prefix+"ecalhitX/D", partTruth.getEcalHitPosition(i).x());
+                tupleMap.put(prefix+"ecalhitY/D", partTruth.getEcalHitPosition(i).y());
+                tupleMap.put(prefix+"ecalhitZ/D", partTruth.getEcalHitPosition(i).z());
+            }
+            tupleMap.put(prefix+"ecalhitEnergy/D", partTruth.getEcalHitEnergy(i));
+        }
+    }
+    
+    protected void fillMCParticleVariables(String prefix, MCParticle particle) {
+        // System.out.format("%d %x\n", particle.getGeneratorStatus(), particle.getSimulatorStatus().getValue());
+        Hep3Vector start = VecOp.mult(beamAxisRotation, particle.getOrigin());
+        Hep3Vector end;
+        MCParticle parent;
+        try {
+            end = VecOp.mult(beamAxisRotation, particle.getEndPoint());
+        } catch (RuntimeException e) {
+            end = null;
+        }
+        
+        try {
+            parent = particle.getParents().get(0);
+        } catch (RuntimeException e) {
+            parent = null;
+        }
+
+        Hep3Vector p = VecOp.mult(beamAxisRotation, particle.getMomentum());
+
+        tupleMap.put(prefix + "StartX/D", start.x());
+        tupleMap.put(prefix + "StartY/D", start.y());
+        tupleMap.put(prefix + "StartZ/D", start.z());
+        if (end != null) {
+            tupleMap.put(prefix + "EndX/D", end.x());
+            tupleMap.put(prefix + "EndY/D", end.y());
+            tupleMap.put(prefix + "EndZ/D", end.z());
+        }
+        tupleMap.put(prefix + "PX/D", p.x());
+        tupleMap.put(prefix + "PY/D", p.y());
+        tupleMap.put(prefix + "PZ/D", p.z());
+        tupleMap.put(prefix + "P/D", p.magnitude());
+        tupleMap.put(prefix + "M/D", particle.getMass());
+        tupleMap.put(prefix + "E/D", particle.getEnergy());
+        tupleMap.put(prefix + "pdgid/I", (double) particle.getPDGID());
+        if(parent != null){
+            tupleMap.put(prefix + "parentID/I", (double) parent.getPDGID());
+        }
+    }
+    
+    protected void addFullTruthVertexVariables() {
+        addMCParticleVariables("ele");
+        addMCParticleVariables("pos");
+        addEcalTruthVariables("ele");
+        addEcalTruthVariables("pos");
+        addSVTTruthVariables("ele");
+        addSVTTruthVariables("pos");
+    }
+    
+    protected void addMCSVTVariables(String prefix, boolean inactive) {
+        String[] newVars = null;
+        if(!inactive)
+            newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
+                "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D","residualX/D","residualY/D",
+                "NTruthParticles/I","IsGoodTruthHit/I"};
+        else{
+            newVars = new String[] {"svthitX/D","svthitY/D","svthitZ/D",
+                "svthitPx/D","svthitPy/D","svthitPz/D","thetaX/D","thetaY/D","residualX/D","residualY/D"};
+        }
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+    
+    protected void addEcalTruthVariables(String prefix){
+        for(int i = 0; i < nEcalHit; i++){
+            String hit = Integer.toString(i);
+            addMCEcalVariables(prefix+"Hit"+hit);
+        }
+    }
+
+    protected void addSVTTruthVariables(String prefix){    
+        for(int i = 0; i < nLay*2; i++){
+            if(i + 1 > nTrackingLayers*2)
+                break;
+            String layer = Integer.toString(i+1);
+            addMCSVTVariables(prefix+"L"+layer+"t",false);
+            addMCSVTVariables(prefix+"L"+layer+"b",false);
+            addMCSVTVariables(prefix+"L"+layer+"tIn",true);
+            addMCSVTVariables(prefix+"L"+layer+"bIn",true);
+        }
+    }
+    
+    protected void addMCParticleVariables(String prefix) {
+        String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D","PY/D", "PZ/D", 
+                "P/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NGoodTruthHits/I","NBadTruthHits/I",
+                "Purity/D"};
+
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+    
+    protected void addMCEcalVariables(String prefix) {
+        String[] newVars = new String[]{
+                "ecalhitIx/I","ecalhitIy/I","ecalhitX/D","ecalhitY/D","ecalhitZ/D",
+                "ecalhitEnergy/D"};
+        for (int i = 0; i < newVars.length; i++) {
+            newVars[i] = prefix + newVars[i];
+        }
+        tupleVariables.addAll(Arrays.asList(newVars));
+    }
+    
+    public static RelationalTable getKinkDataToTrackTable(EventHeader event, String KinkToGBLCollection) {
+        RelationalTable kinkDataToTrack = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY,
+                RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, KinkToGBLCollection)) {
+            List<LCRelation> relations = event.get(LCRelation.class, KinkToGBLCollection);
+            for (LCRelation relation : relations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    kinkDataToTrack.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        }
+        return kinkDataToTrack;
+    }
+
+    public static GenericObject getKinkData(EventHeader event, Track track, String KinkToGBLCollection) {
+        return (GenericObject) getKinkDataToTrackTable(event,KinkToGBLCollection).from(track);
     }
     
     @Override
