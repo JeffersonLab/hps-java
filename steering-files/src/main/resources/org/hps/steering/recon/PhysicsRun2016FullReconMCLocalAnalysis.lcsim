@@ -95,23 +95,14 @@
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
-            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
-            <useTimestamps>true</useTimestamps>     
-            <!--offset to get times centered at 0 after timestamp correction-->                 
-            <tsCorrectionScale>171</tsCorrectionScale>    
-            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
-            <correctTimeOffset>true</correctTimeOffset>   
-            <!--per sensor shift...set false becasue it's not in readout sim-->       
-            <correctT0Shift>false</correctT0Shift>      
-            <!--use truth time for MC???  typically not used-->             
-            <useTruthTime>false</useTruthTime>    
-            <!--time of flight corrections-->              
-            <subtractTOF>true</subtractTOF>     
-            <!--set this false for MC, true for data-->              
-            <subtractTriggerTime>false</subtractTriggerTime>           
-            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
-            <correctChanT0>true</correctChanT0>          
-            <debug>false</debug>         
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
@@ -152,8 +143,6 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
             <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <trackClusterTimeOffset>43</trackClusterTimeOffset>
-            <isMC>true</isMC>      
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
@@ -162,6 +151,6 @@
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>           
+        </driver>       
     </drivers>
 </lcsim>
