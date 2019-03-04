@@ -7,7 +7,8 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-        
+         <driver name="EventMarkerDriver"/>
+         <driver name="PreCleanupDriver"/>         
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
@@ -18,6 +19,7 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
+        <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
@@ -59,11 +61,22 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
+     <driver name="SVTTimingTuple"/>   
+             <driver name="VertexDebugTupleDriver"/>
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         
+          <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver> 
+        
+          <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+      <!--      <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>  -->
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
+          </driver>
+              
          <!-- Driver to reject "bad" events -->
          <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
              <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
@@ -99,6 +112,7 @@
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
+            <subtractRFTime>true</subtractRFTime> 
             <correctChanT0>true</correctChanT0>
             <debug>false</debug>
         </driver>
@@ -164,5 +178,17 @@
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>       
+        <driver name="VertexTupleDriver" type="org.hps.analysis.tuple.VertexTupleDriver">
+            <triggerType>pairs1</triggerType>
+<!--            <triggerType>all</triggerType> -->
+	    <debug>true</debug>            
+            <tupleFile>${outputFile}_vertex.txt</tupleFile>
+        </driver>
+          <driver name="SVTTimingTuple" type="org.hps.analysis.tuple.SVTTimingTupleDriver">
+            <triggerType>pairs1</triggerType>
+<!--            <triggerType>all</triggerType> -->
+            <debug>false</debug>
+            <tupleFile>${outputFile}_tri.txt</tupleFile>
+        </driver>
     </drivers>
 </lcsim>
