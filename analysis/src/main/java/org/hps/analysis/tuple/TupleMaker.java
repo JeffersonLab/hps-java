@@ -388,7 +388,7 @@ public abstract class TupleMaker extends Driver {
         }
         if (doTar) {
             String[] newVars3 = new String[] {"tarPX/D", "tarPY/D", "tarPZ/D", "tarP/D", "tarVX/D", "tarVY/D", "tarVZ/D",
-                    "tarChisq/D", "tarM/D", "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D", "tarEleWtP/D", "tarPosWtP/D", "tarWtM/D"};
+                    "tarChisq/D", "tarM/D", "tarChisqProb/D", "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D", "tarEleWtP/D", "tarPosWtP/D", "tarWtM/D"};
             tupleVariables.addAll(Arrays.asList(newVars3));
         }
         if (doVzc) {
