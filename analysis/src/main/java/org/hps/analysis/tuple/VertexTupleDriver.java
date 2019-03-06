@@ -1,8 +1,8 @@
 package org.hps.analysis.tuple;
 
-import hep.physics.matrix.Matrix;
+//import hep.physics.matrix.Matrix;
 import org.hps.analysis.vertex.*;
-import hep.physics.matrix.SymmetricMatrix;
+//import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -23,10 +23,10 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
-import org.hps.recon.tracking.CoordinateTransformations;
+//import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
-import static org.hps.recon.tracking.TrackUtils.getMomentum;
-import static org.hps.recon.tracking.TrackUtils.getPoint;
+//import static org.hps.recon.tracking.TrackUtils.getMomentum;
+//import static org.hps.recon.tracking.TrackUtils.getPoint;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -34,17 +34,17 @@ import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
 import org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.event.Cluster;
-import org.lcsim.event.LCIOParameters.ParameterName;
+//import org.lcsim.event.Cluster;
+//import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.base.BaseTrackState;
+//import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HelixParamCalculator;
+//import org.lcsim.fit.helicaltrack.HelixParamCalculator;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
-import org.lcsim.recon.vertexing.billoir.Vertex;
+//import org.lcsim.recon.vertexing.billoir.Vertex;
 
 public class VertexTupleDriver extends MCTupleMaker {
 
@@ -165,7 +165,7 @@ public class VertexTupleDriver extends MCTupleMaker {
             "pPosXMC/D", "pPosYMC/D", "pPosZMC/D",
             "pApXMC/D", "pApYMC/D", "pApZMC/D",
             "apTarX/D", "apTarY/D", "apOrigX/D", "apOrigY/D", "apOrigZ/D",
-             "matchPos/D","matchEle/D"};
+            "matchPos/D","matchEle/D"};
         tupleVariables.addAll(Arrays.asList(mcVars));
 
         String[] refitUncVars = new String[]{"mUnc/D", "vtxXUnc/D", "vtxYUnc/D", "vtxZUnc/D",
@@ -207,7 +207,7 @@ public class VertexTupleDriver extends MCTupleMaker {
             "v0XYTarXUnc/D", "v0XYTarYUnc/D", "v0XYTarXErrUnc/D", "v0XYTarYErrUnc/D"};
         tupleVariables.addAll(Arrays.asList(v0UncVars));
         
-          String[] v0BSCVars = new String[]{"v0MomXBSC/D", "v0MomYBSC/D", "v0MomZBSC/D",
+        String[] v0BSCVars = new String[]{"v0MomXBSC/D", "v0MomYBSC/D", "v0MomZBSC/D",
             "v0MomXErrBSC/D", "v0MomYErrBSC/D", "v0MomZErrBSC/D",
             "v0XYTarXBSC/D", "v0XYTarYBSC/D", "v0XYTarXErrBSC/D", "v0XYTarYErrBSC/D"};
         tupleVariables.addAll(Arrays.asList(v0BSCVars));
@@ -424,7 +424,7 @@ public class VertexTupleDriver extends MCTupleMaker {
             tupleMap.put("pPosYErrUnc/D", vtxUnc.getFittedMomentumError(1).y());
             tupleMap.put("pPosZErrUnc/D", vtxUnc.getFittedMomentumError(1).z());
             
-             tupleMap.put("v0MomXErrUnc/D", v0MomError.x());
+            tupleMap.put("v0MomXErrUnc/D", v0MomError.x());
             tupleMap.put("v0MomYErrUnc/D", v0MomError.y());
             tupleMap.put("v0MomZErrUnc/D", v0MomError.z());
             tupleMap.put("v0XYTarXErrUnc/D", v0AtTargetError[0]);
@@ -438,7 +438,7 @@ public class VertexTupleDriver extends MCTupleMaker {
             
             ReconstructedParticle  bscv0=BSCV0List.get(index);
             
-             BilliorVertex vtxBSC = (BilliorVertex) bscv0.getStartVertex();
+            BilliorVertex vtxBSC = (BilliorVertex) bscv0.getStartVertex();
             Hep3Vector vtxPosBSC = vtxBSC.getPosition();
             Hep3Vector pEleBSC = vtxBSC.getFittedMomentum(0);
             Hep3Vector pPosBSC = vtxBSC.getFittedMomentum(1);
@@ -471,7 +471,7 @@ public class VertexTupleDriver extends MCTupleMaker {
             tupleMap.put("pPosYErrBSC/D", vtxBSC.getFittedMomentumError(1).y());
             tupleMap.put("pPosZErrBSC/D", vtxBSC.getFittedMomentumError(1).z());
             
-             tupleMap.put("v0MomXErrBSC/D", v0MomErrorBSC.x());
+            tupleMap.put("v0MomXErrBSC/D", v0MomErrorBSC.x());
             tupleMap.put("v0MomYErrBSC/D", v0MomErrorBSC.y());
             tupleMap.put("v0MomZErrBSC/D", v0MomErrorBSC.z());
             tupleMap.put("v0XYTarXErrBSC/D", v0AtTargetErrorBSC[0]);
