@@ -7,8 +7,10 @@ import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
 import java.math.BigDecimal;
 import java.util.List;
+import org.hps.analysis.ecal.MassCalculator;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.AbstractIntData;
@@ -137,19 +139,20 @@ public class MollerAnalysisDriver extends Driver {
     int nSteps = 11;
     double thetaMax = 0.06;
     double thetaMin = -0.06;
-    
-    String _triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
 
+    String _triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
 
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
     }
 
     protected void process(EventHeader event) {
-        if (!matchTrigger(event)) return;
-        if (event.getRunNumber() <5620) {
-            pMin=.35;
-            nSteps=9;
+        if (!matchTrigger(event)) {
+            return;
+        }
+        if (event.getRunNumber() < 5620) {
+            pMin = .35;
+            nSteps = 9;
         }
         if (event.getRunNumber() > 7000) {
             pMin = 0.75;
@@ -176,8 +179,8 @@ public class MollerAnalysisDriver extends Driver {
                 // require GBL tracks in vertex
                 if (isGbl) {
                     List<ReconstructedParticle> parts = rp.getParticles();
-                    ReconstructedParticle rp1 = parts.get(0);
-                    ReconstructedParticle rp2 = parts.get(1);
+                    ReconstructedParticle rp1 = parts.get(0); // moller top
+                    ReconstructedParticle rp2 = parts.get(1); // moller bottom
                     // basic sanity check here, remove full energy electrons (fee)
                     if (rp1.getMomentum().magnitude() > 1.5 * _beamEnergy || rp2.getMomentum().magnitude() > 1.5 * _beamEnergy) {
                         continue;
@@ -192,6 +195,12 @@ public class MollerAnalysisDriver extends Driver {
                     }
                     Track t1 = rp1.getTracks().get(0);
                     Track t2 = rp2.getTracks().get(0);
+                    boolean hasTwoClusters = false;
+                    boolean hasTopCluster = (rp1.getClusters().size() == 1);
+                    boolean hasBottomCluster = (rp2.getClusters().size() == 1);
+                    if (hasTopCluster && hasBottomCluster) {
+                        hasTwoClusters = true;
+                    }
                     if (_requireClusterMatch) {
                         // require both reconstructed particles to have a cluster
 
@@ -378,6 +387,38 @@ public class MollerAnalysisDriver extends Driver {
                         pvsthetaHist_TargetConstrainedMollerVertices.fill(p1, theta1);
                         pvsthetaHist_TargetConstrainedMollerVertices.fill(p2, theta2);
                         xvsyHist_TargetConstrainedMollerVertices.fill(pos.x(), pos.y());
+
+                        double myMass = myMass(rp);
+
+                        if (hasTwoClusters) {
+                            // let's see if the calorimeter cluster energy can improve our mass resolution...
+                            double calMass = MassCalculator.combinedMass(rp1.getClusters().get(0), rp2.getClusters().get(0), rp);
+                            aida.histogram2D("myMass/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05).fill(p1, theta1);
+                            aida.histogram2D("myMass/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05).fill(p2, theta2);
+                            aida.histogram2D("myMass/Two Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(rp1.getClusters().get(0).getPosition()[0], rp1.getClusters().get(0).getPosition()[1]);
+                            aida.histogram2D("myMass/Two Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(rp2.getClusters().get(0).getPosition()[0], rp2.getClusters().get(0).getPosition()[1]);
+                            aida.histogram1D("myMass/Moller Invariant Mass Trk+Cal", 200, 0., 0.1).fill(calMass);
+                            aida.histogram1D("myMass/Moller Invariant Mass", 200, 0., 0.1).fill(rp.getMass());
+                            aida.histogram1D("myMass/My Moller Mass two clusters", 200, 0., 0.1).fill(myMass);
+                            aida.histogram1D("myMass/Two Cluster Energy top", 100, 0.25, 1.75).fill(rp1.getClusters().get(0).getEnergy());
+                            aida.histogram2D("myMass/Two Cluster Energy vs Track momentum top", 200, 0.25, 1.75, 200, 0.25, 1.75).fill(p1, rp1.getClusters().get(0).getEnergy());
+                            aida.histogram1D("myMass/Two Cluster Energy bottom", 100, 0.25, 1.75).fill(rp2.getClusters().get(0).getEnergy());
+                            aida.histogram2D("myMass/Two Cluster Energy vs Track momentum bottom", 200, 0.25, 1.75, 200, 0.25, 1.75).fill(p2, rp2.getClusters().get(0).getEnergy());
+
+                        } else {
+                            if (hasTopCluster) {
+                                aida.histogram1D("myMass/My Moller Mass top cluster", 200, 0., 0.1).fill(myMass);
+                                aida.histogram1D("myMass/Cluster Energy top", 100, 0.25, 1.75).fill(rp1.getClusters().get(0).getEnergy());
+                                aida.histogram2D("myMass/Cluster Energy vs Track momentum top", 200, 0.25, 1.75, 200, 0.25, 1.75).fill(p1, rp1.getClusters().get(0).getEnergy());
+                                aida.histogram2D("myMass/Cluster x vs y top", 200, -200., 200., 100, -100., 100.).fill(rp1.getClusters().get(0).getPosition()[0], rp1.getClusters().get(0).getPosition()[1]);
+                            }
+                            if (hasBottomCluster) {
+                                aida.histogram1D("myMass/My Moller Mass bottom cluster", 200, 0., 0.1).fill(myMass);
+                                aida.histogram1D("myMass/Cluster Energy bottom", 100, 0.25, 1.75).fill(rp2.getClusters().get(0).getEnergy());
+                                aida.histogram2D("myMass/Cluster Energy vs Track momentum bottom", 200, 0.25, 1.75, 200, 0.25, 1.75).fill(p2, rp2.getClusters().get(0).getEnergy());
+                                aida.histogram2D("myMass/Cluster x vs y bottom", 200, -200., 200., 100, -100., 100.).fill(rp2.getClusters().get(0).getPosition()[0], rp2.getClusters().get(0).getPosition()[1]);
+                            }
+                        }
                     }
                 }//Loop over GBL-vertices
             }// Loop over vertices
@@ -537,14 +578,12 @@ public class MollerAnalysisDriver extends Driver {
         }
         throw new RuntimeException("mixed top and bottom hits on same track");
     }
-    
-    public void setTriggerType(String type)
-    {
+
+    public void setTriggerType(String type) {
         _triggerType = type;
     }
 
-    public boolean matchTriggerType(TIData triggerData)
-    {
+    public boolean matchTriggerType(TIData triggerData) {
         if (_triggerType.contentEquals("") || _triggerType.contentEquals("all")) {
             return true;
         }
@@ -567,8 +606,7 @@ public class MollerAnalysisDriver extends Driver {
 
     }
 
-    public boolean matchTrigger(EventHeader event)
-    {
+    public boolean matchTrigger(EventHeader event) {
         boolean match = true;
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
@@ -583,5 +621,32 @@ public class MollerAnalysisDriver extends Driver {
             }
         }
         return match;
+    }
+
+    private double myMass(ReconstructedParticle vtx) {
+        List<ReconstructedParticle> parts = vtx.getParticles();
+        ReconstructedParticle rp1 = parts.get(0); // v0 electron : moller top
+        ReconstructedParticle rp2 = parts.get(1); // v0 positron : moller bottom 
+
+        double p1x = vtx.getStartVertex().getParameters().get("p1X");
+        double p1y = vtx.getStartVertex().getParameters().get("p1Y");
+        double p1z = vtx.getStartVertex().getParameters().get("p1Z");
+        double p2x = vtx.getStartVertex().getParameters().get("p2X");
+        double p2y = vtx.getStartVertex().getParameters().get("p2Y");
+        double p2z = vtx.getStartVertex().getParameters().get("p2Z");
+
+        double p1 = sqrt(p1x * p1x + p1y * p1y + p1z * p1z);
+        double p2 = sqrt(p2x * p2x + p2y * p2y + p2z * p2z);
+        double energy1 = p1;
+        double energy2 = p2;
+        if (rp1.getClusters().size() == 1) {
+            energy1 = rp1.getClusters().get(0).getEnergy();
+        }
+        if (rp2.getClusters().size() == 1) {
+            energy2 = rp2.getClusters().get(0).getEnergy();
+        }
+
+        double cosTheta = (p1x * p2x + p1y * p2y + p1z * p2z) / (p1 * p2);
+        return sqrt(2 * energy1 * energy2 * (1 - cosTheta));
     }
 }

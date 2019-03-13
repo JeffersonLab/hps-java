@@ -29,6 +29,7 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -191,6 +192,15 @@ public class FeeSvtAlignmentDriver extends Driver {
                 Hep3Vector pmom = rp.getMomentum();
                 double p = rp.getMomentum().magnitude();
                 Cluster c = rp.getClusters().get(0);
+                if (c.getPosition()[1] > 0.) {
+                    aida.histogram1D("Top cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                } else {
+                    aida.histogram1D("Bottom cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                }
+                aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+
+                CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+                boolean isFiducial = isFiducial(seedHit);
                 // debug diagnostics to set cuts
                 if (debug) {
                     aida.cloud1D("clusterSeedHit energy").fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
@@ -200,7 +210,6 @@ public class FeeSvtAlignmentDriver extends Driver {
                     aida.cloud2D("cluster time vs p").fill(p, ClusterUtilities.getSeedHitTime(c));
                 }
                 double ct = ClusterUtilities.getSeedHitTime(c);
-
                 if (c.getEnergy() > clusterCut
                         && ClusterUtilities.findSeedHit(c).getCorrectedEnergy() > seedCut
                         && c.getCalorimeterHits().size() >= minHits
@@ -225,17 +234,18 @@ public class FeeSvtAlignmentDriver extends Driver {
                     double theta = Math.acos(rprot.z() / rprot.magnitude());
 
                     // debug diagnostics to set cuts
+                    String topOrBottom = isTopTrack(t) ? " top " : " bottom ";
                     if (debug) {
-                        aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
-                        aida.cloud1D("Track chisq prob").fill(chisqProb);
-                        aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
-                        aida.cloud1D("Track momentum").fill(p);
-                        aida.cloud1D("Track deDx").fill(t.getdEdx());
-                        aida.cloud1D("Track theta").fill(theta);
-                        aida.cloud2D("Track theta vs p").fill(theta, p);
-                        aida.cloud1D("rp x0").fill(TrackUtils.getX0(t));
-                        aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
-                        aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
+                        aida.histogram1D("Track chisq per df" + topOrBottom, 100, 0., 12.).fill(chiSquared / ndf);
+                        aida.histogram1D("Track chisq prob" + topOrBottom, 100, 0., 1.).fill(chisqProb);
+                        aida.histogram1D("Track nHits" + topOrBottom, 6, 0.5, 6.5).fill(t.getTrackerHits().size());
+                        aida.histogram1D("Track momentum" + topOrBottom, 100, 0., 3.0).fill(p);
+                        aida.histogram1D("Track deDx" + topOrBottom, 100, 0.00004, 0.00013).fill(t.getdEdx());
+                        aida.histogram1D("Track theta" + topOrBottom, 100, 0.010, 0.160).fill(theta);
+                        aida.cloud2D("Track theta vs p" + topOrBottom).fill(theta, p);
+                        aida.histogram1D("rp x0" + topOrBottom, 100, -0.20, 0.20).fill(TrackUtils.getX0(t));
+                        aida.histogram1D("rp y0" + topOrBottom, 100, -2.0, 2.0).fill(TrackUtils.getY0(t));
+                        aida.histogram1D("rp z0" + topOrBottom, 100, -0.5, 0.5).fill(TrackUtils.getZ0(t));
                     }
                     double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
                     if (debug) {
@@ -249,6 +259,12 @@ public class FeeSvtAlignmentDriver extends Driver {
                             aida.histogram1D("Fee top 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                             if (nClusters == 1) {
                                 aida.histogram1D("Fee top 6-hit track single cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                aida.histogram1D("Fee top 6-hit track single cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                                if (isFiducial) {
+                                    aida.histogram2D("Fee 6-hit track single fiducial cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                                    aida.histogram1D("Fee top 6-hit track single fiducial cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                    aida.histogram1D("Fee top 6-hit track single fiducial cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                                }
                                 aida.histogram2D("Fee 6-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
                             }
                             aida.histogram1D("Fee top 6-hit track d0", 100, -2.0, 2.0).fill(d0);
@@ -285,6 +301,12 @@ public class FeeSvtAlignmentDriver extends Driver {
                             aida.histogram1D("Fee bottom 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                             if (nClusters == 1) {
                                 aida.histogram1D("Fee bottom 6-hit track single cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                aida.histogram1D("Fee bottom 6-hit track single cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                                if (isFiducial) {
+                                    aida.histogram2D("Fee 6-hit track single fiducial cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                                    aida.histogram1D("Fee bottom 6-hit track single fiducial cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                    aida.histogram1D("Fee bottom 6-hit track single fiducial cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                                }
                                 aida.histogram2D("Fee 6-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
                             }
                             aida.histogram1D("Fee bottom 6-hit track d0", 100, -2.0, 2.0).fill(d0);
@@ -861,5 +883,44 @@ public class FeeSvtAlignmentDriver extends Driver {
     private BilliorTrack toBilliorTrack(TrackState trackstate) {
         // Generate and return the billior track.
         return new BilliorTrack(trackstate, 0, 0); // track state doesn't store chi^2 info (stored in the Track object)
+    }
+
+    public boolean isFiducial(CalorimeterHit hit) {
+        int ix = hit.getIdentifierFieldValue("ix");
+        int iy = hit.getIdentifierFieldValue("iy");
+        // Get the x and y indices for the cluster.
+        int absx = Math.abs(ix);
+        int absy = Math.abs(iy);
+
+        // Check if the cluster is on the top or the bottom of the
+        // calorimeter, as defined by |y| == 5. This is an edge cluster
+        // and is not in the fiducial region.
+        if (absy == 5) {
+            return false;
+        }
+
+        // Check if the cluster is on the extreme left or right side
+        // of the calorimeter, as defined by |x| == 23. This is also
+        // an edge cluster and is not in the fiducial region.
+        if (absx == 23) {
+            return false;
+        }
+
+        // Check if the cluster is along the beam gap, as defined by
+        // |y| == 1. This is an internal edge cluster and is not in the
+        // fiducial region.
+        if (absy == 1) {
+            return false;
+        }
+
+        // Lastly, check if the cluster falls along the beam hole, as
+        // defined by clusters with -11 <= x <= -1 and |y| == 2. This
+        // is not the fiducial region.
+        if (absy == 2 && ix <= -1 && ix >= -11) {
+            return false;
+        }
+
+        // If all checks fail, the cluster is in the fiducial region.
+        return true;
     }
 }
