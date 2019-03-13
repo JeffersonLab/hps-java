@@ -1,5 +1,8 @@
 package org.hps.recon.tracking.kalman;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +19,8 @@ public class KalTrack {
     public Map<MeasurementSite, Double> intercepts;
     public Map<MeasurementSite, Vec> interceptVects;
     public Map<MeasurementSite, Vec> interceptMomVects;
+    public Map<Integer, MeasurementSite> lyrMap;
+    int eventNumber;
     private Vec helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
@@ -28,8 +33,9 @@ public class KalTrack {
     public double Bmag;
     private Vec tB;
 
-    KalTrack(int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
-        //System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
+    KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
+        // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
+        eventNumber = evtNumb;
         this.SiteList = SiteList;
         this.nHits = nHits;
         this.chi2 = chi2;
@@ -37,8 +43,8 @@ public class KalTrack {
         helixAtOrigin = null;
         propagated = false;
         originCov = new SquareMatrix(5);
-        MeasurementSite site = SiteList.get(0);
-        Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), site.m.Bfield);
+        MeasurementSite site0 = SiteList.get(0);
+        Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), site0.m.Bfield);
         Bmag = B.mag();
         tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
@@ -54,12 +60,85 @@ public class KalTrack {
         intercepts = new HashMap<MeasurementSite, Double>();
         interceptVects = new HashMap<MeasurementSite, Vec>();
         interceptMomVects = new HashMap<MeasurementSite, Vec>();
+        lyrMap = new HashMap<Integer, MeasurementSite>();
+        // Fill the maps
+        for (MeasurementSite site : SiteList) {
+            double phiS = site.aS.planeIntersect(site.m.p);
+            if (Double.isNaN(phiS)) {
+                phiS = 0.;
+            }
+            interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
+            interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
+            intercepts.put(site, site.h(site.aS, phiS));
+            lyrMap.put(site.m.Layer, site);
+        }
     }
 
+    // Find the change in smoothed helix angle in XY between one layer and the next
+    public double scatX(int layer) {
+        if (!lyrMap.containsKey(layer)) {
+            return -999.;
+        }
+        int lyrNxt = layer + 1;
+        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) {
+            lyrNxt++;
+        }
+        if (lyrNxt > 12) {
+            return -999.;
+        }
+        MeasurementSite s1 = lyrMap.get(layer);
+        MeasurementSite s2 = lyrMap.get(lyrNxt);
+        Vec p1 = s1.aS.getMom(0.);
+        double t1 = Math.atan2(p1.v[0], p1.v[1]);
+        Vec p2 = s2.aS.getMom(0.);
+        double t2 = Math.atan2(p2.v[0], p2.v[1]);
+        return t1 - t2;
+    }
+    
+    // Find the change in smoothed helix angle in ZY between one layer and the next
+    public double scatZ(int layer) {
+        if (!lyrMap.containsKey(layer)) {
+            return -999.;
+        }
+        int lyrNxt = layer + 1;
+        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) {
+            lyrNxt++;
+        }
+        if (lyrNxt > 12) {
+            return -999.;
+        }
+        MeasurementSite s1 = lyrMap.get(layer);
+        MeasurementSite s2 = lyrMap.get(lyrNxt);
+        Vec p1 = s1.aS.getMom(0.);
+        double t1 = Math.atan2(p1.v[2], p1.v[1]);
+        Vec p2 = s2.aS.getMom(0.);
+        double t2 = Math.atan2(p2.v[2], p2.v[1]);
+        return t1 - t2;
+    }
+    
+    public double chi2prime() { // Alternative calculation of the fit chi^2, considering only residuals divided by the hit sigma
+        double c2 = 0.;
+        for (MeasurementSite S : SiteList) {
+            double phiS = S.aS.planeIntersect(S.m.p);
+            if (Double.isNaN(phiS))
+                phiS = 0.;
+            double vpred = S.h(S.aS, phiS);
+            for (Measurement hit : S.m.hits) {
+                for (KalTrack tkr : hit.tracks) {
+                    if (tkr.equals(this)) {
+                        c2 += Math.pow((vpred-hit.v)/hit.sigma, 2);
+                    }                   
+                }
+            }
+        }
+        return c2;
+    }
+    
     public void print(String s) {
         System.out.format("\n KalTrack %s: ID=%d, %d hits, chi^2=%10.5f\n", s, ID, nHits, chi2);
         if (propagated) {
-            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
+            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0],
+                    tB.v[1], tB.v[2]);
             helixAtOrigin.print("helix for a pivot at the origin");
             originCov.print("covariance of helix parameters for a pivot at the origin");
             originPoint.print("point on the helix closest to the origin");
@@ -73,16 +152,84 @@ public class KalTrack {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
             int hitID = site.hitID;
-            if (hitID < 0)
+            if (hitID < 0) {
                 continue;
+            }
             int idx = 2 * m.Layer;
-            if (m.isStereo)
+            if (m.isStereo) {
                 idx++;
-            System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, hit=%d  \n", idx, m.Layer, m.stereo, site.chi2inc, hitID);
+            }
+            System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  \n", idx, m.Layer, m.stereo,
+                    site.chi2inc, site.scatX(), site.scatZ(), hitID);
         }
         System.out.format("End of printing for KalTrack %s ID %d\n\n", s, ID);
     }
 
+    // Method to make simple yz plots of the track and the residuals. Note that in the yz plot of the track the hits are
+    // placed at the strip center, so they generally will not appear to be right on the track. Use gnuplot to display.
+    public void plot(String path) {
+        File file = new File(String.format("%s/Track%d_%d.gp", path, ID, eventNumber));
+        file.getParentFile().mkdirs();
+        PrintWriter pW = null;
+        try {
+            pW = new PrintWriter(file);
+        } catch (FileNotFoundException e1) {
+            System.out.println("Kaltrack.plot: Could not create the gnuplot output file for a track plot.");
+            e1.printStackTrace();
+            return;
+        }
+        pW.format("set terminal wxt size 1000, 800\n");
+        pW.format("set multiplot title 'HPS Track %d in event %d' layout 2,1 columnsfirst scale 1.0,1.0\n", ID, eventNumber);
+        pW.format("set label 777 'chi^2= %10.2f' at graph 0.07, 0.9 left font 'Verdana,12'\n", this.chi2);
+        pW.format("set label 778 '# hits= %d' at graph 0.07, 0.7 left font 'Verdana,12'\n", this.nHits);
+        pW.format("set nokey\n");
+        pW.format("set xtics font 'Verdana,12'\n");
+        pW.format("set ytics font 'Verdana,12'\n");
+        pW.format("set title 'Track yz projection (hit placed at strip center)' font 'Verdana,12'\n");
+        pW.format("set xlabel 'Y'\n");
+        pW.format("set ylabel 'Z'\n");
+        pW.format("set xrange[0. : 1000.]\n");
+        pW.format("set yrange[-50. : 50.]\n");
+        pW.format("$hits << EOD\n");
+        for (MeasurementSite site : SiteList) {
+            Vec rDet = new Vec(0., site.m.hits.get(site.hitID).v,0.);
+            Vec rGlob = site.m.toGlobal(rDet);
+            pW.format(" %10.5f  %10.6f\n", rGlob.v[1], rGlob.v[2]);
+        }
+        pW.format("EOD\n");
+        pW.format("$trks << EOD\n");
+        for (MeasurementSite site : SiteList) {
+            Vec rHelix = site.aS.toGlobal(site.aS.atPhi(0.));
+            pW.format(" %10.5f  %10.6f\n", rHelix.v[1], rHelix.v[2]);
+        }
+        pW.format("EOD\n");  
+        pW.format("plot $hits with points ps 2, $trks with lines lw 2\n");
+        
+        pW.format("set xtics font 'Verdana,12'\n");
+        pW.format("set ytics font 'Verdana,12'\n");
+        pW.format("set title 'Track Residuals' font 'Verdana,12'\n");
+        pW.format("set xlabel 'Y'\n");
+        pW.format("set ylabel 'residual'\n");
+        pW.format("set xrange[0. : 1000.]\n");
+        pW.format("set yrange[-0.025 : 0.025]\n");
+        pW.format("$resids << EOD\n");
+        for (MeasurementSite site : SiteList) {
+            double phiS = site.aS.planeIntersect(site.m.p);
+            if (Double.isNaN(phiS)) {
+                continue;
+            }
+            Vec rHelixG = site.aS.toGlobal(site.aS.atPhi(phiS));
+            Vec rHelixL = site.m.toLocal(rHelixG);
+            double residual =  site.m.hits.get(site.hitID).v - rHelixL.v[1];
+            pW.format(" %10.5f  %10.6f    #  %10.6f\n", rHelixG.v[1], residual, site.aS.r);
+        }
+        pW.format("EOD\n");  
+        pW.format("plot $resids with points pt 6 ps 2\n");
+        pW.close();
+    }
+    
+    
+    
     // Runge Kutta propagation of the helix to the origin
     public void originHelix() {
         if (propagated) {
@@ -99,17 +246,20 @@ public class KalTrack {
                 innerSite = site;
             }
         }
-        // This propagated helix will have its pivot at the origin but is in the origin B-field frame
+        // This propagated helix will have its pivot at the origin but is in the origin
+        // B-field frame
         Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
         double ct = pMom.unitVec().dot(innerSite.m.p.T());
-        
-        //  XL has to be set to zero below to get the correct result for the covariance, as the Kalman
-        //  filter has already accounted for scattering in the first layer. However, if there was no
-        //  hit in the first layer, then the scattering should be introduced, TBD
+
+        // XL has to be set to zero below to get the correct result for the covariance,
+        // as the Kalman filter has already accounted for scattering in the first layer.
+        // However, if there was no hit in the first layer, then the scattering should
+        // be introduced, TBD
         double XL = 0.; // innerSite.XL / Math.abs(ct);
         helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
 
-        // Find the position and momentum of the particle near the origin, including covariance
+        // Find the position and momentum of the particle near the origin, including
+        // covariance
         Vec XonHelix = StateVector.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
         Vec PofHelix = StateVector.aTOp(helixAtOrigin);
         originMomentum = Rot.inverseRotate(PofHelix);
@@ -169,7 +319,7 @@ public class KalTrack {
     public double[] originHelixParms() {
         return helixAtOrigin.v.clone();
     }
-    
+
     public double helixErr(int i) {
         return Math.sqrt(originCov.M[i][i]);
     }
@@ -184,7 +334,8 @@ public class KalTrack {
         return Rot.rotate(xIn).v.clone();
     }
 
-    // Figure out which measurement site on this track points to a given detector module
+    // Figure out which measurement site on this track points to a given detector
+    // module
     public int whichSite(SiModule module) {
         int Layer = module.Layer;
         int idx;
@@ -287,7 +438,8 @@ public class KalTrack {
         return new Vec(5, aP);
     }
 
-    // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
+    // Derivative matrix for propagating the covariance of the helix parameters to a
+    // covariance of momentum
     private double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];
         double K = Math.abs(a.v[2]);
@@ -301,7 +453,8 @@ public class KalTrack {
         return M;
     }
 
-    // Derivative matrix for propagating the covariance of the helix parameter to a covariance of the point of
+    // Derivative matrix for propagating the covariance of the helix parameter to a
+    // covariance of the point of
     // closest approach to the origin (i.e. at phi=0)
     private double[][] DxTOa(Vec a) {
         double[][] M = new double[3][5];

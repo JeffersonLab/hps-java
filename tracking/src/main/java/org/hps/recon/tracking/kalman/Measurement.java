@@ -8,7 +8,7 @@ class Measurement { // Holds a single silicon-strip measurement (single-sided), 
     double sigma; // Measurement uncertainty
     double vTrue; // MC truth measurement value
     Vec rGlobal; // Global MC truth
-    ArrayList<KalTrack> tracks; // Tracks that this hit lies on 
+    ArrayList<KalTrack> tracks; // Tracks that this hit lies on
 
     Measurement(double value, double resolution, Vec rGlobal, double vTrue) {
         v = value;

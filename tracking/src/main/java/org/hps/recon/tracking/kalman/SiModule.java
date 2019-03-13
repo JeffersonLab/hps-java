@@ -5,33 +5,44 @@ import java.util.Iterator;
 
 // Description of a single silicon-strip module, and a container for its hits
 public class SiModule {
-    int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a non-uniform field
+    int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a
+               // non-uniform field
     int detector; // Detector number within the layer
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global
              // coordinates (NOT rotated by the stereo angle)
-             // The offset should be the location of the center of the detector in global coordinates
-    double[] xExtent; // Plus and minus limits on the detector active area in the x direction (along the strips)
-    double[] yExtent; // Plus and minus limits on the detector active area in the y direction (perpendicular to the strips)
-    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
-    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
-                    // The local coordinate system is u, v, t where t is more-or-less the beam direction (y-global)
+             // The offset should be the location of the center of the detector in global
+             // coordinates
+    double[] xExtent; // Plus and minus limits on the detector active area in the x direction (along
+                      // the strips)
+    double[] yExtent; // Plus and minus limits on the detector active area in the y direction
+                      // (perpendicular to the strips)
+    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field
+                 // coordinates)
+    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates
+                    // (transpose of R)
+                    // The local coordinate system is u, v, t where t is more-or-less the beam
+                    // direction (y-global)
                     // and v is the measurement direction.
     double stereo; // Stereo angle of the detectors in radians
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
     org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
-    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
-        // for backwards-compatibility with stand-alone development code: assume axial layers have stereo angle=0
-        this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield,  0);
+    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness,
+            org.lcsim.geometry.FieldMap Bfield) {
+        // for backwards-compatibility with stand-alone development code: assume axial
+        // layers have stereo angle=0
+        this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield, 0);
     }
 
-    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {    
-        this(Layer, p, isStereo, stereo, width, height, thickness, Bfield,  0);
+    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness,
+            org.lcsim.geometry.FieldMap Bfield) {
+        this(Layer, p, isStereo, stereo, width, height, thickness, Bfield, 0);
     }
-    
-    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield, int detector) {
+
+    public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness,
+            org.lcsim.geometry.FieldMap Bfield, int detector) {
         this.Layer = Layer;
         this.detector = detector;
         this.Bfield = Bfield;
@@ -53,7 +64,9 @@ public class SiModule {
     }
 
     public void print(String s) {
-        System.out.format("Si module %s, Layer=%2d, Detector=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n", s, Layer, detector, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        System.out.format(
+                "Si module %s, Layer=%2d, Detector=%2d, stereo angle=%8.4f, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
+                s, Layer, detector, stereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         if (isStereo) {
             System.out.format("This is a stereo detector layer");
         } else {
@@ -62,7 +75,8 @@ public class SiModule {
         p.X().print("origin of Si layer coordinates in the global system");
         Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
-        System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1], tBf.v[2]);
+        System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(),
+                tBf.v[0], tBf.v[1], tBf.v[2]);
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();
@@ -76,7 +90,7 @@ public class SiModule {
     public void reset() {
         hits = new ArrayList<Measurement>();
     }
-    
+
     public void addMeasurement(Measurement m) {
         if (hits.size() == 0)
             hits.add(m);

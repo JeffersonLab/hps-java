@@ -49,7 +49,8 @@ public class FieldMap extends FieldOverlay {
             int nEcho = 0;
             for (int ix = 0; ix < nX; ix++) {
                 for (int iy = 0; iy < nY; iy++) {
-                    for (int iz = 0; iz < nZ; iz++) { // The field map is expected to be uniformly spaced in each coordinate!
+                    for (int iz = 0; iz < nZ; iz++) { // The field map is expected to be uniformly spaced in each
+                                                      // coordinate!
                         X[ix] = dis.readFloat();
                         Y[iy] = dis.readFloat();
                         Z[iz] = dis.readFloat();
@@ -57,7 +58,8 @@ public class FieldMap extends FieldOverlay {
                         bY[ix][iy][iz] = dis.readFloat();
                         bZ[ix][iy][iz] = dis.readFloat();
                         if (nEcho < 10) {
-                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
+                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix],
+                                    Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
                             nEcho++;
                         }
                     }
@@ -103,12 +105,14 @@ public class FieldMap extends FieldOverlay {
                         bY[ix][iy][iz] = scan.nextDouble();
                         bZ[ix][iy][iz] = scan.nextDouble();
                         if (!scan.hasNextLine()) {
-                            System.out.format("FieldMap.java: stopped reading the text field map at i=%d, j=%d, k=%d\n", ix, iy, iz);
+                            System.out.format("FieldMap.java: stopped reading the text field map at i=%d, j=%d, k=%d\n",
+                                    ix, iy, iz);
                             break;
                         }
                         scan.nextLine();
                         if (nEcho < 10) {
-                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
+                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix],
+                                    Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
                             nEcho++;
                         }
                     }
@@ -175,7 +179,7 @@ public class FieldMap extends FieldOverlay {
         // double Bzc = bZ[iX][iY][iZ]*1000.;
         // new Vec(-Bxc,Bzc,Byc).print("B on grid");
         return new Vec(Bx, Bz, -By); // correct HPS field
-        //return new Vec(0.,0.,0.24); // constant field
+        // return new Vec(0.,0.,0.24); // constant field
         // return new Vec(-Bx, -Bz, +By); // reversed field
     }
 

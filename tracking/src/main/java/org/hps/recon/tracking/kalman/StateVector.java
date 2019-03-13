@@ -107,15 +107,20 @@ class StateVector {
         } else {
             sigmas = 0.;
         }
-        System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r, R, sigmas);
+        System.out.format(
+                "Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n",
+                mPred, r, R, sigmas);
         System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
     }
 
-    // Create a predicted state vector by propagating a given helix to a measurement site
+    // Create a predicted state vector by propagating a given helix to a measurement
+    // site
     StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec origin, double XL, double deltaE) {
         // newSite = index of the new site
-        // pivot = pivot point of the new site in the local coordinates of this state vector
-        // B and t = magnitude and direction of the magnetic field at the pivot point, in global coordinates
+        // pivot = pivot point of the new site in the local coordinates of this state
+        // vector
+        // B and t = magnitude and direction of the magnetic field at the pivot point,
+        // in global coordinates
         // XL = thickness of the scattering material
         // deltaE = energy loss in the scattering material
         // point (makes drho and dz zero)
@@ -125,13 +130,15 @@ class StateVector {
         double E = a.v[2] * Math.sqrt(1.0 + a.v[4] * a.v[4]);
         double deltaEoE = deltaE / E;
 
-        // Transform helix in old coordinate system to new pivot point lying on the next detector plane
+        // Transform helix in old coordinate system to new pivot point lying on the next
+        // detector plane
         if (deltaE == 0.) {
             aPrime.a = this.pivotTransform(pivot);
         } else {
             aPrime.a = this.pivotTransform(pivot, deltaEoE);
         }
-        // if (verbose) aPrime.a.print("pivot transformed helix; should have zero drho and dz");
+        // if (verbose) aPrime.a.print("pivot transformed helix; should have zero drho
+        // and dz");
 
         F = this.makeF(aPrime.a); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
@@ -162,27 +169,18 @@ class StateVector {
 
         // Test the derivatives
         /*
-        if (verbose) {
-            double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
-            StateVector aPda = copy();
-            for (int i = 0; i < 5; i++)
-                aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
-            Vec da = aPda.a.dif(a);
-            StateVector aPrimeNew = copy();
-            aPrimeNew.a = aPda.pivotTransform(pivot);
-            RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
-            SquareMatrix fRotTmp = new SquareMatrix(5);
-            aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp);
-            for (int i = 0; i < 5; i++) {
-                double deltaExact = aPrimeNew.a.v[i] - aPrime.a.v[i];
-                double delta = 0.;
-                for (int j = 0; j < 5; j++) {
-                    delta += F.M[i][j] * da.v[j];
-                }
-                System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact, delta);
-            }
-        }
-        */
+         * if (verbose) { double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
+         * StateVector aPda = copy(); for (int i = 0; i < 5; i++) aPda.a.v[i] = a.v[i] *
+         * (1.0 + daRel[i]); Vec da = aPda.a.dif(a); StateVector aPrimeNew = copy();
+         * aPrimeNew.a = aPda.pivotTransform(pivot); RotMatrix RtTmp =
+         * Rot.invert().multiply(aPrime.Rot); SquareMatrix fRotTmp = new
+         * SquareMatrix(5); aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp); for
+         * (int i = 0; i < 5; i++) { double deltaExact = aPrimeNew.a.v[i] -
+         * aPrime.a.v[i]; double delta = 0.; for (int j = 0; j < 5; j++) { delta +=
+         * F.M[i][j] * da.v[j]; } System.out.
+         * format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i,
+         * deltaExact, delta); } }
+         */
 
         aPrime.kLow = newSite;
         aPrime.kUp = kUp;
@@ -196,12 +194,14 @@ class StateVector {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
             double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
             if (verbose) {
-                System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS);
+                System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL,
+                        sigmaMS);
             }
             Ctot = this.C.sum(this.getQ(sigmaMS));
         }
 
-        // Now propagate the multiple scattering matrix and covariance matrix to the new site
+        // Now propagate the multiple scattering matrix and covariance matrix to the new
+        // site
         aPrime.C = Ctot.similarity(F);
 
         return aPrime;
@@ -233,12 +233,15 @@ class StateVector {
 
         if (verbose) {
             aPrime.C.print("filtered covariance in StateVector.filter");
-            // Alternative calculation of filtered covariance (sanity check that it gives the same result):
+            // Alternative calculation of filtered covariance (sanity check that it gives
+            // the same result):
             SquareMatrix D = C.invert().sum(H.scale(1.0 / V).product(H));
             SquareMatrix Calt = D.invert();
             Calt.print("alternate filtered covariance in StateVector.filter");
             aPrime.C.multiply(D).print("unit matrix??");
         }
+        //double R = (1 - H.dot(K))*V;
+        //System.out.format("StateVector.filter: R=%10.8f\n", R);
 
         return aPrime;
     }
@@ -267,7 +270,9 @@ class StateVector {
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
         if (verbose) {
-            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp, snS.kLow, snS.kUp, snP.kLow, snP.kUp);
+            System.out.format(
+                    "StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n",
+                    kLow, kUp, snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         }
         StateVector sS = this.copy();
 
@@ -286,10 +291,12 @@ class StateVector {
     // Returns a point on the helix at the angle phi
     Vec atPhi(double phi) {
         return atPhi(X0, a, phi, alpha);
-        //double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * Math.cos(a.v[1]) - (alpha / a.v[2]) * Math.cos(a.v[1] + phi);
-        //double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (alpha / a.v[2]) * Math.sin(a.v[1] + phi);
-        //double z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
-        //return new Vec(x, y, z);
+        // double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * Math.cos(a.v[1]) - (alpha
+        // / a.v[2]) * Math.cos(a.v[1] + phi);
+        // double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (alpha
+        // / a.v[2]) * Math.sin(a.v[1] + phi);
+        // double z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
+        // return new Vec(x, y, z);
     }
 
     public static Vec atPhi(Vec X0, Vec a, double phi, double alpha) {
@@ -311,13 +318,15 @@ class StateVector {
         return new Vec(px, py, pz);
     }
 
-    // Calculate the phi angle to propagate on helix to the intersection with a measurement plane
+    // Calculate the phi angle to propagate on helix to the intersection with a
+    // measurement plane
     double planeIntersect(Plane pIn) { // pIn is assumed to be defined in the global reference frame
         Plane p = pIn.toLocal(Rot, origin); // Transform the plane into the B-field local reference frame
         return hpi.planeIntersect(a, X0, alpha, p);
     }
 
-    // Multiple scattering matrix; assume a single thin scattering layer at the beginning of the helix propagation
+    // Multiple scattering matrix; assume a single thin scattering layer at the
+    // beginning of the helix propagation
     private SquareMatrix getQ(double sigmaMS) {
         double[][] q = new double[5][5];
 
@@ -338,17 +347,21 @@ class StateVector {
         // aPrime are the helix parameters for a pivot at the global origin, assumed
         // already to be calculated by pivotTransform()
         SquareMatrix tC = covariancePivotTransform(aPrime);
-        return new Vec(Math.sqrt(tC.M[0][0]), Math.sqrt(tC.M[1][1]), Math.sqrt(tC.M[2][2]), Math.sqrt(tC.M[3][3]), Math.sqrt(tC.M[4][4]));
+        return new Vec(Math.sqrt(tC.M[0][0]), Math.sqrt(tC.M[1][1]), Math.sqrt(tC.M[2][2]), Math.sqrt(tC.M[3][3]),
+                Math.sqrt(tC.M[4][4]));
     }
 
     // Return errors on the helix parameters at the present pivot point
     Vec helixErrors() {
-        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]), Math.sqrt(C.M[4][4]));
+        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]),
+                Math.sqrt(C.M[4][4]));
     }
 
-    // Transform the helix covariance to new pivot point (specified in local coordinates)
+    // Transform the helix covariance to new pivot point (specified in local
+    // coordinates)
     SquareMatrix covariancePivotTransform(Vec aP) {
-        // aP are the helix parameters for the new pivot point, assumed already to be calculated by pivotTransform()
+        // aP are the helix parameters for the new pivot point, assumed already to be
+        // calculated by pivotTransform()
         // Note that no field rotation is assumed or accounted for here
         SquareMatrix mF = makeF(aP);
         return C.similarity(mF);
@@ -360,7 +373,8 @@ class StateVector {
         return pivotTransform(pivot);
     }
 
-    // Pivot transform of the state vector, from the current pivot to the pivot in the argument (specified in local coordinates)
+    // Pivot transform of the state vector, from the current pivot to the pivot in
+    // the argument (specified in local coordinates)
     Vec pivotTransform(Vec pivot) {
         return pivotTransform(pivot, a, X0, alpha, 0.);
     }
@@ -374,7 +388,8 @@ class StateVector {
         double K = a.v[2] * (1.0 - deltaEoE); // Lose energy before propagating
         double xC = X0.v[0] + (a.v[0] + alpha / K) * Math.cos(a.v[1]); // Center of the helix circle
         double yC = X0.v[1] + (a.v[0] + alpha / K) * Math.sin(a.v[1]);
-        //if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n", xC, yC);
+        // if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n",
+        // xC, yC);
 
         // Predicted state vector
         double[] aP = new double[5];
@@ -388,17 +403,19 @@ class StateVector {
         aP[0] = (xC - pivot.v[0]) * Math.cos(aP[1]) + (yC - pivot.v[1]) * Math.sin(aP[1]) - alpha / K;
         aP[3] = X0.v[2] - pivot.v[2] + a.v[3] - (alpha / K) * (aP[1] - a.v[1]) * a.v[4];
 
-        //xC = pivot.v[0] + (aP[0]+alpha/aP[2])*Math.cos(aP[1]);
-        //yC = pivot.v[1] + (aP[0]+alpha/aP[2])*Math.sin(aP[1]);
-        //if (verbose) System.out.format("pivotTransform new center=%13.10f, %13.10f\n", xC, yC);
+        // xC = pivot.v[0] + (aP[0]+alpha/aP[2])*Math.cos(aP[1]);
+        // yC = pivot.v[1] + (aP[0]+alpha/aP[2])*Math.sin(aP[1]);
+        // if (verbose) System.out.format("pivotTransform new center=%13.10f,
+        // %13.10f\n", xC, yC);
 
         return new Vec(5, aP);
     }
 
-    // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
+    // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the
+    // origin.
     public Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
 
-        boolean verbose = false; //!!!!!!!!!!
+        boolean verbose = false; // !!!!!!!!!!
 
         Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), fM);
         double Bmag = B.mag();
@@ -407,10 +424,15 @@ class StateVector {
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec uB = yhat.cross(tB).unitVec();
         Vec vB = tB.cross(uB);
-        RotMatrix originRot = new RotMatrix(uB, vB, tB); // Rotation from the global system into the B-field system at the origin
-        Plane originPlane = new Plane(new Vec(0., 0., 0.), originRot.rotate(new Vec(0., 1., 0.))); // Plane in the B-field coordinate system at the origin
+        RotMatrix originRot = new RotMatrix(uB, vB, tB); // Rotation from the global system into the B-field system at
+                                                         // the origin
+        Plane originPlane = new Plane(new Vec(0., 0., 0.), originRot.rotate(new Vec(0., 1., 0.))); // Plane in the
+                                                                                                   // B-field coordinate
+                                                                                                   // system at the
+                                                                                                   // origin
 
-        // Point and momentum on the helix in the B-field system near the first tracking layer
+        // Point and momentum on the helix in the B-field system near the first tracking
+        // layer
         Vec xLocal = atPhi(0.);
         Vec pLocal = getMom(0.);
 
@@ -420,12 +442,14 @@ class StateVector {
         double Q = Math.signum(a.v[2]);
 
         Vec pInt = new Vec(3);
-        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the origin plane
+        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the origin
+                                                                                    // plane
 
         Vec helixAtIntersect = pTOa(pInt, 0., 0., Q);
         Vec helixAtOrigin = pivotTransform(new Vec(0., 0., 0.), helixAtIntersect, Xplane, alpha, 0.);
         if (verbose) {
-            System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1], origin.v[2]);
+            System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q,
+                    origin.v[0], origin.v[1], origin.v[2]);
             System.out.format("    At origin B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             System.out.format("    alpha=%10.6f,  alpha at origin=%10.6f\n", alpha, alphaOrigin);
             Rot.invert().print("from local system at layer 1 to global");
@@ -446,9 +470,11 @@ class StateVector {
             helixAtOrigin.print("helix with pivot at origin");
         }
 
-        // The covariance matrix is transformed assuming a simple pivot transform (not Runge Kutta)
+        // The covariance matrix is transformed assuming a simple pivot transform (not
+        // Runge Kutta)
         // Add in the multiple scattering contributions from the first silicon layer
-        // *** This should be generalized to include scattering from more layers if starting point is not layer 1 ***
+        // *** This should be generalized to include scattering from more layers if
+        // starting point is not layer 1 ***
         double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
         double sigmaMS;
         SquareMatrix Covariance;
@@ -482,15 +508,19 @@ class StateVector {
         return helixAtOrigin;
     }
 
-    // Transform a helix from one pivot to another through a non-uniform B field in several steps
+    // Transform a helix from one pivot to another through a non-uniform B field in
+    // several steps
     Vec helixStepper(int nSteps, SquareMatrix Covariance, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
-        // The old and new origin points are in global coordinates. The old helix and old pivot are defined
-        // in a coordinate system aligned with the field and centered at the old origin. The returned
-        // helix will be in a coordinate system aligned with the local field at the new origin, and the
+        // The old and new origin points are in global coordinates. The old helix and
+        // old pivot are defined
+        // in a coordinate system aligned with the field and centered at the old origin.
+        // The returned
+        // helix will be in a coordinate system aligned with the local field at the new
+        // origin, and the
         // new pivot point will be at the new origin.
         // *** Covariance is overwritten with the transformed covariance matrix ***
 
-        //boolean verbose = true;   //!!!!!!!!!!!!
+        // boolean verbose = true; //!!!!!!!!!!!!
 
         double yDistance = newOrigin.v[1] - this.origin.v[1];
         double yStep = yDistance / (double) nSteps;
@@ -506,7 +536,8 @@ class StateVector {
         SquareMatrix Cov = Covariance;
         Vec yhat = new Vec(0., 1., 0.);
         if (verbose) {
-            System.out.format("Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", nSteps, B, RM.M[2][0], RM.M[2][1], RM.M[2][2]);
+            System.out.format("Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n",
+                    nSteps, B, RM.M[2][0], RM.M[2][1], RM.M[2][2]);
             this.origin.print("old origin");
             this.X0.print("old pivot");
             this.a.print("old helix");
@@ -515,7 +546,8 @@ class StateVector {
             RM.print("to transform to the local field frame");
             Plane pln = new Plane(new Vec(0., 0., 0.), yhat);
             Plane plnLocal = pln.toLocal(RM, Origin);
-            double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with the plane
+            double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with
+                                                                                     // the plane
             Vec newPivot = atPhi(Pivot, newHelix, dphi, localAlpha);
             newPivot.print("new pivot in origin plane");
             Vec newHelix0 = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.);
@@ -523,17 +555,21 @@ class StateVector {
         }
         for (int step = 0; step < nSteps; ++step) {
             yInt += yStep; // Stepping along y axis in global coordinates
-            Plane pln = new Plane(new Vec(0., yInt, 0.), yhat); // Make a plane in global coordinates, perpendicular to the y axis
+            Plane pln = new Plane(new Vec(0., yInt, 0.), yhat); // Make a plane in global coordinates, perpendicular to
+                                                                // the y axis
             Plane plnLocal = pln.toLocal(RM, Origin); // Transform the plane to local coordinates
-            double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with the plane
+            double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with
+                                                                                     // the plane
             Vec newPivot = atPhi(Pivot, newHelix, dphi, localAlpha);
-            Vec newHelixPivoted = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.); // Transform the helix pivot to the intersection point
+            Vec newHelixPivoted = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.); // Transform the helix
+                                                                                             // pivot to the
+                                                                                             // intersection point
             if (verbose) {
                 System.out.format("Step %d, dphi=%10.7f, alpha=%10.7e\n", step, dphi, localAlpha);
                 Pivot.print("old pivot");
                 newPivot.print("new pivot at intersection of helix with plane");
-                //pln.print("target");
-                //plnLocal.print("transformed to local coordinates");
+                // pln.print("target");
+                // plnLocal.print("transformed to local coordinates");
                 newHelix.print("new helix after pivot transform");
                 dphi = hpi.planeIntersect(newHelix, newPivot, localAlpha, plnLocal);
                 System.out.format("    New delta-phi=%13.10f; should be zero!\n", dphi);
@@ -544,7 +580,8 @@ class StateVector {
             newHelix = newHelixPivoted;
 
             // Rotate the helix into the field system at the new origin
-            Origin = RM.inverseRotate(newPivot).sum(Origin); // Make a new coordinate system with origin at the intersection point
+            Origin = RM.inverseRotate(newPivot).sum(Origin); // Make a new coordinate system with origin at the
+                                                             // intersection point
             Vec Bfield = KalmanInterface.getField(Origin, fM);
             double Bmag = Bfield.mag();
             localAlpha = 1.0e12 / c / Bmag;
@@ -552,8 +589,10 @@ class StateVector {
             Vec uB = yhat.cross(tB).unitVec();
             Vec vB = tB.cross(uB);
             RotMatrix RMnew = new RotMatrix(uB, vB, tB);
-            RotMatrix deltaRM = RMnew.multiply(RM.invert()); // New coordinate system is rotated to align with local field
-            newHelix = rotateHelix(newHelix, deltaRM, fRot); // Rotate the helix into the new local field coordinate system
+            RotMatrix deltaRM = RMnew.multiply(RM.invert()); // New coordinate system is rotated to align with local
+                                                             // field
+            newHelix = rotateHelix(newHelix, deltaRM, fRot); // Rotate the helix into the new local field coordinate
+                                                             // system
             SquareMatrix Ft = F.multiply(fRot);
             Cov = Cov.similarity(Ft);
 
@@ -562,7 +601,8 @@ class StateVector {
             Pivot.v[1] = 0.;
             Pivot.v[2] = 0.;
             if (verbose) {
-                System.out.format("  helixStepper after step %d, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", step, Bmag, tB.v[0], tB.v[1], tB.v[2]);
+                System.out.format("  helixStepper after step %d, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", step,
+                        Bmag, tB.v[0], tB.v[1], tB.v[2]);
                 RMnew.print("new rotation to field frame");
                 deltaRM.print("rotation to field system");
                 Origin.print("intermediate origin in global system");
@@ -590,7 +630,8 @@ class StateVector {
         return finalHelix;
     }
 
-    // Derivative matrix for the pivot transform (without energy loss or field rotations)
+    // Derivative matrix for the pivot transform (without energy loss or field
+    // rotations)
     private SquareMatrix makeF(Vec aP) {
         return makeF(aP, a, alpha);
     }
@@ -606,8 +647,10 @@ class StateVector {
         f[1][2] = (alpha / (a.v[2] * a.v[2])) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
         f[2][2] = 1.0;
         f[3][0] = (alpha / a.v[2]) * a.v[4] * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[3][1] = (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4] * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        f[3][1] = (alpha / a.v[2]) * a.v[4]
+                * (1.0 - (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4]
+                * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         f[3][3] = 1.0;
         f[3][4] = -(alpha / a.v[2]) * (aP.v[1] - a.v[1]);
         f[4][4] = 1.0;
@@ -646,13 +689,18 @@ class StateVector {
         return xGlobal;
     }
 
-    // Transformation of helix parameters from one B-field frame to another, by rotation R
-    // Warning: the pivot point has to be transformed too! Here we assume that the new pivot point
-    // will be on the helix at phi=0, so drho and dz will always be returned as zero.
+    // Transformation of helix parameters from one B-field frame to another, by
+    // rotation R
+    // Warning: the pivot point has to be transformed too! Here we assume that the
+    // new pivot point
+    // will be on the helix at phi=0, so drho and dz will always be returned as
+    // zero.
     static Vec rotateHelix(Vec a, RotMatrix R, SquareMatrix fRot) {
-        // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
+        // The rotation is easily applied to the momentum vector, so first we transform
+        // from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
-        // The values for fRot, the corresponding derivative matrix, are also calculated and returned.
+        // The values for fRot, the corresponding derivative matrix, are also calculated
+        // and returned.
 
         boolean verbose = false;
 
@@ -708,20 +756,18 @@ class StateVector {
         fRot.M[4][4] = prod.M[2][2];
 
         /*
-        if (verbose) { // derivative test
-            Vec da = a.scale(0.005);
-            Vec apda = a.sum(da);
-            Vec ap = pTOa(R.rotate(aTOp(a)), a);
-            Vec apdap = pTOa(R.rotate(aTOp(apda)), apda);
-            Vec dap = apdap.dif(ap);
-            Vec dap2 = da.leftMultiply(fRot);
-            System.out.format("StateVector:rotateHelix: derivative test:\n");
-            dap.print("actual difference in helix parameters");
-            dap2.print("diff in helix params from derivatives");
-        }
-        */
-        // The parameters drho and dz, being distances between two points, do not change with the rotation.
-        // Is this really true? It's not necessarily the same point on the helix, is it, since the helix has changed
+         * if (verbose) { // derivative test Vec da = a.scale(0.005); Vec apda =
+         * a.sum(da); Vec ap = pTOa(R.rotate(aTOp(a)), a); Vec apdap =
+         * pTOa(R.rotate(aTOp(apda)), apda); Vec dap = apdap.dif(ap); Vec dap2 =
+         * da.leftMultiply(fRot);
+         * System.out.format("StateVector:rotateHelix: derivative test:\n");
+         * dap.print("actual difference in helix parameters");
+         * dap2.print("diff in helix params from derivatives"); }
+         */
+        // The parameters drho and dz, being distances between two points, do not change
+        // with the rotation.
+        // Is this really true? It's not necessarily the same point on the helix, is it,
+        // since the helix has changed
         // orientation discretely.
         Vec aNew = pTOa(p_prime, a.v[0], a.v[3], Q);
         if (verbose) {

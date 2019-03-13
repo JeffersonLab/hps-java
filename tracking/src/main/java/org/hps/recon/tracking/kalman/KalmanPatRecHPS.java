@@ -516,7 +516,7 @@ public class KalmanPatRecHPS {
                     if (success) {
                         if (nHits >= minHits1[trial] && chi2s / (double) nHits < chi2mx1[trial]) { // Good tracks
                             tkID++;
-                            KalTrack tkr = new KalTrack(tkID, nHits, sites, chi2s);
+                            KalTrack tkr = new KalTrack(1, tkID, nHits, sites, chi2s);
                             for (MeasurementSite site : sites) {
                                 int theHit = site.hitID;
                                 if (theHit < 0)
@@ -528,7 +528,7 @@ public class KalmanPatRecHPS {
                             TkrList.add(tkr);
                         } else if (nHits >= minHits2[trial] && chi2s / (double) nHits < chi2mx2[trial]) { // Low quality tracks; don't kill hits
                             tkID++;
-                            KalTrack tkr = new KalTrack(tkID, nHits, sites, chi2s);
+                            KalTrack tkr = new KalTrack(1, tkID, nHits, sites, chi2s);
                             TkrList2.add(tkr);
                         }
                     }

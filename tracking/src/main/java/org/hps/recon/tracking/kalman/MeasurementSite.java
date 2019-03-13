@@ -47,6 +47,7 @@ class MeasurementSite {
         System.out.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
         tB.print("magnetic field direction");
         System.out.format("    chi^2 increment=%12.4e\n", chi2inc);
+        System.out.format("    x scattering angle=%10.8f, y scattering angle=%10.8f\n", scatX(), scatZ());
         if (predicted)
             aP.print("predicted");
         if (filtered)
@@ -86,7 +87,22 @@ class MeasurementSite {
         chi2inc = 0.;
         verbose = false;
     }
-
+    
+    double scatX() {   // scattering angle in the x,y plane for the filtered state vector
+        Vec p1 = aP.getMom(0.);
+        double t1 = Math.atan2(p1.v[0], p1.v[1]);
+        Vec p2 = aF.getMom(0.);
+        double t2 = Math.atan2(p2.v[0], p2.v[1]);
+        return t1 - t2;
+    }
+    double scatZ() {   // scattering angle in the z,y plane for the filtered state vector
+        Vec p1 = aP.getMom(0.);
+        double t1 = Math.atan2(p1.v[2], p1.v[1]);
+        Vec p2 = aF.getMom(0.);
+        double t2 = Math.atan2(p2.v[2], p2.v[1]);
+        return t1 - t2;
+    }
+    
     int makePrediction(StateVector pS, int hitNumber, boolean sharingOK, boolean pickup) { // Create predicted state vector by propagating from previous site
         verbose = pS.verbose;
         int returnFlag = 0;
@@ -191,21 +207,18 @@ class MeasurementSite {
                     System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
                 }
 
-                aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma - H.dot(H.leftMultiply(aP.C)); // Can be negative if aP.C is not reasonable (e.g. huge)
+                aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma + H.dot(H.leftMultiply(aP.C)); 
                 if (verbose) {
                     H.print("H in MeasurementSite.makePrediction");
                     Vec H2 = new Vec(5, buildH(pS));
                     H2.print("H made using old statevector");
                     aP.C.print("covariance");
-                    double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma - H2.dot(H2.leftMultiply(pS.C));
+                    double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma + H2.dot(H2.leftMultiply(pS.C));
                     System.out.format("MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n", aP.R, exRes, m.hits.get(0).sigma);
                 }
 
-                if (aP.R > 0.) {
-                    chi2inc = aP.r * aP.r / aP.R;
-                } else {
-                    chi2inc = aP.r * aP.r / (aP.R * aP.R);
-                }
+                chi2inc = aP.r * aP.r / aP.R;
+
                 if (Math.abs(aP.r / m.hits.get(0).sigma) < cut || hitNumber >= 0) { // Use the hit no matter what if it was handed to us
                     hitID = theHit;
                     returnFlag = 1;
@@ -268,6 +281,7 @@ class MeasurementSite {
         // HF.print("filtered H");
         // H.print("predicted H");
         aF.R = V - H.dot(H.leftMultiply(aF.C));
+        //System.out.format("MeasurmentSite.filter: R=%10.8f\n", aF.R);
         if (aF.R < 0) {
             if (verbose)
                 System.out.format("MeasurementSite.filter: covariance of residual %12.4e is negative\n", aF.R);
