@@ -114,10 +114,10 @@ public class KalmanDriverHPS extends Driver {
         aida.histogram1D("z0 GBL", 100, -10., 10.);
 
         for (int i = 1; i <= 12; i++) {
-            aida.histogram1D(String.format("GBL lambda kinks for layer %d", i), 100, -0.05, 0.05);
-            aida.histogram1D(String.format("GBL phi kinks for layer %d", i), 100, -0.05, 0.05);
-            aida.histogram1D(String.format("Kalman lambda kinks for layer %d", i), 100, -0.05, 0.05);
-            aida.histogram1D(String.format("Kalman phi kinks for layer %d", i), 100, -0.05, 0.05);
+            aida.histogram1D(String.format("GBL lambda kinks for layer %d", i), 100, -0.02, 0.02);
+            aida.histogram1D(String.format("GBL phi kinks for layer %d", i), 100, -0.02, 0.02);
+            aida.histogram1D(String.format("Kalman lambda kinks for layer %d", i), 100, -0.02, 0.02);
+            aida.histogram1D(String.format("Kalman phi kinks for layer %d", i), 100, -0.02, 0.02);
             
             aida.histogram1D(String.format("12-hit Kalman Track Chi2 Layer %d", i), 100, 0, 50);
             aida.histogram1D(String.format("12-hit Kalman Track Residual Layer %d", i), 100, -0.05, 0.05);

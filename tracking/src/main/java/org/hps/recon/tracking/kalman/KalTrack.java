@@ -122,13 +122,13 @@ public class KalTrack {
         if (Double.isNaN(phiS1)) {
             return -999.;
         }
-        Vec p1 = s1.aS.getMom(phiS1);
+        Vec p1 = s1.aS.Rot.inverseRotate(s1.aS.getMom(phiS1));
         double t1 = Math.atan2(p1.v[2], p1.v[1]);
         double phiS2 = s2.aS.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS2)) {
             return -999.;
         }       
-        Vec p2 = s2.aS.getMom(phiS2);
+        Vec p2 = s2.aS.Rot.inverseRotate(s2.aS.getMom(phiS2));
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
