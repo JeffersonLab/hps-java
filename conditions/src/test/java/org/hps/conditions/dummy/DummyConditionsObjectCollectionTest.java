@@ -27,7 +27,7 @@ public class DummyConditionsObjectCollectionTest extends TestCase {
     public void setUp() {
         // Configure the conditions system.
         final DatabaseConditionsManager manager = new DatabaseConditionsManager();
-        manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
+        //manager.setConnectionResource("/org/hps/conditions/config/jeremym_dev_connection.prop");
         this.connection = manager.getConnection();
     }
 
