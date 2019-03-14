@@ -47,7 +47,7 @@ public class KalmanDriverHPS extends Driver {
     private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
     private double bField;
-    private boolean verbose = false;
+    private boolean verbose = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
@@ -114,6 +114,11 @@ public class KalmanDriverHPS extends Driver {
         aida.histogram1D("z0 GBL", 100, -10., 10.);
 
         for (int i = 1; i <= 12; i++) {
+            aida.histogram1D(String.format("GBL lambda kinks for layer %d", i), 100, -0.05, 0.05);
+            aida.histogram1D(String.format("GBL phi kinks for layer %d", i), 100, -0.05, 0.05);
+            aida.histogram1D(String.format("Kalman lambda kinks for layer %d", i), 100, -0.05, 0.05);
+            aida.histogram1D(String.format("Kalman phi kinks for layer %d", i), 100, -0.05, 0.05);
+            
             aida.histogram1D(String.format("12-hit Kalman Track Chi2 Layer %d", i), 100, 0, 50);
             aida.histogram1D(String.format("12-hit Kalman Track Residual Layer %d", i), 100, -0.05, 0.05);
             aida.histogram1D(String.format("12-hit Kalman Hit Error Layer %d", i), 100, 0, 0.02);
@@ -124,19 +129,10 @@ public class KalmanDriverHPS extends Driver {
             aida.histogram1D(String.format("10-hit Kalman Hit Error Layer %d", i), 100, 0, 0.02);
             aida.histogram1D(String.format("10-hit Kalman Hit Reduced Error Layer %d", i), 100, 0, 0.02);
 
-            //            aida.histogram1D(String.format("5hit Kalman Track ResX Layer %d", i), 500, -50, 50);
-            //            aida.histogram1D(String.format("5hit Kalman Track ResY Layer %d", i), 500, -50, 50);
-            //            aida.histogram1D(String.format("5hit GBL Track ResX Layer %d", i), 500, -50, 50);
-            //            aida.histogram1D(String.format("5hit GBL Track ResY Layer %d", i), 500, -50, 50);
-            aida.histogram1D(String.format("5hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
-            aida.histogram1D(String.format("5hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
-
-            //            aida.histogram1D(String.format("6hit Kalman Track ResX Layer %d", i), 500, -50, 50);
-            //            aida.histogram1D(String.format("6hit Kalman Track ResY Layer %d", i), 500, -50, 50);
-            //            aida.histogram1D(String.format("6hit GBL Track ResX Layer %d", i), 500, -50, 50);
-            //            aida.histogram1D(String.format("6hit GBL Track ResY Layer %d", i), 500, -50, 50);
-            aida.histogram1D(String.format("6hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
-            aida.histogram1D(String.format("6hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
+            aida.histogram1D(String.format("10-hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
+            aida.histogram1D(String.format("10-hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
+            aida.histogram1D(String.format("12-hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
+            aida.histogram1D(String.format("12-hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
         }
         aida.histogram1D("12-hit Kalman Track Chi2", 100, 0, 200);
         aida.histogram1D("10-hit Kalman Track Chi2", 100, 0, 200);
@@ -171,7 +167,11 @@ public class KalmanDriverHPS extends Driver {
     private void printGBLkinks(RelationalTable GBLtoKinks, Track GBLtrack) {
         GenericObject kinks = (GenericObject) GBLtoKinks.from(GBLtrack);
         for (int i = 0; i < kinks.getNDouble(); i++) {
-            System.out.printf("sensor %d  lambda-kink %f phi-kink %f \n", i, kinks.getFloatVal(i), kinks.getDoubleVal(i));
+            aida.histogram1D(String.format("GBL lambda kinks for layer %d", i+1)).fill(kinks.getFloatVal(i));
+            aida.histogram1D(String.format("GBL phi kinks for layer %d", i+1)).fill(kinks.getDoubleVal(i));
+            if (verbose) {
+                System.out.printf("Layer %d  lambda-kink %f phi-kink %f \n", i+1, kinks.getFloatVal(i), kinks.getDoubleVal(i));
+            }
         }
     }
 
@@ -314,6 +314,8 @@ public class KalmanDriverHPS extends Driver {
                     Vec ptk = iniState.Rot.inverseRotate(iniState.getMom(0.));
                     double tanLambda = (ptk.v[2] / Math.sqrt(ptk.v[0] * ptk.v[0] + ptk.v[1] * ptk.v[1]));
 
+                    printGBLkinks(GBLtoKinks, trk);
+                    printKalmanKinks(ktf2.tkr);
                     if (verbose) {
                         newPivot.print("Pivot point for the Kalman initial guess:");
                         finalPivot.print("Pivot point for the Kalman fitted helix: ");
@@ -326,8 +328,6 @@ public class KalmanDriverHPS extends Driver {
                         System.out.format("GBL Bfield=%10.4f, alpha=%12.4e    Layer 1 Bfield=%10.4f, alpha=%12.4e\n", bField, alpha, bflyr1, alphaLyr1);
                         System.out.format("     In LCsim convention: %12.4e %12.4e %12.4e %12.4e %12.4e \n", hprms[0], hprms[1], hprms[2], hprms[3], hprms[4]);
                         System.out.format("  >> GBL chi2=%10.4e,  Kalman chi2=%10.4e\n", trk.getChi2(), ktf2.tkr.chi2);
-                        printGBLkinks(GBLtoKinks, trk);
-                        printKalmanKinks(ktf2.tkr);
                         if (evtNumb < 100) ktf2.tkr.plot("./");
                     }
                     aida.histogram1D("phi0 difference lyr1, degrees").fill(180. * (iniState.a.v[1] - kalParamsF.v[1]) / Math.PI);
@@ -425,11 +425,17 @@ public class KalmanDriverHPS extends Driver {
     }
 
     void printKalmanKinks(KalTrack tkr) {
-        for (MeasurementSite site : tkr.SiteList) {
-            System.out.format("%d Kalman filter kinks = %10.8f  %10.8f\n", site.m.Layer, site.scatX(), site.scatZ());
-        }
+        //for (MeasurementSite site : tkr.SiteList) {
+        //    if (verbose) {
+        //        System.out.format("Layer %d Kalman filter lambda-kink= %10.8f  phi-kink=  %10.8f\n", site.m.Layer, site.scatZ(), site.scatX());
+        //    }
+        //}
         for (int layer = 1; layer < 12; layer++) {
-            System.out.format("%d Kalman smoother kinks = %10.8f  %10.8f\n", layer, tkr.scatX(layer), tkr.scatZ(layer));
+            aida.histogram1D(String.format("Kalman lambda kinks for layer %d", layer)).fill(tkr.scatZ(layer));
+            aida.histogram1D(String.format("Kalman phi kinks for layer %d", layer)).fill(tkr.scatX(layer));
+            if (verbose) {
+                System.out.format("Layer %d Kalman smoother lambda-kink= %10.8f  phi-kink= %10.8f\n", layer, tkr.scatZ(layer), tkr.scatX(layer));
+            }
         }
     }
     
@@ -447,8 +453,8 @@ public class KalmanDriverHPS extends Driver {
             int layer = kTrack.SiteList.get(i).m.Layer;
             if (verbose)
                 System.out.printf("lay %d kalPos0 %f kalPos1 %f gblPos0 %f gblPos1 %f \n", layer, kalPos[0], kalPos[1], gblPos[0], gblPos[1]);
-            aida.histogram1D(String.format("%dhit GBL-Kalman Track X Layer %d", gblTrack.getTrackerHits().size(), layer)).fill(gblPos[0] - kalPos[0]);
-            aida.histogram1D(String.format("%dhit GBL-Kalman Track Y Layer %d", gblTrack.getTrackerHits().size(), layer)).fill(gblPos[1] - kalPos[1]);
+            aida.histogram1D(String.format("%d-hit GBL-Kalman Track X Layer %d", 2*gblTrack.getTrackerHits().size(), layer)).fill(gblPos[0] - kalPos[0]);
+            aida.histogram1D(String.format("%d-hit GBL-Kalman Track Y Layer %d", 2*gblTrack.getTrackerHits().size(), layer)).fill(gblPos[1] - kalPos[1]);
         }
 
     }

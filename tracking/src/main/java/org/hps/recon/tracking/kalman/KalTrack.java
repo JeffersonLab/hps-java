@@ -86,11 +86,20 @@ public class KalTrack {
         if (lyrNxt > 12) {
             return -999.;
         }
+
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
-        Vec p1 = s1.aS.getMom(0.);
+        double phiS1 = s1.aS.planeIntersect(s2.m.p);
+        if (Double.isNaN(phiS1)) {
+            return -999.;
+        }
+        Vec p1 = s1.aS.getMom(phiS1);
         double t1 = Math.atan2(p1.v[0], p1.v[1]);
-        Vec p2 = s2.aS.getMom(0.);
+        double phiS2 = s2.aS.planeIntersect(s2.m.p);
+        if (Double.isNaN(phiS2)) {
+            return -999.;
+        }        
+        Vec p2 = s2.aS.getMom(phiS2);
         double t2 = Math.atan2(p2.v[0], p2.v[1]);
         return t1 - t2;
     }
@@ -109,9 +118,17 @@ public class KalTrack {
         }
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
-        Vec p1 = s1.aS.getMom(0.);
+        double phiS1 = s1.aS.planeIntersect(s2.m.p);
+        if (Double.isNaN(phiS1)) {
+            return -999.;
+        }
+        Vec p1 = s1.aS.getMom(phiS1);
         double t1 = Math.atan2(p1.v[2], p1.v[1]);
-        Vec p2 = s2.aS.getMom(0.);
+        double phiS2 = s2.aS.planeIntersect(s2.m.p);
+        if (Double.isNaN(phiS2)) {
+            return -999.;
+        }       
+        Vec p2 = s2.aS.getMom(phiS2);
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
