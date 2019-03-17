@@ -448,7 +448,6 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
                 boolean match1 = p1_p1.equals(p1_p2) && p2_p1.equals(p2_p2);
                 boolean match2 = p1_p1.equals(p2_p2) && p2_p1.equals(p1_p2);
                 if(match1 || match2){
-                    System.out.println("Filling truth to bad map");
                     map.put(p1, p2);
                 }
             }

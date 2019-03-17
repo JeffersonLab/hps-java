@@ -1132,7 +1132,6 @@ public abstract class TupleMaker extends Driver {
 
         tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
 
-
         if (!particle.getClusters().isEmpty()) {
             fillParticleVariablesClusters(prefix, particle, event);
         }

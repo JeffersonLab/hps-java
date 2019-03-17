@@ -1,5 +1,7 @@
 package org.hps.analysis.MC;
 
+
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,10 +10,10 @@ import java.util.Map;
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
+//import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLKinkData;
 import org.hps.recon.tracking.gbl.MakeGblTracks;
-import org.hps.record.StandardCuts;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -25,9 +27,10 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+//import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
-import org.lcsim.fit.helicaltrack.HelicalTrackHit;
+//import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.compact.Subdetector;
@@ -35,8 +38,10 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Does not require GBL collections to
- * be present in the event.
+ * A Driver which refits tracks using GBL, but only the truth hits of interest. Does not require GBL collections to
+ * be present in the event. This is adapted from the nominal GBLRefitterDriver.
+ * 
+ * @author Matt Solt
  */
 public class TruthGBLRefitterDriver extends Driver {
 
@@ -53,8 +58,7 @@ public class TruthGBLRefitterDriver extends Driver {
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
-    private boolean storeTrackStates = false;
-    private StandardCuts cuts = null;
+    private boolean storeTrackStates = true;
 
     private List<HpsSiSensor> sensors = null;
     FieldMap bFieldMap = null;
@@ -92,18 +96,6 @@ public class TruthGBLRefitterDriver extends Driver {
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
-    
-    public void setMaxTrackChisq(int nhits, double input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
-        cuts.setMaxTrackChisq(nhits, input);
-    }
-
-    public void setMaxTrackChisq(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
-        cuts.changeChisqTrackProb(input);
-    }
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -118,11 +110,6 @@ public class TruthGBLRefitterDriver extends Driver {
                           .getDetectorElement().findDescendants(HpsSiSensor.class);
         
         trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
-
-        if (cuts == null) {
-            cuts = new StandardCuts();
-            //System.out.printf("in constructor 5 %f 6 %f \n", cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
-        }
     }
 
     @Override
@@ -134,14 +121,14 @@ public class TruthGBLRefitterDriver extends Driver {
 
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
-        List<HelicalTrackHit> helicalhits = null;
+        /*List<HelicalTrackHit> helicalhits = null;
         List<HelicalTrackHit> rotatedhits = null;
         if(event.hasCollection(HelicalTrackHit.class, "HelicalTrackHits_truth")){
             helicalhits = event.get(HelicalTrackHit.class, "HelicalTrackHits_truth");
         }
         if(event.hasCollection(HelicalTrackHit.class, "RotatedHelicalTrackHits_truth")){
             rotatedhits = event.get(HelicalTrackHit.class, "RotatedHelicalTrackHits_truth");
-        }
+        }*/
         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
         RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
@@ -162,8 +149,6 @@ public class TruthGBLRefitterDriver extends Driver {
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            //if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
-            //    continue;
 
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
@@ -173,6 +158,14 @@ public class TruthGBLRefitterDriver extends Driver {
                 MCParticle p = truthMatch.getMCParticle();
                 trackToMCParticleRelations.add(new BaseLCRelation(gblTrk,p));
             }
+            
+
+            // Extrapolate the track to the face of the Ecal and get the TrackState
+            //if (TrackType.isGBL(track.getType())) {
+            //TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap);
+            //if (stateEcal != null)
+            //    track.getTrackStates().add(stateEcal);
+            //}
 
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
@@ -228,7 +221,8 @@ public class TruthGBLRefitterDriver extends Driver {
         }
     }
     
-    private RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
+    //These functions are adapted from the same ones in TrackUtils, but without the "cache"
+    static RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
         RelationalTable hitToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> hitrelations = event.get(LCRelation.class, HelicalTrackHitRelationsCollectionName);
         for (LCRelation relation : hitrelations)
@@ -237,7 +231,7 @@ public class TruthGBLRefitterDriver extends Driver {
         return hitToStrips;
     }
 
-    private static RelationalTable getHitToRotatedTable(EventHeader event, String RotatedHelicalTrackHitRelationsCollectionName) {
+    static RelationalTable getHitToRotatedTable(EventHeader event, String RotatedHelicalTrackHitRelationsCollectionName) {
         RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
         for (LCRelation relation : rotaterelations)
