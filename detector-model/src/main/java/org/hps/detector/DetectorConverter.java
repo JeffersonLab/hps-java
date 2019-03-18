@@ -103,7 +103,7 @@ public class DetectorConverter {
             throw new IllegalArgumentException("No converter found for format: " + outputFormat);
 
         if (runNumber != null) {
-            DatabaseConditionsManager mgr = new DatabaseConditionsManager();
+            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
             String name = "DUMMY";
             ConditionsReader dummyReader = ConditionsReader.createDummy();
             ((ConditionsManagerImplementation) mgr).setConditionsReader(dummyReader, name);

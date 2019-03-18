@@ -61,7 +61,7 @@ public final class SvtDetectorSetupTest extends TestCase {
      */
     public void test() throws Exception {
 
-        final DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.addConditionsListener(new SvtDetectorSetup());
         //conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
         conditionsManager.setDetector("HPS-EngRun2015-Nominal-v3", 5772);

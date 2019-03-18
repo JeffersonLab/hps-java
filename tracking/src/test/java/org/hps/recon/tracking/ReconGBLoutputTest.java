@@ -51,7 +51,7 @@ public class ReconGBLoutputTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
 
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
         loop.add(new MainTrackingDriver());

@@ -140,7 +140,7 @@ public class ClustererTest extends TestCase {
         testOutputDir.mkdir();
 
         // Initialize the conditions system.
-        final DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager dbManager = DatabaseConditionsManager.getInstance();
         ConditionsManager.setDefaultConditionsManager(dbManager);
     }
 

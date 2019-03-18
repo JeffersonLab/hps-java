@@ -22,7 +22,7 @@ public class V0CandidateFilter2015Pass7Test extends TestCase {
         FileCache cache = new FileCache();
         File inputFile = cache.getCachedFile(testURL);
         LCSimLoop loop = new LCSimLoop();
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager.getInstance();
         V0CandidateFilter2015Pass7 driver = new V0CandidateFilter2015Pass7();
         loop.add(driver);
         try {
