@@ -83,6 +83,10 @@ public class RawTrackerHitFitterDriver extends Driver {
     public void setSubtractRFTime(boolean subtractRFTime) {
         this.subtractRFTime = subtractRFTime;
     }
+    
+    public void setTrigTimeScale(double time){
+        trigTimeScale=time;
+    }
 
     public void setFitAlgorithm(String fitAlgorithm) {
         if (fitAlgorithm.equals("Analytic"))
@@ -142,7 +146,6 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (debug)
                     System.out.println("TriggerTime List Size = " + jitterList.size());
                 TriggerTime jitterObject = jitterList.get(0);
-//                jitter = jitterObject.getDoubleVal() - trigTimeScale;
                   jitter = jitterObject.getDoubleVal() ;
                 if (debug)
                     System.out.println("RF time jitter " + jitter);
@@ -177,10 +180,9 @@ public class RawTrackerHitFitterDriver extends Driver {
                     fit.setT0(fit.getT0() - tt);
                 }
                 if (subtractRFTime && jitter != -666) {
-//                    System.out.println("subtracting RF time jitter");
                     if (debug)
                         System.out.println("subtracting RF time jitter " + jitter);
-                    fit.setT0(fit.getT0() - jitter+43.0);
+                    fit.setT0(fit.getT0() - jitter+trigTimeScale);
                 }
                 if (correctChanT0) {
                     if (debug)
@@ -190,7 +192,6 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (correctT0Shift) {
                     if (debug)
                         System.out.println("subtracting sensor shift " + sensor.getT0Shift());
-                    //===> fit.setT0(fit.getT0() - constants.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());
                 }
                 if (subtractTOF) {
@@ -212,7 +213,6 @@ public class RawTrackerHitFitterDriver extends Driver {
                 }
                 if (debug)
                     System.out.println(fit);
-//                System.out.println("Final t0 = " + fit.getT0());
                 fits.add(fit);
                 FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
                 hits.add(hth);

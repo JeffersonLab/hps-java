@@ -18,6 +18,7 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
+        <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
@@ -64,10 +65,10 @@
     </execute>    
     <drivers>    
         
-         <!-- Driver to reject "bad" events -->
-         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
-             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
-         </driver> 
+        <!-- Driver to reject "bad" events -->
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+            <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
+        </driver> 
         
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
@@ -82,6 +83,7 @@
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
         </driver> 
+        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>  
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
@@ -98,7 +100,9 @@
             <correctT0Shift>true</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
-            <subtractTriggerTime>true</subtractTriggerTime>
+            <subtractTriggerTime>true</subtractTriggerTime>            
+            <subtractRFTime>true</subtractRFTime> 
+            <trigTimeScale>55.0</trigTimeScale>
             <correctChanT0>true</correctChanT0>
             <debug>false</debug>
         </driver>
@@ -146,15 +150,15 @@
             <beamPositionY> -0.138 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -3.9 </beamPositionZ>
-	    <maxElectronP> 2.15 </maxElectronP>
-	    <maxVertexP> 2.8 </maxVertexP>
-	    <minVertexChisqProb> 1.7e-16 </minVertexChisqProb>
-	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
+            <maxElectronP> 2.15 </maxElectronP>
+            <maxVertexP> 2.8 </maxVertexP>
+            <minVertexChisqProb> 1.7e-16 </minVertexChisqProb>
+            <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-	  <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-	  <maxTrackChisq6hits> 72. </maxTrackChisq6hits>
-	</driver>
+            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+            <maxTrackChisq6hits> 72. </maxTrackChisq6hits>
+        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
