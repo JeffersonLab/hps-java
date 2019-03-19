@@ -40,6 +40,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private String inactiveTrackerHitsCollectionName = "TrackerHits_Inactive";
     private String ecalHitsCollectionName = "EcalHits";
     private final String mcParticleCollectionName = "MCParticle";
+    private final String badMCParticleRelationsColName = "TrackBadToMCParticleBadRelations";
     
     private List<ReconstructedParticle> unConstrainedV0List = null;
     private List<ReconstructedParticle> bsConstrainedV0List = null;
@@ -72,6 +73,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         addParticleVariables("posTruth");
         addFullTruthVertexVariables();
         addTruthRefitVariables();
+        addMCParticleVariables("otherPart");
 
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
         tupleVariables.addAll(Arrays.asList(newVars));
@@ -173,6 +175,38 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         tupleMap.put("minIso/D", minIso);
         
         fillVertexVariables("Badunc", uncV0, false);
+        
+        List<LCRelation> badMCParticleRelation = event.get(LCRelation.class,badMCParticleRelationsColName);
+        MCParticle badP = null;
+        for(LCRelation rel : badMCParticleRelation){
+            MCParticle badEle = null;
+            MCParticle badPos = null;
+            if(((Track) rel.getFrom()).equals(electron.getTracks().get(0))){
+                badEle = (MCParticle) rel.getTo();
+            }
+            if(((Track) rel.getFrom()).equals(positron.getTracks().get(0))){
+                badPos = (MCParticle) rel.getTo();
+            }
+            if(badEle != null && badPos != null){
+                System.out.println("Both Electron and Positron tracks have bad particles. Use the electron for now");
+                badP = badEle;
+            }
+            else if(badEle != null && badPos == null){
+                badP = badEle;
+            }
+            else if(badEle == null && badPos != null){
+                badP = badPos;
+            }
+            else{
+                System.out.println("Both positron and electron appear to not have a bad hit. This is weird");
+            }
+        }
+        if(badP == null){
+            System.out.println("No bad particles. This is also weird");
+        }
+        else{
+            fillMCParticleVariables("otherPart", badP);
+        }
         
         if (unc2Truth != null) {
             ReconstructedParticle temp = unc2Truth.get(uncV0);

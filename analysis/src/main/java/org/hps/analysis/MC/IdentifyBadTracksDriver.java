@@ -2,10 +2,12 @@ package org.hps.analysis.MC;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseLCRelation;
@@ -29,6 +31,7 @@ public class IdentifyBadTracksDriver extends Driver{
     //TODO Make these names configurable by steering file
     private final String trackColName = "GBLTracks";
     private final String badTrackColName = "GBLTracks_bad";
+    private final String badMCParticleRelationsColName = "TrackBadToMCParticleBadRelations";
     private final String simhitOutputColName = "TrackerHits_truth";
     private final String trackBadToTruthMatchRelationsOutputColName = "TrackBadToMCParticleRelations";
     private final String trackToTruthMatchRelationsOutputColName = "TrackToMCParticleRelations";
@@ -58,6 +61,7 @@ public class IdentifyBadTracksDriver extends Driver{
         List<MCFullDetectorTruth> truthMatchWithBadTrack = new ArrayList<MCFullDetectorTruth>();
         List<LCRelation> trackBadToTruthMatchRelations = new ArrayList<LCRelation>();
         List<LCRelation> trackToTruthMatchRelations = new ArrayList<LCRelation>();
+        List<LCRelation> trackBadToBadMCParticleRelations = new ArrayList<LCRelation>();
         
         //Loop over all tracks
         for(Track track:allTracks){
@@ -74,16 +78,45 @@ public class IdentifyBadTracksDriver extends Driver{
             if((truthMatch.getPurity() == 1.0)){
                 continue;
             }
+            //Identify MCParticle responsible for bad hit
+            MCParticle badPart = SelectBadMCParticle(truthMatch);
+            if(badPart == null){
+                System.out.println("");
+            }
             truthHits = truthMatch.getActiveHitListMCParticle();
             badTracks.add(track);
             truthMatchWithBadTrack.add(truthMatch);
             trackBadToTruthMatchRelations.add(new BaseLCRelation(track, truthMatch.getMCParticle()));
+            trackBadToBadMCParticleRelations.add(new BaseLCRelation(track, badPart));
         }
 
         //Fill the collections
+        event.put(badMCParticleRelationsColName, trackBadToBadMCParticleRelations, LCRelation.class, 0);
         event.put(simhitOutputColName, truthHits, SimTrackerHit.class, 0);
         event.put(badTrackColName, badTracks, Track.class, 0);
         event.put(trackBadToTruthMatchRelationsOutputColName, trackBadToTruthMatchRelations, LCRelation.class, 0);
         event.put(trackToTruthMatchRelationsOutputColName, trackToTruthMatchRelations, LCRelation.class, 0);
+    }
+    
+    //This function identifies MCParticle responsible for bad hit
+    //It selects the particle that at the innermost bad hit
+    //If this has multiple particles, select the higher momentum particle
+    //TODO Use better selection criteria or incorporate all particles that contribute to bad hits on track
+    MCParticle SelectBadMCParticle(MCFullDetectorTruth truthMatch){
+        MCParticle badP = null;
+        Set<SimTrackerHit> hitsNotMatched = truthMatch.getHitListNotMatched();
+        int lowestLayer = 9999;
+        for(SimTrackerHit hit : hitsNotMatched){
+            if(hit.getLayer() < lowestLayer){
+                lowestLayer = hit.getLayer();
+                badP = hit.getMCParticle();
+            }
+            else if(hit.getLayer() == lowestLayer){
+                if(hit.getMCParticle().getMomentum().magnitude() > badP.getMomentum().magnitude()){
+                    badP = hit.getMCParticle();
+                }
+            }
+        }
+        return badP;
     }
 }
