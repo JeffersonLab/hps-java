@@ -631,6 +631,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return this.isInitialized;
     }
 
+
+    /**
+     * Reset the static instance..
+     */
+    public static void reset() {
+        INSTANCE = new DatabaseConditionsManager();
+    }
+
     /**
      * Return <code>true</code> if Test Run configuration is active
      *
