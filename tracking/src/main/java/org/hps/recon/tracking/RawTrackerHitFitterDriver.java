@@ -203,7 +203,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                     double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
                     fit.setT0(fit.getT0() - tof);
                 }
-                 if (useTimestamps) {
+                if (useTimestamps) {
                     double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                     double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
                     // double corMod = (t0Svt - t0Trig) + 200.0;///where does 200.0 come from?  for 2016 MC, looks like should be 240

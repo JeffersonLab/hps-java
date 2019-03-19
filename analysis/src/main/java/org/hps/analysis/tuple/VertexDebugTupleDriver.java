@@ -23,10 +23,7 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
-import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
-import static org.hps.recon.tracking.TrackUtils.getMomentum;
-import static org.hps.recon.tracking.TrackUtils.getPoint;
 import org.hps.recon.tracking.TrackerHitUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -39,7 +36,6 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HelixParamCalculator;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
@@ -217,7 +213,7 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
             "pPosXErrRefitBSCFromV0/D", "pPosYErrRefitBSCFromV0/D", "pPosZErrRefitBSCFromV0/D"};
         tupleVariables.addAll(Arrays.asList(refitBSCFromV0Vars));
         
-          String[] refitTCFromV0Vars = new String[]{"mRefitTCFromV0/D", "vtxXRefitTCFromV0/D", "vtxYRefitTCFromV0/D", "vtxZRefitTCFromV0/D",
+        String[] refitTCFromV0Vars = new String[]{"mRefitTCFromV0/D", "vtxXRefitTCFromV0/D", "vtxYRefitTCFromV0/D", "vtxZRefitTCFromV0/D",
             "pEleXRefitTCFromV0/D", "pEleYRefitTCFromV0/D", "pEleZRefitTCFromV0/D",
             "pPosXRefitTCFromV0/D", "pPosYRefitTCFromV0/D", "pPosZRefitTCFromV0/D", "chisqRefitTCFromV0/D", "probRefitTCFromV0/D",
             "mErrRefitTCFromV0/D", "vtxXErrRefitTCFromV0/D", "vtxYErrRefitTCFromV0/D", "vtxZErrRefitTCFromV0/D",
@@ -262,7 +258,7 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
             "v0XYTarXRefitBSCFromV0/D", "v0XYTarYRefitBSCFromV0/D", "v0XYTarXErrRefitBSCFromV0/D", "v0XYTarYErrRefitBSCFromV0/D"};
         tupleVariables.addAll(Arrays.asList(v0RefitBSCFromV0Vars));
         
-           String[] v0RefitTCFromV0Vars = new String[]{"v0MomXRefitTCFromV0/D", "v0MomYRefitTCFromV0/D", "v0MomZRefitTCFromV0/D",
+        String[] v0RefitTCFromV0Vars = new String[]{"v0MomXRefitTCFromV0/D", "v0MomYRefitTCFromV0/D", "v0MomZRefitTCFromV0/D",
             "v0MomXErrRefitTCFromV0/D", "v0MomYErrRefitTCFromV0/D", "v0MomZErrRefitTCFromV0/D",
             "v0XYTarXRefitTCFromV0/D", "v0XYTarYRefitTCFromV0/D", "v0XYTarXErrRefitTCFromV0/D", "v0XYTarYErrRefitTCFromV0/D"};
         tupleVariables.addAll(Arrays.asList(v0RefitTCFromV0Vars));
@@ -338,7 +334,7 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
         List<ReconstructedParticle> BSCV0List = event.get(ReconstructedParticle.class, beamConV0CandidatesColName);
         if (debug)
             LOGGER.info("This events has " + BSCV0List.size() + " BSC V0s");
-         List<ReconstructedParticle> TCV0List = event.get(ReconstructedParticle.class, targetV0ConCandidatesColName);
+        List<ReconstructedParticle> TCV0List = event.get(ReconstructedParticle.class, targetV0ConCandidatesColName);
         if (debug)
             LOGGER.info("This events has " + TCV0List.size() + " Target Constrained V0s");
 

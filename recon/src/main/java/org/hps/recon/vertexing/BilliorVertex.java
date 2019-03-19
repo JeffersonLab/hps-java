@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
@@ -123,7 +122,7 @@ public class BilliorVertex implements Vertex {
             covList.add(cov2);
         }
         
-         if (paramMap.containsKey("c12-0")) {
+        if (paramMap.containsKey("c12-0")) {
             double[] temp = new double[6];
             temp[0] = paramMap.get("c12-0");
             temp[1] = paramMap.get("c12-1");
