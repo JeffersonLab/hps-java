@@ -47,7 +47,7 @@ public class KalmanDriverHPS extends Driver {
     private String trackCollectionName = "GBLTracks";
     private KalmanInterface KI;
     private double bField;
-    private boolean verbose = true;
+    private boolean verbose = false;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
@@ -120,19 +120,20 @@ public class KalmanDriverHPS extends Driver {
             aida.histogram1D(String.format("Kalman phi kinks for layer %d", i), 100, -0.02, 0.02);
             
             aida.histogram1D(String.format("12-hit Kalman Track Chi2 Layer %d", i), 100, 0, 50);
-            aida.histogram1D(String.format("12-hit Kalman Track Residual Layer %d", i), 100, -0.05, 0.05);
+            aida.histogram1D(String.format("12-hit Kalman Track Residual Layer %d", i), 100, -4., 4.);
+            aida.histogram1D(String.format("12-hit Kalman Normalized Track Residual Layer %d", i), 100, -4., 4.);
             aida.histogram1D(String.format("12-hit Kalman Hit Error Layer %d", i), 100, 0, 0.02);
             aida.histogram1D(String.format("12-hit Kalman Hit Reduced Error Layer %d", i), 100, 0, 0.02);
 
             aida.histogram1D(String.format("10-hit Kalman Track Chi2 Layer %d", i), 100, 0, 50);
-            aida.histogram1D(String.format("10-hit Kalman Track Residual Layer %d", i), 100, -0.05, 0.05);
+            aida.histogram1D(String.format("10-hit Kalman Track Residual Layer %d", i), 100, -4., 4.);
             aida.histogram1D(String.format("10-hit Kalman Hit Error Layer %d", i), 100, 0, 0.02);
             aida.histogram1D(String.format("10-hit Kalman Hit Reduced Error Layer %d", i), 100, 0, 0.02);
 
             aida.histogram1D(String.format("10-hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
-            aida.histogram1D(String.format("10-hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
+            aida.histogram1D(String.format("10-hit GBL-Kalman Track Y Layer %d", i), 200, 0., 0.4);
             aida.histogram1D(String.format("12-hit GBL-Kalman Track X Layer %d", i), 200, -0.2, 0.2);
-            aida.histogram1D(String.format("12-hit GBL-Kalman Track Y Layer %d", i), 200, -0.4, 0.4);
+            aida.histogram1D(String.format("12-hit GBL-Kalman Track Y Layer %d", i), 200, 0., 0.4);
         }
         aida.histogram1D("12-hit Kalman Track Chi2", 100, 0, 200);
         aida.histogram1D("10-hit Kalman Track Chi2", 100, 0, 200);
@@ -398,7 +399,8 @@ public class KalmanDriverHPS extends Driver {
                         aida.histogram1D(String.format("12-hit Kalman Hit Reduced Error Layer %d", site.m.Layer)).fill(Math.sqrt(site.aS.R));
                         double resid = site.m.hits.get(0).v - fullKalmanTrack.intercepts.get(site);
                         //System.out.format("resid1 = %10.5f,  resid2 = %10.5f\n", resid, site.aS.r); // this gives the same result either way
-                        aida.histogram1D(String.format("12-hit Kalman Track Residual Layer %d", site.m.Layer)).fill(resid);
+                        aida.histogram1D(String.format("12-hit Kalman Track Residual Layer %d", site.m.Layer)).fill(resid/site.m.hits.get(0).sigma);
+                        aida.histogram1D(String.format("12-hit Kalman Normalized Track Residual Layer %d", site.m.Layer)).fill(resid/Math.sqrt(site.aS.R));
                     }
                     aida.histogram1D("12-hit Kalman Track Chi2").fill(fullKalmanTrack.chi2);
                     aida.histogram1D("12-hit GBL Track Chi2").fill(trk.getChi2());
@@ -407,7 +409,7 @@ public class KalmanDriverHPS extends Driver {
                         aida.histogram1D(String.format("10-hit Kalman Track Chi2 Layer %d", site.m.Layer)).fill(site.chi2inc);
                         aida.histogram1D(String.format("10-hit Kalman Hit Error Layer %d", site.m.Layer)).fill(site.m.hits.get(0).sigma);
                         aida.histogram1D(String.format("10-hit Kalman Hit Reduced Error Layer %d", site.m.Layer)).fill(Math.sqrt(site.aS.R));
-                        aida.histogram1D(String.format("10-hit Kalman Track Residual Layer %d", site.m.Layer)).fill(site.m.hits.get(0).v - fullKalmanTrack.intercepts.get(site));
+                        aida.histogram1D(String.format("10-hit Kalman Track Residual Layer %d", site.m.Layer)).fill((site.m.hits.get(0).v - fullKalmanTrack.intercepts.get(site))/site.m.hits.get(0).sigma);
                     }
                     aida.histogram1D("10-hit Kalman Track Chi2").fill(fullKalmanTrack.chi2);
                     aida.histogram1D("10-hit GBL Track Chi2").fill(trk.getChi2());

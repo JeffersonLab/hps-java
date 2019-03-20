@@ -22,7 +22,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1; // The number of test events to generate for fitting
+        int nTrials = 10000; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -276,6 +276,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 "tracks");
         Histogram hChi2p = new Histogram(80, 0., 1.0, "Fit chi^2 using only hit errors", "chi^2",
                 "tracks");
+        Histogram hReducedErr = new Histogram(100, 0., .0002,"Reduced error in Layer 4","mm","tracks");
         Histogram hChi2f = new Histogram(80, 0., 1.0, "Helix fit chi^2 after filtering", "chi^2", "tracks");
         Histogram hXscat = new Histogram(100, -1., 0.02, "X scattering angles","degrees","Si planes");
         Histogram hZscat = new Histogram(100, -0.5, 0.01, "Z scattering angles","degrees","Si planes");
@@ -314,6 +315,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram[] hResidS0 = new Histogram[nLayers];
         Histogram[] hResidS2 = new Histogram[nLayers];
         Histogram[] hResidS4 = new Histogram[nLayers];
+        Histogram[] hResidX = new Histogram[nLayers];
+        Histogram[] hResidZ = new Histogram[nLayers];
         for (int i = 0; i < nLayers; i++) {
             hResidS0[i] = new Histogram(100, -10., 0.2, String.format("Smoothed fit residual for plane %d", i),
                     "sigmas", "hits");
@@ -321,6 +324,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     "hits");
             hResidS4[i] = new Histogram(100, -0.1, 0.002, String.format("Smoothed true residual for plane %d", i), "mm",
                     "hits");
+            hResidX[i] = new Histogram(100, -0.8, 0.016, String.format("True residual in global X for plane %d",i), "mm", "hits");
+            hResidZ[i] = new Histogram(100, -0.1, 0.002, String.format("True residual in global Z for plane %d",i), "mm", "hits");
         }
 
         Instant timestamp = Instant.now();
@@ -704,6 +709,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                                 hResid1.entry(site.aF.r / Math.sqrt(site.aF.R));
                         }
                         if (site.smoothed) {
+                            if (site.m.Layer == 4) hReducedErr.entry(Math.sqrt(site.aS.R)); 
                             chi2s += Math.pow(site.aS.mPred - site.m.hits.get(site.hitID).vTrue, 2) / site.aS.R;
                             hResidS0[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
                             hResidS2[siM.Layer].entry(site.aS.r);
@@ -714,7 +720,16 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     }
                 }
             }
-
+            for (MeasurementSite site : KalmanTrack.interceptVects.keySet()) {
+                Vec loc = KalmanTrack.interceptVects.get(site);
+                SiModule siM = site.m;
+                if (site.hitID<0) {
+                    System.out.format("Missing hit ID on site with layer=%d", siM.Layer);
+                }
+                Vec locMC = site.m.hits.get(site.hitID).rGlobal;
+                hResidX[siM.Layer].entry(loc.v[0]-locMC.v[0]);
+                hResidZ[siM.Layer].entry(loc.v[2]-locMC.v[2]);
+            }
             hChi2Alt.entry(chi2s);
             hChi2.entry(kF.chi2s);
             hChi2f.entry(kF.chi2f);
@@ -877,6 +892,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(),
                 ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
+        hReducedErr.plot(path + "ReducedErr.gp", true, " ", " ");
         hXscat.plot(path + "XscatAng.gp", true, " ", " ");
         hZscat.plot(path + "ZscatAng.gp", true, " ", " ");
         hScat.plot(path + "scatAng.gp", true, " ", " ");
@@ -927,6 +943,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             hResidS0[i].plot(path + String.format("residS0_%d.gp", i), true, " ", " ");
             hResidS2[i].plot(path + String.format("residS2_%d.gp", i), true, " ", " ");
             hResidS4[i].plot(path + String.format("residS4_%d.gp", i), true, " ", " ");
+            hResidX[i].plot(path + String.format("residX_%d.gp", i), true, " ", " ");
+            hResidZ[i].plot(path + String.format("residZ_%d.gp", i), true, " ", " ");
         }
     }
 
