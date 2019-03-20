@@ -89,7 +89,7 @@
         <driver name="GBLRefitterDriverTruth"/>
         <driver name="TrackDataDriverTruthTracks"/>
         <driver name="ReconParticleDriverTruth"/>
-        <driver name="LCIOWriter"/>
+        <!--<driver name="LCIOWriter"/>-->
         <driver name="RefitTupleMaker"/>
         <driver name="CleanupDriver"/>
     </execute>    

@@ -1,16 +1,28 @@
 package org.hps.analysis.MC;
 
+import hep.physics.vec.BasicHep3Vector;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+import org.hps.recon.particle.SimpleParticleID;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.utils.TrackClusterMatcher;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.compact.Subdetector;
@@ -27,6 +39,8 @@ import org.lcsim.util.Driver;
  */
 public class IdentifyBadTracksDriver extends Driver{
 
+
+    TrackClusterMatcher matcher = new TrackClusterMatcher();
     //Collection name
     //TODO Make these names configurable by steering file
     private final String trackColName = "GBLTracks";
@@ -35,12 +49,19 @@ public class IdentifyBadTracksDriver extends Driver{
     private final String simhitOutputColName = "TrackerHits_truth";
     private final String trackBadToTruthMatchRelationsOutputColName = "TrackBadToMCParticleRelations";
     private final String trackToTruthMatchRelationsOutputColName = "TrackToMCParticleRelations";
+    private final String otherParticleRelationsColName = "TrackBadToOtherParticleRelations";
+    private final String otherParticleColName = "OtherReconParticle";
+    private final String ecalClustersCollectionName = "EcalClusters";
 
   //List of Sensors
     private List<HpsSiSensor> sensors = null;
     FieldMap bFieldMap = null;
     private static final String SUBDETECTOR_NAME = "Tracker";
     protected static Subdetector trackerSubdet;
+    // normalized cluster-track distance required for qualifying as a match:
+    private double MAXNSIGMAPOSITIONMATCH=15.0;
+    private boolean disablePID = false;
+    protected double beamEnergy = 1.056;
 
     public void detectorChanged(Detector detector){
         
@@ -51,6 +72,12 @@ public class IdentifyBadTracksDriver extends Driver{
                           .getDetectorElement().findDescendants(HpsSiSensor.class);
         
         trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
+        
+        matcher.setBFieldMap(detector.getFieldMap());
+        BeamEnergyCollection beamEnergyCollection = 
+                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        matcher.setBeamEnergy(beamEnergy); 
     }
 
     @Override
@@ -62,6 +89,9 @@ public class IdentifyBadTracksDriver extends Driver{
         List<LCRelation> trackBadToTruthMatchRelations = new ArrayList<LCRelation>();
         List<LCRelation> trackToTruthMatchRelations = new ArrayList<LCRelation>();
         List<LCRelation> trackBadToBadMCParticleRelations = new ArrayList<LCRelation>();
+        List<LCRelation> trackBadToBadReconParticleRelations = new ArrayList<LCRelation>();
+        List<ReconstructedParticle> otherReconParticles = new ArrayList<ReconstructedParticle>();
+        List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
         
         //Loop over all tracks
         for(Track track:allTracks){
@@ -79,19 +109,33 @@ public class IdentifyBadTracksDriver extends Driver{
                 continue;
             }
             //Identify MCParticle responsible for bad hit
-            MCParticle badPart = SelectBadMCParticle(truthMatch);
-            if(badPart == null){
-                System.out.println("");
+            //System.out.println("New Bad Track!!");
+            MCParticle badPart = SelectBadMCParticle(truthMatch,track);
+            Track badTrk = SelectBadTrack(truthMatch,track);
+            ReconstructedParticle badReconPart = null;
+            if(badTrk != null){
+                badReconPart = makeReconstructedParticles(clusters,badTrk);
+                otherReconParticles.add(badReconPart);
             }
+            else{
+                //System.out.println("There are no Tracks associated with bad hit");
+            }
+            if(badPart == null){
+                //System.out.println("There are no MC Particles associated with bad hit");
+            }
+
             truthHits = truthMatch.getActiveHitListMCParticle();
             badTracks.add(track);
             truthMatchWithBadTrack.add(truthMatch);
             trackBadToTruthMatchRelations.add(new BaseLCRelation(track, truthMatch.getMCParticle()));
             trackBadToBadMCParticleRelations.add(new BaseLCRelation(track, badPart));
+            trackBadToBadReconParticleRelations.add(new BaseLCRelation(track, badReconPart));
         }
 
         //Fill the collections
+        event.put(otherParticleColName, otherReconParticles, ReconstructedParticle.class, 0);
         event.put(badMCParticleRelationsColName, trackBadToBadMCParticleRelations, LCRelation.class, 0);
+        event.put(otherParticleRelationsColName, trackBadToBadReconParticleRelations, LCRelation.class, 0);
         event.put(simhitOutputColName, truthHits, SimTrackerHit.class, 0);
         event.put(badTrackColName, badTracks, Track.class, 0);
         event.put(trackBadToTruthMatchRelationsOutputColName, trackBadToTruthMatchRelations, LCRelation.class, 0);
@@ -102,21 +146,149 @@ public class IdentifyBadTracksDriver extends Driver{
     //It selects the particle that at the innermost bad hit
     //If this has multiple particles, select the higher momentum particle
     //TODO Use better selection criteria or incorporate all particles that contribute to bad hits on track
-    MCParticle SelectBadMCParticle(MCFullDetectorTruth truthMatch){
+
+    MCParticle SelectBadMCParticle(MCFullDetectorTruth truthMatch, Track trk){
         MCParticle badP = null;
-        Set<SimTrackerHit> hitsNotMatched = truthMatch.getHitListNotMatched();
-        int lowestLayer = 9999;
-        for(SimTrackerHit hit : hitsNotMatched){
-            if(hit.getLayer() < lowestLayer){
-                lowestLayer = hit.getLayer();
-                badP = hit.getMCParticle();
-            }
-            else if(hit.getLayer() == lowestLayer){
-                if(hit.getMCParticle().getMomentum().magnitude() > badP.getMomentum().magnitude()){
-                    badP = hit.getMCParticle();
+        List<TrackerHit> hits = trk.getTrackerHits();
+        for(TrackerHit hit : hits){
+            int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+            if(truthMatch.getHitList(layer))
+                continue;
+            Set<MCParticle> badPList = truthMatch.getHitMCParticleList(layer);
+            if(badPList ==  null)
+                continue;
+            double maxP = 0.0;
+            for(MCParticle part : badPList){
+                double p = part.getMomentum().magnitude();
+                if(p > maxP){
+                    badP = part;
+                    //System.out.println("Prt Layer " + layer + " " + truthMatch.getNBadHits() + " " + part.getPDGID() + " " + p);
+                    break;
                 }
             }
+            if(badP != null){
+                //System.out.println("Prt selected " + " " + badP.getEnergy());
+                return badP;
+            }
         }
+        //System.out.println("Prt selected " + " " + badP);
         return badP;
+    }
+    
+    //This function identifies a Track responsible for bad hit
+    //It selects the track that at the innermost bad hit
+    //If this has multiple tracks, select the higher momentum track
+    //TODO Use better selection criteria or incorporate all tracks that contribute to bad hits on track
+    
+    Track SelectBadTrack(MCFullDetectorTruth truthMatch, Track trk){
+        Track badTrk = null;
+        List<TrackerHit> hits = trk.getTrackerHits();
+        for(TrackerHit hit : hits){
+            int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+            if(truthMatch.getHitList(layer))
+                continue;
+            Set<Track> badTrkList = truthMatch.getHitTrackList(layer);
+            if(badTrkList ==  null)
+                continue;
+            double maxP = 0.0;
+            for(Track track : badTrkList){
+                double p = Math.abs(TrackUtils.getHTF(track.getTrackStates().get(0)).p(bFieldMap.getField(new BasicHep3Vector(0, 0, 500)).y()));
+                if(p > maxP){
+                    badTrk = track;
+                    break;
+                }
+            }
+            if(badTrk != null){
+                //System.out.println("Trk selected " + Math.abs(TrackUtils.getHTF(badTrk.getTrackStates().get(0)).p(bFieldMap.getField(new BasicHep3Vector(0, 0, 500)).y())));
+                return badTrk;
+            }
+        }
+        //System.out.println("Trk selected " + badTrk);
+        return badTrk;
+    }
+    
+    protected ReconstructedParticle makeReconstructedParticles(List<Cluster> clusters, Track track) {
+
+        // Loop through all of the track collections and try to match every
+        // track to a cluster. Allow a cluster to be matched to multiple
+        // tracks and use a probability (to be coded later) to determine what
+        // the best match is.
+
+        // Create a reconstructed particle to represent the track.
+        ReconstructedParticle particle = new BaseReconstructedParticle();
+
+        // Store the track in the particle.
+        particle.addTrack(track);
+
+        // Set the type of the particle. This is used to identify
+        // the tracking strategy used in finding the track associated with
+        // this particle.
+        ((BaseReconstructedParticle) particle).setType(track.getType());
+
+        // Derive the charge of the particle from the track.
+        int flipSign = 1;
+        int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega());
+        ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
+
+        // initialize PID quality to a junk value:
+        ((BaseReconstructedParticle) particle).setGoodnessOfPid(9999);
+
+        // Extrapolate the particle ID from the track. Positively
+        // charged particles are assumed to be positrons and those
+        // with negative charges are assumed to be electrons.
+        if (particle.getCharge() > 0) {
+            ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+        } else if (particle.getCharge() < 0) {
+            ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
+        }
+
+        // normalized distance of the closest match:
+        double smallestNSigma = Double.MAX_VALUE;
+
+        // try to find a matching cluster:
+        Cluster matchedCluster = null;
+        for (Cluster cluster : clusters) {
+            //double clusTime = ClusterUtilities.getSeedHitTime(cluster);
+            //double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+
+                    
+            //if the option to use corrected cluster positions is selected, then
+            //create a copy of the current cluster, and apply corrections to it
+            //before calculating nsigma.  Default is don't use corrections.  
+            Cluster originalCluster = cluster;
+                    
+            // normalized distance between this cluster and track:
+            final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
+
+            // ignore if matching quality doesn't make the cut:
+            if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
+                continue;
+
+            // ignore if we already found a cluster that's a better match:
+            if (thisNSigma > smallestNSigma)
+                continue;
+
+            // we found a new best cluster candidate for this track:
+            smallestNSigma = thisNSigma;
+            matchedCluster = originalCluster;
+        }
+
+        // If a cluster was found that matches the track...
+        if (matchedCluster != null) {
+
+            // add cluster to the particle:
+            particle.addCluster(matchedCluster);
+
+            // use pid quality to store track-cluster matching quality:
+            ((BaseReconstructedParticle) particle).setGoodnessOfPid(smallestNSigma);
+
+            // propogate pid to the cluster:
+            final int pid = particle.getParticleIDUsed().getPDG();
+            if (Math.abs(pid) == 11) {
+                if (!disablePID)
+                    ((BaseCluster) matchedCluster).setParticleId(pid);
+            }
+        }
+        return particle;
     }
 }
