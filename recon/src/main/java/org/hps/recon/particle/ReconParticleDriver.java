@@ -498,8 +498,13 @@ public abstract class ReconParticleDriver extends Driver {
                     double clusTime = ClusterUtilities.getSeedHitTime(cluster);
                     double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
                     
-                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()){
+                        if (debug) {
+                            System.out.println("Failed cluster-track deltaT!");
+                            System.out.println(clusTime + "  " + trkT + "  " + cuts.getTrackClusterTimeOffset() + ">" + cuts.getMaxMatchDt());
+                        }
                         continue;
+                    }
                     
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
@@ -519,13 +524,23 @@ public abstract class ReconParticleDriver extends Driver {
                     }
 
                     // ignore if matching quality doesn't make the cut:
-                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH){
+                        if (debug) {
+                            System.out.println("Failed cluster-track NSigma Cut!");
+                            System.out.println("match NSigma = "+thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH );
+                        }
                         continue;
+                    }
+                        
 
                     // ignore if we already found a cluster that's a better match:
-                    if (thisNSigma > smallestNSigma)
+                    if (thisNSigma > smallestNSigma) {
+                        if (debug) {
+                            System.out.println("Already found a better match than this!");
+                            System.out.println("match NSigma = "+thisNSigma + "; smallest NSigma =  " + smallestNSigma );
+                        }
                         continue;
-
+                    }
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
                     matchedCluster = originalCluster;
@@ -678,6 +693,8 @@ public abstract class ReconParticleDriver extends Driver {
         if (trackCollectionNames != null) {
             for (String collectionName : trackCollectionNames) {
                 if (event.hasCollection(Track.class, collectionName)) {
+                         // VERBOSE :: Output the number of clusters in the event.
+                    printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
                     trackCollections.add(event.get(Track.class, collectionName));
                 }
             }

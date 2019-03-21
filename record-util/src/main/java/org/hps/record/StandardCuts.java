@@ -63,7 +63,7 @@ public class StandardCuts {
     
     public double getMaxTrackChisq(int nhits) {
         int dof = nhits*2-5;
-        if (!maxTrackChisq.containsKey(nhits)) {
+        if (!maxTrackChisq.containsKey(dof)) {
             maxTrackChisq.put(dof, new ChiSquaredDistribution(dof).inverseCumulativeProbability(1.0-maxTrackChisqProb));
         }
         return maxTrackChisq.get(dof);

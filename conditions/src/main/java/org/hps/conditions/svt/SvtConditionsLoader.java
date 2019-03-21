@@ -81,10 +81,10 @@ public final class SvtConditionsLoader {
         try {
 
             // If a user has specified the connection properties, set them, otherwise use the default values.
-            if (commandLine.hasOption("p")) {
-                DatabaseConditionsManager.getInstance().setConnectionProperties(
-                        new File(commandLine.getOptionValue("p")));
-            }
+            //if (commandLine.hasOption("p")) {
+            //    DatabaseConditionsManager.getInstance().setConnectionProperties(
+            //            new File(commandLine.getOptionValue("p")));
+            //}
             DatabaseConditionsManager.getInstance().setDetector(SvtConditionsLoader.DETECTOR, runNumber);
         } catch (final ConditionsNotFoundException e) {
             throw new RuntimeException("Could not initialize the conditions system.", e);

@@ -43,6 +43,8 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
+    private double tsCorrectionScale = 240;
+
     /**
      * Report time relative to the nearest expected truth event time.
      *
@@ -66,6 +68,10 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setUseTimestamps(boolean useTimestamps) {
         this.useTimestamps = useTimestamps;
+    }
+
+    public void setTsCorrectionScale(double tsCorrectionScale) {
+        this.tsCorrectionScale = tsCorrectionScale;
     }
 
     public void setSubtractTOF(boolean subtractTOF) {
@@ -126,7 +132,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     public void startOfData() {
         fitter.setDebug(debug);
         if (rawHitCollectionName == null)
-            throw new RuntimeException("The parameter rawHitCollectionName1 was not set!");
+            throw new RuntimeException("The parameter rawHitCollectionName was not set!");
     }
 
     protected void detectorChanged(Detector detector) {
@@ -155,6 +161,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                 return;
             }
 
+
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawHitCollectionName);
         if (rawHits == null)
             throw new RuntimeException("Event is missing SVT hits collection!");
@@ -168,6 +175,7 @@ public class RawTrackerHitFitterDriver extends Driver {
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
+
                 if (correctTimeOffset) {
                     if (debug)
                         System.out.println("subtracting svt time offset " + timingConstants.getOffsetTime());
@@ -193,7 +201,6 @@ public class RawTrackerHitFitterDriver extends Driver {
                     if (debug)
                         System.out.println("subtracting sensor shift " + sensor.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());
-                }
                 if (subtractTOF) {
                     double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
                     fit.setT0(fit.getT0() - tof);
@@ -201,7 +208,8 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (useTimestamps) {
                     double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                     double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
-                    double corMod = (t0Svt - t0Trig) + 200.0;
+                    // double corMod = (t0Svt - t0Trig) + 200.0;///where does 200.0 come from?  for 2016 MC, looks like should be 240
+                    double corMod = (t0Svt - t0Trig) + tsCorrectionScale;
                     fit.setT0(fit.getT0() + corMod);
                 }
                 if (useTruthTime) {
