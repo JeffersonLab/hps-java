@@ -2,8 +2,6 @@ package org.hps.recon.tracking;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
 
 import junit.framework.TestCase;
 
