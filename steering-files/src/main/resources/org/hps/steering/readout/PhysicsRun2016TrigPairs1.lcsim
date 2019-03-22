@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
 	<execute>
 		<!-- SLiC Data Readout Drivers -->
@@ -50,8 +51,6 @@
 			<readoutWindowBefore>8.0</readoutWindowBefore>
 			<readoutWindowAfter>32.0</readoutWindowAfter>
 			<persistent>false</persistent>
-			
-			<debug>false</debug>
 		</driver>
 		
 		<driver name="MCParticleOutputDriver" type="org.hps.readout.MCParticleReadoutDriver">
@@ -61,8 +60,6 @@
 			<readoutWindowBefore>32.0</readoutWindowBefore>
 			<readoutWindowAfter>32.0</readoutWindowAfter>
 			<persistent>false</persistent>
-			
-			<debug>false</debug>
 		</driver>
 		
 		<driver name="TrackerHitsOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
@@ -72,8 +69,6 @@
 			<readoutWindowBefore>8.0</readoutWindowBefore>
 			<readoutWindowAfter>32.0</readoutWindowAfter>
 			<persistent>false</persistent>
-			
-			<debug>false</debug>
 		</driver>
 		
 		<driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
@@ -83,8 +78,6 @@
 			<readoutWindowBefore>8.0</readoutWindowBefore>
 			<readoutWindowAfter>32.0</readoutWindowAfter>
 			<persistent>false</persistent>
-			
-			<debug>false</debug>
 		</driver>
 		
 		
@@ -95,7 +88,7 @@
 		<driver name="SVTReadoutDriver" type="org.hps.readout.svt.SVTReadoutDriver">
 			<enablePileupCut>false</enablePileupCut>
 			<useTimingConditions>true</useTimingConditions>
-			<addNoise>false</addNoise>
+			<addNoise>true</addNoise>
 		</driver>
 		
 		<!--
@@ -142,9 +135,6 @@
 			<numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
 			<integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
 			
-			<!-- Debug -->
-			<debug>false</debug>
-			
 			<!--
 				The digitization driver produces as output a list of ADC values
 				within a specified window, in emulation of Mode-1 data. This
@@ -178,8 +168,6 @@
 			 GTP clusters if cluster output is enabled.
 		  -->
 		<driver name="RawConverterReadoutDriver" type="org.hps.readout.ecal.updated.EcalReadoutRawConverterDriver">
-			<debug>false</debug>
-			
 			<!--
 				Outputs all the trigger-level hits within the readout window.
 				This is not generally necessary outside of specialized
@@ -197,7 +185,6 @@
 				contributed to the integrated pulse.
 			-->
 			<persistTruth>false</persistTruth>
-			<truthRelationsCollectionName>TriggerPathTruthRelations</truthRelationsCollectionName>
 		</driver>
 		
 		<!--
@@ -229,8 +216,6 @@
 				after readout.
 			-->
 			<persistent>false</persistent>
-			
-			<debug>false</debug>
 		</driver>
 		
 		<!--
@@ -267,8 +252,6 @@
 			<energySlopeParamF>0.0055</energySlopeParamF>
 			<!-- Units of GeV. -->
 			<energySlopeLow>0.700</energySlopeLow>
-			
-			<debug>false</debug>
 		</driver>
 		
 		<driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
