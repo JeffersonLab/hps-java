@@ -2,6 +2,8 @@ package org.hps.recon.tracking;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import junit.framework.TestCase;
 
@@ -130,8 +132,7 @@ public class ReconTestSkeleton extends TestCase {
             add(trd4);
 
             org.hps.recon.tracking.MergeTrackCollections mtc = new org.hps.recon.tracking.MergeTrackCollections();
-            //mtc.setInputTrackCollectionName("");
-            //mtc.setInputTrackCollectionName("");
+            mtc.setInputTrackCollectionName(new String[]{""});
             mtc.setRemoveCollections(true);
             add(mtc);
 
