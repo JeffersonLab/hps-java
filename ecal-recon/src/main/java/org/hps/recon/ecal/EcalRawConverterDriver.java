@@ -1,17 +1,11 @@
 package org.hps.recon.ecal;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.readout.TempOutputWriter;
 import org.hps.record.daqconfig.ConfigurationManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -19,7 +13,6 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -38,7 +31,6 @@ import org.lcsim.util.Driver;
  * The results are by default written to the <b>EcalCalHits</b> output collection.
  */
 public class EcalRawConverterDriver extends Driver {
-    private final TempOutputWriter writer = new TempOutputWriter("converted_hits_old.log");
 
     // To import database conditions
     private EcalConditions ecalConditions = null;
@@ -57,13 +49,7 @@ public class EcalRawConverterDriver extends Driver {
      * This has energy (GeV) and ns time information.
      */
     private String ecalCollectionName = "EcalCalHits";
-    
-    /**
-     * Defines the name of the collection that contains the truth
-     * relations for raw hits.
-     */
-    private String truthRelationsCollectionName = "EcalTruthRelations";
-    
+
     /**
      * ecalCollectionName "type" (must match detector-data) 
      */
@@ -73,6 +59,8 @@ public class EcalRawConverterDriver extends Driver {
      * Output relation between ecalCollectionName and Mode-7 pedestals
      */
     private static final String extraDataRelationsName = "EcalReadoutExtraDataRelations";
+
+    private boolean debug = false;
     
     /**
      * Hit threshold in GeV.  Anything less will not be put into LCIO. 
@@ -125,22 +113,8 @@ public class EcalRawConverterDriver extends Driver {
      */
     private boolean emulateFirmware = true;
     
-    /**
-     * Specifies whether truth information is to be persisted through
-     * this driver. If set to true, the driver will attempt to access
-     * calorimeter truth relations and will merge them into the hits
-     * it generates. An error will occur if these relations are not
-     * found. 
-     */
-    private boolean persistTruth = false;
-    
     public EcalRawConverterDriver() {
         converter = new EcalRawConverter();
-    }
-    
-    @Override
-    public void endOfData() {
-        writer.close();
     }
 
     /**
@@ -366,10 +340,20 @@ public class EcalRawConverterDriver extends Driver {
     public void setApplyBadCrystalMap(boolean apply) {
         this.applyBadCrystalMap = apply;
     }
+
+    /**
+     * Set to <code>true</code> to turn on debug output.
+     * @param debug True to turn on debug output.
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
     
     public void setDisplay(boolean display){
+        this.display = display;
         converter.setDisplay(display);
     }
+    private boolean display;
     
 
     /**
@@ -410,37 +394,12 @@ public class EcalRawConverterDriver extends Driver {
         useDAQConfig = state;
         converter.setUseDAQConfig(state);
     }
-    
-    /**
-     * Sets whether the driver should use calorimeter truth relations
-     * and include this data in the hits generates. If enabled, all
-     * truth hits associated with a given raw hit will have their
-     * contribution references merged into the output hit. This will
-     * cause an exception if the truth information is not available.
-     * If disabled, no truth information is included or needed.
-     * @param state - <code>true</code> enables the merging of truth
-     * information, and <code>false</code>  disables it.
-     */
-    public void setPersistTruth(boolean state) {
-        persistTruth = state;
-    }
-    
-    /**
-     * Sets the name of the collection that contains the hit truth
-     * relations.
-     * @param collection - The collection name.
-     */
-    public void setTruthRelationsCollectionName(String collection) {
-        truthRelationsCollectionName = collection;
-    }
 
     @Override
     public void startOfData() {
         if (ecalCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
         }
-        
-        writer.initialize();
     }
 
     @Override
@@ -488,9 +447,6 @@ public class EcalRawConverterDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        writer.write("> Event " + event.getEventNumber() + " - ???");
-        writer.write("Input");
-        
         // Do not process the event if the DAQ configuration should be
         // used for value, but is not initialized.
         if(useDAQConfig && !ConfigurationManager.isInitialized()) {
@@ -515,249 +471,117 @@ public class EcalRawConverterDriver extends Driver {
         int flags = 0;
         flags += 1 << LCIOConstants.RCHBIT_TIME; //store hit time
         flags += 1 << LCIOConstants.RCHBIT_LONG; //store hit position; this flag has no effect for RawCalorimeterHits
-        
-        // If the converter is to be run forwards (i.e. for readout
-        // hit to simulation hits)...
+
         if (!runBackwards) {
             ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
-            ArrayList<SimCalorimeterHit> newTruthHits = new ArrayList<SimCalorimeterHit>();
-            
-            // Load the truth information, if it exists, and
-            // format it into a more usable data structure.
-            List<LCRelation> truthRelations = null;
-            if(event.hasCollection(LCRelation.class, truthRelationsCollectionName)) {
-                truthRelations = event.get(LCRelation.class, truthRelationsCollectionName);
-            }
-            
-            
-            // Process Mode-1 data. These are stored as RawTrackerHit
-            // objects.
-            if(event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
+
+            /*
+             * This is for FADC Mode-1 data:    
+             */
+            if (event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
                 List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
 
-                for(RawTrackerHit hit : hits) {
-                    // Get the readout hits.
+                for (RawTrackerHit hit : hits) {
+           
                     ArrayList<CalorimeterHit> newHits2 = new ArrayList<CalorimeterHit>();
-                    
-                    // If truth information exists, read it.
-                    Map<RawTrackerHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-                    if(persistTruth && truthRelations != null) {
-                        hitToTruthMap = getTruthMap(truthRelations, RawTrackerHit.class);
-                    } else if(persistTruth) {
-                        throw new RuntimeException("Error: Requested truth data, but no truth relations were found.");
-                    }
-                    
-                    // Convert each of the hits into a simulation hit.
-                    if(emulateFirmware) {
-                        // Because proper ADC buffer handling only
-                        // takes buffer samples across a limited time
-                        // range, it is not proper to directly attach
-                        // all the truth hits associated with the ADC
-                        // buffer to each hit. Instead, the truth
-                        // data is sent to the converter. It will
-                        // then take only that portion of the truth
-                        // associated with the integration window for
-                        // each hit, and assign that range to each
-                        // truth hit.
-                        newHits2.addAll(converter.HitDtoA(event, hit, hitToTruthMap, hit.getMetaData()));
+                    if (emulateFirmware) {
+                        newHits2.addAll(converter.HitDtoA(event,hit));
                     } else {
-                        // Get the generic hit.
-                        CalorimeterHit genericHit = converter.HitDtoA(hit);
-                        
-                        // This method just adds the entire pulse ADC
-                        // together, and as such, should have all the
-                        // truth hits associated with that pulse.
-                        if(persistTruth) {
-                            genericHit = CalorimeterHitUtilities.convertToTruthHit(genericHit, hitToTruthMap.get(hit), genericHit.getMetaData());
-                        }
-                        
-                        // Add the hit to the list of temporary hits.
                         newHits2.add(converter.HitDtoA(hit));
                     }
-                    
-                    // Check to make sure that the hit meets the
-                    // readout criteria.
-                    for(CalorimeterHit newHit : newHits2) {
+               
+                    for (CalorimeterHit newHit : newHits2) {
+
                         // Get the channel data.
                         EcalChannelConstants channelData = findChannel(newHit.getCellID());
-                        
-                        if(applyBadCrystalMap && channelData.isBadChannel()) {
+
+                        if (applyBadCrystalMap && channelData.isBadChannel()) {
                             continue;
                         }
-                        if(dropBadFADC && isBadFADC(newHit)) {
+                        if (dropBadFADC && isBadFADC(newHit)) {
                             continue;
                         }
-                        if(newHit.getRawEnergy() > threshold) {
-                            if(!persistTruth) {
-                                newHits.add(newHit);
-                            } else if(SimCalorimeterHit.class.isAssignableFrom(newHit.getClass())) {
-                                newTruthHits.add((SimCalorimeterHit) newHit);
-                            } else {
-                                throw new RuntimeException("Error: Truth data is available, but output hits do not include it.");
-                            }
+                        if (newHit.getRawEnergy() > threshold) {
+                            newHits.add(newHit);
                         }
                     }
                 }
-                
-                // If truth data is included, then the hits in the
-                // output collection are actually SimCalorimeterHit
-                // objects. Convert them formally.
-                if(persistTruth) {
-                    event.put(ecalCollectionName, newTruthHits, SimCalorimeterHit.class, flags, ecalReadoutName);
-                    System.out.println("Output collection \"" + ecalCollectionName + "\" of size " + newTruthHits.size()
-                            + " and type " + SimCalorimeterHit.class.getSimpleName());
-                } else {
-                    event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
-                    System.out.println("Output collection \"" + ecalCollectionName + "\" of size " + newHits.size()
-                            + " and type " + CalorimeterHit.class.getSimpleName());
-                }
+                event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
-            
-            
-            // Process Mode-3 and Mode-7 data. These are both stored
-            // as RawCalorimeterHit objects.
-            if(event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) {
-                // Process Mode-7 hits. These are distinguished from
-                // Mode-3 hits by the presence of extra information
-                // in the form of LCRelations.
-                if(event.hasCollection(LCRelation.class, extraDataRelationsName)) {
+           
+            /*
+             * This is for FADC pulse mode data (Mode-3 or Mode-7):
+             */
+            if (event.hasCollection(RawCalorimeterHit.class, rawCollectionName)) { 
+
+                /*
+                 * This is for FADC Mode-7 data:
+                 */
+                if (event.hasCollection(LCRelation.class, extraDataRelationsName)) { // extra information available from mode 7 readout
                     List<LCRelation> extraDataRelations = event.get(LCRelation.class, extraDataRelationsName);
                     for (LCRelation rel : extraDataRelations) {
-                        // Get the readout hit.
                         RawCalorimeterHit hit = (RawCalorimeterHit) rel.getFrom();
-                        
-                        // If truth information exists, read it.
-                        Map<RawCalorimeterHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-                        if(persistTruth && truthRelations != null) {
-                            hitToTruthMap = getTruthMap(truthRelations, RawCalorimeterHit.class);
-                        } else if(persistTruth) {
-                            throw new RuntimeException("Error: Requested truth data, but no truth relations were found.");
+                        if (debug) {
+                            System.out.format("old hit energy %d\n", hit.getAmplitude());
                         }
-                        
-                        // Get the extra readout data.
                         GenericObject extraData = (GenericObject) rel.getTo();
-                        
-                        // Convert the readout hit to a new hit.
-                        CalorimeterHit newHit = converter.HitDtoA(event,hit, extraData, timeOffset);
-                        
-                        // If truth information exists, extract it
-                        // and store it as a part of the hit. This is
-                        // done by converting the hit to an identical
-                        // SimCalorimeterHit object, except now with
-                        // the extra truth data.
-                        SimCalorimeterHit truthHit = null;
-                        if(persistTruth) {
-                            Set<SimCalorimeterHit> truthHits = hitToTruthMap.get(hit);
-                            truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, newHit.getMetaData());
-                        }
-                        
-                        // If the new hit meets the appropriate
-                        // conditions, persist it to the data stream.
-                        if(newHit.getRawEnergy() > threshold) {
-                            if(applyBadCrystalMap && isBadCrystal(newHit)) {
+                        CalorimeterHit newHit;
+                        newHit = converter.HitDtoA(event,hit, extraData, timeOffset);
+                        if (newHit.getRawEnergy() > threshold) {
+                            if (applyBadCrystalMap && isBadCrystal(newHit)) {
                                 continue;
                             }
-                            if(dropBadFADC && isBadFADC(newHit)) {
+                            if (dropBadFADC && isBadFADC(newHit)) {
                                 continue;
                             }
-                            
-                            // If the truth data is not available,
-                            // just output a CalorimeterHit. If truth
-                            // data is available, then instead output
-                            // a SimCalorimeterHit.
-                            if(truthHit == null) {
-                                newHits.add(newHit);
-                            } else {
-                                newTruthHits.add(truthHit);
+                            if (debug) {
+                                System.out.format("new hit energy %f\n", newHit.getRawEnergy());
                             }
+                            newHits.add(newHit);
                         }
+
                     }
-                }
-                
-                
-                // If extra information is not available, the hits
-                // are simply Mode-3.
-                else {
-                    // Get the collection of hits from the event.
-                    List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
-                    
-                    // DEBUG :: Write the raw hits seen.
-                    for(RawCalorimeterHit hit : hits) {
-                        writer.write(String.format("%d;%d;%d", hit.getAmplitude(), hit.getTimeStamp(), hit.getCellID()));
-                    }
-                    
-                    // If truth information exists, read it.
-                    Map<RawCalorimeterHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-                    if(persistTruth && truthRelations != null) {
-                        hitToTruthMap = getTruthMap(truthRelations, RawCalorimeterHit.class);
-                    } else if(persistTruth) {
-                        throw new RuntimeException("Error: Requested truth data, but no truth relations were found.");
-                    }
-                    
-                    // Iterate over each hit and convert it to a
-                    // simulation hit.
-                    for (RawCalorimeterHit hit : hits) {
-                        // Generate the new hit.
-                        CalorimeterHit newHit = converter.HitDtoA(event, hit, timeOffset);
-                        
-                        // If truth information exists, extract it
-                        // and store it as a part of the hit. This is
-                        // done by converting the hit to an identical
-                        // SimCalorimeterHit object, except now with
-                        // the extra truth data.
-                        SimCalorimeterHit truthHit = null;
-                        if(persistTruth) {
-                            Set<SimCalorimeterHit> truthHits = hitToTruthMap.get(hit);
-                            truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, newHit.getMetaData());
-                        }
-                        
-                        // Check that the hit meets the output
-                        // thresholds.
-                        if(newHit.getRawEnergy() > threshold) {
-                            if(applyBadCrystalMap && isBadCrystal(newHit)) {
-                                continue;
-                            }
-                            if(dropBadFADC && isBadFADC(newHit)) {
-                                continue;
-                            }
-                            
-                            // If the truth data is not available,
-                            // just output a CalorimeterHit. If truth
-                            // data is available, then instead output
-                            // a SimCalorimeterHit.
-                            if(truthHit == null) {
-                                newHits.add(newHit);
-                            } else {
-                                newTruthHits.add(truthHit);
-                            }
-                        }
-                    }
-                }
-                writer.write("Output");
-                for(CalorimeterHit hit : newHits) {
-                    writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-                }
-                
-                // Output the truth hits if possible. Otherwise, just
-                // output the converted hits.
-                if(!persistTruth) {
-                    event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
                 } else {
-                    event.put(ecalCollectionName, newTruthHits, SimCalorimeterHit.class, flags, ecalReadoutName);
+                    /*
+                     * This is for FADC Mode-3 data:
+                     */
+                    List<RawCalorimeterHit> hits = event.get(RawCalorimeterHit.class, rawCollectionName);
+                    for (RawCalorimeterHit hit : hits) {
+                        if (debug) {
+                            System.out.format("old hit energy %d\n", hit.getAmplitude());
+                        }
+                        CalorimeterHit newHit;
+                        newHit = converter.HitDtoA(event, hit, timeOffset);
+                        if (newHit.getRawEnergy() > threshold) {
+                            if (applyBadCrystalMap && isBadCrystal(newHit)) {
+                                continue;
+                            }
+                            if (dropBadFADC && isBadFADC(newHit)) {
+                                continue;
+                            }
+                            if (debug) {
+                                System.out.format("new hit energy %f\n", newHit.getRawEnergy());
+                            }
+                            newHits.add(newHit);
+                        }
+                    }
                 }
+                event.put(ecalCollectionName, newHits, CalorimeterHit.class, flags, ecalReadoutName);
             }
-        }
-        
-        // Otherwise, run the hit conversion in reverse to get ADC
-        // from a calorimeter hit.
-        else {
+        } else {
             ArrayList<RawCalorimeterHit> newHits = new ArrayList<RawCalorimeterHit>();
             if (event.hasCollection(CalorimeterHit.class, ecalCollectionName)) {
                 List<CalorimeterHit> hits = event.get(CalorimeterHit.class, ecalCollectionName);
 
                 for (CalorimeterHit hit : hits) {
+                    if (debug) {
+                        System.out.format("old hit energy %f\n", hit.getRawEnergy());
+                    }
                     RawCalorimeterHit newHit = converter.HitAtoD(hit);
                     if (newHit.getAmplitude() > 0) {
+                        if (debug) {
+                            System.out.format("new hit energy %d\n", newHit.getAmplitude());
+                        }
                         newHits.add(newHit);
                     }
                 }
@@ -765,48 +589,6 @@ public class EcalRawConverterDriver extends Driver {
             }
         }
         
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static final <T> Map<T, Set<SimCalorimeterHit>> getTruthMap(Collection<LCRelation> truthRelations, Class<T> readoutHitType) {
-        // Create a map to store the relations in.
-        Map<T, Set<SimCalorimeterHit>> truthMap = new HashMap<T, Set<SimCalorimeterHit>>();
-        
-        // Iterate over the truth relations and map each distinct
-        // raw calorimeter hit to a set containing all of its truth
-        // hits.
-        for(LCRelation relation : truthRelations) {
-            // Cast the relation objects to the appropriate type.
-            T rawHit = null;
-            SimCalorimeterHit truthHit = null;
-            if(readoutHitType.isAssignableFrom(relation.getFrom().getClass())) {
-                rawHit = (T) relation.getFrom();
-            } else {
-                throw new RuntimeException("Error: Expected object of class " + readoutHitType.getClass().getSimpleName() + ", but saw object of class "
-                        + relation.getFrom().getClass().getSimpleName() + ".");
-            }
-            if(SimCalorimeterHit.class.isAssignableFrom(relation.getTo().getClass())) {
-                truthHit = (SimCalorimeterHit) relation.getTo();
-            } else {
-                throw new RuntimeException("Error: Expected object of class " + SimCalorimeterHit.class.getSimpleName() + ", but saw object of class "
-                        + relation.getTo().getClass().getSimpleName() + ".");
-            }
-            
-            if(rawHit == null || truthHit == null) {
-                throw new RuntimeException("Error: Calorimeter truth relations are not of the expected object types.");
-            }
-            
-            // Add the truth hit to the map.
-            Set<SimCalorimeterHit> hitSet = truthMap.get(rawHit);
-            if(hitSet == null) {
-                hitSet = new HashSet<SimCalorimeterHit>();
-                truthMap.put(rawHit, hitSet);
-            }
-            hitSet.add(truthHit);
-        }
-        
-        // Return the truth map.
-        return truthMap;
     }
 
     /**

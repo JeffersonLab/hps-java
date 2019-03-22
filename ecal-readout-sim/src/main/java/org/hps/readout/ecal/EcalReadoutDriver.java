@@ -3,10 +3,8 @@ package org.hps.readout.ecal;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hps.readout.TempOutputWriter;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
@@ -16,9 +14,6 @@ import org.lcsim.lcio.LCIOConstants;
  * @version $Id: EcalReadoutDriver.java,v 1.4 2013/03/20 01:03:32 meeg Exp $
  */
 public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
-    private final TempOutputWriter inputWriter = new TempOutputWriter("raw_hits_input_old.log");
-    private final TempOutputWriter outputWriter = new TempOutputWriter("raw_hits_output_old.log");
-    protected final TempOutputWriter verboseWriter = new TempOutputWriter("raw_hits_verbose_old.log");
 
     String ecalCollectionName;
     String ecalRawCollectionName = "EcalRawHits";
@@ -39,11 +34,16 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
     //readout period counter
     int readoutCounter;
     public static boolean readoutBit = false;
+    protected boolean debug = false;
 
     public EcalReadoutDriver() {
         flags += 1 << LCIOConstants.CHBIT_LONG; //store position
         flags += 1 << LCIOConstants.RCHBIT_ID1; //store cell ID
         triggerDelay = 100.0;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     public void setEcalReadoutName(String ecalReadoutName) {
@@ -80,10 +80,6 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
 
     @Override
     public void startOfData() {
-        inputWriter.initialize();
-        outputWriter.initialize();
-        verboseWriter.initialize();
-        
         super.startOfData();
         if (ecalCollectionName == null) {
             throw new RuntimeException("The parameter ecalCollectionName was not set!");
@@ -92,13 +88,6 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
         readoutCounter = 0;
 
         initReadout();
-    }
-    
-    @Override
-    public void endOfData() {
-        inputWriter.close();
-        outputWriter.close();
-        verboseWriter.close();
     }
 
     @Override
@@ -111,27 +100,6 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
         } else {
             hits = new ArrayList<CalorimeterHit>();
         }
-        
-        // DEBUG :: Write the truth hits seen.
-        inputWriter.write(">" + ClockSingleton.getTime());
-        outputWriter.write(">" + ClockSingleton.getTime());
-        inputWriter.write("Input");
-        for(CalorimeterHit hit : hits) {
-            inputWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-        }
-        
-        // DEBUG :: Write the event header information and truth hit
-        //          data to the verbose writer.
-        verboseWriter.write("\n\n\nEvent " + event.getEventNumber() + " at time t = " + ClockSingleton.getTime());
-        verboseWriter.write("Saw Input Truth Hits:");
-        if(hits.isEmpty()) {
-            verboseWriter.write("\tNone!");
-        } else {
-            for(CalorimeterHit hit : hits) {
-                verboseWriter.write(String.format("\tHit with %f GeV at time %f in cell %d.", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-            }
-        }
-        
         //write hits into buffers
         putHits(hits);
 
@@ -151,23 +119,12 @@ public abstract class EcalReadoutDriver<T> extends TriggerableDriver {
                 if (newHits == null) {
                     newHits = new ArrayList<T>();
                 }
-                boolean pass = ClockSingleton.getTime() - readoutTime() + ClockSingleton.getDt() >= readoutPeriod;
-                //verboseWriter.write(String.format("\t\t%.0f - %.0f + %.0f [%.0f] >= %.0f [%s]%n", ClockSingleton.getTime(), readoutTime(),
-                //        ClockSingleton.getDt(), ClockSingleton.getTime() - readoutTime() + ClockSingleton.getDt(), readoutPeriod,
-                //        pass ? "PASS" : "FAIL"));
                 readHits(newHits);
                 readoutCounter++;
             }
         }
 
         if (newHits != null) {
-            outputWriter.write("Output");
-            for(T hit : newHits) {
-                if(hit instanceof RawCalorimeterHit) {
-                    outputWriter.write(String.format("%d;%d;%d", ((RawCalorimeterHit) hit).getAmplitude(),
-                            ((RawCalorimeterHit) hit).getTimeStamp(), ((RawCalorimeterHit) hit).getCellID()));
-                }
-            }
             event.put(ecalRawCollectionName, newHits, hitClass, flags, ecalReadoutName);
         }
 

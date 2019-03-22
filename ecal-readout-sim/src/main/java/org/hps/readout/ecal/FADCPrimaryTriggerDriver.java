@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.hps.readout.TempOutputWriter;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
@@ -72,10 +71,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     private IHistogram1D[] pairEnergySlope;
     private IHistogram2D[] clusterDistribution;
     private IHistogram2D[] pairEnergySum2DDistribution;
-    
-    private boolean debug = true;
-    
-    protected final TempOutputWriter debugWriter = new TempOutputWriter("triggers_old_debug.log");
     
     /**
      * Initializes the cluster pair queues and other variables.
@@ -156,12 +151,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         // If a background level has been set, pick the correct cuts.
         if(backgroundLevel != -1) { setBackgroundCuts(backgroundLevel); }
         
-        // Initialize the writer.
-        if(debug) {
-            writer.initialize();
-            debugWriter.initialize();
-        }
-        
         // Run the superclass method.
         super.startOfData();
     }
@@ -201,12 +190,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         System.out.printf("\tPair Energy Slope      :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_ENERGY_SLOPE_LOW));
         System.out.printf("\tPair Coplanarity       :: %.1f%n", triggerModule.getCutValue(TriggerModule.PAIR_COPLANARITY_HIGH));
         
-        // Close the writer.
-        if(debug) {
-            writer.close();
-            debugWriter.close();
-        }
-        
         // Run the superclass method.
         super.endOfData();
     }
@@ -217,20 +200,10 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      */
     @Override
     public void process(EventHeader event) {
-        // DEBUG :: Output the event number to the log.
-        writer.write(">Event " + event.getEventNumber() + " -- Time " + ClockSingleton.getTime());
-        
         // Process the list of clusters for the event, if it exists.
-        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             // Get the collection of clusters.
             List<Cluster> clusterList = event.get(Cluster.class, clusterCollectionName);
-            
-            // DEBUG :: Output the input clusters to the log.
-            writer.write("Input");
-            for(Cluster cluster : clusterList) {
-                writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                        cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-            }
             
             // Create a list to hold clusters which pass the single
             // cluster cuts.
@@ -348,29 +321,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             
             // Put the good clusters into the cluster queue.
             updateClusterQueues(goodClusterList);
-            
-            // DEBUG :: Output the cluster buffer to the log.
-            int curBuffer = 0;
-            writer.write("Top Buffer");
-            for(List<Cluster> buffer : topClusterQueue) {
-                writer.write("-Buffer " + ++curBuffer);
-                for(Cluster cluster : buffer) {
-                    writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                            cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-                }
-            }
-            curBuffer = 0;
-            for(List<Cluster> buffer : botClusterQueue) {
-                writer.write("-Buffer " + ++curBuffer);
-                for(Cluster cluster : buffer) {
-                    writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                            cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-                }
-            }
-            
-            debugWriter.write("Event " + event.getEventNumber());
-            debugWriter.write("\tDead Time Test: " + ClockSingleton.getClock() + " - " + lastTrigger + " > " + deadTime
-                    + " ? [ " + (ClockSingleton.getClock() - lastTrigger > deadTime) + " ]");
         }
         
         // Perform the superclass event processing.
@@ -510,7 +460,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     public void setEnergySlopeParamF(double f) {
         triggerModule.setCutValue(TriggerModule.PAIR_ENERGY_SLOPE_F, f);
     }
-    
+
     /**
      * Print debug text.
      * @param verbose Defaults to false (no debug).
@@ -518,7 +468,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
-    
+
     /**
      * Get a list of all unique cluster pairs in the event.
      * @return A <code>List</code> collection of <code>Cluster</code> 
@@ -565,7 +515,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
     protected boolean triggerDecision(EventHeader event) {
         // If there is a list of clusters present for this event,
         // check whether it passes the trigger conditions.
-        if(event.hasCollection(Cluster.class, clusterCollectionName)) {
+        if (event.hasCollection(Cluster.class, clusterCollectionName)) {
             return testTrigger();
         }
         
@@ -660,12 +610,6 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
      * passes all of the cluster cuts and <code>false</code> otherwise.
      */
     private boolean testTrigger() {
-        // DEBUG :: List the triggering cluster pairs.
-        writer.write("Output");
-        
-        // Track whether a trigger has occurred.
-        boolean triggered = false;
-        
         // Get the list of cluster pairs.
         List<Cluster[]> clusterPairs = getClusterPairsTopBot();
         
@@ -673,18 +617,7 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
         // pair cuts on them. A cluster pair that passes all of the
         // cuts registers as a trigger.
         pairLoop:
-        for(Cluster[] clusterPair : clusterPairs) {
-            
-            debugWriter.write("Testing pair...");
-            debugWriter.write(String.format("\t%f;%f;%d;%d;%d;%d", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getTime(),
-                    clusterPair[0].getCalorimeterHits().size(), clusterPair[0].getCalorimeterHits().get(0).getCellID(),
-                    clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                    clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("iy")));
-            debugWriter.write(String.format("\t%f;%f;%d;%d;%d;%d", clusterPair[1].getEnergy(), clusterPair[1].getCalorimeterHits().get(0).getTime(),
-                    clusterPair[1].getCalorimeterHits().size(), clusterPair[1].getCalorimeterHits().get(0).getCellID(),
-                    clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                    clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("iy")));
-            
+        for (Cluster[] clusterPair : clusterPairs) {
             // Increment the number of processed cluster pairs.
             allPairs++;
             
@@ -725,10 +658,8 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairEnergySumCut(clusterPair)) {
-                debugWriter.write("\t\tEnergy Sum        :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tEnergy Sum        :: [ PASS ]");
             
             // Otherwise, note that it passed the cut.
             pairEnergySumCount++;
@@ -737,10 +668,8 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairEnergyDifferenceCut(clusterPair)) {
-                debugWriter.write("\t\tEnergy Difference :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tEnergy Difference :: [ PASS ]");
             
             // Otherwise, note that it passed the cut.
             pairEnergyDifferenceCount++;
@@ -749,10 +678,8 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairEnergySlopeCut(clusterPair)) {
-                debugWriter.write("\t\tEnergy Slope      :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tEnergy Slope      :: [ PASS ]");
             
             // Otherwise, note that it passed the cut.
             pairEnergySlopeCount++;
@@ -761,10 +688,8 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairCoplanarityCut(clusterPair)) {
-                debugWriter.write("\t\tCoplanarity       :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tCoplanarity       :: [ PASS ]");
             
             // Otherwise, note that it passed the cut.
             pairCoplanarityCount++;
@@ -799,28 +724,16 @@ public class FADCPrimaryTriggerDriver extends TriggerDriver {
             pairCoplanarity[ALL_CUTS].fill(coplanarity, 1);
             pairEnergySum2DDistribution[ALL_CUTS].fill(clusterPair[0].getEnergy(), clusterPair[1].getEnergy());
             
-            // DEBUG :: Output the triggering cluster pair.
-            writer.write(String.format("%f;%f;%d;%d:%f;%f;%d;%d", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getTime(),
-                    clusterPair[0].getCalorimeterHits().size(), clusterPair[0].getCalorimeterHits().get(0).getCellID(), clusterPair[1].getEnergy(),
-                    clusterPair[1].getCalorimeterHits().get(0).getTime(), clusterPair[1].getCalorimeterHits().size(),
-                    clusterPair[1].getCalorimeterHits().get(0).getCellID()));
-            
             // Clusters that pass all of the pair cuts produce a trigger.
-            if(verbose) {
-                System.out.format("Passed trigger cuts: cluster 0 (energy %f, ix %d, iy %d, size %d) and cluster 1 (energy %f, ix %d, iy %d, size %d)\n",
-                        clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                        clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[0].getSize(),
-                        clusterPair[1].getEnergy(), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"),
-                        clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[1].getSize());
+            if (verbose) {
+                System.out.format("Passed trigger cuts: cluster 0 (energy %f, ix %d, iy %d, size %d) and cluster 1 (energy %f, ix %d, iy %d, size %d)\n", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), clusterPair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[0].getSize(), clusterPair[1].getEnergy(), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), clusterPair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("iy"), clusterPair[1].getSize());
             }
-            
-            // Clusters that pass all of the pair cuts produce a trigger.
-            triggered = true;
-            debugWriter.write("\t\tTriggered!");
+            return true;
         }
         
-        // Return whether or not a trigger was observed.
-        return triggered;
+        // If the loop terminates without producing a trigger, there
+        // are no cluster pairs which meet the trigger conditions.
+        return false;
     }
     
     /**

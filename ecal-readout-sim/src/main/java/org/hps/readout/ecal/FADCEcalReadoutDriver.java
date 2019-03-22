@@ -19,7 +19,6 @@ import java.util.Set;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.readout.TempOutputWriter;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
@@ -34,8 +33,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
- * Performs readout of ECal hits. Simulates time evolution of preamp output
- * pulse.
+ * Performs readout of ECal hits. Simulates time evolution of preamp output pulse.
  *
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @version $Id: FADCEcalReadoutDriver.java,v 1.4 2013/10/31 00:11:02 meeg Exp $
@@ -49,17 +47,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private String ecalName = "Ecal";
     private Subdetector ecal;
     private EcalConditions ecalConditions = null;
-    //buffer for preamp signals (units of volts, no pedestal)
+    // buffer for preamp signals (units of volts, no pedestal)
     private Map<Long, RingBuffer> analogPipelines = null;
-    //ADC pipeline for readout (units of ADC counts)
+    // ADC pipeline for readout (units of ADC counts)
     private Map<Long, FADCPipeline> digitalPipelines = null;
-    //buffer for window sums
+    // buffer for window sums
     private Map<Long, Integer> triggerPathHitSums = null;
-    //buffer for timestamps
+    // buffer for timestamps
     private Map<Long, Integer> triggerPathHitTimes = null;
-    //queue for hits to be output to clusterer
+    // queue for hits to be output to clusterer
     private PriorityQueue<RawCalorimeterHit> triggerPathDelayQueue = null;
-    //output buffer for hits
+    // output buffer for hits
     private LinkedList<RawCalorimeterHit> triggerPathCoincidenceQueue = new LinkedList<RawCalorimeterHit>();
     private int bufferLength = 100;
     private int pipelineLength = 2000;
@@ -86,28 +84,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
         CRRC, DoubleGaussian, ThreePole
     }
-    
-    private final TempOutputWriter readoutWriter = new TempOutputWriter("raw_hits_readout_old.log");
-    private final TempOutputWriter triggerWriter = new TempOutputWriter("raw_hits_trigger_old.log");
-    
-    @Override
-    public void endOfData() {
-        super.endOfData();
-        readoutWriter.close();
-        triggerWriter.close();
-    }
-    
+
     public FADCEcalReadoutDriver() {
         flags = 0;
-        flags += 1 << LCIOConstants.RCHBIT_TIME; //store timestamp
+        flags += 1 << LCIOConstants.RCHBIT_TIME; // store timestamp
         hitClass = RawCalorimeterHit.class;
         setReadoutPeriod(ecalReadoutPeriod);
-//        converter = new HPSEcalConverter(null);
+        // converter = new HPSEcalConverter(null);
     }
 
     /**
-     * Add noise (photoelectron statistics and readout/preamp noise) to hits
-     * before adding them to the analog pipeline.
+     * Add noise (photoelectron statistics and readout/preamp noise) to hits before adding them to the analog pipeline.
      *
      * @param addNoise True to add noise, default of false.
      */
@@ -118,20 +105,17 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     /**
      * Sets the trigger-path hit processing algorithm.
      *
-     * @param constantTriggerWindow True for 2014+ FADC behavior, false for test
-     * run behavior. True by default.
+     * @param constantTriggerWindow True for 2014+ FADC behavior, false for test run behavior. True by default.
      */
     public void setConstantTriggerWindow(boolean constantTriggerWindow) {
         this.constantTriggerWindow = constantTriggerWindow;
     }
 
     /**
-     * Override the ECal gains set in the conditions system with a single
-     * uniform value.
+     * Override the ECal gains set in the conditions system with a single uniform value.
      *
-     * @param fixedGain Units of MeV/(ADC counts in pulse integral). Negative
-     * value causes the conditions system to be used for gains. Default is
-     * negative.
+     * @param fixedGain Units of MeV/(ADC counts in pulse integral). Negative value causes the conditions system to be
+     *            used for gains. Default is negative.
      */
     public void setFixedGain(double fixedGain) {
         this.fixedGain = fixedGain;
@@ -142,8 +126,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Threshold for readout-path hits. For 2014+ running this should always
-     * equal the trigger threshold.
+     * Threshold for readout-path hits. For 2014+ running this should always equal the trigger threshold.
      *
      * @param readoutThreshold Units of ADC counts, default of 10.
      */
@@ -161,8 +144,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Threshold for trigger-path hits. For 2014+ running this should always
-     * equal the readout threshold.
+     * Threshold for trigger-path hits. For 2014+ running this should always equal the readout threshold.
      *
      * @param triggerThreshold Units of ADC counts, default of 10.
      */
@@ -180,8 +162,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Number of ADC samples to process after each rising threshold crossing. In
-     * FADC documentation, "number of samples after" or NSA.
+     * Number of ADC samples to process after each rising threshold crossing. In FADC documentation,
+     * "number of samples after" or NSA.
      *
      * @param numSamplesAfter Units of 4 ns FADC clock cycles, default of 30.
      */
@@ -190,8 +172,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Number of ADC samples to process before each rising threshold crossing.
-     * In FADC documentation, "number of samples before" or NSB.
+     * Number of ADC samples to process before each rising threshold crossing. In FADC documentation,
+     * "number of samples before" or NSB.
      *
      * @param numSamplesBefore Units of 4 ns FADC clock cycles, default of 5.
      */
@@ -200,8 +182,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Start of readout window relative to trigger time (in readout cycles). In
-     * FADC documentation, "Programmable Latency" or PL.
+     * Start of readout window relative to trigger time (in readout cycles). In FADC documentation,
+     * "Programmable Latency" or PL.
      *
      * @param readoutLatency Units of 4 ns FADC clock cycles, default of 100.
      */
@@ -210,8 +192,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Number of ADC samples to read out. In FADC documentation, "Programmable
-     * Trigger Window" or PTW.
+     * Number of ADC samples to read out. In FADC documentation, "Programmable Trigger Window" or PTW.
      *
      * @param readoutWindow Units of 4 ns FADC clock cycles, default of 100.
      */
@@ -220,9 +201,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Number of clock cycles for which the same trigger-path hit is sent to the
-     * clusterer. Only used for old clusterer simulations (CTPClusterDriver).
-     * Otherwise this should be set to 1.
+     * Number of clock cycles for which the same trigger-path hit is sent to the clusterer. Only used for old clusterer
+     * simulations (CTPClusterDriver). Otherwise this should be set to 1.
      *
      * @param coincidenceWindow Units of 4 ns FADC clock cycles, default of 1.
      */
@@ -231,13 +211,10 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Switch between test run and 2014 definitions of gain constants. True for
-     * MC studies and mock data in 2014. For all real data (test run and 2014+),
-     * test run MC, and 2015+ production MC, this should be false.
+     * Switch between test run and 2014 definitions of gain constants. True for MC studies and mock data in 2014. For
+     * all real data (test run and 2014+), test run MC, and 2015+ production MC, this should be false.
      *
-     *
-     * @param use2014Gain True ONLY for simulation studies in 2014. Default of
-     * false.
+     * @param use2014Gain True ONLY for simulation studies in 2014. Default of false.
      */
     public void setUse2014Gain(boolean use2014Gain) {
         this.use2014Gain = use2014Gain;
@@ -246,16 +223,15 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     /**
      * Model used for the preamp pulse shape.
      *
-     * @param pulseShape ThreePole, DoubleGaussian, or CRRC. Default is
-     * ThreePole.
+     * @param pulseShape ThreePole, DoubleGaussian, or CRRC. Default is ThreePole.
      */
     public void setPulseShape(String pulseShape) {
         this.pulseShape = PulseShape.valueOf(pulseShape);
     }
 
     /**
-     * Shaper time constant. Definition depends on the pulse shape. For the
-     * three-pole function, this is equal to RC, or half the peaking time.
+     * Shaper time constant. Definition depends on the pulse shape. For the three-pole function, this is equal to RC, or
+     * half the peaking time.
      *
      * @param tp Units of ns, default of 9.6.
      */
@@ -264,9 +240,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Photoelectrons per MeV, used to calculate noise due to photoelectron
-     * statistics. Test run detector had a value of 2 photoelectrons/MeV; new
-     * 2014 detector has a value of 32.8 photoelectrons/MeV.
+     * Photoelectrons per MeV, used to calculate noise due to photoelectron statistics. Test run detector had a value of
+     * 2 photoelectrons/MeV; new 2014 detector has a value of 32.8 photoelectrons/MeV.
      *
      * @param pePerMeV Units of photoelectrons/MeV, default of 32.8.
      */
@@ -275,8 +250,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Latency between threshold crossing and output of trigger-path hit to
-     * clusterer.
+     * Latency between threshold crossing and output of trigger-path hit to clusterer.
      *
      * @param delay0 Units of 4 ns FADC clock cycles, default of 32.
      */
@@ -295,8 +269,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Length of digital pipeline. The digital pipeline in the FADC is 2000
-     * cells long.
+     * Length of digital pipeline. The digital pipeline in the FADC is 2000 cells long.
      *
      * @param pipelineLength Units of 4 ns FADC clock cycles, default of 2000.
      */
@@ -308,8 +281,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     /**
      * Mode for readout-path hits.
      *
-     * @param mode 1, 2 or 3. Values correspond to the standard FADC mode
-     * numbers (1=raw, 2=pulse, 3=pulse integral).
+     * @param mode 1, 2 or 3. Values correspond to the standard FADC mode numbers (1=raw, 2=pulse, 3=pulse integral).
      */
     public void setMode(int mode) {
         this.mode = mode;
@@ -337,17 +309,14 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Digitize values in the analog pipelines and append them to the digital
-     * pipelines. Integrate trigger-path hits and add them to the trigger path
-     * queues. Read out trigger-path hits to the list sent to the clusterer.
+     * Digitize values in the analog pipelines and append them to the digital pipelines. Integrate trigger-path hits and
+     * add them to the trigger path queues. Read out trigger-path hits to the list sent to the clusterer.
      *
      * @param hits List to be filled by this method.
      */
     @Override
     protected void readHits(List<RawCalorimeterHit> hits) {
-        // DEBUG :: Declare that hit integration is processing.
-        verboseWriter.write("Starting hit integration...");
-        
+
         for (Long cellID : analogPipelines.keySet()) {
             RingBuffer signalBuffer = analogPipelines.get(cellID);
 
@@ -357,22 +326,16 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             // Get the channel data.
             EcalChannelConstants channelData = findChannel(cellID);
 
-            double currentValue = signalBuffer.currentValue() * ((Math.pow(2, nBit) - 1) / maxVolt); //12-bit ADC with maxVolt V range
+            double currentValue = signalBuffer.currentValue() * ((Math.pow(2, nBit) - 1) / maxVolt); // 12-bit ADC with
+                                                                                                     // maxVolt V range
             int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
-            int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit)); //ADC can't return a value larger than 4095; 4096 (overflow) is returned for any input >2V
+            
+            // ADC can't return a value larger than 4095; 4096 (overflow) is returned for any input >2V
+            int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit));
+            
             pipeline.writeValue(digitizedValue);
             int pedestalSubtractedValue = digitizedValue - pedestal;
-            //System.out.println(signalBuffer.currentValue() + "   " + currentValue + "   " + pipeline.currentValue());
-            
-            // DEBUG :: Output the calculations for this channel.
-            if(currentValue != 0) {
-                verboseWriter.write("\tProcessing channel " + cellID);
-                verboseWriter.write("\t\tTime = " + String.format("%d [%d]", 4 * (readoutCounter - 1), 64 * (readoutCounter - 1)));
-                verboseWriter.write("\t\tcurrentValue = " + currentValue);
-                verboseWriter.write("\t\tpedestal = " + pedestal);
-                verboseWriter.write("\t\tdigitizedValue = " + digitizedValue);
-                verboseWriter.write("\t\tpedestalSubtractedValue = " + pedestalSubtractedValue);
-            }
+            // System.out.println(signalBuffer.currentValue() + "   " + currentValue + "   " + pipeline.currentValue());
 
             Integer sum = triggerPathHitSums.get(cellID);
             if (sum == null && pedestalSubtractedValue > triggerThreshold) {
@@ -380,57 +343,39 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 if (constantTriggerWindow) {
                     int sumBefore = 0;
                     for (int i = 0; i < numSamplesBefore; i++) {
+                        if (debug) {
+                            System.out.format("trigger %d, %d: %d\n", cellID, i,
+                                    pipeline.getValue(numSamplesBefore - i - 1));
+                        }
                         sumBefore += pipeline.getValue(numSamplesBefore - i - 1);
                     }
                     triggerPathHitSums.put(cellID, sumBefore);
-                    
-                    // DEBUG :: Indicate that integration has started.
-                    if(currentValue != 0) {
-                        verboseWriter.write("\t\tNo on-going integration; pedestal-subtracted value does not exceed threshold. ["
-                                + pedestalSubtractedValue + " < " + triggerThreshold + "]");
-                        verboseWriter.write("\t\t\tCurrent value: " + sumBefore);
-                    }
                 } else {
                     triggerPathHitSums.put(cellID, pedestalSubtractedValue);
                 }
-            } else if(sum == null) {
-                // DEBUG :: Indicate that nothing is being done.
-                if(currentValue != 0) {
-                    verboseWriter.write("\t\tNo on-going integration; pedestal-subtracted value does not exceed threshold. ["
-                            + pedestalSubtractedValue + " < " + triggerThreshold + "]");
-                }
             }
-            
             if (sum != null) {
                 if (constantTriggerWindow) {
                     if (triggerPathHitTimes.get(cellID) + numSamplesAfter >= readoutCounter) {
+                        if (debug) {
+                            System.out.format("trigger %d, %d: %d\n", cellID,
+                                    readoutCounter - triggerPathHitTimes.get(cellID) + numSamplesBefore - 1,
+                                    pipeline.getValue(0));
+                        }
                         triggerPathHitSums.put(cellID, sum + pipeline.getValue(0));
-                        
-                        // DEBUG :: Indicate that integration is on-going.
-                        if(currentValue != 0) {
-                            verboseWriter.write("\t\tOn-going integration.");
-                            verboseWriter.write("\t\t\tCurrent value: " + (sum + pipeline.getValue(0)));
-                        }
                     } else if (triggerPathHitTimes.get(cellID) + delay0 <= readoutCounter) {
-//                        System.out.printf("sum = %f\n", sum);
+                        // System.out.printf("sum = %f\n", sum);
                         triggerPathDelayQueue.add(new BaseRawCalorimeterHit(cellID,
-                                (int) Math.round(sum / scaleFactor),
-                                64 * triggerPathHitTimes.get(cellID)));
+                                (int) Math.round(sum / scaleFactor), 64 * triggerPathHitTimes.get(cellID)));
                         triggerPathHitSums.remove(cellID);
-                        
-                        // DEBUG :: Indicate that integration is complete.
-                        if(currentValue != 0) {
-                            verboseWriter.write("\t\tIntegration complete.");
-                            verboseWriter.write("\t\t\tFinal value: " + sum);
-                            verboseWriter.write("\t\t\tHit time: " + (64 * triggerPathHitTimes.get(cellID)));
-                        }
                     }
                 } else {
-                    if (pedestalSubtractedValue < triggerThreshold || triggerPathHitTimes.get(cellID) + delay0 == readoutCounter) {
-//                  System.out.printf("sum = %f\n",sum);
-                        triggerPathDelayQueue.add(new BaseRawCalorimeterHit(cellID,
-                                (int) Math.round((sum + pedestalSubtractedValue) / scaleFactor),
-                                64 * triggerPathHitTimes.get(cellID)));
+                    if (pedestalSubtractedValue < triggerThreshold
+                            || triggerPathHitTimes.get(cellID) + delay0 == readoutCounter) {
+                        // System.out.printf("sum = %f\n",sum);
+                        triggerPathDelayQueue.add(new BaseRawCalorimeterHit(cellID, (int) Math
+                                .round((sum + pedestalSubtractedValue) / scaleFactor), 64 * triggerPathHitTimes
+                                .get(cellID)));
                         triggerPathHitSums.remove(cellID);
                     } else {
                         triggerPathHitSums.put(cellID, sum + pedestalSubtractedValue);
@@ -439,7 +384,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             }
             signalBuffer.step();
         }
-        while (triggerPathDelayQueue.peek() != null && triggerPathDelayQueue.peek().getTimeStamp() / 64 <= readoutCounter - delay0) {
+        while (triggerPathDelayQueue.peek() != null
+                && triggerPathDelayQueue.peek().getTimeStamp() / 64 <= readoutCounter - delay0) {
             if (triggerPathDelayQueue.peek().getTimeStamp() / 64 < readoutCounter - delay0) {
                 System.out.println(this.getName() + ": Stale hit in output queue");
                 triggerPathDelayQueue.poll();
@@ -447,21 +393,18 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 triggerPathCoincidenceQueue.add(triggerPathDelayQueue.poll());
             }
         }
-        while (!triggerPathCoincidenceQueue.isEmpty() && triggerPathCoincidenceQueue.peek().getTimeStamp() / 64 <= readoutCounter - delay0 - coincidenceWindow) {
+        while (!triggerPathCoincidenceQueue.isEmpty()
+                && triggerPathCoincidenceQueue.peek().getTimeStamp() / 64 <= readoutCounter - delay0
+                        - coincidenceWindow) {
             triggerPathCoincidenceQueue.remove();
+        }
+        if (debug) {
+            for (RawCalorimeterHit hit : triggerPathCoincidenceQueue) {
+                System.out.format("new hit: energy %d\n", hit.getAmplitude());
+            }
         }
 
         hits.addAll(triggerPathCoincidenceQueue);
-        
-        // DEBUG :: Output the raw hits that were generated in
-        //          this event.
-        if(hits != null && !hits.isEmpty()) {
-            verboseWriter.write("\tProduced new raw hits:");
-            for(RawCalorimeterHit rawHit : hits) {
-                verboseWriter.write("\t\tRaw hit with amplitude " + rawHit.getAmplitude() + " in channel " + rawHit.getCellID()
-                        + " at system time " + rawHit.getTimeStamp() + " (" + (rawHit.getTimeStamp() / 64) + " ns).");
-            }
-        }
     }
 
     @Override
@@ -470,69 +413,27 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         if (ecalReadoutCollectionName == null) {
             throw new RuntimeException("The parameter ecalReadoutCollectionName was not set!");
         }
-        
-        readoutWriter.initialize();
-        triggerWriter.initialize();
-        
-        // DEBUG :: Write out the basic driver settings.
-        verboseWriter.write("Initiating EcalReadoutDriver logging...");
-        verboseWriter.write("Variable States:");
-        verboseWriter.write(String.format("\t%-30s :: %s", "ecalGeometryName", ecalName));
-        verboseWriter.write(String.format("\t%-30s :: %s", "truthHitCollectionName", ecalReadoutName));
-        verboseWriter.write(String.format("\t%-30s :: %s", "outputHitCollectionName", ecalRawCollectionName));
-        verboseWriter.write(String.format("\t%-30s :: %s", "truthRelationCollectionName", "----"));
-        verboseWriter.write(String.format("\t%-30s :: %b", "addNoise", addNoise));
-        verboseWriter.write(String.format("\t%-30s :: %f", "pePerMeV", pePerMeV));
-        verboseWriter.write(String.format("\t%-30s :: %f", "fixedGain", fixedGain));
-        verboseWriter.write(String.format("\t%-30s :: %s", "pulseShape", pulseShape.toString()));
-        verboseWriter.write(String.format("\t%-30s :: %f", "tp", tp));
-        verboseWriter.write(String.format("\t%-30s :: %d", "readoutThreshold", readoutThreshold));
-        verboseWriter.write(String.format("\t%-30s :: %d", "triggerThreshold", triggerThreshold));
-        verboseWriter.write(String.format("\t%-30s :: %d", "numSamplesBefore", numSamplesBefore));
-        verboseWriter.write(String.format("\t%-30s :: %d", "numSamplesAfter", numSamplesAfter));
-        verboseWriter.write(String.format("\t%-30s :: %d", "mode", mode));
-        verboseWriter.write(String.format("\t%-30s :: %f", "readoutPeriod", readoutPeriod));
-        verboseWriter.write(String.format("\t%-30s :: %d", "readoutCounter", readoutCounter));
-        verboseWriter.write(String.format("\t%-30s :: %s", "localTimeOffset", "----"));
-        verboseWriter.write(String.format("\t%-30s :: %d", "readoutWindow", readoutWindow));
-        verboseWriter.write(String.format("\t%-30s :: %f", "readoutOffset", readoutOffset));
-        verboseWriter.write(String.format("\t%-30s :: %d", "bufferLength", bufferLength));
-        verboseWriter.write(String.format("\t%-30s :: %d", "pipelineLength", pipelineLength));
-        verboseWriter.write(String.format("\t%-30s :: %f", "scaleFactor", scaleFactor));
-        verboseWriter.write(String.format("\t%-30s :: %b", "use2014Gain", use2014Gain));
-        verboseWriter.write(String.format("\t%-30s :: %d", "readoutLatency", readoutLatency));
-        verboseWriter.write(String.format("\t%-30s :: %d", "delay0", delay0));
     }
 
     @Override
     protected void processTrigger(EventHeader event) {
         switch (mode) {
             case ECAL_RAW_MODE:
-                System.out.println("Trunk Readout Hits:");
-                List<RawTrackerHit> readoutHits = readWindow();
-                
-                
-                System.out.println("Old Driver");
-                System.out.println("\treadoutLatency = CONSTANT");
-                System.out.printf("\treadoutLatency = %d%n", readoutLatency);
-                System.out.printf("\tBuffer Range: (%d, %d)%n", -(readoutLatency - 0 - 1), -(readoutLatency - (readoutWindow - 1) - 1));
-                /*
-                for(RawTrackerHit hit : readoutHits) {
-                    System.out.printf("%8d :: ", hit.getCellID());
-                    for(short s : hit.getADCValues()) {
-                        System.out.printf("%-3d   ", s);
-                    }
-                    System.out.println();
+                if (debug) {
+                    System.out.println("Reading out ECal in raw mode");
                 }
-                */
-                
-                
-                event.put(ecalReadoutCollectionName, readoutHits, RawTrackerHit.class, 0, ecalReadoutName);
+                event.put(ecalReadoutCollectionName, readWindow(), RawTrackerHit.class, 0, ecalReadoutName);
                 break;
             case ECAL_PULSE_MODE:
+                if (debug) {
+                    System.out.println("Reading out ECal in pulse mode");
+                }
                 event.put(ecalReadoutCollectionName, readPulses(), RawTrackerHit.class, 0, ecalReadoutName);
                 break;
             case ECAL_PULSE_INTEGRAL_MODE:
+                if (debug) {
+                    System.out.println("Reading out ECal in integral mode");
+                }
                 event.put(ecalReadoutCollectionName, readIntegrals(), RawCalorimeterHit.class, flags, ecalReadoutName);
                 break;
         }
@@ -551,72 +452,35 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         short[] adcValues = new short[readoutWindow];
         for (int i = 0; i < readoutWindow; i++) {
             adcValues[i] = (short) pipeline.getValue(readoutLatency - i - 1);
-//          if (adcValues[i] != 0) {
-//              System.out.println("getWindow: " + adcValues[i] + " at i = " + i);
-//          }
+            // if (adcValues[i] != 0) {
+            // System.out.println("getWindow: " + adcValues[i] + " at i = " + i);
+            // }
         }
         return adcValues;
     }
 
     protected List<RawTrackerHit> readWindow() {
-//      System.out.println("Reading FADC data");
+        // System.out.println("Reading FADC data");
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
-        
-        readoutWriter.write("> Trigger ");
-        triggerWriter.write(">" + ClockSingleton.getTime());
-        
         for (Long cellID : digitalPipelines.keySet()) {
             short[] adcValues = getWindow(cellID);
-            
-            
-            
-            StringBuffer triggerData = new StringBuffer();
-            triggerData.append(cellID + ":");
-            
-            StringBuffer outputData = new StringBuffer();
-            outputData.append(Long.toString(cellID) + "\n");
-            outputData.append("\tFull Buffer:\n");
-            FADCPipeline pipeline = digitalPipelines.get(cellID);
-            outputData.append("\t\t");
-            for(int i = 0; i < pipeline.size; i++) {
-                outputData.append(pipeline.getValue(i) + "[" + String.format("%4d", i) + "]");
-                outputData.append("    ");
-            }
-            outputData.append("\n");
-            outputData.append("\tOutput Range:\n");
-            outputData.append("\t\t");
-            for(short adcValue : adcValues) {
-                outputData.append(adcValue);
-                outputData.append("    ");
-                triggerData.append(adcValue);
-                triggerData.append(';');
-            }
-            outputData.append("\n");
-            
-            
-            
             EcalChannelConstants channelData = findChannel(cellID);
             boolean isAboveThreshold = false;
-            for(int i = 0; i < adcValues.length; i++) {
-                if(adcValues[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
+            for (int i = 0; i < adcValues.length; i++) {
+                if (adcValues[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
                     isAboveThreshold = true;
                     break;
                 }
             }
-            if(isAboveThreshold) {
-                readoutWriter.write(outputData.toString() + "\n\n\n");
-                triggerWriter.write(triggerData.toString());
+            if (isAboveThreshold) {
                 hits.add(new BaseRawTrackerHit(cellID, 0, adcValues));
             }
         }
-        
-        readoutWriter.write("\n\n");
-        
         return hits;
     }
 
     protected List<RawTrackerHit> readPulses() {
-//      System.out.println("Reading FADC data");
+        // System.out.println("Reading FADC data");
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
         for (Long cellID : digitalPipelines.keySet()) {
             short[] window = getWindow(cellID);
@@ -638,7 +502,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                     if (numSamplesToRead == 0) {
                         hits.add(new BaseRawTrackerHit(cellID, thresholdCrossing, adcValues));
                     }
-                } else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + readoutThreshold) && window[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
+                } else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + readoutThreshold)
+                        && window[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
                     thresholdCrossing = i;
                     pointerOffset = Math.min(numSamplesBefore, i);
                     numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, readoutWindow - i - pointerOffset - 1);
@@ -650,7 +515,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     protected List<RawCalorimeterHit> readIntegrals() {
-//      System.out.println("Reading FADC data");
+        // System.out.println("Reading FADC data");
         List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
         for (Long cellID : digitalPipelines.keySet()) {
             short[] window = getWindow(cellID);
@@ -665,15 +530,22 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             if (window != null) {
                 for (int i = 0; i < readoutWindow; i++) {
                     if (numSamplesToRead != 0) {
+                        if (debug) {
+                            System.out.format("readout %d, %d: %d\n", cellID, numSamplesBefore + numSamplesAfter
+                                    - numSamplesToRead, window[i - pointerOffset]);
+                        }
                         adcSum += window[i - pointerOffset];
                         numSamplesToRead--;
                         if (numSamplesToRead == 0) {
                             hits.add(new BaseRawCalorimeterHit(cellID, adcSum, 64 * thresholdCrossing));
                         }
-                    } else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + readoutThreshold) && window[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
+                    } else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal()
+                            + readoutThreshold)
+                            && window[i] > channelData.getCalibration().getPedestal() + readoutThreshold) {
                         thresholdCrossing = i;
                         pointerOffset = Math.min(numSamplesBefore, i);
-                        numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, readoutWindow - i - pointerOffset - 1);
+                        numSamplesToRead = pointerOffset
+                                + Math.min(numSamplesAfter, readoutWindow - i - pointerOffset - 1);
                         adcSum = 0;
                     }
                 }
@@ -683,27 +555,28 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     }
 
     /**
-     * Fill the analog pipelines with the preamp pulses generated by hits in the
-     * ECal.
+     * Fill the analog pipelines with the preamp pulses generated by hits in the ECal.
      *
      * @param hits ECal hits from SLIC/Geant4.
      */
     @Override
     protected void putHits(List<CalorimeterHit> hits) {
-        //fill the readout buffers
+        // fill the readout buffers
         for (CalorimeterHit hit : hits) {
             RingBuffer eDepBuffer = analogPipelines.get(hit.getCellID());
             double energyAmplitude = hit.getRawEnergy();
             // Get the channel data.
             EcalChannelConstants channelData = findChannel(hit.getCellID());
             if (addNoise) {
-                //add preamp noise and photoelectron Poisson noise in quadrature
+                // add preamp noise and photoelectron Poisson noise in quadrature
                 double noise;
                 if (use2014Gain) {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod, 2)
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise()
+                            * channelData.getGain().getGain() * EcalUtils.gainFactor * EcalUtils.ecalReadoutPeriod, 2)
                             + hit.getRawEnergy() / (EcalUtils.lightYield * EcalUtils.quantumEff * EcalUtils.surfRatio));
                 } else {
-                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2)
+                    noise = Math.sqrt(Math.pow(channelData.getCalibration().getNoise()
+                            * channelData.getGain().getGain() * EcalUtils.MeV, 2)
                             + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
                 }
                 energyAmplitude += RandomGaussian.getGaussian(0, noise);
@@ -712,19 +585,25 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
                 throw new RuntimeException("trying to add a hit to the analog pipeline, but time seems incorrect");
             }
             for (int i = 0; i < bufferLength; i++) {
-//              eDepBuffer.addToCell(i, energyAmplitude * pulseAmplitude((i + 1) * readoutPeriod + readoutTime() - (ClockSingleton.getTime() + hit.getTime()), hit.getCellID()));
-                eDepBuffer.addToCell(i, energyAmplitude * pulseAmplitude((i + 1) * readoutPeriod + readoutTime() - (ClockSingleton.getTime() + hit.getTime()) - findChannel(hit.getCellID()).getTimeShift().getTimeShift(), hit.getCellID ()));
-            
+                // eDepBuffer.addToCell(i, energyAmplitude * pulseAmplitude((i + 1) * readoutPeriod + readoutTime() -
+                // (ClockSingleton.getTime() + hit.getTime()), hit.getCellID()));
+                eDepBuffer.addToCell(
+                        i,
+                        energyAmplitude
+                                * pulseAmplitude((i + 1) * readoutPeriod + readoutTime()
+                                        - (ClockSingleton.getTime() + hit.getTime())
+                                        - findChannel(hit.getCellID()).getTimeShift().getTimeShift(), hit.getCellID()));
+
             }
         }
     }
 
     @Override
     protected void initReadout() {
-        //initialize buffers
+        // initialize buffers
         triggerPathHitSums = new HashMap<Long, Integer>();
         triggerPathHitTimes = new HashMap<Long, Integer>();
-        triggerPathDelayQueue = new PriorityQueue<RawCalorimeterHit>(20, new TimeComparator());
+        triggerPathDelayQueue = new PriorityQueue(20, new TimeComparator());
         resetFADCBuffers();
     }
 
@@ -749,17 +628,16 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         for (Long cellID : cells) {
             EcalChannelConstants channelData = findChannel(cellID);
             analogPipelines.put(cellID, new RingBuffer(bufferLength));
-            digitalPipelines.put(cellID, new FADCPipeline(pipelineLength, (int) Math.round(channelData.getCalibration().getPedestal())));
+            digitalPipelines.put(cellID,
+                    new FADCPipeline(pipelineLength, (int) Math.round(channelData.getCalibration().getPedestal())));
         }
         return true;
     }
 
     /**
-     * Returns pulse amplitude at the given time (relative to hit time). Gain is
-     * applied.
+     * Returns pulse amplitude at the given time (relative to hit time). Gain is applied.
      *
-     * @param time Units of ns. Relative to hit time (negative=before the start
-     * of the pulse).
+     * @param time Units of ns. Relative to hit time (negative=before the start of the pulse).
      * @param cellID Crystal ID as returned by hit.getCellID().
      * @return Amplitude, units of volts/GeV.
      */
@@ -768,7 +646,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         EcalChannelConstants channelData = findChannel(cellID);
 
         if (use2014Gain) {
-            //if fixedGain is set, multiply the default gain by this factor
+            // if fixedGain is set, multiply the default gain by this factor
             double corrGain;
             if (fixedGain > 0) {
                 corrGain = fixedGain;
@@ -778,12 +656,13 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
             return corrGain * readoutGain * pulseAmplitude(time, pulseShape, tp);
         } else {
-            //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
+            // normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
             double gain;
             if (fixedGain > 0) {
                 gain = readoutPeriod / (fixedGain * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             } else {
-                gain = readoutPeriod / (channelData.getGain().getGain() * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
+                gain = readoutPeriod
+                        / (channelData.getGain().getGain() * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             }
 
             return gain * pulseAmplitude(time, pulseShape, tp);
@@ -793,10 +672,8 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     /**
      * Returns pulse amplitude at the given time (relative to hit time).
      *
-     * @param time Units of ns. Relative to hit time (negative=before the start
-     * of the pulse).
-     * @return Amplitude, units of inverse ns. Normalized so the pulse integral
-     * is 1.
+     * @param time Units of ns. Relative to hit time (negative=before the start of the pulse).
+     * @return Amplitude, units of inverse ns. Normalized so the pulse integral is 1.
      */
     public static double pulseAmplitude(double time, PulseShape shape, double shapingTime) {
         if (time <= 0.0) {
@@ -804,26 +681,28 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
         }
         switch (shape) {
             case CRRC:
-                //peak at tp
-                //peak value 1/(tp*e)
+                // peak at tp
+                // peak value 1/(tp*e)
                 return ((time / (shapingTime * shapingTime)) * Math.exp(-time / shapingTime));
             case DoubleGaussian:
-                //According to measurements the output signal can be fitted by two gaussians, one for the rise of the signal, one for the fall
-                //peak at 3*riseTime
-                //peak value 1/norm
+                // According to measurements the output signal can be fitted by two gaussians, one for the rise of the
+                // signal, one for the fall
+                // peak at 3*riseTime
+                // peak value 1/norm
 
-                double norm = ((riseTime + fallTime) / 2) * Math.sqrt(2 * Math.PI); //to ensure the total integral is equal to 1: = 33.8
+                double norm = ((riseTime + fallTime) / 2) * Math.sqrt(2 * Math.PI); // to ensure the total integral is
+                                                                                    // equal to 1: = 33.8
                 return funcGaus(time - 3 * riseTime, (time < 3 * riseTime) ? riseTime : fallTime) / norm;
             case ThreePole:
-                //peak at 2*tp
-                //peak value 2/(tp*e^2)
+                // peak at 2*tp
+                // peak value 2/(tp*e^2)
                 return ((time * time / (2 * shapingTime * shapingTime * shapingTime)) * Math.exp(-time / shapingTime));
             default:
                 return 0.0;
         }
     }
 
-    // Gaussian function needed for the calculation of the pulse shape amplitude  
+    // Gaussian function needed for the calculation of the pulse shape amplitude
     public static double funcGaus(double t, double sig) {
         return Math.exp(-t * t / (2 * sig * sig));
     }
@@ -836,11 +715,11 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
 
         public FADCPipeline(int size) {
             this.size = size;
-            array = new int[size]; //initialized to 0
+            array = new int[size]; // initialized to 0
             ptr = 0;
         }
 
-        //construct pipeline with a nonzero initial value
+        // construct pipeline with a nonzero initial value
         public FADCPipeline(int size, int init) {
             this.size = size;
             array = new int[size];
@@ -867,7 +746,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
             }
         }
 
-        //return content of specified cell (pos=0 for current cell)
+        // return content of specified cell (pos=0 for current cell)
         public int getValue(int pos) {
             if (pos >= size || pos < 0) {
                 throw new ArrayIndexOutOfBoundsException();
