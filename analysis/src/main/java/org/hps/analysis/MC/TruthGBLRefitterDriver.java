@@ -10,7 +10,6 @@ import java.util.Map;
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
-//import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLKinkData;
 import org.hps.recon.tracking.gbl.MakeGblTracks;
@@ -27,10 +26,8 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-//import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
-//import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.compact.Subdetector;
@@ -121,14 +118,6 @@ public class TruthGBLRefitterDriver extends Driver {
 
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
-        /*List<HelicalTrackHit> helicalhits = null;
-        List<HelicalTrackHit> rotatedhits = null;
-        if(event.hasCollection(HelicalTrackHit.class, "HelicalTrackHits_truth")){
-            helicalhits = event.get(HelicalTrackHit.class, "HelicalTrackHits_truth");
-        }
-        if(event.hasCollection(HelicalTrackHit.class, "RotatedHelicalTrackHits_truth")){
-            rotatedhits = event.get(HelicalTrackHit.class, "RotatedHelicalTrackHits_truth");
-        }*/
         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
         RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
@@ -158,15 +147,6 @@ public class TruthGBLRefitterDriver extends Driver {
                 MCParticle p = truthMatch.getMCParticle();
                 trackToMCParticleRelations.add(new BaseLCRelation(gblTrk,p));
             }
-            
-
-            // Extrapolate the track to the face of the Ecal and get the TrackState
-            //if (TrackType.isGBL(track.getType())) {
-            //TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap);
-            //if (stateEcal != null)
-            //    track.getTrackStates().add(stateEcal);
-            //}
-
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }

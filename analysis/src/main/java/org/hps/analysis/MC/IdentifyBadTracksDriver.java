@@ -109,19 +109,12 @@ public class IdentifyBadTracksDriver extends Driver{
                 continue;
             }
             //Identify MCParticle responsible for bad hit
-            //System.out.println("New Bad Track!!");
             MCParticle badPart = SelectBadMCParticle(truthMatch,track);
             Track badTrk = SelectBadTrack(truthMatch,track);
             ReconstructedParticle badReconPart = null;
             if(badTrk != null){
                 badReconPart = makeReconstructedParticles(clusters,badTrk);
                 otherReconParticles.add(badReconPart);
-            }
-            else{
-                //System.out.println("There are no Tracks associated with bad hit");
-            }
-            if(badPart == null){
-                //System.out.println("There are no MC Particles associated with bad hit");
             }
 
             truthHits = truthMatch.getActiveHitListMCParticle();
@@ -162,16 +155,13 @@ public class IdentifyBadTracksDriver extends Driver{
                 double p = part.getMomentum().magnitude();
                 if(p > maxP){
                     badP = part;
-                    //System.out.println("Prt Layer " + layer + " " + truthMatch.getNBadHits() + " " + part.getPDGID() + " " + p);
                     break;
                 }
             }
             if(badP != null){
-                //System.out.println("Prt selected " + " " + badP.getEnergy());
                 return badP;
             }
         }
-        //System.out.println("Prt selected " + " " + badP);
         return badP;
     }
     

@@ -66,8 +66,6 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         addEventVariables();
         addVertexVariables("Bad");
         addVertexVariables("Truth");
-        //addParticleVariables("ele");
-        //addParticleVariables("pos");
         addParticleVariables("eleBad");
         addParticleVariables("posBad");
         addParticleVariables("eleTruth");
@@ -108,14 +106,6 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private void fillTruthRefitVariables(EventHeader event, ReconstructedParticle uncV0) {
         List<Track> tracksBad = event.get(Track.class,badTrackColName);
         List<Track> tracksTruth = event.get(Track.class,"GBLTracks_truth");
-        /*List<ReconstructedParticle> uncBad = event.get(ReconstructedParticle.class,"UnconstrainedV0Candidates_bad");
-        List<ReconstructedParticle> uncBad2 = event.get(ReconstructedParticle.class,"UnconstrainedV0Candidates_bad2");
-        List<ReconstructedParticle> uncTruth = event.get(ReconstructedParticle.class,"UnconstrainedV0Candidates_truth");
-        List<ReconstructedParticle> uncTruth2 = event.get(ReconstructedParticle.class,"UnconstrainedV0Candidates_truth2");
-        List<ReconstructedParticle> bscBad = event.get(ReconstructedParticle.class,"BeamspotConstrainedV0Candidates_bad");
-        List<ReconstructedParticle> bscBad2 = event.get(ReconstructedParticle.class,"BeamspotConstrainedV0Candidates_bad2");
-        List<ReconstructedParticle> bscTruth = event.get(ReconstructedParticle.class,"BeamspotConstrainedV0Candidates_truth");
-        List<ReconstructedParticle> bscTruth2 = event.get(ReconstructedParticle.class,"BeamspotConstrainedV0Candidates_truth2");*/
         
         int nTracksBad = 0;
         int nTracksTruth = 0;
@@ -169,8 +159,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         fillParticleVariables(event, electron, "eleBad");
         fillParticleVariables(event, positron, "posBad");
         List<LCRelation> badTrackRelation = event.get(LCRelation.class,otherParticleRelationsColName);
-        //ReconstructedParticle badEleTrk = null;
-        //ReconstructedParticle badPosTrk = null;
+
         for(LCRelation rel : badTrackRelation){
             if(((Track) rel.getFrom()).equals(electron.getTracks().get(0))){
                 ReconstructedParticle badEleTrk = (ReconstructedParticle) rel.getTo();
@@ -278,10 +267,6 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             int nPho = 0;
             int nEleSide = 0;
             int nPosSide = 0;
-
-            // BaseCluster c1 = (BaseCluster) ecalClusters.get(0);
-
-            // System.out.println("Cluster pid:\t"+((BaseCluster) c1).getParticleId());
 
             for (Cluster cc : ecalClusters) {
                 if (cc.getParticleId() == 11) {

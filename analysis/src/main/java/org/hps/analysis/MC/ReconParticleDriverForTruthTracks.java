@@ -121,49 +121,37 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
      */
     protected List<ReconstructedParticle> unconstrainedV0Candidates;
     protected List<ReconstructedParticle> unconstrainedV0CandidatesBad;
-    //protected List<ReconstructedParticle> unconstrainedV0CandidatesBad2;
     protected List<ReconstructedParticle> unconstrainedV0CandidatesTruth;
-    //protected List<ReconstructedParticle> unconstrainedV0CandidatesTruth2;
     /**
      * Stores reconstructed V0 candidate particles generated with beam spot constraints.
      */
     protected List<ReconstructedParticle> beamConV0Candidates;
     protected List<ReconstructedParticle> beamConV0CandidatesBad;
-    //protected List<ReconstructedParticle> beamConV0CandidatesBad2;
     protected List<ReconstructedParticle> beamConV0CandidatesTruth;
-    //protected List<ReconstructedParticle> beamConV0CandidatesTruth2;
     /**
      * Stores reconstructed V0 candidate particles generated with target constraints.
      */
     protected List<ReconstructedParticle> targetConV0Candidates;
     protected List<ReconstructedParticle> targetConV0CandidatesBad;
-    //protected List<ReconstructedParticle> targetConV0CandidatesBad2;
     protected List<ReconstructedParticle> targetConV0CandidatesTruth;
-    //protected List<ReconstructedParticle> targetConV0CandidatesTruth2;
     /**
      * Stores reconstructed V0 candidate vertices generated without constraints.
      */
     protected List<Vertex> unconstrainedV0Vertices;
     protected List<Vertex> unconstrainedV0VerticesBad;
-    //protected List<Vertex> unconstrainedV0VerticesBad2;
     protected List<Vertex> unconstrainedV0VerticesTruth;
-    //protected List<Vertex> unconstrainedV0VerticesTruth2;
     /**
      * Stores reconstructed V0 candidate vertices generated with beam spot constraints.
      */
     protected List<Vertex> beamConV0Vertices;
     protected List<Vertex> beamConV0VerticesBad;
-    //protected List<Vertex> beamConV0VerticesBad2;
     protected List<Vertex> beamConV0VerticesTruth;
-    //protected List<Vertex> beamConV0VerticesTruth2;
     /**
      * Stores reconstructed V0 candidate vertices generated with target constraints.
      */
     protected List<Vertex> targetConV0Vertices;
     protected List<Vertex> targetConV0VerticesBad;
-    //protected List<Vertex> targetConV0VerticesBad2;
     protected List<Vertex> targetConV0VerticesTruth;
-    //protected List<Vertex> targetConV0VerticesTruth2;
 
     // LCIO Collection Names
     /**
@@ -183,49 +171,37 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
      */
     protected String unconstrainedV0CandidatesColName = null;
     protected String unconstrainedV0CandidatesColBadName = "UnconstrainedV0Candidates_bad";
-    //protected String unconstrainedV0CandidatesColBad2Name = "UnconstrainedV0Candidates_bad2";
     protected String unconstrainedV0CandidatesColTruthName = "UnconstrainedV0Candidates_truth";
-    //protected String unconstrainedV0CandidatesColTruth2Name = "UnconstrainedV0Candidates_truth2";
     /**
      * LCIO collection name for V0 candidate particles generated with beam spot constraints.
      */
     protected String beamConV0CandidatesColName = null;
     protected String beamConV0CandidatesColBadName = "BeamspotConstrainedV0Candidates_bad";
-    //protected String beamConV0CandidatesColBad2Name = "BeamspotConstrainedV0Candidates_bad2";
     protected String beamConV0CandidatesColTruthName = "BeamspotConstrainedV0Candidates_truth";
-    //protected String beamConV0CandidatesColTruth2Name = "BeamspotConstrainedV0Candidates_truth2";
     /**
      * LCIO collection name for V0 candidate particles generated with target constraints.
      */
     protected String targetConV0CandidatesColName = null;
     protected String targetConV0CandidatesColBadName = "TargetConstrainedV0Candidates_bad";
-    //protected String targetConV0CandidatesColBad2Name = "TargetConstrainedV0Candidates_bad2";
-    protected String targetConV0CandidatesColTruthName = "TargetConstrainedV0Candidates_truth";
-    //protected String targetConV0CandidatesColTruth2Name = "TargetConstrainedV0Candidates_truth2";
+    protected String targetConV0CandidatesColTruthName = "TargetConstrainedV0Candidates_truth";;
     /**
      * LCIO collection name for V0 candidate vertices generated without constraints.
      */
     protected String unconstrainedV0VerticesColName = null;
     protected String unconstrainedV0VerticesColBadName = "UnconstrainedV0Vertices_bad";
-    //protected String unconstrainedV0VerticesColBad2Name = "UnconstrainedV0Vertices_bad2";
     protected String unconstrainedV0VerticesColTruthName = "UnconstrainedV0Vertices_truth";
-    //protected String unconstrainedV0VerticesColTruth2Name = "UnconstrainedV0Vertices_truth2";
     /**
      * LCIO collection name for V0 candidate vertices generated with beam spot constraints.
      */
     protected String beamConV0VerticesColName = null;
     protected String beamConV0VerticesColBadName = "BeamspotConstrainedV0Vertices_bad";
-    //protected String beamConV0VerticesColBad2Name = "BeamspotConstrainedV0Vertices_bad2";
     protected String beamConV0VerticesColTruthName = "BeamspotConstrainedV0Vertices_truth";
-    //protected String beamConV0VerticesColTruth2Name = "BeamspotConstrainedV0Vertices_truth2";
     /**
      * LCIO collection name for V0 candidate vertices generated with target constraints.
      */
     protected String targetConV0VerticesColName = null;
     protected String targetConV0VerticesColBadName = "TargetConstrainedV0Vertices_bad";
-    //protected String targetConV0VerticesColBad2Name = "TargetConstrainedV0Vertices_bad2";
     protected String targetConV0VerticesColTruthName = "TargetConstrainedV0Vertices_truth";
-    //protected String targetConV0VerticesColTruth2Name = "TargetConstrainedV0Vertices_truth2";
     
     
 
@@ -695,19 +671,6 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
         List<Track> trackCollectionsAll = event.get(Track.class, collectionNameAll);
         List<Track> trackCollectionsBad = event.get(Track.class, collectionNameBad);
         List<Track> trackCollectionsTruth = event.get(Track.class, collectionNameTruth);
-        /*if (trackCollectionNames != null) {
-            for (String collectionName : trackCollectionNames) {
-                if (event.hasCollection(Track.class, collectionName)) {
-                    trackCollections.add(event.get(Track.class, collectionName));
-                }
-            }
-        } else {
-            if (event.hasCollection(Track.class)) {
-                trackCollections = event.get(Track.class);
-            } else {
-                trackCollections.add(new ArrayList<Track>(0));
-            }
-        }*/
         
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         hitToStrips = TrackUtils.getHitToStripsTable(event);
@@ -725,34 +688,22 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
         positronsTruth = new ArrayList<ReconstructedParticle>();
         unconstrainedV0Candidates = new ArrayList<ReconstructedParticle>();
         unconstrainedV0CandidatesBad = new ArrayList<ReconstructedParticle>();
-        //unconstrainedV0CandidatesBad2 = new ArrayList<ReconstructedParticle>();
         unconstrainedV0CandidatesTruth = new ArrayList<ReconstructedParticle>();
-        //unconstrainedV0CandidatesTruth2 = new ArrayList<ReconstructedParticle>();
         beamConV0Candidates = new ArrayList<ReconstructedParticle>();
         beamConV0CandidatesBad = new ArrayList<ReconstructedParticle>();
-        //beamConV0CandidatesBad2 = new ArrayList<ReconstructedParticle>();
         beamConV0CandidatesTruth = new ArrayList<ReconstructedParticle>();
-        //beamConV0CandidatesTruth2 = new ArrayList<ReconstructedParticle>();
         targetConV0Candidates = new ArrayList<ReconstructedParticle>();
         targetConV0CandidatesBad = new ArrayList<ReconstructedParticle>();
-        //targetConV0CandidatesBad2 = new ArrayList<ReconstructedParticle>();
         targetConV0CandidatesTruth = new ArrayList<ReconstructedParticle>();
-        //targetConV0CandidatesTruth2 = new ArrayList<ReconstructedParticle>();
         unconstrainedV0Vertices = new ArrayList<Vertex>();
         unconstrainedV0VerticesBad = new ArrayList<Vertex>();
-        //unconstrainedV0VerticesBad2 = new ArrayList<Vertex>();
         unconstrainedV0VerticesTruth = new ArrayList<Vertex>();
-        //unconstrainedV0VerticesTruth2 = new ArrayList<Vertex>();
         beamConV0Vertices = new ArrayList<Vertex>();
         beamConV0VerticesBad = new ArrayList<Vertex>();
-        //beamConV0VerticesBad2 = new ArrayList<Vertex>();
         beamConV0VerticesTruth = new ArrayList<Vertex>();
-        //beamConV0VerticesTruth2 = new ArrayList<Vertex>();
         targetConV0Vertices = new ArrayList<Vertex>();
         targetConV0VerticesBad = new ArrayList<Vertex>();
-        //targetConV0VerticesBad2 = new ArrayList<Vertex>();
         targetConV0VerticesTruth = new ArrayList<Vertex>();
-        //targetConV0VerticesTruth2 = new ArrayList<Vertex>();
 
         // Loop through all of the track collections present in the event and
         // create final state particles.
@@ -796,10 +747,8 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
         // and positron reconstructed particles.
         findVertices(electronsAll, positronsBad, unconstrainedV0CandidatesBad, unconstrainedV0VerticesBad, beamConV0CandidatesBad, beamConV0VerticesBad, targetConV0CandidatesBad, targetConV0VerticesBad);
         findVertices(electronsBad, positronsAll,  unconstrainedV0CandidatesBad, unconstrainedV0VerticesBad, beamConV0CandidatesBad, beamConV0VerticesBad, targetConV0CandidatesBad, targetConV0VerticesBad);
-        //findVertices(electronsBad, positronsBad,  unconstrainedV0CandidatesBad2, unconstrainedV0VerticesBad2, beamConV0CandidatesBad2, beamConV0VerticesBad2, targetConV0CandidatesBad2, targetConV0VerticesBad2);
         findVertices(electronsAll, positronsTruth, unconstrainedV0CandidatesTruth, unconstrainedV0VerticesTruth, beamConV0CandidatesTruth, beamConV0VerticesTruth, targetConV0CandidatesTruth, targetConV0VerticesTruth);
         findVertices(electronsTruth, positronsAll, unconstrainedV0CandidatesTruth, unconstrainedV0VerticesTruth, beamConV0CandidatesTruth, beamConV0VerticesTruth, targetConV0CandidatesTruth, targetConV0VerticesTruth);
-        //findVertices(electronsTruth, positronsTruth,  unconstrainedV0CandidatesTruth2, unconstrainedV0VerticesTruth2, beamConV0CandidatesTruth2, beamConV0VerticesTruth2, targetConV0CandidatesTruth2, targetConV0VerticesTruth2);
 
         // Store the V0 candidate particles and vertices for each type
         // of constraint in the appropriate collection in the event,
@@ -812,18 +761,10 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
             printDebug("Unconstrained V0 Bad Candidates: " + unconstrainedV0CandidatesBad.size());
             event.put(unconstrainedV0CandidatesColBadName, unconstrainedV0CandidatesBad, ReconstructedParticle.class, 0);
         }
-        /*if (unconstrainedV0CandidatesColBad2Name != null) {
-            printDebug("Unconstrained V0 Bad2 Candidates: " + unconstrainedV0CandidatesBad2.size());
-            event.put(unconstrainedV0CandidatesColBad2Name, unconstrainedV0CandidatesBad2, ReconstructedParticle.class, 0);
-        }*/
         if (unconstrainedV0CandidatesColTruthName != null) {
             printDebug("Unconstrained V0 Truth Candidates: " + unconstrainedV0CandidatesTruth.size());
             event.put(unconstrainedV0CandidatesColTruthName, unconstrainedV0CandidatesTruth, ReconstructedParticle.class, 0);
         }
-        /*if (unconstrainedV0CandidatesColTruth2Name != null) {
-            printDebug("Unconstrained V0 Truth2 Candidates: " + unconstrainedV0CandidatesTruth2.size());
-            event.put(unconstrainedV0CandidatesColTruth2Name, unconstrainedV0CandidatesTruth2, ReconstructedParticle.class, 0);
-        }*/
         
         if (beamConV0CandidatesColName != null) {
             printDebug("Beam-Constrained V0 Candidates: " + beamConV0Candidates.size());
@@ -833,18 +774,10 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
             printDebug("Beam-Constrained V0 Bad Candidates: " + beamConV0CandidatesBad.size());
             event.put(beamConV0CandidatesColBadName, beamConV0CandidatesBad, ReconstructedParticle.class, 0);
         }
-        /*if (beamConV0CandidatesColBad2Name != null) {
-            printDebug("Beam-Constrained V0 Bad2 Candidates: " + beamConV0CandidatesBad2.size());
-            event.put(beamConV0CandidatesColBad2Name, beamConV0CandidatesBad2, ReconstructedParticle.class, 0);
-        }*/
         if (beamConV0CandidatesColTruthName != null) {
             printDebug("Beam-Constrained V0 Truth Candidates: " + beamConV0CandidatesTruth.size());
             event.put(beamConV0CandidatesColTruthName, beamConV0CandidatesTruth, ReconstructedParticle.class, 0);
         }
-        /*if (beamConV0CandidatesColTruth2Name != null) {
-            printDebug("Beam-Constrained V0 Truth2 Candidates: " + beamConV0CandidatesTruth2.size());
-            event.put(beamConV0CandidatesColTruth2Name, beamConV0CandidatesTruth2, ReconstructedParticle.class, 0);
-        }*/
         
         if (targetConV0CandidatesColName != null) {
             printDebug("Target-Constrained V0 Candidates: " + targetConV0Candidates.size());
@@ -854,18 +787,10 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
             printDebug("Target-Constrained V0 Bad Candidates: " + targetConV0CandidatesBad.size());
             event.put(targetConV0CandidatesColBadName, targetConV0CandidatesBad, ReconstructedParticle.class, 0);
         }
-        /*if (targetConV0CandidatesColBad2Name != null) {
-            printDebug("Target-Constrained V0 Bad2 Candidates: " + targetConV0CandidatesBad2.size());
-            event.put(targetConV0CandidatesColBad2Name, targetConV0CandidatesBad2, ReconstructedParticle.class, 0);
-        }*/
         if (targetConV0CandidatesColTruthName != null) {
             printDebug("Target-Constrained V0 Truth Candidates: " + targetConV0CandidatesTruth.size());
             event.put(targetConV0CandidatesColTruthName, targetConV0CandidatesTruth, ReconstructedParticle.class, 0);
         }
-        /*if (targetConV0CandidatesColTruth2Name != null) {
-            printDebug("Target-Constrained V0 Truth2 Candidates: " + targetConV0CandidatesTruth2.size());
-            event.put(targetConV0CandidatesColTruth2Name, targetConV0CandidatesTruth2, ReconstructedParticle.class, 0);
-        }*/
         
         if (unconstrainedV0VerticesColName != null) {
             printDebug("Unconstrained V0 Vertices: " + unconstrainedV0Vertices.size());
@@ -875,18 +800,10 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
             printDebug("Unconstrained V0 Bad Vertices: " + unconstrainedV0VerticesBad.size());
             event.put(unconstrainedV0VerticesColBadName, unconstrainedV0VerticesBad, Vertex.class, 0);
         }
-        /*if (unconstrainedV0VerticesColBad2Name != null) {
-            printDebug("Unconstrained V0 Bad2 Vertices: " + unconstrainedV0VerticesBad2.size());
-            event.put(unconstrainedV0VerticesColBad2Name, unconstrainedV0VerticesBad2, Vertex.class, 0);
-        }*/
         if (unconstrainedV0VerticesColTruthName != null) {
             printDebug("Unconstrained V0 Truth Vertices: " + unconstrainedV0VerticesTruth.size());
             event.put(unconstrainedV0VerticesColTruthName, unconstrainedV0VerticesTruth, Vertex.class, 0);
         }
-        /*if (unconstrainedV0VerticesColTruth2Name != null) {
-            printDebug("Unconstrained V0 Truth2 Vertices: " + unconstrainedV0VerticesTruth2.size());
-            event.put(unconstrainedV0VerticesColTruth2Name, unconstrainedV0VerticesTruth2, Vertex.class, 0);
-        }*/
         
         if (beamConV0VerticesColName != null) {
             printDebug("Beam-Constrained V0 Vertices: " + beamConV0Vertices.size());
@@ -896,18 +813,10 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
             printDebug("Beam-Constrained V0 Bad Vertices: " + beamConV0VerticesBad.size());
             event.put(beamConV0VerticesColBadName, beamConV0VerticesBad, Vertex.class, 0);
         }
-        /*if (beamConV0VerticesColBad2Name != null) {
-            printDebug("Beam-Constrained V0 Bad2 Vertices: " + beamConV0VerticesBad2.size());
-            event.put(beamConV0VerticesColBad2Name, beamConV0VerticesBad2, Vertex.class, 0);
-        }*/
         if (beamConV0VerticesColTruthName != null) {
             printDebug("Beam-Constrained V0 Truth Vertices: " + beamConV0VerticesTruth.size());
             event.put(beamConV0VerticesColTruthName, beamConV0VerticesTruth, Vertex.class, 0);
         }
-        /*if (beamConV0VerticesColTruth2Name != null) {
-            printDebug("Beam-Constrained V0 Truth2 Vertices: " + beamConV0VerticesTruth2.size());
-            event.put(beamConV0VerticesColTruth2Name, beamConV0VerticesTruth2, Vertex.class, 0);
-        }*/
         
         if (targetConV0VerticesColName != null) {
             printDebug("Target-Constrained V0 Vertices: " + targetConV0Vertices.size());
@@ -917,18 +826,10 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
             printDebug("Target-Constrained V0 Bad Vertices: " + targetConV0VerticesBad.size());
             event.put(targetConV0VerticesColBadName, targetConV0VerticesBad, Vertex.class, 0);
         }
-        /*if (targetConV0VerticesColBad2Name != null) {
-            printDebug("Target-Constrained V0 Bad2 Vertices: " + targetConV0VerticesBad2.size());
-            event.put(targetConV0VerticesColBad2Name, targetConV0VerticesBad2, Vertex.class, 0);
-        }*/
         if (targetConV0VerticesColTruthName != null) {
             printDebug("Target-Constrained V0 Truth Vertices: " + targetConV0VerticesTruth.size());
             event.put(targetConV0VerticesColTruthName, targetConV0VerticesTruth, Vertex.class, 0);
         }
-        /*if (targetConV0VerticesColTruth2Name != null) {
-            printDebug("Target-Constrained V0 Truth2 Vertices: " + targetConV0VerticesTruth2.size());
-            event.put(targetConV0VerticesColTruth2Name, targetConV0VerticesTruth2, Vertex.class, 0);
-        }*/
     }
 
     /**

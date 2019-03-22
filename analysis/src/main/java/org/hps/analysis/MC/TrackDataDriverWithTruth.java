@@ -60,8 +60,6 @@ public final class TrackDataDriverWithTruth extends Driver {
     private static final String TRK_RESIDUALS_REL_COL_NAME = "TrackResidualsRelations";
     List<HpsSiSensor> sensors = null;
 
-    //    public AIDA aida = AIDA.defaultInstance();
-
     /** Default constructor */
     public TrackDataDriverWithTruth() {
     }
