@@ -30,7 +30,6 @@ import org.lcsim.recon.tracking.digitization.sisim.config.SimTrackerHitReadoutDr
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
-import org.hps.readout.TempOutputWriter;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.TriggeredLCIOData;
@@ -79,11 +78,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
     private LCIOCollection<RawTrackerHit> trackerHitCollectionParams;
     private LCIOCollection<LCRelation> truthRelationsCollectionParams;
     private LCIOCollection<SimTrackerHit> truthHitsCollectionParams;
-    
-    private final TempOutputWriter inputWriter = new TempOutputWriter("svt_input_hits_new.log");
-    private final TempOutputWriter outputWriter = new TempOutputWriter("svt_output_hits_new.log");
-    private final TempOutputWriter verboseWriter = new TempOutputWriter("svt_verbose_new.log");
-    private final TempOutputWriter triggerWriter = new TempOutputWriter("svt_trigger_hits_new.log");
     
     public SVTReadoutDriver() {
         add(readoutDriver);
@@ -261,12 +255,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
         // Generate the truth hits.
         List<StripHit> stripHits = doSiSimulation();
         
-        
-        inputWriter.write("> Event " + event.getEventNumber() + "; t = " + ReadoutDataManager.getCurrentTime());
-        for(StripHit hit : stripHits) {
-            inputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
-        }
-        
         // If pile-up is to be simulated, process the hits into hit
         // queues. These hit queues are not integrated at this stage,
         // and are instead only handled at readout, as they are not
@@ -354,12 +342,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 if(readoutCuts(hit)) { hits.add(hit); }
             }
             
-            outputWriter.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime());
-            for(RawTrackerHit hit : hits) {
-                outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-                        hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
-            }
-            
             // Output the processed hits to the LCIO stream.
             ReadoutDataManager.addData(outputCollection, hits, RawTrackerHit.class);
         }
@@ -395,12 +377,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
         LCIOCollectionFactory.setProductionDriver(this);
         LCIOCollectionFactory.setReadoutName("TrackerHits");
         truthHitsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(SimTrackerHit.class);
-        
-        // DEBUG :: Pass the writers to the superclass writer list.
-        writers.add(inputWriter);
-        writers.add(outputWriter);
-        writers.add(verboseWriter);
-        writers.add(triggerWriter);
         
         // Run the superclass method.
         super.startOfData();
@@ -590,9 +566,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
     
     @Override
     protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
-        verboseWriter.write("Running method ProcessTrigger(EventHeader).");
-        verboseWriter.write("noPileup = " + noPileup);
-        
         // No pile-up events are output on an event-by-event basis,
         // and as such, do not output anything at this stage.
         if(noPileup) { return null; }
@@ -606,48 +579,17 @@ public class SVTReadoutDriver extends ReadoutDriver {
         double firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
                 * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
         
-        System.out.println("\t\tCalculating firstSample: Driver = \"" + getClass().getSimpleName());
-        System.out.println("\t\t\tsimTime = " + ReadoutDataManager.getCurrentTime());
-        System.out.println("\t\t\ttrueTriggerTime = " + triggerTime);
-        System.out.println("\t\t\treadoutLatency = " + readoutLatency);
-        System.out.println("\t\t\treadoutOffset = " + readoutOffset);
-        System.out.println("\t\t\tSampling Interval = " + HPSSVTConstants.SAMPLING_INTERVAL);
-        System.out.println("\t\t\tResult = " + firstSample);
-        
-        //double firstSample = Math.floor((ClockSingleton.getTime() - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL) * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
-        
-        outputWriter.write("> Event 0; t = " + ReadoutDataManager.getCurrentTime());
         List<StripHit> processedHits = new ArrayList<StripHit>();
-        
-        verboseWriter.write("Processing trigger request for Event ??? at time " + ReadoutDataManager.getCurrentTime() + " and trigger time " + triggerTime);
-        verboseWriter.write("\tNoise is " + (addNoise ? "" : "not ") + "enabled.");
-        verboseWriter.write("\ttriggerTime                       :: " + triggerTime);
-        verboseWriter.write("\treadoutLatency                    :: " + readoutLatency);
-        verboseWriter.write("\treadoutOffset                     :: " + readoutOffset);
-        verboseWriter.write("\tHPSSVTConstants.SAMPLING_INTERVAL :: " + HPSSVTConstants.SAMPLING_INTERVAL);
-        verboseWriter.write("\treadoutOffset                     :: " + readoutOffset);
-        verboseWriter.write("\tfirstSample                       :: " + firstSample);
-        verboseWriter.write("\tdouble firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL) "
-                + "* HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;");
-        verboseWriter.write(String.format("\tdouble %f = Math.floor(((%f + 256) - %f - %f) / %f) * %f + %f;", firstSample, triggerTime, readoutLatency,
-                readoutOffset, HPSSVTConstants.SAMPLING_INTERVAL, HPSSVTConstants.SAMPLING_INTERVAL, readoutOffset));
-        
-        triggerWriter.write(">" + triggerTime + ";" + (firstSample * HPSSVTConstants.SAMPLING_INTERVAL) + ";");
         
         for(SiSensor sensor : sensors) {
             // Get the hit queues for the current sensor.
             PriorityQueue<StripHit>[] hitQueues = hitMap.get(sensor);
             
-            verboseWriter.write("\tGot hit queue for sensor " + sensor.getName() + ".");
-            
             // Iterate over the hit queue channels.
             for(int channel = 0; channel < hitQueues.length; channel++) {
-                verboseWriter.write("\t\tExamining channel " + channel + ".");
-                
                 // Unless noise should be added, there is nothing to
                 // process on an empty hit queue. Skip it.
                 if(!addNoise && (hitQueues[channel] == null || hitQueues[channel].isEmpty())) {
-                    verboseWriter.write("\t\t\tChannel is empty. Nothing to process...");
                     continue;
                 }
                 
@@ -670,13 +612,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 // If there is data in the hit queues, process it.
                 if(hitQueues[channel] != null) {
                     for(StripHit hit : hitQueues[channel]) {
-                        verboseWriter.write(String.format("\t\t\tEvaluating hit with amplitude %f at time %f on channel %d.", hit.amplitude, hit.time,
-                                ((HpsSiSensor) sensor).makeChannelID(channel)));
-                        
-                        
                         processedHits.add(hit);
-                        
-                        
                         
                         // Track the noise and contribution to the
                         // signal from the current hit.
@@ -687,18 +623,12 @@ public class SVTReadoutDriver extends ReadoutDriver {
                         // across all size samples.
                         StringBuffer signalBuffer = new StringBuffer("\t\t\t\tSample Pulse       :: [");
                         for(int sampleN = 0; sampleN < 6; sampleN++) {
-                            verboseWriter.write("\t\t\t\tSample " + (sampleN + 1));
-                            verboseWriter.write("\t\t\t\t\tSensor             :: " + ((HpsSiSensor) sensor).getName());
                             double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL;
-                            verboseWriter.write("\t\t\t\t\tSample Time        :: " + sampleTime);
                             shape.setParameters(channel, (HpsSiSensor) sensor);
                             double signalAtTime = hit.amplitude * shape.getAmplitudePeakNorm(sampleTime - hit.time);
-                            verboseWriter.write("\t\t\t\t\tSignal At Time     :: " + signalAtTime);
                             totalContrib += signalAtTime;
-                            verboseWriter.write("\t\t\t\t\tTotal Contribution :: " + totalContrib);
                             signal[sampleN] += signalAtTime;
                             meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
-                            verboseWriter.write("\t\t\t\t\tNoise on Sensor    :: " + ((HpsSiSensor) sensor).getNoise(channel, sampleN));
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
                             if(sampleN != 5) {
@@ -709,9 +639,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
                         
                         // TODO: Move this to the noise comparison below.
                         meanNoise /= 6;
-                        verboseWriter.write(signalBuffer.toString());
-                        verboseWriter.write("\t\t\t\tTotal Contribution :: " + totalContrib);
-                        verboseWriter.write("\t\t\t\tMean Noise         :: " + meanNoise);
                         
                         // Calculate the average noise across all
                         // samples and compare it to the contribution
@@ -720,9 +647,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
                         //meanNoise /= 6;
                         if(totalContrib > 4.0 * meanNoise) {
                             simHits.addAll(hit.simHits);
-                            verboseWriter.write("\t\t\t\tAdded hit.");
-                        } else {
-                            verboseWriter.write("\t\t\t\tIgnored hit.");
                         }
                     }
                 }
@@ -754,20 +678,6 @@ public class SVTReadoutDriver extends ReadoutDriver {
                     }
                 }
             }
-        }
-        
-        
-        outputWriter.write("Input");
-        for(StripHit hit : processedHits) {
-            outputWriter.write(String.format("%f;%f;%d;%s", hit.amplitude, hit.time, hit.channel, hit.sensor.getName()));
-        }
-        
-        outputWriter.write("Output");
-        for(RawTrackerHit hit : hits) {
-            outputWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-                    hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
-            triggerWriter.write(String.format("%d;%d;%d;%d;%d;%d;%d;%d", hit.getCellID(), hit.getLayerNumber(), hit.getADCValues()[0],
-                    hit.getADCValues()[1], hit.getADCValues()[2], hit.getADCValues()[3], hit.getADCValues()[4], hit.getADCValues()[5]));
         }
         
         // Create the collection data objects for output to the

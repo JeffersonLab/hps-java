@@ -33,15 +33,6 @@ public class SimCalorimeterHitReadoutDriver extends SLICDataReadoutDriver<SimCal
     }
     
     @Override
-    protected void writeData(java.util.List<SimCalorimeterHit> data) {
-        writer.write("Event ??? - " + ReadoutDataManager.getCurrentTime());
-        writer.write("Output");
-        for(SimCalorimeterHit hit : data) {
-            writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-        }
-    }
-    
-    @Override
     protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         // If hodoscope hits are not persisted, truth data doesn't
         // need to be written out.

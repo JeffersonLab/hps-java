@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Queue;
 
 import org.hps.readout.ReadoutDataManager;
-import org.hps.readout.TempOutputWriter;
 import org.hps.readout.TriggerDriver;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.record.triggerbank.TriggerModule;
@@ -33,13 +32,6 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
     private Queue<List<Cluster>> botClusterQueue = null;           // Store clusters on the bottom half of the calorimeter.
     private double localTime = 0.0;                                // Stores the internal time clock for the driver.
     private HPSEcal3 ecal = null;                                  // The calorimeter geometry object.
-    
-    /**
-     * Outputs debug comparison data for both input clusters and
-     * triggered clusters to a text file.
-     */
-    private final TempOutputWriter writer = new TempOutputWriter("triggers_new.log");
-    private final TempOutputWriter debugWriter = new TempOutputWriter("triggers_new_debug.log");
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -82,19 +74,12 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
             botClusterQueue.add(new ArrayList<Cluster>());
         }
         
-        // DEBUG :: Pass the writer to the superclass writer list.
-        writers.add(writer);
-        writers.add(debugWriter);
-        
         // Run the superclass method.
         super.startOfData();
     }
     
     @Override
     public void process(EventHeader event) {
-        // DEBUG :: Output the event number to the log.
-        writer.write(">Event " + event.getEventNumber() + " -- Time " + ReadoutDataManager.getCurrentTime() + " -- Local Time " + localTime);
-        
         // If there is no data ready, then nothing can be done/
         if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime)) {
             return;
@@ -103,13 +88,6 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
         // Otherwise, get the input clusters from the present time.
         Collection<Cluster> clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, Cluster.class);
         
-        // DEBUG :: Output the input clusters to the log.
-        writer.write("Input");
-        for(Cluster cluster : clusters) {
-            writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                    cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-        }
-        
         // Remove any clusters that do not pass the singles cuts. It
         // is more efficient to eliminate these before forming pairs.
         Collection<Cluster> goodClusters = getGoodClusters(clusters);
@@ -117,35 +95,9 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
         // Put the good clusters into the cluster queue.
         updateClusterQueues(goodClusters);
         
-        // DEBUG :: Output the cluster buffer to the log.
-        int curBuffer = 0;
-        writer.write("Top Buffer");
-        for(List<Cluster> buffer : topClusterQueue) {
-            writer.write("-Buffer " + ++curBuffer);
-            for(Cluster cluster : buffer) {
-                writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                        cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-            }
-        }
-        curBuffer = 0;
-        for(List<Cluster> buffer : botClusterQueue) {
-            writer.write("-Buffer " + ++curBuffer);
-            for(Cluster cluster : buffer) {
-                writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                        cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-            }
-        }
-        
         // Check that if a trigger exists, if the trigger is not in
         // dead time. If it is, no trigger may be issued, so this is
         // not necessary.
-        debugWriter.write("Event " + event.getEventNumber());
-        debugWriter.write("\tDeadtime       :: " + getDeadTime());
-        debugWriter.write("\tLast Trigger   :: " + getLastTriggerTime());
-        debugWriter.write("\tCurrent Time   :: " + ReadoutDataManager.getCurrentTime());
-        debugWriter.write("\tTarget Time    :: " + (Double.isNaN(getLastTriggerTime()) ? "N/A" : getDeadTime() + getLastTriggerTime()));
-        debugWriter.write(String.format("\tDead Time Test :: %.0f + %.0f = %.0f < %.0f [ %s ]",
-                getLastTriggerTime(), getDeadTime(), getLastTriggerTime() + getDeadTime(), ReadoutDataManager.getCurrentTime(), (isInDeadTime() ? "DEADTIME" : "ACTIVE")));
         if(!isInDeadTime() && testTrigger()) { sendTrigger(); }
         
         // Increment the local time.
@@ -369,15 +321,11 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
      * passes all of the cluster cuts and <code>false</code> otherwise.
      */
     private boolean testTrigger() {
-        // DEBUG :: List the triggering cluster pairs.
-        writer.write("Output");
-        
         // Track whether a trigger has occurred.
         boolean triggered = false;
         
         // Get the list of cluster pairs.
         List<Cluster[]> clusterPairs = getClusterPairsTopBot();
-        debugWriter.write("Cluster Pairs   :: " + clusterPairs.size());
         
         // Iterate over the cluster pairs and perform each of the cluster
         // pair cuts on them. A cluster pair that passes all of the
@@ -390,58 +338,37 @@ public class PairTriggerReadoutDriver extends TriggerDriver {
             java.awt.Point ixy0 = ecal.getCellIndices(clusterPair[0].getCalorimeterHits().get(0).getCellID());
             java.awt.Point ixy1 = ecal.getCellIndices(clusterPair[1].getCalorimeterHits().get(0).getCellID());
             
-            debugWriter.write("Testing pair...");
-            debugWriter.write(String.format("\t%f;%f;%d;%d;%d;%d", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getTime(),
-                    clusterPair[0].getCalorimeterHits().size(), clusterPair[0].getCalorimeterHits().get(0).getCellID(), ixy0.x, ixy0.y));
-            debugWriter.write(String.format("\t%f;%f;%d;%d;%d;%d", clusterPair[1].getEnergy(), clusterPair[1].getCalorimeterHits().get(0).getTime(),
-                    clusterPair[1].getCalorimeterHits().size(), clusterPair[1].getCalorimeterHits().get(0).getCellID(), ixy1.x, ixy1.y));
-            
             
             // ==== Pair Energy Sum Cut ====================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairEnergySumCut(clusterPair)) {
-                debugWriter.write("\t\tEnergy Sum        :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tEnergy Sum        :: [ PASS ]");
             
             // ==== Pair Energy Difference Cut =============================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairEnergyDifferenceCut(clusterPair)) {
-                debugWriter.write("\t\tEnergy Difference :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tEnergy Difference :: [ PASS ]");
             
             // ==== Pair Energy Slope Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairEnergySlopeCut(clusterPair, ixy0, ixy1)) {
-                debugWriter.write("\t\tEnergy Slope      :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tEnergy Slope      :: [ PASS ]");
             
             // ==== Pair Coplanarity Cut ===================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
             if(!triggerModule.pairCoplanarityCut(clusterPair, ixy0, ixy1)) {
-                debugWriter.write("\t\tCoplanarity       :: [ FAIL ]");
                 continue pairLoop;
             }
-            debugWriter.write("\t\tCoplanarity       :: [ PASS ]");
-            
-            // DEBUG :: Output the triggering cluster pair.
-            writer.write(String.format("%f;%f;%d;%d:%f;%f;%d;%d", clusterPair[0].getEnergy(), clusterPair[0].getCalorimeterHits().get(0).getTime(),
-                    clusterPair[0].getCalorimeterHits().size(), clusterPair[0].getCalorimeterHits().get(0).getCellID(), clusterPair[1].getEnergy(),
-                    clusterPair[1].getCalorimeterHits().get(0).getTime(), clusterPair[1].getCalorimeterHits().size(),
-                    clusterPair[1].getCalorimeterHits().get(0).getCellID()));
             
             // Clusters that pass all of the pair cuts produce a trigger.
             triggered = true;
-            debugWriter.write("\t\tTriggered!");
         }
         
         // Return whether or not a trigger was observed.

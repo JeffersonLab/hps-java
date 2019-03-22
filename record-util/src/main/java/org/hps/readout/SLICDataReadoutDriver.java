@@ -43,17 +43,6 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
      */
     protected final Class<E> type;
     
-    // ==============================================================
-    // ==== Debug Output Writers ====================================
-    // ==============================================================
-    
-    /**
-     * A writer that outputs debug text to a text file. It is made
-     * available for use with subclasses, but does not perform any
-     * action by default.
-     */
-    protected TempOutputWriter writer = null;
-    
     /**
      * Instantiates a default data object handler driver for the
      * given object type with no flags.
@@ -90,13 +79,6 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
         // Register the handled collection with the data management
         // driver.
         ReadoutDataManager.registerCollection(mcCollectionParams, isPersistent(), getReadoutWindowBefore(), getReadoutWindowAfter());
-        
-        // DEBUG :: Pass the writer to the superclass writer list.
-        writer = new TempOutputWriter(collectionName + ".log");
-        writers.add(writer);
-        
-        // Run the superclass method.
-        super.startOfData();
     }
     
     @Override
@@ -109,11 +91,6 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
         } else {
             slicData = new ArrayList<E>(0);
         }
-        
-        // DEBUG :: Output debug text, if debug text is enabled. Note
-        //          that this will do nothing unless the implementing
-        //          driver actually supports debug output.
-        if(debug) { writeData(slicData); }
         
         // Add the SLIC data to the readout data manager.
         ReadoutDataManager.addData(collectionName, slicData, type);
@@ -128,14 +105,6 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
     protected double getTimeNeededForLocalOutput() {
         return 0;
     }
-    
-    /**
-     * Writes debug output data, if supported. This behavior must be
-     * implemented by a subclass driver if desired, and by default
-     * does nothing.
-     * @param data - The list of data objects from the current event.
-     */
-    protected void writeData(List<E> data) { }
     
     /**
      * Sets the name of the SLIC collection that is handled by this

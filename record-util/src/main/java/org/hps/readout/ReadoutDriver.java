@@ -122,34 +122,11 @@ public abstract class ReadoutDriver extends Driver {
      */
     private double readoutWindowBefore = Double.NaN;
     
-    // DEBUG
-    protected boolean debug = true;
-    protected java.util.List<TempOutputWriter> writers = new java.util.ArrayList<TempOutputWriter>();
-    
     /**
      * Instantiates the readout driver.
      */
     protected ReadoutDriver() {
         ReadoutDataManager.registerReadoutDriver(this);
-    }
-    
-    @Override
-    public void endOfData() {
-        for(TempOutputWriter writer : writers) {
-            if(debug && writer != null) { writer.close(); }
-        }
-    }
-    
-    @Override
-    public void startOfData() {
-        // Set the debug status for each writer. If the writer should
-        // output anything, tell it to delete the file on exit.
-        if(debug) {
-            for(TempOutputWriter writer : writers) {
-                writer.initialize();
-                writer.setEnabled(debug);
-            }
-        }
     }
     
     /**
@@ -279,9 +256,5 @@ public abstract class ReadoutDriver extends Driver {
      */
     public void setReadoutWindowBefore(double value) throws UnsupportedOperationException {
         readoutWindowBefore = value;
-    }
-    
-    public void setDebug(boolean state) {
-        debug = state;
     }
 }

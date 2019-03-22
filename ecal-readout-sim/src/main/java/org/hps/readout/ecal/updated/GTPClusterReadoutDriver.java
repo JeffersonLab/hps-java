@@ -7,7 +7,6 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
-import org.hps.readout.TempOutputWriter;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.TriggeredLCIOData;
@@ -107,29 +106,7 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      */
     private NeighborMap neighborMap;
     
-    // ==============================================================
-    // ==== Debug Output Writers ====================================
-    // ==============================================================
-    
-    /**
-     * Outputs debug comparison data for both input hits and output
-     * clusters to a text file.
-     */
-    private final TempOutputWriter writer = new TempOutputWriter("clusters_new.log");
-    /**
-     * Outputs debug comparison data for seed hits to a text file.
-     */
-    private final TempOutputWriter seedWriter = new TempOutputWriter("cluster_seeds_new.log");
-    
     private HPSEcal3 calorimeterGeometry = null;
-    
-    @Override
-    public void endOfData() {
-        if(debug) {
-            writer.close();
-            seedWriter.close();
-        }
-    }
     
     @Override
     public void detectorChanged(Detector etector) {
@@ -149,25 +126,6 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
     
     @Override
     public void process(EventHeader event) {
-        // DEBUG :: Declare event headers.
-        writer.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime() + " (Current) - "
-                + (ReadoutDataManager.getCurrentTime() - ReadoutDataManager.getTotalTimeDisplacement(outputCollectionName)) + " (Local)");
-        seedWriter.write("> Event " + event.getEventNumber() + " - " + ReadoutDataManager.getCurrentTime());
-        
-        // DEBUG :: Output all input hits.
-        if(Math.round(ReadoutDataManager.getCurrentTime()) % 4 != 0) {
-            if(ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + 4.0)) {
-                writer.write("Input");
-                for(int offset = temporalWindow; offset >= -temporalWindow; offset -= 4.0) {
-                    Collection<CalorimeterHit> windowHits = ReadoutDataManager.getData(localTime + offset, localTime + offset + 4.0,
-                            inputCollectionName, CalorimeterHit.class);
-                    for(CalorimeterHit hit : windowHits) {
-                        writer.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-                    }
-                }
-            }
-        }
-        
         // Check the data management driver to determine whether the
         // input collection is available or not.
         if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + 4.0)) {
@@ -181,12 +139,6 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         Collection<CalorimeterHit> seedCandidates = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, CalorimeterHit.class);
         Collection<CalorimeterHit> foreHits = ReadoutDataManager.getData(localTime - temporalWindow, localTime, inputCollectionName, CalorimeterHit.class);
         Collection<CalorimeterHit> postHits = ReadoutDataManager.getData(localTime + 4.0, localTime + temporalWindow + 4.0, inputCollectionName, CalorimeterHit.class);
-        
-        // DEBUG :: Output the seed hits.
-        seedWriter.write("Input");
-        for(CalorimeterHit hit : seedCandidates) {
-            seedWriter.write(String.format("%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-        }
         
         // Increment the local time.
         localTime += 4.0;
@@ -246,16 +198,6 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         
         // Pass the clusters to the data management driver.
         ReadoutDataManager.addData(outputCollectionName, gtpClusters, Cluster.class);
-        
-        // DEBUG :: Output the produced clusters.
-        writer.write("Output");
-        for(Cluster cluster : gtpClusters) {
-            writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                    cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-            for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                writer.write(String.format("\t%f;%f;%d", hit.getRawEnergy(), hit.getTime(), hit.getCellID()));
-            }
-        }
     }
     
     @Override
@@ -271,13 +213,6 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         localTimeDisplacement = temporalWindow + 4.0;
         addDependency(inputCollectionName);
         ReadoutDataManager.registerCollection(clusterCollectionParams, false);
-        
-        // DEBUG :: Pass the writers to the superclass writer list.
-        writers.add(writer);
-        writers.add(seedWriter);
-        
-        // Run the superclass method.
-        super.startOfData();
     }
     
     @Override

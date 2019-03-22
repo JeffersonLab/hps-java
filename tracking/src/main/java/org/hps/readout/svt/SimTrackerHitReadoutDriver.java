@@ -105,15 +105,4 @@ public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTracker
     protected double getTimeNeededForLocalOutput() {
         return isPersistent() ? getReadoutWindowAfter() : 0;
     }
-    
-    @Override
-    protected void writeData(List<SimTrackerHit> data) {
-        writer.write("Event Time: " + ReadoutDataManager.getCurrentTime());
-        for(SimTrackerHit hit : data) {
-            String output = String.format("\tCell ID: %d;    Energy: %f;   (x, y, z): (%f, %f, %f);   p: (%f, %f, %f);   l: %f;   t: %f",
-                    hit.getCellID(), hit.getdEdx(), hit.getPosition()[0], hit.getPosition()[1], hit.getPosition()[2],
-                    hit.getMomentum()[0], hit.getMomentum()[1], hit.getMomentum()[2], hit.getPathLength(), hit.getTime());
-            writer.write(output);
-        }
-    }
 }

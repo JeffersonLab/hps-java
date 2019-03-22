@@ -3,7 +3,6 @@ package org.hps.readout.ecal.updated;
 import java.util.Collection;
 
 import org.hps.readout.ReadoutDataManager;
-import org.hps.readout.TempOutputWriter;
 import org.hps.readout.TriggerDriver;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
@@ -75,16 +74,6 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
     private static final double BIN_SIZE = 0.025;
     
     // ==============================================================
-    // ==== Debug Output Writers ====================================
-    // ==============================================================
-    
-    /**
-     * Outputs debug comparison data for both input clusters and
-     * triggered clusters to a text file.
-     */
-    private final TempOutputWriter writer = new TempOutputWriter("triggers_new.log");
-    
-    // ==============================================================
     // ==== AIDA Plots ==============================================
     // ==============================================================
     
@@ -109,23 +98,12 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
     
     @Override
     public void process(EventHeader event) {
-        // DEBUG :: Output the event header to the debug writer.
-        writer.write(">" + ReadoutDataManager.getCurrentTime());
-        writer.write("Input");
-        
         // Check that clusters are available for the trigger.
         Collection<Cluster> clusters = null;
         if(ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime)) {
             clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, Cluster.class);
             localTime += 4.0;
         } else { return; }
-        
-        // DEBUG :: Output the input clusters, if any exist.
-        for(Cluster cluster : clusters) {
-            writer.write(String.format("%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                    cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-        }
-        StringBuffer triggerOutput = new StringBuffer("Output");
         
         // Track whether or not a trigger was seen.
         boolean triggered = false;
@@ -164,10 +142,6 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
                 continue;
             }
             
-            // DEBUG :: Output the triggering cluster.
-            triggerOutput.append(String.format("%n%f;%f;%d;%d", cluster.getEnergy(), cluster.getCalorimeterHits().get(0).getTime(),
-                    cluster.getCalorimeterHits().size(), cluster.getCalorimeterHits().get(0).getCellID()));
-            
             // Note that a trigger occurred.
             triggered = true;
             
@@ -179,7 +153,6 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
         }
         
         if(triggered) {
-            writer.write(triggerOutput.toString());
             sendTrigger();
         }
     }
@@ -204,9 +177,6 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
             clusterTotalEnergy[i] = aida.histogram1D("Trigger Plots\\Cluster Total Energy Distribution" + postscripts[i], bins, 0.0, xMax);
             clusterDistribution[i] = aida.histogram2D("Trigger Plots\\Cluster Seed Distribution" + postscripts[i], 46, -23, 23, 11, -5.5, 5.5);
         }
-        
-        // DEBUG :: Pass the writer to the superclass writer list.
-        writers.add(writer);
         
         // Run the superclass method.
         super.startOfData();
