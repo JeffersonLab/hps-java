@@ -235,8 +235,13 @@ public class MakeGblTracks {
             }
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
             MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
-            if (temp == null)
+            if (temp == null){
                 temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
+                if(temp == null){
+                    System.out.println("Temp is Null!");
+                    return null;
+                }
+            }
             GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
             if (stripData != null)
                 stripClusterDataList.add(stripData);
