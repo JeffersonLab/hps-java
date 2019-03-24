@@ -465,11 +465,11 @@ public class ReconClusterer extends AbstractClusterer {
             }
         }
         //System.out.println("Number of clusters:"+clusterList.size());
-        for(Cluster cluster : clusterList) {
-            for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
-                System.out.println("\t" + hit.getClass().getSimpleName());
-            }
-        }
+        //for(Cluster cluster : clusterList) {
+        //    for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+        //        System.out.println("\t" + hit.getClass().getSimpleName());
+        //    }
+        //}
         return clusterList;
     }
 
