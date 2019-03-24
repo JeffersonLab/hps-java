@@ -107,7 +107,7 @@ public class ReconClusterer extends AbstractClusterer {
         // Clear the rejected hit list.
         rejectedHitList = new ArrayList<CalorimeterHit>();
         
-        if(!hitList.isEmpty()) { System.out.println("TrueType: " + hitList.get(0).getClass().getSimpleName() + "; Sim Hit: " + (hitList.get(0) instanceof org.lcsim.event.SimCalorimeterHit ? "SimCalorimeterHit" : "CalorimeterHit")); }
+        // if(!hitList.isEmpty()) { System.out.println("TrueType: " + hitList.get(0).getClass().getSimpleName() + "; Sim Hit: " + (hitList.get(0) instanceof org.lcsim.event.SimCalorimeterHit ? "SimCalorimeterHit" : "CalorimeterHit")); }
         
         // Create a list for the created clusters.
         ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
