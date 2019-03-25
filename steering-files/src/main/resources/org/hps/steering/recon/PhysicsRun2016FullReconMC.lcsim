@@ -8,7 +8,6 @@
     -->
     <execute>
 
-         <driver name="PreCleanupDriver"/> 
         <!--RF driver-->
         <driver name="RfFitter"/>
  
@@ -58,17 +57,10 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
-        <driver name="VertexDebugTupleDriver"/>
-        <driver name="LCIOWriter"/>
+        <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
-        
-               
-        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
-<!--            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> -->
-            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
-        </driver>
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
@@ -102,7 +94,7 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-           <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>true</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 
@@ -159,18 +151,15 @@
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
-            <trackCollectionNames>GBLTracks</trackCollectionNames>
-<!--             <beamPositionX> -0.246 </beamPositionX>-->
-             <beamPositionX> 0 </beamPositionX>
+            <trackCollectionNames>GBLTracks</trackCollectionNames>          
+            <beamPositionX> -0.246 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
-            <!--<beamPositionY> -0.138 </beamPositionY>-->
-            <beamPositionY> 0.0 </beamPositionY>
+            <beamPositionY> -0.138 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -3.9 </beamPositionZ>
             <trackClusterTimeOffset>43</trackClusterTimeOffset>
-            <debug>true</debug>
             <isMC>true</isMC>      
-        </driver>  
+        </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
@@ -178,23 +167,6 @@
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>       
-        
-        
-	<driver name="VertexTupleDriver" type="org.hps.analysis.tuple.VertexTupleDriver">
-            <triggerType>pairs1</triggerType>
-<!--            <triggerType>all</triggerType> -->
-	    <debug>true</debug>            
-            <tupleFile>${outputFile}_vertex.txt</tupleFile>
-        </driver>
-        
-        <driver name="VertexDebugTupleDriver" type="org.hps.analysis.tuple.VertexDebugTupleDriver">
-            <triggerType>pairs1</triggerType>
-<!--            <triggerType>all</triggerType> -->
-	    <debug>true</debug>            
-            <tupleFile>${outputFile}_vertexdebug.txt</tupleFile>
-        </driver>
-        
-        
+        </driver>             
     </drivers>
 </lcsim>

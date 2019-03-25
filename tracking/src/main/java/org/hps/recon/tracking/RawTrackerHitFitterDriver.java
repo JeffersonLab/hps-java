@@ -70,6 +70,10 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.useTimestamps = useTimestamps;
     }
 
+    public void setTsCorrectionScale(double tsCorrectionScale) {
+        this.tsCorrectionScale = tsCorrectionScale;
+    }
+
     public void setSubtractTOF(boolean subtractTOF) {
         this.subtractTOF = subtractTOF;
     }
@@ -86,8 +90,8 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.subtractRFTime = subtractRFTime;
     }
 
-    public void setTsCorrectionScale(double tsCorrectionScale) {
-        this.tsCorrectionScale = tsCorrectionScale;
+    public void setTrigTimeScale(double time) {
+        trigTimeScale = time;
     }
 
     public void setFitAlgorithm(String fitAlgorithm) {
@@ -140,6 +144,7 @@ public class RawTrackerHitFitterDriver extends Driver {
         if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
             // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
+
         jitter = -666;
         if (subtractRFTime)
             if (event.hasCollection(TriggerTime.class, "TriggerTime")) {
@@ -148,7 +153,6 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (debug)
                     System.out.println("TriggerTime List Size = " + jitterList.size());
                 TriggerTime jitterObject = jitterList.get(0);
-//                jitter = jitterObject.getDoubleVal() - trigTimeScale;
                 jitter = jitterObject.getDoubleVal();
                 if (debug)
                     System.out.println("RF time jitter " + jitter);
@@ -171,6 +175,7 @@ public class RawTrackerHitFitterDriver extends Driver {
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
             //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
+
                 if (correctTimeOffset) {
                     if (debug)
                         System.out.println("subtracting svt time offset " + timingConstants.getOffsetTime());
@@ -183,10 +188,9 @@ public class RawTrackerHitFitterDriver extends Driver {
                     fit.setT0(fit.getT0() - tt);
                 }
                 if (subtractRFTime && jitter != -666) {
-//                    System.out.println("subtracting RF time jitter");
                     if (debug)
                         System.out.println("subtracting RF time jitter " + jitter);
-                    fit.setT0(fit.getT0() - jitter + 55.0);
+                    fit.setT0(fit.getT0() - jitter + trigTimeScale);
                 }
                 if (correctChanT0) {
                     if (debug)
@@ -219,7 +223,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                 }
                 if (debug)
                     System.out.println(fit);
-//                System.out.println("Final t0 = " + fit.getT0());
+
                 fits.add(fit);
                 FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
                 hits.add(hth);

@@ -40,7 +40,7 @@ public class GBLRefitterDriver extends Driver {
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
-    private StandardCuts cuts = null;
+    private StandardCuts cuts = new StandardCuts();
 
     private MilleBinary mille;
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
@@ -76,26 +76,18 @@ public class GBLRefitterDriver extends Driver {
     }
 
     public void setMaxTrackChisq(int nhits, double input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
         cuts.setMaxTrackChisq(nhits, input);
     }
 
-    public void setMaxTrackChisq5hits(double input){
-        if (cuts == null)
-            cuts = new StandardCuts();
+    public void setMaxTrackChisq5hits(double input) {
         cuts.setMaxTrackChisq(5, input);
     }
 
-    public void setMaxTrackChisq6hits(double input){
-        if (cuts == null)
-            cuts = new StandardCuts();
+    public void setMaxTrackChisq6hits(double input) {
         cuts.setMaxTrackChisq(6, input);
     }
 
-    public void setMaxTrackChisq(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
+    public void setMaxTrackChisqProb(double input) {
         cuts.changeChisqTrackProb(input);
     }
 
@@ -118,11 +110,6 @@ public class GBLRefitterDriver extends Driver {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
-
-        if (cuts == null) {
-            cuts = new StandardCuts();
-            //System.out.printf("in constructor 5 %f 6 %f \n", cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
-        }
     }
 
     @Override

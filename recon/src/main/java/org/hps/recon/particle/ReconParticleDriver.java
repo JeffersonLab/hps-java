@@ -58,7 +58,7 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
-    protected StandardCuts cuts = null;
+    protected StandardCuts cuts = new StandardCuts();
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
 
@@ -385,35 +385,23 @@ public abstract class ReconParticleDriver extends Driver {
                 this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
         beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
         matcher.setBeamEnergy(beamEnergy); 
-        
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
-        else
-            cuts.changeBeamEnergy(beamEnergy);
+        cuts.changeBeamEnergy(beamEnergy);
     }
     
     public void setMaxMatchChisq(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchChisq(input);
     }
     
     
     public void setMaxElectronP(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxElectronP(input);
     }
     
     public void setMaxMatchDt(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchDt(input);
     }
     
     public void setTrackClusterTimeOffset(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setTrackClusterTimeOffset(input);
     }
     
@@ -498,8 +486,13 @@ public abstract class ReconParticleDriver extends Driver {
                     double clusTime = ClusterUtilities.getSeedHitTime(cluster);
                     double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
                     
-                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()){
+                        if (debug) {
+                            System.out.println("Failed cluster-track deltaT!");
+                            System.out.println(clusTime + "  " + trkT + "  " + cuts.getTrackClusterTimeOffset() + ">" + cuts.getMaxMatchDt());
+                        }
                         continue;
+                    }
                     
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
@@ -519,13 +512,23 @@ public abstract class ReconParticleDriver extends Driver {
                     }
 
                     // ignore if matching quality doesn't make the cut:
-                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH){
+                        if (debug) {
+                            System.out.println("Failed cluster-track NSigma Cut!");
+                            System.out.println("match NSigma = "+thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH );
+                        }
                         continue;
+                    }
+                        
 
                     // ignore if we already found a cluster that's a better match:
-                    if (thisNSigma > smallestNSigma)
+                    if (thisNSigma > smallestNSigma) {
+                        if (debug) {
+                            System.out.println("Already found a better match than this!");
+                            System.out.println("match NSigma = "+thisNSigma + "; smallest NSigma =  " + smallestNSigma );
+                        }
                         continue;
-
+                    }
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
                     matchedCluster = originalCluster;
@@ -678,6 +681,8 @@ public abstract class ReconParticleDriver extends Driver {
         if (trackCollectionNames != null) {
             for (String collectionName : trackCollectionNames) {
                 if (event.hasCollection(Track.class, collectionName)) {
+                         // VERBOSE :: Output the number of clusters in the event.
+                    printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
                     trackCollections.add(event.get(Track.class, collectionName));
                 }
             }
