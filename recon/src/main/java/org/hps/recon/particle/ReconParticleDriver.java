@@ -58,7 +58,7 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
-    protected StandardCuts cuts = null;
+    protected StandardCuts cuts = new StandardCuts();
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
 
@@ -385,35 +385,23 @@ public abstract class ReconParticleDriver extends Driver {
                 this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
         beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
         matcher.setBeamEnergy(beamEnergy); 
-        
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
-        else
-            cuts.changeBeamEnergy(beamEnergy);
+        cuts.changeBeamEnergy(beamEnergy);
     }
     
     public void setMaxMatchChisq(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchChisq(input);
     }
     
     
     public void setMaxElectronP(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxElectronP(input);
     }
     
     public void setMaxMatchDt(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchDt(input);
     }
     
     public void setTrackClusterTimeOffset(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setTrackClusterTimeOffset(input);
     }
     

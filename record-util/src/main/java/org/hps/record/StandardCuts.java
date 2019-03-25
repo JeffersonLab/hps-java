@@ -8,7 +8,9 @@ import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 public class StandardCuts {
     // max number of hits a track can share with other tracks
     private int maxSharedHitsPerTrack;
-    // max GBL chisq for 6-hit track
+    // max GBL chisq prob for all tracks 
+    private double maxTrackChisqProb;
+    // max GBL raw chisq for various numbers of hits
     private Map<Integer, Double> maxTrackChisq;
     // max (absolute) chisq for track-cluster match for recon particle 
     private double maxMatchChisq;
@@ -22,35 +24,43 @@ public class StandardCuts {
     private double minMollerChisqProb;
     // max time diff [ns] between the two recon particle clusters in vertex
     private double maxVertexClusterDt;
-    
     // max momentum for good electron recon particle
     private double maxElectronP;
     // min momentum sum of tracks in good Moller vertex
     private double minMollerP;
     // max momentum sum of tracks in good Moller vertex
     private double maxMollerP;
-    
+    // this should be set in data according to beam energy, but may be different in MC
     private double trackClusterTimeOffset;
-    private double maxTrackChisqProb;
     
-    // helpers
+    
+    // members that don't involve chi2 can only be set ONCE
     private boolean maxElectronPset = false;
     private boolean minMollerPset = false;
     private boolean maxMollerPset = false;
     private boolean maxVertexPset = false;
     private boolean OffsetSet = false;
+    private boolean maxSharedHitsPerTrackSet = false;
+    private boolean maxMatchDtSet = false;
+    private boolean maxVertexClusterDtSet = false;
+    
     
     public double getTrackClusterTimeOffset() {
         return trackClusterTimeOffset;
     }
     
     public void setTrackClusterTimeOffset(double input) {
-        trackClusterTimeOffset = input;
-        OffsetSet = true;
+        if (!OffsetSet) {
+            trackClusterTimeOffset = input;
+            OffsetSet = true;
+        }
     }
     
     public void setMaxSharedHitsPerTrack(int input) {
-        maxSharedHitsPerTrack = input;
+        if (!maxSharedHitsPerTrackSet) {
+            maxSharedHitsPerTrack = input;
+            maxSharedHitsPerTrackSet = true;
+        }
     }
     public int getMaxSharedHitsPerTrack() {
         return maxSharedHitsPerTrack;
@@ -77,8 +87,10 @@ public class StandardCuts {
     }
     
     public void setMaxVertexP(double input) {
-        maxVertexP = input;
-        maxVertexPset = true;
+        if (!maxVertexPset) {
+            maxVertexP = input;
+            maxVertexPset = true;
+        }
     }
     public double getMaxVertexP() {
         return maxVertexP;
@@ -99,38 +111,50 @@ public class StandardCuts {
     }
     
     public void setMaxMatchDt(double input) {
-        maxMatchDt = input;
+        if (!maxMatchDtSet) {
+            maxMatchDt = input;
+            maxMatchDtSet = true;
+        }
     }
     public double getMaxMatchDt() {
         return maxMatchDt;
     }
     
     public void setMaxVertexClusterDt(double input) {
-        maxVertexClusterDt = input;
+        if (!maxVertexClusterDtSet) {
+            maxVertexClusterDt = input;
+            maxVertexClusterDtSet = true;
+        }
     }
     public double getMaxVertexClusterDt() {
         return maxVertexClusterDt;
     }
     
     public void setMaxElectronP(double input) {
-        maxElectronP = input;
-        maxElectronPset = true;
+        if (!maxElectronPset) {
+            maxElectronP = input;
+            maxElectronPset = true;
+        }
     }
     public double getMaxElectronP() {
         return maxElectronP;
     }
     
     public void setMaxMollerP(double input) {
-        maxMollerP = input;
-        maxMollerPset = true;
+        if (!maxMollerPset) {
+            maxMollerP = input;
+            maxMollerPset = true;
+        }
     }
     public double getMaxMollerP() {
         return maxMollerP;
     }
     
     public void setMinMollerP(double input) {
-        minMollerP = input;
-        minMollerPset = true;
+        if (!minMollerPset) {
+            minMollerP = input;
+            minMollerPset = true;
+        }
     }
     public double getMinMollerP() {
         return minMollerP;
@@ -154,7 +178,15 @@ public class StandardCuts {
         maxTrackChisq = new HashMap<Integer, Double>();
         maxTrackChisq.put(5, new ChiSquaredDistribution(5).inverseCumulativeProbability(1.0-maxTrackChisqProb));
         maxTrackChisq.put(7, new ChiSquaredDistribution(7).inverseCumulativeProbability(1.0-maxTrackChisqProb));
-        changeBeamEnergy(ebeam);
+        
+        maxElectronP = 0.75*ebeam;
+        minMollerP = 0.8*ebeam;
+        maxMollerP = 1.2*ebeam;
+        maxVertexP = 1.2*ebeam;
+        if (ebeam < 2)
+            trackClusterTimeOffset=43;
+        else
+            trackClusterTimeOffset=55;
     }
     
     public void changeChisqTrackProb(double prob) {        
@@ -164,20 +196,14 @@ public class StandardCuts {
     }
     
     public void changeBeamEnergy(double ebeam) {
-        if (!maxElectronPset)
-            maxElectronP = 0.75*ebeam;
-        if (!minMollerPset)
-            minMollerP = 0.8*ebeam;
-        if (!maxMollerPset)
-            maxMollerP = 1.2*ebeam;
-        if (!maxVertexPset)
-            maxVertexP = 1.2*ebeam;
-        if (!OffsetSet) {
-            if (ebeam < 2)
-                trackClusterTimeOffset = 43;
-            else
-                trackClusterTimeOffset = 55;
-        }
+        setMaxElectronP(0.75*ebeam);
+        setMinMollerP(0.8*ebeam);
+        setMaxMollerP(1.2*ebeam);
+        setMaxVertexP(1.2*ebeam);
+        if (ebeam < 2)
+            setTrackClusterTimeOffset(43);
+        else
+            setTrackClusterTimeOffset(55);
     }
     
     public StandardCuts() {
