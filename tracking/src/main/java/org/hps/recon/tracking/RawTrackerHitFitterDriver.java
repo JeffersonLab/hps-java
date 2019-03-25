@@ -161,7 +161,6 @@ public class RawTrackerHitFitterDriver extends Driver {
                 if (useTimestamps) {
                     double t0Svt = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRACKER, event);
                     double t0Trig = ReadoutTimestamp.getTimestamp(ReadoutTimestamp.SYSTEM_TRIGGERBITS, event);
-                    System.out.println("t0Svt = "+t0Svt+"; t0Trig = "+t0Trig);
                     // double corMod = (t0Svt - t0Trig) + 200.0;///where does 200.0 come from?  for 2016 MC, looks like should be 240
                     double corMod = (t0Svt - t0Trig) + tsCorrectionScale;
                     fit.setT0(fit.getT0() + corMod);
