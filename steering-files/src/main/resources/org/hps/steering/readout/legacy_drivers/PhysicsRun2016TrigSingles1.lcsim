@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      Steering file for readout for the EngRun 2015 MC for singles 1 triggers
+       corresponding to pass-2 reconstruction
+      @author Matt Graham <mgraham@slac.stanford.edu>
+    -->    
+    <execute>    
+        <!--  Readout Simulation -->
+        <driver name="EcalReadout"/>
+        <driver name="EcalConverter"/>
+        <driver name="EcalClustererGTP"/>
+        <driver name="SinglesTrigger1"/>
+        <driver name="SimpleSVTReadout" />
+        <driver name="TestRunReconToLcio"/>     
+        <driver name="AidaSaveDriver"/>    
+        <driver name="ClockDriver"/>     
+        <driver name="CleanupDriver" /> 
+    </execute>
+    <drivers>
+        <driver name="EcalReadout" type="org.hps.readout.ecal.FADCEcalReadoutDriver">
+            <coincidenceWindow>1</coincidenceWindow>
+            <ecalName>Ecal</ecalName>
+            <ecalCollectionName>EcalHits</ecalCollectionName>
+            <ecalRawCollectionName>EcalRawHits</ecalRawCollectionName>
+            <readoutThreshold>18</readoutThreshold>
+            <triggerThreshold>18</triggerThreshold>
+            <readoutWindow>100</readoutWindow>
+            <readoutLatency>100</readoutLatency>
+            <mode>1</mode>
+        </driver>
+        <driver name="EcalConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <rawCollectionName>EcalRawHits</rawCollectionName>
+            <ecalCollectionName>EcalCorrectedHits</ecalCollectionName>
+        </driver>   
+        <driver name="EcalClustererGTP" type="org.hps.recon.ecal.cluster.GTPClusterDriver">
+            <!--
+            Hit Time Coincidence:         +/-16 ns
+            Seed Energy Threshold:           50 MeV
+            -->
+            <inputHitCollectionName>EcalCorrectedHits</inputHitCollectionName>
+            <outputClusterCollectionName>EcalClustersGTP</outputClusterCollectionName>            
+            <clusterWindow>4</clusterWindow>
+            <seedEnergyThreshold>0.100</seedEnergyThreshold>
+            <logLevel>SEVERE</logLevel>
+        </driver>
+        <driver name="SinglesTrigger1" type="org.hps.readout.ecal.SinglesTriggerDriver">
+            <!--      
+            Hits Per Cluster Min:             3
+            Cluster Energy Min:             50 MeV
+            Cluster Energy Max:             Infinity
+            -->
+            <clusterCollectionName>EcalClustersGTP</clusterCollectionName>
+            <deadTime>32</deadTime>
+            <seedEnergyLowThreshold>0.100</seedEnergyLowThreshold>
+            <hitCountThreshold>3</hitCountThreshold>
+            <clusterEnergyLowThreshold>1.3</clusterEnergyLowThreshold>
+            <clusterEnergyHighThreshold>2.6</clusterEnergyHighThreshold>
+            <prescale>1</prescale>
+            <delay>3</delay>
+            <outputFileName>${outputFile}.triggers.singles1</outputFileName>
+            <!--<verbose>true</verbose>-->
+        </driver>                                    
+        <driver name="SimpleSVTReadout" type="org.hps.readout.svt.SimpleSvtReadout">
+            <enablePileupCut>false</enablePileupCut>
+            <useTimingConditions>true</useTimingConditions>
+        </driver>
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
+
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>./${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="ClockDriver" type="org.hps.readout.ecal.ClockDriver"/>      
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
+        <driver name="TestRunReconToLcio" type="org.hps.evio.TestRunTriggeredReconToLcio">
+            <outputFile>${outputFile}.slcio</outputFile>
+            <rejectBackground>false</rejectBackground>
+            <writeSvtData>true</writeSvtData>
+            <ecalMode>1</ecalMode>
+        </driver>
+    </drivers>
+</lcsim>
