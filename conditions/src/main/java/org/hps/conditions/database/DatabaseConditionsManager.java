@@ -1,9 +1,5 @@
 package org.hps.conditions.database;
 
-import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_FILE;
-import static org.hps.conditions.database.ConnectionParameters.CONNECTION_PROPERTY_RESOURCE;
-
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,6 +11,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,32 +37,148 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
 
 /**
  * <p>
- * This class provides the top-level API for accessing database conditions, as well as configuring the database
- * connection, initializing all required components, and loading required converters and table meta data. It is
+ * This class provides the top-level API for accessing database conditions, as
+ * well as configuring the database connection, initializing all required
+ * components, and loading required converters and table meta data. It is
  * registered as the global <code>ConditionsManager</code> in the constructor.
  * <p>
- * Differences between Test Run and Engineering Run configurations are handled automatically.
+ * Differences between Test Run and Engineering Run configurations are handled
+ * automatically.
+ * <p>
+ * The connection URL, username and password can be set via Java properties from
+ * the command line, e.g. for the default connection:</br>
+ * <code>java -Dorg.hps.conditions.url=jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions
+ *       -Dorg.hps.conditions.user=hpsuser -Dorg.hps.conditions.password=darkphoton [...]</code>
+ * <p>
+ * To use a local SQLite database, provide a URL that looks something like this:</br>
+ * <code>jdbc:sqlite:hps_conditions.db</code>
+ * <p>
+ * The last part should be the relative or absolute path to the SQLite db file.
+ * <p>
+ * When using a SQLite database, no username or password needs to be provided.
+ * <p>
+ * SQLite is not supported in write mode.  The local database should be a clone of a 
+ * particular version of the master MySQL database at JLab.
  *
  * @see org.lcsim.conditions.ConditionsManager
  * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {
-   
-    /**
-     * The connection properties resource for connecting to the default JLAB database.
-     */
-    private static final String CONNECTION_RESOURCE = "/org/hps/conditions/config/jlab_connection.prop";
 
     /**
      * Initialize the logger.
      */
     private static Logger LOG = Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName());
 
+    private static DatabaseConditionsManager INSTANCE = null;
+
     /**
      * The max value for a run to be considered Test Run.
      */
     private static final int TEST_RUN_MAX_RUN = 1365;
+
+    /**
+     * Default database URL.
+     */
+    private static String DEFAULT_URL = "jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions";
+    
+    /**
+     * Default database user for read access.
+     */
+    private static String DEFAULT_USER = "hpsuser";
+    
+    /**
+     * Password for default account 'hpsuser'.
+     */
+    private static String DEFAULT_PASSWORD = "darkphoton";
+
+    /**
+     * Number of connection retries allowed.
+     */
+    private static final int MAX_ATTEMPTS = 10;
+
+    /**
+     * Wait time (in millis) for the first retry. The nth retry waits for
+     * n*RETRY_WAIT millis.
+     */
+    private static final int RETRY_WAIT = 5000;
+
+    /**
+     * Get a connection to the conditions database, possibly using
+     * properties from the command line for the database URL, username,
+     * and password (otherwise the defaults are used to provide a 
+     * read only connection).
+     * 
+     * @return A connection to the conditions database
+     */
+    private Connection createConnection() {
+
+        Connection connection = null;
+
+        String url = System.getProperty("org.hps.conditions.url");
+        if (url == null) {
+            url = DEFAULT_URL;
+        }
+        String user = System.getProperty("org.hps.conditions.user");
+        if (user == null) {
+            user = DEFAULT_USER;
+        }
+        String password = System.getProperty("org.hps.conditions.password");
+        if (password == null) {
+            password = DEFAULT_PASSWORD;
+        }
+
+        Properties props = new Properties();
+        props.setProperty("user", user);
+        props.setProperty("password", password);
+
+        LOG.info("Opening conditions db connection ..." + '\n' + "url: " + url + '\n' + "user: " + user);
+        //+ '\n' + "password: " + password + '\n');
+
+        if (url.contains("mysql://")) {
+            // Remote connection using MySQL with connection retry
+            int attempt = 0;
+            while (true) {
+                attempt++;
+                try {
+                    connection = DriverManager.getConnection(url, props);
+                } catch (final SQLException x) {
+                    // FIXME: The message of the exception should be checked here, as there could be other problems
+                    //        other than max connections exceeded, such as the password or URL being wrong, in which case
+                    //        the method should just fail immediately.
+                    Logger.getLogger(this.getClass().getPackage().getName())
+                            .warning("Failed to connect to database " + url + " - " + x.getMessage());
+                    if (attempt >= MAX_ATTEMPTS) {
+                        throw new RuntimeException(
+                                "Failed to connect to database after " + attempt + " attempts: " + url, x);
+                    }
+                    try {
+                        Thread.sleep(attempt * RETRY_WAIT);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ConnectionParameters.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    continue;
+                }
+                if (attempt > 1) {
+                    Logger.getLogger(this.getClass().getPackage().getName())
+                            .warning("Connected to database " + url + " - after " + attempt + " attempts");
+                }
+                break;
+            }
+        } else {
+            // Local connection using SQLite
+            try {
+                Class.forName("org.sqlite.JDBC");
+                connection = DriverManager.getConnection(url, props);
+            } catch (final SQLException x) {
+                throw new RuntimeException("Error connecting to local SQLite database", x);
+            } catch (final ClassNotFoundException x) {
+                throw new RuntimeException("SQLite db driver not found", x);
+            }
+        }
+        return connection;
+    }
 
     static {
         DriverManager.setLoginTimeout(30);
@@ -77,7 +190,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the static instance of the manager
      */
     public static DatabaseConditionsManager getInstance() {
-        return DatabaseConditionsManager.class.cast(ConditionsManager.defaultInstance());
+        if (INSTANCE == null) {
+            INSTANCE = new DatabaseConditionsManager();
+        }
+        return INSTANCE;
     }
 
     /**
@@ -89,14 +205,15 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public static boolean isTestRun(final int runNumber) {
         return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
     }
-    
+
     /**
      * The current set of conditions records for the run.
      */
     private ConditionsRecordCollection conditionsRecordCollection = null;
 
     /**
-     * The currently active conditions tag; an empty collection means that no tag is active.
+     * The currently active conditions tag; an empty collection means that no tag is
+     * active.
      */
     private final ConditionsTagCollection conditionsTagCollection = new ConditionsTagCollection();
 
@@ -104,16 +221,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * The current database connection.
      */
     private Connection connection = null;
-
-    /**
-     * The current connection parameters.
-     */
-    private ConnectionParameters connectionParameters = null;
-
-    /**
-     * The connection properties file, if one is being used from the command line.
-     */
-    private File connectionPropertiesFile = null;
 
     /**
      * Create the global registry of conditions object converters.
@@ -126,12 +233,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private ConditionsConverter ecalConverter;
 
     /**
-     * True if the conditions system has been frozen and will ignore updates after it is initialized.
+     * True if the conditions system has been frozen and will ignore updates after
+     * it is initialized.
      */
     private boolean isFrozen = false;
 
     /**
-     * True if the manager has been initialized, e.g. the {@link #setDetector(String, int)} method was called.
+     * True if the manager has been initialized, e.g. the
+     * {@link #setDetector(String, int)} method was called.
      */
     private boolean isInitialized = false;
 
@@ -156,18 +265,13 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private final Set<String> tags = new HashSet<String>();
 
     /**
-     * Class constructor. Calling this will automatically register this manager as the global default.
+     * Class constructor. Calling this will automatically register this manager as
+     * the global default.
      */
-    public DatabaseConditionsManager() {
+    private DatabaseConditionsManager() {
 
         // Register detector conditions converter.
         this.registerConditionsConverter(new DetectorConditionsConverter());
-
-        // Setup connection from system property pointing to a file, if it was set.
-        this.setupConnectionSystemPropertyFile();
-
-        // Setup connection from system property pointing to a resource, if it was set.
-        this.setupConnectionSystemPropertyResource();
 
         // Set run to invalid number.
         this.setRun(Integer.MIN_VALUE);
@@ -176,7 +280,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         for (final AbstractConditionsObjectConverter converter : this.converters.values()) {
             this.registerConditionsConverter(converter);
         }
-        
+
         // Set default global conditions manager.
         ConditionsManager.setDefaultConditionsManager(this);
     }
@@ -191,8 +295,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public void addTag(final String tag) {
         if (!this.tags.contains(tag)) {
             LOG.info("adding tag " + tag);
-            final ConditionsTagCollection findConditionsTag = this.getCachedConditions(ConditionsTagCollection.class,
-                    tag).getCachedData();
+            final ConditionsTagCollection findConditionsTag = this
+                    .getCachedConditions(ConditionsTagCollection.class, tag).getCachedData();
             if (findConditionsTag.size() == 0) {
                 throw new IllegalArgumentException("The tag " + tag + " does not exist in the database.");
             }
@@ -219,21 +323,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Cache conditions sets for all known tables.
      */
     /*
-    private void cacheConditionsSets() {
-        for (final TableMetaData meta : this.tableRegistry.values()) {
-            try {
-                LOGGER.fine("caching conditions " + meta.getKey() + " with type "
-                        + meta.getCollectionClass().getCanonicalName());
-                this.getCachedConditions(meta.getCollectionClass(), meta.getKey());
-            } catch (final Exception e) {
-                LOGGER.warning("could not cache conditions " + meta.getKey());
-            }
-        }
-    }
-    */
+     * private void cacheConditionsSets() { for (final TableMetaData meta :
+     * this.tableRegistry.values()) { try { LOGGER.fine("caching conditions " +
+     * meta.getKey() + " with type " +
+     * meta.getCollectionClass().getCanonicalName());
+     * this.getCachedConditions(meta.getCollectionClass(), meta.getKey()); } catch
+     * (final Exception e) { LOGGER.warning("could not cache conditions " +
+     * meta.getKey()); } } }
+     */
 
     /**
-     * Clear the tags used to filter the {@link org.hps.conditions.api.ConditionsRecord}s.
+     * Clear the tags used to filter the
+     * {@link org.hps.conditions.api.ConditionsRecord}s.
      */
     public void clearTags() {
         this.tags.clear();
@@ -260,9 +361,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * This method will return <code>true</code> if the given collection ID already exists in the table.
+     * This method will return <code>true</code> if the given collection ID already
+     * exists in the table.
      *
-     * @param tableName the name of the table
+     * @param tableName    the name of the table
      * @param collectionID the collection ID value
      * @return <code>true</code> if collection exists
      */
@@ -284,8 +386,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Find a collection of conditions validity records by key name. The key name is distinct from the table name, but
-     * they are usually set to the same value.
+     * Find a collection of conditions validity records by key name. The key name is
+     * distinct from the table name, but they are usually set to the same value.
      *
      * @param name the conditions key name
      * @return the set of matching conditions records
@@ -305,8 +407,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * This method can be called to "freeze" the conditions system so that any subsequent updates to run number or
-     * detector name will be ignored.
+     * This method can be called to "freeze" the conditions system so that any
+     * subsequent updates to run number or detector name will be ignored.
      */
     public synchronized void freeze() {
         if (this.getDetector() != null && this.getRun() != -1) {
@@ -358,9 +460,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Add a row for a new collection and return the new collection ID assigned to it.
-     * @param collection the conditions object collection
-     * @param description text description for the new collection ID record in the database
+     * Add a row for a new collection and return the new collection ID assigned to
+     * it.
+     * 
+     * @param collection  the conditions object collection
+     * @param description text description for the new collection ID record in the
+     *                    database
      * @return the collection's ID
      * @throws SQLException
      */
@@ -401,7 +506,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the list of conditions records for the run, filtered by the current set of active tags.
+     * Get the list of conditions records for the run, filtered by the current set
+     * of active tags.
      *
      * @return the list of conditions records for the run
      */
@@ -409,14 +515,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         if (this.run == -1 || this.detectorName == null) {
             throw new IllegalStateException("Conditions system is not initialized.");
         }
-        // If the collection is null then the new conditions records need to be retrieved from the database.
+        // If the collection is null then the new conditions records need to be
+        // retrieved from the database.
         if (this.conditionsRecordCollection == null) {
 
             // Get the collection of conditions that are applicable for the current run.
             this.conditionsRecordCollection = this.getCachedConditions(ConditionsRecordCollection.class, "conditions")
                     .getCachedData();
 
-            // If there is one or more tags enabled then filter the collection by the tag names.
+            // If there is one or more tags enabled then filter the collection by the tag
+            // names.
             if (this.conditionsTagCollection.size() > 0) {
                 this.conditionsRecordCollection = this.conditionsTagCollection.filter(this.conditionsRecordCollection);
             }
@@ -428,9 +536,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Get a conditions series with one or more collections.
      *
      * @param collectionType the type of the collection
-     * @param tableName the name of the data table
-     * @param <ObjectType> the type of the conditions object
-     * @param <CollectionType> the type of the conditions collection
+     * @param tableName      the name of the data table
+     * @param                <ObjectType> the type of the conditions object
+     * @param                <CollectionType> the type of the conditions collection
      * @return the conditions series
      */
     @SuppressWarnings("unchecked")
@@ -457,12 +565,19 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the JDBC connection
      */
     public Connection getConnection() {
-        this.openConnection();
+        try {
+            if (this.connection == null || this.connection.isClosed()) {
+                this.openConnection();
+            }
+        } catch (final SQLException x) {
+            throw new RuntimeException(x);
+        }
         return this.connection;
     }
 
     /**
-     * Get the current LCSim compact <code>Detector</code> object with the geometry and detector model.
+     * Get the current LCSim compact <code>Detector</code> object with the geometry
+     * and detector model.
      *
      * @return the detector object
      */
@@ -516,6 +631,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return this.isInitialized;
     }
 
+
+    /**
+     * Reset the static instance..
+     */
+    public static void reset() {
+        INSTANCE = new DatabaseConditionsManager();
+    }
+
     /**
      * Return <code>true</code> if Test Run configuration is active
      *
@@ -533,11 +656,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
             final Class<CollectionType> collectionType) {
-        final List<TableMetaData> tableMetaDataList = TableRegistry.getTableRegistry().findByCollectionType(
-                collectionType);
+        final List<TableMetaData> tableMetaDataList = TableRegistry.getTableRegistry()
+                .findByCollectionType(collectionType);
         if (tableMetaDataList.size() > 1) {
-            throw new RuntimeException("More than one table meta data object returned for type: "
-                    + collectionType.getName());
+            throw new RuntimeException(
+                    "More than one table meta data object returned for type: " + collectionType.getName());
         }
         final TableMetaData tableMetaData = tableMetaDataList.get(0);
         CollectionType collection;
@@ -555,7 +678,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Create a new collection with the given type and table name.
      *
      * @param collectionType the collection type
-     * @param tableName the table name
+     * @param tableName      the table name
      * @return the new collection
      */
     public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
@@ -575,29 +698,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Open the database connection.
      *
-     * @return <code>true</code> if a connection was opened; <code>false</code> if using an existing connection.
+     * @return <code>true</code> if a connection was opened; <code>false</code> if
+     *         using an existing connection.
      */
     public synchronized void openConnection() {
         try {
             if (this.connection == null || this.connection.isClosed()) {
-                // Do the connection parameters need to be figured out automatically?
-                if (this.connectionParameters == null) {
-                    // Setup the default read-only connection, which will choose a SLAC or JLab database.
-                    this.connectionParameters = ConnectionParameters.fromResource(CONNECTION_RESOURCE);
-                }
-
-                // Print connection info to the log.
-                LOG.info("Opening connection ... " + '\n' + "connection: "
-                        + this.connectionParameters.getConnectionString() + '\n' + "host: "
-                        + this.connectionParameters.getHostname() + '\n' + "port: "
-                        + this.connectionParameters.getPort() + '\n' + "user: " + this.connectionParameters.getUser()
-                        + '\n' + "database: " + this.connectionParameters.getDatabase());
-
-                // Create the connection using the parameters.
-                this.connection = this.connectionParameters.createConnection();
+                this.connection = createConnection();
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException x) {
+            throw new RuntimeException("Error opening connection", x);
         }
     }
 
@@ -649,49 +759,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Set the connection parameters of the conditions database.
-     *
-     * @param connectionParameters the connection parameters
-     */
-    public void setConnectionParameters(final ConnectionParameters connectionParameters) {
-        this.connectionParameters = connectionParameters;
-    }
-
-    /**
-     * Set the path to a properties file containing connection settings.
-     *
-     * @param file the properties file
-     */
-    public void setConnectionProperties(final File file) {
-        LOG.config("Setting connection properties file '" + file.getPath() + "'");
-        if (!file.exists()) {
-            throw new IllegalArgumentException("The connection properties file does not exist: " + file.getPath());
-        }
-        this.connectionParameters = ConnectionParameters.fromProperties(file);
-    }
-
-    /**
-     * Set the connection parameters from an embedded resource location.
-     *
-     * @param resource the classpath resource location
-     */
-    public void setConnectionResource(final String resource) {
-        LOG.config("Setting connection resource '" + resource + "'");
-        this.connectionParameters = ConnectionParameters.fromResource(resource);
-    }
-
-    /**
-     * This method handles changes to the detector name and run number. It is called every time an LCSim event is
-     * created, and so it has internal logic to figure out if the conditions system actually needs to be updated.
+     * This method handles changes to the detector name and run number. It is called
+     * every time an LCSim event is created, and so it has internal logic to figure
+     * out if the conditions system actually needs to be updated.
      */
     @Override
     public synchronized void setDetector(final String detectorName, final int runNumber)
             throws ConditionsNotFoundException {
-        
+
         if (!this.isInitialized || !detectorName.equals(this.getDetector()) || runNumber != this.getRun()) {
-            
+
             if (!this.isFrozen) {
-                
+
                 LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
 
                 // Set flag if run number is from Test Run 2012 data.
@@ -708,44 +787,15 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
                 // Reset the conditions records.
                 this.conditionsRecordCollection = null;
 
-                // Call the super class's setDetector method to construct the detector object and activate conditions listeners.
+                // Call the super class's setDetector method to construct the detector object
+                // and activate conditions listeners.
                 super.setDetector(detectorName, runNumber);
 
                 // Close the connection.
                 this.closeConnection();
 
                 this.isInitialized = true;
-            } 
-        }        
-    }
-
-    /**
-     * Setup the database connection from a file specified by a Java system property setting. This could be overridden
-     * by subsequent API calls to {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
-     */
-    private void setupConnectionSystemPropertyFile() {
-        final String systemPropertiesConnectionPath = (String) System.getProperties().get(CONNECTION_PROPERTY_FILE);
-        if (systemPropertiesConnectionPath != null) {
-            final File f = new File(systemPropertiesConnectionPath);
-            if (!f.exists()) {
-                throw new RuntimeException("Connection properties file from " + CONNECTION_PROPERTY_FILE
-                        + " does not exist.");
             }
-            this.setConnectionProperties(f);
-            LOG.info("connection setup from system property " + CONNECTION_PROPERTY_FILE + " = "
-                    + systemPropertiesConnectionPath);
-        }
-    }
-
-    /**
-     * Setup the database connection from a file specified by a Java system property setting. This could be overridden
-     * by subsequent API calls to {@link #setConnectionProperties(File)} or {@link #setConnectionResource(String)}.
-     */
-    private void setupConnectionSystemPropertyResource() {
-        final String systemPropertiesConnectionResource = (String) System.getProperties().get(
-                CONNECTION_PROPERTY_RESOURCE);
-        if (systemPropertiesConnectionResource != null) {
-            this.setConnectionResource(systemPropertiesConnectionResource);
         }
     }
 

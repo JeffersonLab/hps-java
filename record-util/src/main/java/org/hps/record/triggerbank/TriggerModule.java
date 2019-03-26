@@ -1,5 +1,6 @@
 package org.hps.record.triggerbank;
 
+import java.awt.Point;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -563,10 +564,24 @@ public final class TriggerModule {
      * Gets the x-position of a cluster in millimeters in the hardware
      * coordinate system.
      * @param cluster - The cluster of which to get the x-position.
-     * @return Returns the cluster x-position.
+     * @return Returns the cluster x-position in millimeters.
      */
     public static double getClusterX(Cluster cluster) {
         return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[0];
+    }
+    
+    /**
+     * Gets the x-position of a cluster in millimeters in the hardware
+     * coordinate system.<br/><br/>
+     * This method is for use with clusters that do not have a linked
+     * ID decoder, thus disallowing the acquisition of their indices
+     * from their cell ID.
+     * @param clusterXY - A {@link java.awt.Point Point} containing
+     * the x and y indices of the cluster.
+     * @return Returns the cluster x-position in millimeters.
+     */
+    public static double getClusterX(Point clusterXY) {
+        return getCrystalPosition(clusterXY.x, clusterXY.y)[0];
     }
     
     /**
@@ -605,6 +620,20 @@ public final class TriggerModule {
      */
     public static double getClusterY(Cluster cluster) {
         return getCrystalPosition(getClusterXIndex(cluster), getClusterYIndex(cluster))[1];
+    }
+    
+    /**
+     * Gets the y-position of a cluster in millimeters in the hardware
+     * coordinate system.<br/><br/>
+     * This method is for use with clusters that do not have a linked
+     * ID decoder, thus disallowing the acquisition of their indices
+     * from their cell ID.
+     * @param clusterXY - A {@link java.awt.Point Point} containing
+     * the x and y indices of the cluster.
+     * @return Returns the cluster y-position in millimeters.
+     */
+    public static double getClusterY(Point clusterXY) {
+        return getCrystalPosition(clusterXY.x, clusterXY.y)[1];
     }
     
     /**
@@ -846,6 +875,28 @@ public final class TriggerModule {
     }
     
     /**
+     * Calculates the value used by the coplanarity cut.<br/><br/>
+     * This method is for use with clusters that do not have a linked
+     * ID decoder, thus disallowing the acquisition of their indices
+     * from their cell ID.
+     * @param clusterPair - The cluster pair from which the value should
+     * be calculated.
+     * @param p0 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the first cluster.
+     * @param p1 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the second cluster.
+     * @return Returns the cut value.
+     */
+    public static double getValueCoplanarity(Cluster[] clusterPair, Point p0, Point p1) {
+        // Get the variables used by the calculation.
+        double x[] = { getClusterX(p0), getClusterX(p1) };
+        double y[] = { getClusterY(p0), getClusterY(p1) };
+        
+        // Return the calculated value.
+        return getValueCoplanarity(x, y);
+    }
+    
+    /**
      * Calculates the value used by the coplanarity cut. A value of zero
      * represents clusters in the same plane.
      * @param clusterPair - The cluster pair from which the value should
@@ -921,6 +972,31 @@ public final class TriggerModule {
         double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
         double x[] = { getClusterX(clusterPair[0]), getClusterX(clusterPair[1]) };
         double y[] = { getClusterY(clusterPair[0]), getClusterY(clusterPair[1]) };
+        
+        // Perform the calculation.
+        return getValueEnergySlope(energy, x, y, energySlopeParamF);
+    }
+    
+    /**
+     * Calculates the value used by the energy slope cut.<br/><br/>
+     * This method is for use with clusters that do not have a linked
+     * ID decoder, thus disallowing the acquisition of their indices
+     * from their cell ID.
+     * @param clusterPair - The cluster pair from which the value should
+     * be calculated.
+     * @param energySlopeParamF - The value of the variable F in the
+     * energy slope equation E_low + R_min * F.
+     * @param p0 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the first cluster.
+     * @param p1 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the second cluster.
+     * @return Returns the energy slope value.
+     */
+    public static double getValueEnergySlope(Cluster[] clusterPair, double energySlopeParamF, Point p0, Point p1) {
+        // Get the variables used by the calculation.
+        double[] energy = { clusterPair[0].getEnergy(), clusterPair[1].getEnergy() };
+        double x[] = { getClusterX(p0), getClusterX(p1) };
+        double y[] = { getClusterY(p0), getClusterY(p1) };
         
         // Perform the calculation.
         return getValueEnergySlope(energy, x, y, energySlopeParamF);
@@ -1058,6 +1134,25 @@ public final class TriggerModule {
     }
     
     /**
+     * Checks if a cluster pair is coplanar to the beam within a
+     * given angle. This is defined as <code>θ <=
+     * PAIR_COPLANARITY_HIGH</code>. <br/><br/>
+     * This method is for use with clusters that do not have a linked
+     * ID decoder, thus disallowing the acquisition of their indices
+     * from their cell ID.
+     * @param clusterPair - The cluster pair to check.
+     * @param p0 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the first cluster.
+     * @param p1 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the second cluster.
+     * @return Returns <code>true</code> if the cluster pair passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairCoplanarityCut(Cluster[] clusterPair, Point p0, Point p1) {
+        return pairCoplanarityCut(getValueCoplanarity(clusterPair, p0, p1));
+    }
+    
+    /**
      * Checks if a cluster pair is coplanar to the beam within a given
      * angle. This is defined as <code>θ <= PAIR_COPLANARITY_HIGH</code>.
      * @param clusterPair - The cluster pair to check.
@@ -1102,6 +1197,25 @@ public final class TriggerModule {
      */
     public boolean pairEnergySlopeCut(Cluster[] clusterPair) {
         return pairEnergySlopeCut(getValueEnergySlope(clusterPair, cuts.get(PAIR_ENERGY_SLOPE_F)));
+    }
+    
+    /**
+     * Requires that the distance from the beam of the lowest energy
+     * cluster in a cluster pair satisfies the following:<br/><br/>
+     * <code>E_low + R_min * F >= PAIR_ENERGY_SLOPE_LOW</code><br/>
+     * <br/>This method is for use with clusters that do not have a
+     * linked ID decoder, thus disallowing the acquisition of their
+     * indices from their cell ID.
+     * @param clusterPair - The cluster pair to check.
+     * @param p0 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the first cluster in the pair.
+     * @param p1 - A {@link java.awt.Point Point} containing the x
+     * and y indices of the second cluster in the pair.
+     * @return Returns <code>true</code> if the cluster pair passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairEnergySlopeCut(Cluster[] clusterPair, Point p0, Point p1) {
+        return pairEnergySlopeCut(getValueEnergySlope(clusterPair, cuts.get(PAIR_ENERGY_SLOPE_F), p0, p1));
     }
     
     /**
@@ -1315,6 +1429,10 @@ public final class TriggerModule {
     
     /**
      * Gets the mapped position used by the SSP for a specific crystal.
+     * Warning: This is the hardware position mapping, and does not
+     * always align perfectly with the LCSim coordinate system. For
+     * instance, the electron side of the detector is has positive x
+     * coordinates in the hardware system, and is negative in LCSim.
      * @param ix - The crystal x-index.
      * @param iy - The crystal y-index.
      * @return Returns the crystal position as a <code>double</code>

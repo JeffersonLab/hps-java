@@ -106,7 +106,9 @@ public class ReconClusterer extends AbstractClusterer {
         
         // Clear the rejected hit list.
         rejectedHitList = new ArrayList<CalorimeterHit>();
-
+        
+        // if(!hitList.isEmpty()) { System.out.println("TrueType: " + hitList.get(0).getClass().getSimpleName() + "; Sim Hit: " + (hitList.get(0) instanceof org.lcsim.event.SimCalorimeterHit ? "SimCalorimeterHit" : "CalorimeterHit")); }
+        
         // Create a list for the created clusters.
         ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
 
@@ -382,7 +384,6 @@ public class ReconClusterer extends AbstractClusterer {
         for (CalorimeterHit ihit : hitList) {
             CalorimeterHit iseed = hitToSeed.get(ihit);
             BaseCluster icluster = seedToCluster.get(iseed);
-            
             // Consider time cut-is this hit in same time window as seed?
             if (useTimeCut){
                 if(Math.abs(ihit.getTime() - iseed.getTime()) < timeWindow)
@@ -392,7 +393,7 @@ public class ReconClusterer extends AbstractClusterer {
             } // end of using time cut
             else {icluster.addHit(ihit);}           
         }
-
+        
         // Add common hits
         // Note: the order of the entry set in this loop does not affect the output.
         for (Map.Entry<CalorimeterHit, List<CalorimeterHit>> commHit : commonHits.entrySet()) {
@@ -464,6 +465,11 @@ public class ReconClusterer extends AbstractClusterer {
             }
         }
         //System.out.println("Number of clusters:"+clusterList.size());
+        //for(Cluster cluster : clusterList) {
+        //    for(CalorimeterHit hit : cluster.getCalorimeterHits()) {
+        //        System.out.println("\t" + hit.getClass().getSimpleName());
+        //    }
+        //}
         return clusterList;
     }
 

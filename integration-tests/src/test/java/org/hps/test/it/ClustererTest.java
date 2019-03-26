@@ -140,8 +140,7 @@ public class ClustererTest extends TestCase {
         testOutputDir.mkdir();
 
         // Initialize the conditions system.
-        final DatabaseConditionsManager dbManager = new DatabaseConditionsManager();
-        ConditionsManager.setDefaultConditionsManager(dbManager);
+        DatabaseConditionsManager.getInstance();
     }
 
     /**
@@ -248,6 +247,7 @@ public class ClustererTest extends TestCase {
          * Run the job to create clusters and write to LCIO file. *
          **********************************************************/               
         System.out.println("testing Clusterer " + config.clustererName + " ...");
+
         // Configure the loop.
         LCSimLoop loop = new LCSimLoop();
         try {
@@ -256,6 +256,7 @@ public class ClustererTest extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        DatabaseConditionsManager.reset();
 
         // Setup event number print outs.
         EventMarkerDriver eventMarkerDriver = new EventMarkerDriver();

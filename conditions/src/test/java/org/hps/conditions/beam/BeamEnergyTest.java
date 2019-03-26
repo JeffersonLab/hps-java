@@ -17,7 +17,7 @@ public class BeamEnergyTest extends TestCase {
     private static final String DETECTOR = "HPS-dummy-detector";
     
     public void testBeamEnergy() throws Exception {
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();        
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();        
         for (int i = 0; i < BEAM_ENERGIES.length; i++) {
             double expectedBeamEnergy = BEAM_ENERGIES[i];
             for (int j = 0; j < 3; j++) {

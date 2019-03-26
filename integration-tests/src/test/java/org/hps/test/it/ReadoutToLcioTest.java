@@ -35,7 +35,7 @@ public class ReadoutToLcioTest extends TestCase {
         job.addInputFile(inputFile);
         File outputFile = new TestOutputFile(this.getClass().getSimpleName() + File.separator + this.getClass().getSimpleName());
         job.addVariableDefinition("outputFile", outputFile.getPath());
-        job.setup("/org/hps/steering/readout/HPS2014ReadoutToLcio.lcsim");
+        job.setup("/org/hps/steering/readout/legacy_drivers/HPS2014ReadoutToLcio.lcsim");
         job.setNumberOfEvents(nEvents);
         job.run();
     }

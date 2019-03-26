@@ -24,7 +24,7 @@ public class ConditionsIT extends TestCase {
      * Resets the conditions system before each test method runs.
      */
     public void setUp() {
-        new DatabaseConditionsManager();
+        DatabaseConditionsManager.getInstance();
     }
     
     /**
