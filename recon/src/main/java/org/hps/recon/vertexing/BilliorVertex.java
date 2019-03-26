@@ -271,10 +271,11 @@ public class BilliorVertex implements Vertex {
             pars.put("p2Y", p2Fit.y());
             pars.put("p2Z", p2Fit.z());
         }
-        pars.put("vXErr", _vertexPositionError.x());
-        pars.put("vYErr", _vertexPositionError.y());
-        pars.put("vZErr", _vertexPositionError.z());
-        
+        if (_vertexPositionError !=null){
+            pars.put("vXErr", _vertexPositionError.x());
+            pars.put("vYErr", _vertexPositionError.y());
+            pars.put("vZErr", _vertexPositionError.z());
+        }
         if (_covTrkMomList != null && storeCovTrkMomList == true)
             if (_covTrkMomList.size() >= 2) {
                 SymmetricMatrix covMat = new SymmetricMatrix(_covTrkMomList.get(0));
