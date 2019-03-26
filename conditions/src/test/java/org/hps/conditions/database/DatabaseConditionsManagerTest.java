@@ -23,7 +23,7 @@ public class DatabaseConditionsManagerTest extends TestCase {
      */
     public void testDatabaseConditionsManager() throws Exception {
         
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         
         // Check initial state.
         TestCase.assertTrue("The conditions manager instance is null.", manager != null);

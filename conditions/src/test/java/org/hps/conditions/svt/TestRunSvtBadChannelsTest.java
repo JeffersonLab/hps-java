@@ -48,7 +48,7 @@ public final class TestRunSvtBadChannelsTest extends TestCase {
      */
     public void testSvtBadChannels() throws ConditionsNotFoundException {
 
-        final DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
 
         for (int i = 0; i < RUN_NUMBERS.length; i++) {
 

@@ -170,7 +170,7 @@ public final class CommandLineTool {
         LOGGER.info("Setting up the conditions manager ...");
 
         // Create new manager.
-        this.conditionsManager = new DatabaseConditionsManager();
+        this.conditionsManager = DatabaseConditionsManager.getInstance();
 
         // User specified tag of conditions records.
         if (commandLine.hasOption("t")) {
