@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2019-v1-4pt5" />
-    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java/detector-data/detectors/HPS-PhysicsRun2019-v1-4pt5/compact.xml" checksum="1573286641" />
+    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java/detector-data/detectors/HPS-PhysicsRun2019-v1-4pt5/compact.xml" checksum="634971381" />
     <author name="NONE" />
     <comment>HPS detector for 2019 run with fieldmap, Tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV. Includes L0 and Hodoscope.</comment>
   </header>
