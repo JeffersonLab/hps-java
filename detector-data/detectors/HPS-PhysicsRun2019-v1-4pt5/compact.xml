@@ -192,7 +192,7 @@
   
   <detectors>
     
-    <detector id="1" name="Tracker" type="HPSTracker2017" readout="TrackerHits">
+    <detector id="1" name="Tracker" type="HPSTracker2019" readout="TrackerHits">
   
       <millepede_constants>
         
