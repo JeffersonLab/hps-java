@@ -311,8 +311,9 @@
       <processor type="ScoringTrackerHitProcessor" />        
     </readout>
     <readout name="HodoscopeHits">
-      <segmentation type="GridXYZ" gridSizeX="1.0*mm" gridSizeY="0.0" gridSizeZ="0.0" />
-      <id>system:6,layer:2,ix:4,iy:-3,x:-8,y:-6</id>
+<!--        <segmentation type="GridXYZ" gridSizeX="1.0*mm" gridSizeY="0.0" gridSizeZ="0.0" /> -->
+<!-- ,x:-8,y:-6 -->
+      <id>system:6,barrel:3,layer:4,ix:4,iy:-3</id>
     </readout>
     <readout name="HodoscopeForeHits">
       <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>

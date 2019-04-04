@@ -670,8 +670,8 @@ public class Hodoscope_v1 extends LCDDSubdetector {
             new PhysVol(topReflectorVolume, lcdd.pickMotherVolume(this), pos, PIXEL_ROTATION);
         }
     }
-    
-    public boolean isCalorimeter() {
+        
+    public boolean isTracker() {
         return true;
     }
     

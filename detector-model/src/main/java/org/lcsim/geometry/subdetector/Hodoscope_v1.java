@@ -2,43 +2,27 @@ package org.lcsim.geometry.subdetector;
 
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.lcsim.detector.converter.heprep.DetectorElementToHepRepConverter;
 
-public class Hodoscope_v1 extends AbstractCalorimeter {
+import hep.graphics.heprep.HepRep;
+import hep.graphics.heprep.HepRepFactory;
+
+public class Hodoscope_v1 extends AbstractTracker {
 
     Hodoscope_v1(Element node) throws JDOMException {
         super(node);
     }
 
-    /**
-     * FIXME: These methods should really have dummy implementations in AbstractCalorimeter.
-     *        Update the lcsim AbstractCalorimeter type to fix this.
-     */
-
-    public int getNumberOfSides() {
-        return 0;
+    public void appendHepRep(HepRepFactory factory, HepRep heprep) {
+        DetectorElementToHepRepConverter.convert(getDetectorElement(), factory, heprep, -1, false, getVisAttributes()
+                .getColor());
     }
 
-    public double getSectionPhi() {
-        return 0.;
+    public boolean isEndcap() {
+        return false;
     }
 
-    public double getZLength() {
-        return 0.;
-    }
-
-    public double getOuterZ() {
-        return 0.;
-    }
-
-    public double getInnerZ() {
-        return 0.;
-    }
-
-    public double getOuterRadius() {
-        return 0.;
-    }
-
-    public double getInnerRadius() {
-        return 0.;
+    public boolean isBarrel() {
+        return true;
     }
 }
