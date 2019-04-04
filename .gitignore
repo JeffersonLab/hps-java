@@ -4,4 +4,7 @@
 target
 *.diff
 *.log
-/analysis/nbproject/
+*.aida
+*.slcio
+*.root
+*.log
