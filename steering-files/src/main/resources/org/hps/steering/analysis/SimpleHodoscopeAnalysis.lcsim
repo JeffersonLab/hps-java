@@ -1,0 +1,20 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">           
+    <execute>
+        <driver name="SimpleHodoscopeAnalysisDriver"/> 
+        <driver name="AidaSaveDriver"/>
+<!--        <driver name="AidaSaveDriverRoot"/> -->
+    </execute>        
+    <drivers>    
+        <driver name="SimpleHodoscopeAnalysisDriver" type="org.hps.analysis.hodoscope.SimpleHodoscopeAnalysisDriver">
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>hodoscopePlots.aida</outputFileName>
+        </driver>
+<!--        
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>hodoscopePlots.root</outputFileName> 
+        </driver>
+-->
+    </drivers>
+</lcsim>
