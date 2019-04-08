@@ -103,7 +103,7 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
 
     @Override
     protected double getTimeNeededForLocalOutput() {
-        return 0;
+        return isPersistent() ? getReadoutWindowAfter() : 0;
     }
     
     /**
