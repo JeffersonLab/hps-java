@@ -15,6 +15,15 @@ import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 
+/**
+ * Class <code>SVTTrackerHitReadoutDriver</code> is an extension of
+ * {@link org.hps.readout.SimTrackerHitReadoutDriver
+ * SimTrackerHitReadoutDriver} that includes additional functionality
+ * necessary for SVT data.
+ * 
+ * @author Kyle McCarty
+ * @see org.hps.readout.SimTrackerHitReadoutDriver
+ */
 public class SVTTrackerHitReadoutDriver extends SimTrackerHitReadoutDriver {
     private Subdetector detector = null;
     private LCIOCollection<FpgaData> fpgaDataParams = null;
