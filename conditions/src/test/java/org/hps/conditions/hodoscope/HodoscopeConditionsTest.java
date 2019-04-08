@@ -1,6 +1,7 @@
 package org.hps.conditions.hodoscope;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.hodoscope.HodoscopeCalibration.HodoscopeCalibrationCollection;
 import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
@@ -26,7 +27,13 @@ public class HodoscopeConditionsTest extends TestCase {
         for (HodoscopeChannel channel : channels) {
             System.out.println(channel);
         }
-        
+     
+        final HodoscopeCalibrationCollection calibrations =
+                mgr.getCachedConditions(HodoscopeCalibrationCollection.class, "hodo_calibrations").getCachedData();
+        System.out.println("Printing Hodoscope calibrations ...");
+        for (HodoscopeCalibration calibration : calibrations) {
+            System.out.println(calibration);
+        }
     }
 
 }
