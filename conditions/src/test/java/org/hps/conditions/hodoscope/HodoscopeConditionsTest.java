@@ -49,6 +49,18 @@ public class HodoscopeConditionsTest extends TestCase {
         for (HodoscopeTimeShift timeShift : timeShifts) {
             System.out.println(timeShift);
         }
+        
+        System.out.println("Printing Hodoscope channel constants ...");
+        final HodoscopeConditions conditions =
+                mgr.getCachedConditions(HodoscopeConditions.class, "hodo_conditions").getCachedData();
+        for (HodoscopeChannel channel : channels) {
+            HodoscopeChannelConstants channelData = conditions.getChannelConstants(channel);
+            System.out.println("Channel constants for ID " + channel.getChannelId());
+            System.out.println(channelData.getCalibration());
+            System.out.println(channelData.getGain());
+            System.out.println(channelData.getTimeShift());
+            System.out.println();
+        }
     }
 
 }
