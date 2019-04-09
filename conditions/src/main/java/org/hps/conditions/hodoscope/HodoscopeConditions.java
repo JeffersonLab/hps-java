@@ -23,5 +23,9 @@ public class HodoscopeConditions {
     
     HodoscopeChannelConstants getChannelConstants(HodoscopeChannel channel) {
         return channelConstants.get(channel);
-    }    
+    }   
+    
+    public HodoscopeChannelCollection getChannels() {
+        return channels;
+    }
 }

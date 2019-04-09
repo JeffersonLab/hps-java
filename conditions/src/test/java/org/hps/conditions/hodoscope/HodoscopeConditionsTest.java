@@ -53,7 +53,7 @@ public class HodoscopeConditionsTest extends TestCase {
         System.out.println("Printing Hodoscope channel constants ...");
         final HodoscopeConditions conditions =
                 mgr.getCachedConditions(HodoscopeConditions.class, "hodo_conditions").getCachedData();
-        for (HodoscopeChannel channel : channels) {
+        for (HodoscopeChannel channel : conditions.getChannels()) {
             HodoscopeChannelConstants channelData = conditions.getChannelConstants(channel);
             System.out.println("Channel constants for ID " + channel.getChannelId());
             System.out.println(channelData.getCalibration());
