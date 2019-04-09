@@ -2775,7 +2775,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -2815,7 +2815,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -2855,7 +2855,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -2895,7 +2895,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -2935,7 +2935,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -2975,7 +2975,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3015,7 +3015,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3055,7 +3055,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3095,7 +3095,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3135,7 +3135,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3175,7 +3175,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3215,7 +3215,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3255,7 +3255,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3295,7 +3295,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3335,7 +3335,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3375,7 +3375,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3415,7 +3415,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3455,7 +3455,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
@@ -3495,7 +3495,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="1" />
         </physvol>
@@ -3535,7 +3535,7 @@
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
           <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="2" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="-1" />
         </physvol>
