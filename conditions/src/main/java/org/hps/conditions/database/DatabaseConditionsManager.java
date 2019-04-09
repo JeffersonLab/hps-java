@@ -26,6 +26,7 @@ import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
+import org.hps.conditions.hodoscope.HodoscopeConditionsConverter;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsConverter;
 import org.hps.conditions.svt.TestRunSvtConditionsConverter;
@@ -264,6 +265,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private final Set<String> tags = new HashSet<String>();
 
+    private ConditionsConverter hodoscopeConverter;
+    
     /**
      * Class constructor. Calling this will automatically register this manager as
      * the global default.
@@ -724,6 +727,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             // Remove old ECAL converter.
             this.removeConditionsConverter(this.ecalConverter);
         }
+        
+        if (this.hodoscopeConverter != null) {
+            this.removeConditionsConverter(this.hodoscopeConverter);
+        }
 
         // Is configured for TestRun?
         if (this.isTestRun()) {
@@ -734,9 +741,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             // Load the default converters.
             this.svtConverter = new SvtConditionsConverter();
             this.ecalConverter = new EcalConditionsConverter();
+            this.hodoscopeConverter = new HodoscopeConditionsConverter();
         }
         this.registerConditionsConverter(this.svtConverter);
         this.registerConditionsConverter(this.ecalConverter);
+        this.registerConditionsConverter(this.hodoscopeConverter);
     }
 
     /**
