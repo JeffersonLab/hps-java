@@ -3,6 +3,7 @@ package org.hps.conditions.hodoscope;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeCalibration.HodoscopeCalibrationCollection;
 import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
+import org.hps.conditions.hodoscope.HodoscopeGain.HodoscopeGainCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 import junit.framework.TestCase;
@@ -33,6 +34,13 @@ public class HodoscopeConditionsTest extends TestCase {
         System.out.println("Printing Hodoscope calibrations ...");
         for (HodoscopeCalibration calibration : calibrations) {
             System.out.println(calibration);
+        }
+        
+        final HodoscopeGainCollection gains = 
+                mgr.getCachedConditions(HodoscopeGainCollection.class, "hodo_gains").getCachedData();
+        System.out.println("Printing Hodoscope gains ...");
+        for (HodoscopeGain gain : gains) {
+            System.out.println(gain);
         }
     }
 
