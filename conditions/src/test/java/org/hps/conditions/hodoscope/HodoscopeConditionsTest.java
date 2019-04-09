@@ -4,6 +4,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeCalibration.HodoscopeCalibrationCollection;
 import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 import org.hps.conditions.hodoscope.HodoscopeGain.HodoscopeGainCollection;
+import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 import junit.framework.TestCase;
@@ -41,6 +42,12 @@ public class HodoscopeConditionsTest extends TestCase {
         System.out.println("Printing Hodoscope gains ...");
         for (HodoscopeGain gain : gains) {
             System.out.println(gain);
+        }
+        
+        final HodoscopeTimeShiftCollection timeShifts = 
+                mgr.getCachedConditions(HodoscopeTimeShiftCollection.class, "hodo_time_shifts").getCachedData();
+        for (HodoscopeTimeShift timeShift : timeShifts) {
+            System.out.println(timeShift);
         }
     }
 
