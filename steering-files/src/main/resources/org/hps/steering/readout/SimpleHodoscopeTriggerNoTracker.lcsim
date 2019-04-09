@@ -5,11 +5,11 @@
         <driver name="EcalHitsOutputDriver"/>
         <driver name="MCParticleOutputDriver"/>
         <driver name="HodoscopeHitsOutputDriver"/>
-<!--        <driver name="TrackerHitsOutputDriver"/>
-        <driver name="TrackerHitsEcalOutputDriver"/> -->
+        <!-- <driver name="TrackerHitsSVTOutputDriver"/> -->
+        <driver name="TrackerHitsEcalOutputDriver"/>
         
         <!-- SVT Readout Drivers -->
-<!--        <driver name="SVTReadoutDriver" /> -->
+        <!-- <driver name="SVTReadoutDriver" /> -->
         
         <!-- Readout Simulation Drivers -->
         <driver name="EcalReadoutDriver"/>
@@ -19,9 +19,8 @@
         
         <!-- LCIO Output and Data Management Driver -->
         <driver name="ReadoutManagerDriver"/>
-<!--        
-        <driver name="CleanupDriver" />
--->
+        
+        <!-- <driver name="CleanupDriver" /> -->
     </execute> 
     
     <drivers>
@@ -65,20 +64,20 @@
         </driver>
         
 <!--
-        <driver name="TrackerHitsOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
+        <driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
             <collectionName>TrackerHits</collectionName>
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
             <persistent>false</persistent>
         </driver>
+-->
         
-        <driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
+        <driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
             <collectionName>TrackerHitsECal</collectionName>
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
             <persistent>true</persistent>
         </driver>
--->
         
         <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.ecal.updated.SimCalorimeterHitReadoutDriver">
             <collectionName>HodoscopeHits</collectionName>

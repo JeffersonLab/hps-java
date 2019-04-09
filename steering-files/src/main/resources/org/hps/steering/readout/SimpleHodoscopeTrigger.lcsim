@@ -5,7 +5,7 @@
 		<driver name="EcalHitsOutputDriver"/>
 		<driver name="MCParticleOutputDriver"/>
 		<driver name="HodoscopeHitsOutputDriver"/>
-		<driver name="TrackerHitsOutputDriver"/>
+		<driver name="TrackerHitsSVTOutputDriver"/>
 		<driver name="TrackerHitsEcalOutputDriver"/>
 		
 		<!-- SVT Readout Drivers -->
@@ -63,7 +63,7 @@
 			<persistent>true</persistent>
 		</driver>
 		
-		<driver name="TrackerHitsOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
+		<driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
 			<collectionName>TrackerHits</collectionName>
 			
 			<!-- Units of ns. -->
@@ -72,7 +72,7 @@
 			<persistent>false</persistent>
 		</driver>
 		
-		<driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
+		<driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
 			<collectionName>TrackerHitsECal</collectionName>
 			
 			<!-- Units of ns. -->
