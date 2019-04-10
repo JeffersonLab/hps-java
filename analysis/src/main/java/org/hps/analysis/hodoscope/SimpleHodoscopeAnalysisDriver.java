@@ -19,17 +19,22 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
     private AIDA aida = AIDA.defaultInstance();
     private String hitCollName = "HodoscopeHits";
 
+    private ICloud1D simHitCountPlot = aida.cloud1D("Sim Hit Count");
     private ICloud1D simHitXPlot = aida.cloud1D("Sim Hit X");
     private ICloud1D simHitYPlot = aida.cloud1D("Sim Hit Y");
     private ICloud1D simHitZPlot = aida.cloud1D("Sim Hit Z");
-    private ICloud2D simHitXYPlot = aida.cloud2D("Sim X vs Y");
+    private ICloud2D simHitXYPlot = aida.cloud2D("Sim XY");
     private ICloud1D simHitLenPlot = aida.cloud1D("Sim Hit Len");
     private ICloud1D simHitLayerPlot = aida.cloud1D("Sim Hit Layer");
     private ICloud1D simHitIdXPlot = aida.cloud1D("Sim Hit X ID");
     private ICloud1D simHitIdYPlot = aida.cloud1D("Sim Hit Y ID");
+    private ICloud2D simHitIdXYPlot = aida.cloud2D("Sim Hit XY ID");
     private ICloud1D simHitEnergyPlot = aida.cloud1D("Sim Hit Energy");
     private ICloud1D simHitPathLenPlot = aida.cloud1D("Sim Hit Path Len");
-    private ICloud1D simHitTimePlot = aida.cloud1D("Sim Hit Time");    
+    private ICloud1D simHitTimePlot = aida.cloud1D("Sim Hit Time");
+    private ICloud2D simHitLenEnergyPlot = aida.cloud2D("Sim Hit Len vs Energy");
+    
+    // TODO: add ID X vs X pos (and for Y too)
     
     protected void detectorChanged(Detector det) {
     }
@@ -42,6 +47,7 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
 
     protected void process(EventHeader event) {
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, hitCollName);
+        simHitCountPlot.fill(simHits.size());
         LCMetaData meta = event.getMetaData(simHits);
         IDDecoder dec = meta.getIDDecoder();
         for (SimTrackerHit simHit : simHits) {
@@ -60,12 +66,15 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
             simHitLayerPlot.fill(layer);
             simHitIdXPlot.fill(ix);
             simHitIdYPlot.fill(iy);
+            simHitIdXYPlot.fill(ix, iy);
             
             simHitEnergyPlot.fill(simHit.getdEdx());
             
             simHitPathLenPlot.fill(simHit.getPathLength());
             
             simHitTimePlot.fill(simHit.getTime());
+            
+            simHitLenEnergyPlot.fill(simHit.getPathLength(), simHit.getdEdx());
         }
     }
 }
