@@ -30,10 +30,15 @@ public class HodoscopeDataTest extends TestCase {
         SimpleHodoscopeAnalysisDriver anal = new SimpleHodoscopeAnalysisDriver();       
         loop.add(anal);
         
-        File plotsFile = new TestOutputFile(HodoscopeDataTest.class, "HodoscopeDataTest.aida");
-        AidaSaveDriver saveDriver = new AidaSaveDriver();
-        saveDriver.setOutputFileName(plotsFile.getPath());
-        loop.add(saveDriver);
+        File aidaPlotFile = new TestOutputFile(HodoscopeDataTest.class, "HodoscopeDataTest.aida");
+        AidaSaveDriver aidaSaveDriver = new AidaSaveDriver();
+        aidaSaveDriver.setOutputFileName(aidaPlotFile.getPath());
+        loop.add(aidaSaveDriver);
+        
+        File rootPlotFile  = new TestOutputFile(HodoscopeDataTest.class, "HodoscopeDataTest.root");
+        AidaSaveDriver rootSaveDriver = new AidaSaveDriver();
+        rootSaveDriver.setOutputFileName(rootPlotFile.getPath());
+        loop.add(rootSaveDriver);
         
         loop.loop(-1);
     }
