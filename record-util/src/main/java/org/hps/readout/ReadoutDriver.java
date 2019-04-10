@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hps.readout.util.collection.TriggeredLCIOData;
+import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
 
 /**
@@ -159,6 +160,22 @@ public abstract class ReadoutDriver extends Driver {
      */
     protected Collection<String> getDependencies() {
         return dependencies;
+    }
+    
+    /**
+     * Gets the {@link org.lcsim.geometry.IDDecoder IDDecoder} needed
+     * to read the cell IDs for the objects produced by the indicated
+     * collection. This will result in an exception if the requested
+     * collection is not managed by this driver.
+     * @return Either returns the ID decoder used by the specified
+     * collection.
+     * @throws IllegalArgumentException Occurs if the requested
+     * collection is not managed by this driver.
+     * @throws UnsupportedOperationException Occurs if there is no
+     * <code>IDDecoder</code> object for the specified collection.
+     */
+    protected IDDecoder getIDDecoder(String collectionName) throws IllegalArgumentException, UnsupportedOperationException {
+        throw new UnsupportedOperationException("IDDecoder objects are not supported by ReadoutDriver class \"" + this.getClass().getSimpleName() + "\".");
     }
     
     /**

@@ -6,6 +6,7 @@ import java.util.List;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.lcsim.event.EventHeader;
+import org.lcsim.geometry.IDDecoder;
 
 /**
  * Class <code>SLICDataReadoutDriver</code> is responsible for taking
@@ -42,6 +43,11 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
      * The object type of the handled SLIC data.
      */
     protected final Class<E> type;
+    /**
+     * The ID decoder used to interpret cell IDs for the objects
+     * managed by this driver.
+     */
+    protected IDDecoder decoder = null;
     
     /**
      * Instantiates a default data object handler driver for the
@@ -87,13 +93,28 @@ public abstract class SLICDataReadoutDriver<E> extends ReadoutDriver {
         // just produce an empty list.
         List<E> slicData;
         if(event.hasCollection(type, collectionName)) {
+            // Get the data from the event.
             slicData = event.get(type, collectionName);
+            
+            // Instantiate the ID decoder, if needed,
+            if(decoder == null) { decoder = event.getMetaData(slicData).getIDDecoder(); }
         } else {
             slicData = new ArrayList<E>(0);
         }
         
         // Add the SLIC data to the readout data manager.
         ReadoutDataManager.addData(collectionName, slicData, type);
+    }
+    
+    @Override
+    protected IDDecoder getIDDecoder(String collectionName) throws IllegalArgumentException, UnsupportedOperationException {
+        if(collectionName.compareTo(this.collectionName) == 0) {
+            if(decoder == null) {
+                throw new RuntimeException("IDDecoder for collection \"" + collectionName + "\" has not yet been instantiated.");
+            } else { return decoder; }
+        } else {
+            throw new IllegalArgumentException("Collection \"" + collectionName + "\" is not managed by driver \"" + this.getClass().getSimpleName() + "\".");
+        }
     }
     
     @Override
