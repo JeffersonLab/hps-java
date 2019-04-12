@@ -13,7 +13,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>0.1.7</version>
+    <version>4.3-SNAPSHOT</version>
   </parent>
   <build>
     <defaultGoal>install</defaultGoal>
