@@ -175,12 +175,13 @@ public class DetectorBuilder {
                 // create a rotation matrix from this pair of vectors
                 Rotation xyVecRot = new Rotation(vX, vY, vXprime, vYprime);
                 double[] hpsAngles = xyVecRot.getAngles(RotationOrder.XYZ, RotationConvention.VECTOR_OPERATOR);
+//                if (_debug) {
+                System.out.println(" " + stripPlaneName);
+                System.out.println("   origin: " + origin);
+                System.out.println("   normal: " + normal);
+                System.out.println("   uDir: " + uDir);
+                System.out.println("   vDir: " + vDir);
                 if (_debug) {
-                    System.out.println(" " + stripPlaneName);
-                    System.out.println("   origin: " + origin);
-                    System.out.println("   normal: " + normal);
-                    System.out.println("   uDir: " + uDir);
-                    System.out.println("   vDir: " + vDir);
                     System.out.println("   Apache commons angles: " + Arrays.toString(hpsAngles));
                 }
                 Matrix[] mats = new Matrix[3];

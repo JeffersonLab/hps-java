@@ -110,8 +110,8 @@ public class DetectorPlane {
     public String toString() {
         StringBuffer sb = new StringBuffer("DetectorPlane "+_id+" : ");
         sb.append("rot : " + Arrays.toString(_rotMat.getRowPackedCopy()));
-        sb.append("r0  : " + Arrays.toString(_r0));
-        sb.append("sigs: " + Arrays.toString(_sigs));
+        sb.append(" r0  : " + Arrays.toString(_r0));
+        sb.append(" sigs: " + Arrays.toString(_sigs));
         return sb.toString();
     }
 }
