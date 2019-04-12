@@ -14,8 +14,8 @@ public class Hodoscope_v1 extends AbstractTracker {
     }
 
     public void appendHepRep(HepRepFactory factory, HepRep heprep) {
-        DetectorElementToHepRepConverter.convert(getDetectorElement(), factory, heprep, -1, false, getVisAttributes()
-                .getColor());
+        DetectorElementToHepRepConverter.convert(getDetectorElement(), factory, heprep, -1, false, 
+                getVisAttributes().getColor());
     }
 
     public boolean isEndcap() {

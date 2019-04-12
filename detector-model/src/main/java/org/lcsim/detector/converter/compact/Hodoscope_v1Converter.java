@@ -1,11 +1,12 @@
 package org.lcsim.detector.converter.compact;
 
+import org.hps.detector.hodoscope.HodoscopeDetectorElement;
+import org.hps.detector.hodoscope.HodoscopePixelDetectorElement;
 import org.jdom.Attribute;
 import org.jdom.DataConversionException;
 import org.jdom.Element;
-import org.jdom.JDOMException;
+import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ILogicalVolume;
-import org.lcsim.detector.IPhysicalVolume;
 import org.lcsim.detector.IRotation3D;
 import org.lcsim.detector.ITranslation3D;
 import org.lcsim.detector.LogicalVolume;
@@ -19,7 +20,6 @@ import org.lcsim.detector.solids.Box;
 import org.lcsim.geometry.compact.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
-
 
 public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
 
@@ -153,6 +153,8 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
     }
         
     public void convert(final Subdetector subdet, final Detector detector) {
+        
+        System.out.println(">>> Hodoscope_v1Converter.convert");
                 
         node = subdet.getNode();
 
@@ -307,7 +309,8 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
             double xShift = 0.0;
             for(int pixel = 0; pixel < widths[layer].length; pixel++) {
                 for(int topBot = TOP; topBot <= BOTTOM; topBot++) {
-                    makePixel(motherVolume, params, layer, topBot, pixel, widths[layer][pixel], xShift, pixelNum);
+                    makePixel(subdet, motherVolume, params, layer, topBot, pixel, widths[layer][pixel], xShift, pixelNum);
+                    ++pixelNum;
                 }
                 xShift += widths[layer][pixel] + (2 * params.reflectorDepth);// + 1;
             }
@@ -567,7 +570,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         return String.format("L" + (layer + 1) + (topBot == TOP ? 'T' : 'B') + 'P' + ix);
     }
     
-    private final void makePixel(ILogicalVolume motherVolume, PixelParameters params,
+    private final void makePixel(Subdetector subdet, ILogicalVolume motherVolume, PixelParameters params,
             int layer, int topBot, int ix, double pixelWidth, double xShift, int pixelNum) {
                
         // Get a unique string that represents this pixel.
@@ -633,12 +636,23 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         // Create the physical object representing the pixel. This
         // can also have a number of additional properties that can
         // be attached to it.
-        IPhysicalVolume physvol = new PhysicalVolume(
+        PhysicalVolume pixelPhysVol = new PhysicalVolume(
                 new Transform3D(scinPos, PIXEL_ROTATION),      
-                "HodoscopePixel",
+                "HodoscopePixel" + pixelNum,
                 pixelVolume, 
                 motherVolume, 
                 pixelNum);
+        
+        String support = "";
+        if (subdet.isInsideTrackingVolume()) {
+            support = "/tracking_region";
+        }
+        support += "/" + pixelPhysVol.getName();
+        new HodoscopePixelDetectorElement(pixelPhysVol.getName(), 
+                subdet.getDetectorElement(),
+                support,
+                null);
+        
         /*
         physvol.addPhysVolID("system", getSystemID());
         physvol.addPhysVolID("barrel", 1);
@@ -747,9 +761,15 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         public IMaterial scintillatorMaterial = null;
     }
     
-    @Override
     public Class<? extends Subdetector> getSubdetectorType() {
         return Hodoscope_v1.class;
     }
-
+    
+    public IDetectorElement makeSubdetectorDetectorElement(final Detector detector, final Subdetector subdetector) {
+        System.out.println(">>> Hodoscope_v1Converter.makeSubdetectorDetectorElement");
+        final IDetectorElement subdetectorDE = new HodoscopeDetectorElement(subdetector.getName(),
+                detector.getDetectorElement());
+        subdetector.setDetectorElement(subdetectorDE);
+        return subdetectorDE;
+    }
 }
