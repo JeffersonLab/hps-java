@@ -14,6 +14,11 @@ import org.lcsim.detector.PhysicalVolume;
 import org.lcsim.detector.RotationGeant;
 import org.lcsim.detector.Transform3D;
 import org.lcsim.detector.Translation3D;
+import org.lcsim.detector.identifier.ExpandedIdentifier;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierDictionary;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.material.IMaterial;
 import org.lcsim.detector.material.MaterialStore;
 import org.lcsim.detector.solids.Box;
@@ -151,12 +156,18 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         positionValues[LAYER2][BOTTOM][X] = 48;
         positionValues[LAYER2][BOTTOM][Y] = 14.21392678;
     }
+    
+    private IIdentifierDictionary dict;
+    private IIdentifierHelper helper;
         
     public void convert(final Subdetector subdet, final Detector detector) {
         
         System.out.println(">>> Hodoscope_v1Converter.convert");
                 
         node = subdet.getNode();
+        
+        helper = subdet.getDetectorElement().getIdentifierHelper();
+        dict = helper.getIdentifierDictionary();
 
         ILogicalVolume motherVolume = detector.getWorldVolume().getLogicalVolume();
         if (subdet.isInsideTrackingVolume()) {
@@ -573,6 +584,8 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
     private final void makePixel(Subdetector subdet, ILogicalVolume motherVolume, PixelParameters params,
             int layer, int topBot, int ix, double pixelWidth, double xShift, int pixelNum) {
                
+        System.out.println("making Pixel " + pixelNum);
+        
         // Get a unique string that represents this pixel.
         String uid = getName(layer, topBot, ix);
         
@@ -643,6 +656,22 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
                 motherVolume, 
                 pixelNum);
         
+        /*
+        physvol.addPhysVolID("system", getSystemID());
+        physvol.addPhysVolID("barrel", 1);
+        physvol.addPhysVolID("layer", layer == LAYER1 ? 0 : 1);
+        physvol.addPhysVolID("ix", ix);
+        physvol.addPhysVolID("iy", topBot == TOP ? 1 : -1);
+        */
+                
+        final IExpandedIdentifier expId = new ExpandedIdentifier(helper.getIdentifierDictionary().getNumberOfFields());
+        expId.setValue(dict.getFieldIndex("system"), subdet.getSystemID());
+        expId.setValue(dict.getFieldIndex("barrel"), 1);
+        expId.setValue(dict.getFieldIndex("layer"), layer == LAYER1 ? 0 : 1);
+        expId.setValue(dict.getFieldIndex("ix"), ix);
+        expId.setValue(dict.getFieldIndex("iy"), topBot == TOP ? 1 : -1);
+        final IIdentifier pixelId = helper.pack(expId);
+        
         String support = "";
         if (subdet.isInsideTrackingVolume()) {
             support = "/tracking_region";
@@ -651,20 +680,8 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         new HodoscopePixelDetectorElement(pixelPhysVol.getName(), 
                 subdet.getDetectorElement(),
                 support,
-                null);
-        
-        /*
-        physvol.addPhysVolID("system", getSystemID());
-        physvol.addPhysVolID("barrel", 1);
-        physvol.addPhysVolID("layer", layer == LAYER1 ? 0 : 1);
-        physvol.addPhysVolID("ix", ix);
-        physvol.addPhysVolID("iy", topBot == TOP ? 1 : -1);
-        */
-
-        int layerId = (layer == LAYER1 ? 1 : 2);
-        int iy = (topBot == TOP ? 1 : -1);
-        //System.out.printf("%s (system/layer/ix/iy): %d/%d/%d/%d%n", uid, getSystemID(), layerId, ix, iy);
-        
+                pixelId);
+                
         // Define the positions of the scintillator covers. These sit
         // both in front of and behind the scintillator.
         Translation3D[] coverPos = {
