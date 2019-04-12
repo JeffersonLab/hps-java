@@ -26,6 +26,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.base.BaseLCSimEvent;
+import org.lcsim.geometry.IDDecoder;
 import org.lcsim.lcio.LCIOWriter;
 import org.lcsim.util.Driver;
 
@@ -484,6 +485,31 @@ public class ReadoutDataManager extends Driver {
      */
     public static final <T> Collection<T> getData(double startTime, double endTime, String collectionName, Class<T> objectType) {
         return getDataList(startTime, endTime, collectionName, objectType);
+    }
+    
+    /**
+     * Gets the {@link org.lcsim.geometry.IDDecoder IDDecoder} that
+     * is used for the indicated managed collection, if it exists.
+     * @param collectionName - The collection to which the decoder
+     * should correspond.
+     * @return Returns the decoder for the collection, if it exists,
+     * and <code>null</code> otherwise.
+     */
+    public static final IDDecoder getIDDecoder(String collectionName) {
+        // Verify that the requested collection actually exists.
+        if(!collectionMap.containsKey(collectionName)) {
+            throw new IllegalArgumentException("Error: Collection \"" + collectionName + "\" does not exist.");
+        }
+        
+        // Get the collection and obtain the ID decoder, if possible.
+        // If it does not exist, then leave it as a value of null.
+        LCIOCollection<?> collection = collectionMap.get(collectionName).getCollectionParameters();
+        IDDecoder decoder = null;
+        try { decoder = collection.getProductionDriver().getIDDecoder(collectionName); }
+        catch(UnsupportedOperationException e) { }
+        
+        // Return the decoder.
+        return decoder;
     }
     
     /**
