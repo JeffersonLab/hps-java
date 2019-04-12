@@ -2,6 +2,10 @@ package org.hps.analysis.hodoscope;
 
 import java.util.List;
 
+import org.hps.detector.hodoscope.HodoscopeDetectorElement;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.IGeometryInfo;
+import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.SimTrackerHit;
@@ -34,9 +38,16 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
     private ICloud1D simHitTimePlot = aida.cloud1D("Sim Hit Time");
     private ICloud2D simHitLenEnergyPlot = aida.cloud2D("Sim Hit Len vs Energy");
     
-    // TODO: add ID X vs X pos (and for Y too)
+    private ICloud2D simHitPosPixelX = aida.cloud2D("Sim Hit Position X vs Pixel X");
+    private ICloud2D simHitPosPixelY = aida.cloud2D("Sim Hit Position Y vs Pixel Y");
+    private ICloud2D simHitPosPixelZ = aida.cloud2D("Sim Hit Position Z vs Pixel Z");
+    
+    private ICloud2D simHitPixelXY = aida.cloud2D("Sim Hit Pixel X vs Y");
+    
+    private HodoscopeDetectorElement hodoDetElem;
     
     protected void detectorChanged(Detector det) {
+        hodoDetElem = (HodoscopeDetectorElement) det.getSubdetector("Hodoscope").getDetectorElement();
     }
     
     protected void startOfData() {
@@ -49,7 +60,7 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, hitCollName);
         simHitCountPlot.fill(simHits.size());
         LCMetaData meta = event.getMetaData(simHits);
-        IDDecoder dec = meta.getIDDecoder();
+        IDDecoder dec = meta.getIDDecoder();       
         for (SimTrackerHit simHit : simHits) {
             double[] pos = simHit.getPosition();
             simHitXPlot.fill(pos[0]);
@@ -75,6 +86,21 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
             simHitTimePlot.fill(simHit.getTime());
             
             simHitLenEnergyPlot.fill(simHit.getPathLength(), simHit.getdEdx());
+            
+            IIdentifier hitId = simHit.getIdentifier();
+            IDetectorElement idDetElem = hodoDetElem.findDetectorElement(hitId).get(0);
+            //System.out.println("found DE from ID: " + idDetElem.getName());
+            
+            //IDetectorElement posDetElem = hodoDetElem.findDetectorElement(posVec);
+            //System.out.println("found DE from pos: " + posDetElem.getName());
+            //System.out.println();
+                        
+            IGeometryInfo geom = idDetElem.getGeometry();
+            simHitPosPixelX.fill(pos[0], geom.getPosition().x());
+            simHitPosPixelY.fill(pos[1], geom.getPosition().y());
+            simHitPosPixelZ.fill(pos[2], geom.getPosition().z());
+            
+            simHitPixelXY.fill(geom.getPosition().x(), geom.getPosition().y());
         }
     }
 }
