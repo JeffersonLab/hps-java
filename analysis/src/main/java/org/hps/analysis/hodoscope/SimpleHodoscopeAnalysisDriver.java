@@ -6,6 +6,7 @@ import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.SimTrackerHit;
@@ -27,7 +28,7 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
     private ICloud1D simHitXPlot = aida.cloud1D("Sim Hit X");
     private ICloud1D simHitYPlot = aida.cloud1D("Sim Hit Y");
     private ICloud1D simHitZPlot = aida.cloud1D("Sim Hit Z");
-    private ICloud2D simHitXYPlot = aida.cloud2D("Sim XY");
+    private ICloud2D simHitXYPlot = aida.cloud2D("Sim Hit X vs Y");
     private ICloud1D simHitLenPlot = aida.cloud1D("Sim Hit Len");
     private ICloud1D simHitLayerPlot = aida.cloud1D("Sim Hit Layer");
     private ICloud1D simHitIdXPlot = aida.cloud1D("Sim Hit X ID");
@@ -45,9 +46,11 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
     private ICloud2D simHitPixelXY = aida.cloud2D("Sim Hit Pixel X vs Y");
     
     private HodoscopeDetectorElement hodoDetElem;
+    private IIdentifierHelper helper;
     
     protected void detectorChanged(Detector det) {
         hodoDetElem = (HodoscopeDetectorElement) det.getSubdetector("Hodoscope").getDetectorElement();
+        helper = hodoDetElem.getIdentifierHelper();
     }
     
     protected void startOfData() {
@@ -89,18 +92,13 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
             
             IIdentifier hitId = simHit.getIdentifier();
             IDetectorElement idDetElem = hodoDetElem.findDetectorElement(hitId).get(0);
-            //System.out.println("found DE from ID: " + idDetElem.getName());
-            
-            //IDetectorElement posDetElem = hodoDetElem.findDetectorElement(posVec);
-            //System.out.println("found DE from pos: " + posDetElem.getName());
-            //System.out.println();
                         
             IGeometryInfo geom = idDetElem.getGeometry();
             simHitPosPixelX.fill(pos[0], geom.getPosition().x());
             simHitPosPixelY.fill(pos[1], geom.getPosition().y());
             simHitPosPixelZ.fill(pos[2], geom.getPosition().z());
             
-            simHitPixelXY.fill(geom.getPosition().x(), geom.getPosition().y());
+            simHitPixelXY.fill(geom.getPosition().x(), geom.getPosition().y());            
         }
     }
 }
