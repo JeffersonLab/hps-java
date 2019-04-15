@@ -17,6 +17,7 @@ import org.lcsim.util.aida.AIDA;
 
 import hep.aida.ICloud1D;
 import hep.aida.ICloud2D;
+import hep.aida.IHistogram1D;
 import hep.physics.vec.Hep3Vector;
 
 public class SimpleHodoscopeAnalysisDriver extends Driver {
@@ -24,8 +25,8 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
     private AIDA aida = AIDA.defaultInstance();
     private String hitCollName = "HodoscopeHits";
 
-    private ICloud1D simHitCountPlot = aida.cloud1D("Sim Hit Count");
-    private ICloud1D simHitXPlot = aida.cloud1D("Sim Hit X");
+    private IHistogram1D simHitCountPlot = aida.histogram1D("Sim Hit Count", 100, 0., 100.);
+    private IHistogram1D simHitXPlot = aida.histogram1D("Sim Hit X", 200, 60., 260.);    
     private ICloud1D simHitYPlot = aida.cloud1D("Sim Hit Y");
     private ICloud1D simHitZPlot = aida.cloud1D("Sim Hit Z");
     private ICloud2D simHitXYPlot = aida.cloud2D("Sim Hit X vs Y");
@@ -36,7 +37,7 @@ public class SimpleHodoscopeAnalysisDriver extends Driver {
     private ICloud2D simHitIdXYPlot = aida.cloud2D("Sim Hit XY ID");
     private ICloud1D simHitEnergyPlot = aida.cloud1D("Sim Hit Energy");
     private ICloud1D simHitPathLenPlot = aida.cloud1D("Sim Hit Path Len");
-    private ICloud1D simHitTimePlot = aida.cloud1D("Sim Hit Time");
+    private IHistogram1D simHitTimePlot = aida.histogram1D("Sim Hit Time", 1000, 0., 250.);
     private ICloud2D simHitLenEnergyPlot = aida.cloud2D("Sim Hit Len vs Energy");
     
     private ICloud2D simHitPosPixelX = aida.cloud2D("Sim Hit Position X vs Pixel X");
