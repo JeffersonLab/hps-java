@@ -161,9 +161,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
     private IIdentifierHelper helper;
         
     public void convert(final Subdetector subdet, final Detector detector) {
-        
-        System.out.println(">>> Hodoscope_v1Converter.convert");
-                
+                        
         node = subdet.getNode();
         
         helper = subdet.getDetectorElement().getIdentifierHelper();
@@ -274,6 +272,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         }
         
         // DEBUG :: Output the values that have been read in.
+        /*
         System.out.println("Layer 1:");
         System.out.println("\tTop:");
         System.out.println("\t\tdx: " + positionValues[LAYER1][TOP][X] + " mm");
@@ -300,7 +299,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
         System.out.println("\tScintillator y-Dimension: " + params.scintillatorHeight + " mm");
         System.out.println("\tScintillator z-Dimension: " + params.scintillatorDepth + " mm");
         System.out.println("\tScintillator x-Dimension:");
-        System.out.print("\t\tLayer 1: ");
+        System.out.print("\t\tLayer 1: ");        
         for(double d : widths[LAYER1]) {
             System.out.print(d + "    ");
         }
@@ -309,6 +308,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
             System.out.print(d + "    ");
         }
         System.out.println();
+        */
         
         /*
          * Make the hodoscope geometry.
@@ -327,7 +327,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
             }
         }
 
-        System.out.println("Hodo y dimension: "+(params.scintillatorHeight + (2 * params.reflectorDepth) + 20.0) );
+        //System.out.println("Hodo y dimension: "+(params.scintillatorHeight + (2 * params.reflectorDepth) + 20.0) );
         // Create the foam shape and define its material.
         Box bufferShape = new Box("hodo_buffer", 
                 bufferWidth / 2,
@@ -584,7 +584,7 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
     private final void makePixel(Subdetector subdet, ILogicalVolume motherVolume, PixelParameters params,
             int layer, int topBot, int ix, double pixelWidth, double xShift, int pixelNum) {
                
-        System.out.println("making Pixel " + pixelNum);
+        //System.out.println("making Pixel " + pixelNum);
         
         // Get a unique string that represents this pixel.
         String uid = getName(layer, topBot, ix);
@@ -783,7 +783,6 @@ public class Hodoscope_v1Converter extends AbstractSubdetectorConverter {
     }
     
     public IDetectorElement makeSubdetectorDetectorElement(final Detector detector, final Subdetector subdetector) {
-        System.out.println(">>> Hodoscope_v1Converter.makeSubdetectorDetectorElement");
         final IDetectorElement subdetectorDE = new HodoscopeDetectorElement(subdetector.getName(),
                 detector.getDetectorElement());
         subdetector.setDetectorElement(subdetectorDE);
