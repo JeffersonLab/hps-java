@@ -10,12 +10,9 @@ import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.test.util.TestOutputFile;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.IDDecoder;
 import org.lcsim.job.AidaSaveDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.cache.FileCache;
@@ -40,15 +37,15 @@ public class HodoscopeSimDataTest extends TestCase {
         
         loop.add(new SimpleHodoscopeAnalysisDriver());
         HodoscopeTestDriver hodoTestDriver = new HodoscopeTestDriver();
-        hodoTestDriver.setDebug(true);
+        hodoTestDriver.setDebug(false);
         loop.add(hodoTestDriver);
         
-        File aidaPlotFile = new TestOutputFile(HodoscopeSimDataTest.class, "HodoscopeDataTest.aida");
+        File aidaPlotFile = new TestOutputFile(HodoscopeSimDataTest.class, "HodoscopeSimDataTest.aida");
         AidaSaveDriver aidaSaveDriver = new AidaSaveDriver();
         aidaSaveDriver.setOutputFileName(aidaPlotFile.getPath());
         loop.add(aidaSaveDriver);
         
-        File rootPlotFile  = new TestOutputFile(HodoscopeSimDataTest.class, "HodoscopeDataTest.root");
+        File rootPlotFile  = new TestOutputFile(HodoscopeSimDataTest.class, "HodoscopeSimDataTest.root");
         AidaSaveDriver rootSaveDriver = new AidaSaveDriver();
         rootSaveDriver.setOutputFileName(rootPlotFile.getPath());
         loop.add(rootSaveDriver);
@@ -59,29 +56,19 @@ public class HodoscopeSimDataTest extends TestCase {
     public class HodoscopeTestDriver extends Driver {
         
         private HodoscopeDetectorElement hodoDetElem;
-        private IIdentifierHelper helper;
         private String hitCollName = "HodoscopeHits";
         
         private boolean debug = true;
         
         protected void detectorChanged(Detector det) {
             hodoDetElem = (HodoscopeDetectorElement) det.getSubdetector("Hodoscope").getDetectorElement();
-            helper = hodoDetElem.getIdentifierHelper();
         }
         
         protected void process(EventHeader event) {
             List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, hitCollName);
-            LCMetaData meta = event.getMetaData(simHits);
-            IDDecoder dec = meta.getIDDecoder();       
             for (SimTrackerHit simHit : simHits) {
-                //double[] pos = simHit.getPosition();
                 Hep3Vector posVec = simHit.getPositionVec();
-                
-                dec.setID(simHit.getCellID64());
-                //int layer = dec.getValue("layer");
-                //int ix = dec.getValue("ix");
-                //int iy = dec.getValue("iy");
-                                
+                                               
                 IIdentifier hitId = simHit.getIdentifier();
                 IDetectorElement idDetElem = hodoDetElem.findDetectorElement(hitId).get(0);
                 if (debug)
@@ -90,18 +77,18 @@ public class HodoscopeSimDataTest extends TestCase {
                 IDetectorElement posDetElem = hodoDetElem.findDetectorElement(posVec);
                 if (debug) {
                     System.out.println("found DE from pos: " + posDetElem.getName());
-                    System.out.println();
                 }
                 
                 TestCase.assertEquals("Detector elements different from ID and position!", idDetElem, posDetElem);
                 
                 //IGeometryInfo geom = idDetElem.getGeometry();
 
-                if (debug)
-                    System.out.println("Lookup scint dims for hit: " + helper.unpack(hitId));
                 double[] scintDims = hodoDetElem.getScintillatorHalfDimensions(simHit);
                 if (debug)
                     System.out.println("scintDims: " + scintDims[0] + " " + scintDims[1] + " " + scintDims[2]);
+                
+                if (debug)
+                    System.out.println();
             }
         }
         
