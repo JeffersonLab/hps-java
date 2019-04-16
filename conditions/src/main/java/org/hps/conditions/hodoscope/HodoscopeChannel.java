@@ -69,7 +69,7 @@ public final class HodoscopeChannel extends BaseConditionsObject {
 
     @Field(names = {"hole"})
     public Integer getHole() {
-        return this.getFieldValue("Hole");
+        return this.getFieldValue("hole");
     }
 
     @Field(names = {"name"})
