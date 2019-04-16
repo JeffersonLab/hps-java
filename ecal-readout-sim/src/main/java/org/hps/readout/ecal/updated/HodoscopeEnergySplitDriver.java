@@ -402,7 +402,7 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
         // value in an integer to create a unique key.
         final HodoscopeChannelCollection channels = mgr.getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();
         for(HodoscopeChannel channel : channels) {
-            Integer posvar = Integer.valueOf(getHodoscopePositionVar(channel.getX() - 1, channel.getY(), channel.getLayer()));
+            Integer posvar = Integer.valueOf(getHodoscopePositionVar(channel.getX(), channel.getY(), channel.getLayer()));
             
             System.out.printf("Channel %2d at <%d, %2d, %d> and hole %d --> %s%n", channel.getChannelId(), channel.getX(), channel.getY(), channel.getLayer(), channel.getHole(), Integer.toBinaryString(posvar.intValue()));
             
