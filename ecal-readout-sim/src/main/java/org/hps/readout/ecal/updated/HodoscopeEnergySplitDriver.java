@@ -13,18 +13,23 @@ import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
+import org.hps.readout.util.collection.LCIOCollection;
+import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.IGeometryInfo;
 import org.lcsim.detector.solids.Box;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.base.BaseSimCalorimeterHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 
 public class HodoscopeEnergySplitDriver extends ReadoutDriver {
     private HodoscopeDetectorElement hodoscopeDetectorElement;
     private String truthHitCollectionName = "HodoscopeHits";
-    private Map<Integer, List<HodoscopeChannel>> crystalPositionToChannelMap = new HashMap<Integer, List<HodoscopeChannel>>();
+    private String outputHitCollectionName = "HodoscopePreprocessedHits";
+    private Map<Integer, List<HodoscopeChannel>> scintillatorPositionToChannelMap = new HashMap<Integer, List<HodoscopeChannel>>();
     
     private Map<Integer, String> hodoscopeBoundsMap = new HashMap<Integer, String>();
     
@@ -33,23 +38,20 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
         // Update the hodoscope detector object.
         hodoscopeDetectorElement = (HodoscopeDetectorElement) detector.getSubdetector("Hodoscope").getDetectorElement();
         
-        // Get the conditions database.
-        final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
-        
-        // Store each of the hodoscope channels according to its
-        // crystal indices. These are managed by storing each index
-        // value in an integer to create a unique key.
-        final HodoscopeChannelCollection channels = mgr.getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();
-        for(HodoscopeChannel channel : channels) {
-            Integer var = Integer.valueOf(getHodoscopePositionVar(channel.getX(), channel.getY(), channel.getLayer()));
-            if(crystalPositionToChannelMap.containsKey(var)) {
-                crystalPositionToChannelMap.get(var).add(channel);
-            } else {
-                List<HodoscopeChannel> channelList = new ArrayList<HodoscopeChannel>();
-                channelList.add(channel);
-                crystalPositionToChannelMap.put(var, channelList);
-            }
-        }
+        // Populate the scintillator channel map for the new detector.
+        populateScintillatorChannelMap();
+    }
+    
+    @Override
+    public void startOfData() {
+        // Define the LCSim collection parameters for this driver's
+        // output.
+        LCIOCollectionFactory.setCollectionName(outputHitCollectionName);
+        LCIOCollectionFactory.setProductionDriver(this);
+        LCIOCollectionFactory.setFlags(0xe0000000);
+        LCIOCollectionFactory.setReadoutName("HodoscopeHits");
+        LCIOCollection<SimCalorimeterHit> hitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(SimCalorimeterHit.class);
+        ReadoutDataManager.registerCollection(hitCollectionParams, false);
     }
     
     @Override
@@ -65,20 +67,106 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
     @Override
     public void process(EventHeader event) {
         // Get the hodoscope hits from the data manager.
-        // Get current SLIC truth energy depositions.
         Collection<SimTrackerHit> hodoscopeHits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
                 truthHitCollectionName, SimTrackerHit.class);
+        
+        // Create a list to store the output hits in.
+        List<SimCalorimeterHit> outputHits = new ArrayList<SimCalorimeterHit>();
         
         // Iterate over the hodoscope hits and create new calorimeter
         // hit objects from them. For hodoscope scintillators with
         // multiple FADC channels, split the energy between them.
         for(SimTrackerHit hit : hodoscopeHits) {
+            // DEBUG :: Store the scintillator bounds for testing the
+            //          detector positioning.
             int[] hodoIndices = getHodoscopeIndices(hit);
             Integer posvar = Integer.valueOf(getHodoscopePositionVar(hodoIndices[0], hodoIndices[1], hodoIndices[2]));
             if(!hodoscopeBoundsMap.containsKey(posvar)) {
                 hodoscopeBoundsMap.put(posvar, getHodoscopeBounds(hit));
             }
+            
+            // DEBUG
+            System.out.printf("Getting channel data for <%d, %2d, %d> :: ", hodoIndices[0], hodoIndices[1], hodoIndices[2]);
+            if(!scintillatorPositionToChannelMap.containsKey(posvar)) {
+                System.out.println("Error: No match to key \"" + Integer.toBinaryString(posvar.intValue()) + "\".");
+            } else if(scintillatorPositionToChannelMap.get(posvar).size() == 0) {
+                System.out.println("Error: Key \"" + Integer.toBinaryString(posvar.intValue()) + "\" has no channel data entries.");
+            } else {
+                System.out.println(scintillatorPositionToChannelMap.get(posvar).size());
+            }
+            
+            // Get the number of FADC channels that are associated
+            // with this scintillator.
+            int fadcChannels = getScintillatorChannelCount(hit);
+            
+            // If there is only one hit, then create a calorimeter
+            // hit object that contains the full energy of the truth
+            // hit. There is no need to split it.
+            if(fadcChannels == 1) {
+                // Get the hardware channel for this scintillator.
+                int cellID = scintillatorPositionToChannelMap.get(posvar).get(0).getChannelId().intValue();
+                
+                // Convert the hit to a calorimeter hit with the new
+                // hardware channel ID and store it.
+                outputHits.add(makeHit(hit, cellID));
+            }
+            
+            // If there are two channels, the energy must be split
+            // between them.
+            else {
+                // Get the positions of the two fiber bundle holes.
+                double[] holePos = getScintillatorHolePositions(hit);
+                
+                // Get the hardware channel IDs for the FADC channels
+                // associated with each fiber bundle hole.
+                int[] fadcChannelIDs = new int[2];
+                List<HodoscopeChannel> fadcChannelIDList = scintillatorPositionToChannelMap.get(posvar);
+                
+                System.out.printf("Channel <%d, %2d, %d>", fadcChannelIDList.get(0).getX(), fadcChannelIDList.get(0).getY(), fadcChannelIDList.get(0).getLayer());
+                System.out.println("Entry 0 Hole Number :: " + fadcChannelIDList.get(0).getHole().toString());
+                System.out.println("Entry 1 Hole Number :: " + fadcChannelIDList.get(0).getHole().toString());
+                
+                fadcChannelIDs[fadcChannelIDList.get(0).getHole()] = fadcChannelIDList.get(0).getChannelId();
+                fadcChannelIDs[fadcChannelIDList.get(1).getHole()] = fadcChannelIDList.get(1).getChannelId();
+                
+                // Get the x-position of the hit.
+                double hitXPos = hit.getPosition()[0];
+                
+                // If the hit exists entirely before the first fiber
+                // bundle hole, all its energy goes to that channel.
+                // Likewise, if the hit exists after the second hole,
+                // all of its energy goes to the second channel.
+                if(hitXPos < holePos[0]) {
+                    outputHits.add(makeHit(hit, fadcChannelIDs[0]));
+                } else if(hitXPos > holePos[1]) {
+                    outputHits.add(makeHit(hit, fadcChannelIDs[1]));
+                }
+                
+                // Otherwise, the energy must be split linearly based
+                // on its distance from each hole.
+                else {
+                    // Calculate the distance between each fiber
+                    // bundle hole and the hit. Only the horizontal
+                    // distance matters.
+                    double la = Math.abs(holePos[0] - hitXPos);
+                    double lb = Math.abs(holePos[1] - hitXPos);
+                    
+                    // Calculate the percentage of the hit's energy
+                    // that should go to each channel. This should be
+                    // linearly proportional to the x-displacement of
+                    // the hit from that channel's fiber bundle hole.
+                    double ra = lb / (la + lb);
+                    double rb = la / (la + lb);
+                    
+                    // Create two new hits.
+                    outputHits.add(makeHit(hit, fadcChannelIDs[0], ra));
+                    outputHits.add(makeHit(hit, fadcChannelIDs[1], rb));
+                }
+            }
         }
+        
+        // Output the preprocessed hits to the data manager.
+        ReadoutDataManager.addData(outputHitCollectionName, outputHits, SimCalorimeterHit.class);
     }
     
     @Override
@@ -145,7 +233,7 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
     private final double[] getScintillatorHalfDimensions(SimTrackerHit hit) {
         IDetectorElement idDetElem = hodoscopeDetectorElement.findDetectorElement(hit.getIdentifier()).get(0);
         Box box = (Box) idDetElem.getGeometry().getLogicalVolume().getSolid();
-        return new double[] { box.getXHalfLength(), box.getYHalfLength(), box.getZHalfLength() };
+        return new double[] { box.getXHalfLength() + 0.05, box.getYHalfLength() + 0.05, box.getZHalfLength() + 0.25 };
     }
     
     /**
@@ -164,10 +252,10 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
      */
     private final int getScintillatorChannelCount(int ix, int iy, int iz) {
         // Get the unique key for this scintillator.
-        Integer var = Integer.valueOf(getHodoscopePositionVar(ix, iy, iz));
+        Integer posvar = Integer.valueOf(getHodoscopePositionVar(ix, iy, iz));
         
         // Return the number of unique channels.
-        return crystalPositionToChannelMap.get(var).size();
+        return scintillatorPositionToChannelMap.get(posvar).size();
     }
     
     /**
@@ -236,14 +324,95 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
         return new double[] { geom.getPosition().x(), geom.getPosition().y(), geom.getPosition().z() };
     }
     
+    /**
+     * Creates a concise {@link java.lang.String String} object that
+     * contains the geometric details for the scintillator on which
+     * the argument hit occurred.
+     * @param hit - The hit.
+     * @return Returns a <code>String</code> describing the geometric
+     * details of the scintillator on which the hit occurred.
+     */
     private final String getHodoscopeBounds(SimTrackerHit hit) {
         int[] indices = getHodoscopeIndices(hit);
         double[] dimensions = getScintillatorHalfDimensions(hit);
         double[] position = getScintillatorPosition(hit);
         double[] holeX = getScintillatorHolePositions(hit);
-        return String.format("Bounds for scintillator <%d, %2d, %d> :: x = [ %f, %f ], y = [ %f, %f ], z = [ %f, %f ];   FADC Channels :: %d;   Hole Positions:  x1 = %f, x2 = %s",
+        return String.format("Bounds for scintillator <%d, %2d, %d> :: x = [ %6.2f, %6.2f ], y = [ %6.2f, %6.2f ], z = [ %7.2f, %7.2f ];   FADC Channels :: %d;   Hole Positions:  x1 = %6.2f, x2 = %s",
                 indices[0], indices[1], indices[2], position[0] - dimensions[0], position[0] + dimensions[0],
                 position[1] - dimensions[1], position[1] + dimensions[1], position[2] - dimensions[2], position[2] + dimensions[2],
-                getScintillatorChannelCount(hit), holeX[0], holeX.length > 1 ? String.format("%f", holeX[1]) : "N/A");
+                getScintillatorChannelCount(hit), holeX[0], holeX.length > 1 ? String.format("%6.2f", holeX[1]) : "N/A");
+    }
+    
+    /**
+     * Creates a {@link org.lcsim.event.SimCalorimeterHit
+     * SimCalorimeterHit} object from an input {@link
+     * org.lcsim.event.SimTrackerHit SimTrackerHit} object. The new
+     * hit will have the same truth information, but will have the
+     * cell ID specified instead.
+     * @param hit - The hit to convert.
+     * @param cellID - The new cell ID for the hit.
+     * @return Returns a new <code>SimCalorimeterHit</code> object
+     * that represents the same data as the input
+     * <code>RawTrackerHit</code> object.
+     */
+    private static final SimCalorimeterHit makeHit(SimTrackerHit hit, int cellID) {
+        return makeHit(hit, cellID, 1.0);
+    }
+    
+    /**
+     * Creates a {@link org.lcsim.event.SimCalorimeterHit
+     * SimCalorimeterHit} object from an input {@link
+     * org.lcsim.event.SimTrackerHit SimTrackerHit} object. The new
+     * hit will have the same truth information, but will have the
+     * cell ID specified and also its energy will be scaled by the
+     * amount indicated by <code>energyScale</code>.
+     * @param hit - The hit to convert.
+     * @param cellID - The new cell ID for the hit.
+     * @param energyScale - The amount by which the energy should be
+     * scaled.
+     * @return Returns a new <code>SimCalorimeterHit</code> object
+     * that represents the same data as the input
+     * <code>RawTrackerHit</code> object, but with the energy scaled
+     * as specified.
+     */
+    private static final SimCalorimeterHit makeHit(SimTrackerHit hit, int cellID, double energyScale) {
+        // Create the necessary data objects to clone the hit. Note
+        // that SimTrackerHit objects only ever have a single truth
+        // particle associated with them.
+        int[] pdgs = new int[] { hit.getMCParticle().getPDGID() };
+        float[] times = new float[] {  (float) hit.getTime() };
+        float[] energies = new float[] { (float) (energyScale * hit.getdEdx()) };
+        Object[] particles = new Object[] { hit.getMCParticle() };
+        
+        // Create the calorimeter hit from tracker hit data.
+        return new BaseSimCalorimeterHit(cellID, (energyScale * hit.getdEdx()), hit.getTime(),
+                particles, energies, times, pdgs, hit.getMetaData());
+    }
+    
+    /**
+     * Fills the mapping between scintillator position indices and
+     * hardware FADC channel information.
+     */
+    private final void populateScintillatorChannelMap() {
+        // Get the conditions database.
+        final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        
+        // Store each of the hodoscope channels according to its
+        // crystal indices. These are managed by storing each index
+        // value in an integer to create a unique key.
+        final HodoscopeChannelCollection channels = mgr.getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();
+        for(HodoscopeChannel channel : channels) {
+            Integer posvar = Integer.valueOf(getHodoscopePositionVar(channel.getX() - 1, channel.getY(), channel.getLayer()));
+            
+            System.out.printf("Channel %2d at <%d, %2d, %d> and hole %d --> %s%n", channel.getChannelId(), channel.getX(), channel.getY(), channel.getLayer(), channel.getHole(), Integer.toBinaryString(posvar.intValue()));
+            
+            if(scintillatorPositionToChannelMap.containsKey(posvar)) {
+                scintillatorPositionToChannelMap.get(posvar).add(channel);
+            } else {
+                List<HodoscopeChannel> channelList = new ArrayList<HodoscopeChannel>();
+                channelList.add(channel);
+                scintillatorPositionToChannelMap.put(posvar, channelList);
+            }
+        }
     }
 }
