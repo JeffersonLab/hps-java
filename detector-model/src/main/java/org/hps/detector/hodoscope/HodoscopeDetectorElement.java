@@ -26,6 +26,10 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
     
     /**
      * Gets the hardware channels that correspond to a scintillator.
+     * Note that method {@link
+     * org.hps.detector.hodoscope.HodoscopeDetectorElement#updateScintillatorChannelMap(HodoscopeChannelCollection)
+     * updateScintillatorChannelMap(HodoscopeChannelCollection)} must
+     * be run before this method will function.
      * @param ix - The x-index of the scintillator.
      * @param iy - The y-index of the scintillator.
      * @param layer - The layer of the scintillator.
@@ -42,6 +46,10 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
     /**
      * Gets the hardware channels that correspond to the scintillator
      * on which an argument hit occurs.
+     * Note that method {@link
+     * org.hps.detector.hodoscope.HodoscopeDetectorElement#updateScintillatorChannelMap(HodoscopeChannelCollection)
+     * updateScintillatorChannelMap(HodoscopeChannelCollection)} must
+     * be run before this method will function.
      * @param hit - The hit.
      * @return Returns the hardware channel(s) for the scintillator
      * as a {@link java.util.List List} of {@link
@@ -136,26 +144,6 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      */
     public int getScintillatorChannelCount(SimTrackerHit hit) {
         return getScintillatorChannelCount(hit.getIdentifier());
-    }
-    
-    /**
-     * Fills the mapping between scintillator position indices and
-     * hardware FADC channel information.
-     */
-    public final void populateScintillatorChannelMap(HodoscopeChannelCollection channels) {
-        for(HodoscopeChannel channel : channels) {
-            Integer posvar = Integer.valueOf(getScintillatorUniqueKey(channel.getX(), channel.getY(), channel.getLayer()));
-            
-            System.out.printf("Channel %2d at <%d, %2d, %d> and hole %d --> %s%n", channel.getChannelId(), channel.getX(), channel.getY(), channel.getLayer(), channel.getHole(), Integer.toBinaryString(posvar.intValue()));
-            
-            if(scintillatorPositionToChannelMap.containsKey(posvar)) {
-                scintillatorPositionToChannelMap.get(posvar).add(channel);
-            } else {
-                List<HodoscopeChannel> channelList = new ArrayList<HodoscopeChannel>();
-                channelList.add(channel);
-                scintillatorPositionToChannelMap.put(posvar, channelList);
-            }
-        }
     }
     
     /**
@@ -293,8 +281,38 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
     }
     
     /**
+     * Fills the mapping between scintillator position indices and
+     * hardware FADC channel information. This must be run before any
+     * calls are made to method {@link
+     * org.hps.detector.hodoscope.HodoscopeDetectorElement#getHardwareChannels(int, int, int)
+     * getHardwareChannels(int, int, int)} or {@link
+     * org.hps.detector.hodoscope.HodoscopeDetectorElement#getHardwareChannels(SimTrackerHit)
+     * getHardwareChannels(SimTrackerHit)} or else a value of
+     * <code>null</code> will be returned for all scintillators.
+     */
+    public final void updateScintillatorChannelMap(HodoscopeChannelCollection channels) {
+        for(HodoscopeChannel channel : channels) {
+            Integer posvar = Integer.valueOf(getScintillatorUniqueKey(channel.getX(), channel.getY(), channel.getLayer()));
+            
+            System.out.printf("Channel %2d at <%d, %2d, %d> and hole %d --> %s%n", channel.getChannelId(), channel.getX(), channel.getY(), channel.getLayer(), channel.getHole(), Integer.toBinaryString(posvar.intValue()));
+            
+            if(scintillatorPositionToChannelMap.containsKey(posvar)) {
+                scintillatorPositionToChannelMap.get(posvar).add(channel);
+            } else {
+                List<HodoscopeChannel> channelList = new ArrayList<HodoscopeChannel>();
+                channelList.add(channel);
+                scintillatorPositionToChannelMap.put(posvar, channelList);
+            }
+        }
+    }
+    
+    /**
      * Gets the hardware channels that correspond to the scintillator
      * associated with the argument unique key.
+     * Note that method {@link
+     * org.hps.detector.hodoscope.HodoscopeDetectorElement#updateScintillatorChannelMap(HodoscopeChannelCollection)
+     * updateScintillatorChannelMap(HodoscopeChannelCollection)} must
+     * be run before this method will function.
      * @param key - The unique key.
      * @return Returns the hardware channel(s) for the scintillator
      * as a {@link java.util.List List} of {@link
@@ -303,6 +321,10 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      * then a value of <code>null</code> will be returned.
      */
     private List<HodoscopeChannel> getHardwareChannels(int key) {
+        if(scintillatorPositionToChannelMap.isEmpty()) {
+            throw new RuntimeException("Channel map not initialized. Method"
+                    + "updateScintillatorChannelMap(HodoscopeChannelCollection) must be run before this method.");
+        }
         return scintillatorPositionToChannelMap.get(Integer.valueOf(key));
     }
 }
