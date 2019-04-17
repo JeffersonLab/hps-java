@@ -15,47 +15,48 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.solids.Box;
+import org.lcsim.event.SimTrackerHit;
 
-public final class HodoscopeDetectorElement extends SubdetectorDetectorElement{
-                           
-    private Map<Integer, List<HodoscopeChannel>> scintillatorPositionToChannelMap = new HashMap<Integer, List<HodoscopeChannel>>();    
-    //private Map<Integer, String> hodoscopeBoundsMap = new HashMap<Integer, String>();
+public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
+    private Map<Integer, List<HodoscopeChannel>> scintillatorPositionToChannelMap = new HashMap<Integer, List<HodoscopeChannel>>();
     
     public HodoscopeDetectorElement(String name, IDetectorElement parent) {
         super(name, parent);
     }
     
     /**
-     * Gets the dimensions of the scintillator on which the hit
-     * occurred. Returned values are one half the actual width,
-     * height, and depth of the scintillator.
-     * @param hit - The hit.
-     * @return Returns a <code>double</code> array in the format of
-     * <code>{ width / 2, height / 2, depth / 2 }</code>.
+     * Gets the hardware channels that correspond to a scintillator.
+     * @param ix - The x-index of the scintillator.
+     * @param iy - The y-index of the scintillator.
+     * @param layer - The layer of the scintillator.
+     * @return Returns the hardware channel(s) for the scintillator
+     * as a {@link java.util.List List} of {@link
+     * org.hps.conditions.hodoscope.HodoscopeChannel
+     * HodoscopeChannel} objects. If the scintillator is invalid, 
+     * then a value of <code>null</code> will be returned.
      */
-    public final double[] getScintillatorHalfDimensions(IIdentifier id) {
-        IDetectorElement idDetElem = findDetectorElement(id).get(0);
-        Box box = (Box) idDetElem.getGeometry().getLogicalVolume().getSolid();
-        return new double[] { box.getXHalfLength() + 0.05, box.getYHalfLength() + 0.05, box.getZHalfLength() + 0.25 };
+    public List<HodoscopeChannel> getHardwareChannels(int ix, int iy, int layer) {
+        return getHardwareChannels(getScintillatorUniqueKey(ix, iy, layer));
     }
     
     /**
-     * Gets the position of the center of the scintillator on which
-     * the hit occurred.
+     * Gets the hardware channels that correspond to the scintillator
+     * on which an argument hit occurs.
      * @param hit - The hit.
-     * @return Returns a <code>double</code> array in the format of
-     * <code>{ x, y, z }</code>.
+     * @return Returns the hardware channel(s) for the scintillator
+     * as a {@link java.util.List List} of {@link
+     * org.hps.conditions.hodoscope.HodoscopeChannel
+     * HodoscopeChannel} objects. If the scintillator is invalid, 
+     * then a value of <code>null</code> will be returned.
      */
-    public final double[] getScintillatorPosition(IIdentifier id) {
-        IDetectorElement idDetElem = findDetectorElement(id).get(0);
-        IGeometryInfo geom = idDetElem.getGeometry();
-        return new double[] { geom.getPosition().x(), geom.getPosition().y(), geom.getPosition().z() };
+    public List<HodoscopeChannel> getHardwareChannels(SimTrackerHit hit) {
+        return getHardwareChannels(getScintillatorUniqueKey(hit));
     }
     
     /**
      * Gets the x-, y-, and z-indices of the hodoscope scintillator
      * on which the hit occurred.
-     * @param hit - The hit.
+     * @param id - The hit's <code>IIdentifier</code> object.
      * @return Returns the scintillator indices in the form of an
      * <code>int</code> array with the format <code>{ ix, iy, iz
      * }</code>.
@@ -70,6 +71,120 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement{
     }
     
     /**
+     * Gets the x-, y-, and z-indices of the hodoscope scintillator
+     * on which the hit occurred.
+     * @param hit - The hit.
+     * @return Returns the scintillator indices in the form of an
+     * <code>int</code> array with the format <code>{ ix, iy, iz
+     * }</code>.
+     */
+    public final int[] getHodoscopeIndices(SimTrackerHit hit) {
+        return getHodoscopeIndices(hit.getIdentifier());
+    }
+    
+    /**
+     * Gets the number of unique channels contained in the specified
+     * scintillator. Some scintillators will have two optical fiber
+     * holes which lead to separate channels. Others have either one
+     * optical fiber hole or two, but each connect to the same FADC
+     * channel.
+     * @param ix - The x-index for the crystal.
+     * @param iy - The y-index for the crystal.
+     * @param iz - The layer number for the crystal.
+     * @return Returns the number of unique FADC channels as an
+     * <code>int</code>. This is <code>1</code> for scintillators
+     * that have either one fiber hole or both fiber holes connect to
+     * the same FADC channel. It is <code>2</code> otherwise.
+     */
+    public int getScintillatorChannelCount(int ix, int iy, int iz) {
+        // Get the unique key for this scintillator.
+        Integer posvar = Integer.valueOf(getScintillatorUniqueKey(ix, iy, iz));
+        
+        // Return the number of unique channels.
+        return scintillatorPositionToChannelMap.get(posvar).size();
+    }
+    
+    /**
+     * Gets the number of unique channels contained in the specified
+     * scintillator. Some scintillators will have two optical fiber
+     * holes which lead to separate channels. Others have either one
+     * optical fiber hole or two, but each connect to the same FADC
+     * channel.
+     * @param id - The <code>IIdentifier</code> object associated
+     * with the scintillator.
+     * @return Returns the number of unique FADC channels as an
+     * <code>int</code>. This is <code>1</code> for scintillators
+     * that have either one fiber hole or both fiber holes connect to
+     * the same FADC channel. It is <code>2</code> otherwise.
+     */
+    public int getScintillatorChannelCount(IIdentifier id) {
+        int[] indices = getHodoscopeIndices(id);
+        return getScintillatorChannelCount(indices[0], indices[1], indices[2]);
+    }
+    
+    /**
+     * Gets the number of unique channels contained in the specified
+     * scintillator. Some scintillators will have two optical fiber
+     * holes which lead to separate channels. Others have either one
+     * optical fiber hole or two, but each connect to the same FADC
+     * channel.
+     * @param hit - A hit occurring on the scintillator.
+     * @return Returns the number of unique FADC channels as an
+     * <code>int</code>. This is <code>1</code> for scintillators
+     * that have either one fiber hole or both fiber holes connect to
+     * the same FADC channel. It is <code>2</code> otherwise.
+     */
+    public int getScintillatorChannelCount(SimTrackerHit hit) {
+        return getScintillatorChannelCount(hit.getIdentifier());
+    }
+    
+    /**
+     * Fills the mapping between scintillator position indices and
+     * hardware FADC channel information.
+     */
+    public final void populateScintillatorChannelMap(HodoscopeChannelCollection channels) {
+        for(HodoscopeChannel channel : channels) {
+            Integer posvar = Integer.valueOf(getScintillatorUniqueKey(channel.getX(), channel.getY(), channel.getLayer()));
+            
+            System.out.printf("Channel %2d at <%d, %2d, %d> and hole %d --> %s%n", channel.getChannelId(), channel.getX(), channel.getY(), channel.getLayer(), channel.getHole(), Integer.toBinaryString(posvar.intValue()));
+            
+            if(scintillatorPositionToChannelMap.containsKey(posvar)) {
+                scintillatorPositionToChannelMap.get(posvar).add(channel);
+            } else {
+                List<HodoscopeChannel> channelList = new ArrayList<HodoscopeChannel>();
+                channelList.add(channel);
+                scintillatorPositionToChannelMap.put(posvar, channelList);
+            }
+        }
+    }
+    
+    /**
+     * Gets the dimensions of the scintillator on which the hit
+     * occurred. Returned values are one half the actual width,
+     * height, and depth of the scintillator.
+     * @param id - The hit's <code>IIdentifier</code> object.
+     * @return Returns a <code>double</code> array in the format of
+     * <code>{ width / 2, height / 2, depth / 2 }</code>.
+     */
+    public final double[] getScintillatorHalfDimensions(IIdentifier id) {
+        IDetectorElement idDetElem = findDetectorElement(id).get(0);
+        Box box = (Box) idDetElem.getGeometry().getLogicalVolume().getSolid();
+        return new double[] { box.getXHalfLength() + 0.05, box.getYHalfLength() + 0.05, box.getZHalfLength() + 0.25 };
+    }
+    
+    /**
+     * Gets the dimensions of the scintillator on which the hit
+     * occurred. Returned values are one half the actual width,
+     * height, and depth of the scintillator.
+     * @param hit - The hit.
+     * @return Returns a <code>double</code> array in the format of
+     * <code>{ width / 2, height / 2, depth / 2 }</code>.
+     */
+    public final double[] getScintillatorHalfDimensions(SimTrackerHit hit) {
+        return getScintillatorPosition(hit);
+    }
+    
+    /**
      * Gets the absolute positioning of the optical fiber hole(s) in
      * the scintillator in which a hit occurred. The array will be
      * either size 1 for scintillators with only one fiber hole or
@@ -77,7 +192,7 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement{
      * fiber hole that is closest to the center of the detector, and
      * the second to the one that is closer to the positron side of
      * the detector.
-     * @param hit - The hit.
+     * @param id - The hit's <code>IIdentifier</code> object.
      * @return Returns a <code>double</code> array containing the
      * absolute positions of the optical fiber holes in the
      * scintillator.
@@ -104,29 +219,51 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement{
     }
     
     /**
-     * Creates a concise {@link java.lang.String String} object that
-     * contains the geometric details for the scintillator on which
-     * the argument hit occurred.
+     * Gets the absolute positioning of the optical fiber hole(s) in
+     * the scintillator in which a hit occurred. The array will be
+     * either size 1 for scintillators with only one fiber hole or
+     * size 2 for this with two. The first index corresponds to the
+     * fiber hole that is closest to the center of the detector, and
+     * the second to the one that is closer to the positron side of
+     * the detector.
      * @param hit - The hit.
-     * @return Returns a <code>String</code> describing the geometric
-     * details of the scintillator on which the hit occurred.
+     * @return Returns a <code>double</code> array containing the
+     * absolute positions of the optical fiber holes in the
+     * scintillator.
      */
-    public String getHodoscopeBounds(IIdentifier id) {
-        int[] indices = getHodoscopeIndices(id);
-        double[] dimensions = getScintillatorHalfDimensions(id);
-        double[] position = getScintillatorPosition(id);
-        double[] holeX = getScintillatorHolePositions(id);
-        return String.format("Bounds for scintillator <%d, %2d, %d> :: x = [ %6.2f, %6.2f ], y = [ %6.2f, %6.2f ], z = [ %7.2f, %7.2f ];   FADC Channels :: %d;   Hole Positions:  x1 = %6.2f, x2 = %s",
-                indices[0], indices[1], indices[2], position[0] - dimensions[0], position[0] + dimensions[0],
-                position[1] - dimensions[1], position[1] + dimensions[1], position[2] - dimensions[2], position[2] + dimensions[2],
-                getScintillatorChannelCount(id), holeX[0], holeX.length > 1 ? String.format("%6.2f", holeX[1]) : "N/A");
+    public final double[] getScintillatorHolePositions(SimTrackerHit hit) {
+        return getScintillatorHolePositions(hit.getIdentifier());
     }
     
     /**
-     * Create a unique key for the hodoscope crystal.
-     * @param ix - The x-index of the crystal. This should range from
-     * 0 (for the closest to the beam) to 4 (for the farthest from
-     * the beam).
+     * Gets the position of the center of the scintillator on which
+     * the hit occurred.
+     * @param id - The hit's <code>IIdentifier</code> object.
+     * @return Returns a <code>double</code> array in the format of
+     * <code>{ x, y, z }</code>.
+     */
+    public final double[] getScintillatorPosition(IIdentifier id) {
+        IDetectorElement idDetElem = findDetectorElement(id).get(0);
+        IGeometryInfo geom = idDetElem.getGeometry();
+        return new double[] { geom.getPosition().x(), geom.getPosition().y(), geom.getPosition().z() };
+    }
+    
+    /**
+     * Gets the position of the center of the scintillator on which
+     * the hit occurred.
+     * @param hit - The hit.
+     * @return Returns a <code>double</code> array in the format of
+     * <code>{ x, y, z }</code>.
+     */
+    public final double[] getScintillatorPosition(SimTrackerHit hit) {
+        return getScintillatorPosition(hit);
+    }
+    
+    /**
+     * Create a unique key for the hodoscope scintillator.
+     * @param ix - The x-index of the scintillator. This should range
+     * from 0 (for the closest to the beam) to 4 (for the farthest
+     * from the beam).
      * @param iy - The y-index of the hodoscope. This may be either
      * -1 for the bottom half of the hodoscope or 1 for the top half.
      * @param layer - The layer number of the hodoscope. This may be
@@ -135,7 +272,7 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement{
      * The last bit represents the layer, the penultimate bit the top
      * or bottom position, and the remaining bits the x-index.
      */
-    public static final int getHodoscopePositionVar(int ix, int iy, int layer) {
+    public static final int getScintillatorUniqueKey(int ix, int iy, int layer) {
         int var = (ix << 2);
         var = var | ((iy == -1 ? 0 : 1) << 1);
         var = var | layer;
@@ -143,66 +280,29 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement{
     }
     
     /**
-     * Gets the number of unique channels contained in the specified
-     * scintillator. Some scintillators will have two optical fiber
-     * holes which lead to separate channels. Others have either one
-     * optical fiber hole or two, but each connect to the same FADC
-     * channel.
-     * @param ix - The x-index for the crystal.
-     * @param iy - The y-index for the crystal.
-     * @param iz - The layer number for the crystal.
-     * @return Returns the number of unique FADC channels as an
-     * <code>int</code>. This is <code>1</code> for scintillators
-     * that have either one fiber hole or both fiber holes connect to
-     * the same FADC channel. It is <code>2</code> otherwise.
+     * Create a unique key for the scintillator on which a hit
+     * occurs.
+     * @param hit - The hit.
+     * @return Returns a unique integer representing these values.
+     * The last bit represents the layer, the penultimate bit the top
+     * or bottom position, and the remaining bits the x-index.
      */
-    public int getScintillatorChannelCount(int ix, int iy, int iz) {
-        // Get the unique key for this scintillator.
-        Integer posvar = Integer.valueOf(getHodoscopePositionVar(ix, iy, iz));
-        
-        // Return the number of unique channels.
-        return scintillatorPositionToChannelMap.get(posvar).size();
+    public final int getScintillatorUniqueKey(SimTrackerHit hit) {
+        int[] indices = getHodoscopeIndices(hit);
+        return getScintillatorUniqueKey(indices[0], indices[1], indices[2]);
     }
     
     /**
-     * Gets the number of unique channels contained in the specified
-     * scintillator. Some scintillators will have two optical fiber
-     * holes which lead to separate channels. Others have either one
-     * optical fiber hole or two, but each connect to the same FADC
-     * channel.
-     * @param hit - A hit occuring on the desired scintillator.
-     * @return Returns the number of unique FADC channels as an
-     * <code>int</code>. This is <code>1</code> for scintillators
-     * that have either one fiber hole or both fiber holes connect to
-     * the same FADC channel. It is <code>2</code> otherwise.
+     * Gets the hardware channels that correspond to the scintillator
+     * associated with the argument unique key.
+     * @param key - The unique key.
+     * @return Returns the hardware channel(s) for the scintillator
+     * as a {@link java.util.List List} of {@link
+     * org.hps.conditions.hodoscope.HodoscopeChannel
+     * HodoscopeChannel} objects. If the scintillator is invalid, 
+     * then a value of <code>null</code> will be returned.
      */
-    public int getScintillatorChannelCount(IIdentifier id) {
-        int[] indices = getHodoscopeIndices(id);
-        return getScintillatorChannelCount(indices[0], indices[1], indices[2]);
-    }
-            
-    
-    /**
-     * Fills the mapping between scintillator position indices and
-     * hardware FADC channel information.
-     */
-    public final void populateScintillatorChannelMap(HodoscopeChannelCollection channels) {
-        for(HodoscopeChannel channel : channels) {
-            Integer posvar = Integer.valueOf(getHodoscopePositionVar(channel.getX(), channel.getY(), channel.getLayer()));
-            
-            System.out.printf("Channel %2d at <%d, %2d, %d> and hole %d --> %s%n", channel.getChannelId(), channel.getX(), channel.getY(), channel.getLayer(), channel.getHole(), Integer.toBinaryString(posvar.intValue()));
-            
-            if(scintillatorPositionToChannelMap.containsKey(posvar)) {
-                scintillatorPositionToChannelMap.get(posvar).add(channel);
-            } else {
-                List<HodoscopeChannel> channelList = new ArrayList<HodoscopeChannel>();
-                channelList.add(channel);
-                scintillatorPositionToChannelMap.put(posvar, channelList);
-            }
-        }
-    }
-    
-    public Map<Integer, List<HodoscopeChannel>> getScintillatorPositionToChannelMap() {
-        return this.scintillatorPositionToChannelMap;
+    private List<HodoscopeChannel> getHardwareChannels(int key) {
+        return scintillatorPositionToChannelMap.get(Integer.valueOf(key));
     }
 }
