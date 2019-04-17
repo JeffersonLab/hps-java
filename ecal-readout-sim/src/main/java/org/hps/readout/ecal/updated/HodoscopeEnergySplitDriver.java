@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
-import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
@@ -22,18 +20,11 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
     private HodoscopeDetectorElement hodoscopeDetectorElement;
     private String truthHitCollectionName = "HodoscopeHits";
     private String outputHitCollectionName = "HodoscopePreprocessedHits";
-    private DatabaseConditionsManager conditionsManager = null;
     
     @Override
     public void detectorChanged(Detector detector) {
-        // Get the an instance of the conditions database.
-        conditionsManager = DatabaseConditionsManager.getInstance();
-        
         // Update the hodoscope detector object.
         hodoscopeDetectorElement = (HodoscopeDetectorElement) detector.getSubdetector("Hodoscope").getDetectorElement();
-        
-        // Populate the scintillator channel map for the new detector.
-        hodoscopeDetectorElement.updateScintillatorChannelMap(conditionsManager.getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData());
     }
     
     @Override
