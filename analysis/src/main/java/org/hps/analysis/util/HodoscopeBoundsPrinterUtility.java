@@ -1,4 +1,4 @@
-package org.hps.analysis.hodoscope;
+package org.hps.analysis.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
