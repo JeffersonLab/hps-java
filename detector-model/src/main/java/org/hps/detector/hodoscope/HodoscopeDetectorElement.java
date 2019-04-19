@@ -250,7 +250,6 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      * the specified scintillator.
      */
     public final IIdentifier getScintillatorIdentifier(int key) {
-        if(scintillatorToIDMap.isEmpty()) { populateIDCollections(); }
         return scintillatorToIDMap.get(Integer.valueOf(key));
     }
     
@@ -280,7 +279,6 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      * unmodifiable {@link java.util.List List}.
      */
     public final List<IIdentifier> getScintillatorIdentifiers() {
-        if(scintillatorIDList.isEmpty()) { populateIDCollections(); }
         return Collections.unmodifiableList(scintillatorIDList);
     }
     
@@ -353,6 +351,14 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
     public final int getScintillatorUniqueKey(SimTrackerHit hit) {
         int[] indices = getHodoscopeIndices(hit);
         return getScintillatorUniqueKey(indices[0], indices[1], indices[2]);
+    }
+
+    /**
+     * Initialize the detector element.
+     */
+    public void initialize() {
+        // Populate the ID collections.
+        this.populateIDCollections();
     }
     
     /**
