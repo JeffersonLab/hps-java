@@ -114,6 +114,7 @@
     <module>ecal-event-display</module>
     <module>ecal-readout-sim</module>
     <module>ecal-recon</module>
+    <module>hodo-recon</module>
     <module>evio</module>
     <module>job</module>
     <module>logging</module>
@@ -212,6 +213,11 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-ecal-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-hodo-recon</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
