@@ -21,6 +21,11 @@ public final class EventConstants {
     public static final int ECAL_PULSE_INTEGRAL_MODE = 3; //FADC mode 3
     public static final int ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE = 4; //FADC mode 7
 
+    public static final int HODO_RAW_MODE = 1;
+    public static final int HODO_PULSE_MODE = 2;
+    public static final int HODO_PULSE_INTEGRAL_MODE = 3; //FADC mode 3
+    public static final int HODO_PULSE_INTEGRAL_HIGHRESTDC_MODE = 4; //FADC mode 7
+
     
     // The composite data format for window ecal data. MODE 1
     public static final String ECAL_WINDOW_FORMAT = "c,i,l,N(c,Ns)";
