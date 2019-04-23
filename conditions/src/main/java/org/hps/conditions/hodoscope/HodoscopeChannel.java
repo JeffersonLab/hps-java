@@ -41,6 +41,7 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             HodoscopeChannel foundIt = null;
             for (HodoscopeChannel c : this) {
                 if (c.getCrate() == crate && c.getSlot() == slot && c.getChannel() == channel) {
+                    foundIt = c;
                     break;
                 }
             }
