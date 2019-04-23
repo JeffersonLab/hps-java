@@ -79,7 +79,7 @@
             <persistent>true</persistent>
         </driver>
         
-        <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.ecal.updated.SimCalorimeterHitReadoutDriver">
+        <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
             <collectionName>HodoscopeHits</collectionName>
             
             <!-- Units of ns. -->

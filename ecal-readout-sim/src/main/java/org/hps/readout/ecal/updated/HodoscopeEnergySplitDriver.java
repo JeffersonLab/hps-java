@@ -16,6 +16,19 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseSimCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
+/**
+ * <code>HodoscopeEnergySplitDriver</code> handles the preprocessing
+ * of hodoscope hits from SLIC. It is responsible for converting the
+ * hits from {@link org.lcsim.event.SimTrackerHit SimTrackerHit}
+ * objects into {@link org.lcsim.event.SimCalorimeterHit
+ * SimCalorimeterHit} objects. It is also responsible for converting
+ * hits from scintillator-based channels to those that match the FADC
+ * channels in the hardware. This entails splitting the energy of
+ * those hits where the physical scintillator feeds into multiple
+ * FADC channels.
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class HodoscopeEnergySplitDriver extends ReadoutDriver {
     private HodoscopeDetectorElement hodoscopeDetectorElement;
     private String truthHitCollectionName = "HodoscopeHits";
@@ -71,11 +84,6 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
                 fadcChannelIDs[fadcChannelIDList.get(0).getHole()] = fadcChannelIDList.get(0).getChannelId();
                 fadcChannelIDs[fadcChannelIDList.get(1).getHole()] = fadcChannelIDList.get(1).getChannelId();
                 
-                //System.out.printf("Channel <%d, %2d, %d>%n", fadcChannelIDList.get(0).getX(), fadcChannelIDList.get(0).getY(), fadcChannelIDList.get(0).getLayer());
-                //System.out.println("\tHit Energy     :: " + hit.getdEdx());
-                //System.out.println("\tHole 0 Channel :: " + fadcChannelIDs[0]);
-                //System.out.println("\tHole 1 Channel :: " + fadcChannelIDs[1]);
-                
                 // Get the x-position of the hit.
                 double hitXPos = hit.getPosition()[0];
                 
@@ -85,10 +93,8 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
                 // all of its energy goes to the second channel.
                 if(hitXPos < holePos[0]) {
                     outputHits.add(makeHit(hit, fadcChannelIDs[0]));
-                    //System.out.println("\tChannel Energy :: " + hit.getdEdx() + " --> " + fadcChannelIDs[0]);
                 } else if(hitXPos > holePos[1]) {
                     outputHits.add(makeHit(hit, fadcChannelIDs[1]));
-                    //System.out.println("\tChannel Energy :: " + hit.getdEdx() + " --> " + fadcChannelIDs[1]);
                 }
                 
                 // Otherwise, the energy must be split linearly based
@@ -110,8 +116,6 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
                     // Create two new hits.
                     outputHits.add(makeHit(hit, fadcChannelIDs[0], ra));
                     outputHits.add(makeHit(hit, fadcChannelIDs[1], rb));
-                    //System.out.println("\tChannel Energy :: " + (ra * hit.getdEdx()) + " --> " + fadcChannelIDs[0]);
-                    //System.out.println("\tChannel Energy :: " + (rb * hit.getdEdx()) + " --> " + fadcChannelIDs[1]);
                 }
             }
         }
