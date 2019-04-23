@@ -12,31 +12,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.ecal.EcalChannel;
-import org.hps.conditions.ecal.EcalChannel.DaqId;
-import org.hps.conditions.ecal.EcalChannel.GeometryId;
+//import org.hps.conditions.database.DatabaseConditionsManager;
+//import org.hps.conditions.ecal.EcalChannel;
+//import org.hps.conditions.ecal.EcalChannel.DaqId;
+//import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
-import org.hps.recon.ecal.HitExtraData;
-import org.hps.recon.ecal.HitExtraData.Mode7Data;
-import org.jlab.coda.jevio.BaseStructure;
-import org.jlab.coda.jevio.BaseStructureHeader;
+//import org.hps.recon.ecal.HitExtraData;
+//import org.hps.recon.ecal.HitExtraData.Mode7Data;
+//import org.jlab.coda.jevio.BaseStructure;
+//import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
-import org.jlab.coda.jevio.EvioException;
+//import org.jlab.coda.jevio.EvioException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
-import org.lcsim.event.RawCalorimeterHit;
-import org.lcsim.event.RawTrackerHit;
+//import org.lcsim.event.LCRelation;
+//import org.lcsim.event.RawCalorimeterHit;
+//import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
-import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.event.base.BaseRawCalorimeterHit;
+//import org.lcsim.event.base.BaseLCRelation;
+//import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
-import org.lcsim.lcio.LCIOConstants;
+//import org.lcsim.lcio.LCIOConstants;
 
 
 /**
@@ -50,24 +50,40 @@ public class HodoEvioReader extends EvioReader {
     private static IIdentifierHelper helper = null;
 
     private static final String readoutName = "HodoHits";
-    private static final String subdetectorName = "Hodo";    
-    
+    private static final String subdetectorName = "Hodo";
+
     private Subdetector subDetector;
 
     private static final String genericHitCollectionName = "FADCGenericHits";
     private List<FADCGenericHit> genericHits;
-    
-    private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();   
-    
-    private static final Logger LOGGER = Logger.getLogger(EcalEvioReader.class.getPackage().getName());   
-    
+
+    private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
+
+    private static final Logger LOGGER = Logger.getLogger(HodoEvioReader.class.getPackage().getName());
+
+    private int topBankTag, botBankTag;
+
+    public HodoEvioReader(int topBankTag, int botBankTag) {
+        this.topBankTag = topBankTag;
+        this.botBankTag = botBankTag;
+        hitCollectionName = "HodoReadoutHits";
+    }
+
+    public void setTopBankTag(int topBankTag) {
+        this.topBankTag = topBankTag;
+    }
+
+    public void setBotBankTag(int botBankTag) {
+        this.botBankTag = botBankTag;
+    }
+
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
         return true; // Temporrary, just for not givin syntax error
     }
- 
-     private BaseRawTrackerHit makeECalRawHit(int time, long id, CompositeData cdata, int nSamples) {
+
+    private BaseRawTrackerHit makeHodoRawHit(int time, long id, CompositeData cdata, int nSamples) {
         short[] adcValues = new short[nSamples];
         for (int i = 0; i < nSamples; i++) {
             adcValues[i] = cdata.getShort();
@@ -79,8 +95,7 @@ public class HodoEvioReader extends EvioReader {
                 new ArrayList<SimTrackerHit>(),
                 subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
     }
-   
-    
+
     private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
         int[] adcValues = new int[nSamples];
         for (int i = 0; i < nSamples; i++) {
@@ -88,8 +103,7 @@ public class HodoEvioReader extends EvioReader {
         }
         return new FADCGenericHit(mode, crate, slot, channel, adcValues);
     }
-    
- 
+
     private List<BaseRawTrackerHit> makeWindowHits(CompositeData cdata, int crate) {
         List<BaseRawTrackerHit> hits = new ArrayList<BaseRawTrackerHit>();
 //        if (debug) {
@@ -125,32 +139,36 @@ public class HodoEvioReader extends EvioReader {
                 }
 
                 if (id == null) {
-                    FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_RAW_MODE, crate, slot, channel, cdata, nSamples);
+                    FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_RAW_MODE, crate, slot, channel, cdata, nSamples);
                     processUnrecognizedChannel(hit);
                 } else {
-                    BaseRawTrackerHit hit = makeECalRawHit(0, id, cdata, nSamples);
+                    BaseRawTrackerHit hit = makeHodoRawHit(0, id, cdata, nSamples);
                     hits.add(hit);
                 }
             }
         }
         return hits;
     }
-   
-       private Long daqToGeometryId(int crate, short slot, short channel) {
-        DaqId daqId = new DaqId(new int[]{crate, slot, channel});
-        EcalChannel ecalChannel = hodoConditions.getChannelCollection().findChannel(daqId);
-        if (ecalChannel == null) {
-            return null;
-        }
-        int ix = ecalChannel.getX();
-        int iy = ecalChannel.getY();
-        GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy});
-        Long id = geometryId.encode();
+
+    private Long daqToGeometryId(int crate, short slot, short channel) {
+
+//        DaqId daqId = new DaqId(new int[]{crate, slot, channel});
+//        EcalChannel ecalChannel = hodoConditions.getChannelCollection().findChannel(daqId);
+//        if (ecalChannel == null) {
+//            return null;
+//        }
+//        int ix = ecalChannel.getX();
+//        int iy = ecalChannel.getY();
+//        GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy});
+//        Long id = geometryId.encode();
+        // A temporaty code to analyze Hodo EEL Data, until the conditions DB will be fixed
+        int tmp = (slot - 3) * 16 + channel;
+        long id = tmp;
+
         return id;
     }
- 
-    
-     private void processUnrecognizedChannel(FADCGenericHit hit) {
+
+    private void processUnrecognizedChannel(FADCGenericHit hit) {
         genericHits.add(hit);
 
         List<Integer> channelAddress = Arrays.asList(hit.getCrate(), hit.getSlot(), hit.getChannel());
@@ -160,7 +178,7 @@ public class HodoEvioReader extends EvioReader {
         }
         count++;
         genericHitCount.put(channelAddress, count);
-        
+
         // Lowered the log level on these.  Otherwise they print too much. --JM
         if (count < 10) {
             LOGGER.finer(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
@@ -168,6 +186,5 @@ public class HodoEvioReader extends EvioReader {
             LOGGER.fine(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
         }
     }
-      
-       
+
 }

@@ -29,6 +29,7 @@ import org.lcsim.event.base.BaseLCSimEvent;
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
     protected EcalEvioReader ecalReader = null;
+    protected HodoEvioReader hodoReader = null;
     protected AbstractSvtEvioReader svtReader = null;
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
