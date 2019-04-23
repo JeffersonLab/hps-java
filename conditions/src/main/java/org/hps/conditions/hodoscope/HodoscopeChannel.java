@@ -35,6 +35,17 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             }
             return foundIt;
         }
+
+        // TODO: Implement a fast lookup method using bit-packed DAQ ID similar to EcalChannel.
+        public HodoscopeChannel findChannel(int crate, int slot, int channel) {
+            HodoscopeChannel foundIt = null;
+            for (HodoscopeChannel c : this) {
+                if (c.getCrate() == crate && c.getSlot() == slot && c.getChannel() == channel) {
+                    break;
+                }
+            }
+            return foundIt;
+        }
     }
     
     @Field(names = {"channel_id"})
@@ -77,6 +88,16 @@ public final class HodoscopeChannel extends BaseConditionsObject {
         return this.getFieldValue("name");
     }
     
+    @Field(names = {"crate"})
+    public Integer getCrate() {
+        return this.getFieldValue("crate");
+    }
+    
+    @Field(names = {"slot"})
+    public Integer getSlot() {
+        return this.getFieldValue("slot");
+    }
+        
     /**
      * Implementation of equals.
      *
@@ -95,11 +116,14 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             return true;
         }
         final HodoscopeChannel c = (HodoscopeChannel) o;
+        // FIXME: This is overkill!
         return c.getLayer() == this.getLayer() &&
                 c.getX() == this.getX() &&
                 c.getY() == this.getY() &&
                 c.getTop() == this.getTop() &&
-                c.getChannel() == this.getChannel() &
-                c.getHole() == this.getHole();                                
+                c.getChannel() == this.getChannel() &&
+                c.getHole() == this.getHole() &&
+                c.getCrate() == this.getCrate() &&
+                c.getSlot() == this.getSlot();                                
     }
 }
