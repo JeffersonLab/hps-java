@@ -35,6 +35,18 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             }
             return foundIt;
         }
+
+        // TODO: Implement a fast lookup method using bit-packed DAQ ID similar to EcalChannel.
+        public HodoscopeChannel findChannel(int crate, int slot, int channel) {
+            HodoscopeChannel foundIt = null;
+            for (HodoscopeChannel c : this) {
+                if (c.getCrate() == crate && c.getSlot() == slot && c.getChannel() == channel) {
+                    foundIt = c;
+                    break;
+                }
+            }
+            return foundIt;
+        }
     }
     
     @Field(names = {"channel_id"})
