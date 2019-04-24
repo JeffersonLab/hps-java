@@ -50,7 +50,7 @@ public class HodoHitWriter implements HitWriter {
 
     @Override
     public void writeData(EventHeader event, EventBuilder builder) {
-
+        System.out.println("Kuku");
     }
     
     @Override

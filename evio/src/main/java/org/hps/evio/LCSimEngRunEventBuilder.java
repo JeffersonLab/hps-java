@@ -137,6 +137,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     @Override
     public EventHeader makeLCSimEvent(final EvioEvent evioEvent) {
 
+        
         LOGGER.finest("creating LCSim event from EVIO event " + evioEvent.getEventNumber());
 
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
@@ -162,6 +163,17 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             LOGGER.log(Level.SEVERE, "Error making ECal hits.", e);
         }
 
+        // Make RawHodoscopeHit collection, combining top and bottom section
+        // of Hodo into one list.
+        try {
+            System.out.println("Kuku HodoReader");
+            hodoReader.makeHits(evioEvent, lcsimEvent);
+        } catch (final Exception e) {
+            LOGGER.log(Level.SEVERE, "Error making Hodo hits.", e);
+        }
+
+      
+        
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);

@@ -41,6 +41,10 @@ public final class EventConstants {
     
     // The tag for ECal window data.
     public static final int ECAL_WINDOW_BANK_TAG = 0xe101;
+
+    // The tag for FADC Mode1 data.
+    // This is more generic name, will be good if later, ECal also will use this name instead of the "ECAL_WINDOW_BANK_TAG"
+    public static final int FADC_MODE1_BANK_TAG = 0xe101; 
     
     // The tag for ECal pulse data.
     public static final int ECAL_PULSE_BANK_TAG = 0xe10F; 

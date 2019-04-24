@@ -39,6 +39,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     public LCSimTestRunEventBuilder() {
         ecalReader = new EcalEvioReader(0x1, 0x2);
+        hodoReader = new HodoEvioReader(0x1, 0x2);   // Rafo: Have to understand what are 0x1 and 0x2
         svtReader = new TestRunSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
@@ -99,6 +100,16 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making ECal hits", e);
         }
 
+        
+//        // Make RawHodoscopeHit collection, combining top and bottom section of Hodo into one list.
+//        try {
+//            System.out.println("Kuku");
+//            hodoReader.makeHits(evioEvent, lcsimEvent);
+//        } catch (Exception e) {
+//            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making Hodo hits", e);
+//        }
+        
+        
         // Make SVT RawTrackerHits
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
@@ -191,5 +202,6 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     @Override
     public void conditionsChanged(ConditionsEvent conditionsEvent) {
         ecalReader.initialize();
+        hodoReader.initialize();
     }
 }

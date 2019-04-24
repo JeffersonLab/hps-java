@@ -12,28 +12,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-//import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 //import org.hps.conditions.ecal.EcalChannel;
 //import org.hps.conditions.ecal.EcalChannel.DaqId;
 //import org.hps.conditions.ecal.EcalChannel.GeometryId;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
-//import org.hps.recon.ecal.HitExtraData;
-//import org.hps.recon.ecal.HitExtraData.Mode7Data;
-//import org.jlab.coda.jevio.BaseStructure;
-//import org.jlab.coda.jevio.BaseStructureHeader;
+import org.hps.recon.ecal.HitExtraData;
+import org.hps.recon.ecal.HitExtraData.Mode7Data;
+import org.jlab.coda.jevio.BaseStructure;
+import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
-//import org.jlab.coda.jevio.EvioException;
+import org.jlab.coda.jevio.EvioException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
-//import org.lcsim.event.LCRelation;
+import org.lcsim.event.LCRelation;
 //import org.lcsim.event.RawCalorimeterHit;
-//import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 //import org.lcsim.event.base.BaseLCRelation;
-//import org.lcsim.event.base.BaseRawCalorimeterHit;
+import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 //import org.lcsim.lcio.LCIOConstants;
@@ -45,6 +45,9 @@ import org.lcsim.geometry.Subdetector;
  */
 public class HodoEvioReader extends EvioReader {
 
+    private int bankTag = 0;
+    private Class hitClass = BaseRawCalorimeterHit.class;    
+    
     //private static HodoConditions hodoConditions = null;
     private static EcalConditions hodoConditions = null;           // <<=============== This should be Hodo Conditions
     private static IIdentifierHelper helper = null;
@@ -56,6 +59,13 @@ public class HodoEvioReader extends EvioReader {
 
     private static final String genericHitCollectionName = "FADCGenericHits";
     private List<FADCGenericHit> genericHits;
+    
+    private static final String extraDataRelationsName = "HodoReadoutExtraDataRelations";
+    private List<LCRelation> extraDataRelations;
+
+    private static final String extraDataCollectionName = "HodoReadoutExtraData";
+    private List<HitExtraData> extraDataList;
+    
 
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
@@ -80,13 +90,112 @@ public class HodoEvioReader extends EvioReader {
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
-        return true; // Temporrary, just for not givin syntax error
+        System.out.println("Kuku: MakeHits of the HodoReader");
+        
+        boolean foundHits = false;
+        List<Object> hits = new ArrayList<Object>();
+        genericHits = new ArrayList<FADCGenericHit>();
+        extraDataList = new ArrayList<HitExtraData>();
+        extraDataRelations = new ArrayList<LCRelation>();
+        int flags = 0;
+        for (BaseStructure bank : event.getChildrenList()) {
+            BaseStructureHeader header = bank.getHeader();
+            int crateBankTag = header.getTag();
+            int crate = 0;
+            if (crateBankTag == topBankTag) {
+                crate = 1;
+            } else if (crateBankTag == botBankTag) {
+                crate = 2;
+            }
+            if (crateBankTag == topBankTag || crateBankTag == botBankTag) {
+                foundHits = true;
+                if (bank.getChildCount() > 0) {
+                    if (debug) {                        
+                        System.out.println("Hodo bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
+                    }
+                    try {
+                        for (BaseStructure slotBank : bank.getChildrenList()) {
+//                            if (isTriggerBank(slotBank.getHeader().getTag(), lcsimEvent.getRunNumber()) != 0) {
+//                                if (debug) {
+//                                    int[] data = slotBank.getIntData();
+//                                    for (int i = 0; i < data.length; i++) {
+//                                        System.out.format("0x%x\n", data[i]);
+//                                    }
+//                                }
+//                                continue;
+//                            }
+                            if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
+                                for (CompositeData cdata : slotBank.getCompositeData()) {
+//                            CompositeData cdata = slotBank.getCompositeData();
+                                    if (slotBank.getHeader().getTag() != bankTag) {
+                                        bankTag = slotBank.getHeader().getTag();
+                                        LOGGER.info(String.format("Hodo format tag: 0x%x\n", bankTag));
+                                    }
+                                    switch (slotBank.getHeader().getTag()) {
+                                        case EventConstants.FADC_MODE1_BANK_TAG:
+                                            hits.addAll(makeWindowHits(cdata, crate));
+                                            hitClass = RawTrackerHit.class;
+                                            flags = 0;
+                                            break;
+                                        /*case EventConstants.ECAL_PULSE_BANK_TAG:
+                                            hits.addAll(makePulseHits(cdata, crate));
+                                            hitClass = RawTrackerHit.class;
+                                            flags = 0;
+                                            break;
+                                        case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
+                                            hits.addAll(makeIntegralHitsMode3(cdata, crate));
+                                            hitClass = RawCalorimeterHit.class;
+                                            flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
+                                            break;
+                                        case EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG:
+                                            hits.addAll(makeIntegralHitsMode7(cdata, crate));
+                                            hitClass = RawCalorimeterHit.class;
+                                            flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
+                                            break;*/
+                                        default:
+                                            throw new RuntimeException("Unsupported Hodo format - bank tag " + slotBank.getHeader().getTag());
+                                    }
+                                }
+                            }
+                        }
+                    } catch (EvioException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+//        String readoutName = ;
+        lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
+        lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
+        if (!extraDataList.isEmpty()) {
+            lcsimEvent.put(extraDataCollectionName, extraDataList, Mode7Data.class, 0);
+            lcsimEvent.put(extraDataRelationsName, extraDataRelations, LCRelation.class, 0);
+        }
+//        for (Object hit : hits) {
+//            System.out.println(((RawTrackerHit) hit).getIDDecoder().getIDDescription().toString());
+//        }
+
+        return foundHits;
+        
+        
+        
+        
+  //      return true; // Temporrary, just for not givin syntax error
     }
 
     private BaseRawTrackerHit makeHodoRawHit(int time, long id, CompositeData cdata, int nSamples) {
+        
+        
+//        System.out.println("time = " + time );
+//        System.out.println("id = " + id );
+//        System.out.println("cdata.getStrings() = " +  cdata.getStrings());
+//        System.out.println("nSamples = " + nSamples );
+//        System.out.println("Short is " + cdata.getShort());
+        
         short[] adcValues = new short[nSamples];
         for (int i = 0; i < nSamples; i++) {
             adcValues[i] = cdata.getShort();
+            //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
         return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
                 time,
@@ -116,28 +225,39 @@ public class HodoEvioReader extends EvioReader {
 //                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
 //            }
 //        }
+        
+
         while (cdata.index() + 1 < cdata.getItems().size()) {
             short slot = cdata.getByte();
             int trigger = cdata.getInt();
             long timestamp = cdata.getLong();
             int nchannels = cdata.getNValue();
+
+//            System.out.println("slot = " + slot);
+//            System.out.println("trigger = " + trigger);
+//            System.out.println("timestamp = " + timestamp);
+//            System.out.println("nchannels = " + nchannels);
+//            
             if (debug) {
                 System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
             }
             for (int j = 0; j < nchannels; j++) {
                 short channel = cdata.getByte();
                 int nSamples = cdata.getNValue();
+
                 if (debug) {
                     System.out.println("  channel=" + channel + "; nSamples=" + nSamples);
                 }
 
                 Long id = daqToGeometryId(crate, slot, channel);
 //                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
+                
 
                 if (debug) {
                     System.out.println("The long id is: " + id);
                 }
 
+                //System.out.println("id = " + id);
                 if (id == null) {
                     FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_RAW_MODE, crate, slot, channel, cdata, nSamples);
                     processUnrecognizedChannel(hit);
@@ -163,7 +283,7 @@ public class HodoEvioReader extends EvioReader {
 //        Long id = geometryId.encode();
         // A temporaty code to analyze Hodo EEL Data, until the conditions DB will be fixed
         int tmp = (slot - 3) * 16 + channel;
-        long id = tmp;
+        long id = tmp + 1;
 
         return id;
     }
@@ -187,4 +307,16 @@ public class HodoEvioReader extends EvioReader {
         }
     }
 
+    
+    void initialize() {
+        
+        subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
+
+        // ECAL combined conditions object.
+        //ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+
+        helper = subDetector.getDetectorElement().getIdentifierHelper();
+    }
+    
+    
 }
