@@ -443,7 +443,8 @@ public class SVTTimingTupleDriver extends MCTupleMaker {
             }
 
             if (event.hasCollection(TriggerTime.class, "TriggerTime")) {
-                System.out.println("Getting TriggerTime Object");
+                if (debug)
+                    System.out.println("Getting TriggerTime Object");
                 List<TriggerTime> jitterList = event.get(TriggerTime.class, "TriggerTime");
                 if (debug)
                     System.out.println("TriggerTime List Size = " + jitterList.size());

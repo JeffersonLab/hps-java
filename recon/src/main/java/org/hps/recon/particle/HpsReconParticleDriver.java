@@ -142,7 +142,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         TARGET_CONSTRAINED
     }
     // #dof for fit for each Constraint
-    private static final int[] DOF = {7, 5, 4};
+    private static final int[] DOF = {1, 3, 4};
 
     private boolean _patchVertexTrackParameters = false;
     private boolean _storeCovTrkMomList = false;
@@ -291,6 +291,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
     public void setUseInternalVertexXYPositions(boolean b) {
         useInternalVertexXYPositions = b;
+    }
+    
+    public void setStoreCovTrkMomList(boolean b){
+        _storeCovTrkMomList=b;
     }
 
     /**

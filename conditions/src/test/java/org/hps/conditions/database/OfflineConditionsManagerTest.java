@@ -15,7 +15,7 @@ public class OfflineConditionsManagerTest extends TestCase {
     public void testOfflineDatabaseConditionsManager() throws Exception {
        
         System.setProperty("org.hps.conditions.url", "jdbc:sqlite:hps_conditions.db"); 
-        DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.openConnection();
 
         manager.setDetector("HPS-EngRun2015-Nominal-v2", 5772);

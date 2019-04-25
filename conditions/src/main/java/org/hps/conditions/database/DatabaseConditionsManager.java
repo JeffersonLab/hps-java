@@ -71,6 +71,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private static Logger LOG = Logger.getLogger(DatabaseConditionsManager.class.getPackage().getName());
 
+    private static DatabaseConditionsManager INSTANCE = null;
+
     /**
      * The max value for a run to be considered Test Run.
      */
@@ -188,7 +190,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * @return the static instance of the manager
      */
     public static DatabaseConditionsManager getInstance() {
-        return DatabaseConditionsManager.class.cast(ConditionsManager.defaultInstance());
+        if (INSTANCE == null) {
+            INSTANCE = new DatabaseConditionsManager();
+        }
+        return INSTANCE;
     }
 
     /**
@@ -263,7 +268,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Class constructor. Calling this will automatically register this manager as
      * the global default.
      */
-    public DatabaseConditionsManager() {
+    private DatabaseConditionsManager() {
 
         // Register detector conditions converter.
         this.registerConditionsConverter(new DetectorConditionsConverter());
@@ -624,6 +629,14 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public boolean isInitialized() {
         return this.isInitialized;
+    }
+
+
+    /**
+     * Reset the static instance..
+     */
+    public static void reset() {
+        INSTANCE = new DatabaseConditionsManager();
     }
 
     /**

@@ -23,7 +23,7 @@ public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup
     private DatabaseConditionsManager manager = null;
     
     public DatabaseConditionsManagerSetup() {        
-        manager = new DatabaseConditionsManager();
+        manager = DatabaseConditionsManager.getInstance();
     }
     
     /**

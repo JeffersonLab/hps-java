@@ -51,7 +51,7 @@ public class TrackExtrapTest extends TestCase {
         String aidaOutput = "target/test-output/TrackExtrapPlots_" + fileName.replaceAll("slcio", "aida");
         LCSimLoop loop2 = new LCSimLoop();
         
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
         loop2.setLCIORecordSource(inputFile);
