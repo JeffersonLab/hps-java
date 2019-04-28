@@ -757,7 +757,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
             for(SimCalorimeterHit simHit : triggerTruthHits) {
                 for(int i = 0; i < simHit.getMCParticleCount(); i++) {
-                    // TODO: Full particle tree test.
                     MCParticle rootParticle = getRootParticle(simHit.getMCParticle(i));
                     truthParticles.addAll(getParticleTreeAsSet(rootParticle));
                 }

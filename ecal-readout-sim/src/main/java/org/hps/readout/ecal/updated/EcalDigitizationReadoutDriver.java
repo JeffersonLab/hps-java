@@ -19,7 +19,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPSEcal3> {
-    /** Store the conditions for this subdetector. */
+    /** Stores the conditions for this subdetector. */
     private EcalConditions ecalConditions = null;
     
     public EcalDigitizationReadoutDriver() {
@@ -39,7 +39,11 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
     
     @Override
     public void detectorChanged(Detector detector) {
+        // Get a copy of the calorimeter conditions for the detector.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        
+        // Run the superclass method.
+        super.detectorChanged(detector);
     }
     
     @Override
