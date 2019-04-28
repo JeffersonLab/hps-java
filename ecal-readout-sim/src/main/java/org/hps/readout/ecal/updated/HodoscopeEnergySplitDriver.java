@@ -30,8 +30,11 @@ import org.lcsim.geometry.Detector;
  * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class HodoscopeEnergySplitDriver extends ReadoutDriver {
+    /** Object for accessing the geometric data of the hodoscope detector model. */
     private HodoscopeDetectorElement hodoscopeDetectorElement;
+    /** The name of the SLiC truth hit collection. */
     private String truthHitCollectionName = "HodoscopeHits";
+    /** Name of the output preprocessed hit collection. */
     private String outputHitCollectionName = "HodoscopePreprocessedHits";
     
     @Override
@@ -124,6 +127,24 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
         ReadoutDataManager.addData(outputHitCollectionName, outputHits, SimCalorimeterHit.class);
     }
     
+    /**
+     * Sets the name of the hodoscope output hit collection.
+     * @param collection - The name of the collection containing the
+     * preprocessed hodoscope hits.
+     */
+    public void setOutputHitCollectionName(String collection) {
+        outputHitCollectionName = collection;
+    }
+    
+    /**
+     * Sets the name of the hodoscope hits collection.
+     * @param collection - The name of the collection containing the
+     * hodoscope hits.
+     */
+    public void setTruthHitCollectionName(String collection) {
+        truthHitCollectionName = collection;
+    }
+    
     @Override
     public void startOfData() {
         // Define the LCSim collection parameters for this driver's
@@ -146,15 +167,6 @@ public class HodoscopeEnergySplitDriver extends ReadoutDriver {
         return 0;
     }
     
-    /**
-     * Sets the name of the hodoscope hits collection.
-     * @param collection - The name of the collection containing the
-     * hodoscope hits.
-     */
-    public void setTruthHitCollectionName(String collection) {
-        truthHitCollectionName = collection;
-    }
-             
     /**
      * Creates a {@link org.lcsim.event.SimCalorimeterHit
      * SimCalorimeterHit} object from an input {@link
