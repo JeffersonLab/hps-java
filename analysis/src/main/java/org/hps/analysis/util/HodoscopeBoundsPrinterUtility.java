@@ -8,40 +8,48 @@ import java.util.Map;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
-import org.hps.util.BashParameter;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.geometry.Detector;
 
+/**
+ * <code>HodoscopeBoundsPrinterUtility</code> is a utility method
+ * that prints the positions, bounds, and miscellaneous parameters
+ * for a given hodoscope detector to the terminal. It is intended to
+ * allow for easy checking of the positioning of hodoscope elements
+ * after detector updates to ensure that the programmatic detector
+ * matches what is expected<br/><br/>
+ * It may be run using the command: <code>java -cp $HPS_JAVA
+ * org.hps.analysis.hodoscope.HodoscopeBoundsPrinterUtility -R
+ * $RUN_NUMBER -d $HODOSCOPE_DETECTOR_NAME</code>
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class HodoscopeBoundsPrinterUtility {
     public static final void main(String args[]) throws ConditionsNotFoundException {
-        for(int i = 0; i < args.length; i++) {
-            if(args[i].compareTo("-h") == 0 || args[i].compareTo("--help") == 0) {
-                System.out.println(BashParameter.format("java -cp $HPS_JAVA org.hps.analysis.hodoscope.HodoscopeBoundsPrinterUtility", BashParameter.TEXT_LIGHT_BLUE));
-                System.out.println(getFormattedArgumentText('d', "Detector name             ", true));
-                System.out.println(getFormattedArgumentText('R', "Run number                ", true));
-                System.out.println(getFormattedArgumentText('h', "Display help text         ", false));
-                System.exit(0);
-            }
-        }
+        // Define the command line arguments.
+        UtilityArgumentParser argsParser = new UtilityArgumentParser("java -cp $HPS_JAVA org.hps.analysis.hodoscope.HodoscopeBoundsPrinterUtility");
+        argsParser.addSingleValueArgument("-d", "--detector", "Detector name", true);
+        argsParser.addSingleValueArgument("-R", "--run", "Run number", true);
+        argsParser.addFlagArgument("-h", "--help", "Display usage information", false);
         
         // Parse the command line arguments.
-        String detectorName = null;
-        int runNumber = Integer.MIN_VALUE;
-        for(int i = 0; i < args.length; i++) {
-            if(args[i].compareTo("-d") == 0) {
-                i++;
-                if(args.length > i) { detectorName = args[i]; } else { throwArgumentError(); }
-            } else if(args[i].compareTo("-R") == 0) {
-                i++;
-                if(args.length > i) { runNumber = Integer.parseInt(args[i]); } else { throwArgumentError(); }
-            }
+        argsParser.parseArguments(args);
+        
+        // If the "display usage information" argument is present,
+        // then display the usage information and exit.
+        if(argsParser.isDefined("-h")) {
+            System.out.println(argsParser.getHelpText());
+            System.exit(0);
         }
         
-        // Validate the mandatory options are defined.
-        if(detectorName == null || runNumber == Integer.MIN_VALUE) {
-            throw new RuntimeException("Mandatory options not set. See help text.");
-        }
+        // Verify that the required arguments are defined. If not,
+        // throw an exception.
+        argsParser.verifyRequirements();
+        
+        // Get the required arguments.
+        String detectorName = ((SingleValueArgument) argsParser.getArgument("-d")).getValue();
+        int runNumber = Integer.parseInt(((SingleValueArgument) argsParser.getArgument("-R")).getValue());
         
         // Load the conditions database.
         DatabaseConditionsManager conditions = DatabaseConditionsManager.getInstance();
@@ -63,29 +71,13 @@ public class HodoscopeBoundsPrinterUtility {
             hodoscopeBoundsMap.put(posvar, getHodoscopeBounds(id, hodoscopeDetectorElement));
         }
         
+        // Sort the bounds data and print it to the terminal.
         List<String> boundsData = new ArrayList<String>(hodoscopeBoundsMap.size());
         boundsData.addAll(hodoscopeBoundsMap.values());
         Collections.sort(boundsData);
         for(String entry : boundsData) {
             System.out.println(entry);
         }
-    }
-    
-    private static final void throwArgumentError() {
-        throw new RuntimeException("Error: invalid commandline arguments.");
-    }
-    
-    private static final String getFormattedArgumentText(char argument, String description, boolean mandatory) {
-        StringBuffer outputBuffer = new StringBuffer("\t\t");
-        outputBuffer.append(BashParameter.format("-" + Character.toString(argument), BashParameter.TEXT_YELLOW, BashParameter.PROPERTY_BOLD));
-        outputBuffer.append(' ');
-        outputBuffer.append(description);
-        if(mandatory) {
-            outputBuffer.append(BashParameter.format("[ MANDATORY ]", BashParameter.TEXT_RED, BashParameter.PROPERTY_BOLD));
-        } else {
-            outputBuffer.append(BashParameter.format("[ OPTIONAL  ]", BashParameter.TEXT_LIGHT_GREY, BashParameter.PROPERTY_DIM));
-        }
-        return outputBuffer.toString();
     }
     
     /**
