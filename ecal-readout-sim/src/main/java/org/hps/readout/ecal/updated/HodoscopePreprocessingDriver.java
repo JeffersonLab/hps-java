@@ -29,7 +29,7 @@ import org.lcsim.geometry.Detector;
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class HodoscopeEnergySplitDriver extends ReadoutDriver {
+public class HodoscopePreprocessingDriver extends ReadoutDriver {
     /** Object for accessing the geometric data of the hodoscope detector model. */
     private HodoscopeDetectorElement hodoscopeDetectorElement;
     /** The name of the SLiC truth hit collection. */
