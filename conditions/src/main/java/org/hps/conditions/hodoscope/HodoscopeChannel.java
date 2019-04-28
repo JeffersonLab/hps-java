@@ -2,10 +2,17 @@ package org.hps.conditions.hodoscope;
 
 import java.util.Comparator;
 
+import org.hps.conditions.api.AbstractIdentifier;
+
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
+
+import org.lcsim.detector.identifier.ExpandedIdentifier;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+
 
 @Table(names = {"hodo_channels"})
 public final class HodoscopeChannel extends BaseConditionsObject {
@@ -127,4 +134,102 @@ public final class HodoscopeChannel extends BaseConditionsObject {
                 c.getCrate() == this.getCrate() &&
                 c.getSlot() == this.getSlot();                                
     }
+    
+    
+        /**
+     * The <code>GeometryId</code> contains the x and y indices of the crystal in the LCSIM-based geometry
+     * representation.
+     */
+    public static final class GeometryId extends AbstractIdentifier {
+
+        /**
+         * The helper for using identifiers.
+         */
+        private final IIdentifierHelper helper;
+
+        /**
+         * The subdetector system ID.
+         */
+        private int system = -1;
+
+        /**
+         * The Tiles's X index.
+         */
+        private int x = Integer.MAX_VALUE;
+
+        /**
+         * The Tile's Y index.
+         */
+        private int y = Integer.MAX_VALUE;
+
+        /**
+         * The Layer.
+         */
+        private int layer = Integer.MAX_VALUE;
+
+        /**
+         * The Hole.
+         */
+        private int hole = Integer.MAX_VALUE;
+        
+        
+        
+        /**
+         * Create a geometry ID.
+         *
+         * @param helper the ID helper
+         * @param values the list of values (order is system, x, y)
+         */
+        public GeometryId(final IIdentifierHelper helper, final int[] values) {
+            this.helper = helper;
+            this.system = values[0];
+            this.x = values[1];
+            this.y = values[2];
+            this.layer = values[3];
+            this.hole = values[4];
+        }
+
+        /**
+         * Encode this ID as a long using the ID helper.
+         *
+         * @return The encoded long value.
+         */
+        @Override
+        public long encode() {
+            final IExpandedIdentifier expId = new ExpandedIdentifier(this.helper.getIdentifierDictionary()
+                    .getNumberOfFields());
+            
+            System.out.println("helper.toString " + this.helper.toString());
+            System.out.println("==== Kuku1 ==== " + this.helper.hasField("system"));
+            expId.setValue(this.helper.getFieldIndex("system"), this.system);
+            System.out.println("==== Kuku2 ==== " + this.helper.hasField("ix"));
+            expId.setValue(this.helper.getFieldIndex("ix"), this.x);
+            System.out.println("==== Kuku3 ==== " + this.helper.hasField("iy"));
+            expId.setValue(this.helper.getFieldIndex("iy"), this.y);
+            System.out.println("==== Kuku4 ==== " + this.helper.hasField("layer"));
+            expId.setValue(this.helper.getFieldIndex("layer"), this.layer);
+            System.out.println("==== Kuku5 ==== " + this.helper.hasField("hole"));
+//            //this.helper.hasField("hole");
+//            expId.setValue(this.helper.getFieldIndex("hole"), this.hole);
+//            System.out.println("==== Kuku6 ==== " + this.helper.hasField("hole"));            
+//            
+//            System.out.println("Kuku in the method encode");
+            
+            
+            
+            return this.helper.pack(expId).getValue();
+        }
+
+        /**
+         * Return <code>true</code> if ID is valid
+         *
+         * @return <code>true</code> if ID is valid
+         */
+        @Override
+        public boolean isValid() {
+            return this.system != -1 && this.x != Integer.MAX_VALUE && this.y != Integer.MAX_VALUE;
+        }
+    }
+
+    
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.trigger.TiTimeOffset;
+//import org.hps.conditions.trigger.TiTimeOffset;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
@@ -105,8 +105,13 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         
         // Set TI time offset from run database.
         ConditionsManager mgr = conditionsEvent.getConditionsManager();
-        TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
-        currentTiTimeOffset = t.getValue();
+
+        // ====== Rafo: following two lines will be commented for testinpurposes
+        // ====== In the conditions we dont have these for hodotest runs
+//        TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
+//        currentTiTimeOffset = t.getValue();
+
+        currentTiTimeOffset = Long.valueOf(0);
     }
     
     /**

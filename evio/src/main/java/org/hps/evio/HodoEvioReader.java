@@ -14,9 +14,11 @@ import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 //import org.hps.conditions.ecal.EcalChannel;
+import org.hps.conditions.hodoscope.HodoscopeChannel;
+import org.hps.conditions.hodoscope.HodoscopeChannel.GeometryId;
+import org.hps.conditions.hodoscope.HodoscopeConditions;
+//import org.hps.conditions.hodoscope.HodoscopeChannel.DaqId;
 //import org.hps.conditions.ecal.EcalChannel.DaqId;
-//import org.hps.conditions.ecal.EcalChannel.GeometryId;
-import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.FADCGenericHit;
 import org.hps.recon.ecal.HitExtraData;
 import org.hps.recon.ecal.HitExtraData.Mode7Data;
@@ -49,11 +51,11 @@ public class HodoEvioReader extends EvioReader {
     private Class hitClass = BaseRawCalorimeterHit.class;    
     
     //private static HodoConditions hodoConditions = null;
-    private static EcalConditions hodoConditions = null;           // <<=============== This should be Hodo Conditions
+    private static HodoscopeConditions hodoConditions = null;           // <<=============== This should be Hodo Conditions
     private static IIdentifierHelper helper = null;
 
     private static final String readoutName = "HodoHits";
-    private static final String subdetectorName = "Hodo";
+    private static final String subdetectorName = "Hodoscope";
 
     private Subdetector subDetector;
 
@@ -197,6 +199,17 @@ public class HodoEvioReader extends EvioReader {
             adcValues[i] = cdata.getShort();
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
+        
+        //System.out.println("Idetifier(id) " + new Identifier(id));
+        System.out.println("Subdetector element name " + subDetector.getDetectorElement().getName());
+        
+        System.out.println("Has Children " + subDetector.getDetectorElement().hasChildren());
+        System.out.println("Size of Children " + subDetector.getDetectorElement().getChildren().size());
+        System.out.println("Children to String " + subDetector.getDetectorElement().getChildren().toString() );
+        
+        System.out.println("Subdetector.etc  " + subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
+        
+        
         return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
                 time,
                 id,
@@ -272,19 +285,33 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-//        DaqId daqId = new DaqId(new int[]{crate, slot, channel});
-//        EcalChannel ecalChannel = hodoConditions.getChannelCollection().findChannel(daqId);
-//        if (ecalChannel == null) {
-//            return null;
-//        }
-//        int ix = ecalChannel.getX();
-//        int iy = ecalChannel.getY();
-//        GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy});
-//        Long id = geometryId.encode();
-        // A temporaty code to analyze Hodo EEL Data, until the conditions DB will be fixed
-        int tmp = (slot - 3) * 16 + channel;
-        long id = tmp + 1;
+        //DaqId daqId = new DaqId(new int[]{crate, slot, channel});
+        //System.out.println("crate = " + crate + "    slot = " + slot + "channel = " + channel);
+        System.out.println("hodoConditions.getChannels().toString() " + hodoConditions.getChannels().size());
+        System.out.println("hodoConditions.toString() = " + hodoConditions.toString());
+        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
+        System.out.println("hodoChannel = " + hodoChannel.toString());
+                
+        //HodoscopeChannel hodoChannel = hodoConditions.getChannelCollection().findChannel(daqId);
+        if (hodoChannel == null) {
+            return null;
+        }
+        int ix = hodoChannel.getX();
+        int iy = hodoChannel.getY();
+        int ilayer = hodoChannel.getLayer();
+        int ihole = hodoChannel.getHole();
+        
+        System.out.println("ix = " + ix + "       iy = " + iy + "     systemID = " + subDetector.getSystemID());
+        
+        GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
+        Long id = geometryId.encode();
 
+// A temporaty code to analyze Hodo EEL Data, until the conditions DB will be fixed
+//        int tmp = (slot - 3) * 16 + channel;
+//        long id = tmp;
+//
+        System.out.println("id = " + id);
+    
         return id;
     }
 
@@ -312,9 +339,8 @@ public class HodoEvioReader extends EvioReader {
         
         subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
 
-        // ECAL combined conditions object.
-        //ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
-
+        // Hodo combined conditions object.
+        hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
         helper = subDetector.getDetectorElement().getIdentifierHelper();
     }
     

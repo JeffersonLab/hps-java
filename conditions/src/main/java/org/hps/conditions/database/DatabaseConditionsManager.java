@@ -26,6 +26,7 @@ import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsConverter;
 import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
+import org.hps.conditions.hodoscope.HodoscopeConditions;
 import org.hps.conditions.hodoscope.HodoscopeConditionsConverter;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsConverter;
@@ -597,6 +598,18 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return this.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
     }
 
+    
+    /**
+     * Get the combined Hodo conditions for this run.
+     *
+     * @return the combined Hodo conditions
+     */
+    public HodoscopeConditions getHodoConditions() {
+        return this.getCachedConditions(HodoscopeConditions.class, "hodo_conditions").getCachedData();
+    }
+
+    
+    
     /**
      * Get the combined SVT conditions for this run.
      *
