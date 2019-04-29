@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-HodoscopeTest-v1" />
-    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java/detector-data/detectors/HPS-HodoscopeTest-v1/compact.xml" checksum="1478527983" />
+    <generator name="lcsim" version="1.0" file="/nfs/slac/g/hps/jeremym/dev/hps-java/detector-data/detectors/HPS-HodoscopeTest-v1/compact.xml" checksum="1667308298" />
     <author name="NONE" />
     <comment>HPS detector for 2019 run with fieldmap, Tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV. Includes L0 and Hodoscope.</comment>
   </header>
@@ -34,12 +34,13 @@
       <idfield signed="true" label="side" length="2" start="32" />
       <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
-    <idspec name="HodoscopeHits" length="20">
+    <idspec name="HodoscopeHits" length="23">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
       <idfield signed="false" label="ix" length="4" start="13" />
       <idfield signed="true" label="iy" length="3" start="17" />
+      <idfield signed="true" label="hole" length="3" start="20" />
     </idspec>
     <idspec name="EcalHits" length="22">
       <idfield signed="false" label="system" length="6" start="0" />
