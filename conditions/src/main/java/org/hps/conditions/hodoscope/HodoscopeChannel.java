@@ -199,23 +199,11 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             final IExpandedIdentifier expId = new ExpandedIdentifier(this.helper.getIdentifierDictionary()
                     .getNumberOfFields());
             
-            System.out.println("helper.toString " + this.helper.toString());
-            System.out.println("==== Kuku1 ==== " + this.helper.hasField("system"));
             expId.setValue(this.helper.getFieldIndex("system"), this.system);
-            System.out.println("==== Kuku2 ==== " + this.helper.hasField("ix"));
             expId.setValue(this.helper.getFieldIndex("ix"), this.x);
-            System.out.println("==== Kuku3 ==== " + this.helper.hasField("iy"));
             expId.setValue(this.helper.getFieldIndex("iy"), this.y);
-            System.out.println("==== Kuku4 ==== " + this.helper.hasField("layer"));
             expId.setValue(this.helper.getFieldIndex("layer"), this.layer);
-            System.out.println("==== Kuku5 ==== " + this.helper.hasField("hole"));
-//            //this.helper.hasField("hole");
-//            expId.setValue(this.helper.getFieldIndex("hole"), this.hole);
-//            System.out.println("==== Kuku6 ==== " + this.helper.hasField("hole"));            
-//            
-//            System.out.println("Kuku in the method encode");
-            
-            
+            expId.setValue(this.helper.getFieldIndex("hole"), this.hole);
             
             return this.helper.pack(expId).getValue();
         }

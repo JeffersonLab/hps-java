@@ -28,7 +28,7 @@ import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.Identifier;
+//import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 //import org.lcsim.event.RawCalorimeterHit;
@@ -92,8 +92,6 @@ public class HodoEvioReader extends EvioReader {
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
-        System.out.println("Kuku: MakeHits of the HodoReader");
-        
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
         genericHits = new ArrayList<FADCGenericHit>();
@@ -200,14 +198,25 @@ public class HodoEvioReader extends EvioReader {
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
         
-        //System.out.println("Idetifier(id) " + new Identifier(id));
-        System.out.println("Subdetector element name " + subDetector.getDetectorElement().getName());
+//        //System.out.println("Idetifier(id) " + new Identifier(id));
+//        System.out.println("Subdetector element name " + subDetector.getDetectorElement().getName());
+//        
+//        System.out.println("Has Children " + subDetector.getDetectorElement().hasChildren());
+//        System.out.println("Size of Children " + subDetector.getDetectorElement().getChildren().size());
+//        System.out.println("Children to String " + subDetector.getDetectorElement().getChildren().toString() );
         
-        System.out.println("Has Children " + subDetector.getDetectorElement().hasChildren());
-        System.out.println("Size of Children " + subDetector.getDetectorElement().getChildren().size());
-        System.out.println("Children to String " + subDetector.getDetectorElement().getChildren().toString() );
+        //System.out.println("Subdetector.etc  " + subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
         
-        System.out.println("Subdetector.etc  " + subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
+        
+        
+        // ==============================          Should be fixed            =====================
+        // == ubDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0) does not work for now
+//        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
+//                time,
+//                id,
+//                adcValues,
+//                new ArrayList<SimTrackerHit>(),
+//                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
         
         
         return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
@@ -215,7 +224,7 @@ public class HodoEvioReader extends EvioReader {
                 id,
                 adcValues,
                 new ArrayList<SimTrackerHit>(),
-                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
+                null);        
     }
 
     private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
@@ -287,10 +296,7 @@ public class HodoEvioReader extends EvioReader {
 
         //DaqId daqId = new DaqId(new int[]{crate, slot, channel});
         //System.out.println("crate = " + crate + "    slot = " + slot + "channel = " + channel);
-        System.out.println("hodoConditions.getChannels().toString() " + hodoConditions.getChannels().size());
-        System.out.println("hodoConditions.toString() = " + hodoConditions.toString());
         HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
-        System.out.println("hodoChannel = " + hodoChannel.toString());
                 
         //HodoscopeChannel hodoChannel = hodoConditions.getChannelCollection().findChannel(daqId);
         if (hodoChannel == null) {
@@ -300,17 +306,9 @@ public class HodoEvioReader extends EvioReader {
         int iy = hodoChannel.getY();
         int ilayer = hodoChannel.getLayer();
         int ihole = hodoChannel.getHole();
-        
-        System.out.println("ix = " + ix + "       iy = " + iy + "     systemID = " + subDetector.getSystemID());
-        
+                
         GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
         Long id = geometryId.encode();
-
-// A temporaty code to analyze Hodo EEL Data, until the conditions DB will be fixed
-//        int tmp = (slot - 3) * 16 + channel;
-//        long id = tmp;
-//
-        System.out.println("id = " + id);
     
         return id;
     }

@@ -171,7 +171,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make RawHodoscopeHit collection, combining top and bottom section
         // of Hodo into one list.
         try {
-            System.out.println("Kuku HodoReader");
             hodoReader.makeHits(evioEvent, lcsimEvent);
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error making Hodo hits.", e);
