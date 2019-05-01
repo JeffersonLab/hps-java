@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.hodoscope;
 
 import java.util.ArrayList;
 import java.util.Collection;

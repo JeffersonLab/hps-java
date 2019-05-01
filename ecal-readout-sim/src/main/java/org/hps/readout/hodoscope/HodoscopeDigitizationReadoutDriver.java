@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.hodoscope;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +14,7 @@ import org.hps.conditions.hodoscope.HodoscopeGain;
 import org.hps.conditions.hodoscope.HodoscopeGain.HodoscopeGainCollection;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
+import org.hps.readout.DigitizationReadoutDriver;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
 

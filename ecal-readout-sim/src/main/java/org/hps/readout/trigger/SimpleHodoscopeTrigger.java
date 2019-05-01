@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.trigger;
 
 import java.util.Collection;
 

@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout;
 
 import static org.hps.recon.ecal.EcalUtils.fallTime;
 import static org.hps.recon.ecal.EcalUtils.maxVolt;
@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.readout.ReadoutDataManager;
-import org.hps.readout.ReadoutDriver;
-import org.hps.readout.ReadoutTimestamp;
 import org.hps.readout.util.DoubleRingBuffer;
 import org.hps.readout.util.IntegerRingBuffer;
 import org.hps.readout.util.ObjectRingBuffer;
