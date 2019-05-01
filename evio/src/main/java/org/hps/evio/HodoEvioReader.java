@@ -30,24 +30,26 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
-//import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
-//import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.lcio.LCIOConstants;
 
 
 /**
  *
  * @author rafopar
+ * 
+ * This class is similar to the "ECalEvioReader", I just copied it and modified
+ * to in otder it to work for the hodoscope
  */
 public class HodoEvioReader extends EvioReader {
 
     private int bankTag = 0;
     private Class hitClass = BaseRawCalorimeterHit.class;    
     
-    //private static HodoConditions hodoConditions = null;
-    private static HodoscopeConditions hodoConditions = null;           // <<=============== This should be Hodo Conditions
+    private static HodoscopeConditions hodoConditions = null;
     private static IIdentifierHelper helper = null;
 
     private static final String readoutName = "HodoHits";
@@ -125,21 +127,21 @@ public class HodoEvioReader extends EvioReader {
                                             hitClass = RawTrackerHit.class;
                                             flags = 0;
                                             break;
-                                        /*case EventConstants.ECAL_PULSE_BANK_TAG:
+                                        case EventConstants.FADC_PULSE_BANK_TAG:
                                             hits.addAll(makePulseHits(cdata, crate));
                                             hitClass = RawTrackerHit.class;
                                             flags = 0;
                                             break;
-                                        case EventConstants.ECAL_PULSE_INTEGRAL_BANK_TAG:
+                                        case EventConstants.FADC_PULSE_INTEGRAL_BANK_TAG:
                                             hits.addAll(makeIntegralHitsMode3(cdata, crate));
                                             hitClass = RawCalorimeterHit.class;
                                             flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
                                             break;
-                                        case EventConstants.ECAL_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG:
+                                        case EventConstants.FADC_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG:
                                             hits.addAll(makeIntegralHitsMode7(cdata, crate));
                                             hitClass = RawCalorimeterHit.class;
                                             flags = (1 << LCIOConstants.RCHBIT_TIME); //store timestamp
-                                            break;*/
+                                            break;
                                         default:
                                             throw new RuntimeException("Unsupported Hodo format - bank tag " + slotBank.getHeader().getTag());
                                     }
@@ -355,6 +357,58 @@ public class HodoEvioReader extends EvioReader {
         return hits;
     }
     
+    
+    private List<RawCalorimeterHit> makeIntegralHitsMode7(CompositeData cdata, int crate) {
+        List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
+        if (debug) {
+            int n = cdata.getNValues().size();
+            for (int i = 0; i < n; i++) {
+                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
+            }
+            int ni = cdata.getItems().size();
+            for (int i = 0; i < ni; i++) {
+                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
+            }
+        }
+        while (cdata.index() + 1 < cdata.getItems().size()) { //the +1 is a hack because sometimes an extra byte gets read (padding)
+            short slot = cdata.getByte();
+            int trigger = cdata.getInt();
+            long timestamp = cdata.getLong();
+            int nchannels = cdata.getNValue();
+            if (debug) {
+                System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
+            }
+            for (int j = 0; j < nchannels; j++) {
+                short channel = cdata.getByte();
+                int npulses = cdata.getNValue();
+                if (debug) {
+                    System.out.println("  channel=" + channel + "; npulses=" + npulses);
+                }
+                Long id = daqToGeometryId(crate, slot, channel);
+
+                for (int k = 0; k < npulses; k++) {
+                    short pulseTime = cdata.getShort();
+                    int pulseIntegral = cdata.getInt();
+                    short amplLow = cdata.getShort();
+                    short amplHigh = cdata.getShort();
+                    if (debug) {
+                        System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral + "; amplLow=" + amplLow + "; amplHigh=" + amplHigh);
+                    }
+                    if (id == null) {
+                        int[] data = {pulseIntegral, pulseTime, amplLow, amplHigh};
+                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.HODO_PULSE_INTEGRAL_HIGHRESTDC_MODE, crate, slot, channel, data));
+                    } else {
+                        RawCalorimeterHit hit = new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime);
+                        hits.add(hit);
+                        Mode7Data extraData = new Mode7Data(amplLow, amplHigh);
+                        extraDataList.add(extraData);
+                        extraDataRelations.add(new BaseLCRelation(hit, extraData));
+                    }
+                }
+            }
+        }
+        return hits;
+    }
     
     
     private void processUnrecognizedChannel(FADCGenericHit hit) {
