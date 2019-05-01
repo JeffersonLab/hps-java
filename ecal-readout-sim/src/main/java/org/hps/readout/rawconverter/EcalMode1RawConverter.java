@@ -14,7 +14,7 @@ import org.lcsim.geometry.Detector;
 
 import hep.aida.IFitResult;
 
-public class EcalReconMode1RawConverter extends AbstractMode1RawConverter {
+public class EcalMode1RawConverter extends AbstractMode1RawConverter {
     /**
      * Stores the calibrations and conditions for the calorimeter
      * subdetector.
@@ -91,7 +91,7 @@ public class EcalReconMode1RawConverter extends AbstractMode1RawConverter {
     /**
      * Sets the pulse width as a fixed parameter of the specified
      * value. This also calls {@link
-     * org.hps.readout.rawconverter.EcalReconMode1RawConverter#setFixShapeParameter(boolean)
+     * org.hps.readout.rawconverter.EcalMode1RawConverter#setFixShapeParameter(boolean)
      * setFixShapeParameter(boolean)} to <code>true</code>.
      * @param width - The fixed-value width.
      */
