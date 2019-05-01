@@ -41,13 +41,6 @@ public abstract class ReadoutRawConverter {
     private int NSA = 100;
     
     /**
-     * The number of samples in the FADC readout window. Needed in order to properly pedestal-correct clipped pulses for
-     * Mode-3/7. Ignored for mode-1 input, since it already knows its number of samples. A non-positive number disables
-     * pulse-clipped pedestals and reverts to the old behavior which assumed integration range was constant.
-     */
-    private int windowSamples = -1;
-    
-    /**
      * Converts a Mode-3 digitized hit to a {@link
      * org.lcsim.event.CalorimeterHit CalorimeterHit} object with
      * calibrated energy and time values.
@@ -66,7 +59,7 @@ public abstract class ReadoutRawConverter {
         double time = hit.getTimeStamp() / 16.0;
         
         // Get the subdetector-appropriate pedestal.
-        double pedestal = getPulsePedestal(channelID, windowSamples, (int) time / nsPerSample);
+        double pedestal = getPulsePedestal(channelID, -1, (int) time / nsPerSample);
         
         // Convert the hit to an energy.
         double adcSum = hit.getAmplitude() - pedestal;
