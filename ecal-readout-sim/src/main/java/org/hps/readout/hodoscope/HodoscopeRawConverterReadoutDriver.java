@@ -1,7 +1,8 @@
 package org.hps.readout.hodoscope;
 
 import org.hps.readout.RawConverterReadoutDriver;
-import org.hps.readout.ReadoutRawConverter;
+import org.hps.readout.rawconverter.AbstractMode3RawConverter;
+import org.hps.readout.rawconverter.HodoscopeReadoutMode3RawConverter;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
 
@@ -19,7 +20,7 @@ public class HodoscopeRawConverterReadoutDriver extends RawConverterReadoutDrive
      * proper {@link org.lcsim.event.CalorimeterHit CalorimeterHit}
      * objects.
      */
-    private HodoscopeReadoutRawConverter converter = new HodoscopeReadoutRawConverter();
+    private HodoscopeReadoutMode3RawConverter converter = new HodoscopeReadoutMode3RawConverter();
     
     /**
      * Instantiates the driver with the correct default parameters.
@@ -29,7 +30,7 @@ public class HodoscopeRawConverterReadoutDriver extends RawConverterReadoutDrive
     }
     
     @Override
-    protected ReadoutRawConverter getConverter() {
+    protected AbstractMode3RawConverter getConverter() {
         return converter;
     }
     

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hps.readout.rawconverter.AbstractMode3RawConverter;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -14,8 +15,9 @@ import org.lcsim.lcio.LCIOConstants;
 /**
  * <code>RawConverterReadoutDriver</code> processes ADC hit data
  * objects and converts them to energy hit objects. It serves as an
- * interface to a {@link org.hps.readout.ReadoutRawConverter
- * ReadoutRawConverter} object, where the actual conversion is
+ * interface to a {@link
+ * org.hps.readout.rawconverter.AbstractMode3RawConverter
+ * AbstractMode3RawConverter} object, where the actual conversion is
  * performed.
  * <br/><br/>
  * <code>RawConverterReadoutDriver</code> itself is abstract - it
@@ -134,7 +136,7 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      * subdetector.
      * @return Returns the raw converter.
      */
-    protected abstract ReadoutRawConverter getConverter();
+    protected abstract AbstractMode3RawConverter getConverter();
     
     /**
      * Gets the readout name for this subdetector from the geometry.
@@ -227,5 +229,14 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      */
     public void setSkipBadChannels(boolean state) {
         throw new UnsupportedOperationException("Driver \"" + getClass().getSimpleName() + "\" does not support bad channel exclusion.");
+    }
+    
+    /**
+     * Sets the size of the ADC buffer. This is needed for proper
+     * handling of Mode-3 hits in the raw converter.
+     * @param window - The buffer size in units of 4 ns clock-cycles.
+     */
+    public void setReadoutWindow(int window) {
+        getConverter().setWindowSamples(window);
     }
 }

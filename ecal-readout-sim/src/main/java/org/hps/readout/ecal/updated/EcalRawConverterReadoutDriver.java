@@ -4,7 +4,8 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.RawConverterReadoutDriver;
-import org.hps.readout.ReadoutRawConverter;
+import org.hps.readout.rawconverter.AbstractMode3RawConverter;
+import org.hps.readout.rawconverter.EcalReadoutMode3RawConverter;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
@@ -16,13 +17,13 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.RawConverterReadoutDriver
  */
-public class EcalReadoutRawConverterDriver extends RawConverterReadoutDriver {
+public class EcalRawConverterReadoutDriver extends RawConverterReadoutDriver {
     /**
      * The converter object responsible for processing raw hits into
      * proper {@link org.lcsim.event.CalorimeterHit CalorimeterHit}
      * objects.
      */
-    private EcalReadoutRawConverter converter = new EcalReadoutRawConverter();
+    private EcalReadoutMode3RawConverter converter = new EcalReadoutMode3RawConverter();
     
     /**
      * Cached copy of the calorimeter conditions. All calorimeter
@@ -34,7 +35,7 @@ public class EcalReadoutRawConverterDriver extends RawConverterReadoutDriver {
     /**
      * Instantiates the driver with the correct default parameters.
      */
-    public EcalReadoutRawConverterDriver() {
+    public EcalRawConverterReadoutDriver() {
         super("EcalRawHits", "EcalCorrectedHits");
         setSkipBadChannels(true);
     }
@@ -53,7 +54,7 @@ public class EcalReadoutRawConverterDriver extends RawConverterReadoutDriver {
     }
     
     @Override
-    protected ReadoutRawConverter getConverter() {
+    protected AbstractMode3RawConverter getConverter() {
         return converter;
     }
     

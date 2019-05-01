@@ -1,21 +1,22 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout.rawconverter;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.readout.ReadoutRawConverter;
 import org.lcsim.geometry.Detector;
 
 /**
- * <code>EcalReadoutRawConverter</code> handles the implementation of
- * calorimeter-specific functionality for {@link
- * org.hps.readout.ecal.updated.ReadoutRawConverter
- * ReadoutRawConverter}.
+ * <code>EcalReadoutMode3RawConverter</code> handles the
+ * implementation of calorimeter-specific functionality for {@link
+ * org.hps.readout.rawconverter.AbstractMode3RawConverter
+ * AbstractMode3RawConverter}. Only the behavior needed for readout
+ * is implemented. Calibrations specific to reconstruction are not
+ * supported.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
- * @see org.hps.readout.ecal.updated.ReadoutRawConverter
+ * @see org.hps.readout.rawconverter.AbstractMode3RawConverter
  */
-public class EcalReadoutRawConverter extends ReadoutRawConverter {
+public class EcalReadoutMode3RawConverter extends AbstractMode3RawConverter {
     /**
      * Stores the calibrations and conditions for the calorimeter
      * subdetector.

@@ -1,4 +1,4 @@
-package org.hps.readout.hodoscope;
+package org.hps.readout.rawconverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,18 +10,9 @@ import org.hps.conditions.hodoscope.HodoscopeTimeShift;
 import org.hps.conditions.hodoscope.HodoscopeCalibration.HodoscopeCalibrationCollection;
 import org.hps.conditions.hodoscope.HodoscopeGain.HodoscopeGainCollection;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
-import org.hps.readout.ReadoutRawConverter;
 import org.lcsim.geometry.Detector;
 
-/**
- * <code>HodoscopeReadoutRawConverter</code> is the implementation of
- * {@link org.hps.readout.ecal.updated.ReadoutRawConverter
- * ReadoutRawConverter} for hodoscope-specific functionality.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @see org.hps.readout.ecal.updated.ReadoutRawConverter
- */
-public class HodoscopeReadoutRawConverter extends ReadoutRawConverter {
+public class HodoscopeMode1RawConverter extends AbstractMode1RawConverter {
     /**
      * Maps hodoscope channels to the gain for that channel.
      */
@@ -77,15 +68,6 @@ public class HodoscopeReadoutRawConverter extends ReadoutRawConverter {
             return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
         } else {
             throw new IllegalArgumentException("No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
-        }
-    }
-    
-    @Override
-    protected double getTimeShift(long channelID) {
-        if(channelToTimeShiftsMap.containsKey(Long.valueOf(channelID))) {
-            return channelToTimeShiftsMap.get(Long.valueOf(channelID)).getTimeShift();
-        } else {
-            throw new IllegalArgumentException("No time shift conditions exist for hodoscope channel ID \"" + channelID + "\".");
         }
     }
 }
