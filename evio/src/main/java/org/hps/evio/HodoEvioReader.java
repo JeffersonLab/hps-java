@@ -31,7 +31,7 @@ import org.lcsim.detector.identifier.IIdentifierHelper;
 //import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
-//import org.lcsim.event.RawCalorimeterHit;
+import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 //import org.lcsim.event.base.BaseLCRelation;
@@ -115,15 +115,7 @@ public class HodoEvioReader extends EvioReader {
                     }
                     try {
                         for (BaseStructure slotBank : bank.getChildrenList()) {
-//                            if (isTriggerBank(slotBank.getHeader().getTag(), lcsimEvent.getRunNumber()) != 0) {
-//                                if (debug) {
-//                                    int[] data = slotBank.getIntData();
-//                                    for (int i = 0; i < data.length; i++) {
-//                                        System.out.format("0x%x\n", data[i]);
-//                                    }
-//                                }
-//                                continue;
-//                            }
+                                                        
                             if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
                                 for (CompositeData cdata : slotBank.getCompositeData()) {
 //                            CompositeData cdata = slotBank.getCompositeData();
@@ -164,50 +156,24 @@ public class HodoEvioReader extends EvioReader {
                 }
             }
         }
-//        String readoutName = ;
+
         lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
         lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
         if (!extraDataList.isEmpty()) {
             lcsimEvent.put(extraDataCollectionName, extraDataList, Mode7Data.class, 0);
             lcsimEvent.put(extraDataRelationsName, extraDataRelations, LCRelation.class, 0);
         }
-//        for (Object hit : hits) {
-//            System.out.println(((RawTrackerHit) hit).getIDDecoder().getIDDescription().toString());
-//        }
 
         return foundHits;
-        
-        
-        
-        
-  //      return true; // Temporrary, just for not givin syntax error
     }
 
     private BaseRawTrackerHit makeHodoRawHit(int time, long id, CompositeData cdata, int nSamples) {
-        
-        
-//        System.out.println("time = " + time );
-//        System.out.println("id = " + id );
-//        System.out.println("cdata.getStrings() = " +  cdata.getStrings());
-//        System.out.println("nSamples = " + nSamples );
-//        System.out.println("Short is " + cdata.getShort());
-        
+                
         short[] adcValues = new short[nSamples];
         for (int i = 0; i < nSamples; i++) {
             adcValues[i] = cdata.getShort();
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
-        
-//        //System.out.println("Idetifier(id) " + new Identifier(id));
-//        System.out.println("Subdetector element name " + subDetector.getDetectorElement().getName());
-//        
-//        System.out.println("Has Children " + subDetector.getDetectorElement().hasChildren());
-//        System.out.println("Size of Children " + subDetector.getDetectorElement().getChildren().size());
-//        System.out.println("Children to String " + subDetector.getDetectorElement().getChildren().toString() );
-        
-        //System.out.println("Subdetector.etc  " + subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
-        
-        
         
         // ==============================          Should be fixed            =====================
         // == ubDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0) does not work for now
@@ -255,11 +221,6 @@ public class HodoEvioReader extends EvioReader {
             long timestamp = cdata.getLong();
             int nchannels = cdata.getNValue();
 
-//            System.out.println("slot = " + slot);
-//            System.out.println("trigger = " + trigger);
-//            System.out.println("timestamp = " + timestamp);
-//            System.out.println("nchannels = " + nchannels);
-//            
             if (debug) {
                 System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
             }
@@ -272,14 +233,11 @@ public class HodoEvioReader extends EvioReader {
                 }
 
                 Long id = daqToGeometryId(crate, slot, channel);
-//                Long id = EcalConditions.daqToPhysicalID(crate, slot, channel);
-                
 
                 if (debug) {
                     System.out.println("The long id is: " + id);
                 }
 
-                //System.out.println("id = " + id);
                 if (id == null) {
                     FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_RAW_MODE, crate, slot, channel, cdata, nSamples);
                     processUnrecognizedChannel(hit);
@@ -294,11 +252,8 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-        //DaqId daqId = new DaqId(new int[]{crate, slot, channel});
-        //System.out.println("crate = " + crate + "    slot = " + slot + "channel = " + channel);
         HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
                 
-        //HodoscopeChannel hodoChannel = hodoConditions.getChannelCollection().findChannel(daqId);
         if (hodoChannel == null) {
             return null;
         }
@@ -313,6 +268,99 @@ public class HodoEvioReader extends EvioReader {
         return id;
     }
 
+    private List<BaseRawTrackerHit> makePulseHits(CompositeData cdata, int crate) {
+        List<BaseRawTrackerHit> hits = new ArrayList<BaseRawTrackerHit>();
+        if (debug) {
+            int n = cdata.getNValues().size();
+            for (int i = 0; i < n; i++) {
+                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
+            }
+            int ni = cdata.getItems().size();
+            for (int i = 0; i < ni; i++) {
+                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
+            }
+        }
+        while (cdata.index() + 1 < cdata.getItems().size()) { //the +1 is a hack because sometimes an extra byte gets read (padding)
+            short slot = cdata.getByte();
+            int trigger = cdata.getInt();
+            long timestamp = cdata.getLong();
+            int nchannels = cdata.getNValue();
+            if (debug) {
+                System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
+            }
+            for (int j = 0; j < nchannels; j++) {
+                short channel = cdata.getByte();
+                int npulses = cdata.getNValue();
+                if (debug) {
+                    System.out.println("  channel=" + channel + "; npulses=" + npulses);
+                }
+                Long id = daqToGeometryId(crate, slot, channel);
+                for (int k = 0; k < npulses; k++) {
+                    short pulseNum = cdata.getByte();
+                    int sampleCount = cdata.getNValue();
+
+                    if (id == null) {
+                        FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_PULSE_MODE, crate, slot, channel, cdata, sampleCount);
+                        processUnrecognizedChannel(hit);
+                    } else {
+                        BaseRawTrackerHit hit = makeHodoRawHit(pulseNum, id, cdata, sampleCount);
+                        hits.add(hit);
+                    }
+                }
+            }
+        }
+        return hits;
+    }
+    
+    
+    private List<RawCalorimeterHit> makeIntegralHitsMode3(CompositeData cdata, int crate) {
+        List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
+        if (debug) {
+            int n = cdata.getNValues().size();
+            for (int i = 0; i < n; i++) {
+                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
+            }
+            int ni = cdata.getItems().size();
+            for (int i = 0; i < ni; i++) {
+                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
+            }
+        }
+        while (cdata.index() + 1 < cdata.getItems().size()) { //the +1 is a hack because sometimes an extra byte gets read (padding)
+            short slot = cdata.getByte();
+            int trigger = cdata.getInt();
+            long timestamp = cdata.getLong();
+            int nchannels = cdata.getNValue();
+            if (debug) {
+                System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
+            }
+            for (int j = 0; j < nchannels; j++) {
+                short channel = cdata.getByte();
+                int npulses = cdata.getNValue();
+                if (debug) {
+                    System.out.println("  channel=" + channel + "; npulses=" + npulses);
+                }
+                Long id = daqToGeometryId(crate, slot, channel);
+
+                for (int k = 0; k < npulses; k++) {
+                    short pulseTime = cdata.getShort();
+                    int pulseIntegral = cdata.getInt();
+                    if (debug) {
+                        System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral);
+                    }
+                    if (id == null) {
+                        int[] data = {pulseIntegral, pulseTime};
+                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.HODO_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
+                    } else {
+                        hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
+                    }
+                }
+            }
+        }
+        return hits;
+    }
+    
+    
+    
     private void processUnrecognizedChannel(FADCGenericHit hit) {
         genericHits.add(hit);
 
