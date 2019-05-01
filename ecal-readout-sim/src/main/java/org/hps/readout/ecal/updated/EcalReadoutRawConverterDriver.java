@@ -10,7 +10,6 @@ import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
-import org.hps.recon.ecal.EcalRawConverter;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawCalorimeterHit;
@@ -81,7 +80,7 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
      * proper {@link org.lcsim.event.CalorimeterHit CalorimeterHit}
      * objects.
      */
-    private EcalRawConverter converter = new EcalRawConverter();
+    private EcalReadoutRawConverter converter = new EcalReadoutRawConverter();
     /**
      * Cached copy of the calorimeter conditions. All calorimeter
      * conditions should be called from here, rather than by directly
@@ -96,7 +95,7 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
     @Override
     public void detectorChanged(Detector detector) {
         // Reset the converter calorimeter conditions.
-        converter.setDetector(detector);
+        converter.updateDetector(detector);
         
         // Cache the calorimeter conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
@@ -117,16 +116,14 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         // Get all of the raw hits in the current clock-cycle.
         Collection<RawCalorimeterHit> rawHits = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, RawCalorimeterHit.class);
         
-        // TODO: Truth propagation is disabled for the moment.
-        /*
+        // TODO: Truth propagation is disabled.
         // Prepare the truth information, if applicable.
-        Collection<LCRelation> truthRelations = null;
-        Map<RawCalorimeterHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
-        if(persistTruth) {
-            truthRelations = ReadoutDataManager.getData(localTime, localTime + 4.0, truthRelationsCollectionName, LCRelation.class);
-            hitToTruthMap = EcalRawConverterDriver.getTruthMap(truthRelations, RawCalorimeterHit.class);
-        }
-        */
+        //Collection<LCRelation> truthRelations = null;
+        //Map<RawCalorimeterHit, Set<SimCalorimeterHit>> hitToTruthMap = null;
+        //if(persistTruth) {
+        //    truthRelations = ReadoutDataManager.getData(localTime, localTime + 4.0, truthRelationsCollectionName, LCRelation.class);
+        //    hitToTruthMap = EcalRawConverterDriver.getTruthMap(truthRelations, RawCalorimeterHit.class);
+        //}
         
         // Increment the local time.
         localTime += 4.0;
@@ -141,20 +138,18 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
         
         for(RawCalorimeterHit hit : rawHits) {
             // Convert the raw hit.
-            CalorimeterHit newHit = converter.HitDtoA(event, hit, 0.0);
+            CalorimeterHit newHit = converter.convertHit(hit, 0.0);
             
             // TODO: Truth propagation is disabled.
-            /*
             // If truth information exists, extract it and store it
             // as a part of the hit by converting the hit to an
             // identical SimCalorimeterHit object, except now with
             // the extra truth data.
-            SimCalorimeterHit truthHit = null;
-            if(persistTruth) {
-                Set<SimCalorimeterHit> truthHits = hitToTruthMap.get(hit);
-                truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, newHit.getMetaData());
-            }
-            */
+            //SimCalorimeterHit truthHit = null;
+            //if(persistTruth) {
+            //    Set<SimCalorimeterHit> truthHits = hitToTruthMap.get(hit);
+            //    truthHit = CalorimeterHitUtilities.convertToTruthHit(newHit, truthHits, newHit.getMetaData());
+            //}
             
             // If the hit is on a bad channel, and these are set to
             // be skipped, ignore the hit. Otherwise, add it to the
@@ -167,25 +162,21 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
             // CalorimeterHit. If truth data is available, then
             // instead output a SimCalorimeterHit.
             // TODO: Truth propagation is disabled.
-            /*
-            if(truthHit == null) {
-                newHits.add(newHit);
-            } else {
-                newTruthHits.add(truthHit);
-            }
-            */
+            //if(truthHit == null) {
+            //    newHits.add(newHit);
+            //} else {
+            //    newTruthHits.add(truthHit);
+            //}
             newHits.add(newHit);
         }
         
         // Add the calorimeter hit collection to the data manager.
         // TODO: Truth propagation is disabled.
-        /*
-        if(persistTruth) {
-            ReadoutDataManager.addData(outputCollectionName, newTruthHits, SimCalorimeterHit.class);
-        } else {
-            ReadoutDataManager.addData(outputCollectionName, newHits, CalorimeterHit.class);
-        }
-        */
+        //if(persistTruth) {
+        //    ReadoutDataManager.addData(outputCollectionName, newTruthHits, SimCalorimeterHit.class);
+        //} else {
+        //    ReadoutDataManager.addData(outputCollectionName, newHits, CalorimeterHit.class);
+        //}
         ReadoutDataManager.addData(outputCollectionName, newHits, CalorimeterHit.class);
     }
     
@@ -315,9 +306,10 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
      * @param state - <code>true</code> enables the merging of truth
      * information, and <code>false</code>  disables it.
      */
-    public void setPersistTruth(boolean state) {
-        persistTruth = state;
-    }
+    // TODO: Truth propagation is disabled.
+    //public void setPersistTruth(boolean state) {
+    //    persistTruth = state;
+    //}
     
     /**
      * Sets the name of the collection that contains the hit truth
@@ -325,9 +317,7 @@ public class EcalReadoutRawConverterDriver extends ReadoutDriver {
      * @param collection - The collection name.
      */
     // TODO: Truth propagation is disabled.
-    /*
-    public void setTruthRelationsCollectionName(String collection) {
-        truthRelationsCollectionName = collection;
-    }
-    */
+    //public void setTruthRelationsCollectionName(String collection) {
+    //    truthRelationsCollectionName = collection;
+    //}
 }
