@@ -72,13 +72,13 @@ public class HodoEvioReader extends EvioReader {
     private static final Logger LOGGER = Logger.getLogger(HodoEvioReader.class.getPackage().getName());
 
     private int topBankTag, botBankTag;
-
+    
     public HodoEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
         this.botBankTag = botBankTag;
         hitCollectionName = "HodoReadoutHits";
     }
-
+    
     public void setTopBankTag(int topBankTag) {
         this.topBankTag = topBankTag;
     }
@@ -250,7 +250,7 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
+        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10 /* FIXME: hard-coded slot! */, channel);
                 
         if (hodoChannel == null) {
             return null;
