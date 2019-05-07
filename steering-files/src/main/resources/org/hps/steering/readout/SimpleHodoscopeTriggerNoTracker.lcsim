@@ -11,10 +11,17 @@
         <!-- SVT Readout Drivers -->
         <!-- <driver name="SVTReadoutDriver" /> -->
         
-        <!-- Readout Simulation Drivers -->
-        <driver name="EcalReadoutDriver"/>
-        <driver name="RawConverterReadoutDriver"/>
+        <!-- Hodoscope Readout Simulation Drivers -->
+        <driver name="HodoscopePreprocessingDriver"/>
+        <driver name="HodoscopeDigitizationDriver"/>
+        <driver name="HodoscopeRawConverterDriver"/>
+		
+        <!-- Calorimeter Readout Simulation Drivers -->
+        <driver name="EcalDigitizationDriver"/>
+        <driver name="EcalRawConverterDriver"/>
         <driver name="GTPReadoutDriver"/>
+		
+		<!-- Trigger Simulation -->
         <driver name="SimpleHodoscopeTrigger"/>
         
         <!-- LCIO Output and Data Management Driver -->
@@ -45,7 +52,7 @@
              simulation. This will automatically include all calorimeter truth hits
              and related MC particles in the readout file.
           -->
-        <driver name="EcalHitsOutputDriver" type="org.hps.readout.ecal.updated.SimCalorimeterHitReadoutDriver">
+        <driver name="EcalHitsOutputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
             <collectionName>EcalHits</collectionName>
             
             <!-- Units of ns. -->
@@ -93,13 +100,13 @@
             The SVT driver. Works just like before. Documentation is left to
             the SVT group.
         -->
-<!--
+		<!--
         <driver name="SVTReadoutDriver" type="org.hps.readout.svt.SVTReadoutDriver">
             <enablePileupCut>false</enablePileupCut>
             <useTimingConditions>true</useTimingConditions>
             <addNoise>true</addNoise>
         </driver>
---> 
+		-->
         
         <!--
              The calorimeter readout driver handles conversion of SLIC truth
@@ -122,7 +129,7 @@
              same collection name as the input truth data. If a truth handler
              driver also outputs data into this collection, the two will merge.
           -->
-        <driver name="EcalReadoutDriver" type="org.hps.readout.ecal.updated.EcalReadoutDriver">
+        <driver name="EcalDigitizationDriver" type="org.hps.readout.ecal.updated.EcalDigitizationReadoutDriver">
             <!-- LCIO Collection Names -->
             <inputHitCollectionName>EcalHits</inputHitCollectionName>
             <outputHitCollectionName>EcalRawHits</outputHitCollectionName>
@@ -132,7 +139,8 @@
             
             <!-- Driver Parameters -->
             <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
-            <addNoise>true</addNoise>
+            <addNoise>false</addNoise>
+			
             <!-- 
                  Readout offset is not the same as the old system - it measures
                  amount of samples that are included before the trigger time in
@@ -177,7 +185,7 @@
              since the clusterer will automatically output the hits which appear in
              GTP clusters if cluster output is enabled.
           -->
-        <driver name="RawConverterReadoutDriver" type="org.hps.readout.ecal.updated.EcalReadoutRawConverterDriver">
+        <driver name="EcalRawConverterDriver" type="org.hps.readout.ecal.updated.EcalRawConverterReadoutDriver">
             <!--
                 Outputs all the trigger-level hits within the readout window.
                 This is not generally necessary outside of specialized
@@ -186,15 +194,6 @@
                 persisted.
             -->
             <persistent>false</persistent>
-            
-            <!--
-                If set to true, and readout truth information was included in
-                the EcalReadoutDriver, then the calorimeter hits produced for
-                the clusterer and trigger will be output as truth hits which
-                contain the compiled information from all relevant data that
-                contributed to the integrated pulse.
-            -->
-            <persistTruth>false</persistTruth>
         </driver>
         
         <!--
@@ -228,13 +227,94 @@
             <persistent>true</persistent>
         </driver>
         
+		<!--
+			The hodoscope preprocessing driver is responsible for taking SLiC
+			truth hits and converting them to a form usable by the simulation.
+			Truth hits are of the type SimTrackerHit and need to be converted
+			to the type SimCalorimeterHit. Additionally, SLiC is not able to
+			produce hits on multiple channels from the same scintillator. Some
+			scintillators do have multiple channels in the actual detector. As
+			such, it is necessary to split the energies of hits occurring on
+			scintillators with mutliple channels across the relevant channels.
+			This is handled by this driver.
+		-->
+        <driver name="HodoscopePreprocessingDriver" type="org.hps.readout.hodoscope.HodoscopePreprocessingDriver">
+            <truthHitCollectionName>HodoscopeHits</truthHitCollectionName>
+            <outputHitCollectionName>HodoscopePreprocessedHits</outputHitCollectionName>
+        </driver>
+		
+		<!--
+             The hodoscope digitization driver works identically to the
+			 calorimeter digitization driver, except for the hodoscope.
+          -->
+        <driver name="HodoscopeDigitizationDriver" type="org.hps.readout.hodoscope.HodoscopeDigitizationReadoutDriver">
+            <!-- LCIO Collection Names -->
+            <inputHitCollectionName>HodoscopePreprocessedHits</inputHitCollectionName>
+            <outputHitCollectionName>HodoscopeRawHits</outputHitCollectionName>
+            <readoutHitCollectionName>HodoscopeReadoutHits</readoutHitCollectionName>
+            <truthRelationsCollectionName>HodoscopeTruthRelations</truthRelationsCollectionName>
+            <triggerPathTruthRelationsCollectionName>HodoscopeTriggerPathTruthRelations</triggerPathTruthRelationsCollectionName>
+            
+            <!-- Driver Parameters -->
+            <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
+            <addNoise>false</addNoise>
+			
+            <!-- 
+                 Readout offset is not the same as the old system - it measures
+                 amount of samples that are included before the trigger time in
+                 the ADC readout window. The old version can be converted by
+                 selecting a readout window equal to (readoutLatency - 64).
+              -->
+            <readoutOffset>13</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutWindow>50</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+            <integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
+            
+            <!--
+                The digitization driver produces as output a list of ADC values
+                within a specified window, in emulation of Mode-1 data. This
+                removes the truth information that is otherwise present in the
+                original SLiC output. Setting this option to true creates new
+                LCRelation objects that link the ADC list to the truth hits that
+                created it and stores this in readout. For production running,
+                this should generally be off to save space. Truth hits will be
+                included in readout automatically - the truth hit driver above
+                does not need to be persistent.
+            -->
+            <writeTruth>true</writeTruth>
+            
+            <!--
+                As above, except that truth relations are persisted for the
+                readout hits that are seen by the clusterer and trigger. This
+                is useful if some analysis needs to be performed at the readout
+                level. Otherwise, this should be left off.
+            -->
+            <writeTriggerPathTruth>false</writeTriggerPathTruth>
+        </driver>
+        
+        <!--
+             The hodoscope raw converter functions as per the calorimeter raw
+			 converter driver.
+          -->
+        <driver name="HodoscopeRawConverterDriver" type="org.hps.readout.hodoscope.HodoscopeRawConverterReadoutDriver">
+            <!--
+                Outputs all the trigger-level hits within the readout window.
+                This is not generally necessary outside of specialized
+                circumstances. Note that all readout hits associated with GTP
+                clusters will automatically be included if GTP clusters are
+                persisted.
+            -->
+            <persistent>false</persistent>
+        </driver>
+		
         <!--
             The production pair trigger. This trigger allows the user to
             specify the trigger deadtime (how much time must pass before a new
             trigger can occur after a previous trigger has been created) and
             the values of all the trigger cuts.
         -->
-        <driver name="SimpleHodoscopeTrigger" type="org.hps.readout.ecal.updated.PairTriggerReadoutDriver" />
+        <driver name="SimpleHodoscopeTrigger" type="org.hps.readout.trigger.PairTriggerReadoutDriver" />
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
             <readoutWindow>200</readoutWindow>
