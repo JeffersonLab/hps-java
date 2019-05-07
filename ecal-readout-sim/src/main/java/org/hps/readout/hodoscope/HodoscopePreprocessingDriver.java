@@ -84,8 +84,8 @@ public class HodoscopePreprocessingDriver extends ReadoutDriver {
                 // associated with each fiber bundle hole.
                 int[] fadcChannelIDs = new int[2];
                 List<HodoscopeChannel> fadcChannelIDList = hodoscopeDetectorElement.getHardwareChannels(hit);
-                fadcChannelIDs[fadcChannelIDList.get(0).getHole()] = fadcChannelIDList.get(0).getChannelId();
-                fadcChannelIDs[fadcChannelIDList.get(1).getHole()] = fadcChannelIDList.get(1).getChannelId();
+                fadcChannelIDs[getHolePositionArrayIndex(fadcChannelIDList.get(0))] = fadcChannelIDList.get(0).getChannelId();
+                fadcChannelIDs[getHolePositionArrayIndex(fadcChannelIDList.get(1))] = fadcChannelIDList.get(1).getChannelId();
                 
                 // Get the x-position of the hit.
                 double hitXPos = hit.getPosition()[0];
@@ -165,6 +165,21 @@ public class HodoscopePreprocessingDriver extends ReadoutDriver {
     @Override
     protected double getTimeNeededForLocalOutput() {
         return 0;
+    }
+    
+    /**
+     * Translates a hole index into a form usable in an array.
+     * @param channel - A hodoscope channel.
+     * @return Returns a value of <code>0</code> for the hole closest
+     * to the calorimeter center and a value of <code>1</code> for
+     * hole closest to the positron-side of the calorimeter.
+     * @throws IllegalArgumentException Occurs if the input channel
+     * either has an unrecognized hole number, or only has one hole.
+     */
+    private static final int getHolePositionArrayIndex(HodoscopeChannel channel) throws IllegalArgumentException {
+        if(channel.getHole().intValue() == HodoscopeChannel.HOLE_LOW_X) { return 0; }
+        else if(channel.getHole().intValue() == HodoscopeChannel.HOLE_HIGH_X) { return 1; }
+        else { throw new IllegalArgumentException("Unexpected hole number \"" + channel.getHole().intValue() + "\"!"); }
     }
     
     /**

@@ -356,6 +356,7 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
     /**
      * Initialize the detector element.
      */
+    @Override
     public void initialize() {
         // Populate the ID collections.
         this.populateIDCollections();
@@ -410,7 +411,7 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
         // the indices of the scintillator it exists within.
         for(HodoscopeChannel channel : channels) {
             // Get the unique key for the scintillator.
-            Integer posvar = Integer.valueOf(getScintillatorUniqueKey(channel.getX(), channel.getY(), channel.getLayer()));
+            Integer posvar = Integer.valueOf(getScintillatorUniqueKey(channel.getIX().intValue(), channel.getIY().intValue(), channel.getLayer().intValue()));
             
             // Map the scintillator to its indices.
             if(scintillatorPositionToChannelMap.containsKey(posvar)) {
