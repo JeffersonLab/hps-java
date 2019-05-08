@@ -46,8 +46,8 @@ public class HodoscopeReadoutTest extends TestCase {
     public static final AIDA aida = AIDA.defaultInstance();
     
     // Set these to true to run the full data chain
-    private static final boolean RUN_FILTERING = false;
-    private static final boolean RUN_READOUT = false;
+    private static final boolean RUN_FILTERING = true;
+    private static final boolean RUN_READOUT = true;
     private static final boolean WRITE_ROOT = false;
     
     public void testHodoscopeReadout() throws IOException, ConditionsNotFoundException {
