@@ -7,15 +7,19 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-
+         <driver name="EventMarkerDriver"/>
+         <driver name="PreCleanupDriver"/>         
+        <!-- Skip events with known bad conditions -->
+        <driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
-        <!--<driver name="EcalRunningPedestal"/>-->
+        <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
-        <driver name="HitTimeSmear"/>
+        <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
+        <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
@@ -57,33 +61,40 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
-        <driver name="LCIOWriter"/>            
+     <driver name="SVTTimingTuple"/>   
+             <driver name="VertexDebugTupleDriver"/>
+        <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
-    <drivers>   
+    <drivers>    
+        
+          <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1</eventInterval>
+        </driver> 
+        
+          <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+      <!--      <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>  -->
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
+          </driver>
+              
+         <!-- Driver to reject "bad" events -->
+         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
+         </driver> 
+        
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
-        <!--<driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
-        </driver>-->
-
-        <!--<driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
-        </driver>-->
-
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <fixShapeParameter>true</fixShapeParameter>
-            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
         </driver>
-
-        <driver name="HitTimeSmear" type="org.hps.recon.ecal.cluster.HitTMCSmearDriver">
-        </driver>
-
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver> 
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/> 
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-        </driver>
+        </driver> 
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
@@ -95,22 +106,14 @@
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
-            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
-            <useTimestamps>true</useTimestamps>     
-            <!--offset to get times centered at 0 after timestamp correction-->                 
-            <tsCorrectionScale>171</tsCorrectionScale>    
-            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
-            <correctTimeOffset>true</correctTimeOffset>   
-            <!--per sensor shift...set false becasue it's not in readout sim-->       
-            <correctT0Shift>false</correctT0Shift>      
-            <!--use truth time for MC???  typically not used-->             
-            <useTruthTime>false</useTruthTime>    
-            <!--time of flight corrections-->              
-            <subtractTOF>true</subtractTOF>     
-            <!--set this false for MC, true for data-->              
-            <subtractTriggerTime>false</subtractTriggerTime>           
-            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
-            <correctChanT0>true</correctChanT0>          
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <subtractRFTime>true</subtractRFTime> 
+            <correctChanT0>true</correctChanT0>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
@@ -152,23 +155,40 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
             <beamPositionX> -0.224 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>43</trackClusterTimeOffset>
-            <isMC>true</isMC>
-            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
-            <minVertexChisqProb> 0.0 </minVertexChisqProb>
-        </driver>         
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+	    <maxElectronP> 2.15 </maxElectronP>
+	    <maxVertexP> 2.8 </maxVertexP>
+	    <minVertexChisqProb> 0.0 </minVertexChisqProb>
+	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
+        </driver>  
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+	  <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+	  <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
+	</driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>             
+        </driver>       
+        <driver name="VertexTupleDriver" type="org.hps.analysis.tuple.VertexTupleDriver">
+            <triggerType>pairs1</triggerType>
+<!--            <triggerType>all</triggerType> -->
+	    <debug>true</debug>            
+            <tupleFile>${outputFile}_vertex.txt</tupleFile>
+        </driver>
+          <driver name="SVTTimingTuple" type="org.hps.analysis.tuple.SVTTimingTupleDriver">
+            <triggerType>pairs1</triggerType>
+<!--            <triggerType>all</triggerType> -->
+            <debug>false</debug>
+            <tupleFile>${outputFile}_tri.txt</tupleFile>
+        </driver>
     </drivers>
 </lcsim>
