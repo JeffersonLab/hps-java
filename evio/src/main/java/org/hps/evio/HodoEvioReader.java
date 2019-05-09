@@ -25,6 +25,7 @@ import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
@@ -171,20 +172,26 @@ public class HodoEvioReader extends EvioReader {
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
 
+        System.out.println("id = " + id);
+        //IExpandedIdentifier vals = helper.unpack(id);
+        //System.out.println(vals);
+
+        System.out.println("id = " + id);
+
         // ==============================          Should be fixed            =====================
         // == ubDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0) does not work for now
-//        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
-//                time,
-//                id,
-//                adcValues,
-//                new ArrayList<SimTrackerHit>(),
-//                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
         return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
                 time,
                 id,
                 adcValues,
                 new ArrayList<SimTrackerHit>(),
-                null);
+                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
+//        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
+//                time,
+//                id,
+//                adcValues,
+//                new ArrayList<SimTrackerHit>(),
+//                null);
     }
 
     private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
@@ -245,8 +252,8 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-        //HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
-        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
+        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
+        //HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
 
         if (hodoChannel == null) {
             return null;
@@ -255,7 +262,9 @@ public class HodoEvioReader extends EvioReader {
         int iy = hodoChannel.getY();
         int ilayer = hodoChannel.getLayer();
         int ihole = hodoChannel.getHole();
-
+         
+        ihole = 0; //                               // TEST might be fixed later, I have to understand this
+       
         GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
         Long id = geometryId.encode();
 
