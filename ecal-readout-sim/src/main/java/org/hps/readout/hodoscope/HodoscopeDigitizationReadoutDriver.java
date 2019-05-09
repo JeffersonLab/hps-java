@@ -15,6 +15,7 @@ import org.hps.conditions.hodoscope.HodoscopeGain.HodoscopeGainCollection;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
 import org.hps.readout.DigitizationReadoutDriver;
+import org.hps.readout.ReadoutTimestamp;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
 
@@ -87,13 +88,6 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     }
     
     @Override
-    protected int getTimestampFlag() {
-        // TODO: We need the real value for this!!
-        System.out.println(" !! WARNING !! :: TEMPORARY TIMESTAMP VALUE IN USE FOR HODOSCOPE - FIX THIS!! :: !! WARNING !!");
-        return 4;
-    }
-    
-    @Override
     protected double getPedestalConditions(long channelID) {
         if(channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
             return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
@@ -109,6 +103,13 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
         } else {
             throw new IllegalArgumentException("No time shift conditions exist for hodoscope channel ID \"" + channelID + "\".");
         }
+    }
+    
+    @Override
+    protected int getTimestampFlag() {
+        // TODO: We need the real value for this!!
+        System.out.println(" !! WARNING !! :: TEMPORARY TIMESTAMP VALUE IN USE FOR HODOSCOPE - FIX THIS!! :: !! WARNING !!");
+        return ReadoutTimestamp.SYSTEM_HODOSCOPE;
     }
     
     /**
