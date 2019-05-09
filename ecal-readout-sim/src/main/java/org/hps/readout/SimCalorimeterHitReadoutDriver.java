@@ -37,7 +37,8 @@ public class SimCalorimeterHitReadoutDriver extends SLICDataReadoutDriver<SimCal
         if(!isPersistent()) { return null; }
         
         // Get the truth hits in the indicated time range.
-        Collection<SimCalorimeterHit> truthHits = ReadoutDataManager.getData(triggerTime - getReadoutWindowBefore(), triggerTime + getReadoutWindowAfter(), collectionName, SimCalorimeterHit.class);
+        Collection<SimCalorimeterHit> truthHits = ReadoutDataManager.getData(triggerTime - getReadoutWindowBefore(),
+                triggerTime + getReadoutWindowAfter(), collectionName, SimCalorimeterHit.class);
         
         // MC particles need to be extracted from the truth hits
         // and included in the readout data to ensure that the
