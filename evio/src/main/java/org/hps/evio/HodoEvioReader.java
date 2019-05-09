@@ -172,12 +172,6 @@ public class HodoEvioReader extends EvioReader {
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
 
-        System.out.println("id = " + id);
-        //IExpandedIdentifier vals = helper.unpack(id);
-        //System.out.println(vals);
-
-        System.out.println("id = " + id);
-
         // ==============================          Should be fixed            =====================
         // == ubDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0) does not work for now
         return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
