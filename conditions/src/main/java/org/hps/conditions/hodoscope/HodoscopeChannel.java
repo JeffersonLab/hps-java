@@ -171,9 +171,7 @@ public final class HodoscopeChannel extends BaseConditionsObject {
          * The Hole.
          */
         private int hole = Integer.MAX_VALUE;
-        
-        
-        
+                
         /**
          * Create a geometry ID.
          *
@@ -200,6 +198,7 @@ public final class HodoscopeChannel extends BaseConditionsObject {
                     .getNumberOfFields());
             
             expId.setValue(this.helper.getFieldIndex("system"), this.system);
+            expId.setValue(this.helper.getFieldIndex("barrel"), 1); // Hard-coded flag to fix ID matching. --JM
             expId.setValue(this.helper.getFieldIndex("ix"), this.x);
             expId.setValue(this.helper.getFieldIndex("iy"), this.y);
             expId.setValue(this.helper.getFieldIndex("layer"), this.layer);

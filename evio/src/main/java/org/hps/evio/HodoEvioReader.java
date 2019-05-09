@@ -247,6 +247,7 @@ public class HodoEvioReader extends EvioReader {
 
         //HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
         HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
+
         if (hodoChannel == null) {
             return null;
         }
