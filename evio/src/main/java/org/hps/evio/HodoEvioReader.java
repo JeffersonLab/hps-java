@@ -36,19 +36,18 @@ import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
-
 /**
  *
  * @author rafopar
- * 
+ *
  * This class is similar to the "ECalEvioReader", I just copied it and modified
  * to in otder it to work for the hodoscope
  */
 public class HodoEvioReader extends EvioReader {
 
     private int bankTag = 0;
-    private Class hitClass = BaseRawCalorimeterHit.class;    
-    
+    private Class hitClass = BaseRawCalorimeterHit.class;
+
     private static HodoscopeConditions hodoConditions = null;
     private static IIdentifierHelper helper = null;
 
@@ -59,13 +58,12 @@ public class HodoEvioReader extends EvioReader {
 
     private static final String genericHitCollectionName = "FADCGenericHits";
     private List<FADCGenericHit> genericHits;
-    
+
     private static final String extraDataRelationsName = "HodoReadoutExtraDataRelations";
     private List<LCRelation> extraDataRelations;
 
     private static final String extraDataCollectionName = "HodoReadoutExtraData";
     private List<HitExtraData> extraDataList;
-    
 
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
@@ -108,12 +106,12 @@ public class HodoEvioReader extends EvioReader {
             if (crateBankTag == topBankTag || crateBankTag == botBankTag) {
                 foundHits = true;
                 if (bank.getChildCount() > 0) {
-                    if (debug) {                        
+                    if (debug) {
                         System.out.println("Hodo bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
                     }
                     try {
                         for (BaseStructure slotBank : bank.getChildrenList()) {
-                                                        
+
                             if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
                                 for (CompositeData cdata : slotBank.getCompositeData()) {
 //                            CompositeData cdata = slotBank.getCompositeData();
@@ -166,13 +164,13 @@ public class HodoEvioReader extends EvioReader {
     }
 
     private BaseRawTrackerHit makeHodoRawHit(int time, long id, CompositeData cdata, int nSamples) {
-                
+
         short[] adcValues = new short[nSamples];
         for (int i = 0; i < nSamples; i++) {
             adcValues[i] = cdata.getShort();
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
-        
+
         // ==============================          Should be fixed            =====================
         // == ubDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0) does not work for now
 //        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
@@ -181,14 +179,12 @@ public class HodoEvioReader extends EvioReader {
 //                adcValues,
 //                new ArrayList<SimTrackerHit>(),
 //                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
-        
-        
         return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
                 time,
                 id,
                 adcValues,
                 new ArrayList<SimTrackerHit>(),
-                null);        
+                null);
     }
 
     private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
@@ -211,7 +207,6 @@ public class HodoEvioReader extends EvioReader {
 //                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
 //            }
 //        }
-        
 
         while (cdata.index() + 1 < cdata.getItems().size()) {
             short slot = cdata.getByte();
@@ -250,8 +245,8 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
-                
+        //HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
+        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
         if (hodoChannel == null) {
             return null;
         }
@@ -259,10 +254,10 @@ public class HodoEvioReader extends EvioReader {
         int iy = hodoChannel.getY();
         int ilayer = hodoChannel.getLayer();
         int ihole = hodoChannel.getHole();
-                
+
         GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
         Long id = geometryId.encode();
-    
+
         return id;
     }
 
@@ -309,8 +304,7 @@ public class HodoEvioReader extends EvioReader {
         }
         return hits;
     }
-    
-    
+
     private List<RawCalorimeterHit> makeIntegralHitsMode3(CompositeData cdata, int crate) {
         List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
         if (debug) {
@@ -356,8 +350,7 @@ public class HodoEvioReader extends EvioReader {
         }
         return hits;
     }
-    
-    
+
     private List<RawCalorimeterHit> makeIntegralHitsMode7(CompositeData cdata, int crate) {
         List<RawCalorimeterHit> hits = new ArrayList<RawCalorimeterHit>();
         if (debug) {
@@ -409,8 +402,7 @@ public class HodoEvioReader extends EvioReader {
         }
         return hits;
     }
-    
-    
+
     private void processUnrecognizedChannel(FADCGenericHit hit) {
         genericHits.add(hit);
 
@@ -430,15 +422,13 @@ public class HodoEvioReader extends EvioReader {
         }
     }
 
-    
     void initialize() {
-        
+
         subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
 
         // Hodo combined conditions object.
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
         helper = subDetector.getDetectorElement().getIdentifierHelper();
     }
-    
-    
+
 }
