@@ -700,7 +700,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
         
         // Instantiate some lists to store truth data, if truth is to
         // be output.
-        System.out.println("Write Truth: " + writeTruth);
         List<SimCalorimeterHit> triggerTruthHits = null;
         List<LCRelation> triggerTruthRelations = null;
         if(writeTruth) {
@@ -737,13 +736,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
         
         // Add the truth collections if they exist.
         if(writeTruth) {
-            // Make the truth data collection parameters object.
-            LCIOCollectionFactory.setParams(ReadoutDataManager.getCollectionParameters(truthHitCollectionName, SimCalorimeterHit.class));
-            LCIOCollectionFactory.setCollectionName("EcalHits");
-            LCIOCollectionFactory.setReadoutName(geometry.getReadout().getName());
-            LCIOCollection<SimCalorimeterHit> truthHitCollection = LCIOCollectionFactory.produceLCIOCollection(SimCalorimeterHit.class);
-            
             // Add the truth hits to the output collection.
+            LCIOCollection<SimCalorimeterHit> truthHitCollection = ReadoutDataManager.getCollectionParameters(truthHitCollectionName, SimCalorimeterHit.class);
             TriggeredLCIOData<SimCalorimeterHit> truthData = new TriggeredLCIOData<SimCalorimeterHit>(truthHitCollection);
             truthData.getData().addAll(triggerTruthHits);
             collectionsList.add(truthData);
@@ -760,9 +754,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             }
             
             // Create the truth MC particle collection.
-            LCIOCollectionFactory.setCollectionName("MCParticle");
-            LCIOCollectionFactory.setProductionDriver(this);
-            LCIOCollection<MCParticle> truthParticleCollection = LCIOCollectionFactory.produceLCIOCollection(MCParticle.class);
+            LCIOCollection<MCParticle> truthParticleCollection = ReadoutDataManager.getCollectionParameters("MCParticle", MCParticle.class);
             TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
             truthParticleData.getData().addAll(truthParticles);
             collectionsList.add(truthParticleData);
@@ -771,12 +763,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             TriggeredLCIOData<LCRelation> truthRelations = new TriggeredLCIOData<LCRelation>(truthRelationsCollectionParams);
             truthRelations.getData().addAll(triggerTruthRelations);
             collectionsList.add(truthRelations);
-            
-            System.out.println("Added truth data!!");
-            System.out.printf("\tReadout Hits    :: %d%n", collectionsList.get(0).getData().size());
-            System.out.printf("\tTruth Hits      :: %d%n", truthData.getData().size());
-            System.out.printf("\tTruth Particles :: %d%n", truthParticleData.getData().size());
-            System.out.printf("\tTruth Relations :: %d%n", truthRelations.getData().size());
         }
         
         // Return the extra trigger collections.
