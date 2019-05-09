@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.readout.util.collection.LCIOCollection;
-import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
@@ -51,9 +50,7 @@ public class SimCalorimeterHitReadoutDriver extends SLICDataReadoutDriver<SimCal
         }
         
         // Create the truth MC particle collection.
-        LCIOCollectionFactory.setCollectionName("MCParticle");
-        LCIOCollectionFactory.setProductionDriver(this);
-        LCIOCollection<MCParticle> truthParticleCollection = LCIOCollectionFactory.produceLCIOCollection(MCParticle.class);
+        LCIOCollection<MCParticle> truthParticleCollection = ReadoutDataManager.getCollectionParameters("MCParticle", MCParticle.class);
         TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
         truthParticleData.getData().addAll(truthParticles);
         
