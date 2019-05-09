@@ -249,8 +249,6 @@ public class ReadoutDataManager extends Driver {
                         continue;
                     }
                     
-                    System.out.println("Processing Collection: " + collectionData.getCollectionParameters().getCollectionName());
-                    
                     // Get the local start and end times. A driver
                     // may manually specify an amount of time before
                     // and after the trigger time which should be
@@ -261,13 +259,11 @@ public class ReadoutDataManager extends Driver {
                     if(!Double.isNaN(collectionData.getCollectionParameters().getWindowBefore())) {
                         localStartTime = trigger.getTriggerTime() - collectionData.getCollectionParameters().getWindowBefore();
                     }
-                    System.out.println("\tLocal Start Time: " + localStartTime);
                     
                     double localEndTime = endTime;
                     if(!Double.isNaN(collectionData.getCollectionParameters().getWindowAfter())) {
                         localEndTime = trigger.getTriggerTime() + collectionData.getCollectionParameters().getWindowAfter();
                     }
-                    System.out.println("\tLocal End Time: " + localEndTime);
                     
                     // Get the object data for the time range.
                     addDataToMap(collectionData.getCollectionParameters(), localStartTime, localEndTime, triggeredDataMap);
@@ -379,9 +375,6 @@ public class ReadoutDataManager extends Driver {
             double time = Double.isNaN(dataTime) ? currentTime - collectionData.getCollectionParameters().getGlobalTimeDisplacement() : dataTime;
             LinkedList<TimedList<?>> dataBuffer = collectionData.getData();
             dataBuffer.add(new TimedList<T>(time, data));
-            
-            //System.out.printf("Added %d objects of type %s to collection \"%s\" at time t = %.0f.%n", data.size(),
-            //        dataType.getSimpleName(), collectionName, time);
         }
     }
     
@@ -629,6 +622,11 @@ public class ReadoutDataManager extends Driver {
         System.out.println("Registered collection \"" + managedParams.getCollectionName() + "\" of class type "
                 + managedParams.getObjectType().getSimpleName() + ".");
         
+        System.out.println("\tCollection Name   :: " + params.getCollectionName());
+        System.out.println("\tFlags             :: " + Integer.toHexString(params.getFlags()));
+        System.out.println("\tObject Type       :: " + params.getObjectType().getSimpleName());
+        System.out.println("\tReadout Name      :: " + params.getReadoutName());
+        System.out.println("\tProduction Driver :: " + params.getProductionDriver().getClass().getSimpleName());
     }
     
     /**
@@ -774,9 +772,6 @@ public class ReadoutDataManager extends Driver {
     private static final <T> void addDataToMap(LCIOCollection<T> params, double startTime, double endTime, Map<String, TriggeredLCIOData<?>> triggeredDataMap) {
         // Get the readout data objects.
         List<T> triggerData = getDataList(startTime, endTime, params.getCollectionName(), params.getObjectType());
-        
-        System.out.printf("Storing collection \"%s\" of type %s and size %d in range %.0f to %.0f.%n", params.getCollectionName(),
-                params.getObjectType().getSimpleName(), triggerData.size(), startTime, endTime);
         
         // Pass the readout data to the merging method.
         addDataToMap(params, triggerData, triggeredDataMap);
@@ -951,7 +946,7 @@ public class ReadoutDataManager extends Driver {
             event.put(collectionName, dataList, objectType, flags, readoutName);
         }
         
-        System.out.printf("Output %d objects of type %s to collection \"%s\".%n", dataList.size(), objectType.getSimpleName(), collectionName);
+        System.out.printf("\tOutput %d objects of type %s to collection \"%s\".%n", dataList.size(), objectType.getSimpleName(), collectionName);
     }
     
     /**
