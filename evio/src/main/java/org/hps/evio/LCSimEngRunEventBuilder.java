@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.trigger.TiTimeOffset;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
@@ -20,7 +21,6 @@ import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -100,9 +100,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         svtEventFlagger.initialize();
         
         // Set TI time offset from run database.
-        ConditionsManager mgr = conditionsEvent.getConditionsManager();
-        TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
-        currentTiTimeOffset = t.getValue();
+        DatabaseConditionsManager mgr = (DatabaseConditionsManager) conditionsEvent.getConditionsManager();
+        if (mgr.hasConditionsRecord("ti_time_offsets")) {
+            TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
+            currentTiTimeOffset = t.getValue();            
+        }
     }
     
     /**
