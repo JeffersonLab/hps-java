@@ -55,7 +55,7 @@ public class PrintCollectionsUtility {
      */
     public static void main(String[] args) throws IOException, NumberFormatException, ConditionsNotFoundException {
         // Define the command line arguments.
-        UtilityArgumentParser argsParser = new UtilityArgumentParser("java -cp $HPS_JAVA org.hps.analysis.hodoscope.HodoscopeBoundsPrinterUtility");
+        UtilityArgumentParser argsParser = new UtilityArgumentParser("java -cp $HPS_JAVA org.hps.analysis.util.PrintCollectionsUtility");
         argsParser.addSingleValueArgument("-i", "--input", "Input file name", true);
         argsParser.addSingleValueArgument("-d", "--detector", "Detector name", true);
         argsParser.addSingleValueArgument("-R", "--run", "Run number", true);
