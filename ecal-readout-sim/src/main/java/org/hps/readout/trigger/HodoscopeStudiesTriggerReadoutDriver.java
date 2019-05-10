@@ -6,13 +6,26 @@ import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-
-public class SimpleHodoscopeTrigger extends TriggerDriver {
+/**
+ * <code>HodoscopeStudiesTriggerReadoutDriver</code> is a simple
+ * trigger that is intended for use in hodoscope trigger studies. It
+ * triggers by selecting events that a cluster with an x-position
+ * greater than some threshold.
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ * @see org.hps.readout.TriggerDriver
+ */
+public class HodoscopeStudiesTriggerReadoutDriver extends TriggerDriver {
     /**
      * Specifies the name of the LCIO collection containing the input
      * hodoscope hits that are used for triggering.
      */
     private String inputCollectionName = "EcalClustersGTP";
+    
+    /**
+     * Defines the cluster position lower-bound cut threshold.
+     */
+    private double xThreshold = 80.0;
     
     /**
      * Tracks the current local time in nanoseconds for this driver.
@@ -36,7 +49,7 @@ public class SimpleHodoscopeTrigger extends TriggerDriver {
         // If there exists a cluster in the calorimeter at a position
         // greater than 80 mm, output the event.
         for(Cluster cluster : clusters) {
-            if(cluster.getPosition()[0] > 80.0) {
+            if(cluster.getPosition()[0] >= xThreshold) {
                 sendTrigger();
                 break;
             }
@@ -53,6 +66,23 @@ public class SimpleHodoscopeTrigger extends TriggerDriver {
         
         // Run the superclass method.
         super.startOfData();
+    }
+    
+    /**
+     * Sets the name of the input cluster collection.
+     * @param collection - The collection name.
+     */
+    public void setInputCollectionName(String collection) {
+        inputCollectionName  = collection;
+    }
+    
+    /**
+     * Sets the cluster position lower bound cut threshold.
+     * @param xThreshold - The threshold. Clusters with an x-position
+     * below this value will not trigger.
+     */
+    public void setXThreshold(double xThreshold) {
+        this.xThreshold = xThreshold;
     }
     
     @Override

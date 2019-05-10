@@ -54,7 +54,7 @@
           -->
         <driver name="EcalHitsOutputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
             <collectionName>EcalHits</collectionName>
-            
+			
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
@@ -70,14 +70,14 @@
             <persistent>true</persistent>
         </driver>
         
-<!--
+		<!--
         <driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
             <collectionName>TrackerHits</collectionName>
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
             <persistent>false</persistent>
         </driver>
--->
+		-->
         
         <driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
             <collectionName>TrackerHitsECal</collectionName>
@@ -309,19 +309,36 @@
         </driver>
 		
         <!--
-            The production pair trigger. This trigger allows the user to
-            specify the trigger deadtime (how much time must pass before a new
-            trigger can occur after a previous trigger has been created) and
-            the values of all the trigger cuts.
+            The trigger studies hodoscope trigger selects any event with a
+			cluster that has an x-position above a specified lower bound.
         -->
-        <driver name="SimpleHodoscopeTrigger" type="org.hps.readout.trigger.PairTriggerReadoutDriver" />
+        <driver name="SimpleHodoscopeTrigger" type="org.hps.readout.trigger.HodoscopeStudiesTriggerReadoutDriver">
+			<!--
+				The trigger deadtime is set to 0 to include all possible events.
+				This trigger is for trigger studies and does not need to match the
+				limitations of the actual hardware.
+			-->
+			<deadTime>0</deadTime>
+			
+			<!--
+				Defines the cluster position lower bound cut. This is units of
+				millimeters and is inclusive.
+			-->
+			<xThreshold>80.0</xThreshold>
+			
+			<!--
+				Defines the name of the GTP cluster collection.
+			-->
+			<inputCollectionName>EcalClustersGTP</inputCollectionName>
+		</driver>
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
             <readoutWindow>200</readoutWindow>
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>
-<!--        
+		
+		<!--        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
--->
+		-->
     </drivers>
 </lcsim>
