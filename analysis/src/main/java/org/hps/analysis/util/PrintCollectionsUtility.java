@@ -25,66 +25,93 @@ import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.lcio.LCIOReader;
 
+/**
+ * <code>PrintCollectionsUtility</code> is a utility designed to
+ * print all of the collections in an argument LCIO file from the
+ * command line. Users can specify how many events to search for new
+ * unique collection names. The utility will print both the names of
+ * all collections observed and the object types.
+ * <br/><br/>
+ * Additionally, users may specify that the utility should print the
+ * full collection data for specific collections. This will only
+ * occur if there is a print method for that object type implemented.
+ * 
+ * @author Kyle McCarty <mccarty@jlab.org>
+ */
 public class PrintCollectionsUtility {
+    /**
+     * Iterates over the events in a file and collates all the
+     * collection names which occur in any event. Method can also
+     * print the data in the collections if a <code>toString(T,
+     * int)</code> method (where <code>T</code> is the type of the
+     * object) is implemented.
+     * @param args - The command line arguments.
+     * @throws IOException - Should never occur. This is used
+     * internally to identify the end of the LCIO input file.
+     * @throws NumberFormatException - Occurs if a command line
+     * argument that is intended to be numerical is not.
+     * @throws ConditionsNotFoundException Occurs if the specified
+     * conditions set is not found.
+     */
     public static void main(String[] args) throws IOException, NumberFormatException, ConditionsNotFoundException {
-        if(args[0].compareTo("-h") == 0 || args[0].compareTo("--help") == 0) {
-            System.out.println(BashParameter.format("java -cp $HPS_JAVA org.hps.analysis.util.PrintCollectionsUtility [", BashParameter.TEXT_LIGHT_BLUE)
-                    + BashParameter.format(" INPUT_FILE ", BashParameter.TEXT_YELLOW, BashParameter.PROPERTY_BOLD)
-                    + BashParameter.format("]", BashParameter.TEXT_LIGHT_BLUE));
-            System.out.println(getFormattedArgumentText('d', "Detector name             ", true));
-            System.out.println(getFormattedArgumentText('R', "Run number                ", true));
-            System.out.println(getFormattedArgumentText('n', "Maximum events to process ", false));
-            System.out.println(getFormattedArgumentText('p', "Print collection data     ", false));
-        }
-        
-        // Validate the input file.
-        if(args.length == 0) { throw new RuntimeException("Error: Input file is not defined."); }
-        File inputFile = new File(args[0]);
-        if(!inputFile.exists()) { throw new RuntimeException("Error: Input file \"" + args[0] + "\" does not exist."); }
+        // Define the command line arguments.
+        UtilityArgumentParser argsParser = new UtilityArgumentParser("java -cp $HPS_JAVA org.hps.analysis.hodoscope.HodoscopeBoundsPrinterUtility");
+        argsParser.addSingleValueArgument("-i", "--input", "Input file name", true);
+        argsParser.addSingleValueArgument("-d", "--detector", "Detector name", true);
+        argsParser.addSingleValueArgument("-R", "--run", "Run number", true);
+        argsParser.addSingleValueArgument("-n", "--number", "Maximum events to process", false);
+        argsParser.addMultipleValueArgument("-p", "--print", "Print collection data", false);
+        argsParser.addFlagArgument("-h", "--help", "Display usage information", false);
         
         // Parse the command line arguments.
-        String detectorName = null;
-        int runNumber = Integer.MIN_VALUE;
-        int maxEvents = Integer.MAX_VALUE;
-        List<String> printCollections = new ArrayList<String>();
-        for(int i = 1; i < args.length; i++) {
-            if(args[i].compareTo("-d") == 0) {
-                i++;
-                if(args.length > i) { detectorName = args[i]; } else { throwArgumentError(); }
-            } else if(args[i].compareTo("-R") == 0) {
-                i++;
-                if(args.length > i) { runNumber = Integer.parseInt(args[i]); } else { throwArgumentError(); }
-            } else if(args[i].compareTo("-n") == 0) {
-                i++;
-                if(args.length > i) { maxEvents = Integer.parseInt(args[i]); } else { throwArgumentError(); }
-            } else if(args[i].compareTo("-p") == 0) {
-                i++;
-                if(args.length > i) { printCollections.add(args[i]); } else { throwArgumentError(); }
-            }
+        argsParser.parseArguments(args);
+        
+        // If the "display usage information" argument is present,
+        // then display the usage information and exit. Also do this
+        // if a required argument is not included.
+        if(argsParser.isDefined("-h") || !argsParser.verifyRequirements()) {
+            System.out.println(argsParser.getHelpText());
+            System.exit(0);
         }
         
-        // Validate the mandatory options are defined.
-        if(detectorName == null || runNumber == Integer.MIN_VALUE) {
-            throw new RuntimeException("Mandatory options not set. See help text.");
-        }
+        // Get the required arguments.
+        String detectorName = ((SingleValueArgument) argsParser.getArgument("-d")).getValue();
+        int runNumber = Integer.parseInt(((SingleValueArgument) argsParser.getArgument("-R")).getValue());
         
         // Load the conditions database.
         DatabaseConditionsManager conditions = DatabaseConditionsManager.getInstance();
         conditions.setRun(runNumber);
         conditions.setDetector(detectorName, runNumber);
         
+        // Get the maximum number of events to run.
+        int maxEvents = Integer.MAX_VALUE;
+        if(argsParser.isDefined("-n")) {
+            maxEvents = Integer.parseInt(((SingleValueArgument) argsParser.getArgument("-n")).getValue());
+        }
+        
+        // Get the collections which should be printed.
+        List<String> printCollections = new ArrayList<String>();
+        if(argsParser.isDefined("-p")) {
+            printCollections = ((MultipleValueArgument) argsParser.getArgument("-p")).getValues();
+        }
+        
+        // Validate the input file.
+        String fileName = ((SingleValueArgument) argsParser.getArgument("-i")).getValue();
+        File inputFile = new File(fileName);
+        if(!inputFile.exists()) { throw new RuntimeException("Error: Input file \"" + args[0] + "\" does not exist."); }
+        
         // Initialize the file reader.
-        File input = new File(args[0]);
-        LCIOReader reader = new LCIOReader(input);
+        LCIOReader reader = new LCIOReader(inputFile);
         
         // Get all collections names.
         int processedEvents = 0;
         Set<Pair<String, String>> collectionSet = new HashSet<Pair<String, String>>();
         Map<String, Class<?>> collectionMap = new HashMap<String, Class<?>>();
-        while(true && processedEvents < maxEvents) {
+        eventLoop:
+        while(true) {
             EventHeader event = null;
             try { event = reader.read(); }
-            catch(EOFException e) { break; }
+            catch(EOFException e) { break eventLoop; }
             
             @SuppressWarnings("rawtypes")
             Set<List> eventCollections = event.getLists();
@@ -96,15 +123,20 @@ public class PrintCollectionsUtility {
             
             // If no collections were specified for printing, then
             // continue to the next iteration.
-            if(printCollections.isEmpty()) { continue; }
+            if(printCollections.isEmpty()) {
+                processedEvents++;
+                if(processedEvents >= maxEvents) { break eventLoop; }
+                continue eventLoop;
+            }
             
             // Otherwise, print the data.
             System.out.println(BashParameter.format("Requested Print Collections for Event ", BashParameter.TEXT_LIGHT_BLUE)
                     + BashParameter.format(Integer.toString(event.getEventNumber()), BashParameter.TEXT_GREEN, BashParameter.PROPERTY_BOLD));
             collectionPrintLoop:
             for(int i = 0; i < printCollections.size(); i++) {
-                // Indicate the current colection.
-                System.out.println("\tPrinting data for collection \"" + BashParameter.format(printCollections.get(i), BashParameter.TEXT_YELLOW, BashParameter.PROPERTY_BOLD) + "\"...");
+                // Indicate the current collection.
+                System.out.println("\tPrinting data for collection \""
+                        + BashParameter.format(printCollections.get(i), BashParameter.TEXT_YELLOW, BashParameter.PROPERTY_BOLD) + "\"...");
                 
                 // Check to see if the collection exists in this event.
                 if(!collectionMap.containsKey(printCollections.get(i))) {
@@ -139,6 +171,7 @@ public class PrintCollectionsUtility {
             
             // Increment the number of processed events.
             processedEvents++;
+            if(processedEvents >= maxEvents) { break eventLoop; }
         }
         
         // Move the collection names into a sorted list.
@@ -167,19 +200,13 @@ public class PrintCollectionsUtility {
         }
     }
     
-    private static final String getFormattedArgumentText(char argument, String description, boolean mandatory) {
-        StringBuffer outputBuffer = new StringBuffer("\t\t");
-        outputBuffer.append(BashParameter.format("-" + Character.toString(argument), BashParameter.TEXT_YELLOW, BashParameter.PROPERTY_BOLD));
-        outputBuffer.append(' ');
-        outputBuffer.append(description);
-        if(mandatory) {
-            outputBuffer.append(BashParameter.format("[ MANDATORY ]", BashParameter.TEXT_RED, BashParameter.PROPERTY_BOLD));
-        } else {
-            outputBuffer.append(BashParameter.format("[ OPTIONAL  ]", BashParameter.TEXT_LIGHT_GREY, BashParameter.PROPERTY_DIM));
-        }
-        return outputBuffer.toString();
-    }
-    
+    /**
+     * Creates an {@link java.util.String String} consisting of the
+     * specified number of indents.
+     * @param level - The number of indents.
+     * @return Returns a <code>String</code> with the specified
+     * number of indents.
+     */
     private static final String getIndent(int level) {
         StringBuffer outputBuffer = new StringBuffer();
         for(int i = 0; i < level; i++) {
@@ -188,10 +215,14 @@ public class PrintCollectionsUtility {
         return outputBuffer.toString();
     }
     
-    private static final void throwArgumentError() {
-        throw new RuntimeException("Error: invalid commandline arguments.");
-    }
-    
+    /**
+     * Creates s textual representation of the data stored in a
+     * {@link org.lcsim.event.CalorimeterHit CalorimeterHit}
+     * object.
+     * @param truthHit - The object.
+     * @param indentLevel - The level of indention to prepend.
+     * @return Returns the textual representation.
+     */
     @SuppressWarnings("unused")
     private static final String toString(CalorimeterHit truthHit, int indentLevel) {
         // Create a buffer to store the data and generate the indent
@@ -209,6 +240,14 @@ public class PrintCollectionsUtility {
         return outputBuffer.toString();
     }
     
+    /**
+     * Creates s textual representation of the data stored in a
+     * {@link org.lcsim.event.SimCalorimeterHit SimCalorimeterHit}
+     * object.
+     * @param truthHit - The object.
+     * @param indentLevel - The level of indention to prepend.
+     * @return Returns the textual representation.
+     */
     @SuppressWarnings("unused")
     private static final String toString(SimCalorimeterHit truthHit, int indentLevel) {
         // Create a buffer to store the data and generate the indent
@@ -216,14 +255,16 @@ public class PrintCollectionsUtility {
         StringBuffer outputBuffer = new StringBuffer();
         String indent = getIndent(indentLevel);
         
-        outputBuffer.append(String.format(indent + "Time      :: " + BashParameter.format("%f", BashParameter.TEXT_YELLOW) + " GeV%n", truthHit.getTime()));
-        outputBuffer.append(String.format(indent + "Energy    :: " + BashParameter.format("%f", BashParameter.TEXT_YELLOW) + " GeV%n", truthHit.getCorrectedEnergy()));
-        outputBuffer.append(String.format(indent + "Position  :: <" + BashParameter.format("%f, %f", BashParameter.TEXT_YELLOW) + ">%n", truthHit.getPosition()[0], truthHit.getPosition()[1]));
-        outputBuffer.append(String.format(indent + "Indices   :: <" + BashParameter.format("%d, %d", BashParameter.TEXT_YELLOW) + ">%n",
+        outputBuffer.append(String.format(indent + "Time      :: " + yellow("%f") + " GeV%n", truthHit.getTime()));
+        outputBuffer.append(String.format(indent + "Energy    :: " + yellow("%f") + " GeV%n", truthHit.getCorrectedEnergy()));
+        outputBuffer.append(String.format(indent + "Position  :: <" + yellow("%f") + ", " + yellow("%f") + ">%n", truthHit.getPosition()[0], truthHit.getPosition()[1]));
+        outputBuffer.append(String.format(indent + "Indices   :: <" + yellow("%d") + ", " + yellow("%d") + ">%n",
                 truthHit.getIdentifierFieldValue("ix"), truthHit.getIdentifierFieldValue("iy")));
-        outputBuffer.append(String.format(indent + "Particles :: " + BashParameter.format("%d", BashParameter.TEXT_YELLOW) + "%n", truthHit.getMCParticleCount()));
+        outputBuffer.append(String.format(indent + "Particles :: " + yellow("%d") + "%n", truthHit.getMCParticleCount()));
         for(int i = 0; i < truthHit.getMCParticleCount(); i++) {
-            outputBuffer.append(String.format(indent + "\tPDGID = %3d;  t = %13.2f;  p = <%5.3f, %5.3f, %5.3f>;   r = <%5.1f, %5.1f, %5.1f>%n",
+            outputBuffer.append(String.format(indent + "\tPDGID = " + BashParameter.format("%3d", BashParameter.TEXT_YELLOW) + ";  t = " + yellow("%13.2f")
+                    + ";  p = <" + yellow("%5.3f") + ", " + yellow("%5.3f") + ", " + yellow("%5.3f") + ">;   r = <" + yellow("%5.1f") + ", " + yellow("%5.1f")
+                    + ", " + yellow("%5.1f") + ">%n",
                     truthHit.getMCParticle(i).getPDGID(), truthHit.getMCParticle(i).getProductionTime(), truthHit.getMCParticle(i).getMomentum().x(),
                     truthHit.getMCParticle(i).getMomentum().y(), truthHit.getMCParticle(i).getMomentum().z(), truthHit.getMCParticle(i).getOriginX(),
                     truthHit.getMCParticle(i).getOriginY(), truthHit.getMCParticle(i).getOriginZ()));
@@ -233,6 +274,13 @@ public class PrintCollectionsUtility {
         return outputBuffer.toString();
     }
     
+    /**
+     * Creates s textual representation of the data stored in a
+     * {@link org.lcsim.event.MCParticle MCParticle} object.
+     * @param truthHit - The object.
+     * @param indentLevel - The level of indention to prepend.
+     * @return Returns the textual representation.
+     */
     @SuppressWarnings("unused")
     private static final String toString(MCParticle particle, int indentLevel) {
         // Create a buffer to store the data and generate the indent
@@ -240,16 +288,23 @@ public class PrintCollectionsUtility {
         StringBuffer outputBuffer = new StringBuffer();
         String indent = getIndent(indentLevel);
         
-        outputBuffer.append(String.format(indent + "Type     :: " + BashParameter.format("%d", BashParameter.TEXT_YELLOW) + " GeV%n", particle.getPDGID()));
-        outputBuffer.append(String.format(indent + "Time     :: " + BashParameter.format("%f", BashParameter.TEXT_YELLOW) + " GeV%n", particle.getProductionTime()));
-        outputBuffer.append(String.format(indent + "Momentum :: " + BashParameter.format("%f", BashParameter.TEXT_YELLOW) + " GeV%n", particle.getMomentum().magnitude()));
-        outputBuffer.append(String.format(indent + "Origin   :: <" + BashParameter.format("%f, %f, %f", BashParameter.TEXT_YELLOW) + ">%n", particle.getOriginX(),
-                particle.getOriginY(), particle.getOriginZ()));
+        outputBuffer.append(String.format(indent + "Type     :: " + yellow("%d") + " GeV%n", particle.getPDGID()));
+        outputBuffer.append(String.format(indent + "Time     :: " + yellow("%f") + " GeV%n", particle.getProductionTime()));
+        outputBuffer.append(String.format(indent + "Momentum :: " + yellow("%f") + " GeV%n", particle.getMomentum().magnitude()));
+        outputBuffer.append(String.format(indent + "Origin   :: <" + yellow("%f") + ", " + yellow("%f") + ", " + yellow("%f") + ">%n",
+                particle.getOriginX(), particle.getOriginY(), particle.getOriginZ()));
         
         // Return the result.
         return outputBuffer.toString();
     }
     
+    /**
+     * Creates s textual representation of the data stored in a
+     * {@link org.lcsim.event.GenericObject GenericObject} object.
+     * @param truthHit - The object.
+     * @param indentLevel - The level of indention to prepend.
+     * @return Returns the textual representation.
+     */
     @SuppressWarnings("unused")
     private static final String toString(GenericObject obj, int indentLevel) {
         // Create a buffer to store the data and generate the indent
@@ -258,7 +313,7 @@ public class PrintCollectionsUtility {
         String indent = getIndent(indentLevel);
         
         // Print the integer banks.
-        outputBuffer.append(String.format(indent + "Number of integers :: " + BashParameter.format("%d", BashParameter.TEXT_YELLOW) + "%n", obj.getNInt()));
+        outputBuffer.append(String.format(indent + "Number of integers :: " + yellow("%d") + "%n", obj.getNInt()));
         if(obj.getNInt() != 0) {
             outputBuffer.append(indent + "\t { ");
             for(int i = 0; i < obj.getNInt(); i++) {
@@ -269,7 +324,7 @@ public class PrintCollectionsUtility {
         }
         
         // Print the float banks.
-        outputBuffer.append(String.format(indent + "Number of floats ::   " + BashParameter.format("%d", BashParameter.TEXT_YELLOW) + "%n", obj.getNFloat()));
+        outputBuffer.append(String.format(indent + "Number of floats ::   " + yellow("%d") + "%n", obj.getNFloat()));
         if(obj.getNFloat() != 0) {
             outputBuffer.append(indent + "\t { ");
             for(int i = 0; i < obj.getNFloat(); i++) {
@@ -280,7 +335,7 @@ public class PrintCollectionsUtility {
         }
         
         // Print the double banks.
-        outputBuffer.append(String.format(indent + "Number of doubles ::  " + BashParameter.format("%d", BashParameter.TEXT_YELLOW) + "%n", obj.getNDouble()));
+        outputBuffer.append(String.format(indent + "Number of doubles ::  " + yellow("%d") + "%n", obj.getNDouble()));
         if(obj.getNDouble() != 0) {
             outputBuffer.append(indent + "\t { ");
             for(int i = 0; i < obj.getNDouble(); i++) {
@@ -293,4 +348,12 @@ public class PrintCollectionsUtility {
         // Return the result.
         return outputBuffer.toString();
     }
+    
+    /**
+     * Applies BASH formatting to the argument text such that it will
+     * display using yellow text.
+     * @param text - The text to format.
+     * @return Returns the argument text with BASH formatting.
+     */
+    private static final String yellow(String text) { return BashParameter.format(text, BashParameter.TEXT_YELLOW); }
 }
