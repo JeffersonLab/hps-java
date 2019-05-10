@@ -270,8 +270,8 @@
               -->
             <readoutOffset>13</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
             <readoutWindow>50</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
-            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
-            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesAfter>10</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>6</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
             <integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
             
             <!--

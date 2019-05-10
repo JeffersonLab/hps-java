@@ -51,8 +51,10 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
         setTriggerPathTruthRelationsCollectionName("HodoscopeTriggerPathTruthRelations");
         setReadoutHitCollectionName("HodoscopeReadoutHits");
         
-        setPhotoelectronsPerMeV(10.0);
+        setNumberSamplesAfter(10);
+        setNumberSamplesBefore(6);
         setPulseTimeParameter(4.0);
+        setPhotoelectronsPerMeV(10.0);
     }
     
     @Override
