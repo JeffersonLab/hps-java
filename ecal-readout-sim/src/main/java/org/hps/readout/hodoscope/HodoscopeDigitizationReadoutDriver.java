@@ -16,6 +16,7 @@ import org.hps.conditions.hodoscope.HodoscopeTimeShift;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
 import org.hps.readout.DigitizationReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
+import org.hps.util.BashParameter;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
 
@@ -107,8 +108,6 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     
     @Override
     protected int getTimestampFlag() {
-        // TODO: We need the real value for this!!
-        System.out.println(" !! WARNING !! :: TEMPORARY TIMESTAMP VALUE IN USE FOR HODOSCOPE - FIX THIS!! :: !! WARNING !!");
         return ReadoutTimestamp.SYSTEM_HODOSCOPE;
     }
     
