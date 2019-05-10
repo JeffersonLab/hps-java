@@ -80,10 +80,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
-//        hodoReader.setTopBankTag(0x25); 
-//        hodoReader.setBotBankTag(0x27); 
-        hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
-        hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
+        hodoReader.setTopBankTag(0x25); 
+        hodoReader.setBotBankTag(0x27); 
+//        hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
+//        hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
         ecalReader.setRfBankTag(0x2e);
         svtReader = new AugmentedSvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
