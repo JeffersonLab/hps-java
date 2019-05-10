@@ -16,7 +16,6 @@ import org.hps.conditions.hodoscope.HodoscopeTimeShift;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
 import org.hps.readout.DigitizationReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
-import org.hps.util.BashParameter;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
 
