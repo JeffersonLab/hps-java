@@ -366,8 +366,8 @@ public class HodoscopeReadoutTest extends TestCase {
                 cloud1D("Endpoint X").fill(endp.x());
                 cloud1D("Endpoint Y").fill(endp.y());
                 cloud1D("Endpoint Z").fill(endp.z());
-                cloud1D("Endpoint XY").fill(endp.x(), endp.y());
-                cloud1D("Endpoint ZY").fill(endp.z(), endp.y());
+                cloud2D("Endpoint XY").fill(endp.x(), endp.y());
+                cloud2D("Endpoint ZY").fill(endp.z(), endp.y());
             }
         }
     }
