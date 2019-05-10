@@ -18,6 +18,7 @@ public class TIData extends AbstractIntData {
      * The expected number of entries in the data bank for the 2015 data.
      */
     private static final int BANK_SIZE_2015 = 4;
+    
     /**
      * The expected number of entries in the data bank for the 2016 data (after
      * unprescaled trigger bits were added).
@@ -70,8 +71,12 @@ public class TIData extends AbstractIntData {
         switch (this.bank.length) {
             case BANK_SIZE_2015:
 //                System.out.println("2015-style TI bank");
-                break;
-            case BANK_SIZE_2016:
+                break;            
+            default:
+                /* 
+                 * Made the 2016 format the default. --JM
+                 */
+//            case BANK_SIZE_2016:
 //                System.out.format("2016-style TI bank, first word %x, last word %x\n", bank[0], bank[4]);
                 hasUnprescaledTriggerBits = true;
                 singles0Unprescaled = ((bank[0]) & 1) == 1;
@@ -81,8 +86,8 @@ public class TIData extends AbstractIntData {
                 calibUnprescaled = ((bank[0] >> 4) & 1) == 1;
                 pulserUnprescaled = ((bank[0] >> 5) & 1) == 1;
                 break;
-            default:
-                throw new RuntimeException("Invalid Data Length:  " + bank.length);
+            //default:
+            //    throw new RuntimeException("Invalid Data Length:  " + bank.length);
         }
 
         // Check each trigger bit to see if it is active. A value of 
