@@ -37,15 +37,12 @@ public class HodoscopeBoundsPrinterUtility {
         argsParser.parseArguments(args);
         
         // If the "display usage information" argument is present,
-        // then display the usage information and exit.
-        if(argsParser.isDefined("-h")) {
+        // then display the usage information and exit. Also do this
+        // if a required argument is not included.
+        if(argsParser.isDefined("-h") || !argsParser.verifyRequirements()) {
             System.out.println(argsParser.getHelpText());
             System.exit(0);
         }
-        
-        // Verify that the required arguments are defined. If not,
-        // throw an exception.
-        argsParser.verifyRequirements();
         
         // Get the required arguments.
         String detectorName = ((SingleValueArgument) argsParser.getArgument("-d")).getValue();

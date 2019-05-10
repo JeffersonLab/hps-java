@@ -219,15 +219,19 @@ class UtilityArgumentParser {
      * @throws RuntimeException Occurs if a required argument is not
      * defined.
      */
-    void verifyRequirements() throws RuntimeException {
+    boolean verifyRequirements() throws RuntimeException {
         // Iterate over the arguments. If there is an instance of a
         // required argument where no values have been defined, then
         // the requirements are not satisfied.
         for(Argument arg : arguments) {
             if(arg.isRequired() && !arg.isDefined()) {
-                throwRequiredArgumentMissingError();
+                return false;
             }
         }
+        
+        // If all required arguments are defined, then the
+        // requirements are satisfied.
+        return true;
     }
     
     /**
