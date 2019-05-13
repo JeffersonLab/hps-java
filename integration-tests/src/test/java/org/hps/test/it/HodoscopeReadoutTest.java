@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hps.analysis.hodoscope.HodoscopePlotsDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.job.DatabaseConditionsManagerSetup;
@@ -35,21 +36,43 @@ import hep.aida.ICloud2D;
 import hep.physics.vec.Hep3Vector;
 import junit.framework.TestCase;
 
+/**
+ * Integration test for running filtering and readout on simulated Hodoscope data
+ * and creating plots from the final readout data.
+ * 
+ * @author Jeremy McCormick
+ */
 public class HodoscopeReadoutTest extends TestCase {
     
+    /** Name of remote test file with SLIC events */
     static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps-java/slicHodoTestEvents.slcio";
 
+    /** Name of test detector, which does not include SVT */
     private String DETECTOR_NAME = "HPS-HodoscopeTest-v1";
+    
+    /** Run number for conditions system initialization*/
     private Integer RUN_NUMBER = 1000000;
+    
+    /** Event spacing to use for filtering */
     private Integer EVENT_SPACING = 300;
-    
-    public static final AIDA aida = AIDA.defaultInstance();
-    
-    // Set these to true to run the full data chain
+        
+    /** Set to true to run the filtering for spacing the events. */
     private static final boolean RUN_FILTERING = true;
+    
+    /** Set to true to run the readout simulation. */
     private static final boolean RUN_READOUT = true;
+    
+    /** Set to true to write ROOT output. */
     private static final boolean WRITE_ROOT = false;
     
+    /** Set to true to include Driver which writes basic plots. */
+    private static final boolean INCLUDE_BASIC_PLOTS = true;
+    
+    /** Set to true to include Driver which writes detailed plots from analysis module. */
+    private static final boolean INCLUDE_DETAILED_PLOTS = true; 
+    
+    public static final AIDA aida = AIDA.defaultInstance();
+   
     public void testHodoscopeReadout() throws IOException, ConditionsNotFoundException {
 
         // Get remote test file
@@ -87,8 +110,13 @@ public class HodoscopeReadoutTest extends TestCase {
         condMgr.setDetector(DETECTOR_NAME, RUN_NUMBER);
         condMgr.freeze();
         AidaSaveDriver aida = new AidaSaveDriver();
-        aida.setOutputFileName(outputFile.getPath() + ".aida");        
-        loop.add(new HodoAnalDriver());
+        aida.setOutputFileName(outputFile.getPath() + ".aida");
+        if (INCLUDE_BASIC_PLOTS) {
+            loop.add(new HodoAnalDriver());
+        }
+        if (INCLUDE_DETAILED_PLOTS) {
+            loop.add(new HodoscopePlotsDriver());
+        }
         loop.add(aida);
         if (WRITE_ROOT) {
             AidaSaveDriver root = new AidaSaveDriver();
@@ -136,6 +164,7 @@ public class HodoscopeReadoutTest extends TestCase {
         }
                         
         public void startOfData() {
+            aida.tree().mkdir("/Collections");
             for (Driver driver : this.drivers()) {
                 HodoDriver<?> hodoDriver = (HodoDriver<?>) driver;
                 hodoDriver.mkdir();
@@ -165,7 +194,7 @@ public class HodoscopeReadoutTest extends TestCase {
         
         public HodoDriver(Class<T> klass, String collName) {
             this.collName = collName;
-            this.dirName = "/" + this.collName;
+            this.dirName = "/Collections/" + this.collName;
             this.klass = klass;
         }
         
