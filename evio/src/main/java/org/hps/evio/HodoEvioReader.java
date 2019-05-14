@@ -246,8 +246,8 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-        //HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
-        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
+        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
+        //HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
 
         if (hodoChannel == null) {
             return null;
