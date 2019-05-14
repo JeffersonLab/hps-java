@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.trigger.TiTimeOffset;
 import org.hps.record.epics.EpicsData;
@@ -80,10 +81,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
-//        hodoReader.setTopBankTag(0x25); 
-//        hodoReader.setBotBankTag(0x27); 
-        hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
-        hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
+        hodoReader.setTopBankTag(0x25); 
+        hodoReader.setBotBankTag(0x27); 
+//        hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
+//        hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
         ecalReader.setRfBankTag(0x2e);
         svtReader = new AugmentedSvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
@@ -104,12 +105,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         svtEventFlagger.initialize();
         
         // Set TI time offset from run database.
-        ConditionsManager mgr = conditionsEvent.getConditionsManager();
-
-        // ====== Rafo: following two lines will be commented for testinpurposes
-        // ====== In the conditions we dont have these for hodotest runs
-//        TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
-//        currentTiTimeOffset = t.getValue();
 
         currentTiTimeOffset = Long.valueOf(0);
         DatabaseConditionsManager mgr = (DatabaseConditionsManager) conditionsEvent.getConditionsManager();
