@@ -758,7 +758,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         }
         this.registerConditionsConverter(this.svtConverter);
         this.registerConditionsConverter(this.ecalConverter);
-        this.registerConditionsConverter(this.hodoscopeConverter);
+        if(this.hodoscopeConverter != null) this.registerConditionsConverter(this.hodoscopeConverter);
     }
 
     /**
