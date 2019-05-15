@@ -89,8 +89,7 @@ public class HodoEvioReader extends EvioReader {
     }
 
     @Override
-    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
-
+    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {        
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
         genericHits = new ArrayList<FADCGenericHit>();
@@ -112,12 +111,14 @@ public class HodoEvioReader extends EvioReader {
                     if (debug) {
                         System.out.println("Hodo bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
                     }
-                    try {
+                    try {                                               
                         for (BaseStructure slotBank : bank.getChildrenList()) {
-
                             if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
                                 for (CompositeData cdata : slotBank.getCompositeData()) {
 //                            CompositeData cdata = slotBank.getCompositeData();
+                                    // For some reason, if the ECal is readout earlier, the index get gets some non 0 value.
+                                    cdata.index(0);
+//                                    System.out.println("cdata index is " + cdata.index());                                    
                                     if (slotBank.getHeader().getTag() != bankTag) {
                                         bankTag = slotBank.getHeader().getTag();
                                         LOGGER.info(String.format("Hodo format tag: 0x%x\n", bankTag));
@@ -205,14 +206,12 @@ public class HodoEvioReader extends EvioReader {
 //            for (int i = 0; i < ni; i++) {
 //                System.out.println("cdata.type[" + i + "]=" + cdata.getTypes().get(i));
 //            }
-//        }
-
+//        }   
         while (cdata.index() + 1 < cdata.getItems().size()) {
             short slot = cdata.getByte();
             int trigger = cdata.getInt();
             long timestamp = cdata.getLong();
-            int nchannels = cdata.getNValue();
-
+            int nchannels = cdata.getNValue();            
             if (debug) {
                 System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
             }
@@ -253,11 +252,10 @@ public class HodoEvioReader extends EvioReader {
         int ix = hodoChannel.getX();
         int iy = hodoChannel.getY();
         int ilayer = hodoChannel.getLayer();
-        int ihole = hodoChannel.getHole();
+        //int ihole = hodoChannel.getHole();
         
         /* The 'hole' ID value is set to zero to match with the pixel detector elements in the geometry. --JM */
-        ihole = 0; 
-       
+        int ihole = 0; 
         GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
         Long id = geometryId.encode();
 
@@ -335,7 +333,6 @@ public class HodoEvioReader extends EvioReader {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
                 Long id = daqToGeometryId(crate, slot, channel);
-
                 for (int k = 0; k < npulses; k++) {
                     short pulseTime = cdata.getShort();
                     int pulseIntegral = cdata.getInt();
@@ -381,7 +378,6 @@ public class HodoEvioReader extends EvioReader {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
                 Long id = daqToGeometryId(crate, slot, channel);
-
                 for (int k = 0; k < npulses; k++) {
                     short pulseTime = cdata.getShort();
                     int pulseIntegral = cdata.getInt();
