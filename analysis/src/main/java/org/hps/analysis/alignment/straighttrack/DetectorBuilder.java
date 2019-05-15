@@ -73,6 +73,7 @@ public class DetectorBuilder {
 
     boolean _debug = false;
 
+    // TODO make this work for 2019 detector with L0
     String[] bottomSlotNames = {
         "module_L1b_halfmodule_stereo_sensor0",
         "module_L1b_halfmodule_axial_sensor0",
@@ -210,6 +211,13 @@ public class DetectorBuilder {
                     }
                 }
                 Matrix prodrot = PROD_ROT(mats[0], mats[1], mats[2]);
+                // calculate zmin, zmax
+                double width = plane.getUnmeasuredDimension()/2.;
+                double height = plane.getMeasuredDimension()/2.;
+                double[] bounds = findZBounds(origin, VecOp.mult(width,vDir), VecOp.mult(height,uDir));
+                double zmin =bounds[0];
+                double zmax = bounds[1];
+                System.out.println("zmin "+zmin+" zmax "+zmax);
                 DetectorPlane dp = new DetectorPlane(id++, prodrot, origin.v(), SIGS);
                 planes.add(dp);
                 planeMap.put(plane.getName(), dp);
@@ -220,6 +228,30 @@ public class DetectorBuilder {
             }
         }
 
+    }
+    
+    private double[] findZBounds(Hep3Vector origin, Hep3Vector width, Hep3Vector height)
+    {
+        Hep3Vector[] corners = new Hep3Vector[4];
+        double zmin = 999.;
+        double zmax = -999;
+        // o + w*vDir + h*uDir
+         
+        Hep3Vector edge = VecOp.add(origin,width);
+        corners[0] = VecOp.add(edge,height);
+        corners[1] = VecOp.sub(edge,height);
+        edge = VecOp.sub(origin,width);
+        corners[2] = VecOp.add(edge,height);
+        corners[3] = VecOp.sub(edge,height);
+        
+        for(int i=0; i<4; ++i)
+        {
+            System.out.println("corner "+i+" : "+corners[i]);
+            if(corners[i].z()>zmax) zmax = corners[i].z();
+            if(corners[i].z()<zmin) zmin = corners[i].z();
+        }
+        System.out.println("zmin "+zmin+" zmax "+zmax);
+        return new double[]{zmin, zmax};
     }
 
     public List<DetectorPlane> getTracker(String trackerName) {
