@@ -303,7 +303,7 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      * <code>{ x, y, z }</code>.
      */
     public final double[] getScintillatorPosition(SimTrackerHit hit) {
-        return getScintillatorPosition(hit);
+        return getScintillatorPosition(hit.getIdentifier());
     }
     
     /**
