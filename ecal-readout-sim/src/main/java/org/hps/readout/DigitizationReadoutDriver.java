@@ -1,4 +1,4 @@
-package org.hps.readout.ecal.updated;
+package org.hps.readout;
 
 import static org.hps.recon.ecal.EcalUtils.fallTime;
 import static org.hps.recon.ecal.EcalUtils.maxVolt;
@@ -13,12 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.ecal.EcalChannelConstants;
-import org.hps.conditions.ecal.EcalConditions;
-import org.hps.readout.ReadoutDataManager;
-import org.hps.readout.ReadoutDriver;
-import org.hps.readout.ReadoutTimestamp;
 import org.hps.readout.util.DoubleRingBuffer;
 import org.hps.readout.util.IntegerRingBuffer;
 import org.hps.readout.util.ObjectRingBuffer;
@@ -40,65 +34,70 @@ import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.event.base.BaseSimCalorimeterHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
- * Class <code>EcalReadoutDriver</code>performs digitization of truth
- * hits from SLIC by converting them into emulated pulses and then
- * performing pulse integration. The results are output in the form
- * of {@link org.lcsim.event.RawCalorimeterHit RawCalorimeterHit}
- * objects.<br/><br/>
+ * Class <code>DigitizationReadoutDriver</code> performs digitization
+ * of truth hits from SLIC by converting them into emulated pulses
+ * and then performing pulse integration. The results are output in
+ * the form of {@link org.lcsim.event.RawCalorimeterHit
+ * RawCalorimeterHit} objects.
+ * <br/><br/>
  * The truth hit information is retained by also producing an output
  * collection of {@link org.lcsim.event.LCRelation LCRelation}
  * objects linking the raw hits to the original {@link
  * org.lcsim.event.SimCalorimeterHit SimCalorimeterHit} objects from
  * which they were generated.
+ * <br/><br/>
+ * <code>DigitizationReadoutDriver</code> is itself abstract. It is
+ * designed with the intent to function for both the hodoscope and
+ * the calorimeter. As such, it requires its implementing classes to
+ * handle certain subdetector-specific tasks.
  * 
  * @author Sho Uemura <meeg@slac.stanford.edu>
  * @author Kyle McCarty <mccarty@jlab.org>
  */
-public class EcalReadoutDriver extends ReadoutDriver {
+public abstract class DigitizationReadoutDriver<D extends Subdetector> extends ReadoutDriver {
     
     // ==============================================================
     // ==== LCIO Collections ========================================
     // ==============================================================
     
     /**
-     * Indicates the name of the calorimeter geometry object. This is
-     * needed to allow access to the calorimeter channel listings.
+     * Specifies the name of the subdetector geometry object.
      */
-    private String ecalGeometryName = "Ecal";
+    private String geometryName = null;
     /**
      * The name of the input {@link org.lcsim.event.SimCalorimeterHit
      * SimCalorimeterHit} truth hit collection from SLIC.
      */
-    private String truthHitCollectionName = "EcalHits";
+    private String truthHitCollectionName = null;
     /**
      * The name of the digitized output {@link
      * org.lcsim.event.RawCalorimeterHit RawCalorimeterHit}
      * collection.
      */
-    private String outputHitCollectionName = "EcalRawHits";
+    private String outputHitCollectionName = null;
     /**
      * The name of the {@link org.lcsim.event.LCRelation LCRelation}
      * collection that links output raw hits to the SLIC truth hits
      * from which they were generated.
      */
-    private String truthRelationsCollectionName = "EcalTruthRelations";
+    private String truthRelationsCollectionName = null;
     /**
      * The name of the {@link org.lcsim.event.LCRelation LCRelation}
      * collection that links output raw hits to the SLIC truth hits
      * from which they were generated. This collection is output for
      * trigger path hits, and is never persisted.
      */
-    private String triggerTruthRelationsCollectionName = "TriggerPathTruthRelations";
+    private String triggerTruthRelationsCollectionName = null;
     /**
      * The name of the collection which contains readout hits. The
      * class type of this collection will vary based on which mode
-     * the calorimeter simulation is set to emulate.
+     * the simulation is set to emulate.
      */
-    private String readoutCollectionName = "EcalReadoutHits";
+    private String readoutCollectionName = null;
     
     // ==============================================================
     // ==== Driver Options ==========================================
@@ -113,9 +112,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * Defines the number of photoelectrons per MeV of truth energy
      * for the purpose of noise calculation.
      */
-    private double pePerMeV = 32.8;
+    private double pePerMeV = Double.NaN;
     /**
-     * Defines a fixed gain to be used for all calorimeter channels.
+     * Defines a fixed gain to be used for all subdetector channels.
      * A negative value will result in gains being pulled from the
      * conditions database for the run instead. Units are in MeV/ADC.
      */
@@ -130,7 +129,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * a pulse generated from truth energy depositions and will vary
      * depending on the form of pulse selected. Units are in ns.
      */
-    private double tp = 9.6;
+    private double tp = Double.NaN;
     /**
      * Defines the ADC threshold needed to initiate pulse integration
      * for raw hit creation.
@@ -174,14 +173,14 @@ public class EcalReadoutDriver extends ReadoutDriver {
     /**
      * Serves as an internal clock variable for the driver. This is
      * used to track the number of clock-cycles (1 per {@link
-     * org.hps.readout.ecal.updated.EcalReadoutDriver#READOUT_PERIOD
+     * org.hps.readout.ecal.updated.DigitizationReadoutDriver#READOUT_PERIOD
      * READOUT_PERIOD}).
      */
     private int readoutCounter = 0;
     /**
      * A buffer for storing pulse amplitudes representing the signals
      * from the preamplifiers. These are stored in units of Volts
-     * with no pedestal. One buffer exists for each calorimeter
+     * with no pedestal. One buffer exists for each subdetector
      * channel.
      */
     private Map<Long, DoubleRingBuffer> voltageBufferMap = new HashMap<Long, DoubleRingBuffer>();
@@ -194,24 +193,21 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * A buffer for storing ADC values representing the converted
      * voltage values from the voltage buffers. These are stored in
      * units of ADC and include a pedestal. One buffer exists for
-     * each calorimeter channel.
+     * each subdetector channel.
      */
     private Map<Long, IntegerRingBuffer> adcBufferMap = new HashMap<Long, IntegerRingBuffer>();
     
-    //IntegerRingBuffer timeTestBuffer = null;
-    
-    
     /**
-     * Defines the calorimeter geometry.
+     * Stores the subdetector geometry object.
      */
-    private HPSEcal3 calorimeterGeometry = null;
+    private D geometry = null;
     /**
-     * Stores the total ADC sums for each calorimeter channel that is
+     * Stores the total ADC sums for each subdetector channel that is
      * currently undergoing integration.
      */
     private Map<Long, Integer> channelIntegrationSumMap = new HashMap<Long, Integer>();
     /**
-     * Stores the total ADC sums for each calorimeter channel that is
+     * Stores the total ADC sums for each subdetector channel that is
      * currently undergoing integration.
      */
     private Map<Long, Set<SimCalorimeterHit>> channelIntegrationTruthMap = new HashMap<Long, Set<SimCalorimeterHit>>();
@@ -220,19 +216,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * This is used to track when the integration period has ended.
      */
     private Map<Long, Integer> channelIntegrationTimeMap = new HashMap<Long, Integer>();
-    
+    // TODO: Give this documentation.
     private Map<Long, List<Integer>> channelIntegrationADCMap = new HashMap<Long, List<Integer>>();
     /**
      * Defines the time offset of objects produced by this driver
      * from the actual true time that they should appear.
      */
     private double localTimeOffset = 0;
-    /**
-     * Cached copy of the calorimeter conditions. All calorimeter
-     * conditions should be called from here, rather than by directly
-     * accessing the database manager.
-     */
-    private EcalConditions ecalConditions = null;
     /**
      * Stores the minimum length of that must pass before a new hit
      * may be integrated on a given channel.
@@ -242,7 +232,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * Defines the total time range around the trigger time in which
      * hits are output into the readout LCIO file. The trigger time
      * position within this range is determined by {@link
-     * org.hps.readout.ecal.updated.EcalReadoutDriver#readoutOffset
+     * org.hps.readout.ecal.updated.DigitizationReadoutDriver#readoutOffset
      * readoutOffset}.
      */
     private int readoutWindow = 100;
@@ -278,10 +268,14 @@ public class EcalReadoutDriver extends ReadoutDriver {
     private static final int BUFFER_LENGTH = 100;
     private static final int PIPELINE_LENGTH = 2000;
     
-    private boolean isHodoscope = false;
-    
     @Override
     public void startOfData() {
+        // Validate that all the collection names are defined.
+        if(truthHitCollectionName == null || outputHitCollectionName == null || truthRelationsCollectionName == null
+                || triggerTruthRelationsCollectionName == null || readoutCollectionName == null) {
+            throw new RuntimeException("One or more collection names is not defined!");
+        }
+        
         // Calculate the correct time offset. This is a function of
         // the integration samples and the output delay.
         localTimeOffset = (4 * numSamplesAfter) + 4;
@@ -300,7 +294,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
         LCIOCollectionFactory.setCollectionName(outputHitCollectionName);
         LCIOCollectionFactory.setProductionDriver(this);
         LCIOCollectionFactory.setFlags((0 + (1 << LCIOConstants.CHBIT_LONG) + (1 << LCIOConstants.RCHBIT_ID1)));
-        LCIOCollectionFactory.setReadoutName("EcalHits");
+        LCIOCollectionFactory.setReadoutName(truthHitCollectionName);
         LCIOCollection<RawCalorimeterHit> hitCollectionParams = LCIOCollectionFactory.produceLCIOCollection(RawCalorimeterHit.class);
         ReadoutDataManager.registerCollection(hitCollectionParams, false);
         
@@ -327,19 +321,22 @@ public class EcalReadoutDriver extends ReadoutDriver {
         super.startOfData();
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public void detectorChanged(Detector detector) {
-        // Get the readout name from the calorimeter geometry data.
-        calorimeterGeometry = (HPSEcal3) detector.getSubdetector(ecalGeometryName);
+        // Throw an error if the geometry name is not set.
+        if(geometryName == null) {
+            throw new RuntimeException("Subdetector name is not defined!");
+        }
+        
+        // Get the readout name from the subdetector geometry data.
+        geometry = (D) detector.getSubdetector(geometryName);
         
         // Update the output LCIO collections data.
-        LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
+        LCIOCollectionFactory.setReadoutName(geometry.getReadout().getName());
         mode13HitCollectionParams = LCIOCollectionFactory.cloneCollection(mode13HitCollectionParams);
-        LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
+        LCIOCollectionFactory.setReadoutName(geometry.getReadout().getName());
         mode7HitCollectionParams = LCIOCollectionFactory.cloneCollection(mode7HitCollectionParams);
-        
-        // Update the cached calorimeter conditions.
-        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         
         // Reinstantiate the buffers.
         resetBuffers();
@@ -352,7 +349,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
          * As a first step, truth energy depositions from SLIC must
          * be obtained and converted into voltage pulse amplitudes.
          * A buffer is maintained for the pulse amplitudes for each
-         * calorimeter channel, which must then be populated by these
+         * subdetector channel, which must then be populated by these
          * values for the current simulation time.
          */
         
@@ -381,15 +378,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
             
             // If noise should be added, calculate a random value for
             // the noise and add it to the truth energy deposition.
-            // TODO" No data exists to perform this for the hodoscope. Skip it.
-            if(addNoise && truthHitCollectionName.compareTo("EcalHits") == 0) {
-                // Get the channel constants for the current channel.
-                //EcalChannelConstants channelData = findChannel(hit.getCellID());
-                
+            if(addNoise) {
                 // Calculate a randomized noise value.
-                //double noiseSigma = Math.sqrt(Math.pow(channelData.getCalibration().getNoise() * channelData.getGain().getGain() * EcalUtils.MeV, 2)
-                //        + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
-                
                 double noiseSigma = Math.sqrt(Math.pow(getNoiseConditions(hit.getCellID()) * getGainConditions(hit.getCellID()) * EcalUtils.MeV, 2)
                         + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
                 double noise = RandomGaussian.getGaussian(0, noiseSigma);
@@ -409,13 +399,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
             }
             
             // Simulate the pulse for each position in the preamp
-            // pulse buffer for the calorimeter channel on which the
+            // pulse buffer for the subdetector channel on which the
             // hit occurred.
             for(int i = 0; i < BUFFER_LENGTH; i++) {
                 // Calculate the voltage deposition for the current
                 // buffer time.
-                //double voltageDeposition = energyAmplitude * pulseAmplitude((i + 1) * READOUT_PERIOD + readoutTime()
-                //        - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - findChannel(hit.getCellID()).getTimeShift().getTimeShift(), hit.getCellID());
                 double voltageDeposition = energyAmplitude * pulseAmplitude((i + 1) * READOUT_PERIOD + readoutTime()
                         - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - getTimeShiftConditions(hit.getCellID()), hit.getCellID());
                 
@@ -437,7 +425,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
         // Check whether the appropriate amount of time has passed to
         // perform another integration step. If so, create a list to
         // contain any newly integrated hits and perform integration.
-        //boolean readHits = false;
         List<RawCalorimeterHit> newHits = null;
         List<LCRelation> newTruthRelations = null;
         while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
@@ -448,8 +435,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
         }
     }
     
+    // TODO: Document this.
     private void readHits(List<RawCalorimeterHit> newHits, List<LCRelation> newTruthRelations) {
-        // Perform hit integration as needed for each calorimeter
+        // Perform hit integration as needed for each subdetector
         // channel in the buffer map.
         for(Long cellID : voltageBufferMap.keySet()) {
             // Get the preamplifier pulse buffer for the channel.
@@ -459,16 +447,12 @@ public class EcalReadoutDriver extends ReadoutDriver {
             IntegerRingBuffer adcBuffer = adcBufferMap.get(cellID);
             adcBuffer.stepForward();
             
-            // Get the calorimeter channel data.
-            //EcalChannelConstants channelData = findChannel(cellID);
-            
             // Scale the current value of the preamplifier buffer
             // to a 12-bit ADC value where the maximum represents
             // a value of maxVolt.
             double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
             
             // Get the pedestal for the channel.
-            //int pedestal = (int) Math.round(channelData.getCalibration().getPedestal());
             int pedestal = (int) Math.round(getPedestalConditions(cellID));
             
             // An ADC value is not allowed to exceed 4095. If a
@@ -660,6 +644,37 @@ public class EcalReadoutDriver extends ReadoutDriver {
         }
     }
     
+    /**
+     * Gets a {@link java.util.Set Set} containing all valid channel
+     * IDs for the relevant subdetector geometry.
+     * @return Returns a <code>Set</code> containing all possible
+     * channel IDs.
+     */
+    protected abstract Set<Long> getChannelIDs();
+    
+    /**
+     * Gets the gain for the indicated subdetector channel.
+     * @param channelID - The channel ID.
+     * @return Returns the value of the gain in units of ADC/MeV as a
+     * <code>double</code>.
+     */
+    protected abstract double getGainConditions(long channelID);
+    
+    /**
+     * Gets the noise sigma for the indicated subdetector channel.
+     * @param channelID - The channel ID.
+     * @return Returns the value of the noise sigma as a
+     * <code>double</code>.
+     */
+    protected abstract double getNoiseConditions(long channelID);
+    
+    /**
+     * Gets the <code>int</code> flag used to denote the appropriate
+     * subdetector in relation to a readout timestamp.
+     * @return Returns the timestamp flag as an <code>int</code>.
+     */
+    protected abstract int getTimestampFlag();
+    
     @Override
     protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         // Create a list to store the extra collections.
@@ -672,9 +687,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         // Readout drivers need to produce readout timestamps to
         // specify when they occurred in terms of simulation time.
-        // The readout timestamp for the calorimeter data should be
+        // The readout timestamp for the subdetector data should be
         // defined as the start simulation time of the ADC buffer.
-        ReadoutTimestamp timestamp = new ReadoutTimestamp(ReadoutTimestamp.SYSTEM_ECAL, triggerTime - (readoutOffset * 4) + 4);
+        ReadoutTimestamp timestamp = new ReadoutTimestamp(getTimestampFlag(), triggerTime - (readoutOffset * 4) + 4);
         
         // Make the readout timestamp collection parameters object.
         LCIOCollectionFactory.setCollectionName(ReadoutTimestamp.collectionName);
@@ -685,7 +700,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         // Instantiate some lists to store truth data, if truth is to
         // be output.
-        System.out.println("Write Truth: " + writeTruth);
         List<SimCalorimeterHit> triggerTruthHits = null;
         List<LCRelation> triggerTruthRelations = null;
         if(writeTruth) {
@@ -722,13 +736,8 @@ public class EcalReadoutDriver extends ReadoutDriver {
         
         // Add the truth collections if they exist.
         if(writeTruth) {
-            // Make the truth data collection parameters object.
-            LCIOCollectionFactory.setParams(ReadoutDataManager.getCollectionParameters(truthHitCollectionName, SimCalorimeterHit.class));
-            LCIOCollectionFactory.setCollectionName("EcalHits");
-            LCIOCollectionFactory.setReadoutName(calorimeterGeometry.getReadout().getName());
-            LCIOCollection<SimCalorimeterHit> truthHitCollection = LCIOCollectionFactory.produceLCIOCollection(SimCalorimeterHit.class);
-            
             // Add the truth hits to the output collection.
+            LCIOCollection<SimCalorimeterHit> truthHitCollection = ReadoutDataManager.getCollectionParameters(truthHitCollectionName, SimCalorimeterHit.class);
             TriggeredLCIOData<SimCalorimeterHit> truthData = new TriggeredLCIOData<SimCalorimeterHit>(truthHitCollection);
             truthData.getData().addAll(triggerTruthHits);
             collectionsList.add(truthData);
@@ -739,86 +748,13 @@ public class EcalReadoutDriver extends ReadoutDriver {
             Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
             for(SimCalorimeterHit simHit : triggerTruthHits) {
                 for(int i = 0; i < simHit.getMCParticleCount(); i++) {
-                    // TODO: Full particle tree test.
                     MCParticle rootParticle = getRootParticle(simHit.getMCParticle(i));
                     truthParticles.addAll(getParticleTreeAsSet(rootParticle));
                 }
             }
             
-            /*
-             * MCParticle objects have times listed in terms of time
-             * displacement from the start of the beam bunch in which
-             * they are contained. This is not useful in readout, as
-             * particles may come from multiple events and it is not
-             * then possible to differentiate whether or not a given
-             * particle comes from the same event as another.
-             * 
-             * To counter this, truth particles are passed to another
-             * driver which creates a clone of them, but defines the
-             * particle time in terms of the trigger time. These are
-             * then output to the readout file instead, and it may
-             * then be easily seen which particle belongs to the same
-             * beam bunch.
-             * 
-             * The original particles are not altered by this process
-             * so that if they should be included in a different
-             * readout event, there is no oddity with the time.
-             */
-            
-            /*
-            // Iterate over a range of events and find which ones
-            // contain the truth particles. These should be passed
-            // to the particle readout driver to be time-corrected so
-            // that particles from different events can be
-            // differentiated in the readout.
-            for(double offset = (-25 * ReadoutDataManager.getBeamBunchSize()); offset < (25 * ReadoutDataManager.getBeamBunchSize()); offset += ReadoutDataManager.getBeamBunchSize()) {
-                // Get the particle collection for the current beam
-                // bunch.
-                Collection<MCParticle> bunchParticles = ReadoutDataManager.getData(triggerTime + offset, triggerTime + offset + ReadoutDataManager.getBeamBunchSize(),
-                        "MCParticle", MCParticle.class);
-                
-                // If the collection is empty, it does not need to be
-                // parsed.
-                if(bunchParticles.isEmpty()) {
-                    continue;
-                }
-                
-                // Check whether or not it contains any of the truth
-                // particles in the set.
-                Set<MCParticle> matchedParticles = new HashSet<MCParticle>();
-                for(MCParticle truthParticle : truthParticles) {
-                    if(bunchParticles.contains(truthParticle)) {
-                        matchedParticles.add(truthParticle);
-                    }
-                }
-                
-                // If there was a match in this beam bunch include it
-                // in the readout output.
-                if(!matchedParticles.isEmpty()) {
-                    ParticleTruthReadoutDriver.addBeamBunch(triggerTime + offset, triggerTime);
-                    System.out.printf("Beam bunch [%.0f, %.0f) (corrected time %.0f) contains %d particles.",
-                            triggerTime + offset, triggerTime + offset + ReadoutDataManager.getBeamBunchSize(), offset,
-                            matchedParticles.size());
-                }
-                
-                // Remove any matched particles from the set. If none
-                // remain, then there is no need to continue looping.
-                truthParticles.removeAll(matchedParticles);
-                if(truthParticles.isEmpty()) {
-                    break;
-                }
-            }
-            
-            // If there are particles that remain unmatched, throw an
-            // alert.
-            // TODO: This should properly be an error.
-            System.out.println("ALERT :: " + truthParticles.size() + " particles remain unaccounted for!");
-            */
-            
             // Create the truth MC particle collection.
-            LCIOCollectionFactory.setCollectionName("MCParticle");
-            LCIOCollectionFactory.setProductionDriver(this);
-            LCIOCollection<MCParticle> truthParticleCollection = LCIOCollectionFactory.produceLCIOCollection(MCParticle.class);
+            LCIOCollection<MCParticle> truthParticleCollection = ReadoutDataManager.getCollectionParameters("MCParticle", MCParticle.class);
             TriggeredLCIOData<MCParticle> truthParticleData = new TriggeredLCIOData<MCParticle>(truthParticleCollection);
             truthParticleData.getData().addAll(truthParticles);
             collectionsList.add(truthParticleData);
@@ -827,17 +763,19 @@ public class EcalReadoutDriver extends ReadoutDriver {
             TriggeredLCIOData<LCRelation> truthRelations = new TriggeredLCIOData<LCRelation>(truthRelationsCollectionParams);
             truthRelations.getData().addAll(triggerTruthRelations);
             collectionsList.add(truthRelations);
-            
-            System.out.println("Added truth data!!");
-            System.out.printf("\tReadout Hits    :: %d%n", collectionsList.get(0).getData().size());
-            System.out.printf("\tTruth Hits      :: %d%n", truthData.getData().size());
-            System.out.printf("\tTruth Particles :: %d%n", truthParticleData.getData().size());
-            System.out.printf("\tTruth Relations :: %d%n", truthRelations.getData().size());
         }
         
         // Return the extra trigger collections.
         return collectionsList;
     }
+    
+    /**
+     * Gets the pedestal for the indicated subdetector channel.
+     * @param channelID - The channel ID.
+     * @return Returns the value of the pedestal in units of ADC as a
+     * <code>double</code>.
+     */
+    protected abstract double getPedestalConditions(long channelID);
     
     @Override
     protected boolean isPersistent() {
@@ -861,9 +799,26 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     @Override
     protected double getTimeNeededForLocalOutput() {
-        // TODO: Latency correction.
-        //return (readoutWindow - (readoutOffset + readoutCorrection)) * 4.0;
         return (readoutWindow - readoutOffset) * 4.0;
+    }
+    
+    /**
+     * Gets the time shift for the indicated subdetector channel.
+     * @param channelID - The channel ID.
+     * @return Returns the value of the time shift in units of ns as
+     * a <code>double</code>.
+     */
+    protected abstract double getTimeShiftConditions(long channelID);
+    
+    /**
+     * Gets the subdetector geometry object.
+     * @return Returns the subdetector geometry object. This will be
+     * an object of parameterized type <code>D</code>, which will is
+     * a subclass of {@link org.lcsim.geometry.compact.Subdetector
+     * Subdetector}.
+     */
+    protected D getSubdetector() {
+        return geometry;
     }
     
     /**
@@ -917,20 +872,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Gets the channel parameters for a given channel ID.
-     * @param cellID - The <code>long</code> ID value that represents
-     * the channel. This is typically acquired from the method {@link
-     * org.lcsim.event.CalorimeterHit#getCellID() getCellID()} in a
-     * {@link org.lcsim.event.CalorimeterHit CalorimeterHit} object.
-     * @return Returns the channel parameters for the channel as an
-     * {@link org.hps.conditions.ecal.EcalChannelConstants
-     * EcalChannelConstants} object.
-     */
-    private EcalChannelConstants findChannel(long cellID) {
-        return ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(cellID));
-    }
-    
-    /**
      * Gets the value of the pulse-shape Guassian function for the
      * given parameters.
      * @param t
@@ -940,26 +881,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
      */
     private static final double funcGaus(double t, double sig) {
         return Math.exp(-t * t / (2 * sig * sig));
-    }
-    
-    private double getGainConditions(long channelID) {
-        if(isHodoscope) { return 1.0; }
-        else { return findChannel(channelID).getGain().getGain(); }
-    }
-    
-    private double getNoiseConditions(long channelID) {
-        if(isHodoscope) { return 0.0; }
-        else { return findChannel(channelID).getCalibration().getNoise(); }
-    }
-    
-    private double getTimeShiftConditions(long channelID) {
-        if(isHodoscope) { return 0.0; }
-        else { return findChannel(channelID).getTimeShift().getTimeShift(); }
-    }
-    
-    private double getPedestalConditions(long channelID) {
-        if(isHodoscope) { return 0.0; }
-        else { return findChannel(channelID).getCalibration().getPedestal(); }
     }
     
     /**
@@ -977,32 +898,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
         for(Long cellID : adcBufferMap.keySet()) {
             // Get the ADC values at the time of the trigger.
             short[] adcValues = getTriggerADCValues(cellID, triggerTime);
-            
-            // DEBUG :: Store the ADC buffer and the selected readout
-            //          range into a buffer to be written out.
-            StringBuffer triggerData = new StringBuffer();
-            triggerData.append(cellID + ":");
-            
-            StringBuffer outputData = new StringBuffer();
-            outputData.append(Long.toString(cellID) + "\n");
-            outputData.append("\tFull Buffer:\n");
-            IntegerRingBuffer pipeline = adcBufferMap.get(cellID);
-            outputData.append("\t\t");
-            for(int i = 0; i < pipeline.size(); i++) {
-                outputData.append(Long.toString(pipeline.getValue(-i)) + "[" + String.format("%4d", i) + "]");
-                outputData.append("    ");
-            }
-            outputData.append("\n");
-            
-            outputData.append("\tOutput Range:\n");
-            outputData.append("\t\t");
-            for(short adcValue : adcValues) {
-                outputData.append(adcValue);
-                outputData.append("    ");
-                triggerData.append(adcValue);
-                triggerData.append(';');
-            }
-            outputData.append("\n");
             
             // Iterate across the ADC values. If the ADC value is
             // sufficiently high to produce a hit, then it should be
@@ -1046,9 +941,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             short[] adcValues = null;
             short[] window = getTriggerADCValues(cellID, triggerTime);
             
-            // Get the channel data.
-            //EcalChannelConstants channelData = findChannel(cellID);
-            
             for(int i = 0; i < ReadoutDataManager.getReadoutWindow(); i++) {
                 if(numSamplesToRead != 0) {
                     adcValues[adcValues.length - numSamplesToRead] = window[i - pointerOffset];
@@ -1056,8 +948,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
                     if (numSamplesToRead == 0) {
                         hits.add(new BaseRawTrackerHit(cellID, thresholdCrossing, adcValues));
                     }
-                //} else if ((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold) && window[i]
-                //        > channelData.getCalibration().getPedestal() + integrationThreshold) {
                 } else if ((i == 0 || window[i - 1] <= getPedestalConditions(cellID) + integrationThreshold) && window[i]
                         > getPedestalConditions(cellID) + integrationThreshold) {
                     thresholdCrossing = i;
@@ -1091,9 +981,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
             int thresholdCrossing = 0;
             short[] window = getTriggerADCValues(cellID, triggerTime);
             
-            // Get the channel data.
-            //EcalChannelConstants channelData = findChannel(cellID);
-            
             // Generate Mode-7 hits.
             if(window != null) {
                 for(int i = 0; i < ReadoutDataManager.getReadoutWindow(); i++) {
@@ -1103,8 +990,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
                         if(numSamplesToRead == 0) {
                             hits.add(new BaseRawCalorimeterHit(cellID, adcSum, 64 * thresholdCrossing));
                         }
-                    //} else if((i == 0 || window[i - 1] <= channelData.getCalibration().getPedestal() + integrationThreshold)
-                    //        && window[i] > channelData.getCalibration().getPedestal() + integrationThreshold) {
                     } else if((i == 0 || window[i - 1] <= getPedestalConditions(cellID) + integrationThreshold)
                             && window[i] > getPedestalConditions(cellID) + integrationThreshold) {
                         thresholdCrossing = i;
@@ -1201,9 +1086,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * @return Amplitude, units of volts/GeV.
      */
     private double pulseAmplitude(double time, long cellID) {
-        // Get the channel parameter data.
-        //EcalChannelConstants channelData = findChannel(cellID);
-        
         //normalization constant from cal gain (MeV/integral bit) to amplitude gain (amplitude bit/GeV)
         // Determine the gain. Gain may either be fixed across all
         // channels, or be obtained from the conditions database
@@ -1213,7 +1095,6 @@ public class EcalReadoutDriver extends ReadoutDriver {
         if(fixedGain > 0) {
             gain = READOUT_PERIOD / (fixedGain * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
         } else {
-            //gain = READOUT_PERIOD / (channelData.getGain().getGain() * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
             gain = READOUT_PERIOD / (getGainConditions(cellID) * EcalUtils.MeV * ((Math.pow(2, nBit) - 1) / maxVolt));
         }
         
@@ -1281,25 +1162,18 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * successfully, and <code>false</code> if they were not.
      */
     private void resetBuffers() {
-        // Make sure that the detector geometry is properly defined.
-        if(calorimeterGeometry == null) {
-            throw new RuntimeException("Error: Calorimeter geometry definition was not found.");
-        }
-        
         // Reset each of the buffer maps.
         adcBufferMap.clear();
         truthBufferMap.clear();
         voltageBufferMap.clear();
         
         // Get the set of all possible channel IDs.
-        Set<Long> cells = calorimeterGeometry.getNeighborMap().keySet();
+        Set<Long> cells = getChannelIDs();
         
         // Insert a new buffer for each channel ID.
         for(Long cellID : cells) {
-            //EcalChannelConstants channelData = findChannel(cellID);
             voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
             truthBufferMap.put(cellID, new ObjectRingBuffer<SimCalorimeterHit>(PIPELINE_LENGTH));
-            //adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(channelData.getCalibration().getPedestal())));
             adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(getPedestalConditions(cellID))));
             
             truthBufferMap.get(cellID).stepForward();
@@ -1308,7 +1182,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     /**
      * Sets whether randomized noise should be added to SLIC truth
-     * energy depositions when simulating calorimeter hits. This is
+     * energy depositions when simulating subdetector hits. This is
      * <code>true</code> by default.
      * @param state - <code>true</code> means that noise will be
      * added and <code>false</code> that it will not.
@@ -1318,12 +1192,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Defines the name of the calorimeter geometry specification. By
-     * default, this is <code>"Ecal"</code>.
-     * @param ecalName - The calorimeter name.
+     * Defines the name of the subdetector geometry object.
+     * @param ecalName - The subdetector name.
      */
-    public void setEcalGeometryName(String value) {
-        ecalGeometryName = value;
+    public void setGeometryName(String value) {
+        geometryName = value;
     }
     
     /**
@@ -1351,23 +1224,11 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Sets the name of the input truth his collection name. This is
-     * normally set be SLIC to "EcalHits".
+     * Sets the name of the input truth his collection name.
      * @param collection - The collection name.
      */
     public void setInputHitCollectionName(String collection) {
         truthHitCollectionName = collection;
-    }
-    
-    /**
-     * Sets whether hit processing should use hodoscope values or
-     * calorimeter values.
-     * @param state - A value of <code>true</code> indicates that the
-     * hodoscope conditions should be used, and <code>false</code>
-     * that the calorimeter conditions should be used.
-     */
-    public void setIsHodoscope(boolean state) {
-        isHodoscope = state;
     }
     
     /**
@@ -1407,7 +1268,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * the trigger simulation.<br/><br/>
      * Note that this is not the name of the collection output when a
      * trigger occurs. For this value, see the method {@link
-     * org.hps.readout.ecal.updated.EcalReadoutDriver#setReadoutHitCollectionName(String)
+     * org.hps.readout.ecal.updated.DigitizationReadoutDriver#setReadoutHitCollectionName(String)
      * setReadoutHitCollectionName(String)} instead.
      * @param collection - The collection name.
      */
@@ -1422,10 +1283,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     /**
      * Sets the number of photoelectrons per MeV of deposited energy.
-     * This value is used in the simulation of calorimeter hit noise
-     * due to photoelectron statistics. The 2014 detector has a value
-     * of 32.8 photoelectrons/MeV. This is 32.8 by default.
-     * @param value The number of photoelectrons per MeV.
+     * This value is used in the simulation of subdetector hit noise
+     * due to photoelectron statistics.
+     * @param value - The number of photoelectrons per MeV.
      */
     public void setPhotoelectronsPerMeV(double value) {
         pePerMeV = value;
@@ -1460,7 +1320,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
      * Note that this collection is different from the hits produced
      * for internal usage by the readout simulation.  For this value,
      * see the method {@link
-     * org.hps.readout.ecal.updated.EcalReadoutDriver#setOutputHitCollectionName(String)
+     * org.hps.readout.ecal.updated.DigitizationReadoutDriver#setOutputHitCollectionName(String)
      * setOutputHitCollectionName(String)} instead.
      * @param collection - The collection name.
      */
@@ -1518,7 +1378,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Sets whether calorimeter truth data for trigger path hits is
+     * Sets whether subdetector truth data for trigger path hits is
      * to be produced or not.
      * @param state - <code>true</code> indicates that the truth data
      * should be created, and <code>false</code> that it should not.
@@ -1528,7 +1388,7 @@ public class EcalReadoutDriver extends ReadoutDriver {
     }
     
     /**
-     * Sets whether calorimeter truth data for readout path hits is
+     * Sets whether subdetector truth data for readout path hits is
      * to be written to the output LCIO file or not.
      * @param state - <code>true</code> indicates that the truth data
      * should be written, and <code>false</code> that it should not.
@@ -1539,8 +1399,9 @@ public class EcalReadoutDriver extends ReadoutDriver {
     
     /**
      * Enumerable <code>PulseShape</code> defines the allowed types
-     * of pulses that may be used to emulate the calorimeter detector
-     * response to incident energy.
+     * of pulses that may be used to emulate the subdetector response
+     * to incident energy.
+     * 
      * @author Sho Uemura <meeg@slac.stanford.edu>
      */
     public enum PulseShape {
