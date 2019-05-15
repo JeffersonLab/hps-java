@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
 import org.hps.conditions.hodoscope.HodoscopeChannel.GeometryId;
-import org.hps.conditions.hodoscope.HodoscopeConditions;
+import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 import org.hps.recon.ecal.FADCGenericHit;
 import org.hps.recon.ecal.HitExtraData;
 import org.hps.recon.ecal.HitExtraData.Mode7Data;
@@ -24,6 +24,7 @@ import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioException;
+import org.lcsim.detector.IDetectorElementContainer;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
@@ -34,23 +35,24 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
  *
+ * This class is similar to the ECalEvioReader.  It was copied and modified
+ * to work with Hodoscope data.
+ * 
  * @author rafopar
- *
- * This class is similar to the "ECalEvioReader", I just copied it and modified
- * to in otder it to work for the hodoscope
  */
 public class HodoEvioReader extends EvioReader {
 
     private int bankTag = 0;
-    private Class hitClass = BaseRawCalorimeterHit.class;
+    private Class<?> hitClass = BaseRawCalorimeterHit.class;
 
-    private static HodoscopeConditions hodoConditions = null;
-    private static IIdentifierHelper helper = null;
+    private HodoscopeChannelCollection hodoChannels = null;
+    private IIdentifierHelper helper = null;
 
     private static final String readoutName = "HodoHits";
     private static final String subdetectorName = "Hodoscope";
@@ -75,7 +77,7 @@ public class HodoEvioReader extends EvioReader {
     public HodoEvioReader(int topBankTag, int botBankTag) {
         this.topBankTag = topBankTag;
         this.botBankTag = botBankTag;
-        hitCollectionName = "HodoReadoutHits";
+        this.hitCollectionName = "HodoReadoutHits";
     }
 
     public void setTopBankTag(int topBankTag) {
@@ -154,7 +156,7 @@ public class HodoEvioReader extends EvioReader {
             }
         }
 
-        lcsimEvent.put(hitCollectionName, hits, hitClass, flags, readoutName);
+        lcsimEvent.put(this.hitCollectionName, hits, hitClass, flags, readoutName);
         lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
         if (!extraDataList.isEmpty()) {
             lcsimEvent.put(extraDataCollectionName, extraDataList, Mode7Data.class, 0);
@@ -171,21 +173,17 @@ public class HodoEvioReader extends EvioReader {
             adcValues[i] = cdata.getShort();
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
-
-        // ==============================          Should be fixed            =====================
-        // == ubDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0) does not work for now
-        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
+        IDetectorElementContainer srch = subDetector.getDetectorElement().findDetectorElement(new Identifier(id));
+        if (srch.size() == 0) {
+            throw new RuntimeException("No detector element was found for hit ID: " + helper.unpack(new Identifier(id)));
+        }
+        return new BaseRawTrackerHit( 
                 time,
                 id,
                 adcValues,
                 new ArrayList<SimTrackerHit>(),
-                subDetector.getDetectorElement().findDetectorElement(new Identifier(id)).get(0));
-//        return new BaseRawTrackerHit( // need to use the complicated constructor, simhit collection can't be null
-//                time,
-//                id,
-//                adcValues,
-//                new ArrayList<SimTrackerHit>(),
-//                null);
+                srch.get(0)
+                );
     }
 
     private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
@@ -247,7 +245,7 @@ public class HodoEvioReader extends EvioReader {
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
 //        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
-        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, slot, channel);
+        HodoscopeChannel hodoChannel = hodoChannels.findChannel(crate, slot, channel);
 
         if (hodoChannel == null) {
             return null;
@@ -256,8 +254,9 @@ public class HodoEvioReader extends EvioReader {
         int iy = hodoChannel.getY();
         int ilayer = hodoChannel.getLayer();
         int ihole = hodoChannel.getHole();
-         
-        ihole = 0; //                               // TEST might be fixed later, I have to understand this
+        
+        /* The 'hole' ID value is set to zero to match with the pixel detector elements in the geometry. --JM */
+        ihole = 0; 
        
         GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
         Long id = geometryId.encode();
@@ -428,11 +427,32 @@ public class HodoEvioReader extends EvioReader {
 
     void initialize() {
 
-        subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
+        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        Detector det = mgr.getDetectorObject();
+        
+        /**
+         * The HodoEvioReader is always active, but we might be processing older data
+         * with no Hodoscope subdetector in the compact detector description or no
+         * Hodoscope data in the conditions database for the run.  Instead of crashing here, 
+         * just check if this is the case and print a warning if either occurs.  No Hodoscope 
+         * data should actually be processed by the job, or if there is some configuration
+         * issue, crashing later with a null pointer exception during processing is acceptable.
+         * Maybe a better way to do this would be configuring the builder only to use
+         * the Hodoscope data reader if there is a Hodoscope detector in the compact
+         * description. --JM
+         */
+        
+        if (det.getSubdetectorNames().contains(subdetectorName)) {
+            subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
+            helper = subDetector.getDetectorElement().getIdentifierHelper();
+        } else {
+            LOGGER.warning("No Hodoscope subdetector was found in the detector description!");
+        }
 
-        // Hodo combined conditions object.
-        hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
-        helper = subDetector.getDetectorElement().getIdentifierHelper();
+        if (mgr.hasConditionsRecord("hodo_channels")) {
+            hodoChannels = mgr.getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();
+        } else {
+            LOGGER.warning("No HodoscopeChannelCollection found for run " + mgr.getRun() + " in the conditions database!");
+        }
     }
-
 }
