@@ -31,8 +31,7 @@
         <driver name="TrackReconSeed123Conf5Extd46MissingL6"/>
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver"/>
-        <driver name="LCIOWriter"/>
-        <driver name="HitEfficiency"/>
+        <driver name="UnbiasedHitResiduals"/>
         <driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>   
@@ -153,12 +152,8 @@
        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver">
            <storeTrackStates>true</storeTrackStates>
         </driver>
-        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>${outputFile}.slcio</outputFilePath>
-        </driver>        
-        <driver name="HitEfficiency" type="org.hps.svt.SVTHitLevelPlots">
+        <driver name="UnbiasedHitResiduals" type="org.hps.svt.UnbiasedHitResidualsPlots">
             <cleanFEE>true</cleanFEE>
-            <outputFileName>${outputFile}.txt</outputFileName>
         </driver>	
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
