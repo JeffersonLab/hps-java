@@ -30,7 +30,8 @@ public class HodoscopeDataConverterTest extends TestCase {
     private static final Integer RUN_NUMBER = 1000000;
     //private static String LOCAL_FILE_PATH = "/work/slac/hps-projects/projects/hodoscope-dev/hpshodo_000322_100evts.evio";
     private static final String OUTPUT_FILE_NAME = "hodo_cnv_test.slcio";
-    private static final String TEST_FILE_URL = "http://lcsim.org/test/hps-java/hpshodo_000322_100evts.evio";
+    //    private static final String TEST_FILE_URL = "http://lcsim.org/test/hps-java/hpshodo_000322_100evts.evio";
+    private static final String TEST_FILE_URL = "http://lcsim.org/test/hps-java/hpsecal_000084_200events.evio";
     private static final boolean DEBUG = true;
     
     public void testHodoscopeDataConverter() throws IOException {
