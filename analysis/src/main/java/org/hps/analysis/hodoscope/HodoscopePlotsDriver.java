@@ -334,6 +334,9 @@ public class HodoscopePlotsDriver extends ReadoutDriver {
             throw new IllegalArgumentException("Unrecognized hole ID \"" + hole + "\".");
         }
         
+        // Switch to units of MeV.
+        energy = energy * 1000;
+        
         // Fill the all hits plot.
         aida.histogram1D(getEnergyDistPlotName(typeID)).fill(energy);
         
@@ -606,7 +609,7 @@ public class HodoscopePlotsDriver extends ReadoutDriver {
      * @return Returns the newly created plot.
      */
     private static final IHistogram1D makeEnergyPlot(String plotName) {
-        return aida.histogram1D(plotName, 250, 0.000, 0.005);
+        return aida.histogram1D(plotName, 250, 0.000, 5.000);
     }
     
     /**
