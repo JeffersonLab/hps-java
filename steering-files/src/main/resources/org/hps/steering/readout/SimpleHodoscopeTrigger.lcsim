@@ -15,21 +15,21 @@
         <driver name="HodoscopePreprocessingDriver"/>
         <driver name="HodoscopeDigitizationDriver"/>
         <driver name="HodoscopeRawConverterDriver"/>
-		
+        
         <!-- Calorimeter Readout Simulation Drivers -->
         <driver name="EcalDigitizationDriver"/>
         <driver name="EcalRawConverterDriver"/>
         <driver name="GTPReadoutDriver"/>
-		
-		<!-- Trigger Simulation -->
+        
+        <!-- Trigger Simulation -->
         <driver name="SimpleHodoscopeTrigger"/>
         
         <!-- LCIO Output and Data Management Driver -->
-		<driver name="HodoscopePlotsDriver"/>
+        <driver name="HodoscopePlotsDriver"/>
         <driver name="ReadoutManagerDriver"/>
         
         <driver name="CleanupDriver" />
-		
+        
         <driver name="AidaSaveDriver"/>
     </execute> 
     
@@ -57,7 +57,7 @@
           -->
         <driver name="EcalHitsOutputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
             <collectionName>EcalHits</collectionName>
-			
+            
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
@@ -139,7 +139,7 @@
             <!-- Driver Parameters -->
             <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
             <addNoise>false</addNoise>
-			
+            
             <!-- 
                  Readout offset is not the same as the old system - it measures
                  amount of samples that are included before the trigger time in
@@ -185,12 +185,12 @@
              GTP clusters if cluster output is enabled.
           -->
         <driver name="EcalRawConverterDriver" type="org.hps.readout.ecal.updated.EcalRawConverterReadoutDriver">
-			<!--
-				NSA and NSB must match the digitization driver settings.
-			-->
+            <!--
+                NSA and NSB must match the digitization driver settings.
+            -->
             <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
             <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
-			
+            
             <!--
                 Outputs all the trigger-level hits within the readout window.
                 This is not generally necessary outside of specialized
@@ -232,25 +232,25 @@
             <persistent>true</persistent>
         </driver>
         
-		<!--
-			The hodoscope preprocessing driver is responsible for taking SLiC
-			truth hits and converting them to a form usable by the simulation.
-			Truth hits are of the type SimTrackerHit and need to be converted
-			to the type SimCalorimeterHit. Additionally, SLiC is not able to
-			produce hits on multiple channels from the same scintillator. Some
-			scintillators do have multiple channels in the actual detector. As
-			such, it is necessary to split the energies of hits occurring on
-			scintillators with mutliple channels across the relevant channels.
-			This is handled by this driver.
-		-->
+        <!--
+            The hodoscope preprocessing driver is responsible for taking SLiC
+            truth hits and converting them to a form usable by the simulation.
+            Truth hits are of the type SimTrackerHit and need to be converted
+            to the type SimCalorimeterHit. Additionally, SLiC is not able to
+            produce hits on multiple channels from the same scintillator. Some
+            scintillators do have multiple channels in the actual detector. As
+            such, it is necessary to split the energies of hits occurring on
+            scintillators with mutliple channels across the relevant channels.
+            This is handled by this driver.
+        -->
         <driver name="HodoscopePreprocessingDriver" type="org.hps.readout.hodoscope.HodoscopePreprocessingDriver">
             <truthHitCollectionName>HodoscopeHits</truthHitCollectionName>
             <outputHitCollectionName>HodoscopePreprocessedHits</outputHitCollectionName>
         </driver>
-		
-		<!--
+        
+        <!--
              The hodoscope digitization driver works identically to the
-			 calorimeter digitization driver, except for the hodoscope.
+             calorimeter digitization driver, except for the hodoscope.
           -->
         <driver name="HodoscopeDigitizationDriver" type="org.hps.readout.hodoscope.HodoscopeDigitizationReadoutDriver">
             <!-- LCIO Collection Names -->
@@ -263,7 +263,7 @@
             <!-- Driver Parameters -->
             <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
             <addNoise>false</addNoise>
-			
+            
             <!-- 
                  Readout offset is not the same as the old system - it measures
                  amount of samples that are included before the trigger time in
@@ -300,15 +300,15 @@
         
         <!--
              The hodoscope raw converter functions as per the calorimeter raw
-			 converter driver.
+             converter driver.
           -->
         <driver name="HodoscopeRawConverterDriver" type="org.hps.readout.hodoscope.HodoscopeRawConverterReadoutDriver">
-			<!--
-				NSA and NSB must match the digitization driver settings.
-			-->
+            <!--
+                NSA and NSB must match the digitization driver settings.
+            -->
             <numberSamplesAfter>10</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
             <numberSamplesBefore>6</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
-			
+            
             <!--
                 Outputs all the trigger-level hits within the readout window.
                 This is not generally necessary outside of specialized
@@ -318,44 +318,44 @@
             -->
             <persistent>false</persistent>
         </driver>
-		
+        
         <!--
             The trigger studies hodoscope trigger selects any event with a
-			cluster that has an x-position above a specified lower bound.
+            cluster that has an x-position above a specified lower bound.
         -->
         <driver name="SimpleHodoscopeTrigger" type="org.hps.readout.trigger.HodoscopeStudiesTriggerReadoutDriver">
-			<!--
-				The trigger deadtime is set to 0 to include all possible events.
-				This trigger is for trigger studies and does not need to match the
-				limitations of the actual hardware.
-			-->
-			<deadTime>0</deadTime>
-			
-			<!--
-				Defines the cluster position lower bound cut. This is units of
-				millimeters and is inclusive.
-			-->
-			<xThreshold>80.0</xThreshold>
-			
-			<!--
-				Defines the name of the GTP cluster collection.
-			-->
-			<inputCollectionName>EcalClustersGTP</inputCollectionName>
-		</driver>
+            <!--
+                The trigger deadtime is set to 0 to include all possible events.
+                This trigger is for trigger studies and does not need to match the
+                limitations of the actual hardware.
+            -->
+            <deadTime>0</deadTime>
+            
+            <!--
+                Defines the cluster position lower bound cut. This is units of
+                millimeters and is inclusive.
+            -->
+            <xThreshold>80.0</xThreshold>
+            
+            <!--
+                Defines the name of the GTP cluster collection.
+            -->
+            <inputCollectionName>EcalClustersGTP</inputCollectionName>
+        </driver>
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
             <readoutWindow>200</readoutWindow>
             <outputFile>${outputFile}.slcio</outputFile>
         </driver>
-		
+        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
-		
-		<driver name="HodoscopePlotsDriver" type="org.hps.analysis.hodoscope.HodoscopePlotsDriver">
-			<digitizedHitCollectionName>HodoscopeCorrectedHits</digitizedHitCollectionName>
-			<preprocessedHitCollectionName>HodoscopePreprocessedHits</preprocessedHitCollectionName>
-			<truthHitCollectionName>HodoscopeHits</truthHitCollectionName>
-		</driver>
-		
+        
+        <driver name="HodoscopePlotsDriver" type="org.hps.analysis.hodoscope.HodoscopePlotsDriver">
+            <digitizedHitCollectionName>HodoscopeCorrectedHits</digitizedHitCollectionName>
+            <preprocessedHitCollectionName>HodoscopePreprocessedHits</preprocessedHitCollectionName>
+            <truthHitCollectionName>HodoscopeHits</truthHitCollectionName>
+        </driver>
+        
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
