@@ -26,7 +26,6 @@ public abstract class AbstractBaseRawConverter {
      * window. This must be a multiple of 4 ns.
      */
     private int nsb = Integer.MIN_VALUE;
-    //protected int NSB = 20;
     
     /**
      * Stores the <u>n</u>umber of <u>s</u>amples <u>a</u>fter the 
@@ -34,7 +33,6 @@ public abstract class AbstractBaseRawConverter {
      * window. This must be a multiple of 4 ns.
      */
     private int nsa = Integer.MIN_VALUE;
-    //protected int NSA = 100;
     
     /**
      * Gets the number of samples that are included in the pulse
