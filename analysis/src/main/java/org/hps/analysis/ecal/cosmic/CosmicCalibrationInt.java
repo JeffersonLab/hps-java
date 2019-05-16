@@ -12,8 +12,8 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * This code looks at raw FADC spectra, integrates cosmic signals, and outputs
- * a .root file containing the histogram spectra for each crystal.
+ * This code looks at raw FADC spectra, integrates cosmic signals, and outputs a
+ * .root file containing the histogram spectra for each crystal.
  * 
  * @author holly
  *
@@ -81,7 +81,8 @@ public class CosmicCalibrationInt extends Driver {
         for (RawTrackerHit hit : hitList) {
             int ix = hit.getIdentifierFieldValue("ix");
             int iy = hit.getIdentifierFieldValue("iy");
-            // crystals are stored in array of 0-45,0-9 with numbering starting at bottom left of Ecal (-23,-5)
+            // crystals are stored in array of 0-45,0-9 with numbering starting at bottom
+            // left of Ecal (-23,-5)
             int xx = ix + 23;
             if (xx > 23)
                 xx -= 1;
@@ -108,12 +109,21 @@ public class CosmicCalibrationInt extends Driver {
                     pedestal[ix][iy] = 0;
                     Point cid = new Point(ix, iy);
                     RawTrackerHit ihit = hitMap.get(cid);
+                    /*
+                     * This may happen if - for any reason - a FADC channel is missing data. In
+                     * principle, cosmics data should be taken with no 0-suppression.
+                     */
+                    if (ihit == null) {
+                        pulse[ix][iy] = 0;
+                        signal[ix][iy] = 0;
+                        continue;
+                    }
                     final short samples[] = ihit.getADCValues();
 
                     for (int nTime = MINP; nTime < MAXP; nTime++) {
                         int adc = samples[nTime];
                         pedestal[ix][iy] += adc;
-                    }// end loop over time samples
+                    } // end loop over time samples
 
                     // loop over time samples, integrate adc values, use for signal and trigger
                     pulse[ix][iy] = 0;
@@ -127,7 +137,7 @@ public class CosmicCalibrationInt extends Driver {
                             // System.out.println("\t greater than thresh:\t"+peak+"\t"+THR);
                         }
                         pulse[ix][iy] += adc;
-                    }// end loop over time samples
+                    } // end loop over time samples
 
                     // subtract pedestal from pulse and plot
                     if (trigger == 1) {
@@ -146,14 +156,19 @@ public class CosmicCalibrationInt extends Driver {
                         if (!ishole(ix + 1, iy) && (ix + 1) < 46) {
                             Point cidxp1 = new Point(ix + 1, iy);
                             RawTrackerHit ihitxp1 = hitMap.get(cidxp1);
+                            if (ihitxp1 == null) {
+                                pulse[ix + 1][iy] = 0;
+                                signal[ix + 1][iy] = 0;
+                                continue;
+                            }
                             final short samplesxp1[] = ihitxp1.getADCValues();
                             pedestal[ix + 1][iy] = 0;
                             // calculate the pedestal for the crystal ix+1
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
                                 int ped = samplesxp1[nTime];
                                 pedestal[ix + 1][iy] += ped;
-                            }// end loop over time samples
-                             // check if hit in adj crystal passes threshold
+                            } // end loop over time samples
+                              // check if hit in adj crystal passes threshold
                             pulse[ix + 1][iy] = 0;
                             for (int nTime = MINS; nTime < MAXS; nTime++) {
                                 int adc = samplesxp1[nTime];
@@ -162,20 +177,25 @@ public class CosmicCalibrationInt extends Driver {
                                     geomCut0 = 1;
                                     break;
                                 }
-                            }// end loop over time samples
+                            } // end loop over time samples
                         }
 
                         if (!ishole(ix - 1, iy) && (ix - 1) > -1) {
                             Point cidxm1 = new Point(ix - 1, iy);
                             RawTrackerHit ihitxm1 = hitMap.get(cidxm1);
+                            if (ihitxm1 == null) {
+                                pulse[ix - 1][iy] = 0;
+                                signal[ix - 1][iy] = 0;
+                                continue;
+                            }
                             final short samplesxm1[] = ihitxm1.getADCValues();
 
                             pedestal[ix - 1][iy] = 0;
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
                                 int ped = samplesxm1[nTime];
                                 pedestal[ix - 1][iy] += ped;
-                            }// end loop over time samples
-                             // check if hit in adj crystal passes threshold
+                            } // end loop over time samples
+                              // check if hit in adj crystal passes threshold
                             pulse[ix - 1][iy] = 0;
                             for (int nTime = MINS; nTime < MAXS; nTime++) {
                                 int adc = samplesxm1[nTime];
@@ -184,21 +204,26 @@ public class CosmicCalibrationInt extends Driver {
                                     geomCut1 = 1;
                                     break;
                                 }
-                            }// end loop over time samples
+                            } // end loop over time samples
                         }
 
                         if (!ishole(ix, iy + 1) && (iy + 1) < 10 && iy != 4) {
                             geomCut2 = 1;
                             Point cidyp1 = new Point(ix, iy + 1);
                             RawTrackerHit ihityp1 = hitMap.get(cidyp1);
+                            if (ihityp1 == null) {
+                                pulse[ix][iy + 1] = 0;
+                                signal[ix][iy + 1] = 0;
+                                continue;
+                            }
                             final short samplesyp1[] = ihityp1.getADCValues();
 
                             pedestal[ix][iy + 1] = 0;
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
                                 int ped = samplesyp1[nTime];
                                 pedestal[ix][iy + 1] += ped;
-                            }// end loop over time samples
-                             // check if hit in adj crystal passes threshold
+                            } // end loop over time samples
+                              // check if hit in adj crystal passes threshold
                             pulse[ix][iy + 1] = 0;
                             for (int nTime = MINS; nTime < MAXS; nTime++) {
                                 int adc = samplesyp1[nTime];
@@ -207,21 +232,26 @@ public class CosmicCalibrationInt extends Driver {
                                     geomCut2 = 0;
                                     break;
                                 }
-                            }// end loop over time samples
+                            } // end loop over time samples
                         }
 
                         if (!ishole(ix, iy - 1) && (iy - 1) > -1 && iy != 5) {
                             geomCut3 = 1;
                             Point cidym1 = new Point(ix, iy - 1);
                             RawTrackerHit ihitym1 = hitMap.get(cidym1);
+                            if (ihitym1 == null) {
+                                pulse[ix][iy - 1] = 0;
+                                signal[ix][iy - 1] = 0;
+                                continue;
+                            }
                             final short samplesym1[] = ihitym1.getADCValues();
 
                             pedestal[ix][iy - 1] = 0;
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
                                 int ped = samplesym1[nTime];
                                 pedestal[ix][iy - 1] += ped;
-                            }// end loop over time samples
-                             // check if hit in adj crystal passes threshold
+                            } // end loop over time samples
+                              // check if hit in adj crystal passes threshold
                             pulse[ix][iy - 1] = 0;
                             for (int nTime = MINS; nTime < MAXS; nTime++) {
                                 int adc = samplesym1[nTime];
@@ -231,7 +261,7 @@ public class CosmicCalibrationInt extends Driver {
                                     break;
                                 }
 
-                            }// end loop over time samples
+                            } // end loop over time samples
                         }
 
                         // ///////////////////Add in additional vert geom constraint for edges/////////
@@ -242,13 +272,18 @@ public class CosmicCalibrationInt extends Driver {
                             geomCut4 = 1;
                             Point cidym2 = new Point(ix, iy - 2);
                             RawTrackerHit ihitym2 = hitMap.get(cidym2);
+                            if (ihitym2 == null) {                  
+                                pulse[ix][iy-2] = 0;
+                                signal[ix][iy-2] = 0;
+                                continue;
+                            }
                             final short samplesym2[] = ihitym2.getADCValues();
 
                             pedestal[ix][iy - 2] = 0;
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
                                 int ped = samplesym2[nTime];
                                 pedestal[ix][iy - 2] += ped;
-                            }// end loop over time samples
+                            } // end loop over time samples
                             pulse[ix][iy - 2] = 0;
                             for (int nTime = MINS; nTime < MAXS; nTime++) {
                                 int adc = samplesym2[nTime];
@@ -258,7 +293,7 @@ public class CosmicCalibrationInt extends Driver {
                                     break;
                                 }
 
-                            }// end loop over time samples
+                            } // end loop over time samples
                         } // end for iy-2
                         if (iy == 0 || iy == 5 || ishole(ix, iy - 1)) // look at iy+2
                         {
@@ -266,11 +301,16 @@ public class CosmicCalibrationInt extends Driver {
                             pedestal[ix][iy + 2] = 0;
                             Point cidyp2 = new Point(ix, iy + 2);
                             RawTrackerHit ihityp2 = hitMap.get(cidyp2);
+                            if (ihityp2 == null) {                  
+                                pulse[ix][iy+2] = 0;
+                                signal[ix][iy+2] = 0;
+                                continue;
+                            }
                             final short samplesyp2[] = ihityp2.getADCValues();
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
                                 int ped = samplesyp2[nTime];
                                 pedestal[ix][iy + 2] += ped;
-                            }// end loop over time samples
+                            } // end loop over time samples
                             pulse[ix][iy + 2] = 0;
                             for (int nTime = MINS; nTime < MAXS; nTime++) {
                                 int adc = samplesyp2[nTime];
@@ -279,11 +319,12 @@ public class CosmicCalibrationInt extends Driver {
                                     geomCut5 = 0;
                                     break;
                                 }
-                            }// end loop over time samples
+                            } // end loop over time samples
                         } // end for iy+2
 
                         // ///////////////////////////////////////////////////////////////////////////
-                        // System.out.println("print of geoCuts:\t"+geomCut0+","+geomCut1+","+geomCut2+","+geomCut3+","+geomCut4+","+geomCut5);
+                        // System.out.println("print of
+                        // geoCuts:\t"+geomCut0+","+geomCut1+","+geomCut2+","+geomCut3+","+geomCut4+","+geomCut5);
                         // System.out.println("cut type:\t"+cutType);
 
                         if (cutType == 0) // strict geometry cut
@@ -306,9 +347,9 @@ public class CosmicCalibrationInt extends Driver {
 
                 } // end !ishole
 
-            }// end loop over x
+            } // end loop over x
 
-        }// end loop over y
+        } // end loop over y
 
     }// end process event
 
