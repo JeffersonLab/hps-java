@@ -25,14 +25,39 @@ public abstract class AbstractBaseRawConverter {
      * threshold-crossing sample that are included in the integration
      * window. This must be a multiple of 4 ns.
      */
-    protected int NSB = 20;
+    private int nsb = Integer.MIN_VALUE;
     
     /**
      * Stores the <u>n</u>umber of <u>s</u>amples <u>a</u>fter the 
      * threshold-crossing sample that are included in the integration
      * window. This must be a multiple of 4 ns.
      */
-    protected int NSA = 100;
+    private int nsa = Integer.MIN_VALUE;
+    
+    /**
+     * Gets the number of samples that are included in the pulse
+     * integral after the threshold-crossing sample. Note that this
+     * value is inclusive of the threshold-crossing sample.
+     * @return Returns the samples in units of nanoseconds.
+     */
+    public int getNumberSamplesAfter() {
+        if(nsa == Integer.MIN_VALUE) {
+            throw new RuntimeException("Error: NSA is not defined. Value must be set in steering file.");
+        }
+        return nsa;
+    }
+    
+    /**
+     * Gets the number of samples that are included in the pulse
+     * integral before the threshold-crossing sample.
+     * @return Returns the samples in units of nanoseconds.
+     */
+    public int getNumberSamplesBefore() {
+        if(nsb == Integer.MIN_VALUE) {
+            throw new RuntimeException("Error: NSB is not defined. Value must be set in steering file.");
+        }
+        return nsb;
+    }
     
     /**
      * Sets the number of samples in the integration window
@@ -42,11 +67,11 @@ public abstract class AbstractBaseRawConverter {
      * @throws IllegalArgumentException Occurs if an invalid number
      * of samples is given.
      */
-    public void setNSA(int nsa) {
-        if(NSA % NS_PER_SAMPLE != 0 || NSA < 0) {
+    public void setNumberSamplesAfter(int nsa) {
+        if(nsa % NS_PER_SAMPLE != 0 || nsa < 0) {
             throw new IllegalArgumentException("NSA must be a multiple of " + NS_PER_SAMPLE + "ns and non-negative.");
         }
-        NSA = nsa;
+        this.nsa = nsa;
     }
     
     /**
@@ -57,11 +82,11 @@ public abstract class AbstractBaseRawConverter {
      * @throws IllegalArgumentException Occurs if an invalid number
      * of samples is given.
      */
-    public void setNSB(int nsb) {
-        if(NSB % NS_PER_SAMPLE != 0 || NSB < 0) {
+    public void setNumberSamplesBefore(int nsb) {
+        if(nsb % NS_PER_SAMPLE != 0 || nsb < 0) {
             throw new IllegalArgumentException("NSB must be a multiple of " + NS_PER_SAMPLE + "ns and non-negative.");
         }
-        NSB = nsb;
+        this.nsb = nsb;
     }
     
     /**
@@ -120,7 +145,7 @@ public abstract class AbstractBaseRawConverter {
         // If the total number of samples is larger than the size of
         // the entire window, the firmware will always integrate the
         // entire window.
-        if(windowSamples > 0 && (NSA + NSB) / NS_PER_SAMPLE >= windowSamples) {
+        if(windowSamples > 0 && (nsa + nsb) / NS_PER_SAMPLE >= windowSamples) {
             firstSample = 0;
             lastSample = windowSamples - 1;
         }
@@ -131,8 +156,8 @@ public abstract class AbstractBaseRawConverter {
         // bounds of the available samples, in which case it is the
         // integration window is clipped at its bounds.
         else {
-            firstSample = thresholdCrossing - NSB / NS_PER_SAMPLE;
-            lastSample = thresholdCrossing + NSA / NS_PER_SAMPLE - 1;
+            firstSample = thresholdCrossing - nsb / NS_PER_SAMPLE;
+            lastSample = thresholdCrossing + nsa / NS_PER_SAMPLE - 1;
             if(windowSamples > 0) {
                 if(firstSample < 0) { firstSample = 0; }
                 if(lastSample >= windowSamples) { lastSample = windowSamples - 1; }

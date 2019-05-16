@@ -90,7 +90,7 @@ public abstract class AbstractMode1RawConverter extends AbstractBaseRawConverter
                 // No new crossings are permitted until the current
                 // crossing's integration window has ended. Restart
                 // the search subsequent to this point.
-                i += NSA / NS_PER_SAMPLE - 1;
+                i += getNumberSamplesAfter() / NS_PER_SAMPLE - 1;
                 
                 // The firmware only allows a certain number of
                 // crossings. If that number has been reached, then
@@ -178,7 +178,7 @@ public abstract class AbstractMode1RawConverter extends AbstractBaseRawConverter
         
         // In the event that NSA + NSB is larger than the ADC buffer,
         // the integration range in the entire buffer.
-        if ((NSA + NSB) / NS_PER_SAMPLE >= samples.length) {
+        if((getNumberSamplesAfter() + getNumberSamplesBefore()) / NS_PER_SAMPLE >= samples.length) {
             firstSample = 0;
             lastSample = samples.length - 1;
         }
@@ -186,8 +186,8 @@ public abstract class AbstractMode1RawConverter extends AbstractBaseRawConverter
         // Otherwise, just subtract NSB and add NSA to the position
         // of the threshold-crossing sample.
         else {
-            firstSample = thresholdCrossing - NSB / NS_PER_SAMPLE;
-            lastSample = thresholdCrossing + NSA / NS_PER_SAMPLE - 1;
+            firstSample = thresholdCrossing - getNumberSamplesBefore() / NS_PER_SAMPLE;
+            lastSample = thresholdCrossing + getNumberSamplesAfter() / NS_PER_SAMPLE - 1;
         }
         
         // Mode-7 stores a "minimum/pedestal" value, which is the
