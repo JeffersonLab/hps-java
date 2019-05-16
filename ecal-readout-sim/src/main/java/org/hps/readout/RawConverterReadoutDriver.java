@@ -192,8 +192,8 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      * @param samples - The number of samples, where a sample is a
      * 4 ns clock-cycle.
      */
-    public void setNsa(int samples) {
-        getConverter().setNSA(4 * samples);
+    public void setNumberSamplesAfter(int samples) {
+        getConverter().setNumberSamplesAfter(4 * samples);
     }
     
     /**
@@ -202,8 +202,8 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      * @param samples - The number of samples, where a sample is a
      * 4 ns clock-cycle.
      */
-    public void setNsb(int samples) {
-        getConverter().setNSB(4 * samples);
+    public void setNumberSamplesBefore(int samples) {
+        getConverter().setNumberSamplesBefore(4 * samples);
     }
     
     /**

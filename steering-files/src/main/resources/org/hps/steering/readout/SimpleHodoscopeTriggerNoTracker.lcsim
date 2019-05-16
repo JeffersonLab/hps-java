@@ -189,6 +189,12 @@
              GTP clusters if cluster output is enabled.
           -->
         <driver name="EcalRawConverterDriver" type="org.hps.readout.ecal.updated.EcalRawConverterReadoutDriver">
+			<!--
+				NSA and NSB must match the digitization driver settings.
+			-->
+            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+			
             <!--
                 Outputs all the trigger-level hits within the readout window.
                 This is not generally necessary outside of specialized
@@ -301,6 +307,12 @@
 			 converter driver.
           -->
         <driver name="HodoscopeRawConverterDriver" type="org.hps.readout.hodoscope.HodoscopeRawConverterReadoutDriver">
+			<!--
+				NSA and NSB must match the digitization driver settings.
+			-->
+            <numberSamplesAfter>10</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>6</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+			
             <!--
                 Outputs all the trigger-level hits within the readout window.
                 This is not generally necessary outside of specialized

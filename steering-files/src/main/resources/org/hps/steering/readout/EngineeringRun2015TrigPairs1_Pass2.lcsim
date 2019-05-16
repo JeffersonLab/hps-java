@@ -169,6 +169,12 @@
 		  -->
 		<driver name="RawConverterReadoutDriver" type="org.hps.readout.ecal.updated.EcalReadoutRawConverterDriver">
 			<!--
+				NSA and NSB must match the digitization driver settings.
+			-->
+            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+			
+			<!--
 				Outputs all the trigger-level hits within the readout window.
 				This is not generally necessary outside of specialized
 				circumstances. Note that all readout hits associated with GTP
