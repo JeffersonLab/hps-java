@@ -11,7 +11,7 @@ import junit.framework.TestCase;
 
 public class HodoscopeConditionsTest extends TestCase {
     
-    private static final String DETECTOR = "HPS-PhysicsRun2019-v1-4pt5";
+    private static final String DETECTOR = "HPS-HodoscopeTest-v1";
     private static final int RUN = 1000000;
     
     public void testHodoscopeConditions() {

@@ -249,8 +249,8 @@ public class HodoEvioReader extends EvioReader {
         if (hodoChannel == null) {
             return null;
         }
-        int ix = hodoChannel.getX();
-        int iy = hodoChannel.getY();
+        int ix = hodoChannel.getIX();
+        int iy = hodoChannel.getIY();
         int ilayer = hodoChannel.getLayer();
         //int ihole = hodoChannel.getHole();
         

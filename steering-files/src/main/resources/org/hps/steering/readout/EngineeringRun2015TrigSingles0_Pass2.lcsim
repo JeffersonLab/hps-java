@@ -4,7 +4,7 @@
 		<!-- SLiC Data Readout Drivers -->
 		<driver name="EcalHitsOutputDriver"/>
 		<driver name="MCParticleOutputDriver"/>
-		<driver name="TrackerHitsOutputDriver"/>
+		<driver name="TrackerHitsSVTOutputDriver"/>
 		<driver name="TrackerHitsEcalOutputDriver"/>
 		
 		<!-- SVT Readout Drivers -->
@@ -44,7 +44,7 @@
 			 simulation. This will automatically include all calorimeter truth hits
 			 and related MC particles in the readout file.
 		  -->
-		<driver name="EcalHitsOutputDriver" type="org.hps.readout.ecal.updated.SimCalorimeterHitReadoutDriver">
+		<driver name="EcalHitsOutputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
 			<collectionName>EcalHits</collectionName>
 			
 			<!-- Units of ns. -->
@@ -62,7 +62,7 @@
 			<persistent>false</persistent>
 		</driver>
 		
-		<driver name="TrackerHitsOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
+		<driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
 			<collectionName>TrackerHits</collectionName>
 			
 			<!-- Units of ns. -->
@@ -71,7 +71,7 @@
 			<persistent>false</persistent>
 		</driver>
 		
-		<driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.svt.SimTrackerHitReadoutDriver">
+		<driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
 			<collectionName>TrackerHitsECal</collectionName>
 			
 			<!-- Units of ns. -->
@@ -112,7 +112,7 @@
 			 same collection name as the input truth data. If a truth handler
 			 driver also outputs data into this collection, the two will merge.
 		  -->
-		<driver name="EcalReadoutDriver" type="org.hps.readout.ecal.updated.EcalReadoutDriver">
+		<driver name="EcalReadoutDriver" type="org.hps.readout.ecal.updated.EcalDigitizationReadoutDriver">
 			<!-- LCIO Collection Names -->
 			<inputHitCollectionName>EcalHits</inputHitCollectionName>
 			<outputHitCollectionName>EcalRawHits</outputHitCollectionName>
@@ -224,7 +224,7 @@
 			can occur after a previous trigger has been created) and the values
 			of all the trigger cuts.
 		-->
-		<driver name="Singles0TriggerDriver" type="org.hps.readout.ecal.updated.SinglesTriggerReadoutDriver">
+		<driver name="Singles0TriggerDriver" type="org.hps.readout.trigger.SinglesTriggerReadoutDriver">
 			<inputCollectionName>EcalClustersGTP</inputCollectionName>
 			
 			<!-- Units of 2 ns beam bunches. -->
