@@ -6,7 +6,7 @@
 package org.hps.evio;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +16,9 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
 import org.hps.conditions.hodoscope.HodoscopeChannel.GeometryId;
 import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
-import org.hps.recon.ecal.FADCGenericHit;
-import org.hps.recon.ecal.HitExtraData;
-import org.hps.recon.ecal.HitExtraData.Mode7Data;
+//import org.hps.recon.ecal.FADCGenericHit;
+//import org.hps.recon.ecal.HitExtraData;
+//import org.hps.recon.ecal.HitExtraData.Mode7Data;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.jlab.coda.jevio.CompositeData;
@@ -28,11 +28,11 @@ import org.lcsim.detector.IDetectorElementContainer;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
+//import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
-import org.lcsim.event.base.BaseLCRelation;
+//import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.event.base.BaseRawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -59,14 +59,14 @@ public class HodoEvioReader extends EvioReader {
 
     private Subdetector subDetector;
 
-    private static final String genericHitCollectionName = "FADCGenericHits";
-    private List<FADCGenericHit> genericHits;
+//    private static final String genericHitCollectionName = "FADCGenericHits";
+//    private List<FADCGenericHit> genericHits;
 
-    private static final String extraDataRelationsName = "HodoReadoutExtraDataRelations";
-    private List<LCRelation> extraDataRelations;
-
-    private static final String extraDataCollectionName = "HodoReadoutExtraData";
-    private List<HitExtraData> extraDataList;
+//    private static final String extraDataRelationsName = "HodoReadoutExtraDataRelations";
+//    private List<LCRelation> extraDataRelations;
+//
+//    private static final String extraDataCollectionName = "HodoReadoutExtraData";
+//    private List<HitExtraData> extraDataList;
 
     private final Map<List<Integer>, Integer> genericHitCount = new HashMap<List<Integer>, Integer>();
 
@@ -92,9 +92,9 @@ public class HodoEvioReader extends EvioReader {
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {        
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
-        genericHits = new ArrayList<FADCGenericHit>();
-        extraDataList = new ArrayList<HitExtraData>();
-        extraDataRelations = new ArrayList<LCRelation>();
+//        genericHits = new ArrayList<FADCGenericHit>();
+//        extraDataList = new ArrayList<HitExtraData>();
+//        extraDataRelations = new ArrayList<LCRelation>();
         int flags = 0;
         for (BaseStructure bank : event.getChildrenList()) {
             BaseStructureHeader header = bank.getHeader();
@@ -116,9 +116,8 @@ public class HodoEvioReader extends EvioReader {
                             if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
                                 for (CompositeData cdata : slotBank.getCompositeData()) {
 //                            CompositeData cdata = slotBank.getCompositeData();
-                                    // For some reason, if the ECal is readout earlier, the index get gets some non 0 value.
-                                    cdata.index(0);
-//                                    System.out.println("cdata index is " + cdata.index());                                    
+                                    // We are reading the same data again. JEVIO remembers that the index was advanced already, so we need to set it to zero again.
+                                    cdata.index(0);                            
                                     if (slotBank.getHeader().getTag() != bankTag) {
                                         bankTag = slotBank.getHeader().getTag();
                                         LOGGER.info(String.format("Hodo format tag: 0x%x\n", bankTag));
@@ -158,11 +157,11 @@ public class HodoEvioReader extends EvioReader {
         }
 
         lcsimEvent.put(this.hitCollectionName, hits, hitClass, flags, readoutName);
-        lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
-        if (!extraDataList.isEmpty()) {
-            lcsimEvent.put(extraDataCollectionName, extraDataList, Mode7Data.class, 0);
-            lcsimEvent.put(extraDataRelationsName, extraDataRelations, LCRelation.class, 0);
-        }
+//        lcsimEvent.put(genericHitCollectionName, genericHits, FADCGenericHit.class, 0);
+//        if (!extraDataList.isEmpty()) {
+//            lcsimEvent.put(extraDataCollectionName, extraDataList, Mode7Data.class, 0);
+//            lcsimEvent.put(extraDataRelationsName, extraDataRelations, LCRelation.class, 0);
+//        }
 
         return foundHits;
     }
@@ -187,18 +186,17 @@ public class HodoEvioReader extends EvioReader {
                 );
     }
 
-    private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
-        int[] adcValues = new int[nSamples];
-        for (int i = 0; i < nSamples; i++) {
-            adcValues[i] = cdata.getShort();
-        }
-        return new FADCGenericHit(mode, crate, slot, channel, adcValues);
-    }
+//    private static FADCGenericHit makeGenericRawHit(int mode, int crate, short slot, short channel, CompositeData cdata, int nSamples) {
+//        int[] adcValues = new int[nSamples];
+//        for (int i = 0; i < nSamples; i++) {
+//            adcValues[i] = cdata.getShort();
+//        }
+//        return new FADCGenericHit(mode, crate, slot, channel, adcValues);
+//    }
 
     private List<BaseRawTrackerHit> makeWindowHits(CompositeData cdata, int crate) {
         List<BaseRawTrackerHit> hits = new ArrayList<BaseRawTrackerHit>();
 //        if (debug) {
-//            int n = cdata.getNValues().size();
 //            for (int i = 0; i < n; i++) {
 //                System.out.println("cdata.N[" + i + "]=" + cdata.getNValues().get(i));
 //            }
@@ -208,6 +206,7 @@ public class HodoEvioReader extends EvioReader {
 //            }
 //        }   
         while (cdata.index() + 1 < cdata.getItems().size()) {
+            int index=cdata.index();
             short slot = cdata.getByte();
             int trigger = cdata.getInt();
             long timestamp = cdata.getLong();
@@ -229,12 +228,13 @@ public class HodoEvioReader extends EvioReader {
                     System.out.println("The long id is: " + id);
                 }
 
-                if (id == null) {
-                    FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_RAW_MODE, crate, slot, channel, cdata, nSamples);
-                    processUnrecognizedChannel(hit);
-                } else {
+                if (id != null) {  // We found an actual Hodoscope channel.
                     BaseRawTrackerHit hit = makeHodoRawHit(0, id, cdata, nSamples);
                     hits.add(hit);
+                }else{        // The generic hits would have been stored already by the ECAL. Besides, these will also be lots of ECAL hits, we don't want to store again!! -- MWH.
+//                    FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_RAW_MODE, crate, slot, channel, cdata, nSamples);
+//                    processUnrecognizedChannel(hit);
+                    cdata.index( cdata.index() + nSamples );  // Wind the pointer forward by nSamples.
                 }
             }
         }
@@ -244,6 +244,9 @@ public class HodoEvioReader extends EvioReader {
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
 //        HodoscopeChannel hodoChannel = hodoConditions.getChannels().findChannel(crate, 10, channel);
+        if(hodoChannels == null) {  // The hodoChannels were not initialized, probably data that did not have a Hodoscope.  -- MWH.
+            return null;
+        }
         HodoscopeChannel hodoChannel = hodoChannels.findChannel(crate, slot, channel);
 
         if (hodoChannel == null) {
@@ -294,8 +297,9 @@ public class HodoEvioReader extends EvioReader {
                     int sampleCount = cdata.getNValue();
 
                     if (id == null) {
-                        FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_PULSE_MODE, crate, slot, channel, cdata, sampleCount);
-                        processUnrecognizedChannel(hit);
+                        cdata.index(cdata.index()+sampleCount);
+//                        FADCGenericHit hit = makeGenericRawHit(EventConstants.HODO_PULSE_MODE, crate, slot, channel, cdata, sampleCount);
+//                        processUnrecognizedChannel(hit);
                     } else {
                         BaseRawTrackerHit hit = makeHodoRawHit(pulseNum, id, cdata, sampleCount);
                         hits.add(hit);
@@ -340,8 +344,8 @@ public class HodoEvioReader extends EvioReader {
                         System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral);
                     }
                     if (id == null) {
-                        int[] data = {pulseIntegral, pulseTime};
-                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.HODO_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
+//                        int[] data = {pulseIntegral, pulseTime};
+//                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.HODO_PULSE_INTEGRAL_MODE, crate, slot, channel, data));
                     } else {
                         hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
                     }
@@ -387,14 +391,14 @@ public class HodoEvioReader extends EvioReader {
                         System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral + "; amplLow=" + amplLow + "; amplHigh=" + amplHigh);
                     }
                     if (id == null) {
-                        int[] data = {pulseIntegral, pulseTime, amplLow, amplHigh};
-                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.HODO_PULSE_INTEGRAL_HIGHRESTDC_MODE, crate, slot, channel, data));
+//                        int[] data = {pulseIntegral, pulseTime, amplLow, amplHigh};
+//                        processUnrecognizedChannel(new FADCGenericHit(EventConstants.HODO_PULSE_INTEGRAL_HIGHRESTDC_MODE, crate, slot, channel, data));
                     } else {
                         RawCalorimeterHit hit = new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime);
                         hits.add(hit);
-                        Mode7Data extraData = new Mode7Data(amplLow, amplHigh);
-                        extraDataList.add(extraData);
-                        extraDataRelations.add(new BaseLCRelation(hit, extraData));
+//                        Mode7Data extraData = new Mode7Data(amplLow, amplHigh);
+//                        extraDataList.add(extraData);
+//                        extraDataRelations.add(new BaseLCRelation(hit, extraData));
                     }
                 }
             }
@@ -402,24 +406,24 @@ public class HodoEvioReader extends EvioReader {
         return hits;
     }
 
-    private void processUnrecognizedChannel(FADCGenericHit hit) {
-        genericHits.add(hit);
-
-        List<Integer> channelAddress = Arrays.asList(hit.getCrate(), hit.getSlot(), hit.getChannel());
-        Integer count = genericHitCount.get(channelAddress);
-        if (count == null) {
-            count = 0;
-        }
-        count++;
-        genericHitCount.put(channelAddress, count);
-
-        // Lowered the log level on these.  Otherwise they print too much. --JM
-        if (count < 10) {
-            LOGGER.finer(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
-        } else if (count == 10) {
-            LOGGER.fine(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
-        }
-    }
+//    private void processUnrecognizedChannel(FADCGenericHit hit) {
+//        genericHits.add(hit);
+//
+//        List<Integer> channelAddress = Arrays.asList(hit.getCrate(), hit.getSlot(), hit.getChannel());
+//        Integer count = genericHitCount.get(channelAddress);
+//        if (count == null) {
+//            count = 0;
+//        }
+//        count++;
+//        genericHitCount.put(channelAddress, count);
+//
+//        // Lowered the log level on these.  Otherwise they print too much. --JM
+//        if (count < 10) {
+//            LOGGER.finer(String.format("Crate %d, slot %d, channel %d not found in map", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+//        } else if (count == 10) {
+//            LOGGER.fine(String.format("Crate %d, slot %d, channel %d not found in map: silencing further warnings for this channel", hit.getCrate(), hit.getSlot(), hit.getChannel()));
+//        }
+//    }
 
     void initialize() {
 
