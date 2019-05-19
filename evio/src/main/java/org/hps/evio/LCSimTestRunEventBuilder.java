@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
@@ -39,7 +40,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     public LCSimTestRunEventBuilder() {
         ecalReader = new EcalEvioReader(0x1, 0x2);
-        hodoReader = new HodoEvioReader(0x1, 0x2);   // Rafo: Have to understand what are 0x1 and 0x2
+        
         svtReader = new TestRunSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
@@ -202,6 +203,18 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     @Override
     public void conditionsChanged(ConditionsEvent conditionsEvent) {
         ecalReader.initialize();
-        hodoReader.initialize();
+        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        if (mgr.hasConditionsRecord("hodo_channels")) {  // No hodo_channels, then no hodoscope.
+            if(hodoReader == null) {
+                hodoReader = new HodoEvioReader(0x1, 0x2);   // Rafo: Have to understand what are 0x1 and 0x2 = Topbank and Bottombank (MWH).
+                hodoReader.setTopBankTag(0x25); 
+                hodoReader.setBotBankTag(0x27); 
+//                hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
+//                hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
+            }
+            hodoReader.initialize();
+
+        }
+
     }
 }

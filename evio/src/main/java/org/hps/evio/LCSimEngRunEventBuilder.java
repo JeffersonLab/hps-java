@@ -81,11 +81,11 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public LCSimEngRunEventBuilder() {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
-        hodoReader.setTopBankTag(0x25); 
-        hodoReader.setBotBankTag(0x27); 
-//        hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
-//        hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
         ecalReader.setRfBankTag(0x2e);
+        //
+        // Note: The hodoReader has these initializations in LCSimTestRunEventBuilder.conditionsChanged
+        //       Since the conditions tell us whether we have a hodoscope or not.
+        //
         svtReader = new AugmentedSvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
@@ -171,7 +171,9 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make RawHodoscopeHit collection, combining top and bottom section
         // of Hodo into one list.
         try {
-            hodoReader.makeHits(evioEvent, lcsimEvent);
+            if(hodoReader != null) {  // Skip is no hodoscope in this run period.
+                hodoReader.makeHits(evioEvent, lcsimEvent);
+            }
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error making Hodo hits.", e);
         }
