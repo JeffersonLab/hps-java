@@ -63,6 +63,7 @@
             <exclude>**/ReadoutNoPileupTest.java</exclude>
             <exclude>**/ReconSteeringTest.java</exclude>
             <exclude>**/SimpleSvtReadoutTest.java</exclude>
+            <exclude>**/HodoscopeSimDataTest.java</exclude>
           </excludes>
           <systemPropertyVariables>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
