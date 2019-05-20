@@ -184,7 +184,9 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      * <code>{ width / 2, height / 2, depth / 2 }</code>.
      */
     public final double[] getScintillatorHalfDimensions(SimTrackerHit hit) {
+
         return getScintillatorPosition(hit.getIdentifier());
+
     }
     
     /**
@@ -303,7 +305,9 @@ public final class HodoscopeDetectorElement extends SubdetectorDetectorElement {
      * <code>{ x, y, z }</code>.
      */
     public final double[] getScintillatorPosition(SimTrackerHit hit) {
+
         return getScintillatorPosition(hit.getIdentifier());
+
     }
     
     /**

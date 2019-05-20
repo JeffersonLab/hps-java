@@ -216,6 +216,11 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
+        <artifactId>hps-hodo-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
         <artifactId>hps-ecal-readout-sim</artifactId>
         <version>${project.version}</version>
       </dependency>

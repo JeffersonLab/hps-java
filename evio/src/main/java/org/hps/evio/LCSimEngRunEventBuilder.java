@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.trigger.TiTimeOffset;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.epics.EpicsEvioProcessor;
@@ -20,7 +21,7 @@ import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
-import org.lcsim.conditions.ConditionsManager;
+//import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -81,6 +82,10 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         ecalReader.setTopBankTag(0x25);
         ecalReader.setBotBankTag(0x27);
         ecalReader.setRfBankTag(0x2e);
+        //
+        // Note: The hodoReader has these initializations in LCSimTestRunEventBuilder.conditionsChanged
+        //       Since the conditions tell us whether we have a hodoscope or not.
+        //
         svtReader = new AugmentedSvtEvioReader();
         sspCrateBankTag = 0x2E; // A.C. modification after Sergey's confirmation
         sspBankTag = 0xe10c;
@@ -100,9 +105,12 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         svtEventFlagger.initialize();
         
         // Set TI time offset from run database.
-        ConditionsManager mgr = conditionsEvent.getConditionsManager();
-        TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
-        currentTiTimeOffset = t.getValue();
+        currentTiTimeOffset = Long.valueOf(0);
+        DatabaseConditionsManager mgr = (DatabaseConditionsManager) conditionsEvent.getConditionsManager();
+        if (mgr.hasConditionsRecord("ti_time_offsets")) {
+            TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
+            currentTiTimeOffset = t.getValue();            
+        }
     }
     
     /**
@@ -133,6 +141,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     @Override
     public EventHeader makeLCSimEvent(final EvioEvent evioEvent) {
 
+        
         LOGGER.finest("creating LCSim event from EVIO event " + evioEvent.getEventNumber());
 
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
@@ -158,6 +167,18 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             LOGGER.log(Level.SEVERE, "Error making ECal hits.", e);
         }
 
+        // Make RawHodoscopeHit collection, combining top and bottom section
+        // of Hodo into one list.
+        try {
+            if(hodoReader != null) {  // Skip is no hodoscope in this run period.
+                hodoReader.makeHits(evioEvent, lcsimEvent);
+            }
+        } catch (final Exception e) {
+            LOGGER.log(Level.SEVERE, "Error making Hodo hits.", e);
+        }
+
+      
+        
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
