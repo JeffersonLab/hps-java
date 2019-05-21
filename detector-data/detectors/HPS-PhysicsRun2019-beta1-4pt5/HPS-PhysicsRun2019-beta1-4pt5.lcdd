@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2019-beta1-4pt5" />
-    <generator name="lcsim" version="1.0" file="/data/HPS/hps-java/detector-data/detectors/HPS-PhysicsRun2019-beta1-4pt5/compact.xml" checksum="1563554511" />
+    <generator name="lcsim" version="1.0" file="/data/HPS/hps-java/detector-data/detectors/HPS-PhysicsRun2019-beta1-4pt5/compact.xml" checksum="1774783003" />
     <author name="NONE" />
     <comment>HPS detector for 2019 run with fieldmap, Tracker at nominal opening angle, no SVT survey, using the 2016 SVT this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV. Includes Hodoscope. Does not include L0 or slim-L1.</comment>
   </header>
@@ -34,11 +34,12 @@
       <idfield signed="true" label="side" length="2" start="32" />
       <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
-    <idspec name="HodoscopeHits" length="22">
+    <idspec name="HodoscopeHits" length="20">
       <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="layer" length="2" start="6" />
-      <idfield signed="true" label="x" length="8" start="8" />
-      <idfield signed="true" label="y" length="6" start="16" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="ix" length="4" start="13" />
+      <idfield signed="true" label="iy" length="3" start="17" />
     </idspec>
     <idspec name="EcalHits" length="22">
       <idfield signed="false" label="system" length="6" start="0" />
@@ -68,10 +69,9 @@
       <idspecref ref="EcalHits" />
       <grid_xyz grid_size_x="0.0" grid_size_y="0.0" grid_size_z="0.0" />
     </calorimeter>
-    <calorimeter name="Hodoscope" ecut="0.0" eunit="MeV" verbose="0" hits_collection="HodoscopeHits">
+    <tracker name="Hodoscope" ecut="0.0" eunit="MeV" verbose="0" hits_collection="HodoscopeHits">
       <idspecref ref="HodoscopeHits" />
-      <grid_xyz grid_size_x="1.0" grid_size_y="0.0" grid_size_z="0.0" />
-    </calorimeter>
+    </tracker>
   </sensitive_detectors>
   <limits />
   <regions>
@@ -5395,9 +5395,10 @@
           <positionref ref="hodo_pos_L1TP0" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1TP0" />
@@ -5434,9 +5435,10 @@
           <positionref ref="hodo_pos_L1BP0" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1BP0" />
@@ -5473,9 +5475,10 @@
           <positionref ref="hodo_pos_L1TP1" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1TP1" />
@@ -5512,9 +5515,10 @@
           <positionref ref="hodo_pos_L1BP1" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1BP1" />
@@ -5551,9 +5555,10 @@
           <positionref ref="hodo_pos_L1TP2" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1TP2" />
@@ -5590,9 +5595,10 @@
           <positionref ref="hodo_pos_L1BP2" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1BP2" />
@@ -5629,9 +5635,10 @@
           <positionref ref="hodo_pos_L1TP3" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1TP3" />
@@ -5668,9 +5675,10 @@
           <positionref ref="hodo_pos_L1BP3" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1BP3" />
@@ -5707,9 +5715,10 @@
           <positionref ref="hodo_pos_L1TP4" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1TP4" />
@@ -5746,9 +5755,10 @@
           <positionref ref="hodo_pos_L1BP4" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="0" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="1" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L1BP4" />
@@ -5785,9 +5795,10 @@
           <positionref ref="hodo_pos_L2TP0" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2TP0" />
@@ -5824,9 +5835,10 @@
           <positionref ref="hodo_pos_L2BP0" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="0" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2BP0" />
@@ -5863,9 +5875,10 @@
           <positionref ref="hodo_pos_L2TP1" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2TP1" />
@@ -5902,9 +5915,10 @@
           <positionref ref="hodo_pos_L2BP1" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="1" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2BP1" />
@@ -5941,9 +5955,10 @@
           <positionref ref="hodo_pos_L2TP2" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2TP2" />
@@ -5980,9 +5995,10 @@
           <positionref ref="hodo_pos_L2BP2" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="2" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2BP2" />
@@ -6019,9 +6035,10 @@
           <positionref ref="hodo_pos_L2TP3" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2TP3" />
@@ -6058,9 +6075,10 @@
           <positionref ref="hodo_pos_L2BP3" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="3" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2BP3" />
@@ -6097,9 +6115,10 @@
           <positionref ref="hodo_pos_L2TP4" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2TP4" />
@@ -6136,9 +6155,10 @@
           <positionref ref="hodo_pos_L2BP4" />
           <rotationref ref="hodo_rot" />
           <physvolid field_name="system" value="30" />
+          <physvolid field_name="barrel" value="1" />
+          <physvolid field_name="layer" value="1" />
           <physvolid field_name="ix" value="4" />
           <physvolid field_name="iy" value="-1" />
-          <physvolid field_name="iz" value="2" />
         </physvol>
         <physvol>
           <volumeref ref="hodo_cover_vol_L2BP4" />
