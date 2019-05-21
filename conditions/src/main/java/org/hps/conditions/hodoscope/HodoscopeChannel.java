@@ -2,10 +2,17 @@ package org.hps.conditions.hodoscope;
 
 import java.util.Comparator;
 
+import org.hps.conditions.api.AbstractIdentifier;
+
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
+
+import org.lcsim.detector.identifier.ExpandedIdentifier;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+
 
 @Table(names = {"hodo_channels"})
 public final class HodoscopeChannel extends BaseConditionsObject {
@@ -273,4 +280,89 @@ public final class HodoscopeChannel extends BaseConditionsObject {
     public Integer getTop() {
         return this.getFieldValue("top");
     }
+    
+    
+        /**
+     * The <code>GeometryId</code> contains the x and y indices of the crystal in the LCSIM-based geometry
+     * representation.
+     */
+    public static final class GeometryId extends AbstractIdentifier {
+
+        /**
+         * The helper for using identifiers.
+         */
+        private final IIdentifierHelper helper;
+
+        /**
+         * The subdetector system ID.
+         */
+        private int system = -1;
+
+        /**
+         * The Tiles's X index.
+         */
+        private int x = Integer.MAX_VALUE;
+
+        /**
+         * The Tile's Y index.
+         */
+        private int y = Integer.MAX_VALUE;
+
+        /**
+         * The Layer.
+         */
+        private int layer = Integer.MAX_VALUE;
+
+        /**
+         * The Hole.
+         */
+        private int hole = Integer.MAX_VALUE;
+                
+        /**
+         * Create a geometry ID.
+         *
+         * @param helper the ID helper
+         * @param values the list of values (order is system, x, y)
+         */
+        public GeometryId(final IIdentifierHelper helper, final int[] values) {
+            this.helper = helper;
+            this.system = values[0];
+            this.x = values[1];
+            this.y = values[2];
+            this.layer = values[3];
+            this.hole = values[4];
+        }
+
+        /**
+         * Encode this ID as a long using the ID helper.
+         *
+         * @return The encoded long value.
+         */
+        @Override
+        public long encode() {
+            final IExpandedIdentifier expId = new ExpandedIdentifier(this.helper.getIdentifierDictionary()
+                    .getNumberOfFields());
+            
+            expId.setValue(this.helper.getFieldIndex("system"), this.system);
+            expId.setValue(this.helper.getFieldIndex("barrel"), 1); // Hard-coded flag to fix ID matching. --JM
+            expId.setValue(this.helper.getFieldIndex("ix"), this.x);
+            expId.setValue(this.helper.getFieldIndex("iy"), this.y);
+            expId.setValue(this.helper.getFieldIndex("layer"), this.layer);
+            expId.setValue(this.helper.getFieldIndex("hole"), this.hole);
+            
+            return this.helper.pack(expId).getValue();
+        }
+
+        /**
+         * Return <code>true</code> if ID is valid
+         *
+         * @return <code>true</code> if ID is valid
+         */
+        @Override
+        public boolean isValid() {
+            return this.system != -1 && this.x != Integer.MAX_VALUE && this.y != Integer.MAX_VALUE;
+        }
+    }
+
+    
 }
