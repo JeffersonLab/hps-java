@@ -3,7 +3,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-Phantom-fieldmap">
+    <info name="HPS-PhysicsRun2016-Pass2-Phantom-fieldmap">
         <comment>HPS detector with phantom scoring planes to study field propagation</comment>
     </info>
 
