@@ -1,6 +1,8 @@
 package org.hps.conditions.hodoscope;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hps.conditions.api.AbstractIdentifier;
 
@@ -66,6 +68,23 @@ public final class HodoscopeChannel extends BaseConditionsObject {
                 }
             }            
         }
+
+
+        /**
+         * Map of {@link #ChannelId} to channel object.
+         */
+        private final Map<Long, HodoscopeChannel> channelMap = new HashMap<Long, HodoscopeChannel>();
+
+        /**
+         * Map of {@link #DaqId} to channel object.
+         */
+        private final Map<Long, HodoscopeChannel> daqMap = new HashMap<Long, HodoscopeChannel>();
+
+        /**
+         * Map of {@link #GeometryId} to channel object.
+         */
+        private final Map<Long, HodoscopeChannel> geometryMap = new HashMap<Long, HodoscopeChannel>();
+
         
         public HodoscopeChannel findChannel(int channelId) {
             HodoscopeChannel foundIt = null;
@@ -89,6 +108,19 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             }
             return foundIt;
         }
+        
+        
+        /**
+         * Find a channel by its encoded geometric ID.
+         *
+         * @param id the encoded geometric ID
+         * @return the matching channel or <code>null</code> if does not exist
+         */
+        public HodoscopeChannel findGeometric(final long id) {
+            return this.geometryMap.get(id);
+        }
+        
+        
     }
     
     @Override
@@ -363,6 +395,5 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             return this.system != -1 && this.x != Integer.MAX_VALUE && this.y != Integer.MAX_VALUE;
         }
     }
-
     
 }

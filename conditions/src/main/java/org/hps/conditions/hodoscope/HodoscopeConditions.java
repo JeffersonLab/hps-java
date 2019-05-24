@@ -10,7 +10,8 @@ public class HodoscopeConditions {
     private final Map<HodoscopeChannel, HodoscopeChannelConstants> channelConstants = 
             new HashMap<HodoscopeChannel, HodoscopeChannelConstants>();
     
-    private HodoscopeChannelCollection channels = null;
+    //private HodoscopeChannelCollection channels = null;
+    private HodoscopeChannelCollection channels = new HodoscopeChannelCollection();
     
     void setChannelCollection(HodoscopeChannelCollection channels) {
         this.channels = channels;
@@ -21,9 +22,10 @@ public class HodoscopeConditions {
         }
     }
     
-    HodoscopeChannelConstants getChannelConstants(HodoscopeChannel channel) {
+    public HodoscopeChannelConstants getChannelConstants(HodoscopeChannel channel) {
         return channelConstants.get(channel);
     }   
+    
     
     public HodoscopeChannelCollection getChannels() {
         return channels;
