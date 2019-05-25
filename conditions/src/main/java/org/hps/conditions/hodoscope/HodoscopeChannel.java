@@ -3,21 +3,30 @@ package org.hps.conditions.hodoscope;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.hps.conditions.api.AbstractIdentifier;
 
 import org.hps.conditions.api.BaseConditionsObject;
 import org.hps.conditions.api.BaseConditionsObjectCollection;
+import org.hps.conditions.database.AbstractConditionsObjectConverter;
+import org.hps.conditions.database.Converter;
 import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
-
+import org.lcsim.conditions.ConditionsManager;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
-
+import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.Subdetector;
 
 @Table(names = {"hodo_channels"})
+@Converter(converter = HodoscopeChannel.HodoscopeChannelConverter.class)
 public final class HodoscopeChannel extends BaseConditionsObject {
+    
+    private static Logger LOGGER = Logger.getLogger(HodoscopeChannel.class.getPackage().getName());    
+    
     /**
      * Specifies a scintillator that is positioned on the top half of
      * the hodoscope.
@@ -86,6 +95,22 @@ public final class HodoscopeChannel extends BaseConditionsObject {
         private final Map<Long, HodoscopeChannel> geometryMap = new HashMap<Long, HodoscopeChannel>();
 
         
+        
+         /**
+         * Build the map of {@link #GeometryId} objects.
+         *
+         * @param helper the ID helper of the subdetector
+         * @param system the system ID of the subdetector
+         */
+        void buildGeometryMap(final IIdentifierHelper helper, final int system) {
+            for (final HodoscopeChannel channel : this) {
+                System.out.println("============================================== " + (new Throwable()).getStackTrace()[0].toString());
+                final GeometryId geometryId = channel.createGeometryId(helper, system);
+                this.geometryMap.put(geometryId.encode(), channel);
+            }
+        }
+       
+        
         public HodoscopeChannel findChannel(int channelId) {
             HodoscopeChannel foundIt = null;
             for(HodoscopeChannel channel : this) {
@@ -117,11 +142,31 @@ public final class HodoscopeChannel extends BaseConditionsObject {
          * @return the matching channel or <code>null</code> if does not exist
          */
         public HodoscopeChannel findGeometric(final long id) {
+            System.out.println("Kuku in the findGeometric id = " + id);
+            System.out.println(" ============================================== " + (new Throwable()).getStackTrace()[0].toString());
+            System.out.println(" geometryMap.get(id) = " + this.geometryMap.get(id));
+            System.out.println("Siz of the geometry Map is " + this.geometryMap.size());
+            System.out.println("The entrySet is " + this.geometryMap.entrySet());
+            
             return this.geometryMap.get(id);
         }
         
         
     }
+    
+    
+    /**
+     * Create a {@link #GeometryId} for this Hodo channel.
+     *
+     * @param helper the ID helper
+     * @param system the subdetector system ID
+     * @return the geometry ID
+     */
+    GeometryId createGeometryId(final IIdentifierHelper helper, final int system) {
+        return new GeometryId(helper, new int[] {system, this.getIX(), this.getIY(), this.getLayer(), this.getHole() });
+    }
+    
+    
     
     @Override
     public boolean equals(final Object o) {
@@ -312,6 +357,55 @@ public final class HodoscopeChannel extends BaseConditionsObject {
     public Integer getTop() {
         return this.getFieldValue("top");
     }
+    
+    
+    
+    /**
+     * Customized converter for this object.
+     */                       
+    public static final class HodoscopeChannelConverter extends AbstractConditionsObjectConverter<HodoscopeChannelCollection> {
+
+        /**
+         * Create an {@link EcalChannel} collection.
+         *
+         * @param conditionsManager the conditions manager
+         * @param name the name of the conditions data table
+         * @return the collection of ECAL channel objects
+         */
+        @Override
+        public HodoscopeChannelCollection getData(final ConditionsManager conditionsManager, final String name) {
+            final HodoscopeChannelCollection collection = super.getData(conditionsManager, name);
+            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+            // FIXME: Ugly method call to get Ecal subdetector object!
+            final Subdetector hodo
+                    = mgr.getCachedConditions(Detector.class, "compact.xml").getCachedData().getSubdetector("Hodoscope");
+            if (hodo != null) {
+                if (hodo.getDetectorElement() != null) {
+                    collection.buildGeometryMap(hodo.getDetectorElement().getIdentifierHelper(), hodo.getSystemID());
+                } else {
+                    // This can happen when not running with the detector-framework jar in the classpath.
+                    throw new IllegalStateException("The ECal subdetector's detector element is not setup.");
+                }
+            } else {
+                // FIXME: Probably this should be a fatal error.
+                LOGGER.warning("ECal subdetector is not accessible so geometry map was not initialized.");
+            }
+            return collection;
+        }
+
+        /**
+         * Get the type this converter handles.
+         *
+         * @return the type this converter handles
+         */
+        @Override
+        public Class<HodoscopeChannelCollection> getType() {
+            return HodoscopeChannelCollection.class;
+        }
+    }
+    
+    
+    
     
     
         /**

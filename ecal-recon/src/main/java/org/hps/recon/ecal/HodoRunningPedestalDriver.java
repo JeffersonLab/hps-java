@@ -154,6 +154,11 @@ public class HodoRunningPedestalDriver extends Driver {
                 double ped = 0;
                 for (int ii = 0; ii < nSamples; ii++) {
                     // reject pulses from pedestal calculation:
+                    //System.out.println("ChannelID = " + chan.getChannelId());
+                    
+                    System.out.println("Sample index is = " + ii + "   The value is " + samples[ii]);
+                    System.out.println("Size of samples is " + samples.length);
+                    
                     if (samples[ii] > getStaticPedestal(findChannel(hit)) + 12) {
                         good = false;
                         break;
@@ -266,7 +271,7 @@ public class HodoRunningPedestalDriver extends Driver {
         runningPedestals.put(chan, ped);
     }
 
-    public double getStaticPedestal(HodoscopeChannel chan) {
+    public double getStaticPedestal(HodoscopeChannel chan) {        
         return hodoConditions.getChannelConstants(chan).getCalibration().getPedestal();
     }
 
@@ -275,6 +280,7 @@ public class HodoRunningPedestalDriver extends Driver {
     }
 
     public HodoscopeChannel findChannel(RawTrackerHit hit) {
+        System.out.println("hit:String   " + hit.toString());
         return hodoConditions.getChannels().findGeometric(hit.getCellID());
     }
 

@@ -28,6 +28,8 @@ public class HodoscopeConditions {
     
     
     public HodoscopeChannelCollection getChannels() {
+        System.out.println("Kuku Channels");
+        System.out.println("CollectionID is" + channels.getCollectionId());
         return channels;
     }
 }
