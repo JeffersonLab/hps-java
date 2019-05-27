@@ -22,6 +22,17 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
+
+import org.lcsim.geometry.Subdetector;
+import org.lcsim.detector.identifier.ExpandedIdentifier;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.hps.detector.hodoscope.HodoscopeDetectorElement;
+
+
+
+
 /**
  *
  * @author rafopar
@@ -68,6 +79,11 @@ public class HodoRunningPedestalDriver extends Driver {
     public HodoRunningPedestalDriver() {
     }
 
+    
+    
+    // ===== TEST ===== will remove later following line
+    Detector mydet;
+    
     @Override
     protected void startOfData() {
         LOGGER.config("minLookbackEvents: " + minLookbackEvents);
@@ -77,6 +93,8 @@ public class HodoRunningPedestalDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
+        
+        mydet = detector;
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
         for (int ii = 0; ii < nChannels; ii++) {
             HodoscopeChannel chan = findChannel(ii + 1);
@@ -156,9 +174,11 @@ public class HodoRunningPedestalDriver extends Driver {
                     // reject pulses from pedestal calculation:
                     //System.out.println("ChannelID = " + chan.getChannelId());
                     
-                    System.out.println("Sample index is = " + ii + "   The value is " + samples[ii]);
-                    System.out.println("Size of samples is " + samples.length);
+//                    System.out.println("Sample index is = " + ii + "   The value is " + samples[ii]);
+//                    System.out.println("Size of samples is " + samples.length);
                     
+                    System.out.println("Static Pedestal is " + getStaticPedestal(findChannel(hit)));
+
                     if (samples[ii] > getStaticPedestal(findChannel(hit)) + 12) {
                         good = false;
                         break;
@@ -167,6 +187,7 @@ public class HodoRunningPedestalDriver extends Driver {
                 }
                 if (good) {
                     ped /= nSamples;
+                    System.out.println("Calculated Pedestal is " + ped);
                     updatePedestal(event, findChannel(hit), ped);
                 }
             }
@@ -280,8 +301,49 @@ public class HodoRunningPedestalDriver extends Driver {
     }
 
     public HodoscopeChannel findChannel(RawTrackerHit hit) {
-        System.out.println("hit:String   " + hit.toString());
-        return hodoConditions.getChannels().findGeometric(hit.getCellID());
+        
+        
+        //System.out.println("hit:String   " + hit.toString());
+        Subdetector subdet = mydet.getSubdetector("Hodoscope");
+        
+        HodoscopeDetectorElement hodo = (HodoscopeDetectorElement) subdet.getDetectorElement();
+        
+        IIdentifierHelper helper = hodo.getIdentifierHelper();;
+        
+        IIdentifier id = hit.getIdentifier();
+        IExpandedIdentifier vals = helper.unpack(id);
+        
+  //      System.out.println(" ==== ===== ===== valus to String is " + vals.toString());
+        
+        
+        ExpandedIdentifier vals_no_hole = new ExpandedIdentifier(vals.size());
+        for (int i = 0; i < vals.size(); i++) {
+            vals_no_hole.setValue(i, vals.getValue(i));
+        }
+        vals_no_hole.setValue(3, 0);
+        
+//        System.out.println("====  ===== ===== size of vals = " + vals.size());
+//        System.out.println("====  ===== ===== vals = " + vals);
+//        System.out.println("====  ===== ===== vals_no_hole = " + vals_no_hole);
+        
+        IIdentifier id_no_hole = helper.pack(vals_no_hole);
+        
+//        System.out.println("====== ID No Hole = " + id_no_hole.getValue());
+//
+//        for (int ii = 0; ii < vals.size() - 1; ii++) {
+//
+//            for (int i = 0; i < vals.size() - 1; i++) {
+//                vals_no_hole.setValue(i, vals.getValue(i));
+//            }
+//
+//            vals_no_hole.setValue(ii, 0);
+//            IIdentifier idd_no_hole = helper.pack(vals_no_hole);
+//            System.out.println("====== IDD No Hole = " + idd_no_hole.getValue());
+//        }
+
+        
+//        return hodoConditions.getChannels().findGeometric(hit.getCellID());
+        return hodoConditions.getChannels().findGeometric(id_no_hole.getValue());
     }
 
     public HodoscopeChannel findChannel(RawCalorimeterHit hit) {

@@ -104,7 +104,7 @@ public final class HodoscopeChannel extends BaseConditionsObject {
          */
         void buildGeometryMap(final IIdentifierHelper helper, final int system) {
             for (final HodoscopeChannel channel : this) {
-                System.out.println("============================================== " + (new Throwable()).getStackTrace()[0].toString());
+                //System.out.println("============================================== " + (new Throwable()).getStackTrace()[0].toString());
                 final GeometryId geometryId = channel.createGeometryId(helper, system);
                 this.geometryMap.put(geometryId.encode(), channel);
             }
@@ -142,12 +142,12 @@ public final class HodoscopeChannel extends BaseConditionsObject {
          * @return the matching channel or <code>null</code> if does not exist
          */
         public HodoscopeChannel findGeometric(final long id) {
-            System.out.println("Kuku in the findGeometric id = " + id);
-            System.out.println(" ============================================== " + (new Throwable()).getStackTrace()[0].toString());
-            System.out.println(" geometryMap.get(id) = " + this.geometryMap.get(id));
-            System.out.println("Siz of the geometry Map is " + this.geometryMap.size());
-            System.out.println("The entrySet is " + this.geometryMap.entrySet());
-            
+//            System.out.println("Kuku in the findGeometric id = " + id);
+//            System.out.println(" ============================================== " + (new Throwable()).getStackTrace()[0].toString());
+//            System.out.println(" geometryMap.get(id) = " + this.geometryMap.get(id));
+//            System.out.println("Siz of the geometry Map is " + this.geometryMap.size());
+//            System.out.println("The entrySet is " + this.geometryMap.entrySet());
+            //this.helper.unpack(id).toString();
             return this.geometryMap.get(id);
         }
         
