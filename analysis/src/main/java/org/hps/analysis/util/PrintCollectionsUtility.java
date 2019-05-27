@@ -288,8 +288,8 @@ public class PrintCollectionsUtility {
         StringBuffer outputBuffer = new StringBuffer();
         String indent = getIndent(indentLevel);
         
-        outputBuffer.append(String.format(indent + "Type     :: " + yellow("%d") + " GeV%n", particle.getPDGID()));
-        outputBuffer.append(String.format(indent + "Time     :: " + yellow("%f") + " GeV%n", particle.getProductionTime()));
+        outputBuffer.append(String.format(indent + "Type     :: " + yellow("%d") + "%n", particle.getPDGID()));
+        outputBuffer.append(String.format(indent + "Time     :: " + yellow("%f") + " ns%n", particle.getProductionTime()));
         outputBuffer.append(String.format(indent + "Momentum :: " + yellow("%f") + " GeV%n", particle.getMomentum().magnitude()));
         outputBuffer.append(String.format(indent + "Origin   :: <" + yellow("%f") + ", " + yellow("%f") + ", " + yellow("%f") + ">%n",
                 particle.getOriginX(), particle.getOriginY(), particle.getOriginZ()));
