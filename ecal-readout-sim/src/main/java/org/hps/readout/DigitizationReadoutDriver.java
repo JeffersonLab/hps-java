@@ -20,6 +20,7 @@ import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.TriggeredLCIOData;
 import org.hps.recon.ecal.EcalUtils;
+import org.hps.util.BashParameter;
 import org.hps.util.RandomGaussian;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -585,27 +586,44 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     }
     
     /**
-     * Finds the root particle which originated the particle decay
-     * tree of which the argument particle is a member.
-     * @param particle - The particle for which to find the original
-     * parent.
-     * @return Returns the root of the particle tree.
+     * Finds all root particles associated with the interactions that
+     * created the argument particle.
+     * @param particle - The particle.
+     * @return Returns a {@link java.util.List List} containing each
+     * particle object in the argument particle's particle tree which
+     * has no parent particle.
      */
-    private static final MCParticle getRootParticle(MCParticle particle) {
-        // Keep moving up the particle tree until a particle with no
-        // parents is found. Note that particles are assumed to have
-        // only one parent.
-        MCParticle curParticle = particle;
-        while(!curParticle.getParents().isEmpty()) {
-            if(curParticle.getParents().size() != 1) {
-                throw new IllegalArgumentException("Error: Particle has " + particle.getParents().size() + " parents -- expected 0 or 1.");
-            } else {
-                curParticle = curParticle.getParents().get(0);
-            }
+    private static final List<MCParticle> getRootParticleList(MCParticle particle) {
+        // If the particle has no parents, it should be added to the
+        // list and the list returned.
+        if(particle.getParents().isEmpty()) {
+            List<MCParticle> list = new ArrayList<MCParticle>(1);
+            list.add(particle);
+            return list;
         }
         
-        // Return the root particle.
-        return curParticle;
+        // If there is only one parent, just return the results from
+        // that parent.
+        else if(particle.getParents().size() == 1) {
+            return getRootParticleList(particle.getParents().get(0));
+        }
+        
+        // Otherwise, run the method on each parent particle and
+        // return the results from that instead.
+        else {
+            // Store the parent particle roots.
+            List<MCParticle> list = new ArrayList<MCParticle>();
+            
+            // Get the root particles for each parent and add them to
+            // the list.
+            for(MCParticle parent : particle.getParents()) {
+                List<MCParticle> parentParticles = getRootParticleList(parent);
+                list.addAll(parentParticles);
+            }
+            
+            // Return the compiled particle list.
+            return list;
+        }
     }
     
     /**
@@ -748,8 +766,10 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             Set<MCParticle> truthParticles = new java.util.HashSet<MCParticle>();
             for(SimCalorimeterHit simHit : triggerTruthHits) {
                 for(int i = 0; i < simHit.getMCParticleCount(); i++) {
-                    MCParticle rootParticle = getRootParticle(simHit.getMCParticle(i));
-                    truthParticles.addAll(getParticleTreeAsSet(rootParticle));
+                    List<MCParticle> rootParticles = getRootParticleList(simHit.getMCParticle(i));
+                    for(MCParticle rootParticle : rootParticles) {
+                        truthParticles.addAll(getParticleTreeAsSet(rootParticle));
+                    }
                 }
             }
             
