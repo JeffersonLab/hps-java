@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 // Description of a single silicon-strip module, and a container for its hits
 public class SiModule {
-    int Layer; // Tracker layer number, or -1 for a dummy layer added just for stepping in a
+    int Layer; // Tracker layer number, or a negative integer for a dummy layer added just for stepping in a
                // non-uniform field
     int detector; // Detector number within the layer
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
@@ -31,7 +31,7 @@ public class SiModule {
 
     public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness,
             org.lcsim.geometry.FieldMap Bfield) {
-        // for backwards-compatibility with stand-alone development code: assume axial
+        // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0
         this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield, 0);
     }
@@ -43,6 +43,7 @@ public class SiModule {
 
     public SiModule(int Layer, Plane p, boolean isStereo, double stereo, double width, double height, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector) {
+        System.out.format("SiModule constructor called with layer = %d\n", Layer);
         this.Layer = Layer;
         this.detector = detector;
         this.Bfield = Bfield;

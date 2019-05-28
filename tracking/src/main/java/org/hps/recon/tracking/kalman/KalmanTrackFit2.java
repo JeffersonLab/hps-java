@@ -59,8 +59,9 @@ public class KalmanTrackFit2 {
             for (int idx = start; idx > -1; idx--) {
                 finalSite = idx;
                 SiModule m = data.get(idx);
-                if (m.hits.size() == 0)
+                if (m.Layer >= 0 && m.hits.size() == 0) {
                     continue;
+                }
                 thisSite++;
                 newSite = new MeasurementSite(idx, m, mxResid, mxResid);
                 if (idx == start) {
@@ -72,7 +73,7 @@ public class KalmanTrackFit2 {
                         break;
                     }
                 } else {
-                    if (newSite.makePrediction(sites.get(prevSite).aF, 0, false, false) < 0) {
+                    if (newSite.makePrediction(sites.get(prevSite).aF, sites.get(prevSite).m, 0, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make prediction at site %d, idx=%d.  Abort\n",
                                 thisSite, idx);
                         success = false;
@@ -92,7 +93,9 @@ public class KalmanTrackFit2 {
                 // if (verbose) {
                 // newSite.print("initial filtering");
                 // }
-                chi2f += newSite.chi2inc;
+                if (m.Layer >= 0) {
+                    chi2f += newSite.chi2inc;
+                }
 
                 sites.add(newSite);
 
@@ -153,8 +156,9 @@ public class KalmanTrackFit2 {
             thisSite = -1;
             while (itr.hasNext()) {
                 SiModule m = itr.next();
-                if (m.hits.size() == 0)
-                    continue;
+                if (m.Layer >= 0 && m.hits.size() == 0) {
+                    continue;   //FixMe: eventually need to do prediction for every layer, even if no hit
+                }
                 thisSite++;
                 MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
                 if (thisSite == 0) {
@@ -165,7 +169,7 @@ public class KalmanTrackFit2 {
                         break;
                     }
                 } else {
-                    if (newSite.makePrediction(previousSite.aF, 0, false, false) < 0) {
+                    if (newSite.makePrediction(previousSite.aF, previousSite.m, 0, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make prediction at site %d.  Abort\n", thisSite);
                         success = false;
                         break;
@@ -182,7 +186,9 @@ public class KalmanTrackFit2 {
                 // if (verbose) {
                 // newSite.print(String.format("Iteration %d: filtering", iteration));
                 // }
-                chi2f += newSite.chi2inc;
+                if (m.Layer >=0) {
+                    chi2f += newSite.chi2inc;
+                }
 
                 sites.add(newSite);
 
@@ -217,6 +223,10 @@ public class KalmanTrackFit2 {
             MeasurementSite currentSite = null;
             for (int idx = sites.size() - 1; idx >= 0; idx--) {
                 currentSite = sites.get(idx);
+                if (currentSite.m.Layer < 0 && currentSite.m.hits.size() == 0) {
+                    currentSite.aS = currentSite.aF;
+                    continue;
+                } 
 
                 if (nextSite == null) {
                     currentSite.aS = currentSite.aF.copy();
@@ -224,7 +234,9 @@ public class KalmanTrackFit2 {
                 } else {
                     currentSite.smooth(nextSite);
                 }
+
                 chi2s += currentSite.chi2inc;
+
                 if (iteration == nIterations - 1)
                     nHits++;
 

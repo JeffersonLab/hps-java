@@ -22,7 +22,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 1; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -116,6 +116,14 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         newModule = new SiModule(10, plnInt, false, 0.000205, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
+        // Add some dummy in-between planes in this region where the field is changing rapidly
+        plnInt = new Plane(new Vec(0., 770.0, 30.0), new Vec(0., 1.0, 0.));
+        newModule = new SiModule(-1, plnInt, false, 0., 900., 900., 0., fM, 0);
+        SiModules.add(newModule);       
+        plnInt = new Plane(new Vec(0., 835.0, 30.0), new Vec(0., 1.0, 0.));
+        newModule = new SiModule(-2, plnInt, false, 0., 900., 900., 0., fM, 0);
+        SiModules.add(newModule);
+        
         plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280));
         newModule = new SiModule(11, plnInt, true, -0.049801, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
@@ -123,7 +131,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471));
         newModule = new SiModule(11, plnInt, true, -0.049863, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
-
+        
         plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105));
         newModule = new SiModule(12, plnInt, false, 0.000107, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
@@ -141,13 +149,15 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         int[] lyr = new int[SiModules.size()];
         for (int i = 0; i < SiModules.size(); i++) {
             SiModule si = SiModules.get(i);
-            location[si.Layer] = si.p.X().v[1];
+            if (si.Layer >= 0) {
+                location[si.Layer] = si.p.X().v[1];
+            }
             lyr[i] = si.Layer;
             xdet[i] = si.p.X().v[0];
             ydet[i] = si.p.X().v[1];
             zdet[i] = si.p.X().v[2];
             System.out.format("Si Module %d, Layer=%d, Detector=%d, location=%8.2f, x=%8.2f, y=%8.2f, z=%8.2f\n", i,
-                    si.Layer, si.detector, location[si.Layer], xdet[i], ydet[i], zdet[i]);
+                    si.Layer, si.detector, si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
         double resolution = 0.006; // SSD point resolution, in mm
 
@@ -366,6 +376,9 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             }
             for (int icm = 0; icm < SiModules.size(); icm++) {
                 SiModule thisSi = SiModules.get(icm);
+                if (thisSi.Layer < 0) {
+                    continue;
+                }
                 thisSi.reset();
                 int pln = thisSi.Layer;
                 int det = thisSi.detector;
@@ -723,6 +736,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             for (MeasurementSite site : KalmanTrack.interceptVects.keySet()) {
                 Vec loc = KalmanTrack.interceptVects.get(site);
                 SiModule siM = site.m;
+                if (siM.Layer < 0) continue;
                 if (site.hitID<0) {
                     System.out.format("Missing hit ID on site with layer=%d", siM.Layer);
                 }

@@ -17,7 +17,7 @@ class MeasurementSite {
     Vec H; // Derivatives of the transformation from state vector to measurement
     private double conFac; // Conversion from B to alpha
     private double alpha;
-    double XL; // Thickness of the detector in radiation lengths
+    private double radLen; // radiation length in silicon
     private double dEdx; // in GeV/mm
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
@@ -56,7 +56,6 @@ class MeasurementSite {
             aS.print("smoothed");
         if (H != null)
             H.print("matrix of the transformation from state vector to measurement");
-        System.out.format("      Detector thickness=%10.7f radiation lengths\n", XL);
         System.out.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
         if (m.Layer < 0) {
             System.out.format("End of dump of dummy measurement site %d<<\n", thisSite);
@@ -80,8 +79,7 @@ class MeasurementSite {
         filtered = false;
         smoothed = false;
         double rho = 2.329; // Density of silicon in g/cm^2
-        double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
-        XL = m.thickness / radLen;
+        radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
@@ -102,8 +100,15 @@ class MeasurementSite {
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
+
+    int makePrediction(StateVector pS, int hitNumber, boolean sharingOK, boolean pickup) {
+        SiModule mPs = null;
+        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup);
+    }
     
-    int makePrediction(StateVector pS, int hitNumber, boolean sharingOK, boolean pickup) { // Create predicted state vector by propagating from previous site
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup) { // Create predicted state vector by propagating from previous site
+        // pS = state vector that we are predicting from
+        // mPS = Si module that we are predicting from, if any					
         verbose = pS.verbose;
         int returnFlag = 0;
         double phi = pS.planeIntersect(m.p);
@@ -122,8 +127,6 @@ class MeasurementSite {
             double check = (X0.dif(pRot.X())).dot(pRot.T());
             System.out.format("MeasurementSite.makePrediction: dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
         }
-        Vec pMom = pS.Rot.inverseRotate(pS.getMom(phi));
-        double ct = pMom.unitVec().dot(m.p.T());
 
         double deltaE = 0.; // dEdx*thickness/ct;
 
@@ -137,7 +140,15 @@ class MeasurementSite {
         }
 
         // Move pivot point to X0 to generate the predicted helix
-        aP = pS.predict(thisSite, X0, B, tB, origin, XL / Math.abs(ct), deltaE);
+        Vec pMom = pS.Rot.inverseRotate(pS.getMom(phi));
+        double XL;
+        if (mPs == null) {
+            XL = 0.;
+        } else {
+            double ct = pMom.unitVec().dot(mPs.p.T());        // cos(theta) at the previous site
+            XL = mPs.thickness/radLen/Math.abs(ct);
+        }														
+        aP = pS.predict(thisSite, X0, B, tB, origin, XL, deltaE);
         if (verbose) {
             pS.a.print("original helix in MeasurementSite.makePrediction");
             aP.a.print("pivot transformed helix in MeasurementSite.makePrediction");

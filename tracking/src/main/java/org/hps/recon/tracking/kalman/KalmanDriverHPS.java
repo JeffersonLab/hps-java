@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//import org.hps.analysis.MC.TrackTruthMatching;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackStateUtils;
@@ -26,6 +27,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RelationalTable;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
@@ -35,6 +37,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.event.MCParticle;
 
 // $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
 
@@ -139,6 +142,8 @@ public class KalmanDriverHPS extends Driver {
         aida.histogram1D("10-hit Kalman Track Chi2", 100, 0, 200);
         aida.histogram1D("10-hit GBL Track Chi2", 100, 0, 200);
         aida.histogram1D("12-hit GBL Track Chi2", 100, 0, 200);
+        aida.histogram1D("12-hit Kalman p error", 100, -50., 50.);
+        aida.histogram1D("12-hit GBL p error", 100, -50., 50.);
 
     }
 
@@ -162,7 +167,6 @@ public class KalmanDriverHPS extends Driver {
 
         KI = new KalmanInterface(this.verbose);
         KI.createSiModules(detPlanes, fm);
-
     }
 
     private void printGBLkinks(RelationalTable GBLtoKinks, Track GBLtrack) {
@@ -209,11 +213,38 @@ public class KalmanDriverHPS extends Driver {
             if (verbose) {
                 System.out.format("\nEvent %d Printing info for original HPS SeedTrack:", evtNumb);
                 printTrackInfo(trk, MatchedToGbl);
-                System.out.println("\nPrinting info for original HPS GBLTrack:");
-                printExtendedTrackInfo(trk);
+                System.out.println("\nPrinting info for original HPS GBLTrack:");                
                 //printGBLkinks(GBLtoKinks, trk);
             }
+            List<Pair<double[], double[]>> gblMomsLocs = printExtendedTrackInfo(trk);
+            
+            List<SimTrackerHit> trackerHits = null;
+            if (event.hasCollection(SimTrackerHit.class, "TrackerHits")) {
+                trackerHits = event.get(SimTrackerHit.class, "TrackerHits");
+            }
 
+            RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+                List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+                for (LCRelation relation : trueHitRelations) {
+                    if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                        rawtomc.add(relation.getFrom(), relation.getTo());
+                    }
+                }
+            }
+            
+            // Associate the GBL track with the MC particle
+            TrackTruthMatching MCparticleMatch = null;
+            if (trackerHits != null && rawtomc.size()>0) {
+                MCparticleMatch = new TrackTruthMatching(trk, rawtomc, trackerHits);
+            }
+            
+            List<MCParticle> particles = null;
+            if (event.hasCollection(MCParticle.class, "MCParticle")) {
+                particles = event.get(MCParticle.class, "MCParticle"); 
+            }
+                    
+                    
             boolean createSeed = false;
             KalmanTrackFit2 ktf2 = null;
             if (createSeed) { // Start with the linear helix fit
@@ -404,6 +435,17 @@ public class KalmanDriverHPS extends Driver {
                     }
                     aida.histogram1D("12-hit Kalman Track Chi2").fill(fullKalmanTrack.chi2);
                     aida.histogram1D("12-hit GBL Track Chi2").fill(trk.getChi2());
+                    
+                    if (MCparticleMatch != null && particles != null) {
+                        Hep3Vector MCp = MCparticleMatch.getMCParticle().getMomentum();
+                        double pmagMC = MCp.magnitude();
+                        double[] pKal = fullKalmanTrack.originP();
+                        double pKalmag = Math.sqrt(pKal[0]*pKal[0]+pKal[1]*pKal[1]+pKal[2]*pKal[2]);
+                        aida.histogram1D("12-hit Kalman p error").fill(100.0*(pKalmag-pmagMC)/pmagMC);
+                        double[] pBL = gblMomsLocs.get(0).getFirstElement();
+                        double pGBLmag  = Math.sqrt(pBL[0]*pBL[0] + pBL[1]*pBL[1] + pBL[2]*pBL[2]);                  
+                        aida.histogram1D("12-hit GBL p error").fill(100.0*(pGBLmag-pmagMC)/pmagMC);
+                    }
                 } else if (fullKalmanTrack.nHits == 10) {
                     for (MeasurementSite site : ktf2.sites) {
                         aida.histogram1D(String.format("10-hit Kalman Track Chi2 Layer %d", site.m.Layer)).fill(site.chi2inc);

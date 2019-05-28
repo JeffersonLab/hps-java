@@ -209,9 +209,11 @@ public class KalTrack {
         pW.format("set yrange[-50. : 50.]\n");
         pW.format("$hits << EOD\n");
         for (MeasurementSite site : SiteList) {
-            Vec rDet = new Vec(0., site.m.hits.get(site.hitID).v,0.);
-            Vec rGlob = site.m.toGlobal(rDet);
-            pW.format(" %10.5f  %10.6f\n", rGlob.v[1], rGlob.v[2]);
+            if (site.hitID >= 0) {
+                Vec rDet = new Vec(0., site.m.hits.get(site.hitID).v,0.);
+                Vec rGlob = site.m.toGlobal(rDet);
+                pW.format(" %10.5f  %10.6f\n", rGlob.v[1], rGlob.v[2]);
+            }
         }
         pW.format("EOD\n");
         pW.format("$trks << EOD\n");
@@ -231,6 +233,7 @@ public class KalTrack {
         pW.format("set yrange[-0.025 : 0.025]\n");
         pW.format("$resids << EOD\n");
         for (MeasurementSite site : SiteList) {
+            if (site.m.Layer < 0) continue;
             double phiS = site.aS.planeIntersect(site.m.p);
             if (Double.isNaN(phiS)) {
                 continue;
