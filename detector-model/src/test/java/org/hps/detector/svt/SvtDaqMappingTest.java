@@ -36,7 +36,7 @@ public final class SvtDaqMappingTest extends TestCase {
      */
     public void test() throws Exception {
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setDetector("HPS-PhysicsRun2019-v1-4pt5", 0);
+        conditionsManager.setDetector("HPS-PhysicsRun2019-v1-4pt5", 2000000);
         final SvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(
                 SvtDaqMappingCollection.class, "svt_daq_map").getCachedData();
         int totalSensors = 0;
