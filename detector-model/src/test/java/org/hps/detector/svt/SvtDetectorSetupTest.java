@@ -1,7 +1,6 @@
 package org.hps.detector.svt;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
