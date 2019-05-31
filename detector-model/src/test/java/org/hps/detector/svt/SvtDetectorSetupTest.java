@@ -10,11 +10,11 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.geometry.Detector;
 
 /**
- * This test loads {@link SvtConditions} data onto the detector and then checks that all channels of each sensor have
- * non-zero data values for applicable parameters.
+ * This test loads {@link SvtConditions} data onto the detector and then checks
+ * that all channels of each sensor have non-zero data values for applicable
+ * parameters.  This test is currently valid for the 2019 SVT only.
  *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
+ * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 // TODO: Update this test with more meaningful assertions.
 public final class SvtDetectorSetupTest extends TestCase {
