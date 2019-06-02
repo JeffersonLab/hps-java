@@ -29,6 +29,7 @@ import org.lcsim.event.base.BaseLCSimEvent;
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
+    protected VTPEvioReader vtpReader = null;
     protected EcalEvioReader ecalReader = null;
     protected HodoEvioReader hodoReader = null;
     protected AbstractSvtEvioReader svtReader = null;
