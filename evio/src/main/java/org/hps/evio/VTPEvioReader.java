@@ -18,6 +18,12 @@ import org.lcsim.event.EventHeader;
  */
 public class VTPEvioReader extends EvioReader {
 
+    private static final int topRocID = 60011;
+    private static final int botRocID = 60012;
+
+    public VTPEvioReader() {
+    }
+
     @Override
     public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
 
@@ -26,10 +32,31 @@ public class VTPEvioReader extends EvioReader {
         for (BaseStructure bank : event.getChildrenList()) {
             BaseStructureHeader header = bank.getHeader();
             int rocID = header.getTag();
-            
-            System.out.println("rocID = " + rocID);
-        }
 
+            if (rocID == topRocID || rocID == botRocID) {
+
+                System.out.println("rocID = " + rocID);
+                System.out.println("Children count is " + bank.getChildCount());
+
+                for (BaseStructure childBank : bank.getChildrenList()) {
+
+                    System.out.println("Hashcode = " + childBank.hashCode());
+                    System.out.println("To String =" + childBank.toString());
+
+                    System.out.println("childBank Header Tag = " + childBank.getHeader().getTag() );
+
+                    int[] vals = childBank.getIntData();
+
+                    System.out.println("Length of vals " + vals.length);
+
+                    for (int ind = 0; ind < vals.length; ind++) {
+                        System.out.println("Value [" + ind + "] = " + vals[ind]);
+                    }
+                }
+
+                foundVTP = true;
+            }
+        }
 
         return foundVTP;
     }

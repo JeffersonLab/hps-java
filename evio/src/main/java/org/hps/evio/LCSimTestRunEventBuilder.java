@@ -42,6 +42,8 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     public LCSimTestRunEventBuilder() {
         ecalReader = new EcalEvioReader(0x1, 0x2);
         
+        vtpReader = new VTPEvioReader();
+        
         svtReader = new TestRunSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));

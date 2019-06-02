@@ -69,7 +69,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
      * Modulus of TI timestamp offset (units of nanoseconds).
      */
     private final long timestampCycle = 24 * 6 * 35;
-    
+
     /**
      * The current TI time offset in nanoseconds from the run manager.
      */
@@ -100,19 +100,19 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
 
     @Override
     public void conditionsChanged(final ConditionsEvent conditionsEvent) {
-        
+
         super.conditionsChanged(conditionsEvent);
         svtEventFlagger.initialize();
-        
+
         // Set TI time offset from run database.
         currentTiTimeOffset = Long.valueOf(0);
         DatabaseConditionsManager mgr = (DatabaseConditionsManager) conditionsEvent.getConditionsManager();
         if (mgr.hasConditionsRecord("ti_time_offsets")) {
             TiTimeOffset t = mgr.getCachedConditions(TiTimeOffset.class, "ti_time_offsets").getCachedData();
-            currentTiTimeOffset = t.getValue();            
+            currentTiTimeOffset = t.getValue();
         }
     }
-    
+
     /**
      * Get the time from the TI data with time offset applied from run database.
      *
@@ -141,7 +141,6 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     @Override
     public EventHeader makeLCSimEvent(final EvioEvent evioEvent) {
 
-        
         LOGGER.finest("creating LCSim event from EVIO event " + evioEvent.getEventNumber());
 
         if (!EvioEventUtilities.isPhysicsEvent(evioEvent)) {
@@ -156,7 +155,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         try {
             triggerConfigReader.getDAQConfig(evioEvent, lcsimEvent);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE,"DAQ CONFIG BROKEN.",e);
+            LOGGER.log(Level.SEVERE, "DAQ CONFIG BROKEN.", e);
         }
 
         // Make RawCalorimeterHit collection, combining top and bottom section
@@ -170,7 +169,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make RawHodoscopeHit collection, combining top and bottom section
         // of Hodo into one list.
         try {
-            if(hodoReader != null) {  // Skip is no hodoscope in this run period.
+            if (hodoReader != null) {  // Skip is no hodoscope in this run period.
                 hodoReader.makeHits(evioEvent, lcsimEvent);
             }
         } catch (final Exception e) {
@@ -180,20 +179,17 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make VTP collection, combining top and bottom section
         // into one list.
         try {
-            if(vtpReader != null) {  // Skip if no VTP bank in this run period.
-                vtpReader.makeHits(evioEvent, lcsimEvent);
-            }
+            vtpReader.makeHits(evioEvent, lcsimEvent);
         } catch (final Exception e) {
-            LOGGER.log(Level.SEVERE, "Error making Hodo hits.", e);
+            LOGGER.log(Level.SEVERE, "Error reading VTP bank", e);
         }
-        
+
 //        // Make SVT RawTrackerHits.
 //        try {
 //            svtReader.makeHits(evioEvent, lcsimEvent);
 //        } catch (final SvtEvioReaderException e) {
 //            LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
 //        } 
-
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
 
