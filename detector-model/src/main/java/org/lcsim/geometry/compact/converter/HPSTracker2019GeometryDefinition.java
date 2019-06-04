@@ -110,8 +110,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         surveyVolumes.add(uChannelL46TopPlate);
 
         LOGGER.info("Construct modules");
-        for (int l = 1; l < 7; ++l) {
-        //for (int l = 1; l <= 7; ++l) {
+        for (int l = 1; l <= 7; ++l) {
             if (doLayer(l)) {
                 LOGGER.info("Construct layer " + l + " modules");
 
