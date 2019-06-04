@@ -28,7 +28,7 @@ public final class SvtDetectorSetupTest extends TestCase {
     /**
      * Maximum channel number for a thin sensor.
      */
-    public static final int MAX_CHANNEL_NUMBER_THIN = 511;
+    public static final int MAX_CHANNEL_NUMBER_THIN = 512;
 
     /**
      * Maximum FEB Hybrid ID.
