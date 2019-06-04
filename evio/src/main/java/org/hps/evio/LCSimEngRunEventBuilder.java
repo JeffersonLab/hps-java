@@ -12,7 +12,7 @@ import org.hps.record.epics.EpicsEvioProcessor;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.scalers.ScalerData;
 import org.hps.record.scalers.ScalersEvioProcessor;
-//import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
+import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
 import org.hps.record.triggerbank.HeadBankData;
@@ -184,12 +184,12 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             LOGGER.log(Level.SEVERE, "Error reading VTP bank", e);
         }
 
-//        // Make SVT RawTrackerHits.
-//        try {
-//            svtReader.makeHits(evioEvent, lcsimEvent);
-//        } catch (final SvtEvioReaderException e) {
-//            LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
-//        } 
+        // Make SVT RawTrackerHits.
+        try {
+            svtReader.makeHits(evioEvent, lcsimEvent);
+        } catch (final SvtEvioReaderException e) {
+            LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
+        } 
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
 
