@@ -60,10 +60,12 @@ public final class SvtDetectorSetupTest extends TestCase {
      */
     public void test() throws Exception {
 
+        // Create an instance of the DB manager
         final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.addConditionsListener(new SvtDetectorSetup());
-        //conditionsManager.setDetector("HPS-Proposal2014-v7-2pt2", 0);
-        conditionsManager.setDetector("HPS-EngRun2015-Nominal-v3", 5772);
+        
+        // Set the detector and run number we are interested in using.
+        conditionsManager.setDetector("HPS-PhysicsRun2019-v1-4pt5", 2000000);
 
         // Get the detector.
         final Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
