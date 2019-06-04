@@ -118,20 +118,15 @@ public final class SvtDetectorSetupTest extends TestCase {
         // Check sensor data.
         final List<HpsSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement()
                 .findDescendants(HpsSiSensor.class);
-        final List<HpsThinSiSensor> thinSensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement()
-                .findDescendants(HpsThinSiSensor.class);
 
         // Check for correct number of sensors processed.
-        this.printDebug("Total number of sensors found: " + (sensors.size() + thinSensors.size()));
-        assertTrue((sensors.size() + thinSensors.size()) == TOTAL_NUMBER_OF_SENSORS);
+        this.printDebug("Total number of sensors found: " + sensors.size());
+        assertTrue(sensors.size() == TOTAL_NUMBER_OF_SENSORS);
 
         // Loop over sensors.
         for (final HpsSiSensor sensor : sensors) {
             testSensor(sensor);
         }
         
-        for (final HpsThinSiSensor sensor : thinSensors) {
-            testSensor(sensor);
-        }
     }
 }
