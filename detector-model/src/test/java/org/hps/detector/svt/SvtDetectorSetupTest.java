@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtConditions;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.HpsThinSiSensor;
 import org.lcsim.geometry.Detector;
 
 /**
@@ -20,9 +21,14 @@ import org.lcsim.geometry.Detector;
 public final class SvtDetectorSetupTest extends TestCase {
     
     /**
-     * Maximum channel number.
+     * Maximum channel number for a nominal sensor.
      */
     public static final int MAX_CHANNEL_NUMBER = 639;
+    
+    /**
+     * Maximum channel number for a thin sensor.
+     */
+    public static final int MAX_CHANNEL_NUMBER_THIN = 511;
 
     /**
      * Maximum FEB Hybrid ID.
@@ -42,7 +48,7 @@ public final class SvtDetectorSetupTest extends TestCase {
     /**
      * Total number of SVT sensors.
      */
-    public static final int TOTAL_NUMBER_OF_SENSORS = 36;
+    public static final int TOTAL_NUMBER_OF_SENSORS = 40;
 
     /**
      * Print debug message.
@@ -51,6 +57,37 @@ public final class SvtDetectorSetupTest extends TestCase {
      */
     private void printDebug(final String debugMessage) {
         System.out.println(this.getClass().getSimpleName() + ":: " + debugMessage);
+    }
+    
+    private void testSensor(HpsSiSensor sensor) { 
+        
+        int maxChannelNumber = MAX_CHANNEL_NUMBER;
+        if (sensor instanceof HpsThinSiSensor) maxChannelNumber = MAX_CHANNEL_NUMBER_THIN; 
+        final int nChannels = sensor.getNumberOfChannels();
+        assertTrue("The number of channels this sensor has is invalid", nChannels <= maxChannelNumber);
+
+        this.printDebug(sensor.toString());
+
+        // Check that the FEB ID as within the appropriate range
+        final int febID = sensor.getFebID();
+        assertTrue("FEB ID is invalid.  The FEB ID should be less than " + MAX_FEB_ID, febID <= MAX_FEB_ID);
+
+        final int febHybridID = sensor.getFebHybridID();
+        assertTrue("FEB Hybrid ID is invalid.  The FEB Hybrid ID should be less than " + MAX_FEB_HYBRID_ID,
+                febHybridID <= MAX_FEB_HYBRID_ID);
+
+        for (int channel = 0; channel < nChannels; channel++) {
+
+            //
+            // Check that channel conditions values are not zero
+            //
+            for (int sampleN = 0; sampleN < 6; sampleN++) {
+                assertTrue("Pedestal sample " + sampleN + " is zero.", sensor.getPedestal(channel, sampleN) != 0);
+                assertTrue("Noise sample " + sampleN + " is zero.", sensor.getNoise(channel, sampleN) != 0);
+            }
+            assertTrue("Gain is zero.", sensor.getGain(channel) != 0);
+            assertTrue("Shape fit parameters points to null.", sensor.getShapeFitParameters(channel) != null);
+        }
     }
 
     /**
@@ -81,43 +118,20 @@ public final class SvtDetectorSetupTest extends TestCase {
         // Check sensor data.
         final List<HpsSiSensor> sensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement()
                 .findDescendants(HpsSiSensor.class);
+        final List<HpsThinSiSensor> thinSensors = detector.getSubdetector(SVT_SUBDETECTOR_NAME).getDetectorElement()
+                .findDescendants(HpsThinSiSensor.class);
 
         // Check for correct number of sensors processed.
-        this.printDebug("Total number of sensors found: " + sensors.size());
-        assertTrue(sensors.size() == TOTAL_NUMBER_OF_SENSORS);
+        this.printDebug("Total number of sensors found: " + (sensors.size() + thinSensors.size()));
+        assertTrue((sensors.size() + thinSensors.size()) == TOTAL_NUMBER_OF_SENSORS);
 
         // Loop over sensors.
-        int totalSensors = 0;
         for (final HpsSiSensor sensor : sensors) {
-
-            final int nChannels = sensor.getNumberOfChannels();
-            assertTrue("The number of channels this sensor has is invalid", nChannels <= MAX_CHANNEL_NUMBER);
-
-            this.printDebug(sensor.toString());
-
-            // Check that the FEB ID as within the appropriate range
-            final int febID = sensor.getFebID();
-            assertTrue("FEB ID is invalid.  The FEB ID should be less than " + MAX_FEB_ID, febID <= MAX_FEB_ID);
-
-            final int febHybridID = sensor.getFebHybridID();
-            assertTrue("FEB Hybrid ID is invalid.  The FEB Hybrid ID should be less than " + MAX_FEB_HYBRID_ID,
-                    febHybridID <= MAX_FEB_HYBRID_ID);
-
-            for (int channel = 0; channel < nChannels; channel++) {
-
-                //
-                // Check that channel conditions values are not zero
-                //
-                for (int sampleN = 0; sampleN < 6; sampleN++) {
-                    assertTrue("Pedestal sample " + sampleN + " is zero.", sensor.getPedestal(channel, sampleN) != 0);
-                    assertTrue("Noise sample " + sampleN + " is zero.", sensor.getNoise(channel, sampleN) != 0);
-                }
-                assertTrue("Gain is zero.", sensor.getGain(channel) != 0);
-                assertTrue("Shape fit parameters points to null.", sensor.getShapeFitParameters(channel) != null);
-            }
-            ++totalSensors;
+            testSensor(sensor);
         }
-
-        System.out.println("Successfully loaded conditions data onto " + totalSensors + " SVT sensors!");
+        
+        for (final HpsThinSiSensor sensor : thinSensors) {
+            testSensor(sensor);
+        }
     }
 }
