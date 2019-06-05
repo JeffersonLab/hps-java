@@ -177,7 +177,7 @@ public class HodoRunningPedestalDriver extends Driver {
 //                    System.out.println("Sample index is = " + ii + "   The value is " + samples[ii]);
 //                    System.out.println("Size of samples is " + samples.length);
                     
-                    System.out.println("Static Pedestal is " + getStaticPedestal(findChannel(hit)));
+                    //System.out.println("Static Pedestal is " + getStaticPedestal(findChannel(hit)));
 
                     if (samples[ii] > getStaticPedestal(findChannel(hit)) + 12) {
                         good = false;
@@ -187,7 +187,7 @@ public class HodoRunningPedestalDriver extends Driver {
                 }
                 if (good) {
                     ped /= nSamples;
-                    System.out.println("Calculated Pedestal is " + ped);
+                   // System.out.println("Calculated Pedestal is " + ped);
                     updatePedestal(event, findChannel(hit), ped);
                 }
             }

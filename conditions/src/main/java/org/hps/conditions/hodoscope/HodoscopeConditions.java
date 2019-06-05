@@ -7,6 +7,12 @@ import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 
 public class HodoscopeConditions {
 
+    
+    /**
+     * The collection of {@link EcalChannel} objects.
+     */
+    private HodoscopeChannelCollection channelCollection = new HodoscopeChannelCollection();    
+    
     private final Map<HodoscopeChannel, HodoscopeChannelConstants> channelConstants = 
             new HashMap<HodoscopeChannel, HodoscopeChannelConstants>();
     
@@ -25,6 +31,10 @@ public class HodoscopeConditions {
     public HodoscopeChannelConstants getChannelConstants(HodoscopeChannel channel) {
         return channelConstants.get(channel);
     }   
+    
+//    public HodoscopeChannelCollection getChannelCollection() {
+//        return this.channelCollection;
+//    }
     
     
     public HodoscopeChannelCollection getChannels() {
