@@ -120,6 +120,7 @@
     <module>monitoring-util</module>
     <module>monitoring-drivers</module>
     <module>monitoring-app</module>
+    <module>online-recon</module>
     <module>plugin</module>
     <module>recon</module>
     <module>record-util</module>
@@ -256,6 +257,11 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
+        <artifactId>hps-online-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
         <artifactId>hps-steering-files</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -317,7 +323,10 @@
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>et</artifactId>
+        <version>16.0</version> 
+<!--
         <version>14.1</version>
+-->
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
