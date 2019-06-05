@@ -134,6 +134,12 @@ public class PrintCollectionsUtility {
                     + BashParameter.format(Integer.toString(event.getEventNumber()), BashParameter.TEXT_GREEN, BashParameter.PROPERTY_BOLD));
             collectionPrintLoop:
             for(int i = 0; i < printCollections.size(); i++) {
+                // Get the class type of the collection.
+                Class<?> collectionType = collectionMap.get(printCollections.get(i));
+                
+                // Do nothing unless the event contains the collection.
+                if(!event.hasCollection(collectionType, printCollections.get(i))) { continue; }
+                
                 // Indicate the current collection.
                 System.out.println("\tPrinting data for collection \""
                         + BashParameter.format(printCollections.get(i), BashParameter.TEXT_YELLOW, BashParameter.PROPERTY_BOLD) + "\"...");
@@ -143,9 +149,6 @@ public class PrintCollectionsUtility {
                     System.out.println("\t\tCollection does not exist.");
                     continue collectionPrintLoop;
                 }
-                
-                // Get the class type of the collection.
-                Class<?> collectionType = collectionMap.get(printCollections.get(i));
                 
                 // Get the collection data.
                 List<?> collectionData = event.get(collectionType, printCollections.get(i));
@@ -288,8 +291,8 @@ public class PrintCollectionsUtility {
         StringBuffer outputBuffer = new StringBuffer();
         String indent = getIndent(indentLevel);
         
-        outputBuffer.append(String.format(indent + "Type     :: " + yellow("%d") + " GeV%n", particle.getPDGID()));
-        outputBuffer.append(String.format(indent + "Time     :: " + yellow("%f") + " GeV%n", particle.getProductionTime()));
+        outputBuffer.append(String.format(indent + "Type     :: " + yellow("%d") + "%n", particle.getPDGID()));
+        outputBuffer.append(String.format(indent + "Time     :: " + yellow("%f") + " ns%n", particle.getProductionTime()));
         outputBuffer.append(String.format(indent + "Momentum :: " + yellow("%f") + " GeV%n", particle.getMomentum().magnitude()));
         outputBuffer.append(String.format(indent + "Origin   :: <" + yellow("%f") + ", " + yellow("%f") + ", " + yellow("%f") + ">%n",
                 particle.getOriginX(), particle.getOriginY(), particle.getOriginZ()));
