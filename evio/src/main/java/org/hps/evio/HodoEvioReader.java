@@ -33,9 +33,9 @@ import org.lcsim.lcio.LCIOConstants;
 
 /**
  *
- * This class is similar to the ECalEvioReader.  It was copied and modified
- * to work with Hodoscope data.
- * 
+ * This class is similar to the ECalEvioReader. It was copied and modified to
+ * work with Hodoscope data.
+ *
  * @author rafopar
  */
 public class HodoEvioReader extends EvioReader {
@@ -70,8 +70,8 @@ public class HodoEvioReader extends EvioReader {
     }
 
     @Override
-    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {        
-        
+    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) {
+
         boolean foundHits = false;
         List<Object> hits = new ArrayList<Object>();
 
@@ -91,12 +91,12 @@ public class HodoEvioReader extends EvioReader {
                     if (debug) {
                         System.out.println("Hodo bank tag: " + header.getTag() + "; childCount: " + bank.getChildCount());
                     }
-                    try {                                               
+                    try {
                         for (BaseStructure slotBank : bank.getChildrenList()) {
                             if (slotBank.getCompositeData() != null) { //skip SSP and TI banks, if any
                                 for (CompositeData cdata : slotBank.getCompositeData()) {
                                     // We are reading the same data again. JEVIO remembers that the index was advanced already, so we need to set it to zero again.
-                                    cdata.index(0);                            
+                                    cdata.index(0);
                                     if (slotBank.getHeader().getTag() != bankTag) {
                                         bankTag = slotBank.getHeader().getTag();
                                         LOGGER.info(String.format("Hodo format tag: 0x%x\n", bankTag));
@@ -151,24 +151,24 @@ public class HodoEvioReader extends EvioReader {
         if (srch.size() == 0) {
             throw new RuntimeException("No detector element was found for hit ID: " + helper.unpack(new Identifier(id)));
         }
-        return new BaseRawTrackerHit( 
+        return new BaseRawTrackerHit(
                 time,
                 id,
                 adcValues,
                 new ArrayList<SimTrackerHit>(),
                 srch.get(0)
-                );
+        );
     }
 
     private List<BaseRawTrackerHit> makeWindowHits(CompositeData cdata, int crate) {
         List<BaseRawTrackerHit> hits = new ArrayList<BaseRawTrackerHit>();
 
         while (cdata.index() + 1 < cdata.getItems().size()) {
-            int index=cdata.index();
+            int index = cdata.index();
             short slot = cdata.getByte();
             int trigger = cdata.getInt();
             long timestamp = cdata.getLong();
-            int nchannels = cdata.getNValue();            
+            int nchannels = cdata.getNValue();
             if (debug) {
                 System.out.println("slot#=" + slot + "; trigger=" + trigger + "; timestamp=" + timestamp + "; nchannels=" + nchannels);
             }
@@ -187,10 +187,11 @@ public class HodoEvioReader extends EvioReader {
                 }
 
                 if (id != null) {  // We found an actual Hodoscope channel.
+                    System.out.println("The long id is: " + id);
                     BaseRawTrackerHit hit = makeHodoRawHit(0, id, cdata, nSamples);
                     hits.add(hit);
-                }else{        // Not a hodoscope hit, so wind forward  -- MWH.
-                    cdata.index( cdata.index() + nSamples );  // Wind the pointer forward by nSamples.
+                } else {        // Not a hodoscope hit, so wind forward  -- MWH.
+                    cdata.index(cdata.index() + nSamples);  // Wind the pointer forward by nSamples.
                 }
             }
         }
@@ -199,7 +200,7 @@ public class HodoEvioReader extends EvioReader {
 
     private Long daqToGeometryId(int crate, short slot, short channel) {
 
-        if(hodoChannels == null) {  // The hodoChannels were not initialized, probably data that did not have a Hodoscope.  -- MWH.
+        if (hodoChannels == null) {  // The hodoChannels were not initialized, probably data that did not have a Hodoscope.  -- MWH.
             return null;
         }
         HodoscopeChannel hodoChannel = hodoChannels.findChannel(crate, slot, channel);
@@ -210,12 +211,20 @@ public class HodoEvioReader extends EvioReader {
         int ix = hodoChannel.getIX();
         int iy = hodoChannel.getIY();
         int ilayer = hodoChannel.getLayer();
+        
         //int ihole = hodoChannel.getHole();
+        //System.out.println("ihole = " + ihole);
+        
         
         /* The 'hole' ID value is set to zero to match with the pixel detector elements in the geometry. --JM */
-        int ihole = 0; 
+        int ihole = 0;
+        
+        
+        
         GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
         Long id = geometryId.encode();
+
+        System.out.println("==== In the daqToGeometryId the Long id is " + id);
 
         return id;
     }
@@ -252,7 +261,7 @@ public class HodoEvioReader extends EvioReader {
                     int sampleCount = cdata.getNValue();
 
                     if (id == null) {
-                        cdata.index(cdata.index()+sampleCount);
+                        cdata.index(cdata.index() + sampleCount);
                     } else {
                         BaseRawTrackerHit hit = makeHodoRawHit(pulseNum, id, cdata, sampleCount);
                         hits.add(hit);
@@ -354,19 +363,19 @@ public class HodoEvioReader extends EvioReader {
 
         DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
         Detector det = mgr.getDetectorObject();
-        
+
         /**
-         * The HodoEvioReader is always active, but we might be processing older data
-         * with no Hodoscope subdetector in the compact detector description or no
-         * Hodoscope data in the conditions database for the run.  Instead of crashing here, 
-         * just check if this is the case and print a warning if either occurs.  No Hodoscope 
-         * data should actually be processed by the job, or if there is some configuration
-         * issue, crashing later with a null pointer exception during processing is acceptable.
-         * Maybe a better way to do this would be configuring the builder only to use
-         * the Hodoscope data reader if there is a Hodoscope detector in the compact
-         * description. --JM
+         * The HodoEvioReader is always active, but we might be processing older
+         * data with no Hodoscope subdetector in the compact detector
+         * description or no Hodoscope data in the conditions database for the
+         * run. Instead of crashing here, just check if this is the case and
+         * print a warning if either occurs. No Hodoscope data should actually
+         * be processed by the job, or if there is some configuration issue,
+         * crashing later with a null pointer exception during processing is
+         * acceptable. Maybe a better way to do this would be configuring the
+         * builder only to use the Hodoscope data reader if there is a Hodoscope
+         * detector in the compact description. --JM
          */
-        
         if (det.getSubdetectorNames().contains(subdetectorName)) {
             subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
             helper = subDetector.getDetectorElement().getIdentifierHelper();
