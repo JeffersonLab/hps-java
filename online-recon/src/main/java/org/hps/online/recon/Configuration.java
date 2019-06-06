@@ -27,10 +27,10 @@ public class Configuration {
     private Integer prescale = 0;
     private String station = "HPS_RECON";
     private Integer position = 1;
-    private Mode waitMode = Mode.TIMED;
+    private Mode waitMode = Mode.TIMED; // sleep = 0; timed = 1; async = 2
     private Integer waitTime = 5000000;
     private Integer chunkSize = 1;
-
+    
     private Properties props = null;
 
     Configuration(File file) {
@@ -57,52 +57,52 @@ public class Configuration {
         if (props.containsKey("lcsim.detector")) {
             detectorName = props.getProperty("lcsim.detector");
         }
-        if (props.contains("lcsim.steering")) {
+        if (props.containsKey("lcsim.steering")) {
             steering = props.getProperty("lcsim.steering");
         }
-        if (props.contains("lcsim.run")) {
+        if (props.containsKey("lcsim.run")) {
             runNumber = Integer.parseInt(props.getProperty("lcsim.run"));
         }
-        if (props.contains("lcsim.outputName")) {
+        if (props.containsKey("lcsim.outputName")) {
             outputName = props.getProperty("lcsim.outputName");
         }
-        if (props.contains("lcsim.outputDir")) {
+        if (props.containsKey("lcsim.outputDir")) {
             outputDir = props.getProperty("lcsim.outputDir");
         }
-        if (props.contains("et.id")) {
+        if (props.containsKey("et.id")) {
             id = Integer.valueOf(props.getProperty("et.id"));
         }
-        if (props.contains("et.name")) {
+        if (props.containsKey("et.name")) {
             bufferName = props.getProperty("et.name");
         }
-        if (props.contains("et.host")) {
+        if (props.containsKey("et.host")) {
             host = props.getProperty("et.host");
         }
-        if (props.contains("et.port")) {
+        if (props.containsKey("et.port")) {
             port = Integer.valueOf(props.getProperty("et.port"));
         }
-        if (props.contains("et.blocking")) {
+        if (props.containsKey("et.blocking")) {
             blocking = Boolean.valueOf(props.getProperty("et.blocking"));
         }
-        if (props.contains("et.queueSize")) {
+        if (props.containsKey("et.queueSize")) {
             queueSize = Integer.valueOf(props.getProperty("et.queueSize"));
         }
-        if (props.contains("et.prescale")) {
+        if (props.containsKey("et.prescale")) {
             prescale = Integer.valueOf(props.getProperty("et.prescale"));
         }
-        if (props.contains("et.station")) {
+        if (props.containsKey("et.station")) {
             station = props.getProperty("et.station");
         }
-        if (props.contains("et.position")) {
+        if (props.containsKey("et.position")) {
             position = Integer.valueOf(props.getProperty("et.position"));
         }
-        if (props.contains("et.waitMode")) {
-            waitMode = Mode.valueOf(props.getProperty("et.waitMode"));
+        if (props.containsKey("et.waitMode")) {
+            waitMode = Mode.getMode(Integer.valueOf(props.getProperty("et.waitMode")));
         }
-        if (props.contains("et.waitTime")) {
+        if (props.containsKey("et.waitTime")) {
             waitTime = Integer.valueOf(props.getProperty("et.waitMode"));
         }
-        if (props.contains("et.chunkSze")) {
+        if (props.containsKey("et.chunkSize")) {
             chunkSize = Integer.valueOf(props.getProperty("et.chunkSize"));
         }
     }
