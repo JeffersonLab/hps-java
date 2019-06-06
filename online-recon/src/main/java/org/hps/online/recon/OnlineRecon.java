@@ -1,9 +1,6 @@
 package org.hps.online.recon;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.hps.evio.LCSimEngRunEventBuilder;
@@ -21,79 +18,7 @@ import org.lcsim.util.Driver;
 public class OnlineRecon {
    
     private static Logger LOGGER = Logger.getLogger(OnlineRecon.class.getPackageName());
-    
-    static class Configuration {
         
-        private String detectorName = "HPS-EngRun2015-Nominal-v5-0";
-        private String steering = "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim";
-        private Integer runNumber = 5772;
-        private String outputName = "online_recon_events";
-        private String outputDir = System.getProperty("user.dir");
-        
-        private Properties props = null;
-        
-        Configuration() {            
-        }
-        
-        Configuration(File file) {
-            if (file != null) {
-                load(file);
-            } else {
-                throw new RuntimeException("The prop file points to null.");
-            }
-        }
-        
-        void load(File file) {
-            LOGGER.config("Loading properties from file: " + file.getPath());
-            this.props = new Properties();
-            try {
-                props.load(new FileInputStream(file));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            setProperties();
-            LOGGER.config("Loaded properties: " + this.props.toString());
-        }
-        
-        private void setProperties() {
-            if (props.containsKey("detector")) {
-                detectorName = props.getProperty("detector");
-            }            
-            if (props.contains("steering")) {
-                steering = props.getProperty("steering");
-            }
-            if (props.contains("run")) {
-                runNumber = Integer.parseInt(props.getProperty("run"));
-            }
-            if (props.contains("outputName")) {
-                outputName = props.getProperty("outputName");
-            }
-            if (props.contains("outputDir")) {
-                outputDir = props.getProperty("outputDir");
-            }
-        }    
-        
-        String getDetectorName() {
-            return detectorName;
-        }
-        
-        String getSteeringResource() {
-            return steering;
-        }
-        
-        Integer getRunNumber() {
-            return runNumber;
-        }
-        
-        String getOutputName() {
-            return outputName;
-        }
-        
-        String getOutputDir() {
-            return outputDir;
-        }
-    }
-    
     static class DummyDriver extends Driver {        
         public void process(EventHeader event) {
             LOGGER.info(">>> Online recon processing event " + event.getEventNumber());
@@ -115,7 +40,7 @@ public class OnlineRecon {
         OnlineRecon recon = new OnlineRecon(config);
         recon.run();
     }
-    
+        
     public void run() {
                 
         // composite loop configuration
@@ -161,10 +86,14 @@ public class OnlineRecon {
         conditions.postInitialize();
         
         // ET configuration
-        // TODO: the ET station needs to be fully configurable with parallel stations in blocking mode
-        // TODO: name of ET station needs to be set from prop
         LOGGER.config("Configuring ET system ...");
-        EtConnection conn = EtConnection.createDefaultConnection();
+        //EtConnection conn = EtConnection.createDefaultConnection();
+        EtConnection conn = null;
+        try {
+            conn = createEtConnection(config);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating ET connection.", e);
+        }
         loopConfig.setDataSourceType(DataSourceType.ET_SERVER);    
         loopConfig.setEtConnection(conn);
         loopConfig.setMaxQueueSize(1);
@@ -175,5 +104,22 @@ public class OnlineRecon {
         LOGGER.config("Running composite loop ...");
         CompositeLoop loop = new CompositeLoop(loopConfig);
         loop.loop(-1);
+    }
+    
+    private EtConnection createEtConnection(Configuration config) throws Exception {
+        //String stationName = config.getStation() + "_" + String.format("%02d", config.getID());
+        return new EtParallelStation(
+                config.getBufferName(),
+                config.getHost(),
+                config.getPort(),
+                config.getBlocking(),
+                config.getQueueSize(),
+                config.getPrescale(),
+                config.getStation(),
+                config.getPosition(),
+                config.getMode(),
+                config.getWaitTime(),
+                config.getChunkSize()
+                );       
     }
 }
