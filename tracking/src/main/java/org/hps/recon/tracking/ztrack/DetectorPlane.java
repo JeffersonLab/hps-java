@@ -90,8 +90,8 @@ public class DetectorPlane implements Comparable {
             System.out.println("l2g " + l2g);
             System.out.println("zmin " + zmin + " zmax " + zmax);
         }
-        _zmin = pos.z();
-        _zmax = pos.z();
+        _zmin = zmin;
+        _zmax = zmax;
     }
 
 //    public void setMeasuredDimension(double d) {
@@ -176,10 +176,10 @@ public class DetectorPlane implements Comparable {
         Hep3Vector origin = _localToGlobal.transformed(new BasicHep3Vector(0., 0., 0.));
 //        System.out.println(_name + " o: " + origin + " :global " + x + " " + y + " " + z + " local:" + local);
         //
-        if (abs(local.x()) > _measuredDimension / 2.) {
+        if (abs(local.x()) > _unMeasuredDimension / 2.) {
             return false;
         }
-        if (abs(local.y()) > _unMeasuredDimension / 2.) {
+        if (abs(local.y()) > _measuredDimension / 2.) {
             return false;
         }
 // TODO check on z 
