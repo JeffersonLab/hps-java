@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import org.jlab.coda.et.enums.Mode;
 
+// TODO: add parsing from command line arguments
 public class Configuration {
     
     private static Logger LOGGER = Logger.getLogger(Configuration.class.getPackageName());

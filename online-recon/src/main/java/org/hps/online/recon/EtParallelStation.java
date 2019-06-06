@@ -10,6 +10,8 @@ import org.jlab.coda.et.enums.Mode;
 // Sub-class EtConnection so we don't accidentally screw up the monitoring application.  --JM
 public class EtParallelStation extends EtConnection {
 
+    //static Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackageName());
+    
     public EtParallelStation(
             final String name, 
             final String host,
@@ -50,6 +52,7 @@ public class EtParallelStation extends EtConnection {
         }
 
         // Create the station.
+        //LOGGER.config("Creating ET station: " + stationName);
         stat = sys.createStation(stationConfig, stationName, stationPosition);
         
         // attach to new station

@@ -47,7 +47,7 @@ public class OnlineRecon {
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
                 
         // initialize conditions setup and set basic parameters
-        // TODO: run number should come from EVIO files
+        // TODO: run number should come from EVIO files instead
         DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
         conditions.setDetectorName(config.getDetectorName());
         conditions.setRun(config.getRunNumber());
@@ -87,7 +87,6 @@ public class OnlineRecon {
         
         // ET configuration
         LOGGER.config("Configuring ET system ...");
-        //EtConnection conn = EtConnection.createDefaultConnection();
         EtConnection conn = null;
         try {
             conn = createEtConnection(config);
@@ -97,7 +96,7 @@ public class OnlineRecon {
         loopConfig.setDataSourceType(DataSourceType.ET_SERVER);    
         loopConfig.setEtConnection(conn);
         loopConfig.setMaxQueueSize(1);
-        loopConfig.setTimeout(-1L);        
+        loopConfig.setTimeout(-1L);
         loopConfig.setStopOnEndRun(true).setStopOnErrors(true);
         
         // run the loop
@@ -119,7 +118,6 @@ public class OnlineRecon {
                 config.getPosition(),
                 config.getMode(),
                 config.getWaitTime(),
-                config.getChunkSize()
-                );       
+                config.getChunkSize());
     }
 }
