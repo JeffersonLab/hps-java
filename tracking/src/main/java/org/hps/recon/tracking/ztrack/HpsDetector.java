@@ -34,7 +34,7 @@ import org.lcsim.recon.tracking.trfutil.Assert;
 public class HpsDetector {
 
     // the magnetic field for this detector
-//    private CbmLitField _magfield;
+    private Field _magfield;
     // use a TreeSet to make sure there are no duplicate DetectorPlanes, 
     // and also to naturally order in z,
     private TreeSet<DetectorPlane> _detectors = new TreeSet<DetectorPlane>();
@@ -60,7 +60,7 @@ public class HpsDetector {
     }
 
     public HpsDetector(Detector det) {
-//        _magfield = new HpsMagField(det.getFieldMap());
+        _magfield = new HpsMagField(det.getFieldMap());
         _name = det.getName();
         System.out.println(_name);
         MaterialSupervisor sup = new MaterialSupervisor();
@@ -184,15 +184,15 @@ public class HpsDetector {
         _planemap.put(p.name(), p);
     }
 
-//    public void setMagneticField(CbmLitField field)
-//    {
-//        _magfield = field;
-//    }
-//    
-//    public CbmLitField magneticField()
-//    {
-//        return _magfield;
-//    }
+    public void setMagneticField(Field field)
+    {
+        _magfield = field;
+    }
+    
+    public Field magneticField()
+    {
+        return _magfield;
+    }
     public List<DetectorPlane> getPlanes() {
         return detList;
     }

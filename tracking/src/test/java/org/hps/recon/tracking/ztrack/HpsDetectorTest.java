@@ -19,8 +19,8 @@ public class HpsDetectorTest extends TestCase {
 
     public void testIt() {
         HpsDetector det = new HpsDetector();
-//        double fieldValue = -.5;
-//        det.setMagneticField(new ConstantMagneticField(0., fieldValue, 0.));
+        double fieldValue = -.5;
+        det.setMagneticField(new ConstantMagneticField(0., fieldValue, 0.));
         //create a few dummy DetectorPlane objects...
         double[] zees = {20., 10., 5., 11., 37., 52., 23., 1., 44., 40.};
         int numDet = zees.length;
@@ -62,27 +62,32 @@ public class HpsDetectorTest extends TestCase {
         assertEquals(indices[1], 1);
 
         // test field
-//        CbmLitField field = det.magneticField();
-//        double[] b = new double[3];
-//        field.GetFieldValue(0., 0., 0., b);
-//        assertEquals(b[0], 0.);
-//        assertEquals(b[1], fieldValue);
-//        assertEquals(b[2], 0.);
+        Field field = det.magneticField();
+        double[] b = new double[3];
+        field.GetFieldValue(0., 0., 0., b);
+        assertEquals(b[0], 0.);
+        assertEquals(b[1], fieldValue);
+        assertEquals(b[2], 0.);
         // now for the real HPS detector...
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
-        String[] detectors = {"HPS-EngRun2015-Nominal-v0","HPS-PhysicsRun2019-v1-4pt5"};
-        for (String detectorName : detectors) {
-            try {
-                manager.setDetector(detectorName, 5772);
-            } catch (ConditionsManager.ConditionsNotFoundException ex) {
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            }
-            Detector d = manager.getDetectorObject();//getCachedConditions(Detector.class, "compact.xml").getCachedData();
+        //2015
+//        String detectorName = "HPS-EngRun2015-Nominal-v0";
+        //2016
+        String detectorName = "HPS-PhysicsRun2016-Pass2";
+        //2019
+//        String detectorName = "HPS-PhysicsRun2019-v1-4pt5";
 
-            System.out.println(d.getName());
-
-            HpsDetector fullHpsDetector = new HpsDetector(d);
-            System.out.println("Full HpsDetector for " + detectorName + " " + fullHpsDetector);
+        try {
+            manager.setDetector(detectorName, 5772);
+        } catch (ConditionsManager.ConditionsNotFoundException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }
+        Detector d = manager.getDetectorObject();//getCachedConditions(Detector.class, "compact.xml").getCachedData();
+
+        System.out.println(d.getName());
+
+        HpsDetector fullHpsDetector = new HpsDetector(d);
+        System.out.println("Full HpsDetector for " + detectorName + " " + fullHpsDetector);
+
     }
 }
