@@ -108,11 +108,38 @@ public abstract class ClientCommand {
         }         
     }
     
+    static class ListCommand extends ClientCommand {
+
+        ListCommand() {
+            super("list");
+        }
+        
+        @Override        
+        Options getOptions() {
+            Options options = new Options();
+            options.addOption(new Option("i", "id", true, "id of process (no ID means all processes)"));
+            return options;
+        }
+        
+        void setID(Integer id) {
+            this.setParameter("id", id.toString());
+        }
+
+        @Override
+        void process(CommandLine cl) {
+            if (cl.hasOption("i")) {
+                setID(Integer.valueOf(cl.getOptionValue("i")));
+            }            
+        }          
+    }
+    
     static ClientCommand getCommand(String name) {
         if (name.equals("start")) {
             return new StartCommand();
         } else if (name.equals("stop")) {
             return new StopCommand();
+        } else if (name.equals("list")) {
+            return new ListCommand();
         }
         return null;
     }
