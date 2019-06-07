@@ -3,23 +3,27 @@ package org.hps.online.recon;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
+/**
+ * Manages online reconstruction system processes.
+ */
 public class ProcessManager {
 
+    private static final Logger LOGGER = Logger.getLogger(ProcessManager.class.getPackageName());
+    
     private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
 
     private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
-
+       
     class ProcessInfo {
         Process process;
-        int processNumber;
-        long pid;
+        int id;
         String stationName;
         boolean active;
         File dir;
@@ -28,10 +32,10 @@ public class ProcessManager {
        
     private List<ProcessInfo> processes = new ArrayList<ProcessInfo>();
     
-    private int processNumber = 0;
+    private int processID = 1;
     
     private final Server server;
-    
+       
     ProcessManager(Server server) {        
         this.server = server;
     }
@@ -40,26 +44,11 @@ public class ProcessManager {
         processes.add(info);
     }
        
-    synchronized int getNextProcessNumber() {
-        ++processNumber;
-        return processNumber;
+    synchronized int getNextProcessID() {
+        ++processID;
+        return processID;
     }
-    
-    public static synchronized long getPidOfProcess(Process p) {
-        long pid = -1;
-        try {
-            if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
-                Field f = p.getClass().getDeclaredField("pid");
-                f.setAccessible(true);
-                pid = f.getLong(p);
-                f.setAccessible(false);
-            }
-        } catch (Exception e) {
-            pid = -1;
-        }
-        return pid;
-    }
-            
+                
     File createProcessDir(String name) {
         String path = server.getWorkDir().getPath() + File.separator + name;
         File dir = new File(path);
@@ -79,8 +68,8 @@ public class ProcessManager {
         
         String jarPath = OnlineRecon.class.getProtectionDomain().getCodeSource().getLocation().getPath();
           
-        Integer processNumber = getNextProcessNumber();
-        String stationName = this.server.getStationBaseName() + "_" + String.format("%02d", processNumber);
+        Integer processID = getNextProcessID();
+        String stationName = this.server.getStationBaseName() + "_" + String.format("%02d", processID);
         File dir = createProcessDir(stationName);
         
         Properties prop = System.getProperties();
@@ -112,79 +101,68 @@ public class ProcessManager {
         ProcessBuilder pb = new ProcessBuilder(command);
                
         pb.directory(dir);
-        File log = new File(dir.getPath() + File.separator + "out." + processNumber.toString() + ".log");
+        File log = new File(dir.getPath() + File.separator + "out." + processID.toString() + ".log");
         pb.redirectErrorStream(true);
         pb.redirectOutput(Redirect.appendTo(log));
-        
-        System.out.println("starting process: " + pb.command().toString());
+
+        LOGGER.info("Starting process: " + pb.command().toString());
 
         // This will throw an exception if there is a problem starting the process
         // which is fine as the caller should catch and handle it.  The process 
         // won't be registered, which is also fine.
         Process p = pb.start();
-        
-        /*
-        assert pb.redirectInput() == Redirect.PIPE;
-        assert pb.redirectOutput().file() == log;
-        assert p.getInputStream().read() == -1;
-        */
-   
-        // get the PID
-        long pid = ProcessManager.getPidOfProcess(p);
-        System.out.println("process started with pid <" + pid + ">");
-        
+  
+        // Add new process record.
         ProcessInfo info = new ProcessInfo();
         info.process = p;
-        info.processNumber = processNumber;
-        info.pid = pid;
+        info.id = processID;
         info.stationName = stationName;
         info.dir = dir;
         info.log = log;
         info.active = true;
         add(info);       
-    }
-       
-    /*
-    synchronized void update() {
-        for (ProcessInfo info : this.processes) {
-            if (!info.process.isAlive()) {
-                info.active = false;
-            }
-        }
-    }
+    }   
     
-    synchronized void killAll() {
-        List<ProcessInfo> toRemove = new ArrayList<ProcessInfo>();
-        for (ProcessInfo info : this.processes) {
-            if (!info.process.isAlive()) {
-                toRemove.add(info);
-            }
-        }
-        for (ProcessInfo info : toRemove) {
-            this.processes.remove(info);
-        }
-    }  
-    
-        Process find(int id) {
-        Process process = null;
+    ProcessInfo find(int id) {
         for (ProcessInfo info : processes) {
             if (info.id == id) {
-                process = info.process;
-                break;
+                return info;
             }
         }
-        return process;
+        return null;
     }
     
-    Process find(String stationName) {
-        Process process = null;
-        for (ProcessInfo info : processes) {
-            if (info.stationName.equals(stationName)) {
-                process = info.process;
-                break;
+    void stopProcess(ProcessInfo info) {
+        if (info != null) {
+            Process p = info.process;
+            LOGGER.info("Stopping process <" + info.id + ">");
+            p.destroy();
+            try {
+                p.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (!p.isAlive()) {
+                LOGGER.info("Stopped process <" + info.id + ">");
+            } else {
+                LOGGER.severe("Failed to stop process <" + info.id + ">");
             }
         }
-        return process;
     }
-    */ 
+    
+    void stopProcess(int id) {
+        ProcessInfo info = this.find(id);
+        if (info != null) {
+            stopProcess(info);
+        } else {
+            throw new RuntimeException("Unknown process id <" + id + ">");
+        }
+    }
+    
+    void stopAll() {
+        LOGGER.info("Stopping ALL processes");
+        for (ProcessInfo info : this.processes) {
+            stopProcess(info);
+        }
+    }
 }

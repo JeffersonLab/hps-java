@@ -34,12 +34,14 @@ public class Server {
                  
                 String command = jo.getString("command");
                 JSONObject params = jo.getJSONObject("parameters");
-                System.out.println("Received command <" + command + "> with parameters " + params);
+                LOGGER.info("Received client command <" + command + "> with parameters " + params);
                 
                 CommandResult res = null;
                 try {
                     if (command.equals("start")) {
-                        res = new StartCommandHandler().execute(params);
+                        res = new StartCommandHandler().execute(params);                            
+                    } else if (command.equals("stop")) {
+                        res = new StopCommandHandler().execute(params);
                     } else {
                         res = new CommandResult(STATUS_ERROR, "Unknown command <" + command + ">");
                     }
@@ -100,13 +102,39 @@ public class Server {
             if (!parameters.has("properties")) {
                 throw new RuntimeException("No properties file found in parameters.");
             }
-            try {                                
-                Server.this.processManager.createProcess(parameters);
+            int count = 1;
+            if (parameters.has("count")) {
+                count = parameters.getInt("count");
+            }
+            try {                 
+                LOGGER.info("Starting <" + count + "> processes");
+                for (int i = 0; i < count; i++) {
+                    LOGGER.info("Creating process <" + i + ">");
+                    Server.this.processManager.createProcess(parameters);
+                }
                 res = new CommandResult(STATUS_SUCCESS, "New process started successfully.");
             } catch (IOException e) {
                 e.printStackTrace();
                 res = new CommandResult(STATUS_ERROR, "Error creating new process.");
             }
+            return res;
+        }
+    }
+    
+    class StopCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject parameters) {
+            CommandResult res = null;
+            int id = -1;
+            if (parameters.has("id")) {
+                id = parameters.getInt("id");
+            }
+            if (id != -1) {
+                processManager.stopProcess(id);
+                res = new CommandResult(STATUS_SUCCESS, "Stopped process <" + id + ">");
+            } else {
+                processManager.stopAll();
+                res = new CommandResult(STATUS_SUCCESS, "Stopped all processes");
+            }            
             return res;
         }
     }
@@ -191,13 +219,4 @@ public class Server {
             throw new RuntimeException("Server exception", e);
         }                       
     }
-        
-    /*
-    String line;
-    BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    while ((line = input.readLine()) != null) {
-        System.out.println(line);
-    }
-    input.close();                
-    */
 }
