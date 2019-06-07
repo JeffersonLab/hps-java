@@ -1,7 +1,10 @@
 package org.hps.online.recon;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -15,7 +18,7 @@ import org.json.JSONObject;
  * Server for managing instances of the online reconstruction.
  */
 public class Server {
-    
+        
     private class ClientTask implements Runnable {
         
         private final Socket socket;
@@ -26,15 +29,12 @@ public class Server {
 
         public void run() {               
             try {
-                Scanner in = new Scanner(socket.getInputStream());
-                
+                Scanner in = new Scanner(socket.getInputStream());                                            
                 JSONObject jo = new JSONObject(in.nextLine());
-                System.out.println("JSON from client: " + jo.toString());
-                
+                 
                 String command = jo.getString("command");
-                System.out.println("command: " + command);
                 JSONObject params = jo.getJSONObject("parameters");
-                System.out.println("parameters: " + params);    
+                System.out.println("Received command <" + command + "> with parameters " + params);
                 
                 CommandResult res = null;
                 try {
@@ -47,10 +47,13 @@ public class Server {
                     e.printStackTrace();
                     res = new CommandResult(STATUS_ERROR, e.getMessage());
                 }
-                
-                System.out.println("result: " + res.toString());
-                
-                // TODO: send back res to client
+                                
+                // Send command result back to client.
+                OutputStream os = socket.getOutputStream();
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+                bw.write(res.toString());
+                bw.flush();
+                bw.close();
                 
                 in.close();
             } catch (IOException e) {
