@@ -1,5 +1,8 @@
 package org.hps.online.recon;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.logging.Logger;
@@ -83,7 +86,7 @@ public class Client {
         command.process(cmdResult);
         
         // Send command to server.
-        LOGGER.info("Sending command to server <" + command.toString() + ">");
+        LOGGER.info("Sending command " + command.toString());
         send(command);
     }
     
@@ -93,11 +96,16 @@ public class Client {
      */
     private void send(ClientCommand command) {
         try (Socket socket = new Socket(hostname, port)) {
-            //DataInputStream is = new DataInputStream(socket.getInputStream());
+            // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
-            writer.write(command.toString());
+            writer.write(command.toString() + '\n');
             writer.flush();
-            writer.close();
+
+            // Print server response.
+            InputStream is = socket.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String resp = br.readLine();
+            LOGGER.info("Server response " + resp.toString());
         } catch (Exception e) {
             throw new RuntimeException("Client error", e);
         }
@@ -106,5 +114,5 @@ public class Client {
     public static void main(String[] args) {
         Client client = new Client();
         client.run(args);
-    }   
+    }
 }
