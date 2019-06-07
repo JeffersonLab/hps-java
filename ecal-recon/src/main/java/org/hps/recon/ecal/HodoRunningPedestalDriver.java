@@ -7,6 +7,7 @@ package org.hps.recon.ecal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+//import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -21,15 +22,6 @@ import org.lcsim.event.RawCalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
-
-
-import org.lcsim.geometry.Subdetector;
-import org.lcsim.detector.identifier.ExpandedIdentifier;
-import org.lcsim.detector.identifier.IExpandedIdentifier;
-import org.lcsim.detector.identifier.IIdentifierHelper;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.hps.detector.hodoscope.HodoscopeDetectorElement;
-
 
 
 
@@ -61,7 +53,7 @@ public class HodoRunningPedestalDriver extends Driver {
     private static final String runningPedestalsName = "HodoRunningPedestals";
 
     // number of samples from the beginning of the time window used to calculate the pedestal:
-    private static final int nSamples = 4;
+    private static final int nSamples = 7;
 
     // TODO: Get this from somewhere else.
     private final int nChannels = 32;
@@ -166,18 +158,14 @@ public class HodoRunningPedestalDriver extends Driver {
                     throw new IllegalStateException("Not enough samples for Hodo running pedestal.");
                 }
 
-                // double ped = getNSampleMinimum(samples);
-
+                
+//                System.out.println(Arrays.toString(samples));
+//                System.out.println( "Conditions " + hodoConditions.getChannelConstants(findChannel(hit)).getCalibration().toString());
+                
                 boolean good = true;
                 double ped = 0;
                 for (int ii = 0; ii < nSamples; ii++) {
                     // reject pulses from pedestal calculation:
-                    //System.out.println("ChannelID = " + chan.getChannelId());
-                    
-//                    System.out.println("Sample index is = " + ii + "   The value is " + samples[ii]);
-//                    System.out.println("Size of samples is " + samples.length);
-                    
-                    //System.out.println("Static Pedestal is " + getStaticPedestal(findChannel(hit)));
 
                     if (samples[ii] > getStaticPedestal(findChannel(hit)) + 12) {
                         good = false;
@@ -185,9 +173,9 @@ public class HodoRunningPedestalDriver extends Driver {
                     }
                     ped += samples[ii];
                 }
+                                
                 if (good) {
                     ped /= nSamples;
-                   // System.out.println("Calculated Pedestal is " + ped);
                     updatePedestal(event, findChannel(hit), ped);
                 }
             }
@@ -292,7 +280,7 @@ public class HodoRunningPedestalDriver extends Driver {
         runningPedestals.put(chan, ped);
     }
 
-    public double getStaticPedestal(HodoscopeChannel chan) {        
+    public double getStaticPedestal(HodoscopeChannel chan) {                
         return hodoConditions.getChannelConstants(chan).getCalibration().getPedestal();
     }
 
@@ -300,50 +288,8 @@ public class HodoRunningPedestalDriver extends Driver {
         return hodoConditions.getChannels().findChannel(channel_id);
     }
 
-    public HodoscopeChannel findChannel(RawTrackerHit hit) {
-        
-        
-        //System.out.println("hit:String   " + hit.toString());
-        Subdetector subdet = mydet.getSubdetector("Hodoscope");
-        
-        HodoscopeDetectorElement hodo = (HodoscopeDetectorElement) subdet.getDetectorElement();
-        
-        IIdentifierHelper helper = hodo.getIdentifierHelper();;
-        
-        IIdentifier id = hit.getIdentifier();
-        IExpandedIdentifier vals = helper.unpack(id);
-        
-  //      System.out.println(" ==== ===== ===== valus to String is " + vals.toString());
-        
-        
-        ExpandedIdentifier vals_no_hole = new ExpandedIdentifier(vals.size());
-        for (int i = 0; i < vals.size(); i++) {
-            vals_no_hole.setValue(i, vals.getValue(i));
-        }
-        vals_no_hole.setValue(3, 0);
-        
-//        System.out.println("====  ===== ===== size of vals = " + vals.size());
-//        System.out.println("====  ===== ===== vals = " + vals);
-//        System.out.println("====  ===== ===== vals_no_hole = " + vals_no_hole);
-        
-        IIdentifier id_no_hole = helper.pack(vals_no_hole);
-        
-//        System.out.println("====== ID No Hole = " + id_no_hole.getValue());
-//
-//        for (int ii = 0; ii < vals.size() - 1; ii++) {
-//
-//            for (int i = 0; i < vals.size() - 1; i++) {
-//                vals_no_hole.setValue(i, vals.getValue(i));
-//            }
-//
-//            vals_no_hole.setValue(ii, 0);
-//            IIdentifier idd_no_hole = helper.pack(vals_no_hole);
-//            System.out.println("====== IDD No Hole = " + idd_no_hole.getValue());
-//        }
-
-        
-//        return hodoConditions.getChannels().findGeometric(hit.getCellID());
-        return hodoConditions.getChannels().findGeometric(id_no_hole.getValue());
+    public HodoscopeChannel findChannel(RawTrackerHit hit) {        
+        return hodoConditions.getChannels().findGeometric(hit.getCellID());
     }
 
     public HodoscopeChannel findChannel(RawCalorimeterHit hit) {
