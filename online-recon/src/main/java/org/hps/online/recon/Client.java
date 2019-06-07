@@ -14,6 +14,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.json.JSONObject;
 
 /**
  * Client for interacting with the online reconstruction server.
@@ -105,7 +106,7 @@ public class Client {
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String resp = br.readLine();
-            LOGGER.info("Server response " + resp.toString());
+            LOGGER.info(new JSONObject(resp).toString(4));
         } catch (Exception e) {
             throw new RuntimeException("Client error", e);
         }
