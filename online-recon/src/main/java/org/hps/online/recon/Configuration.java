@@ -41,6 +41,8 @@ public class Configuration {
     private static Options OPTIONS = new Options();
     static {
         OPTIONS.addOption(new Option("s", "station", true, "station name"));
+        OPTIONS.addOption(new Option("o", "output", true, "output file name"));
+        OPTIONS.addOption(new Option("d", "dir", true, "output directory"));
     }
     private CommandLineParser parser = new DefaultParser();
 
@@ -56,7 +58,7 @@ public class Configuration {
     }
 
     void load(File file) {
-        LOGGER.config("Loading properties from file: " + file.getPath());
+        LOGGER.config("Loading properties from file <" + file.getPath() + ">");
         this.props = new Properties();
         try {
             props.load(new FileInputStream(file));
@@ -64,7 +66,7 @@ public class Configuration {
             throw new RuntimeException(e);
         }
         setProperties();
-        LOGGER.config("Loaded properties: " + this.props.toString());
+        LOGGER.config("Loaded properties <" + this.props.toString() + ">");
     }
     
     void parse(String args[]) throws ParseException {
@@ -73,7 +75,7 @@ public class Configuration {
         // Load prop file first.
         List<String> argList = cl.getArgList();
         if (argList.size() > 1) {
-            throw new RuntimeException("Too many extra arguments: " + argList.toString());
+            throw new RuntimeException("Too many extra arguments in " + argList.toString());
         }
         File propFile = new File(argList.get(0));
         if (!propFile.exists()) {
@@ -84,6 +86,12 @@ public class Configuration {
         // Process command line arguments which can override prop file settings.
         if (cl.hasOption("s")) {
             this.station = cl.getOptionValue("s");
+        }
+        if (cl.hasOption("d")) {
+            this.outputDir = cl.getOptionValue("d");
+        }
+        if (cl.hasOption("o")) {
+            this.outputName = cl.getOptionValue("o");
         }
     }
 
@@ -96,12 +104,6 @@ public class Configuration {
         }
         if (props.containsKey("lcsim.run")) {
             runNumber = Integer.parseInt(props.getProperty("lcsim.run"));
-        }
-        if (props.containsKey("lcsim.outputName")) {
-            outputName = props.getProperty("lcsim.outputName");
-        }
-        if (props.containsKey("lcsim.outputDir")) {
-            outputDir = props.getProperty("lcsim.outputDir");
         }
         if (props.containsKey("et.name")) {
             bufferName = props.getProperty("et.name");
