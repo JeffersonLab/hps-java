@@ -55,4 +55,17 @@ public class EtParallelStation extends EtConnection {
         this.waitTime = waitTime;
         this.chunkSize = chunkSize;
     }
+    
+    public void cleanup() {
+        try {
+            if (!this.sys.alive()) {
+                return;
+            }
+            this.sys.detach(this.att);
+            this.sys.removeStation(this.stat);
+            this.sys.close();
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
