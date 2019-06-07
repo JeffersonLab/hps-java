@@ -210,7 +210,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         if (mgr.hasConditionsRecord("hodo_channels")) {  // No hodo_channels, then no hodoscope.
             if(hodoReader == null) {
                 hodoReader = new HodoEvioReader(0x1, 0x2);   // Rafo: Have to understand what are 0x1 and 0x2 = Topbank and Bottombank (MWH).
-                hodoReader.setTopBankTag(0x25); 
+                hodoReader.setTopBankTag(0x25);
                 hodoReader.setBotBankTag(0x27); 
 //                hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
 //                hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup

@@ -140,20 +140,24 @@ public class HodoEvioReader extends EvioReader {
         return foundHits;
     }
 
-    private BaseRawTrackerHit makeHodoRawHit(int time, long id, CompositeData cdata, int nSamples) {
+    private BaseRawTrackerHit makeHodoRawHit(int time, ArrayList<Long> id, CompositeData cdata, int nSamples) {
 
         short[] adcValues = new short[nSamples];
         for (int i = 0; i < nSamples; i++) {
             adcValues[i] = cdata.getShort();
             //System.out.println("ADC["+i+"] = " + adcValues[i]);
         }
-        IDetectorElementContainer srch = subDetector.getDetectorElement().findDetectorElement(new Identifier(id));
+
+        Long id_hit = id.get(0);
+        Long id_det = id.get(1);
+
+        IDetectorElementContainer srch = subDetector.getDetectorElement().findDetectorElement(new Identifier(id_det));
         if (srch.size() == 0) {
-            throw new RuntimeException("No detector element was found for hit ID: " + helper.unpack(new Identifier(id)));
+            throw new RuntimeException("No detector element was found for hit ID: " + helper.unpack(new Identifier(id_det)));
         }
         return new BaseRawTrackerHit(
                 time,
-                id,
+                id_hit,
                 adcValues,
                 new ArrayList<SimTrackerHit>(),
                 srch.get(0)
@@ -180,15 +184,14 @@ public class HodoEvioReader extends EvioReader {
                     System.out.println("  channel=" + channel + "; nSamples=" + nSamples);
                 }
 
-                Long id = daqToGeometryId(crate, slot, channel);
+                ArrayList<Long> ids = daqToGeometryId(crate, slot, channel);
 
                 if (debug) {
-                    System.out.println("The long id is: " + id);
+                    System.out.println("The long ids are: " + ids);
                 }
 
-                if (id != null) {  // We found an actual Hodoscope channel.
-                    System.out.println("The long id is: " + id);
-                    BaseRawTrackerHit hit = makeHodoRawHit(0, id, cdata, nSamples);
+                if (ids != null) {  // We found an actual Hodoscope channel.
+                    BaseRawTrackerHit hit = makeHodoRawHit(0, ids, cdata, nSamples);
                     hits.add(hit);
                 } else {        // Not a hodoscope hit, so wind forward  -- MWH.
                     cdata.index(cdata.index() + nSamples);  // Wind the pointer forward by nSamples.
@@ -198,35 +201,59 @@ public class HodoEvioReader extends EvioReader {
         return hits;
     }
 
-    private Long daqToGeometryId(int crate, short slot, short channel) {
+    private ArrayList<Long> daqToGeometryId(int crate, short slot, short channel) {
+
+        // ====================== Rafo =======================
+        // Unlike to the ECal case, wehre each detector element is readout with a single channel
+        // here for the hodoscope, there are detector elements (tiles) that are readout with two different channels
+        // 
+        // The code below, previously was assigning the hole value to 0, 
+        // That way you would get an iD, which is ok for the detector element identification, howevere
+        // This id is not correct, when one wants to knwo which PMT channel is actually this hit belongs to.
+        // In particular during the recon, I was getting an error, that it can not find a cellID
+        
+        // Now as a possible solution (Possibly not the best solution), this method will return two IDs
+        // The 1st one, is clauclulated taking into account the hit, while the 2nd one is calculated with 
+        // the "hole=0" assumption.
+        
+        // Further depending on the intention, one can use ids.get(0) if one wants to check the hit ID, or ids.get(1), if onw
+        // wants to identify the detector element.
+        
+        
+        ArrayList<Long> iDs = new ArrayList<>();
 
         if (hodoChannels == null) {  // The hodoChannels were not initialized, probably data that did not have a Hodoscope.  -- MWH.
-            return null;
+            iDs = null;
+            return iDs;
         }
         HodoscopeChannel hodoChannel = hodoChannels.findChannel(crate, slot, channel);
 
         if (hodoChannel == null) {
-            return null;
+            iDs = null;
+            return iDs;
         }
         int ix = hodoChannel.getIX();
         int iy = hodoChannel.getIY();
         int ilayer = hodoChannel.getLayer();
-        
-        //int ihole = hodoChannel.getHole();
-        //System.out.println("ihole = " + ihole);
-        
-        
+        int ihole = hodoChannel.getHole();
+
+
         /* The 'hole' ID value is set to zero to match with the pixel detector elements in the geometry. --JM */
-        int ihole = 0;
+        //int ihole = 0; 
         
-        
-        
-        GeometryId geometryId = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
-        Long id = geometryId.encode();
+        // === Getting the ID which will be used to identify the actuall signal.  Rafo ====
+        GeometryId geometryId_withHole = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, ihole});
+        Long id_with_hole = geometryId_withHole.encode();
 
-        System.out.println("==== In the daqToGeometryId the Long id is " + id);
+        iDs.add(id_with_hole);
 
-        return id;
+        // === Getting the ID which will be used to identify the detector element, NOTE: hole value is set to 0.  Rafo ====
+        GeometryId geometryId_NoHole = new GeometryId(helper, new int[]{subDetector.getSystemID(), ix, iy, ilayer, 0});
+        Long id_No_hole = geometryId_NoHole.encode();
+
+        iDs.add(id_No_hole);
+
+        return iDs;
     }
 
     private List<BaseRawTrackerHit> makePulseHits(CompositeData cdata, int crate) {
@@ -255,15 +282,15 @@ public class HodoEvioReader extends EvioReader {
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
-                Long id = daqToGeometryId(crate, slot, channel);
+                ArrayList<Long> ids = daqToGeometryId(crate, slot, channel);
                 for (int k = 0; k < npulses; k++) {
                     short pulseNum = cdata.getByte();
                     int sampleCount = cdata.getNValue();
 
-                    if (id == null) {
+                    if (ids == null) {
                         cdata.index(cdata.index() + sampleCount);
                     } else {
-                        BaseRawTrackerHit hit = makeHodoRawHit(pulseNum, id, cdata, sampleCount);
+                        BaseRawTrackerHit hit = makeHodoRawHit(pulseNum, ids, cdata, sampleCount);
                         hits.add(hit);
                     }
                 }
@@ -298,15 +325,15 @@ public class HodoEvioReader extends EvioReader {
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
-                Long id = daqToGeometryId(crate, slot, channel);
+                ArrayList<Long> ids = daqToGeometryId(crate, slot, channel);
                 for (int k = 0; k < npulses; k++) {
                     short pulseTime = cdata.getShort();
                     int pulseIntegral = cdata.getInt();
                     if (debug) {
                         System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral);
                     }
-                    if (id != null) {
-                        hits.add(new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime));
+                    if (ids != null) {
+                        hits.add(new BaseRawCalorimeterHit(ids.get(0), pulseIntegral, pulseTime));
                     }
                 }
             }
@@ -340,7 +367,7 @@ public class HodoEvioReader extends EvioReader {
                 if (debug) {
                     System.out.println("  channel=" + channel + "; npulses=" + npulses);
                 }
-                Long id = daqToGeometryId(crate, slot, channel);
+                ArrayList<Long> ids = daqToGeometryId(crate, slot, channel);
                 for (int k = 0; k < npulses; k++) {
                     short pulseTime = cdata.getShort();
                     int pulseIntegral = cdata.getInt();
@@ -349,8 +376,8 @@ public class HodoEvioReader extends EvioReader {
                     if (debug) {
                         System.out.println("    pulseTime=" + pulseTime + "; pulseIntegral=" + pulseIntegral + "; amplLow=" + amplLow + "; amplHigh=" + amplHigh);
                     }
-                    if (id != null) {
-                        RawCalorimeterHit hit = new BaseRawCalorimeterHit(id, pulseIntegral, pulseTime);
+                    if (ids != null) {
+                        RawCalorimeterHit hit = new BaseRawCalorimeterHit(ids.get(0), pulseIntegral, pulseTime);
                         hits.add(hit);
                     }
                 }
