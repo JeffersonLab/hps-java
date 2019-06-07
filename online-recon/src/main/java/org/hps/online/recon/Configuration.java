@@ -3,36 +3,46 @@ package org.hps.online.recon;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.jlab.coda.et.enums.Mode;
 
 // TODO: add parsing from command line arguments
 public class Configuration {
     
     private static Logger LOGGER = Logger.getLogger(Configuration.class.getPackageName());
-    
+
     private String detectorName = "HPS-EngRun2015-Nominal-v5-0";
     private String steering = "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim";
     private Integer runNumber = 5772;
     private String outputName = "online_recon_events";
     private String outputDir = System.getProperty("user.dir");
 
-    private Integer id = 1;
     private String bufferName = "ETBuffer";
     private String host = "localhost";
     private Integer port = 11111;
-    private Boolean blocking = true;
     private Integer queueSize = 0;
     private Integer prescale = 0;
     private String station = "HPS_RECON";
-    private Integer position = 1;
     private Mode waitMode = Mode.TIMED; // sleep = 0; timed = 1; async = 2
     private Integer waitTime = 5000000;
     private Integer chunkSize = 1;
     
     private Properties props = null;
+    
+    private static Options OPTIONS = new Options();
+    static {
+        OPTIONS.addOption(new Option("s", "station", true, "station name"));
+    }
+    private CommandLineParser parser = new DefaultParser();
 
     Configuration(File file) {
         if (file != null) {
@@ -40,6 +50,9 @@ public class Configuration {
         } else {
             throw new RuntimeException("The prop file points to null.");
         }
+    }
+    
+    Configuration() {
     }
 
     void load(File file) {
@@ -52,6 +65,26 @@ public class Configuration {
         }
         setProperties();
         LOGGER.config("Loaded properties: " + this.props.toString());
+    }
+    
+    void parse(String args[]) throws ParseException {
+        CommandLine cl = parser.parse(OPTIONS, args);
+        
+        // Load prop file first.
+        List<String> argList = cl.getArgList();
+        if (argList.size() > 1) {
+            throw new RuntimeException("Too many extra arguments: " + argList.toString());
+        }
+        File propFile = new File(argList.get(0));
+        if (!propFile.exists()) {
+            throw new RuntimeException("Prop file <" + propFile.getPath() + "> does not exist.");
+        }        
+        load(propFile);
+        
+        // Process command line arguments which can override prop file settings.
+        if (cl.hasOption("s")) {
+            this.station = cl.getOptionValue("s");
+        }
     }
 
     private void setProperties() {
@@ -70,9 +103,6 @@ public class Configuration {
         if (props.containsKey("lcsim.outputDir")) {
             outputDir = props.getProperty("lcsim.outputDir");
         }
-        if (props.containsKey("et.id")) {
-            id = Integer.valueOf(props.getProperty("et.id"));
-        }
         if (props.containsKey("et.name")) {
             bufferName = props.getProperty("et.name");
         }
@@ -82,9 +112,6 @@ public class Configuration {
         if (props.containsKey("et.port")) {
             port = Integer.valueOf(props.getProperty("et.port"));
         }
-        if (props.containsKey("et.blocking")) {
-            blocking = Boolean.valueOf(props.getProperty("et.blocking"));
-        }
         if (props.containsKey("et.queueSize")) {
             queueSize = Integer.valueOf(props.getProperty("et.queueSize"));
         }
@@ -93,9 +120,6 @@ public class Configuration {
         }
         if (props.containsKey("et.station")) {
             station = props.getProperty("et.station");
-        }
-        if (props.containsKey("et.position")) {
-            position = Integer.valueOf(props.getProperty("et.position"));
         }
         if (props.containsKey("et.waitMode")) {
             waitMode = Mode.getMode(Integer.valueOf(props.getProperty("et.waitMode")));
@@ -127,10 +151,6 @@ public class Configuration {
     String getOutputDir() {
         return outputDir;
     }
-
-    Integer getID() {
-        return id;
-    }
     
     String getBufferName() {
         return bufferName;
@@ -144,10 +164,6 @@ public class Configuration {
         return port;
     }
 
-    Boolean getBlocking() {
-        return blocking;
-    }
-
     Integer getQueueSize() {
         return queueSize;
     }
@@ -158,10 +174,6 @@ public class Configuration {
 
     String getStation() {
         return station;
-    }
-
-    Integer getPosition() {
-        return position;
     }
 
     Mode getMode() {
