@@ -12,13 +12,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import org.hps.online.recon.ProcessManager.ProcessInfo;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
  * Server for managing instances of the online reconstruction.
  */
-public class Server {
-        
+public class Server {        
+       
     private class ClientTask implements Runnable {
         
         private final Socket socket;
@@ -38,16 +40,24 @@ public class Server {
                 
                 CommandResult res = null;
                 try {
+                    CommandHandler handler = null;
+                    // TODO: lookup handlers in a static map
                     if (command.equals("start")) {
-                        res = new StartCommandHandler().execute(params);                            
+                        handler = new StartCommandHandler();
                     } else if (command.equals("stop")) {
-                        res = new StopCommandHandler().execute(params);
+                        handler = new StopCommandHandler();
+                    } else if (command.equals("list")) {
+                        handler = new ListCommandHandler();
+                    }
+                    
+                    if (handler != null) {
+                        res = handler.execute(params);
                     } else {
-                        res = new CommandResult(STATUS_ERROR, "Unknown command <" + command + ">");
+                        res = new CommandStatus(STATUS_ERROR, "Unknown command <" + command + ">");
                     }
                 } catch (Exception e) {                   
                     e.printStackTrace();
-                    res = new CommandResult(STATUS_ERROR, e.getMessage());
+                    res = new CommandStatus(STATUS_ERROR, e.getMessage());
                 }
                                 
                 // Send command result back to client.
@@ -70,16 +80,20 @@ public class Server {
         }
     }
 
-    abstract class CommandHandler {
+    abstract class CommandHandler {                   
+               
         abstract CommandResult execute(JSONObject jo);
     }
+    
+    abstract class CommandResult {
+    }
        
-    class CommandResult {
+    class CommandStatus extends CommandResult {
         
         String message;
         String status;
         
-        CommandResult(String status, String message) {
+        CommandStatus(String status, String message) {
             this.status = status;
             this.message = message;
         }
@@ -96,9 +110,22 @@ public class Server {
         }
     }
     
+    class JSONObjectResult extends CommandResult {
+        
+        final JSONObject jo;
+        
+        JSONObjectResult(JSONObject jo) {
+            this.jo = jo;
+        }
+                
+        public String toString() {
+            return jo.toString();
+        }        
+    }
+            
     class StartCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
+            CommandStatus res = null;
             if (!parameters.has("properties")) {
                 throw new RuntimeException("No properties file found in parameters.");
             }
@@ -112,10 +139,10 @@ public class Server {
                     LOGGER.info("Creating process <" + i + ">");
                     Server.this.processManager.createProcess(parameters);
                 }
-                res = new CommandResult(STATUS_SUCCESS, "New process started successfully.");
+                res = new CommandStatus(STATUS_SUCCESS, "New process started successfully.");
             } catch (IOException e) {
                 e.printStackTrace();
-                res = new CommandResult(STATUS_ERROR, "Error creating new process.");
+                res = new CommandStatus(STATUS_ERROR, "Error creating new process.");
             }
             return res;
         }
@@ -123,20 +150,49 @@ public class Server {
     
     class StopCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
+            CommandStatus res = null;
             int id = -1;
             if (parameters.has("id")) {
                 id = parameters.getInt("id");
             }
             if (id != -1) {
                 processManager.stopProcess(id);
-                res = new CommandResult(STATUS_SUCCESS, "Stopped process <" + id + ">");
+                res = new CommandStatus(STATUS_SUCCESS, "Stopped process <" + id + ">");
             } else {
                 processManager.stopAll();
-                res = new CommandResult(STATUS_SUCCESS, "Stopped all processes");
+                res = new CommandStatus(STATUS_SUCCESS, "Stopped all processes");
             }            
             return res;
         }
+    }
+    
+    class ListCommandHandler extends CommandHandler {
+
+        CommandResult execute(JSONObject parameters) {
+            CommandResult res = null;
+            int id = -1;
+            if (parameters.has("id")) {
+                id = parameters.getInt("id");
+            }
+            if (id != -1) {
+                ProcessInfo info = processManager.find(id);
+                if (info != null) {
+                    res = new JSONObjectResult(info.toJSON());
+                } else {
+                    res = new CommandStatus(STATUS_ERROR, "Unknown process id <" + id + ">");
+                }
+            } else {
+                JSONArray arr = new JSONArray();
+                for (ProcessInfo info : processManager.getProcesses()) {
+                    arr.put(info.toJSON());
+                }
+                JSONObject jo = new JSONObject();
+                jo.put("list", arr);
+                res = new JSONObjectResult(jo);
+            }
+            return res;
+        }
+        
     }
     
     static Logger LOGGER = Logger.getLogger(Server.class.getPackageName());
