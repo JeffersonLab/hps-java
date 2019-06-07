@@ -6,10 +6,15 @@ import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.json.JSONObject;
 
 public class ProcessManager {
+
+    private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
+
+    private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
 
     class ProcessInfo {
         Process process;
@@ -78,15 +83,34 @@ public class ProcessManager {
         String stationName = this.server.getStationBaseName() + "_" + String.format("%02d", processNumber);
         File dir = createProcessDir(stationName);
         
-        // TODO: local conditions DB needs to be configurable/optional via properties and not hard-coded here
-        //"-Djava.util.logging.config.file=logging.properties",
-        //"-Dorg.hps.conditions.url=jdbc:sqlite:hps_conditions.db",
-        
-        ProcessBuilder pb = new ProcessBuilder(
-                "java", 
-                "-cp", jarPath, OnlineRecon.class.getCanonicalName(),
-                "-s", stationName,
-                propFile);
+        Properties prop = System.getProperties();
+                
+        List<String> command = new ArrayList<String>();
+        command.add("java");        
+        if (prop.containsKey(LOGGING_PROPERTY)) {
+            String logProp = prop.getProperty(LOGGING_PROPERTY);
+            if (new File(logProp).isAbsolute()) {
+                command.add("-D" + LOGGING_PROPERTY + "=" + logProp);
+            }
+        }
+        if (prop.containsKey(CONDITIONS_PROPERTY)) {
+            String condProp = prop.getProperty(CONDITIONS_PROPERTY);
+            if (new File(condProp.replaceAll("jdbc:sqlite:", "")).isAbsolute()) {
+                command.add("-D" + CONDITIONS_PROPERTY + "=" + condProp);
+            }
+        }
+        command.add("-cp");
+        command.add(jarPath);
+        command.add(OnlineRecon.class.getCanonicalName());
+        command.add("-s");
+        command.add(stationName);
+        command.add("-o");
+        command.add(stationName.toLowerCase());
+        command.add("-d");
+        command.add(dir.getPath());
+        command.add(propFile);
+        ProcessBuilder pb = new ProcessBuilder(command);
+               
         pb.directory(dir);
         File log = new File(dir.getPath() + File.separator + "out." + processNumber.toString() + ".log");
         pb.redirectErrorStream(true);
