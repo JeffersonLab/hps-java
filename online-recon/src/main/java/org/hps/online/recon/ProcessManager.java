@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -28,6 +29,17 @@ public class ProcessManager {
         boolean active;
         File dir;
         File log;
+        
+        JSONObject toJSON() {
+            JSONObject jo = new JSONObject();
+            jo.put("process", process);
+            jo.put("id", id);
+            jo.put("station", stationName);
+            jo.put("active", active);
+            jo.put("dir", dir.getPath());
+            jo.put("log", log.getPath());
+            return jo;
+        }
     }
        
     private List<ProcessInfo> processes = new ArrayList<ProcessInfo>();
@@ -105,7 +117,7 @@ public class ProcessManager {
         pb.redirectErrorStream(true);
         pb.redirectOutput(Redirect.appendTo(log));
 
-        LOGGER.info("Starting process: " + pb.command().toString());
+        LOGGER.info(pb.command().toString());
 
         // This will throw an exception if there is a problem starting the process
         // which is fine as the caller should catch and handle it.  The process 
@@ -121,7 +133,11 @@ public class ProcessManager {
         info.log = log;
         info.active = true;
         add(info);       
-    }   
+    }
+    
+    List<ProcessInfo> getProcesses() {
+        return Collections.unmodifiableList(this.processes);
+    }
     
     ProcessInfo find(int id) {
         for (ProcessInfo info : processes) {
@@ -131,7 +147,7 @@ public class ProcessManager {
         }
         return null;
     }
-    
+
     void stopProcess(ProcessInfo info) {
         if (info != null) {
             Process p = info.process;
@@ -147,6 +163,8 @@ public class ProcessManager {
             } else {
                 LOGGER.severe("Failed to stop process <" + info.id + ">");
             }
+            LOGGER.info("Removing process <" + info.id + ">");
+            removeProcess(info);
         }
     }
     
@@ -159,10 +177,14 @@ public class ProcessManager {
         }
     }
     
-    void stopAll() {
+    synchronized void stopAll() {
         LOGGER.info("Stopping ALL processes");
         for (ProcessInfo info : this.processes) {
             stopProcess(info);
         }
+    }    
+    
+    void removeProcess(ProcessInfo info) {
+        this.processes.remove(info);
     }
 }
