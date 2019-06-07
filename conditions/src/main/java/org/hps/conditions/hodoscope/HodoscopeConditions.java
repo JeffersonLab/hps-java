@@ -32,9 +32,10 @@ public class HodoscopeConditions {
         return channelConstants.get(channel);
     }
 
-//    public HodoscopeChannelCollection getChannelCollection() {
-//        return this.channelCollection;
-//    }
+    public HodoscopeChannelCollection getChannelCollection() {
+        return this.channelCollection;
+    }
+    
     public HodoscopeChannelCollection getChannels() {
 //        System.out.println(" ==================== " + (new Throwable()).getStackTrace()[0].toString());
 //        System.out.println("Channels are " + channels);
