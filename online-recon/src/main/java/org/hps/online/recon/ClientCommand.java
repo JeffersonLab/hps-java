@@ -55,21 +55,64 @@ public abstract class ClientCommand {
         void setProperties(String properties) {
             this.setParameter("properties", properties);
         }
+        
+        void setCount(Integer count) {
+            this.setParameter("count", count.toString());
+        }
+        
         Options getOptions() {
             Options options = new Options();
             options.addOption(new Option("c", "config", true, "configuration properties file"));
+            options.addOption(new Option("n", "number", true, "number of instances to start (default 1)")); 
             return options;
         }
                 
         @Override
         void process(CommandLine cl) {
-            setProperties(cl.getOptionValue("c"));
+            if (cl.hasOption("c")) {
+                setProperties(cl.getOptionValue("c"));                
+            } else {
+                throw new RuntimeException("Missing required -c argument with properties config file.");
+            }
+            if (cl.hasOption("n")) {
+                setCount(Integer.valueOf(cl.getOptionValue("n")));
+            }
         }
     }    
+    
+    /**
+     * Kill an online reconstruction process.
+     */
+    static class StopCommand extends ClientCommand {
+               
+        StopCommand() {
+            super("stop");
+        }
+        
+        @Override        
+        Options getOptions() {
+            Options options = new Options();
+            options.addOption(new Option("i", "id", true, "id of process (no ID means all processes)"));
+            return options;
+        }
+        
+        void setID(Integer id) {
+            this.setParameter("id", id.toString());
+        }
+
+        @Override
+        void process(CommandLine cl) {
+            if (cl.hasOption("i")) {
+                setID(Integer.valueOf(cl.getOptionValue("i")));
+            }            
+        }         
+    }
     
     static ClientCommand getCommand(String name) {
         if (name.equals("start")) {
             return new StartCommand();
+        } else if (name.equals("stop")) {
+            return new StopCommand();
         }
         return null;
     }
