@@ -47,6 +47,8 @@ public class OnlineRecon {
         recon.run();
     }
         
+    // TODO: EventLoopPrintAdapter or whatever it is called to print event messages (see JobManager)
+    // TODO: EVIO processor to activate conditions automatically so run number isn't needed (see EvioToLcio)
     public void run() {
                 
         // composite loop configuration
@@ -93,12 +95,23 @@ public class OnlineRecon {
         
         // ET configuration
         LOGGER.config("Configuring ET system ...");
-        EtConnection conn = null;
+        final EtConnection conn;
         try {
             conn = createEtConnection(config);
         } catch (Exception e) {
             throw new RuntimeException("Error creating ET connection.", e);
         }
+        
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                if (conn != null && conn.getEtStation() != null) {
+                    LOGGER.info("Cleaning up ET station <" + conn.getEtStation().getName() + ">");
+                    conn.cleanup();
+                }
+            }
+        });
+        
         loopConfig.setDataSourceType(DataSourceType.ET_SERVER);    
         loopConfig.setEtConnection(conn);
         loopConfig.setMaxQueueSize(1); // Should this be increased for EVIO conditions to be activated???
