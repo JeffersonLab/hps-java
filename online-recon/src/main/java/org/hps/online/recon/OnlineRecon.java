@@ -3,6 +3,7 @@ package org.hps.online.recon;
 import java.io.File;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.ParseException;
 import org.hps.evio.LCSimEngRunEventBuilder;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
@@ -36,7 +37,12 @@ public class OnlineRecon {
     }
     
     public static void main(String args[]) {
-        Configuration config = new Configuration(new File(args[0]));
+        Configuration config = new Configuration();
+        try {
+            config.parse(args);
+        } catch (ParseException e) {
+            throw new RuntimeException("Error parsing command line", e);
+        }
         OnlineRecon recon = new OnlineRecon(config);
         recon.run();
     }
@@ -95,7 +101,7 @@ public class OnlineRecon {
         }
         loopConfig.setDataSourceType(DataSourceType.ET_SERVER);    
         loopConfig.setEtConnection(conn);
-        loopConfig.setMaxQueueSize(1);
+        loopConfig.setMaxQueueSize(1); // Should this be increased for EVIO conditions to be activated???
         loopConfig.setTimeout(-1L);
         loopConfig.setStopOnEndRun(true).setStopOnErrors(true);
         
@@ -106,16 +112,13 @@ public class OnlineRecon {
     }
     
     private EtConnection createEtConnection(Configuration config) throws Exception {
-        //String stationName = config.getStation() + "_" + String.format("%02d", config.getID());
         return new EtParallelStation(
                 config.getBufferName(),
                 config.getHost(),
                 config.getPort(),
-                config.getBlocking(),
                 config.getQueueSize(),
                 config.getPrescale(),
                 config.getStation(),
-                config.getPosition(),
                 config.getMode(),
                 config.getWaitTime(),
                 config.getChunkSize());
