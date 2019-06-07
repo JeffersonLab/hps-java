@@ -47,26 +47,25 @@ public class Client {
         try {
             commandLine = this.parser.parse(OPTIONS, args, true);
         } catch (ParseException e) {
-            throw new RuntimeException("Error parsing arguments", e);
+            throw new RuntimeException("Error parsing arguments.", e);
         }
                         
         if (commandLine.hasOption("p")) {
             this.port = Integer.parseInt(commandLine.getOptionValue("p"));
-            LOGGER.config("Port set to: " + this.port);
+            LOGGER.config("Port set to <" + this.port + ">");
         }
         
         if (commandLine.hasOption("H")) {
             this.hostname = commandLine.getOptionValue("H");
-            LOGGER.config("Hostname set to: " + this.hostname);
+            LOGGER.config("Hostname set to <" + this.hostname + ">");
         }
         
-        final String commandName = commandLine.getArgs()[0];
-        System.out.println("commandName: <" + commandName + ">");
-        
+        // Get command to execute and see if it is valid.
+        final String commandName = commandLine.getArgs()[0];        
         ClientCommand command = ClientCommand.getCommand(commandName);
         if (command == null) {
             printUsage();
-            throw new RuntimeException("Unknown command '" + commandName + "'");
+            throw new RuntimeException("Unknown command <" + commandName + ">");
         }
         
         // Copy remaining arguments for the command.
@@ -84,7 +83,7 @@ public class Client {
         command.process(cmdResult);
         
         // Send command to server.
-        LOGGER.info("Sending command to server: " + command.toString());
+        LOGGER.info("Sending command to server <" + command.toString() + ">");
         send(command);
     }
     
