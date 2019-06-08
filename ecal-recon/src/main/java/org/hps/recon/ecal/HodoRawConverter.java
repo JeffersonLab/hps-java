@@ -132,7 +132,21 @@ public class HodoRawConverter {
     }
 
     public HodoscopeChannelConstants findChannel(long cellID) {
+        //System.out.println(hodoConditions.getChannels().findGeometric(cellID));
         return hodoConditions.getChannelConstants(hodoConditions.getChannels().findGeometric(cellID));
     }
 
+    
+    // =========== Computed Hodoscop identifiers from cellID
+    public int[] getHodoIdentifiers(long cellID){
+        
+        int[] hodo_ids = new int[4];
+        hodo_ids[0] = hodoConditions.getChannels().findGeometric(cellID).getIX();
+        hodo_ids[1] = hodoConditions.getChannels().findGeometric(cellID).getIY();
+        hodo_ids[2] = hodoConditions.getChannels().findGeometric(cellID).getLayer();
+        hodo_ids[3] = hodoConditions.getChannels().findGeometric(cellID).getHole();
+        
+        return hodo_ids;
+    }
+    
 }
