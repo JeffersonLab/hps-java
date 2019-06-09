@@ -47,7 +47,7 @@ public class HodoRawConverterDriver extends Driver {
     @Override
     public void startOfData() {
         if (hodoCollectionName == null) {
-            throw new RuntimeException("The parameter ecalCollectionName was not set!");
+            throw new RuntimeException("The parameter hodoCollectionName was not set!");
         }
 
     }
