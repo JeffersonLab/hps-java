@@ -1,6 +1,6 @@
 package org.lcsim.detector.tracker.silicon;
 
-//import hep.physics.vec.Hep3Vector; 
+import hep.physics.vec.Hep3Vector; 
 
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
@@ -11,6 +11,8 @@ import org.lcsim.detector.solids.Point3D;
  */
 public class ThinSiStrips extends SiStrips {
 
+
+    private int channelOffset = 256; 
 
     /**
      * Constructor
@@ -27,11 +29,34 @@ public class ThinSiStrips extends SiStrips {
     }
 
     @Override
+    public int getNeighborCell(int cell, int nCells0, int nCells1) { 
+        
+        if ( (cell == (getNCells()/2 - 1)) && (nCells0 == 1) ) return -1;
+        else if ( (cell == getNCells()) && (nCells0 == -1) ) return -1;
+
+        return super.getNeighborCell(cell, nCells0, 0); 
+    }
+
+
+    @Override
+    public int getCellID(Hep3Vector position) { 
+        System.out.println("[ ThinSiStrips ][ getCellID ]: Local to Global: " + getLocalToGlobal().transformed(position).toString());  
+        System.out.println("[ ThinSiStrips ][ getCellID ]: Local to Parent: " + getParentToLocal().inverse().transformed(position).toString()); 
+        
+        int id = (int)Math.round( (position.x() + _strip_offset)/_pitch); 
+        System.out.println("[ ThinSiStrips ][ getCellID ]: ID Before check: " +  id);  
+        if (position.y() > 0) id = (getNCells() - id - 1); 
+        System.out.println("[ ThinSiStrips ][ getCellID ]: ID After check: " +  id);  
+        return id;  
+    }
+
+    @Override
     protected void setStripNumbering() {
         
         double xmin = Double.MAX_VALUE;
         double xmax = Double.MIN_VALUE;
         for (Point3D vertex : getGeometry().getVertices()) {
+            System.out.println("[ ThinSiStrips ][ setStripNumber ]: Vertex: " + vertex.toString()); 
             xmin = Math.min(xmin,vertex.x());
             xmax = Math.max(xmax,vertex.x());
         }
@@ -61,10 +86,19 @@ public class ThinSiStrips extends SiStrips {
         
         double stripsCenter = (xmin+xmax)/2;
         System.out.println("[ ThinSiStrips ][ setStripOffset ]: strips center: " + stripsCenter); 
+        System.out.println("[ ThinSiStrips ][ setStripOffset ]: ((nStrips/2) - 1)*pitch)/2: " + ( ( (_nstrips/2) - 1)*_pitch)/2);  
 
         _strip_offset = ( ( (_nstrips/2) - 1)*_pitch)/2 - stripsCenter;
 
-        System.out.println("[ ThinSiStrips ][ setStripOffset ]: Offset: " + _strip_offset);  
-        
+        System.out.println("[ ThinSiStrips ][ setStripOffset ]: Offset: " + _strip_offset);   
+    }
+
+    @Override
+    public Hep3Vector getCellPosition(int stripNumber) {
+       
+        System.out.println("[ ThinSiStrips ][ getCellPosition ]: Before strip #: " + stripNumber);  
+        //if ( stripNumber >= getNCells()/2 ) stripNumber = (getNCells() - stripNumber - 1);
+        System.out.println("[ ThinSiStrips ][ getCellPosition ]: After strip #: " + stripNumber);  
+        return super.getCellPosition(stripNumber);  
     }
 }
