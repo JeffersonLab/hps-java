@@ -39,10 +39,10 @@ import org.lcsim.util.aida.AIDA;
 public class TrackingReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
-    private String trackCollectionName = "MatchedTracks";
+    private String trackCollectionName = "GBLTracks";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     String ecalSubdetectorName = "Ecal";
-    String ecalCollectionName = "EcalClusters";
+    String ecalCollectionName = "EcalClustersCorr";
     IDDecoder dec;
     private String outputPlots = null;
     private boolean debug = false;
@@ -263,22 +263,25 @@ public class TrackingReconPlots extends Driver {
             trkz0.fill(trk.getTrackStates().get(0).getParameter(ParameterName.z0.ordinal()));
 
             if (pmag > feeMomentumCut && trk.getCharge() > 0) { // remember, hps-java track charge is opposite the real
-                                                                // charge
+                // charge
                 hfeeMom.fill(momentum.magnitude());
                 hfeeTheta.fill(theta);
             }
 
-            SeedTrack stEle = (SeedTrack) trk;
-            SeedCandidate seedEle = stEle.getSeedCandidate();
-            HelicalTrackFit ht = seedEle.getHelix();
-            HpsHelicalTrackFit hpstrk = new HpsHelicalTrackFit(ht);
-            double svt_l12 = 900.00;// mm ~approximately...this doesn't matter much
-            double ecal_face = 1393.00;// mm ~approximately ... this matters! Should use typical shower depth...or, once
-                                       // have cluster match, use that value of Z
+//            SeedTrack stEle = (SeedTrack) trk;
+//            SeedCandidate seedEle = stEle.getSeedCandidate();
+//            HelicalTrackFit ht = seedEle.getHelix();
+//            HpsHelicalTrackFit hpstrk = new HpsHelicalTrackFit(ht);
+//            double svt_l12 = 900.00;// mm ~approximately...this doesn't matter much
+//            double ecal_face = 1393.00;// mm ~approximately ... this matters! Should use typical shower depth...or, once
+//            // have cluster match, use that value of Z
             TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
+            if(stateAtEcal==null){
+                System.out.println("Couldn't get track state at ECal");
+                continue;
+            }
             Hep3Vector posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
-            // Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0,
-            // event.getDetector().getFieldMap())[0];
+//            Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap())[0];
             List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
             if (clusters != null) {
                 if (debug)
@@ -289,10 +292,6 @@ public class TrackingReconPlots extends Driver {
                         System.out.println("\t\t\t Found the best clusters");
                     Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
-                    // improve the extrapolation...use the reconstructed cluster z-position
-                    // stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, zCluster, 5.0,
-                    // event.getDetector().getFieldMap());
-                    // posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
                     double eOverP = clust.getEnergy() / pmag;
                     double dx = posAtEcal.y() - clusterPos.x();
                     double dy = posAtEcal.z() - clusterPos.y();
@@ -301,14 +300,15 @@ public class TrackingReconPlots extends Driver {
                     hdelYECal.fill(dy);
                     heVsP.fill(pmag, clust.getEnergy());
                     if (pmag > feeMomentumCut && trk.getCharge() > 0) { // remember, hps-java track charge is opposite
-                                                                        // the real charge
+                        // the real charge
                         hfeePOverE.fill(pmag / clust.getEnergy());
                         hfeeClustPos.fill(posAtEcal.x(), posAtEcal.y());
                     }
+
                 }
             }
-        }
 
+        }
     }
 
     @Override
