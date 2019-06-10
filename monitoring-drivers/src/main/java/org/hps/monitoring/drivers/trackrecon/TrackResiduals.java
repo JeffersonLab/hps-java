@@ -129,10 +129,11 @@ public class TrackResiduals extends Driver {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
-            return;
+//        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
+//            return;
         if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName))
             return;
+   
         nEvents++;
         List<GenericObject> trdList = event.get(GenericObject.class, trackResidualsCollectionName);
         for (GenericObject trd : trdList) {
@@ -213,30 +214,30 @@ public class TrackResiduals extends Driver {
         double range = 2.5;
         if (isX) {
             if (layer == 1)
-                return 0.5;
+                return 1.0;
             if (layer == 2)
-                return 0.5;
+                return 1.0;
             if (layer == 3)
-                return 0.5;
+                return 1.0;
             if (layer == 4)
-                return 1.0;
+                return 2.0;
             if (layer == 5)
-                return 1.0;
+                return 2.0;
             if (layer == 6)
-                return 1.0;
+                return 2.0;
         } else {
             if (layer == 1)
-                return 0.005;
+                return 0.1;
             if (layer == 2)
                 return 0.5;
             if (layer == 3)
                 return 0.5;
             if (layer == 4)
-                return 1.0;
+                return 0.5;
             if (layer == 5)
-                return 1.0;
+                return 0.5;
             if (layer == 6)
-                return 1.5;
+                return 0.5;
         }
         return range;
 

@@ -84,8 +84,8 @@ public class EcalHitPlots extends Driver {
         // Setup plots.
         hitCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Hit Count In Event",
                 30, -0.5, 29.5);
-        hitNumberPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Rate KHz");
-        occupancyPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy");
+//        hitNumberPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Hit Rate KHz");
+//        occupancyPlot = aida.histogram2D(detector.getDetectorName() + " : " + inputCollection + " : Occupancy");
         topTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : First Hit Time, Top",
                 100, 0, 100 * 4.0);
         botTimePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection
@@ -124,9 +124,9 @@ public class EcalHitPlots extends Driver {
 
         // Create the plotter regions.
         plotter.createRegions(2, 2);
-        plotter.region(0).plot(hitNumberPlot);
+//        plotter.region(0).plot(hitNumberPlot);
         plotter.region(1).plot(hitTimePlot, pstyle);
-        plotter.region(2).plot(occupancyPlot, pstyle);
+//        plotter.region(2).plot(occupancyPlot, pstyle);
         plotter.region(3).plot(hitCountPlot, pstyle);
 
         if (logScale) {

@@ -61,6 +61,41 @@ public class SvtPlotUtils {
         return -1;
     }
 
+    
+      public static int computePlotterRegionSvtUpgrade(HpsSiSensor sensor) {
+      int plotno=-1;
+        if (sensor.getLayerNumber() < 5) {
+            if (sensor.isTopLayer()) {
+                plotno= 4 * (sensor.getLayerNumber() - 1);
+            } else {
+                plotno= 4 * (sensor.getLayerNumber() - 1) + 1;
+            }
+        }else if(sensor.getLayerNumber() < 9) {
+         if (sensor.isTopLayer()) {
+                plotno= 4 * (sensor.getLayerNumber() - 5)+2;
+            } else {
+                plotno= 4 * (sensor.getLayerNumber() - 5) + 3;
+            }
+        } else {
+
+            if (sensor.isTopLayer()) {
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+                    plotno= 4 * (sensor.getLayerNumber() - 9) ;
+                } else {
+                    plotno= 4 * (sensor.getLayerNumber() - 9) + 1;
+                }
+            } else if (sensor.isBottomLayer()) {
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+                    plotno= 4 * (sensor.getLayerNumber() - 9) + 2;
+                } else {
+                    plotno= 4 * (sensor.getLayerNumber() - 9) + 3;
+                }
+            }
+        }
+     //   System.out.println("Layer = "+sensor.getLayerNumber()+"; plotno = "+plotno);
+        return plotno;
+    }
+      
     public static int computePlotterRegionAxialOnly(HpsSiSensor sensor) {
         int l = HPSTrackerBuilder.getLayerFromVolumeName(sensor.getName());
         if (!sensor.isAxial())
