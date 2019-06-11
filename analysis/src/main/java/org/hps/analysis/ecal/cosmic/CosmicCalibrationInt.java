@@ -33,7 +33,7 @@ public class CosmicCalibrationInt extends Driver {
     // number of bins used to calculate the pedestal
     private int NWIN = MAXP - MINP;
     // threshold in mV (2.5mV in 2015)
-    private double THR = 3.5;// for 2016
+    private double THR = 3.00;// for 2016
     // 0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically
     private int cutType = 0;
 
