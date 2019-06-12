@@ -3,6 +3,7 @@ package org.hps.online.recon;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,23 +24,40 @@ public class ProcessManager {
     private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
        
     class ProcessInfo {
+        
         Process process;
+        long pid;
         int id;
         String stationName;
         boolean active;
         File dir;
         File log;
+        List<String> command;
         
         JSONObject toJSON() {
             JSONObject jo = new JSONObject();
-            jo.put("process", process);
+            jo.put("pid", pid);
+            jo.put("alive", process.isAlive());
             jo.put("id", id);
             jo.put("station", stationName);
-            jo.put("active", active);
+            jo.put("command", String.join(" ", command));
             jo.put("dir", dir.getPath());
             jo.put("log", log.getPath());
             return jo;
         }
+    }
+    
+    static Long getPid(Process p) {
+        long pid = -1;       
+        try {
+            Field f = p.getClass().getDeclaredField("pid");
+            f.setAccessible(true);
+            pid = f.getLong(p);
+            f.setAccessible(false);
+        } catch (Exception e) {
+            pid = -1;
+        }
+        return pid;
     }
        
     private List<ProcessInfo> processes = new ArrayList<ProcessInfo>();
@@ -47,7 +65,7 @@ public class ProcessManager {
     private int processID = 1;
     
     private final Server server;
-       
+    
     ProcessManager(Server server) {        
         this.server = server;
     }
@@ -110,7 +128,7 @@ public class ProcessManager {
         command.add("-s");
         command.add(stationName);
         command.add("-o");
-        command.add(stationName.toLowerCase());
+        command.add(stationName.toLowerCase()); // Should output filename be set separately???
         command.add("-d");
         command.add(dir.getPath());
         command.add(propFile);
@@ -121,20 +139,22 @@ public class ProcessManager {
         pb.redirectErrorStream(true);
         pb.redirectOutput(Redirect.appendTo(log));
 
-        LOGGER.info(pb.command().toString());
+        LOGGER.info("Starting command " + pb.command().toString());
 
         // This will throw an exception if there is a problem starting the process
         // which is fine as the caller should catch and handle it.  The process 
-        // won't be registered, which is also fine.
+        // won't be registered, which is also fine as it isn't valid.
         Process p = pb.start();
-  
+        
         // Add new process record.
         ProcessInfo info = new ProcessInfo();
         info.process = p;
+        info.pid = getPid(p);
         info.id = processID;
         info.stationName = stationName;
         info.dir = dir;
         info.log = log;
+        info.command = command;
         info.active = true;
         add(info);       
     }
