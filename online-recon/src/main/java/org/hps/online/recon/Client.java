@@ -1,6 +1,7 @@
 package org.hps.online.recon;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -27,56 +28,62 @@ public class Client {
     
     private String hostname = "localhost";
     private int port = 22222;
-        
-    private static Options OPTIONS = new Options();
-    private CommandLineParser parser = new DefaultParser();
-        
-    static {
-        OPTIONS.addOption(new Option("h", "help", false, "print help"));
-        OPTIONS.addOption(new Option("p", "port", true, "server port"));
-        OPTIONS.addOption(new Option("H", "host", true, "server hostname"));
-    }
+
+    private File outputFile;
     
-    final void printUsage() {
+    private CommandLineParser parser = new DefaultParser();
+            
+    final void printUsage(Options options) {
         final HelpFormatter help = new HelpFormatter();
-        help.printHelp("Client [command]", "Send commands to the HPS online recon server", OPTIONS, "Commands: start, etc.");
+        help.printHelp("Client [command]", "Send commands to the HPS online recon server", options, "Commands: start, etc.");
     }
 
     void run(String args[]) {
         
+        Options options = new Options();
+        options.addOption(new Option("h", "help", false, "print help"));
+        options.addOption(new Option("p", "port", true, "server port"));
+        options.addOption(new Option("H", "host", true, "server hostname"));
+        options.addOption(new Option("o", "output", true, "output file (defaults writes response to System.out)"));
+        
         if (args.length == 0) {
-            printUsage();
+            printUsage(options);
             System.exit(0);
         }
         
-        CommandLine commandLine;
+        CommandLine cl;
         try {
-            commandLine = this.parser.parse(OPTIONS, args, true);
+            cl = this.parser.parse(options, args, true);
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing arguments.", e);
         }
                         
-        if (commandLine.hasOption("p")) {
-            this.port = Integer.parseInt(commandLine.getOptionValue("p"));
+        if (cl.hasOption("p")) {
+            this.port = Integer.parseInt(cl.getOptionValue("p"));
             LOGGER.config("Port set to <" + this.port + ">");
         }
         
-        if (commandLine.hasOption("H")) {
-            this.hostname = commandLine.getOptionValue("H");
+        if (cl.hasOption("H")) {
+            this.hostname = cl.getOptionValue("H");
             LOGGER.config("Hostname set to <" + this.hostname + ">");
         }
         
+        if (cl.hasOption("o")) {
+            this.outputFile = new File(cl.getOptionValue("o"));
+            LOGGER.config("Output file set to <" + this.outputFile.getPath() + ">");
+        }
+        
         // Get command to execute and see if it is valid.
-        final String commandName = commandLine.getArgs()[0];        
+        final String commandName = cl.getArgs()[0];        
         ClientCommand command = ClientCommand.getCommand(commandName);
         if (command == null) {
-            printUsage();
-            throw new RuntimeException("Unknown command <" + commandName + ">");
+            printUsage(options);
+            throw new RuntimeException("Unknown client command <" + commandName + ">");
         }
         
         // Copy remaining arguments for the command.
-        final String[] commandArgs = new String[commandLine.getArgs().length - 1];
-        System.arraycopy(commandLine.getArgs(), 1, commandArgs, 0, commandArgs.length);
+        final String[] commandArgs = new String[cl.getArgs().length - 1];
+        System.arraycopy(cl.getArgs(), 1, commandArgs, 0, commandArgs.length);
         
         // Parse command options.
         DefaultParser commandParser = new DefaultParser();
@@ -84,7 +91,8 @@ public class Client {
         try {
             cmdResult = commandParser.parse(command.getOptions(), commandArgs);
         } catch (ParseException e) {
-            throw new RuntimeException("Error parsing command options", e);
+            // Print sub-command usage here.
+            throw new RuntimeException("Error parsing command options", e);            
         }        
         command.process(cmdResult);
         
@@ -101,23 +109,44 @@ public class Client {
         try (Socket socket = new Socket(hostname, port)) {
             // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
-            writer.write(command.toString() + '\n');
+            writer.write(command.toString() + '\n');            
             writer.flush();
 
-            // Print server response.
+            // Get server response.
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String resp = br.readLine();
             
-            // TODO: add option to redirect response to a file
-            if (resp.startsWith("{")) {
-                JSONObject jo = new JSONObject(resp); 
-                System.out.println(jo.toString(4));
-            } else if (resp.startsWith("[")) {
-                JSONArray ja = new JSONArray(resp);
-                System.out.println(ja.toString(4));
+            // Print server response or write to output file.
+            PrintWriter pw = null;
+            if (this.outputFile != null) {
+                pw = new PrintWriter(this.outputFile);
             }
-
+            if (resp.startsWith("{")) {
+                // Handle JSON object.
+                JSONObject jo = new JSONObject(resp);
+                if (pw != null) {
+                    pw.write(jo.toString(4));
+                } else {
+                    System.out.println(jo.toString(4));
+                }
+            } else if (resp.startsWith("[")) {
+                // Handle JSON array.
+                JSONArray ja = new JSONArray(resp);
+                if (pw != null) {
+                    pw.write(ja.toString(4));
+                } else {
+                    System.out.println(ja.toString(4));
+                }
+            } else {
+                // Response from server isn't valid JSON.
+                throw new RuntimeException("Invalid server response <" + resp.toString() + ">");
+            }
+            if (pw != null) {
+                LOGGER.info("Wrote output to <" + this.outputFile.getPath() + ">");
+                pw.flush();
+                pw.close();
+            }
         } catch (Exception e) {
             throw new RuntimeException("Client error", e);
         }
