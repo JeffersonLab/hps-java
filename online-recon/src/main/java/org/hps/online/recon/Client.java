@@ -14,11 +14,13 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
  * Client for interacting with the online reconstruction server.
  */
+// TODO: add switch for setting file for writing result output
 public class Client {
 
     private static Logger LOGGER = Logger.getLogger(Client.class.getPackageName());
@@ -106,7 +108,16 @@ public class Client {
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String resp = br.readLine();
-            LOGGER.info(new JSONObject(resp).toString(4));
+            
+            // TODO: add option to redirect response to a file
+            if (resp.startsWith("{")) {
+                JSONObject jo = new JSONObject(resp); 
+                System.out.println(jo.toString(4));
+            } else if (resp.startsWith("[")) {
+                JSONArray ja = new JSONArray(resp);
+                System.out.println(ja.toString(4));
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Client error", e);
         }
