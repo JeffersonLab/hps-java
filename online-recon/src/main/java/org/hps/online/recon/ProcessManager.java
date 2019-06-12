@@ -58,7 +58,11 @@ public class ProcessManager {
        
     synchronized int getNextProcessID() {
         ++processID;
-        return processID;
+        return processID - 1;
+    }
+    
+    void setProcessID(int processID) {
+        this.processID = processID;
     }
                 
     File createProcessDir(String name) {
@@ -81,7 +85,7 @@ public class ProcessManager {
         String jarPath = OnlineRecon.class.getProtectionDomain().getCodeSource().getLocation().getPath();
           
         Integer processID = getNextProcessID();
-        String stationName = this.server.getStationBaseName() + "_" + String.format("%02d", processID);
+        String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", processID);
         File dir = createProcessDir(stationName);
         
         Properties prop = System.getProperties();
