@@ -146,7 +146,7 @@
             <correctChanT0>true</correctChanT0>          
             <debug>false</debug>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
