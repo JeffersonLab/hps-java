@@ -47,7 +47,7 @@ public class CosmicCalibrationFit extends Driver {
     // number of bins used to calculate the pedestal
     private int NWIN = MAXP - MINP;
     // threshold in mV (2.5mV in 2015, 3.5mV in 2016)
-    private double THR = 3.0;// for 2016
+    private double THR = 3.00;// for 2016
     // 0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically
     // (fit available only with strict geo
     // cut)
