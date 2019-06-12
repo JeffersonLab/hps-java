@@ -21,7 +21,7 @@
             <Layer type="Seed" layer_number="13" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
-            <Layer type="Confirm" layer_number=11" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Confirm" layer_number="11" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Extend" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
         </Layers>
     </Strategy>
