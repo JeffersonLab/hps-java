@@ -169,7 +169,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make RawHodoscopeHit collection, combining top and bottom section
         // of Hodo into one list.
         try {
-            if (hodoReader != null) {  // Skip is no hodoscope in this run period.
+            if (hodoReader != null) {  // Skip if no hodoscope in this run period.
                 hodoReader.makeHits(evioEvent, lcsimEvent);
             }
         } catch (final Exception e) {
@@ -189,7 +189,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
             svtReader.makeHits(evioEvent, lcsimEvent);
         } catch (final SvtEvioReaderException e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
-        } 
+        }
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
 
