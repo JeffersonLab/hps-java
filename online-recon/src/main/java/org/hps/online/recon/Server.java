@@ -12,6 +12,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.hps.online.recon.ProcessManager.ProcessInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -200,36 +207,93 @@ public class Server {
     public static final String STATUS_ERROR = "ERROR";    
     public static final String STATUS_SUCCESS = "SUCCESS";
     
-    public static void main(String args[]) {
-        if (args.length < 1) {
-            throw new RuntimeException("Not enough args");
+    public void parse(String args[]) throws ParseException {
+        Options options = new Options();
+        options.addOption(new Option("h", "help", false, "print help"));
+        options.addOption(new Option("p", "port", true, "server port"));
+        options.addOption(new Option("s", "start", true, "starting station ID (default 0)"));
+        options.addOption(new Option("w", "workdir", true, "work dir (default is current dir where server is started)"));
+        options.addOption(new Option("b", "basename", true, "station base name"));
+        
+        final CommandLineParser parser = new DefaultParser();
+        CommandLine cl = parser.parse(options, args);
+        
+        if (cl.hasOption("h")) {
+            final HelpFormatter help = new HelpFormatter();
+            help.printHelp("Server", 
+                    "Start the online reconstruction server",
+                    options, "");
+            System.exit(0);
         }
-        int port = Integer.parseInt(args[0]);        
-        Server server = new Server(port);
+        
+        if (cl.hasOption("p")) {
+            this.port = Integer.parseInt(cl.getOptionValue("p"));
+        }
+        if (this.port < MIN_PORT || this.port >= MAX_PORT) {
+            LOGGER.severe("Port number <" + this.port + "> is not between " + MIN_PORT + " and " + MAX_PORT);
+            throw new RuntimeException("Port number <" + this.port + "> is not allowed.");
+        }
+        LOGGER.config("Server set to use port <" + this.port + ">");
+        
+        if (cl.hasOption("s")) {
+            int processID = Integer.parseInt(cl.getOptionValue("s"));
+            this.processManager.setProcessID(processID);
+            LOGGER.config("Starting process ID is <" + processID + ">");
+        }
+        
+        if (cl.hasOption("w")) {
+            this.workPath = cl.getOptionValue("w");
+        }                
+        this.workDir = new File(this.workPath);
+        LOGGER.config("Server work dir set to <" + this.workDir + ">");
+        if (!this.workDir.exists()) {
+            throw new RuntimeException("Work dir does not exist <" + this.workPath + ">");
+        }
+        if (!this.workDir.isDirectory()) {
+            throw new RuntimeException("Work path is not a directory <" + this.workPath + ">");
+        }
+        if (!this.workDir.canWrite()) {
+            throw new RuntimeException("Work dir <" + this.workPath + "> is not writable.");
+        }
+        
+        if (cl.hasOption("b")) {
+            this.stationBase = cl.getOptionValue("b");
+        }
+        LOGGER.config("Station base name set to <" + this.stationBase + ">");
+    }
+    
+    public static void main(String args[]) { 
+        Server server = new Server();
+        try {
+            server.parse(args);
+        } catch (ParseException e) {
+            throw new RuntimeException("Error parsing command line", e);
+        }        
         server.start();
     }
             
     final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
     
-    private int port;
+    private static final int MIN_PORT = 1024;
+    private static final int MAX_PORT = 49152;
+    private static final int DEFAULT_PORT = 22222;
     
-    private ProcessManager processManager;
+    private int port = DEFAULT_PORT;
+        
+    private final ProcessManager processManager;
         
     private String stationBase = "HPS_RECON";
         
-    private File workDir = null;
+    private File workDir;
     
-    private String workPath = System.getProperty("user.dir");
+    private final String DEFAULT_WORK_PATH = System.getProperty("user.dir");
+    
+    private String workPath = DEFAULT_WORK_PATH;
     
     public Server() {        
         this.processManager = new ProcessManager(this);
     }
-    
-    public Server(int port) {
-        this.port = port;       
-        this.processManager = new ProcessManager(this);
-    }
-        
+            
     File createProcessDir(String name) {
         String path = this.workDir.getPath() + File.separator + name;
         File dir = new File(path);
@@ -247,24 +311,8 @@ public class Server {
     public File getWorkDir() {
         return this.workDir;
     }
-    
-    private void setupWorkDir() {
-        this.workDir = new File(this.workPath);
-        if (!this.workDir.exists()) {
-            throw new RuntimeException("Work dir does not exist <" + this.workPath + ">");
-        }
-        if (!this.workDir.isDirectory()) {
-            throw new RuntimeException("Work path is not a directory <" + this.workPath + ">");
-        }
-        if (!this.workDir.canWrite()) {
-            throw new RuntimeException("Work dir <" + this.workPath + "> is not writable.");
-        }
-    }
-    
-    public void start() {
         
-        setupWorkDir();        
-        
+    public void start() {                
         LOGGER.info("Starting server on port <" + this.port + ">");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
