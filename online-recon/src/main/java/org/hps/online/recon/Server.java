@@ -117,16 +117,29 @@ public class Server {
         }
     }
     
-    class JSONObjectResult extends CommandResult {
+    class JSONResult extends CommandResult {
         
         final JSONObject jo;
         
-        JSONObjectResult(JSONObject jo) {
+        JSONResult(JSONObject jo) {
             this.jo = jo;
         }
                 
         public String toString() {
             return jo.toString();
+        }        
+    }
+    
+    class GenericResult extends CommandResult {
+        
+        final Object o;
+        
+        GenericResult(Object o) {
+            this.o = o;
+        }
+        
+        public String toString() {
+            return o.toString();
         }        
     }
             
@@ -182,20 +195,20 @@ public class Server {
                 id = parameters.getInt("id");
             }
             if (id != -1) {
+                // Return JSON object with single station info
                 ProcessInfo info = processManager.find(id);
                 if (info != null) {
-                    res = new JSONObjectResult(info.toJSON());
+                    res = new JSONResult(info.toJSON());
                 } else {
                     res = new CommandStatus(STATUS_ERROR, "Unknown process id <" + id + ">");
                 }
             } else {
+                // Return JSON array of station data               
                 JSONArray arr = new JSONArray();
                 for (ProcessInfo info : processManager.getProcesses()) {
                     arr.put(info.toJSON());
                 }
-                JSONObject jo = new JSONObject();
-                jo.put("list", arr);
-                res = new JSONObjectResult(jo);
+                res = new GenericResult(arr);
             }
             return res;
         }
