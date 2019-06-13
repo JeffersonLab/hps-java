@@ -15,15 +15,18 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.jlab.coda.et.enums.Mode;
 
-// TODO: add parsing from command line arguments
 public class Configuration {
     
     private static Logger LOGGER = Logger.getLogger(Configuration.class.getPackageName());
 
-    private String detectorName = "HPS-EngRun2015-Nominal-v5-0";
-    private String steering = "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim";
-    private Integer runNumber = 5772;
-    private String outputName = "online_recon_events";
+    // No defaults provided for these.
+    private String detectorName;
+    private String steering;
+    private Integer runNumber;
+    
+    // Must be provided as command line argument.
+    private String outputName;
+    
     private String outputDir = System.getProperty("user.dir");
 
     private String bufferName = "ETBuffer";
@@ -32,9 +35,12 @@ public class Configuration {
     private Integer queueSize = 0;
     private Integer prescale = 0;
     private String station = "HPS_RECON";
-    private Mode waitMode = Mode.TIMED; // sleep = 0; timed = 1; async = 2
-    private Integer waitTime = 5000000;
+    private Mode waitMode = Mode.SLEEP; // sleep = 0; timed = 1; async = 2
+    private Integer waitTime = 999999999;    
     private Integer chunkSize = 1;
+
+    private Integer eventSaveInterval = 1000;
+    private Integer eventPrintInterval = 1;
     
     private Properties props = null;
     
@@ -92,6 +98,8 @@ public class Configuration {
         }
         if (cl.hasOption("o")) {
             this.outputName = cl.getOptionValue("o");
+        } else {
+            throw new RuntimeException("Missing required -o argument with output file name.");
         }
     }
 
@@ -104,6 +112,12 @@ public class Configuration {
         }
         if (props.containsKey("lcsim.run")) {
             runNumber = Integer.parseInt(props.getProperty("lcsim.run"));
+        }
+        if (props.containsKey("lcsim.eventSaveInterval")) {
+            eventSaveInterval = Integer.parseInt(props.getProperty("lcsim.eventSaveInterval"));
+        }
+        if (props.containsKey("lcsim.eventPrintInterval")) {
+            eventPrintInterval = Integer.parseInt(props.getProperty("lcsim.eventPrintInterval"));
         }
         if (props.containsKey("et.name")) {
             bufferName = props.getProperty("et.name");
@@ -133,6 +147,22 @@ public class Configuration {
             chunkSize = Integer.valueOf(props.getProperty("et.chunkSize"));
         }
     }
+    
+    boolean isValid() {
+        if (this.detectorName == null) {
+            LOGGER.severe("Config is missing detector name.");
+            return false;
+        }
+        if (this.runNumber == null) {
+            LOGGER.severe("Config is missing run number.");
+            return false;
+        }
+        if (this.steering == null) {
+            LOGGER.severe("Config is missing steering resource");
+            return false;
+        }
+        return true;
+    }
 
     String getDetectorName() {
         return detectorName;
@@ -152,6 +182,14 @@ public class Configuration {
 
     String getOutputDir() {
         return outputDir;
+    }
+    
+    Integer getEventSaveInterval() {
+        return this.eventSaveInterval;
+    }
+    
+    Integer getEventPrintInterval() {
+        return this.eventPrintInterval;
     }
     
     String getBufferName() {
