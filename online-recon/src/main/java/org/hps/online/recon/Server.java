@@ -159,7 +159,7 @@ public class Server {
                     LOGGER.info("Creating process <" + i + ">");
                     Server.this.processManager.createProcess(parameters);
                 }
-                res = new CommandStatus(STATUS_SUCCESS, "New process started successfully.");
+                res = new CommandStatus(STATUS_SUCCESS, "Started <" + count + "> processes successfully.");
             } catch (IOException e) {
                 e.printStackTrace();
                 res = new CommandStatus(STATUS_ERROR, "Error creating new process.");
