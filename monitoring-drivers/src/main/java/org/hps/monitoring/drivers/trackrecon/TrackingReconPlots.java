@@ -48,7 +48,7 @@ public class TrackingReconPlots extends Driver {
     private boolean debug = false;
 
     double feeMomentumCut = 0.8;
-    int nmodules = 6;
+    int nmodules = 7;
 
     IPlotter plotter;
     IPlotter plotter22;
@@ -82,7 +82,9 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D[] hthBot = new IHistogram1D[nmodules];
     IHistogram2D[] xvsyTop = new IHistogram2D[nmodules];
     IHistogram2D[] xvsyBot = new IHistogram2D[nmodules];
-
+    public void setFeeMomentumCut(double cut){
+        this.feeMomentumCut=cut;
+    }
     @Override
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
@@ -93,11 +95,11 @@ public class TrackingReconPlots extends Driver {
 
         plotter.createRegions(2, 3);
         // plotterFrame.addPlotter(plotter);
-        nhits = aida.histogram1D("Hits per Track", 2, 5, 7);
+        nhits = aida.histogram1D("Hits per Track", 3, 5, 8);
         charge = aida.histogram1D("Track Charge", 3, -1, 2);
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
-        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 3);
+        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 5);
         trkChi2 = aida.histogram1D("Track Chi2", 50, 0, 25.0);
 
         plot(plotter, nhits, null, 0);
@@ -129,10 +131,10 @@ public class TrackingReconPlots extends Driver {
         plotter22.show();
 
         // ******************************************************************
-        heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 2.0);
+        heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 3.0);
         hdelXECal = aida.histogram1D("delta X @ ECal (mm) ", 50, -15.0, 15.0);
         hdelYECal = aida.histogram1D("delta Y @ ECal (mm) ", 50, -15.0, 15.0);
-        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 2.5, 50, 0, 2.5);
+        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 3, 50, 0, 3);
 
         plotterECal = pfac.create("Cluster Matching");
         plotterECal.createRegions(2, 2);
@@ -145,7 +147,7 @@ public class TrackingReconPlots extends Driver {
 
         // ******************************************************************
         // fix the ranges here...
-        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 2.2);
+        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 4.6);
         hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
         hfeePOverE = aida.histogram1D("FEE POverE", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
@@ -160,9 +162,9 @@ public class TrackingReconPlots extends Driver {
         plotterFEE.show();
 
         plotterHTH = pfac.create("Track Hits");
-        plotterHTH.createRegions(3, 4);
+        plotterHTH.createRegions(4, 4);
         plotterXvsY = pfac.create("3d Hit Positions");
-        plotterXvsY.createRegions(3, 4);
+        plotterXvsY.createRegions(4, 4);
 
         for (int i = 1; i <= nmodules; i++) {
 
@@ -207,8 +209,8 @@ public class TrackingReconPlots extends Driver {
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
             return;
 
-        int[] topHits = {0, 0, 0, 0, 0, 0};
-        int[] botHits = {0, 0, 0, 0, 0, 0};
+        int[] topHits = {0, 0, 0, 0, 0, 0, 0};
+        int[] botHits = {0, 0, 0, 0, 0, 0, 0};
         List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
         for (TrackerHit hit : hth) {
             int module = -99;
@@ -223,8 +225,10 @@ public class TrackingReconPlots extends Driver {
                 module = 4;
             else if (layer < 10)
                 module = 5;
-            else
+            else if (layer < 12)
                 module = 6;
+            else
+                module = 7;
 
             if (hit.getPosition()[1] > 0) {
                 topHits[module - 1]++;

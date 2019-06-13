@@ -33,7 +33,7 @@ public class TrackResiduals extends Driver {
     String gblStripClusterDataCollectionName = "GBLStripClusterData";
     private AIDA aida = AIDA.defaultInstance();
     int nEvents = 0;
-    int nmodules = 6;
+    int nmodules = 7;
 
     IPlotter plotterResX;
     IPlotter plotterResY;
@@ -81,8 +81,8 @@ public class TrackResiduals extends Driver {
         fitFactory = aida.analysisFactory().createFitFactory();
         plotterResX = pfac.create("X Residuals");
         plotterResY = pfac.create("Y Residuals");
-        plotterResX.createRegions(3, 4);
-        plotterResY.createRegions(3, 4);
+        plotterResX.createRegions(4, 4);
+        plotterResY.createRegions(4, 4);
 
         for (int i = 1; i <= nmodules; i++) {
             xresidTop[i - 1] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true),
