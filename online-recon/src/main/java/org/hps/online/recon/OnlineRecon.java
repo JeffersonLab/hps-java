@@ -13,19 +13,13 @@ import org.hps.record.composite.CompositeLoopConfiguration;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.event.EventHeader;
+import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 
 public class OnlineRecon {
    
     private static Logger LOGGER = Logger.getLogger(OnlineRecon.class.getPackageName());
-        
-    static class DummyDriver extends Driver {        
-        public void process(EventHeader event) {
-            LOGGER.info(">>> Online recon processing event " + event.getEventNumber());
-        }        
-    }
-        
+                
     private Configuration config = null;
     
     public OnlineRecon(Configuration config) {
@@ -43,19 +37,20 @@ public class OnlineRecon {
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line", e);
         }
+        if (!config.isValid()) {
+            throw new RuntimeException("Configuration is not valid.");
+        }
         OnlineRecon recon = new OnlineRecon(config);
         recon.run();
     }
         
-    // TODO: EventLoopPrintAdapter or whatever it is called to print event messages (see JobManager)
-    // TODO: EVIO processor to activate conditions automatically so run number isn't needed (see EvioToLcio)
     public void run() {
                 
         // composite loop configuration
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
                 
         // initialize conditions setup and set basic parameters
-        // TODO: run number should come from EVIO files instead
+        // TODO: activate conditions from EVIO files using EvioDetectorConditionsProcessor
         DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
         conditions.setDetectorName(config.getDetectorName());
         conditions.setRun(config.getRunNumber());
@@ -74,15 +69,30 @@ public class OnlineRecon {
         mgr.addVariableDefinition("outputFile", outputFilePath);
         mgr.setConditionsSetup(conditions); // FIXME: Is this even needed since not calling the run() method?
         mgr.setup(config.getSteeringResource());
-               
+       
+        // Setup event number printing if configured.
+        if (this.config.getEventPrintInterval() > 0) {
+            loopConfig.add(new EventMarkerDriver(this.config.getEventPrintInterval()));
+        } else {
+            LOGGER.config("Event number printing is disabled.");
+        }
+        
         // add drivers from job manager to composite loop
-        loopConfig.add(new DummyDriver());
         LOGGER.config("Adding " + mgr.getDriverExecList().size() + " drivers to loop ...");
         for (Driver driver : mgr.getDriverExecList()) {
             LOGGER.config("Adding driver: " + driver.getClass().getCanonicalName());
             loopConfig.add(driver);
         }
         
+        // Configure and add the AIDA driver for intermediate plot saving.
+        OnlineReconAidaDriver aidaDriver = new OnlineReconAidaDriver();
+        aidaDriver.setStationName(config.getStation());
+        aidaDriver.setOutputDir(config.getOutputDir());
+        aidaDriver.setResetAfterSave(true);
+        aidaDriver.setEventSaveInterval(config.getEventSaveInterval());
+        LOGGER.config("Adding AIDA driver with event save interval <" + config.getEventSaveInterval() + ">");
+        loopConfig.add(aidaDriver);
+                
         // activate conditions system
         LOGGER.config("Activating conditions system ...");
         conditions.configure();
@@ -117,10 +127,10 @@ public class OnlineRecon {
         loopConfig.setMaxQueueSize(1); // Should this be increased for EVIO conditions to be activated???
         loopConfig.setTimeout(-1L);
         loopConfig.setStopOnEndRun(true).setStopOnErrors(true);
-        
-        // run the loop
-        LOGGER.config("Running composite loop ...");
+               
+        // Run the loop.
         CompositeLoop loop = new CompositeLoop(loopConfig);
+        LOGGER.info("Running composite loop ...");
         loop.loop(-1);
     }
     
