@@ -51,29 +51,19 @@ public abstract class ClientCommand {
         StartCommand() {
             super("start");
         }
-                                
-        void setProperties(String properties) {
-            this.setParameter("properties", properties);
-        }
-        
+                                        
         void setCount(Integer count) {
             this.setParameter("count", count.toString());
         }
         
         Options getOptions() {
             Options options = new Options();
-            options.addOption(new Option("c", "config", true, "configuration properties file"));
             options.addOption(new Option("n", "number", true, "number of instances to start (default 1)")); 
             return options;
         }
                 
         @Override
         void process(CommandLine cl) {
-            if (cl.hasOption("c")) {
-                setProperties(cl.getOptionValue("c"));                
-            } else {
-                throw new RuntimeException("Missing required -c argument with properties config file.");
-            }
             if (cl.hasOption("n")) {
                 setCount(Integer.valueOf(cl.getOptionValue("n")));
             }

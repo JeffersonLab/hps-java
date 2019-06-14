@@ -16,31 +16,31 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 
-public class OnlineRecon {
-   
-    private static Logger LOGGER = Logger.getLogger(OnlineRecon.class.getPackageName());
+public class OnlineReconStation {
+       
+    private static Logger LOGGER = Logger.getLogger(OnlineReconStation.class.getPackageName());
                 
-    private Configuration config = null;
-    
-    public OnlineRecon(Configuration config) {
+    private StationConfiguration config = null;
+       
+    public OnlineReconStation(StationConfiguration config) {
         this.config = config;
     }
            
-    public Configuration getConfiguration() {
+    public StationConfiguration getConfiguration() {
         return this.config;
     }
     
     public static void main(String args[]) {
-        Configuration config = new Configuration();
+        StationConfiguration config = new StationConfiguration();
         try {
             config.parse(args);
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line", e);
         }
         if (!config.isValid()) {
-            throw new RuntimeException("Configuration is not valid.");
+            throw new RuntimeException("Station configuration is not valid (see log messages).");
         }
-        OnlineRecon recon = new OnlineRecon(config);
+        OnlineReconStation recon = new OnlineReconStation(config);
         recon.run();
     }
         
@@ -65,7 +65,7 @@ public class OnlineRecon {
         JobManager mgr = new JobManager();
         mgr.setDryRun(true);
         final String outputFilePath = config.getOutputDir() + File.separator + config.getOutputName();
-        LOGGER.config("Output file path set to: " + outputFilePath);
+        LOGGER.config("Output file path set to <" + outputFilePath + ">");
         mgr.addVariableDefinition("outputFile", outputFilePath);
         mgr.setConditionsSetup(conditions); // FIXME: Is this even needed since not calling the run() method?
         mgr.setup(config.getSteeringResource());
@@ -80,7 +80,7 @@ public class OnlineRecon {
         // add drivers from job manager to composite loop
         LOGGER.config("Adding " + mgr.getDriverExecList().size() + " drivers to loop ...");
         for (Driver driver : mgr.getDriverExecList()) {
-            LOGGER.config("Adding driver: " + driver.getClass().getCanonicalName());
+            LOGGER.config("Adding driver <" + driver.getClass().getCanonicalName() + ">");
             loopConfig.add(driver);
         }
         
@@ -134,7 +134,7 @@ public class OnlineRecon {
         loop.loop(-1);
     }
     
-    private EtConnection createEtConnection(Configuration config) throws Exception {
+    private EtConnection createEtConnection(StationConfiguration config) throws Exception {
         return new EtParallelStation(
                 config.getBufferName(),
                 config.getHost(),

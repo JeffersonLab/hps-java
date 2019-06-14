@@ -19,12 +19,14 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.hps.online.recon.ProcessManager.ProcessInfo;
+import org.hps.online.recon.StationManager.StationInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
  * Server for managing instances of the online reconstruction.
+ * 
+ * @author jeremym
  */
 public class Server {        
        
@@ -146,9 +148,6 @@ public class Server {
     class StartCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandStatus res = null;
-            if (!parameters.has("properties")) {
-                throw new RuntimeException("No properties file found in parameters.");
-            }
             int count = 1;
             if (parameters.has("count")) {
                 count = parameters.getInt("count");
@@ -157,7 +156,7 @@ public class Server {
                 LOGGER.info("Starting <" + count + "> processes");
                 for (int i = 0; i < count; i++) {
                     LOGGER.info("Creating process <" + i + ">");
-                    Server.this.processManager.createProcess(parameters);
+                    Server.this.processManager.createStation(parameters);
                 }
                 res = new CommandStatus(STATUS_SUCCESS, "Started <" + count + "> processes successfully.");
             } catch (IOException e) {
@@ -176,7 +175,7 @@ public class Server {
                 id = parameters.getInt("id");
             }
             if (id != -1) {
-                processManager.stopProcess(id);
+                processManager.stopStation(id);
                 res = new CommandStatus(STATUS_SUCCESS, "Stopped process <" + id + ">");
             } else {
                 processManager.stopAll();
@@ -196,7 +195,7 @@ public class Server {
             }
             if (id != -1) {
                 // Return JSON object with single station info
-                ProcessInfo info = processManager.find(id);
+                StationInfo info = processManager.findStation(id);
                 if (info != null) {
                     res = new JSONResult(info.toJSON());
                 } else {
@@ -205,7 +204,7 @@ public class Server {
             } else {
                 // Return JSON array of station data               
                 JSONArray arr = new JSONArray();
-                for (ProcessInfo info : processManager.getProcesses()) {
+                for (StationInfo info : processManager.getStations()) {
                     arr.put(info.toJSON());
                 }
                 res = new GenericResult(arr);
@@ -220,17 +219,21 @@ public class Server {
     public static final String STATUS_ERROR = "ERROR";    
     public static final String STATUS_SUCCESS = "SUCCESS";
     
-    public void parse(String args[]) throws ParseException {
+    private StationConfiguration stationConfig = new StationConfiguration();
+        
+    void parse(String args[]) throws ParseException {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
         options.addOption(new Option("p", "port", true, "server port"));
         options.addOption(new Option("s", "start", true, "starting station ID (default 0)"));
         options.addOption(new Option("w", "workdir", true, "work dir (default is current dir where server is started)"));
         options.addOption(new Option("b", "basename", true, "station base name"));
+        options.addOption(new Option("c", "config", true, "config properties file"));
         
         final CommandLineParser parser = new DefaultParser();
         CommandLine cl = parser.parse(options, args);
         
+        // Print help and exit!
         if (cl.hasOption("h")) {
             final HelpFormatter help = new HelpFormatter();
             help.printHelp("Server", 
@@ -239,6 +242,7 @@ public class Server {
             System.exit(0);
         }
         
+        // Port number of ET server.
         if (cl.hasOption("p")) {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
         }
@@ -248,12 +252,14 @@ public class Server {
         }
         LOGGER.config("Server set to use port <" + this.port + ">");
         
+        // Starting station ID.
         if (cl.hasOption("s")) {
             int processID = Integer.parseInt(cl.getOptionValue("s"));
-            this.processManager.setProcessID(processID);
-            LOGGER.config("Starting process ID is <" + processID + ">");
+            this.processManager.setStationID(processID);
+            LOGGER.config("Starting station ID is <" + processID + ">");
         }
         
+        // Base work directory for creating station directories.
         if (cl.hasOption("w")) {
             this.workPath = cl.getOptionValue("w");
         }                
@@ -269,10 +275,20 @@ public class Server {
             throw new RuntimeException("Work dir <" + this.workPath + "> is not writable.");
         }
         
+        // Base name for station to which will be appended the station ID.
         if (cl.hasOption("b")) {
             this.stationBase = cl.getOptionValue("b");
         }
         LOGGER.config("Station base name set to <" + this.stationBase + ">");
+        
+        // Load station configuration properties.
+        if (cl.hasOption("c")) {
+            File configFile = new File(cl.getOptionValue("c"));
+            if (!configFile.exists()) {
+                throw new RuntimeException("Config file <" + configFile.getPath() + " does not exist.");
+            }
+            this.stationConfig.load(configFile);
+        }
     }
     
     public static void main(String args[]) { 
@@ -293,7 +309,7 @@ public class Server {
     
     private int port = DEFAULT_PORT;
         
-    private final ProcessManager processManager;
+    private final StationManager processManager;
         
     private String stationBase = "HPS_RECON";
         
@@ -304,7 +320,7 @@ public class Server {
     private String workPath = DEFAULT_WORK_PATH;
     
     public Server() {        
-        this.processManager = new ProcessManager(this);
+        this.processManager = new StationManager(this);
     }
             
     File createProcessDir(String name) {
@@ -317,15 +333,19 @@ public class Server {
         return dir;
     }
         
-    public String getStationBaseName() {
+    String getStationBaseName() {
         return this.stationBase;
     }
     
-    public File getWorkDir() {
+    File getWorkDir() {
         return this.workDir;
     }
+    
+    StationConfiguration getStationConfig() {
+        return this.stationConfig;
+    }
         
-    public void start() {                
+    void start() {                
         LOGGER.info("Starting server on port <" + this.port + ">");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {

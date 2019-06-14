@@ -15,15 +15,15 @@ import org.json.JSONObject;
 /**
  * Manages online reconstruction system processes.
  */
-public class ProcessManager {
+public class StationManager {
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessManager.class.getPackageName());
+    private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
     
     private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
 
     private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
        
-    class ProcessInfo {
+    class StationInfo {
         
         Process process;
         long pid;
@@ -60,27 +60,27 @@ public class ProcessManager {
         return pid;
     }
        
-    private List<ProcessInfo> processes = new ArrayList<ProcessInfo>();
+    private volatile List<StationInfo> stations = new ArrayList<StationInfo>();
     
-    private int processID = 1;
+    private volatile int stationID = 1;
     
     private final Server server;
     
-    ProcessManager(Server server) {        
+    StationManager(Server server) {        
         this.server = server;
     }
         
-    void add(ProcessInfo info) {
-        processes.add(info);
+    synchronized void add(StationInfo info) {
+        stations.add(info);
     }
        
-    synchronized int getNextProcessID() {
-        ++processID;
-        return processID - 1;
+    synchronized int getNextStationID() {
+        ++stationID;
+        return stationID - 1;
     }
     
-    void setProcessID(int processID) {
-        this.processID = processID;
+    void setStationID(int stationID) {
+        this.stationID = stationID;
     }
                 
     File createProcessDir(String name) {
@@ -93,16 +93,13 @@ public class ProcessManager {
         return dir;
     }
     
-    void createProcess(JSONObject parameters) throws IOException {
+    synchronized void createStation(JSONObject parameters) throws IOException {
         
-        if (!parameters.has("properties")) {
-            throw new RuntimeException("No properties file found in parameters.");
-        }
-        String propFile = parameters.getString("properties");
+        StationConfiguration stationConfig = server.getStationConfig();
         
-        String jarPath = OnlineRecon.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String jarPath = OnlineReconStation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
           
-        Integer processID = getNextProcessID();
+        Integer processID = getNextStationID();
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", processID);
         File dir = createProcessDir(stationName);
         
@@ -124,14 +121,30 @@ public class ProcessManager {
         }
         command.add("-cp");
         command.add(jarPath);
-        command.add(OnlineRecon.class.getCanonicalName());
+        command.add(OnlineReconStation.class.getCanonicalName());
+        
+        // TODO: This command string could be created via a utility method in the configuration class.
+        command.add("-d");
+        command.add(stationConfig.getDetectorName());
         command.add("-s");
+        command.add(stationConfig.getSteeringResource());        
+        command.add("-r");
+        command.add(stationConfig.getRunNumber().toString());
+        command.add("-p");
+        command.add(stationConfig.getPort().toString());
+        command.add("-h");
+        command.add(stationConfig.getHost());
+        command.add("-n");
         command.add(stationName);
         command.add("-o");
-        command.add(stationName.toLowerCase()); // Should output filename be set separately???
-        command.add("-d");
+        command.add(stationName.toLowerCase());
+        command.add("-l");
         command.add(dir.getPath());
-        command.add(propFile);
+        command.add("-P");
+        command.add(stationConfig.getEventPrintInterval().toString());
+        command.add("-e");
+        command.add(stationConfig.getEventSaveInterval().toString());
+                 
         ProcessBuilder pb = new ProcessBuilder(command);
                
         pb.directory(dir);
@@ -139,15 +152,15 @@ public class ProcessManager {
         pb.redirectErrorStream(true);
         pb.redirectOutput(Redirect.appendTo(log));
 
-        LOGGER.info("Starting command " + pb.command().toString());
+        LOGGER.info("Starting command <" + String.join(" ", pb.command()) + ">");
 
         // This will throw an exception if there is a problem starting the process
         // which is fine as the caller should catch and handle it.  The process 
         // won't be registered, which is also fine as it isn't valid.
         Process p = pb.start();
         
-        // Add new process record.
-        ProcessInfo info = new ProcessInfo();
+        // Add new station info.
+        StationInfo info = new StationInfo();
         info.process = p;
         info.pid = getPid(p);
         info.id = processID;
@@ -159,12 +172,12 @@ public class ProcessManager {
         add(info);       
     }
     
-    List<ProcessInfo> getProcesses() {
-        return Collections.unmodifiableList(this.processes);
+    synchronized List<StationInfo> getStations() {
+        return Collections.unmodifiableList(this.stations);
     }
     
-    ProcessInfo find(int id) {
-        for (ProcessInfo info : processes) {
+    synchronized StationInfo findStation(int id) {
+        for (StationInfo info : stations) {
             if (info.id == id) {
                 return info;
             }
@@ -172,7 +185,7 @@ public class ProcessManager {
         return null;
     }
 
-    void stopProcess(ProcessInfo info) {
+    synchronized void stopStation(StationInfo info) {
         if (info != null) {
             Process p = info.process;
             LOGGER.info("Stopping process <" + info.id + ">");
@@ -188,27 +201,27 @@ public class ProcessManager {
                 LOGGER.severe("Failed to stop process <" + info.id + ">");
             }
             LOGGER.info("Removing process <" + info.id + ">");
-            removeProcess(info);
+            removeStation(info);
         }
     }
     
-    void stopProcess(int id) {
-        ProcessInfo info = this.find(id);
+    synchronized void stopStation(int id) {
+        StationInfo info = this.findStation(id);
         if (info != null) {
-            stopProcess(info);
+            stopStation(info);
         } else {
             throw new RuntimeException("Unknown process id <" + id + ">");
         }
     }
     
     synchronized void stopAll() {
-        LOGGER.info("Stopping ALL processes");
-        for (ProcessInfo info : this.processes) {
-            stopProcess(info);
+        LOGGER.info("Stopping ALL stations");
+        for (StationInfo info : this.stations) {
+            stopStation(info);
         }
     }    
     
-    void removeProcess(ProcessInfo info) {
-        this.processes.remove(info);
+    private synchronized void removeStation(StationInfo info) {
+        this.stations.remove(info);
     }
 }

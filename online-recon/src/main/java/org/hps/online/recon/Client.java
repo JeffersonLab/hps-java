@@ -21,7 +21,6 @@ import org.json.JSONObject;
 /**
  * Client for interacting with the online reconstruction server.
  */
-// TODO: add switch for setting file for writing result output
 public class Client {
 
     private static Logger LOGGER = Logger.getLogger(Client.class.getPackageName());
@@ -41,10 +40,10 @@ public class Client {
     void run(String args[]) {
         
         Options options = new Options();
-        options.addOption(new Option("h", "help", false, "print help"));
+        options.addOption(new Option("help", false, "print help"));
         options.addOption(new Option("p", "port", true, "server port"));
-        options.addOption(new Option("H", "host", true, "server hostname"));
-        options.addOption(new Option("o", "output", true, "output file (defaults writes response to System.out)"));
+        options.addOption(new Option("h", "host", true, "server hostname"));
+        options.addOption(new Option("o", "output", true, "output file (defaults writes server response to System.out)"));
         
         if (args.length == 0) {
             printUsage(options);
