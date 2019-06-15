@@ -228,7 +228,7 @@ public final class TrackDataDriver extends Driver {
 
                 int nLay = 6;
                 //Check to see if detector has an L0
-                System.out.println(sensors.size());
+//                System.out.println(sensors.size());
                 if(sensors.size() > 36){
                     nLay = 7;
                 }
