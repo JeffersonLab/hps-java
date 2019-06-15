@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     Steering file for online monitoring of the SVT.
 
@@ -11,7 +12,8 @@
         <driver name="SensorOccupancy" />
         <driver name="RawTrackerHitFitterDriver" />
         <!--<driver name="SVTPulseFitPlots" />--> 
-        <driver name="TrackerHitDriver" />
+    <!--   <driver name="TrackerHitDriver" />  -->
+        <driver name="TrackerHitDriverL2L6Hack" />
         <driver name="ClusterPlots" /> 
         <driver name="CleanupDriver" />
     </execute>
@@ -41,6 +43,9 @@
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>true</correctChanT0>
             <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriverL2L6Hack" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
+            <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>

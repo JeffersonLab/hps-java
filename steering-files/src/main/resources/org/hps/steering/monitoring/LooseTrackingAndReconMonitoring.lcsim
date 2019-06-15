@@ -8,10 +8,27 @@
         <!--  the 3 drivers below are for reading out 6-sample ADC data -->
         <!--      <driver name="RawTrackerHitSensorSetup" />    -->
         <driver name="RawTrackerHitFitterDriver" /> 
-        <driver name="TrackerHitDriver" />  
+        <!--<driver name="TrackerHitDriver" />-->  
+        <!-- the L2L6 Hack is needed to avoid crash in making cluster for L0/L1 strips 
+             hopefully this will be fixed soon and go back to running the 
+            regular TrackerHitDriver!  --> 
+        <driver name="TrackerHitDriverL2L6Hack" />  
         <driver name="HelicalTrackHitDriver" />
         <!--  regular tracking and recon -->
-        <driver name="FullTrackerReconDriver"/> 
+        <!--        <driver name="FullTrackerReconDriver"/> -->
+        <!-- 
+            Will run track finding algorithm using layers 567 as a seed, 
+            layer 3 to confirm and layer 4 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks"
+            after running MergeTrackCollections.
+        -->
+        <driver name="TrackReconSeed567Conf3Extd4"/>
+        <!-- 
+            Will run track finding algorithm using layers 235 as a seed, 
+            layer 6 to confirm and layer 1,4,7 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks".
+        -->
+        <driver name="TrackReconSeed235Conf6Extd147"/>
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
@@ -19,7 +36,7 @@
         <driver name="ReconClusterer" />
         <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
-        <!--        <driver name="MergeTrackCollections"/>-->
+        <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver"/>   
         <driver name="ReconParticleDriver" /> 
@@ -46,6 +63,9 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
+        </driver>        
+        <driver name="TrackerHitDriverL2L6Hack" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
+            <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
@@ -55,12 +75,27 @@
             <saveAxialHits>false</saveAxialHits>
         </driver>
         
-        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+        <!--        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
             <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>-->
+        
+        <driver name="TrackReconSeed567Conf3Extd4" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s567_c3_e4</trackCollectionName>
+            <strategyResource>HPS_s567_c3_e4_2019.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
+     
+        <driver name="TrackReconSeed235Conf6Extd147" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s235_c6_e147</trackCollectionName>
+            <strategyResource>HPS_s235_c6_e147.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        
         <!--        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
