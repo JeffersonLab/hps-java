@@ -96,6 +96,13 @@
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
         
+         <driver name="TrackReconSeed356Conf7Extd124" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s356_c7_e124</trackCollectionName>
+            <strategyResource>HPS_s356_c7_e124.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        
         <!--        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
             <trackCollectionName>MatchedTracks</trackCollectionName>
