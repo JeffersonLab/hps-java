@@ -1,7 +1,6 @@
 package org.hps.monitoring.drivers.hodoscope;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.IBaseHistogram;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;

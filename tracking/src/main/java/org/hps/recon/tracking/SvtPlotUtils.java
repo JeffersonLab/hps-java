@@ -35,92 +35,75 @@ public class SvtPlotUtils {
 
     public static int computePlotterRegion(HpsSiSensor sensor) {
 
-        if (sensor.getLayerNumber() < 7) {
-            if (sensor.isTopLayer()) {
+        if (sensor.getLayerNumber() < 7)
+            if (sensor.isTopLayer())
                 return 6 * (sensor.getLayerNumber() - 1);
-            } else {
+            else
                 return 6 * (sensor.getLayerNumber() - 1) + 1;
-            }
-        } else {
+        else
 
-            if (sensor.isTopLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+            if (sensor.isTopLayer())
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
                     return 6 * (sensor.getLayerNumber() - 7) + 2;
-                } else {
+                else
                     return 6 * (sensor.getLayerNumber() - 7) + 3;
-                }
-            } else if (sensor.isBottomLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+            else if (sensor.isBottomLayer())
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
                     return 6 * (sensor.getLayerNumber() - 7) + 4;
-                } else {
+                else
                     return 6 * (sensor.getLayerNumber() - 7) + 5;
-                }
-            }
-        }
 
         return -1;
     }
 
-    
-      public static int computePlotterRegionSvtUpgrade(HpsSiSensor sensor) {
-      int plotno=-1;
-        if (sensor.getLayerNumber() < 5) {
-            if (sensor.isTopLayer()) {
-                plotno= 4 * (sensor.getLayerNumber() - 1);
-            } else {
-                plotno= 4 * (sensor.getLayerNumber() - 1) + 1;
-            }
-        }else if(sensor.getLayerNumber() < 9) {
-         if (sensor.isTopLayer()) {
-                plotno= 4 * (sensor.getLayerNumber() - 5)+2;
-            } else {
-                plotno= 4 * (sensor.getLayerNumber() - 5) + 3;
-            }
-        } else {
+    public static int computePlotterRegionSvtUpgrade(HpsSiSensor sensor) {
+        int plotno = -1;
+        if (sensor.getLayerNumber() < 5)
+            if (sensor.isTopLayer())
+                plotno = 4 * (sensor.getLayerNumber() - 1);
+            else
+                plotno = 4 * (sensor.getLayerNumber() - 1) + 1;
+        else if (sensor.getLayerNumber() < 9)
+            if (sensor.isTopLayer())
+                plotno = 4 * (sensor.getLayerNumber() - 5) + 2;
+            else
+                plotno = 4 * (sensor.getLayerNumber() - 5) + 3;
+        else
 
-            if (sensor.isTopLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-                    plotno= 4 * (sensor.getLayerNumber() - 9) ;
-                } else {
-                    plotno= 4 * (sensor.getLayerNumber() - 9) + 1;
-                }
-            } else if (sensor.isBottomLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-                    plotno= 4 * (sensor.getLayerNumber() - 9) + 2;
-                } else {
-                    plotno= 4 * (sensor.getLayerNumber() - 9) + 3;
-                }
-            }
-        }
-     //   System.out.println("Layer = "+sensor.getLayerNumber()+"; plotno = "+plotno);
+            if (sensor.isTopLayer())
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                    plotno = 4 * (sensor.getLayerNumber() - 9);
+                else
+                    plotno = 4 * (sensor.getLayerNumber() - 9) + 1;
+            else if (sensor.isBottomLayer())
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                    plotno = 4 * (sensor.getLayerNumber() - 9) + 2;
+                else
+                    plotno = 4 * (sensor.getLayerNumber() - 9) + 3;
+        //   System.out.println("Layer = "+sensor.getLayerNumber()+"; plotno = "+plotno);
         return plotno;
     }
-      
+
     public static int computePlotterRegionAxialOnly(HpsSiSensor sensor) {
         int l = HPSTrackerBuilder.getLayerFromVolumeName(sensor.getName());
         if (!sensor.isAxial())
             throw new RuntimeException("not axial.");
-        if (l < 4) {
-            if (sensor.isTopLayer()) {
+        if (l < 4)
+            if (sensor.isTopLayer())
                 return 6 * (l - 1);
-            } else {
+            else
                 return 6 * (l - 1) + 1;
-            }
-        } else {
-            if (sensor.isTopLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+        else
+            if (sensor.isTopLayer())
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
                     return 6 * (l - 4) + 2;
-                } else {
+                else
                     return 6 * (l - 4) + 3;
-                }
-            } else if (sensor.isBottomLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
+            else if (sensor.isBottomLayer())
+                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
                     return 6 * (l - 4) + 4;
-                } else {
+                else
                     return 6 * (l - 4) + 5;
-                }
-            }
-        }
 
         return -1;
     }
@@ -198,11 +181,9 @@ public class SvtPlotUtils {
             hitStrips.add(strip);
         }
 
-        for (RawTrackerHit hit : rawHits) {
-            if (isSmallHit(hitMap, hit)) {
+        for (RawTrackerHit hit : rawHits)
+            if (isSmallHit(hitMap, hit))
                 smallHitCount++;
-            }
-        }
         return smallHitCount;
     }
 
@@ -213,14 +194,11 @@ public class SvtPlotUtils {
         double noise = sensor.getNoise(strip, 0);
 
         if (hitMap.get(sensor) != null
-                && (hitMap.get(sensor).contains(strip - 1) || hitMap.get(sensor).contains(strip + 1))) {
+                && (hitMap.get(sensor).contains(strip - 1) || hitMap.get(sensor).contains(strip + 1)))
             return false;
-        }
-        for (int i = 0; i < 6; i++) {
-            if (hit.getADCValues()[i] > pedestal + 4.0 * noise) {
+        for (int i = 0; i < 6; i++)
+            if (hit.getADCValues()[i] > pedestal + 4.0 * noise)
                 return false;
-            }
-        }
         return true;
     }
 
@@ -251,7 +229,6 @@ public class SvtPlotUtils {
      * puts a function on a plotter region with a style copied from
      * org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
-
     public static void plot(IPlotter plotter, IFunction function, IPlotterStyle style, int region) {
         if (style == null)
             style = getPlotterStyle(function);

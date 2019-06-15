@@ -40,8 +40,9 @@ import org.lcsim.util.aida.AIDA;
  * This Driver makes plots of SVT sensor occupancies across a run.
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
- * 
- * 6/6/19:  modified this to work with SVT upgrade including "L0"; separated all plotters into 2
+ *
+ * 6/6/19: modified this to work with SVT upgrade including "L0"; separated all
+ * plotters into 2
  * so that we have one page for L1-4 and one for L5-7
  */
 public class SensorOccupancyPlotsDriver extends Driver {
@@ -400,7 +401,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
             occupancyPlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy", 640, 0, 640));
             System.out.println(sensor.toString());
-           System.out.println("Number of regions : "+ plotters.get("Occupancy: L1-L4").numberOfRegions());
+            System.out.println("Number of regions : " + plotters.get("Occupancy: L1-L4").numberOfRegions());
             if (sensor.getLayerNumber() < 9)
                 plotters.get("Occupancy: L1-L4")
                         .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
@@ -616,14 +617,14 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private void checkMaxSample() {
         StatusCode oldStatus = maxSampleStatus.getStatusCode();
         boolean isSystemOK = true;
-        String label="foo";
+        String label = "foo";
         for (HpsSiSensor sensor : sensors) {
-            
-            if(sensor.getLayerNumber()<9)
-                label="Max Sample Number: L1-L4";
+
+            if (sensor.getLayerNumber() < 9)
+                label = "Max Sample Number: L1-L4";
             else
-                label="Max Sample Number: L5-L7";
-              IHistogram1D maxSamplePlot = maxSamplePositionPlots.get(sensor.getName());
+                label = "Max Sample Number: L5-L7";
+            IHistogram1D maxSamplePlot = maxSamplePositionPlots.get(sensor.getName());
 //            IPlotterRegion region = plotters.get("Max Sample Number").region(SvtPlotUtils.computePlotterRegion(sensor));
             IPlotterRegion region = plotters.get(label).region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor));
 
@@ -657,12 +658,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private void checkOccupancy() {
         StatusCode oldStatus = occupancyStatus.getStatusCode();
         boolean isSystemOK = true;
-         String label="foo";
+        String label = "foo";
         for (HpsSiSensor sensor : sensors) {
-               if(sensor.getLayerNumber()<9)
-                label="Occupancy: L1-L4";
+            if (sensor.getLayerNumber() < 9)
+                label = "Occupancy: L1-L4";
             else
-                label="Occupancy: L5-L7";
+                label = "Occupancy: L5-L7";
             IHistogram1D occupancyPlot = occupancyPlots.get(sensor.getName());
             IPlotterRegion region = plotters.get(label).region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor));
 
