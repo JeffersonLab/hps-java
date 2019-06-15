@@ -91,7 +91,7 @@ public class TrackingReconPlots extends Driver {
 
         plotter.createRegions(2, 3);
         // plotterFrame.addPlotter(plotter);
-        nhits = aida.histogram1D("Hits per Track", 3, 5, 8);
+        nhits = aida.histogram1D("Hits per Track", 4, 4, 8);
         charge = aida.histogram1D("Track Charge", 3, -1, 2);
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
