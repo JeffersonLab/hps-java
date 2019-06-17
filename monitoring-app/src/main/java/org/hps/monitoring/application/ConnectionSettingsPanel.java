@@ -245,7 +245,7 @@ final class ConnectionSettingsPanel extends AbstractFieldsPanel {
                     this.getConfigurationModel().setChunkSize(Integer.parseInt(text));
                 }
             } else if (source.equals(this.queueSizeField)) {
-                String text = this.queueSizeField.getText();
+                String text = this.queueSizeField.getText().trim();
                 if (text.length() > 0) {
                     this.getConfigurationModel().setQueueSize(Integer.parseInt(text));
                 }
