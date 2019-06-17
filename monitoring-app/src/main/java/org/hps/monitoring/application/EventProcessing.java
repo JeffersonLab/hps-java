@@ -530,13 +530,16 @@ final class EventProcessing {
             }
             
             // Activate conditions system if run number was provided as hard-coded value.
-            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {                
+            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
+                
+                // Configure the conditions manager.
+                conditions.configure();
                 
                 // Activate conditions system with supplied detector and run number.
-                conditions.setup();
-                this.logger.config("Activating conditions system with detector <" 
-                        + configurationModel.getDetectorName() + "> and run " 
+                this.logger.config("Activating conditions with detector <" 
+                        + configurationModel.getDetectorName() + "> and run "
                         + configurationModel.getUserRunNumber());
+                conditions.setup();
 
                 // Post-initialize  the conditions system, which may freeze it.
                 this.sessionState.jobManager.getConditionsSetup().postInitialize();
