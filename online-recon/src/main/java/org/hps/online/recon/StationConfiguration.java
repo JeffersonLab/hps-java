@@ -20,7 +20,7 @@ import org.jlab.coda.et.enums.Mode;
  * 
  * @author jeremym
  */
-public class StationConfiguration {
+final class StationConfiguration {
     
     private static Logger LOGGER = Logger.getLogger(StationConfiguration.class.getPackageName());
 
@@ -156,7 +156,7 @@ public class StationConfiguration {
     }
         
     void load(File file) {
-        LOGGER.config("Loading properties from file <" + file.getPath() + ">");
+        LOGGER.config("Loading properties from file: " + file.getPath());
         this.props = new Properties();
         try {
             props.load(new FileInputStream(file));
@@ -164,7 +164,7 @@ public class StationConfiguration {
             throw new RuntimeException(e);
         }
         setProperties();
-        LOGGER.config("Loaded properties <" + this.props.toString() + ">");
+        LOGGER.config("Loaded properties: " + this.props.toString());
     }
 
     void parse(String args[]) throws ParseException {
@@ -270,9 +270,11 @@ public class StationConfiguration {
             LOGGER.severe("Detector name was not set.");
             return false;
         }
-        if (this.runNumber == null) {
-            LOGGER.severe("Run number was not set.");
-            return false;
+        if (this.runNumber != null) {
+            if (this.runNumber < 0) {
+                LOGGER.severe("Bad run number: " + this.runNumber);
+                return false;
+            }
         }
         if (this.steering == null) {
             LOGGER.severe("Steering resource was not set.");
@@ -341,7 +343,7 @@ public class StationConfiguration {
         return stationName;
     }
 
-    Mode getMode() {
+    Mode getWaitMode() {
         return waitMode;
     }
 
