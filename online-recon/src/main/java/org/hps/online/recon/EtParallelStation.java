@@ -14,9 +14,9 @@ import org.jlab.coda.et.enums.Mode;
  * Sub-class {@link org.hps.record.et.EtConnection} so we don't accidentally 
  * screw up the monitoring application.
  */
-public class EtParallelStation extends EtConnection {
+class EtParallelStation extends EtConnection {
     
-    public EtParallelStation(
+    EtParallelStation(
             final String name, 
             final String host,
             final int port, 
@@ -29,11 +29,11 @@ public class EtParallelStation extends EtConnection {
 
         // make a direct connection to ET system's tcp server
         final EtSystemOpenConfig etConfig = new EtSystemOpenConfig(name, host, port);
-
+        
         // create ET system object with verbose debugging output
         sys = new EtSystem(etConfig, EtConstants.debugInfo);
         sys.open();
-        
+                
         // configuration of a new station
         final EtStationConfig stationConfig = new EtStationConfig();
         stationConfig.setFlowMode(EtConstants.stationParallel);
@@ -49,10 +49,10 @@ public class EtParallelStation extends EtConnection {
 
         // Create the station.
         stat = sys.createStation(stationConfig, stationName);
-        
+
         // attach to new station
         att = sys.attach(stat);
-
+        
         // These are used when getting events later.
         this.waitMode = waitMode;
         this.waitTime = waitTime;

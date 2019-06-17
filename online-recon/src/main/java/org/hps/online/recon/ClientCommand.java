@@ -11,7 +11,7 @@ import org.json.JSONObject;
 /**
  * Command to be sent to the online reconstruction server.
  */
-public abstract class ClientCommand {
+abstract class ClientCommand {
 
     private final String name;
     private Map<String, String> parameters = new HashMap<String, String>();
@@ -46,7 +46,7 @@ public abstract class ClientCommand {
     /**
      * Start a new reconstruction process with given configuration properties.
      */
-    static class StartCommand extends ClientCommand {
+    static final class StartCommand extends ClientCommand {
 
         StartCommand() {
             super("start");
@@ -73,7 +73,7 @@ public abstract class ClientCommand {
     /**
      * Kill an online reconstruction process.
      */
-    static class StopCommand extends ClientCommand {
+    static final class StopCommand extends ClientCommand {
                
         StopCommand() {
             super("stop");
@@ -98,7 +98,7 @@ public abstract class ClientCommand {
         }         
     }
     
-    static class ListCommand extends ClientCommand {
+    static final class ListCommand extends ClientCommand {
 
         ListCommand() {
             super("list");

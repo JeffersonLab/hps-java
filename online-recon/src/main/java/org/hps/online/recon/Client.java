@@ -21,7 +21,7 @@ import org.json.JSONObject;
 /**
  * Client for interacting with the online reconstruction server.
  */
-public class Client {
+public final class Client {
 
     private static Logger LOGGER = Logger.getLogger(Client.class.getPackageName());
     
@@ -59,17 +59,17 @@ public class Client {
                         
         if (cl.hasOption("p")) {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
-            LOGGER.config("Port set to <" + this.port + ">");
+            LOGGER.config("Port: " + this.port);
         }
         
         if (cl.hasOption("H")) {
             this.hostname = cl.getOptionValue("H");
-            LOGGER.config("Hostname set to <" + this.hostname + ">");
+            LOGGER.config("Hostname: " + this.hostname);
         }
         
         if (cl.hasOption("o")) {
             this.outputFile = new File(cl.getOptionValue("o"));
-            LOGGER.config("Output file set to <" + this.outputFile.getPath() + ">");
+            LOGGER.config("Output file: " + this.outputFile.getPath());
         }
         
         // Get command to execute and see if it is valid.
@@ -77,7 +77,7 @@ public class Client {
         ClientCommand command = ClientCommand.getCommand(commandName);
         if (command == null) {
             printUsage(options);
-            throw new RuntimeException("Unknown client command <" + commandName + ">");
+            throw new RuntimeException("Unknown client command: " + commandName);
         }
         
         // Copy remaining arguments for the command.
@@ -139,10 +139,10 @@ public class Client {
                 }
             } else {
                 // Response from server isn't valid JSON.
-                throw new RuntimeException("Invalid server response <" + resp.toString() + ">");
+                throw new RuntimeException("Invalid server response: " + resp.toString());
             }
             if (pw != null) {
-                LOGGER.info("Wrote output to <" + this.outputFile.getPath() + ">");
+                LOGGER.info("Wrote server response to: " + this.outputFile.getPath());
                 pw.flush();
                 pw.close();
             }

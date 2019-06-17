@@ -92,7 +92,7 @@ public class OnlineReconAidaDriver extends Driver {
         String fileName = String.format(this.fileNamePat, 
                 this.stationName, this.runNumber, this.fileSeq, this.fileExt);
         this.filePath = this.outputDir + File.separator + fileName;
-        LOGGER.info("Set new file path <" + this.filePath + ">");
+        LOGGER.info("Set new file path: " + this.filePath);
     }
     
     public void startOfData() {
@@ -111,14 +111,14 @@ public class OnlineReconAidaDriver extends Driver {
     
     public void endOfData() {
         if (eventsProcessed > 0) {
-            LOGGER.info("Saving final output file to <" + this.filePath + ">");
+            LOGGER.info("Saving final output file: " + this.filePath);
             save();
         }
     }
     
     private void save() {
         try {
-            LOGGER.info("Saving AIDA plots to <" + this.filePath + ">");
+            LOGGER.info("Saving AIDA plots to: " + this.filePath);
             aida.saveAs(this.filePath);
             ++this.fileSeq;
             if (this.resetAfterSave) {

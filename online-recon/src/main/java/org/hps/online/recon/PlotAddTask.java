@@ -157,13 +157,7 @@ final class PlotAddTask extends TimerTask {
             if (!dryRun) {
                 LOGGER.info("Running hadd on " + files.size() + " files");
                 Process p = pb.start();
-                //int retCode = 
                 p.waitFor();
-                /*
-                if (retCode != 0) {
-                    LOGGER.warning("hadd returned non-zero return code <" + retCode + ">");            
-                }
-                */
                 if (!target.exists()) {
                     throw new IOException("Failed to create new plot file: " + target.getPath());
                 } else {
