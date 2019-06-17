@@ -17,22 +17,16 @@ import org.json.JSONObject;
  */
 public class StationManager {
 
-    private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
-    
-    private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
-
-    private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
-       
     class StationInfo {
         
-        Process process;
-        long pid;
-        int id;
-        String stationName;
         boolean active;
-        File dir;
-        File log;
         List<String> command;
+        File dir;
+        int id;
+        File log;
+        long pid;
+        Process process;
+        String stationName;
         
         JSONObject toJSON() {
             JSONObject jo = new JSONObject();
@@ -47,6 +41,12 @@ public class StationManager {
         }
     }
     
+    private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
+
+    private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
+       
+    private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
+    
     static Long getPid(Process p) {
         long pid = -1;       
         try {
@@ -60,11 +60,11 @@ public class StationManager {
         return pid;
     }
        
-    private volatile List<StationInfo> stations = new ArrayList<StationInfo>();
+    private final Server server;
     
     private volatile int stationID = 1;
     
-    private final Server server;
+    private volatile List<StationInfo> stations = new ArrayList<StationInfo>();
     
     StationManager(Server server) {        
         this.server = server;
@@ -74,21 +74,12 @@ public class StationManager {
         stations.add(info);
     }
        
-    synchronized int getNextStationID() {
-        ++stationID;
-        return stationID - 1;
-    }
-    
-    void setStationID(int stationID) {
-        this.stationID = stationID;
-    }
-                
-    File createProcessDir(String name) {
+    synchronized File createProcessDir(String name) {
         String path = server.getWorkDir().getPath() + File.separator + name;
         File dir = new File(path);
         dir.mkdir();
         if (!dir.isDirectory()) {
-            throw new RuntimeException("Error creating dir <" + dir.getPath() + ">");
+            throw new RuntimeException("Error creating dir: " + dir.getPath());
         }
         return dir;
     }
@@ -128,8 +119,10 @@ public class StationManager {
         command.add(stationConfig.getDetectorName());
         command.add("-s");
         command.add(stationConfig.getSteeringResource());        
-        command.add("-r");
-        command.add(stationConfig.getRunNumber().toString());
+        if (stationConfig.getRunNumber() != null) {
+            command.add("-r");
+            command.add(stationConfig.getRunNumber().toString());
+        }
         command.add("-p");
         command.add(stationConfig.getPort().toString());
         command.add("-h");
@@ -152,7 +145,7 @@ public class StationManager {
         pb.redirectErrorStream(true);
         pb.redirectOutput(Redirect.appendTo(log));
 
-        LOGGER.info("Starting command <" + String.join(" ", pb.command()) + ">");
+        LOGGER.info("Starting command: " + String.join(" ", pb.command()));
 
         // This will throw an exception if there is a problem starting the process
         // which is fine as the caller should catch and handle it.  The process 
@@ -171,11 +164,7 @@ public class StationManager {
         info.active = true;
         add(info);       
     }
-    
-    synchronized List<StationInfo> getStations() {
-        return Collections.unmodifiableList(this.stations);
-    }
-    
+                
     synchronized StationInfo findStation(int id) {
         for (StationInfo info : stations) {
             if (info.id == id) {
@@ -184,24 +173,28 @@ public class StationManager {
         }
         return null;
     }
+    
+    synchronized int getNextStationID() {
+        ++stationID;
+        return stationID - 1;
+    }
+    
+    synchronized List<StationInfo> getStations() {
+        return Collections.unmodifiableList(this.stations);
+    }
+    
+    private synchronized void removeStation(StationInfo info) {
+        this.stations.remove(info);
+    }
 
-    synchronized void stopStation(StationInfo info) {
-        if (info != null) {
-            Process p = info.process;
-            LOGGER.info("Stopping process <" + info.id + ">");
-            p.destroy();
-            try {
-                p.waitFor();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (!p.isAlive()) {
-                LOGGER.info("Stopped process <" + info.id + ">");
-            } else {
-                LOGGER.severe("Failed to stop process <" + info.id + ">");
-            }
-            LOGGER.info("Removing process <" + info.id + ">");
-            removeStation(info);
+    synchronized void setStationID(int stationID) {
+        this.stationID = stationID;
+    }
+    
+    synchronized void stopAll() {
+        LOGGER.info("Stopping ALL stations");
+        for (StationInfo info : this.stations) {
+            stopStation(info);
         }
     }
     
@@ -210,18 +203,27 @@ public class StationManager {
         if (info != null) {
             stopStation(info);
         } else {
-            throw new RuntimeException("Unknown process id <" + id + ">");
-        }
-    }
-    
-    synchronized void stopAll() {
-        LOGGER.info("Stopping ALL stations");
-        for (StationInfo info : this.stations) {
-            stopStation(info);
+            throw new RuntimeException("Unknown process id: " + id);
         }
     }    
     
-    private synchronized void removeStation(StationInfo info) {
-        this.stations.remove(info);
+    synchronized void stopStation(StationInfo info) {
+        if (info != null) {
+            Process p = info.process;
+            LOGGER.info("Stopping process: " + info.id);
+            p.destroy();
+            try {
+                p.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (!p.isAlive()) {
+                LOGGER.info("Stopped process: " + info.id);
+            } else {
+                LOGGER.severe("Failed to stop process: " + info.id);
+            }
+            LOGGER.info("Removing process: " + info.id);
+            removeStation(info);
+        }
     }
 }
