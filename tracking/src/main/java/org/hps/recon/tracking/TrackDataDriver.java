@@ -226,9 +226,15 @@ public final class TrackDataDriver extends Driver {
                 // The track time is the mean t0 of hits on a track
                 trackTime = totalT0 / totalHits;
 
-                // Calculate the track isolation constants for each of the 
+                int nLay = 6;
+                //Check to see if detector has an L0
+                System.out.println(sensors.size());
+                if(sensors.size() > 36){
+                    nLay = 7;
+                }
+             // Calculate the track isolation constants for each of the 
                 // layers
-                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, 6);
+                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, nLay);
                 double qualityArray[] = new double[isolations.length];
                 for (int i = 0; i < isolations.length; i++) {
                     qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
