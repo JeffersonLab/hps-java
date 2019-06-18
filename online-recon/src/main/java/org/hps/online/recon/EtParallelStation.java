@@ -1,5 +1,7 @@
 package org.hps.online.recon;
 
+import java.util.logging.Logger;
+
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStationConfig;
@@ -12,9 +14,11 @@ import org.jlab.coda.et.enums.Mode;
  * process reconstruction jobs.
  * 
  * Sub-class {@link org.hps.record.et.EtConnection} so we don't accidentally 
- * screw up the monitoring application.
+ * screw up the monitoring application. 
  */
 class EtParallelStation extends EtConnection {
+    
+    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackageName());
     
     EtParallelStation(
             final String name, 
@@ -33,6 +37,8 @@ class EtParallelStation extends EtConnection {
         // create ET system object with verbose debugging output
         sys = new EtSystem(etConfig, EtConstants.debugInfo);
         sys.open();
+        
+        //LOGGER.config("ET system has " + sys.getNumStations() + " stations.");
                 
         // configuration of a new station
         final EtStationConfig stationConfig = new EtStationConfig();
@@ -47,8 +53,11 @@ class EtParallelStation extends EtConnection {
             stationConfig.setPrescale(prescale);
         }
 
+        int position = 1;
+        int pposition = EtConstants.end;
+
         // Create the station.
-        stat = sys.createStation(stationConfig, stationName);
+        stat = sys.createStation(stationConfig, stationName, position, pposition);
 
         // attach to new station
         att = sys.attach(stat);
