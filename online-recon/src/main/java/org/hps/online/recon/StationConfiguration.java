@@ -23,6 +23,34 @@ import org.json.JSONObject;
  */
 final class StationConfiguration {
     
+    private static final String CHUNK_SIZE_PROPERTY = "et.chunkSize";
+
+    private static final String WAIT_TIME_PROPERTY = "et.waitTime";
+
+    private static final String WAIT_MODE_PROPERTY = "et.waitMode";
+
+    private static final String STATION_PROPERTY = "et.station";
+
+    private static final String PRESCALE_PROPERTY = "et.prescale";
+
+    private static final String QUEUE_SIZE_PROPERTY = "et.queueSize";
+
+    private static final String PORT_PROPERTY = "et.port";
+
+    private static final String HOST_PROPERTY = "et.host";
+
+    private static final String ET_NAME_PROPERTY = "et.name";
+
+    private static final String EVENT_PRINT_INTERVAL_PROPERTY = "lcsim.eventPrintInterval";
+
+    private static final String EVENT_SAVE_INTERVAL_PROPERTY = "lcsim.eventSaveInterval";
+
+    private static final String RUN_PROPERTY = "lcsim.run";
+
+    private static final String STEERING_PROPERTY = "lcsim.steering";
+
+    private static final String DETECTOR_PROPERTY = "lcsim.detector";
+
     private static Logger LOGGER = Logger.getLogger(StationConfiguration.class.getPackageName());
 
     /** 
@@ -39,19 +67,21 @@ final class StationConfiguration {
     
     /**
      * Run number for conditions system.
-     * This is a required parameter with no default.
+     * If left null then run number will be read from EVIO files.
      */
     private Integer runNumber;
     
     /**
      * Name for output files such as LCIO events.
      * This is a required parameter with no default.
+     * It cannot be set by property file.
      */
     private String outputName;
     
     /**
      * Directory for writing output files such as AIDA plots.
      * The default is the process' working directory.
+     * It cannot be set by property file.
      */
     private String outputDir = System.getProperty("user.dir");
 
@@ -121,7 +151,7 @@ final class StationConfiguration {
     /**
      * The backing properties for the station configuration.
      */
-    private Properties props = null;
+    private Properties props = new Properties();;
     
     /**
      * The valid command line options for reading in configuration from the command line.
@@ -158,7 +188,6 @@ final class StationConfiguration {
         
     void load(File file) {
         LOGGER.config("Loading properties from file: " + file.getPath());
-        this.props = new Properties();
         try {
             props.load(new FileInputStream(file));
         } catch (IOException e) {
@@ -167,7 +196,7 @@ final class StationConfiguration {
         setProperties();
         LOGGER.config("Loaded properties: " + this.props.toString());
     }
-
+   
     void parse(String args[]) throws ParseException {
             
         CommandLineParser parser = new DefaultParser();
@@ -176,24 +205,8 @@ final class StationConfiguration {
         // If help option is present then program will print usage and exit!
         if (cl.hasOption("help")) {
             HelpFormatter help = new HelpFormatter();
-            help.printHelp("[class]", "configure online recon command line options", OPTIONS, "");        
+            help.printHelp("[class]", "configure online recon command line options", OPTIONS, "");
             System.exit(0);
-        }
-        
-        if (cl.hasOption("d")) {
-            this.detectorName = cl.getOptionValue("d");
-        }
-        
-        if (cl.hasOption("s")) {
-            this.steering = cl.getOptionValue("s");
-        }
-        
-        if (cl.hasOption("r")) {
-            this.runNumber = Integer.parseInt(cl.getOptionValue("r"));
-        }
-        
-        if (cl.hasOption("n")) {
-            this.stationName = cl.getOptionValue("n");
         }
         
         if (cl.hasOption("o")) {
@@ -203,66 +216,90 @@ final class StationConfiguration {
         if (cl.hasOption("l")) {
             this.outputDir = cl.getOptionValue("l");
         }
+       
+        if (cl.hasOption("d")) {
+            props.setProperty(DETECTOR_PROPERTY, cl.getOptionValue("d"));
+        }
         
+        if (cl.hasOption("s")) {
+            props.setProperty(STEERING_PROPERTY, cl.getOptionValue("s"));
+        }
+        
+        if (cl.hasOption("r")) {
+            props.setProperty(RUN_PROPERTY, cl.getOptionValue("r"));
+        }
+        
+        if (cl.hasOption("n")) {
+            props.setProperty(STATION_PROPERTY, cl.getOptionValue("n"));
+        }
+                
         if (cl.hasOption("P")) {
-            this.eventPrintInterval = Integer.parseInt(cl.getOptionValue("P"));
+            props.setProperty(EVENT_PRINT_INTERVAL_PROPERTY, cl.getOptionValue("P"));
         }
         
         if (cl.hasOption("e")) {
-            this.eventSaveInterval = Integer.parseInt(cl.getOptionValue("e"));
+            props.setProperty(EVENT_SAVE_INTERVAL_PROPERTY, cl.getOptionValue("e"));
         }               
         
         if (cl.hasOption("p")) {
-            this.port = Integer.parseInt(cl.getOptionValue("p"));
+            props.setProperty(PORT_PROPERTY, cl.getOptionValue("p"));
         }
         
         if (cl.hasOption("h")) {
-            this.host = cl.getOptionValue("h");
+            props.setProperty(HOST_PROPERTY, cl.getOptionValue("h"));
         }
+        
+        setProperties();
     }
 
+    /**
+     * Set typed variables from property keys and values.
+     * 
+     * This is called after properties are loaded from command line,
+     * properties file, or JSON data.
+     */
     private void setProperties() {
-        if (props.containsKey("lcsim.detector")) {
-            detectorName = props.getProperty("lcsim.detector");
+        if (props.containsKey(DETECTOR_PROPERTY)) {
+            detectorName = props.getProperty(DETECTOR_PROPERTY);
         }
-        if (props.containsKey("lcsim.steering")) {
-            steering = props.getProperty("lcsim.steering");
+        if (props.containsKey(STEERING_PROPERTY)) {
+            steering = props.getProperty(STEERING_PROPERTY);
         }
-        if (props.containsKey("lcsim.run")) {
-            runNumber = Integer.parseInt(props.getProperty("lcsim.run"));
+        if (props.containsKey(RUN_PROPERTY)) {
+            runNumber = Integer.parseInt(props.getProperty(RUN_PROPERTY));
         }
-        if (props.containsKey("lcsim.eventSaveInterval")) {
-            eventSaveInterval = Integer.parseInt(props.getProperty("lcsim.eventSaveInterval"));
+        if (props.containsKey(EVENT_SAVE_INTERVAL_PROPERTY)) {
+            eventSaveInterval = Integer.parseInt(props.getProperty(EVENT_SAVE_INTERVAL_PROPERTY));
         }
-        if (props.containsKey("lcsim.eventPrintInterval")) {
-            eventPrintInterval = Integer.parseInt(props.getProperty("lcsim.eventPrintInterval"));
+        if (props.containsKey(EVENT_PRINT_INTERVAL_PROPERTY)) {
+            eventPrintInterval = Integer.parseInt(props.getProperty(EVENT_PRINT_INTERVAL_PROPERTY));
         }
-        if (props.containsKey("et.name")) {
-            bufferName = props.getProperty("et.name");
+        if (props.containsKey(ET_NAME_PROPERTY)) {
+            bufferName = props.getProperty(ET_NAME_PROPERTY);
         }
-        if (props.containsKey("et.host")) {
-            host = props.getProperty("et.host");
+        if (props.containsKey(HOST_PROPERTY)) {
+            host = props.getProperty(HOST_PROPERTY);
         }
-        if (props.containsKey("et.port")) {
-            port = Integer.valueOf(props.getProperty("et.port"));
+        if (props.containsKey(PORT_PROPERTY)) {
+            port = Integer.valueOf(props.getProperty(PORT_PROPERTY));
         }
-        if (props.containsKey("et.queueSize")) {
-            queueSize = Integer.valueOf(props.getProperty("et.queueSize"));
+        if (props.containsKey(QUEUE_SIZE_PROPERTY)) {
+            queueSize = Integer.valueOf(props.getProperty(QUEUE_SIZE_PROPERTY));
         }
-        if (props.containsKey("et.prescale")) {
-            prescale = Integer.valueOf(props.getProperty("et.prescale"));
+        if (props.containsKey(PRESCALE_PROPERTY)) {
+            prescale = Integer.valueOf(props.getProperty(PRESCALE_PROPERTY));
         }
-        if (props.containsKey("et.station")) {
-            stationName = props.getProperty("et.station");
+        if (props.containsKey(STATION_PROPERTY)) {
+            stationName = props.getProperty(STATION_PROPERTY);
         }
-        if (props.containsKey("et.waitMode")) {
-            waitMode = Mode.getMode(Integer.valueOf(props.getProperty("et.waitMode")));
+        if (props.containsKey(WAIT_MODE_PROPERTY)) {
+            waitMode = Mode.getMode(Integer.valueOf(props.getProperty(WAIT_MODE_PROPERTY)));
         }
-        if (props.containsKey("et.waitTime")) {
-            waitTime = Integer.valueOf(props.getProperty("et.waitMode"));
+        if (props.containsKey(WAIT_TIME_PROPERTY)) {
+            waitTime = Integer.valueOf(props.getProperty(WAIT_MODE_PROPERTY));
         }
-        if (props.containsKey("et.chunkSize")) {
-            chunkSize = Integer.valueOf(props.getProperty("et.chunkSize"));
+        if (props.containsKey(CHUNK_SIZE_PROPERTY)) {
+            chunkSize = Integer.valueOf(props.getProperty(CHUNK_SIZE_PROPERTY));
         }
     }
     
@@ -271,66 +308,21 @@ final class StationConfiguration {
      * @param jo
      */
     void fromJSON(JSONObject jo) {
-        if (jo.has("lcsim.detector")) {
-            detectorName = jo.getString("lcsim.detector");
+        for (String key : jo.keySet()) {
+            this.props.setProperty(key, jo.get(key).toString());
         }
-        if (jo.has("lcsim.steering")) {
-            steering = jo.getString("lcsim.steering");
-        }
-        if (jo.has("lcsim.run")) {
-            runNumber = jo.getInt("lcsim.run");
-        }
-        if (jo.has("lcsim.eventSaveInterval")) {
-            eventSaveInterval = jo.getInt("lcsim.eventSaveInterval");
-        }
-        if (jo.has("lcsim.eventPrintInterval")) {
-            eventPrintInterval = jo.getInt("lcsim.eventPrintInterval");
-        }
-        if (jo.has("et.name")) {
-            bufferName = jo.getString("et.name");
-        }
-        if (jo.has("et.host")) {
-            host = jo.getString("et.host");
-        }
-        if (jo.has("et.port")) {
-            port = jo.getInt("et.port");
-        }
-        if (jo.has("et.queueSize")) {
-            queueSize = jo.getInt("et.queueSize");
-        }
-        if (jo.has("et.prescale")) {
-            prescale = jo.getInt("et.prescale");
-        }
-        if (jo.has("et.station")) {
-            stationName = jo.getString("et.station");
-        }
-        if (jo.has("et.waitMode")) {
-            waitMode = Mode.getMode(jo.getInt("et.waitMode"));
-        }
-        if (jo.has("et.waitTime")) {
-            waitTime = jo.getInt("et.waitMode");
-        }
-        if (jo.has("et.chunkSize")) {
-            chunkSize = jo.getInt("et.chunkSize");
-        }
+        this.setProperties();
     }
-    
+
+    /**
+     * Convert properties to JSON.
+     * @return
+     */
     JSONObject toJSON() {
         JSONObject jo = new JSONObject();
-        jo.put("lcsim.detector", detectorName);
-        jo.put("lcsim.steering", steering);
-        jo.put("lcsim.run", runNumber);
-        jo.put("lcsim.eventSaveInterval", eventSaveInterval);
-        jo.put("lcsim.eventPrintInterval", eventPrintInterval);
-        jo.put("et.name", bufferName);
-        jo.put("et.host", host);
-        jo.put("et.port", port);
-        jo.put("et.station", stationName);
-        jo.put("et.waitMode", waitMode);
-        jo.put("et.waitTime", waitTime);
-        jo.put("et.chunkSize", chunkSize);
-        jo.put("et.queueSize", queueSize); 
-        jo.put("et.prescale", prescale);
+        for (Object ko : this.props.keySet()) {
+            jo.put((String) ko, this.props.get(ko));
+        }
         return jo;
     }
     
