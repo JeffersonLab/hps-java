@@ -403,7 +403,7 @@ public final class Server {
             LOGGER.info("Starting plot add task with output file " + this.plotFile + " and update interval of " + this.plotIntervalMillis + " ms.");
             this.plotTimer.schedule(new PlotAddTask(this, this.plotFile, dryRun), this.plotIntervalMillis, this.plotIntervalMillis);
         } else {
-            LOGGER.info("Plot task was not enabled (no plot file was provided -a arg)");
+            LOGGER.info("Plot task was not enabled (no plot file was provided with -a option).");
         }
         
         // Start the server.
