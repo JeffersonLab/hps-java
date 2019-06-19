@@ -19,7 +19,7 @@ public class StationManager {
 
     class StationInfo {
         
-        boolean active;
+        volatile boolean alive;
         List<String> command;
         File dir;
         int id;
@@ -31,7 +31,7 @@ public class StationManager {
         JSONObject toJSON() {
             JSONObject jo = new JSONObject();
             jo.put("pid", pid);
-            jo.put("alive", process.isAlive());
+            jo.put("alive", alive);
             jo.put("id", id);
             jo.put("station", stationName);
             jo.put("command", String.join(" ", command));
@@ -64,13 +64,14 @@ public class StationManager {
     
     private volatile int stationID = 1;
     
-    private volatile List<StationInfo> stations = new ArrayList<StationInfo>();
+    private final List<StationInfo> stations = Collections.synchronizedList(
+            new ArrayList<StationInfo>());
     
     StationManager(Server server) {        
         this.server = server;
     }
         
-    synchronized void add(StationInfo info) {
+    void add(StationInfo info) {
         stations.add(info);
     }
        
@@ -84,7 +85,7 @@ public class StationManager {
         return dir;
     }
     
-    synchronized void createStation(JSONObject parameters) throws IOException {
+    void createStation(JSONObject parameters) throws IOException {
         
         StationConfiguration stationConfig = server.getStationConfig();
         
@@ -161,11 +162,11 @@ public class StationManager {
         info.dir = dir;
         info.log = log;
         info.command = command;
-        info.active = true;
+        info.alive = true;
         add(info);       
     }
                 
-    synchronized StationInfo findStation(int id) {
+    StationInfo findStation(int id) {
         for (StationInfo info : stations) {
             if (info.id == id) {
                 return info;
@@ -179,12 +180,14 @@ public class StationManager {
         return stationID - 1;
     }
     
-    synchronized List<StationInfo> getStations() {
+    List<StationInfo> getStations() {
         return Collections.unmodifiableList(this.stations);
     }
     
-    private synchronized void removeStation(StationInfo info) {
+    void removeStation(StationInfo info) {
+        LOGGER.info("Removing station: " + info.stationName);       
         this.stations.remove(info);
+        LOGGER.info("Done removing station: " + info.stationName);
     }
 
     synchronized void setStationID(int stationID) {
@@ -198,7 +201,8 @@ public class StationManager {
         }
     }
     
-    synchronized void stopStation(int id) {
+    void stopStation(int id) {
+        LOGGER.info("Stopping station with id: " + id);
         StationInfo info = this.findStation(id);
         if (info != null) {
             stopStation(info);
@@ -210,20 +214,22 @@ public class StationManager {
     synchronized void stopStation(StationInfo info) {
         if (info != null) {
             Process p = info.process;
-            LOGGER.info("Stopping process: " + info.id);
+            LOGGER.info("Stopping station: " + info.stationName);
             p.destroy();
             try {
+                LOGGER.fine("Waiting for station " + info.stationName + " to stop");
                 p.waitFor();
+                LOGGER.fine("Done waiting for station " + info.stationName + " to stop!");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             if (!p.isAlive()) {
-                LOGGER.info("Stopped process: " + info.id);
+                info.alive = false;
+                LOGGER.info("Stopped station: " + info.stationName);
             } else {
-                LOGGER.severe("Failed to stop process: " + info.id);
+                LOGGER.severe("Failed to stop station: " + info.stationName);
+                // FIXME: Should this throw an exception???
             }
-            LOGGER.info("Removing process: " + info.id);
-            removeStation(info);
         }
     }
 }
