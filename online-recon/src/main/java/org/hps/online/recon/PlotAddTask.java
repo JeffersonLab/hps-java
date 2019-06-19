@@ -117,9 +117,8 @@ final class PlotAddTask extends TimerTask {
     }
     
     void addPlots(File target, List<File> inFiles) throws IOException, InterruptedException { 
-        LOGGER.info("Adding plots with target " + target.getPath());
-        LOGGER.info("Plot files: " + inFiles.toString());
         if (inFiles.size() > 0) {
+            LOGGER.info("Adding plots with target " + target.getPath() + " and plot files: " + inFiles.toString());
             List<File> files = new ArrayList<File>(inFiles);
             if (target.exists() && !this.dryRun) {
                 Path oldTarget = Paths.get(target.getPath() + ".old");

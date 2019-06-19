@@ -221,10 +221,17 @@ public final class Server {
     
     class ConfigCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
-            LOGGER.config("Loading new station config: " + parameters.toString());
-            Server.this.getStationConfig().fromJSON(parameters);
-            LOGGER.info("New config loaded.  Start a new station to use the new parameters.");
-            return new CommandStatus(STATUS_SUCCESS, "Loaded new station config.");
+            CommandResult res = null;
+            if (parameters.length() == 0) {
+                LOGGER.info("Returning existing station config");
+                res = new JSONResult(Server.this.getStationConfig().toJSON());
+            } else {
+                LOGGER.config("Loading new station config: " + parameters.toString());
+                Server.this.getStationConfig().fromJSON(parameters);
+                LOGGER.info("New config loaded.  Start a new station to use the new parameters.");
+                res = new CommandStatus(STATUS_SUCCESS, "Loaded new station config.");                
+            }
+            return res;
         }
     }
     

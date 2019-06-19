@@ -127,6 +127,12 @@ abstract class ClientCommand {
         }          
     }
     
+    /**
+     * Set server configuration properties from a local file.
+     * 
+     * If no file is provided with the -c option then the existing
+     * server configuration will be returned as JSON.
+     */
     static final class ConfigCommand extends ClientCommand {
 
         private Properties prop;
@@ -160,8 +166,6 @@ abstract class ClientCommand {
                 } catch (IOException e) {
                     throw new RuntimeException("Error loading prop file: " + propFile.getPath(), e);
                 }
-            } else {
-                throw new RuntimeException("Missing -c option with config properties file.");
             }
         }          
     }

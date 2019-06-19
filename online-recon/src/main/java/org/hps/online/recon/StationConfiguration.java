@@ -315,6 +315,25 @@ final class StationConfiguration {
         }
     }
     
+    JSONObject toJSON() {
+        JSONObject jo = new JSONObject();
+        jo.put("lcsim.detector", detectorName);
+        jo.put("lcsim.steering", steering);
+        jo.put("lcsim.run", runNumber);
+        jo.put("lcsim.eventSaveInterval", eventSaveInterval);
+        jo.put("lcsim.eventPrintInterval", eventPrintInterval);
+        jo.put("et.name", bufferName);
+        jo.put("et.host", host);
+        jo.put("et.port", port);
+        jo.put("et.station", stationName);
+        jo.put("et.waitMode", waitMode);
+        jo.put("et.waitTime", waitTime);
+        jo.put("et.chunkSize", chunkSize);
+        jo.put("et.queueSize", queueSize); 
+        jo.put("et.prescale", prescale);
+        return jo;
+    }
+    
     boolean isValid() {
         if (this.detectorName == null) {
             LOGGER.severe("Detector name was not set.");
