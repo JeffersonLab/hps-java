@@ -14,6 +14,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.jlab.coda.et.enums.Mode;
+import org.json.JSONObject;
 
 /**
  * Configuration parameters for an online reconstruction ET station.
@@ -262,6 +263,55 @@ final class StationConfiguration {
         }
         if (props.containsKey("et.chunkSize")) {
             chunkSize = Integer.valueOf(props.getProperty("et.chunkSize"));
+        }
+    }
+    
+    /**
+     * Load parameter settings from JSON data.
+     * @param jo
+     */
+    void fromJSON(JSONObject jo) {
+        if (jo.has("lcsim.detector")) {
+            detectorName = jo.getString("lcsim.detector");
+        }
+        if (jo.has("lcsim.steering")) {
+            steering = jo.getString("lcsim.steering");
+        }
+        if (jo.has("lcsim.run")) {
+            runNumber = jo.getInt("lcsim.run");
+        }
+        if (jo.has("lcsim.eventSaveInterval")) {
+            eventSaveInterval = jo.getInt("lcsim.eventSaveInterval");
+        }
+        if (jo.has("lcsim.eventPrintInterval")) {
+            eventPrintInterval = jo.getInt("lcsim.eventPrintInterval");
+        }
+        if (jo.has("et.name")) {
+            bufferName = jo.getString("et.name");
+        }
+        if (jo.has("et.host")) {
+            host = jo.getString("et.host");
+        }
+        if (jo.has("et.port")) {
+            port = jo.getInt("et.port");
+        }
+        if (jo.has("et.queueSize")) {
+            queueSize = jo.getInt("et.queueSize");
+        }
+        if (jo.has("et.prescale")) {
+            prescale = jo.getInt("et.prescale");
+        }
+        if (jo.has("et.station")) {
+            stationName = jo.getString("et.station");
+        }
+        if (jo.has("et.waitMode")) {
+            waitMode = Mode.getMode(jo.getInt("et.waitMode"));
+        }
+        if (jo.has("et.waitTime")) {
+            waitTime = jo.getInt("et.waitMode");
+        }
+        if (jo.has("et.chunkSize")) {
+            chunkSize = jo.getInt("et.chunkSize");
         }
     }
     

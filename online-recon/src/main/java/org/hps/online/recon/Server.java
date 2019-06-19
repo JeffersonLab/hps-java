@@ -60,6 +60,8 @@ public final class Server {
                         handler = new StopCommandHandler();
                     } else if (command.equals("list")) {
                         handler = new ListCommandHandler();
+                    } else if (command.equals("config")) {
+                        handler = new ConfigCommandHandler();
                     }
                     
                     if (handler != null) {
@@ -214,6 +216,15 @@ public final class Server {
                 res = new CommandStatus(STATUS_SUCCESS, "Stopped all processes");
             }            
             return res;
+        }
+    }
+    
+    class ConfigCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject parameters) {
+            LOGGER.config("Loading new station config: " + parameters.toString());
+            Server.this.getStationConfig().fromJSON(parameters);
+            LOGGER.info("New config loaded.  Start a new station to use the new parameters.");
+            return new CommandStatus(STATUS_SUCCESS, "Loaded new station config.");
         }
     }
     

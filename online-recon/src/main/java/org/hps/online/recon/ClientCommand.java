@@ -1,7 +1,11 @@
 package org.hps.online.recon;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -14,7 +18,7 @@ import org.json.JSONObject;
 abstract class ClientCommand {
 
     private final String name;
-    private Map<String, String> parameters = new HashMap<String, String>();
+    private Map<String, Object> parameters = new HashMap<String, Object>();
     
     ClientCommand(String name) {
         this.name = name;
@@ -24,7 +28,7 @@ abstract class ClientCommand {
         return this.name;
     }
 
-    void setParameter(String name, String value) {
+    void setParameter(String name, Object value) {
         parameters.put(name, value);
     }
     
@@ -123,6 +127,45 @@ abstract class ClientCommand {
         }          
     }
     
+    static final class ConfigCommand extends ClientCommand {
+
+        private Properties prop;
+                
+        ConfigCommand() {
+            super("config");
+        }
+        
+        @Override        
+        Options getOptions() {
+            Options options = new Options();
+            options.addOption(new Option("c", "config", true, "config file"));
+            return options;
+        }
+        
+        private void loadProperties(File propFile) throws IOException {
+            prop = new Properties();
+            prop.load(new FileInputStream(propFile));
+            for (Object ko : this.prop.keySet()) {
+                String key = (String) ko;
+                this.setParameter(key, this.prop.get(key).toString());
+            }
+        }
+                
+        @Override
+        void process(CommandLine cl) {
+            if (cl.hasOption("c")) {
+                File propFile = new File(cl.getOptionValue("c")); 
+                try {
+                    loadProperties(propFile);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error loading prop file: " + propFile.getPath(), e);
+                }
+            } else {
+                throw new RuntimeException("Missing -c option with config properties file.");
+            }
+        }          
+    }
+    
     static ClientCommand getCommand(String name) {
         if (name.equals("start")) {
             return new StartCommand();
@@ -130,6 +173,8 @@ abstract class ClientCommand {
             return new StopCommand();
         } else if (name.equals("list")) {
             return new ListCommand();
+        } else if (name.equals("config")) {
+            return new ConfigCommand();
         }
         return null;
     }
