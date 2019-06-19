@@ -528,9 +528,24 @@ final class EventProcessing {
             } else if (steeringType.equals(SteeringType.FILE)) {
                 this.setupSteeringFile(steering);
             }
+            
+            // Activate conditions system if run number was provided as hard-coded value.
+            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
+                
+                // Configure the conditions manager.
+                conditions.configure();
+                
+                // Activate conditions system with supplied detector and run number.
+                this.logger.config("Activating conditions with detector <" 
+                        + configurationModel.getDetectorName() + "> and run "
+                        + configurationModel.getUserRunNumber());
+                conditions.setup();
 
-            // Post-init conditions system which may freeze if run and name were provided.
-            this.sessionState.jobManager.getConditionsSetup().postInitialize();
+                // Post-initialize  the conditions system, which may freeze it.
+                this.sessionState.jobManager.getConditionsSetup().postInitialize();
+            } else {
+                this.logger.config("Conditions system not activated. No user run number was supplied.");
+            }
 
             this.logger.info("lcsim setup was successful");
 
