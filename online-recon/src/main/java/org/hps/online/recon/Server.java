@@ -306,7 +306,7 @@ public final class Server {
             }
             if (ids.size() == 0) {
                 LOGGER.info("Stopping all stations!");
-                int nalive = Server.this.getStationManager().getAliveCount();
+                int nalive = Server.this.getStationManager().getActiveCount();
                 int nstopped = Server.this.getStationManager().stopAll();
                 if (nstopped < nalive) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
