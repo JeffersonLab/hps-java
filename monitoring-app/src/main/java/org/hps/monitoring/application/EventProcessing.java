@@ -472,6 +472,11 @@ final class EventProcessing {
             // Create the job manager. A new conditions manager is instantiated from this call but not configured.
             this.sessionState.jobManager = new JobManager();
 
+            // Reset the conditions system because if run and detector name are the same in multiple sessions, it
+            // will not be activated in subsequent sessions after the first one.
+            this.logger.config("Resetting the conditions system for new session");
+            DatabaseConditionsManager.reset();
+            
             // Setup class for conditions system.
             DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
 
