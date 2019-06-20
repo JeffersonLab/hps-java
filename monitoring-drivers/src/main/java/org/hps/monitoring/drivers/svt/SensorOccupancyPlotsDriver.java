@@ -515,8 +515,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
-        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
+        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)){
+            System.out.println("No SVT RawTrackerHits in this event???");
             return;
+        }
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
 
@@ -529,7 +531,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
 
         eventCount++;
-
+        System.out.println("Number of SVT RawTrackerHts = "+rawHits.size());
         // Increment strip hit count.
         for (RawTrackerHit rawHit : rawHits) {
 
@@ -755,8 +757,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
         System.out.println("%===============================================================================%");
         System.out.println("% Total Events: " + eventCount);
         // Calculate the occupancies at the sensor edge
-        int[] topActiveEdgeStripOccupancy = new int[6];
-        int[] bottomActiveEdgeStripOccupancy = new int[6];
+        int[] topActiveEdgeStripOccupancy = new int[7];
+        int[] bottomActiveEdgeStripOccupancy = new int[7];
         for (HpsSiSensor sensor : sensors)
             if (sensor.isTopLayer() && sensor.isAxial())
                 if (sensor.getSide().equals(HpsSiSensor.ELECTRON_SIDE)) {

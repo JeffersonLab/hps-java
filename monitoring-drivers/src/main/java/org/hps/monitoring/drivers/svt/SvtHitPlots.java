@@ -64,7 +64,7 @@ public class SvtHitPlots extends Driver {
     double totalTopHitCount = 0;
     double totalBotHitCount = 0;
 
-    private boolean dropSmallHitEvents = true;
+    private boolean dropSmallHitEvents = false;
     private static final boolean debug = false;
     private boolean doPerChannelSamplePlots = false;
     private int maxSampleCutForNoise = -1;
@@ -299,9 +299,10 @@ public class SvtHitPlots extends Driver {
             return;
 
         this.clearHitMaps();
-        for (RawTrackerHit rawHit : rawHits) {
+        for (RawTrackerHit rawHit : rawHits) {          
+            System.out.println("rawHit in layer = "+rawHit.getLayerNumber());
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-            int channel = rawHit.getIdentifierFieldValue("strip");
+            int channel=(int) rawHit.getCellID();
             double pedestal = sensor.getPedestal(channel, 0);
             // Find the sample with maximum ADC count
             int maxSample = 0;
@@ -327,8 +328,8 @@ public class SvtHitPlots extends Driver {
             // }
         }
 
-        int[] topLayersHit = new int[12];
-        int[] botLayersHit = new int[12];
+        int[] topLayersHit = new int[14];
+        int[] botLayersHit = new int[14];
         int eventHitCount = 0;
         int topEventHitCount = 0;
         int botEventHitCount = 0;
@@ -358,7 +359,7 @@ public class SvtHitPlots extends Driver {
 
         int totalTopLayersHit = 0;
         int totalBotLayersHit = 0;
-        for (int layerN = 0; layerN < 12; layerN++) {
+        for (int layerN = 0; layerN < 14; layerN++) {
             if (topLayersHit[layerN] > 0)
                 totalTopLayersHit++;
             if (botLayersHit[layerN] > 0)

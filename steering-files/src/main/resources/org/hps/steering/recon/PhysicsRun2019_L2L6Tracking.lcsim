@@ -13,10 +13,10 @@
  
         <!-- Ecal reconstruction drivers -->        
         <!--<driver name="EcalRunningPedestal"/>-->
-        <driver name="EcalRawConverter" />
+<!--        <driver name="EcalRawConverter" />
         <driver name="HitTimeSmear"/>
         <driver name="ReconClusterer" />
-        <driver name="CopyCluster" />
+        <driver name="CopyCluster" />-->
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -27,68 +27,68 @@
             layer 7 to confirm and layer 6 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
         -->
-        <driver name="TrackReconSeed345Conf7Extd6"/>
-        <!-- 
+<!--        <driver name="TrackReconSeed345Conf7Extd6"/>
+         
             Will run track finding algorithm using layers 345 as a seed, 
             layer 6 to confirm and layer 7 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed345Conf6Extd7"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 346 as a seed, 
             layer 5 to confirm and layer 7 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed346Conf5Extd7"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 346 as a seed, 
             layer 7 to confirm and layer 5 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed346Conf7Extd5"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 456 as a seed, 
             layer 3 to confirm and layer 7 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed456Conf3Extd7"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 456 as a seed, 
             layer 7 to confirm and layer 3 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed456Conf7Extd3"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 457 as a seed, 
             layer 3 to confirm and layer 6 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed457Conf3Extd6"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 457 as a seed, 
             layer 6 to confirm and layer 3 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed457Conf6Extd3"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 567 as a seed, 
             layer 3 to confirm and layer 4 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed567Conf3Extd4"/>
-        <!-- 
+         
             Will run track finding algorithm using layers 567 as a seed, 
             layer 4 to confirm and layer 3 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
-        -->
+        
         <driver name="TrackReconSeed567Conf4Extd3"/>
-        <!-- 
+         
            TrackDataDriver needs to be run before ReconParticleDriver so the
            ReconstructedParticle types are properly set.
-        -->
+        
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
-        <driver name="TrackDataDriver" />
+        <driver name="TrackDataDriver" />-->
         <!--<driver name="ReconParticleDriver" />-->   
         <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
@@ -146,8 +146,13 @@
             <correctChanT0>true</correctChanT0>          
             <debug>false</debug>
         </driver>
-        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
+<!--        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
             <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>-->
+        
+         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <debug>true</debug>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>

@@ -39,8 +39,8 @@ public class TrackingResiduals extends DataQualityMonitor {
 
     private final String plotDir = "TrackResiduals/";
     String[] trackingQuantNames = {};
-    private final int nmodules = 6;
-    private final int nsensors = 18;
+    private final int nmodules = 7;
+    private final int nsensors = 20;
     private final String posresDir = "PostionResiduals/";
     private final String uresDir = "UResiduals/";
     private final String timeresDir = "TimeResiduals/";
@@ -187,21 +187,21 @@ public class TrackingResiduals extends DataQualityMonitor {
 
         IPlotter plotterTime = analysisFactory.createPlotterFactory().create("Track Time");
 
-        plotterXTop.createRegions(2, 3);
+        plotterXTop.createRegions(2, 4);
         IPlotterStyle pstyle = plotterXTop.style();
         pstyle.legendBoxStyle().setVisible(false);
-        plotterXBottom.createRegions(2, 3);
+        plotterXBottom.createRegions(2, 4);
         IPlotterStyle pstyle2 = plotterXBottom.style();
         pstyle2.legendBoxStyle().setVisible(false);
 
-        plotterYTop.createRegions(2, 3);
+        plotterYTop.createRegions(2, 4);
         IPlotterStyle pstyle3 = plotterYTop.style();
         pstyle3.legendBoxStyle().setVisible(false);
-        plotterYBottom.createRegions(2, 3);
+        plotterYBottom.createRegions(2, 4);
         IPlotterStyle pstyle4 = plotterYBottom.style();
         pstyle4.legendBoxStyle().setVisible(false);
 
-        plotterTime.createRegions(3, 4);
+        plotterTime.createRegions(5, 5);
         IPlotterStyle pstyle5 = plotterTime.style();
         pstyle5.legendBoxStyle().setVisible(false);
 

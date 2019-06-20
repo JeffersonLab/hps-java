@@ -6,18 +6,23 @@
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
+     <driver name="RawTrackerHitSensorSetup"/>
         <driver name="SvtHitPlots" /> 
         <!--<driver name="SamplesPlots" />
         <driver name="PedestalPlots" />-->
         <driver name="SensorOccupancy" />
         <driver name="RawTrackerHitFitterDriver" />
         <!--<driver name="SVTPulseFitPlots" />--> 
-    <!--   <driver name="TrackerHitDriver" />  -->
-        <driver name="TrackerHitDriverL2L6Hack" />
+      <driver name="TrackerHitDriver" /> 
+    <!--    <driver name="TrackerHitDriverL2L6Hack" /> -->
         <driver name="ClusterPlots" /> 
+ <driver name="AidaSaveDriver" />
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
+  <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
         <driver name="SensorOccupancy" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver" >
             <eventRefreshRate>100</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
@@ -56,5 +61,8 @@
             <saveRootFile>false</saveRootFile>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
+ <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>svtmon_plots2.root</outputFileName>
+        </driver>
     </drivers>
 </lcsim>
