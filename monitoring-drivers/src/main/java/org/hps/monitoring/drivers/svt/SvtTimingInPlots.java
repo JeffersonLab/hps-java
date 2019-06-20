@@ -17,6 +17,7 @@ import java.util.Map;
 
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.record.triggerbank.SSPCluster;
 import org.hps.record.triggerbank.SSPData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -78,34 +79,7 @@ public class SvtTimingInPlots extends Driver {
     public void setRootFileName(String rootFile) {
         this.rootFile = rootFile;
     }
-
-    private int computePlotterRegion(HpsSiSensor sensor) {
-
-        if (sensor.getLayerNumber() < 7) {
-            if (sensor.isTopLayer()) {
-                return 2 * (sensor.getLayerNumber() - 1);
-            } else {
-                return 2 * (sensor.getLayerNumber() - 1) + 1;
-            }
-        } else {
-
-            if (sensor.isTopLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-                    return 4 * (sensor.getLayerNumber() - 7);
-                } else {
-                    return 4 * (sensor.getLayerNumber() - 7) + 1;
-                }
-            } else if (sensor.isBottomLayer()) {
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE) {
-                    return 4 * (sensor.getLayerNumber() - 7) + 2;
-                } else {
-                    return 4 * (sensor.getLayerNumber() - 7) + 3;
-                }
-            }
-        }
-
-        return -1;
-    }
+   
 
     protected void detectorChanged(Detector detector) {
 
@@ -115,56 +89,56 @@ public class SvtTimingInPlots extends Driver {
         List<HpsSiSensor> sensors = detector.getSubdetector("Tracker").getDetectorElement()
                 .findDescendants(HpsSiSensor.class);
 
-        plotters.put("L1-L3 t0", plotterFactory.create("L1-L3 t0"));
-        plotters.get("L1-L3 t0").createRegions(6, 2);
+        plotters.put("L1-L4 t0", plotterFactory.create("L1-L4 t0"));
+        plotters.get("L1-L4 t0").createRegions(4, 4);
 
-        plotters.put("L4-L6 t0", plotterFactory.create("L4-L6 t0"));
-        plotters.get("L4-L6 t0").createRegions(6, 4);
+        plotters.put("L5-L7 t0", plotterFactory.create("L5-L7 t0"));
+        plotters.get("L5-L7 t0").createRegions(6, 4);
 
-        plotters.put("L1-L3 Amplitude", plotterFactory.create("L1-L3 Amplitude"));
-        plotters.get("L1-L3 Amplitude").createRegions(6, 2);
+        plotters.put("L1-L4 Amplitude", plotterFactory.create("L1-L4 Amplitude"));
+        plotters.get("L1-L4 Amplitude").createRegions(4, 4);
 
-        plotters.put("L4-L6 Amplitude", plotterFactory.create("L4-L6 Amplitude"));
-        plotters.get("L4-L6 Amplitude").createRegions(6, 4);
+        plotters.put("L5-L7 Amplitude", plotterFactory.create("L5-L7 Amplitude"));
+        plotters.get("L5-L7 Amplitude").createRegions(6, 4);
 
-        plotters.put("L1-L3 Chi^2 Probability", plotterFactory.create("L1-L3 Chi^2 Probability"));
-        plotters.get("L1-L3 Chi^2 Probability").createRegions(6, 2);
+        plotters.put("L1-L4 Chi^2 Probability", plotterFactory.create("L1-L4 Chi^2 Probability"));
+        plotters.get("L1-L4 Chi^2 Probability").createRegions(4, 4);
 
-        plotters.put("L4-L6 Chi^2 Probability", plotterFactory.create("L1-L3 Chi^2 Probability"));
-        plotters.get("L4-L6 Chi^2 Probability").createRegions(6, 4);
+        plotters.put("L5-L7 Chi^2 Probability", plotterFactory.create("L5-L7 Chi^2 Probability"));
+        plotters.get("L5-L7 Chi^2 Probability").createRegions(6, 4);
 
-        plotters.put("L1-L3 Max Sample Number", plotterFactory.create("L1-L3 Max Sample Number"));
-        plotters.get("L1-L3 Max Sample Number").createRegions(6, 2);
+        plotters.put("L1-L4 Max Sample Number", plotterFactory.create("L1-L4 Max Sample Number"));
+        plotters.get("L1-L4 Max Sample Number").createRegions(4, 4);
 
-        plotters.put("L4-L6 Max Sample Number", plotterFactory.create("L4-L6 Max Sample Number"));
-        plotters.get("L4-L6 Max Sample Number").createRegions(6, 4);
+        plotters.put("L5-L7 Max Sample Number", plotterFactory.create("L5-L7 Max Sample Number"));
+        plotters.get("L5-L7 Max Sample Number").createRegions(6, 4);
 
-        plotters.put("L1-L3 Max Sample Number - Opposite", plotterFactory.create("L1-L3 Max Sample Number - Opposite"));
-        plotters.get("L1-L3 Max Sample Number - Opposite").createRegions(6, 2);
+        plotters.put("L1-L4 Max Sample Number - Opposite", plotterFactory.create("L1-L4 Max Sample Number - Opposite"));
+        plotters.get("L1-L4 Max Sample Number - Opposite").createRegions(4, 4);
 
-        plotters.put("L4-L6 Max Sample Number - Opposite", plotterFactory.create("L4-L6 Max Sample Number - Opposite"));
-        plotters.get("L4-L6 Max Sample Number - Opposite").createRegions(6, 4);
+        plotters.put("L5-L7 Max Sample Number - Opposite", plotterFactory.create("L5-L7 Max Sample Number - Opposite"));
+        plotters.get("L5-L7 Max Sample Number - Opposite").createRegions(6, 4);
 
         plotters.put("Max Sample Per Volume", plotterFactory.create("Max Sample Per Volume"));
         plotters.get("Max Sample Per Volume").createRegions(1, 2);
 
-        plotters.put("L1-L3 t0 vs Amplitude", plotterFactory.create("L1-L3 t0 vs Amplitude"));
-        plotters.get("L1-L3 t0 vs Amplitude").createRegions(6, 2);
+        plotters.put("L1-L4 t0 vs Amplitude", plotterFactory.create("L1-L4 t0 vs Amplitude"));
+        plotters.get("L1-L4 t0 vs Amplitude").createRegions(4, 4);
 
-        plotters.put("L4-L6 t0 vs Amplitude", plotterFactory.create("L4-L6 t0 vs Amplitude"));
-        plotters.get("L4-L6 t0 vs Amplitude").createRegions(6, 4);
+        plotters.put("L5-L7 t0 vs Amplitude", plotterFactory.create("L5-L7 t0 vs Amplitude"));
+        plotters.get("L5-L7 t0 vs Amplitude").createRegions(6, 4);
 
-        plotters.put("L1-L3 t0 vs Chi^2 Prob.", plotterFactory.create("L1-L3 t0 vs Chi^2 Prob."));
-        plotters.get("L1-L3 t0 vs Chi^2 Prob.").createRegions(6, 2);
+        plotters.put("L1-L4 t0 vs Chi^2 Prob.", plotterFactory.create("L1-L4 t0 vs Chi^2 Prob."));
+        plotters.get("L1-L4 t0 vs Chi^2 Prob.").createRegions(4, 4);
 
-        plotters.put("L4-L6 t0 vs Chi^2 Prob.", plotterFactory.create("L4-L6 t0 vs Chi^2 Prob."));
-        plotters.get("L4-L6 t0 vs Chi^2 Prob.").createRegions(6, 4);
+        plotters.put("L5-L7 t0 vs Chi^2 Prob.", plotterFactory.create("L5-L7 t0 vs Chi^2 Prob."));
+        plotters.get("L5-L7 t0 vs Chi^2 Prob.").createRegions(6, 4);
 
-        plotters.put("L1-L3 Chi^2 Prob. vs Amplitude", plotterFactory.create("L1-L3 Chi^2 Prob. vs Amplitude"));
-        plotters.get("L1-L3 Chi^2 Prob. vs Amplitude").createRegions(6, 2);
+        plotters.put("L1-L4 Chi^2 Prob. vs Amplitude", plotterFactory.create("L1-L4 Chi^2 Prob. vs Amplitude"));
+        plotters.get("L1-L4 Chi^2 Prob. vs Amplitude").createRegions(4, 4);
 
-        plotters.put("L4-L6 Chi^2 Prob. vs Amplitude", plotterFactory.create("L4-L6 Chi^2 Prob. vs Amplitude"));
-        plotters.get("L4-L6 Chi^2 Prob. vs Amplitude").createRegions(6, 4);
+        plotters.put("L5-L7 Chi^2 Prob. vs Amplitude", plotterFactory.create("L5-L7 Chi^2 Prob. vs Amplitude"));
+        plotters.get("L5-L7 Chi^2 Prob. vs Amplitude").createRegions(6, 4);
 
         for (HpsSiSensor sensor : sensors) {
 
@@ -185,49 +159,49 @@ public class SvtTimingInPlots extends Driver {
                     histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number - Opposite", 6, 0, 6));
 
             if (sensor.getLayerNumber() < 7) {
-                plotters.get("L1-L3 t0").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 t0").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0Plots.get(sensor), this.createStyle("t0 [ns]", ""));
-                plotters.get("L1-L3 Amplitude").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 Amplitude").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(amplitudePlots.get(sensor), this.createStyle(sensor, "Amplitude [ADC Counts] ", ""));
-                plotters.get("L1-L3 Chi^2 Probability").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 Chi^2 Probability").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(chi2Plots.get(sensor), this.createStyle(sensor, "#chi^{2} Probability", ""));
-                plotters.get("L1-L3 t0 vs Amplitude").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 t0 vs Amplitude").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0vAmpPlots.get(sensor), this.createStyle("t0 [ns]", "Amplitude [ADC Counts]"));
-                plotters.get("L1-L3 t0 vs Chi^2 Prob.").region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 t0 vs Chi^2 Prob.").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0vChi2Plots.get(sensor), this.createStyle("t0 [ns]", "#chi^{2} Probability"));
-                plotters.get("L1-L3 Chi^2 Prob. vs Amplitude")
-                        .region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 Chi^2 Prob. vs Amplitude")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(chi2vAmpPlots.get(sensor),
                                 this.createStyle("#chi^{2} Probability", "Amplitude [ADC Counts]"));
-                plotters.get("L1-L3 Max Sample Number")
-                        .region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 Max Sample Number")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(maxSampleNumberPerSensorPlots.get(sensor),
                                 this.createStyle(sensor, "Max Sample Number", ""));
-                plotters.get("L1-L3 Max Sample Number - Opposite")
-                        .region(this.computePlotterRegion(sensor))
+                plotters.get("L1-L4 Max Sample Number - Opposite")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(maxSampleNumberPerSensorOppPlots.get(sensor),
                                 this.createStyle(sensor, "Max Sample Number", ""));
             } else {
-                plotters.get("L4-L6 t0").region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 t0").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0Plots.get(sensor), this.createStyle(sensor, "t0 [ns]", ""));
-                plotters.get("L4-L6 Amplitude").region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 Amplitude").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(amplitudePlots.get(sensor), this.createStyle(sensor, "Amplitude [ADC Counts] ", ""));
-                plotters.get("L4-L6 Chi^2 Probability").region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 Chi^2 Probability").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(chi2Plots.get(sensor), this.createStyle(sensor, "#chi^{2} Probability", ""));
-                plotters.get("L4-L6 t0 vs Amplitude").region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 t0 vs Amplitude").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0vAmpPlots.get(sensor), this.createStyle("t0 [ns]", "Amplitude [ADC Counts]"));
-                plotters.get("L4-L6 t0 vs Chi^2 Prob.").region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 t0 vs Chi^2 Prob.").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0vChi2Plots.get(sensor), this.createStyle("t0 [ns]", "#chi^{2} Probability"));
-                plotters.get("L4-L6 Chi^2 Prob. vs Amplitude")
-                        .region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 Chi^2 Prob. vs Amplitude")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(chi2vAmpPlots.get(sensor),
                                 this.createStyle("#chi^{2} Probability", "Amplitude [ADC Counts]"));
-                plotters.get("L4-L6 Max Sample Number")
-                        .region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 Max Sample Number")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(maxSampleNumberPerSensorPlots.get(sensor),
                                 this.createStyle(sensor, "Max Sample Number", ""));
-                plotters.get("L4-L6 Max Sample Number - Opposite")
-                        .region(this.computePlotterRegion(sensor))
+                plotters.get("L5-L7 Max Sample Number - Opposite")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(maxSampleNumberPerSensorOppPlots.get(sensor),
                                 this.createStyle(sensor, "Max Sample Number", ""));
             }
