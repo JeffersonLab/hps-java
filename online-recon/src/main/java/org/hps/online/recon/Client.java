@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -46,18 +45,26 @@ public final class Client {
 
     private Set<String> commands;
     
-    Client() {
+    private static Options OPTIONS = new Options();
+    static {
+        OPTIONS.addOption(new Option("", "help", false, "print help"));
+        OPTIONS.addOption(new Option("p", "port", true, "server port"));
+        OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
+        OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
+    }
+    
+    Client() { 
         buildCommandMap();
     }
     
-    final void printUsage(Options options) {
+    private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", commandMap.keySet());
         help.printHelp("Client [command]", "Send commands to the online recon server",
-                options, "Commands: " + commands);
+                OPTIONS, "Commands: " + commands);
     }
     
-    void buildCommandMap() {
+    private void buildCommandMap() {
         addCommand(new CreateCommand());
         addCommand(new StartCommand());
         addCommand(new StopCommand());
@@ -68,12 +75,12 @@ public final class Client {
         commands = commandMap.keySet();
     }
     
-    void addCommand(ClientCommand command) {
+    private void addCommand(ClientCommand command) {
         String name = command.getName();
         commandMap.put(name, command);
     }
     
-    ClientCommand getCommand(String name) {
+    private ClientCommand getCommand(String name) {
         return commandMap.get(name);
     }
     
@@ -89,20 +96,14 @@ public final class Client {
     }
 
     void run(String args[]) {
-
-        // Define valid base options.
-        Options options = new Options();
-        options.addOption(new Option("", "help", false, "print help"));
-        options.addOption(new Option("p", "port", true, "server port"));
-        options.addOption(new Option("h", "host", true, "server hostname"));
-        options.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
         
         // Scan for command.
         int commandPos = scanForCommand(args);
         
         // No arguments or no valid command was provided.
         if (args.length == 0 || commandPos == -1) {
-            printUsage(options);
+            // Print usage and exit.
+            printUsage();
             System.exit(0);
         }
 
@@ -114,9 +115,10 @@ public final class Client {
         System.arraycopy(args, 0, baseArgs, 0, commandPos);
         //System.out.println(Arrays.asList("baseArgs: " + Arrays.asList(baseArgs)));
                 
+        // Parse base options.
         CommandLine cl;
         try {
-            cl = this.parser.parse(options, baseArgs, true);
+            cl = this.parser.parse(OPTIONS, baseArgs, true);
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing arguments", e);
         }
@@ -127,7 +129,7 @@ public final class Client {
         }
         
         if (cl.hasOption("h")) {
-            this.hostname = cl.getOptionValue("H");
+            this.hostname = cl.getOptionValue("h");
             LOGGER.config("Hostname: " + this.hostname);
         }
         
@@ -152,9 +154,11 @@ public final class Client {
             command.printUsage();
             throw new RuntimeException("Error parsing command options", e);            
         }
+        
+        // Setup the command parameters from the parsed options.
         command.process(cmdResult);
         
-        // Send command to server.
+        // Send the command to server.
         LOGGER.info("Sending command " + command.toString());
         send(command);
     }
