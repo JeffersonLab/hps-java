@@ -184,21 +184,17 @@ public class StationManager {
         return Collections.unmodifiableList(this.stations);
     }
     
-    void removeStation(StationInfo info) {
-        LOGGER.info("Removing station: " + info.stationName);       
-        this.stations.remove(info);
-        LOGGER.info("Done removing station: " + info.stationName);
-    }
-
     synchronized void setStationID(int stationID) {
         this.stationID = stationID;
+        LOGGER.config("Set station ID: " + stationID);
     }
     
     synchronized void stopAll() {
-        LOGGER.info("Stopping ALL stations");
+        LOGGER.info("Stopping ALL stations!");
         for (StationInfo info : this.stations) {
             stopStation(info);
         }
+        LOGGER.info("Stopped ALL stations!");
     }
     
     void stopStation(int id) {
@@ -211,6 +207,14 @@ public class StationManager {
         }
     }    
     
+    /**
+     * Stop a station.
+     * 
+     * This does not remove it from the station list.  The 'remove' command
+     * must be used to do this separately.
+     * 
+     * @param info
+     */
     synchronized void stopStation(StationInfo info) {
         if (info != null) {
             Process p = info.process;
@@ -231,5 +235,83 @@ public class StationManager {
                 // FIXME: Should this throw an exception???
             }
         }
+    }
+    
+    /**
+     * Remove a station from the manager.
+     * @param info
+     * @return True if the station was successfully removed.
+     */
+    boolean removeStation(StationInfo info) {
+        LOGGER.info("Removing station: " + info.stationName);
+        updateStation(info);
+        if (info.alive == false) {
+            this.stations.remove(info);
+            LOGGER.info("Done removing station: " + info.stationName);
+            return true;
+        } else {
+            LOGGER.warning("Failed to remove station " + info.stationName + " because it is still alive!");
+            return false;
+        }
+    }
+
+    /**
+     * Remove a list of stations by their IDs. 
+     * @param ids
+     * @return The number of stations successfully removed.
+     */
+    synchronized int removeStations(List<Integer> ids) {
+        int n = 0;
+        List<StationInfo> stations = findStations(ids);
+        for (StationInfo station : stations) {
+            if (removeStation(station)) {
+                ++n;
+            }
+        }
+        return n;
+    }
+    
+    /**
+     * Remove all stations, returning number of stations removed.
+     * @return The number of stations removed.
+     */
+    synchronized int removeAllStations() {
+        return removeStations(getStationIDs());
+    }
+        
+    // FIXME: Should have some kind of exception/error if ID does not exist.
+    private List<StationInfo> findStations(List<Integer> ids) {
+        List<StationInfo> stations = new ArrayList<StationInfo>();
+        for (StationInfo station : this.stations) {
+            if (ids.contains(station.id)) {
+                stations.add(station);
+            }
+        }        
+        return stations;
+    }
+    
+    private List<Integer> getStationIDs() {
+        List<Integer> ids = new ArrayList<Integer>();
+        for (StationInfo station : this.stations) {
+            ids.add(station.id);
+        }
+        return ids;
+    }
+    
+    private void updateStation(StationInfo station) {
+        if (!station.process.isAlive()) {
+            station.alive = false;
+        }
+    }
+    
+    private boolean stationExists(Integer id) {
+        boolean exists = false;
+        for (StationInfo station : this.stations) {
+            if (station.id == id) {
+                exists = true;
+                break;
+            }
+        }
+        return exists;
     }
 }

@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
@@ -62,6 +64,8 @@ public final class Server {
                         handler = new ListCommandHandler();
                     } else if (command.equals("config")) {
                         handler = new ConfigCommandHandler();
+                    } else if (command.equals("remove")) {
+                        handler = new RemoveCommandHandler();
                     }
                     
                     if (handler != null) {
@@ -231,6 +235,37 @@ public final class Server {
                 LOGGER.info("New config loaded.  Start a new station to use the new parameters.");
                 res = new CommandStatus(STATUS_SUCCESS, "Loaded new station config.");                
             }
+            return res;
+        }
+    }
+    
+    class RemoveCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject parameters) {
+            CommandResult res = null;
+            List<Integer> ids = new ArrayList<Integer>();
+            if (parameters.has("ids")) {
+                JSONArray arr = parameters.getJSONArray("ids");
+                for (int i = 0; i < arr.length(); i++) {
+                    ids.add(arr.getInt(i));
+                }
+            }
+            if (ids.size() == 0) {
+                LOGGER.info("Removing all stations!");               
+                Server.this.getStationManager().removeAllStations();
+                if (Server.this.getStationManager().getStations().size() > 0) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Removed all stations.");
+                }
+            } else {
+                LOGGER.info("Removing stations: " + ids.toString());
+                int n = Server.this.getStationManager().removeStations(ids);
+                if (n < ids.size()) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
+                }
+            }            
             return res;
         }
     }

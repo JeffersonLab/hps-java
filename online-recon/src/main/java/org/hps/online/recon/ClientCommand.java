@@ -3,7 +3,9 @@ package org.hps.online.recon;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -170,6 +172,39 @@ abstract class ClientCommand {
         }          
     }
     
+    /**
+     * Remove a list of stations by their IDs or if none are
+     * given then try to remove all stations.
+     * 
+     * Stations can only be removed after they are stopped.
+     */
+    static final class RemoveCommand extends ClientCommand {
+        
+        private List<Integer> ids = new ArrayList<Integer>();
+        
+        RemoveCommand() {            
+            super("remove");
+        }
+        
+        Options getOptions() {
+            Options options = new Options();
+            return options;
+        }
+        
+        void process(CommandLine cl) {
+            for (String arg : cl.getArgList()) {
+                ids.add(Integer.parseInt(arg));
+            }
+        }
+        
+        public JSONObject toJSON() {
+            JSONObject jo = super.toJSON();
+            JSONObject params = jo.getJSONObject("parameters");
+            params.put("ids", this.ids);
+            return jo;
+        }        
+    }
+    
     static ClientCommand getCommand(String name) {
         if (name.equals("start")) {
             return new StartCommand();
@@ -179,6 +214,8 @@ abstract class ClientCommand {
             return new ListCommand();
         } else if (name.equals("config")) {
             return new ConfigCommand();
+        } else if (name.equals("remove")) {
+            return new RemoveCommand();
         }
         return null;
     }
