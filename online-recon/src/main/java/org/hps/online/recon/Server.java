@@ -56,7 +56,7 @@ public final class Server {
                 CommandResult res = null;
                 try {
                     CommandHandler handler = null;
-                    // TODO: lookup handlers in a static map
+                    // TODO: lookup handlers in a map
                     if (command.equals("create")) {
                         handler = new CreateCommandHandler();
                     } else if (command.equals("start")) {
@@ -240,7 +240,7 @@ public final class Server {
                         Server.this.stationManager.start(station);
                         ++started;
                     } catch (IOException e) {
-                        LOGGER.log(Level.SEVERE, "Station failed to start.", e);
+                        LOGGER.log(Level.SEVERE, "Station " + station.stationName + " failed to start.", e);
                     }
                 }
             }
@@ -248,7 +248,7 @@ public final class Server {
             if (start) {
                 LOGGER.info("Started " + started + " stations.");
                 if (started < count) {
-                    res = new CommandStatus(STATUS_SUCCESS, "Some stations failed to start.");
+                    res = new CommandStatus(STATUS_ERROR, "Some stations failed to start.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Created and started " + started + " stations successfully.");
                 }
@@ -277,14 +277,14 @@ public final class Server {
                 if (started < inactive) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to start some stations.");
                 } else {
-                    res = new CommandStatus(STATUS_ERROR, "Started all stations successfull.");
+                    res = new CommandStatus(STATUS_SUCCESS, "Started all stations successfull.");
                 }
             } else {
                 started = Server.this.getStationManager().start(ids);
                 if (started < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to start some stations.");
                 } else {
-                    res = new CommandStatus(STATUS_ERROR, "Started " + ids.size() + " stations successfully.");
+                    res = new CommandStatus(STATUS_SUCCESS, "Started " + ids.size() + " stations successfully.");
                 }
             }
            
