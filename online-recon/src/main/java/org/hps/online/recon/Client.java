@@ -6,8 +6,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -41,6 +43,8 @@ public final class Client {
     private CommandLineParser parser = new DefaultParser();
        
     private Map<String, ClientCommand> commandMap = new LinkedHashMap<String, ClientCommand>();
+
+    private Set<String> commands;
     
     Client() {
         buildCommandMap();
@@ -60,6 +64,8 @@ public final class Client {
         addCommand(new RemoveCommand());
         addCommand(new ListCommand());
         addCommand(new ConfigCommand());
+        
+        commands = commandMap.keySet();
     }
     
     void addCommand(ClientCommand command) {
@@ -70,25 +76,47 @@ public final class Client {
     ClientCommand getCommand(String name) {
         return commandMap.get(name);
     }
+    
+    private int scanForCommand(String args[]) {
+        int commandPos = -1;
+        for (int i = 0; i < args.length; i++) {
+            if (commands.contains(args[i])) {
+                commandPos = i;
+                break;
+            }
+        }        
+        return commandPos;
+    }
 
     void run(String args[]) {
-        
-        //arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
-        
+
+        // Define valid base options.
         Options options = new Options();
         options.addOption(new Option("", "help", false, "print help"));
         options.addOption(new Option("p", "port", true, "server port"));
         options.addOption(new Option("h", "host", true, "server hostname"));
         options.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
         
-        if (args.length == 0) {
+        // Scan for command.
+        int commandPos = scanForCommand(args);
+        
+        // No arguments or no valid command was provided.
+        if (args.length == 0 || commandPos == -1) {
             printUsage(options);
             System.exit(0);
         }
-        
+
+        // Get name of command from arguments.
+        final String commandName = args[commandPos];
+
+        // Create arg array for base client command.
+        String baseArgs[] = new String[commandPos];
+        System.arraycopy(args, 0, baseArgs, 0, commandPos);
+        System.out.println(Arrays.asList("baseArgs: " + Arrays.asList(baseArgs)));
+                
         CommandLine cl;
         try {
-            cl = this.parser.parse(options, args, true);
+            cl = this.parser.parse(options, baseArgs, true);
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing arguments", e);
         }
@@ -108,33 +136,20 @@ public final class Client {
             LOGGER.config("Output file: " + this.outputFile.getPath());
         }
         
-        // Get command to execute and see if it is valid.
-        ClientCommand command = null;
-        if (cl.getArgs().length > 0) {
-            final String commandName = cl.getArgs()[0];
-            command = getCommand(commandName);
-            if (command == null) {
-                // Extra argument was not a valid command.
-                printUsage(options);
-                throw new RuntimeException("Unknown client command: " + commandName);
-            }
-        } else {
-            // No command provided so print usage and exit.
-            printUsage(options);
-            System.exit(0);
-        }
-        
-        // Copy remaining arguments for the command.
-        final String[] commandArgs = new String[cl.getArgs().length - 1];
-        System.arraycopy(cl.getArgs(), 1, commandArgs, 0, commandArgs.length);
-        
+        // Create arg array for command.
+        ClientCommand command = getCommand(commandName);
+        int cmdArrayLen = args.length - baseArgs.length - 1;
+        String cmdArgs[] = new String[cmdArrayLen];
+        System.arraycopy(args, commandPos + 1, cmdArgs, 0, cmdArrayLen);
+        System.out.println("cmdArgs: " + Arrays.asList(cmdArgs));
+                
         // Parse command options.
         DefaultParser commandParser = new DefaultParser();
         CommandLine cmdResult = null;
         try {
-            cmdResult = commandParser.parse(command.getOptions(), commandArgs);
+            cmdResult = commandParser.parse(command.getOptions(), cmdArgs);
         } catch (ParseException e) {
-            // Print sub-command usage here.
+            command.printUsage();
             throw new RuntimeException("Error parsing command options", e);            
         }
         command.process(cmdResult);
