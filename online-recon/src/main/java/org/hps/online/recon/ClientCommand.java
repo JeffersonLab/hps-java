@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.json.JSONObject;
@@ -20,10 +21,21 @@ import org.json.JSONObject;
 abstract class ClientCommand {
 
     private final String name;
+    private final String description;
+    private final String commandExtra;
+    private final String commandFooter;
+    
     private Map<String, Object> parameters = new HashMap<String, Object>();    
-        
-    ClientCommand(String name) {
+    
+    protected Options options = new Options();
+            
+    ClientCommand(String name, String description, String commandExtra, String commandFooter) {
         this.name = name;
+        this.description = description;
+        this.commandExtra = commandExtra;
+        this.commandFooter = commandFooter;
+        
+        options.addOption(new Option("", "help", false, "print command help"));
     }
 
     /**
@@ -66,26 +78,42 @@ abstract class ClientCommand {
      * @return
      */
     Options getOptions() {
-        Options options = new Options();
         return options;
+    }
+    
+    void printUsage() {
+        final HelpFormatter help = new HelpFormatter();
+        help.printHelp(this.name + " " + this.commandExtra, this.description, 
+                getOptions(), this.commandFooter);
     }
     
     /**
      * Process the command line options.
-     * Sub-classes must override and define this method.
+     * 
+     * This method checks for the help option, and if it exists,
+     * prints usage and exits the program.
+     * 
+     * Sub-classes should always call the super method when overriding
+     * for usage to be printed properly.
+     * 
      * @param cl
      */
-    abstract void process(CommandLine cl);
+    void process(CommandLine cl) {
+        if (cl.hasOption("help")) {
+            printUsage();
+            System.exit(0);
+        }
+    }
                
     /**
-     * Create one or more new online reconstruction stations using
-     * the current configuration properties from the server
-     * (the "config" command can be used to change the properties).
+     * Create one or more new stations using the current configuration properties 
+     * from the server (the "config" command can be used to change theSE properties).
      */
     static final class CreateCommand extends ClientCommand {
 
         CreateCommand() {
-            super("create");
+            super("create", "Create a new station", "", 
+                    "Stations are not started by default.");
         }
                                         
         void setCount(Integer count) {
@@ -97,7 +125,6 @@ abstract class ClientCommand {
         }
         
         Options getOptions() {
-            Options options = new Options();
             options.addOption(new Option("n", "number", true, "number of instances to start (default 1)")); 
             options.addOption(new Option("s", "start", false, "automatically start the new stations"));
             return options;
@@ -105,6 +132,7 @@ abstract class ClientCommand {
                 
         @Override
         void process(CommandLine cl) {
+            super.process(cl);
             if (cl.hasOption("n")) {
                 setCount(Integer.valueOf(cl.getOptionValue("n")));
             }
@@ -125,10 +153,12 @@ abstract class ClientCommand {
         private List<Integer> ids = new ArrayList<Integer>();
         
         StopCommand() {            
-            super("stop");
+            super("stop", "Stop a station", "[IDs]", 
+                    "Provide a list of IDs or none for all");
         }
             
         void process(CommandLine cl) {
+            super.process(cl);
             for (String arg : cl.getArgList()) {
                 ids.add(Integer.parseInt(arg));
             }
@@ -151,10 +181,12 @@ abstract class ClientCommand {
         private List<Integer> ids = new ArrayList<Integer>();
         
         ListCommand() {
-            super("list");
+            super("list", "List station information in JSON format", "[IDs]",
+                    "Provide a list of IDs or none to list information for all");
         }
                 
         void process(CommandLine cl) {
+            super.process(cl);
             for (String arg : cl.getArgList()) {
                 ids.add(Integer.parseInt(arg));
             }
@@ -179,12 +211,13 @@ abstract class ClientCommand {
         private Properties prop;
                 
         ConfigCommand() {
-            super("config");
+            super("config", "Set new server configuration properties", "",
+                    "Configuration will take effect for newly created stations."
+                    + " If no new config is provided the existing config will be printed.");
         }
         
         @Override        
         Options getOptions() {
-            Options options = new Options();
             options.addOption(new Option("c", "config", true, "config file"));
             return options;
         }
@@ -200,6 +233,7 @@ abstract class ClientCommand {
                 
         @Override
         void process(CommandLine cl) {
+            super.process(cl);
             if (cl.hasOption("c")) {
                 File propFile = new File(cl.getOptionValue("c")); 
                 try {
@@ -222,10 +256,12 @@ abstract class ClientCommand {
         private List<Integer> ids = new ArrayList<Integer>();
         
         RemoveCommand() {            
-            super("remove");
+            super("remove", "Remove a station that is inactive", "[IDs]",
+                    "Provide a list of IDs or none to remove all");
         }
                 
         void process(CommandLine cl) {
+            super.process(cl);
             for (String arg : cl.getArgList()) {
                 ids.add(Integer.parseInt(arg));
             }
@@ -248,10 +284,12 @@ abstract class ClientCommand {
         private List<Integer> ids = new ArrayList<Integer>();
         
         StartCommand() {            
-            super("start");
+            super("start", "Start a station that is inactive", "[IDs]",
+                    "Provide a list of IDs or none to start all inactive stations");
         }
                 
         void process(CommandLine cl) {
+            super.process(cl);
             for (String arg : cl.getArgList()) {
                 ids.add(Integer.parseInt(arg));
             }
@@ -264,7 +302,12 @@ abstract class ClientCommand {
             return jo;
         }        
     }
-        
+    
+    /**
+     * Get a command by name.    
+     * @param name The name of the command
+     * @return The named command or null if it does not exist
+     */
     static ClientCommand getCommand(String name) {
         if (name.equals("create")) {
             return new CreateCommand();
