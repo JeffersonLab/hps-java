@@ -25,32 +25,62 @@ abstract class ClientCommand {
     ClientCommand(String name) {
         this.name = name;
     }
-    
+
+    /**
+     * Get the name of the command.
+     * @return
+     */
     String getName() {
         return this.name;
     }
 
+    /**
+     * Set a parameter for the command.
+     * @param name
+     * @param value
+     */
     void setParameter(String name, Object value) {
         parameters.put(name, value);
     }
     
-    public JSONObject toJSON() {
+    /**
+     * Convert the object to JSON.
+     * @return
+     */
+    JSONObject toJSON() {
         JSONObject jo = new JSONObject();
         jo.put("command", this.name);
         jo.put("parameters", new JSONObject(parameters));
         return jo;
     }
     
+    /**
+     * Convert the object to a string (by default returns JSON format).
+     */
     public String toString() {
         return toJSON().toString();
     }
     
-    abstract Options getOptions();
-    
-    abstract void process(CommandLine cl);
-           
     /**
-     * Start a new reconstruction process with given configuration properties.
+     * Get the options for command line usage.
+     * @return
+     */
+    Options getOptions() {
+        Options options = new Options();
+        return options;
+    }
+    
+    /**
+     * Process the command line options.
+     * Sub-classes must override and define this method.
+     * @param cl
+     */
+    abstract void process(CommandLine cl);
+               
+    /**
+     * Start one or more new online reconstruction stations using
+     * the current configuration properties from the server
+     * (the "config" command can be used to change the properties).
      */
     static final class StartCommand extends ClientCommand {
 
@@ -77,55 +107,54 @@ abstract class ClientCommand {
     }    
     
     /**
-     * Kill an online reconstruction process.
+     * Stop a list of stations by their IDs or if none are given
+     * then stop all stations.
      */
     static final class StopCommand extends ClientCommand {
-               
-        StopCommand() {
+
+        private List<Integer> ids = new ArrayList<Integer>();
+        
+        StopCommand() {            
             super("stop");
         }
-        
-        @Override        
-        Options getOptions() {
-            Options options = new Options();
-            options.addOption(new Option("i", "id", true, "id of process (no ID means all processes)"));
-            return options;
-        }
-        
-        void setID(Integer id) {
-            this.setParameter("id", id.toString());
-        }
-
-        @Override
+            
         void process(CommandLine cl) {
-            if (cl.hasOption("i")) {
-                setID(Integer.valueOf(cl.getOptionValue("i")));
-            }            
-        }         
+            for (String arg : cl.getArgList()) {
+                ids.add(Integer.parseInt(arg));
+            }
+        }
+        
+        public JSONObject toJSON() {
+            JSONObject jo = super.toJSON();
+            JSONObject params = jo.getJSONObject("parameters");
+            params.put("ids", this.ids);
+            return jo;
+        }
     }
     
+    /**
+     * Get a list of station info as JSON from a list of IDs or
+     * if none are given then return info for all stations.
+     */
     static final class ListCommand extends ClientCommand {
 
+        private List<Integer> ids = new ArrayList<Integer>();
+        
         ListCommand() {
             super("list");
         }
-        
-        @Override        
-        Options getOptions() {
-            Options options = new Options();
-            options.addOption(new Option("i", "id", true, "id of process (no ID means all processes)"));
-            return options;
-        }
-        
-        void setID(Integer id) {
-            this.setParameter("id", id.toString());
-        }
-
-        @Override
+                
         void process(CommandLine cl) {
-            if (cl.hasOption("i")) {
-                setID(Integer.valueOf(cl.getOptionValue("i")));
-            }            
+            for (String arg : cl.getArgList()) {
+                ids.add(Integer.parseInt(arg));
+            }
+        }
+        
+        public JSONObject toJSON() {
+            JSONObject jo = super.toJSON();
+            JSONObject params = jo.getJSONObject("parameters");
+            params.put("ids", this.ids);
+            return jo;
         }          
     }
     
@@ -185,12 +214,7 @@ abstract class ClientCommand {
         RemoveCommand() {            
             super("remove");
         }
-        
-        Options getOptions() {
-            Options options = new Options();
-            return options;
-        }
-        
+                
         void process(CommandLine cl) {
             for (String arg : cl.getArgList()) {
                 ids.add(Integer.parseInt(arg));

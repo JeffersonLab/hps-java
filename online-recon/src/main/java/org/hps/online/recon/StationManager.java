@@ -189,22 +189,28 @@ public class StationManager {
         LOGGER.config("Set station ID: " + stationID);
     }
     
-    synchronized void stopAll() {
+    synchronized int stopAll() {
         LOGGER.info("Stopping ALL stations!");
+        int n = 0;
         for (StationInfo info : this.stations) {
-            stopStation(info);
+            if (stopStation(info)) {
+                ++n;
+            }
         }
         LOGGER.info("Stopped ALL stations!");
+        return n;
     }
     
-    void stopStation(int id) {
+    boolean stopStation(int id) {
         LOGGER.info("Stopping station with id: " + id);
         StationInfo info = this.findStation(id);
+        boolean success = false;
         if (info != null) {
-            stopStation(info);
+            success = stopStation(info);
         } else {
             throw new RuntimeException("Unknown process id: " + id);
         }
+        return success;
     }    
     
     /**
@@ -215,7 +221,8 @@ public class StationManager {
      * 
      * @param info
      */
-    synchronized void stopStation(StationInfo info) {
+    synchronized boolean stopStation(StationInfo info) {
+        boolean success = false;
         if (info != null) {
             Process p = info.process;
             LOGGER.info("Stopping station: " + info.stationName);
@@ -230,11 +237,13 @@ public class StationManager {
             if (!p.isAlive()) {
                 info.alive = false;
                 LOGGER.info("Stopped station: " + info.stationName);
+                success = true;
             } else {
                 LOGGER.severe("Failed to stop station: " + info.stationName);
                 // FIXME: Should this throw an exception???
             }
         }
+        return success;
     }
     
     /**
@@ -271,11 +280,22 @@ public class StationManager {
         return n;
     }
     
+    synchronized int stopStations(List<Integer> ids) {
+        int n = 0;
+        List<StationInfo> stations = findStations(ids);
+        for (StationInfo station : stations) {
+            if (stopStation(station)) {
+                ++n;
+            }
+        }
+        return n;
+    }
+    
     /**
      * Remove all stations, returning number of stations removed.
      * @return The number of stations removed.
      */
-    synchronized int removeAllStations() {
+    synchronized int removeAll() {
         return removeStations(getStationIDs());
     }
         
@@ -304,6 +324,18 @@ public class StationManager {
         }
     }
     
+    int getAliveCount() {
+        int n = 0;
+        for (StationInfo station : this.stations) {
+            updateStation(station);
+            if (station.alive) {
+                ++n;
+            }
+        }
+        return n;
+    }
+    
+    /*
     private boolean stationExists(Integer id) {
         boolean exists = false;
         for (StationInfo station : this.stations) {
@@ -314,4 +346,5 @@ public class StationManager {
         }
         return exists;
     }
+    */
 }

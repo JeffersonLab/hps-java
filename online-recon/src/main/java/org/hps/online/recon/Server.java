@@ -98,11 +98,17 @@ public final class Server {
         }
     }
 
+    /**
+     * Handler for a client command on the server.
+     */
     abstract class CommandHandler {                   
                
         abstract CommandResult execute(JSONObject jo);
     }
-    
+
+    /**
+     * Generic class for returning command results.
+     */
     abstract class CommandResult {
     }
        
@@ -158,24 +164,33 @@ public final class Server {
 
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            int id = -1;
-            if (parameters.has("id")) {
-                id = parameters.getInt("id");
+            List<Integer> ids = new ArrayList<Integer>();
+            if (parameters.has("ids")) {
+                JSONArray arr = parameters.getJSONArray("ids");
+                for (int i = 0; i < arr.length(); i++) {
+                    ids.add(arr.getInt(i));
+                }
             }
-            if (id != -1) {
-                // Return JSON object with single station info
-                StationInfo info = stationManager.findStation(id);
-                if (info != null) {
-                    res = new JSONResult(info.toJSON());
-                } else {
-                    res = new CommandStatus(STATUS_ERROR, "Unknown process id: " + id);
-                }
+            JSONArray arr = new JSONArray();
+            if (ids.size() == 0) {
+                for (StationInfo station : stationManager.getStations()) {
+                    JSONObject jo = station.toJSON();
+                    arr.put(jo);
+                }                
             } else {
-                // Return JSON array of station data               
-                JSONArray arr = new JSONArray();
-                for (StationInfo info : stationManager.getStations()) {
-                    arr.put(info.toJSON());
+                for (Integer id : ids) {
+                    StationInfo station = stationManager.findStation(id);
+                    if (station == null) {                               
+                        // One of the station IDs is invalid.  Just return message about the first bad one.
+                        res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
+                        break;
+                    } else {
+                        JSONObject jo = station.toJSON();
+                        arr.put(jo);
+                    }
                 }
+            }
+            if (res == null) {
                 res = new GenericResult(arr);
             }
             return res;
@@ -191,7 +206,7 @@ public final class Server {
                 count = parameters.getInt("count");
             }
             try {                 
-                LOGGER.info("Starting processes: " + count);
+                LOGGER.info("Starting stations: " + count);
                 for (int i = 0; i < count; i++) {
                     LOGGER.info("Creating process: " + i);
                     Server.this.stationManager.createStation(parameters);
@@ -207,17 +222,31 @@ public final class Server {
     
     class StopCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
-            CommandStatus res = null;
-            int id = -1;
-            if (parameters.has("id")) {
-                id = parameters.getInt("id");
+            CommandResult res = null;
+            List<Integer> ids = new ArrayList<Integer>();
+            if (parameters.has("ids")) {
+                JSONArray arr = parameters.getJSONArray("ids");
+                for (int i = 0; i < arr.length(); i++) {
+                    ids.add(arr.getInt(i));
+                }
             }
-            if (id != -1) {
-                stationManager.stopStation(id);
-                res = new CommandStatus(STATUS_SUCCESS, "Stopped process: " + id);
+            if (ids.size() == 0) {
+                LOGGER.info("Stopping ALL stations!");
+                int nalive = Server.this.getStationManager().getAliveCount();
+                int nstopped = Server.this.getStationManager().stopAll();
+                if (nstopped < nalive) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Stopped all stations.");
+                }
             } else {
-                stationManager.stopAll();
-                res = new CommandStatus(STATUS_SUCCESS, "Stopped all processes");
+                LOGGER.info("Stopping stations: " + ids.toString());
+                int n = Server.this.getStationManager().stopStations(ids);
+                if (n < ids.size()) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
+                }
             }            
             return res;
         }
@@ -251,7 +280,7 @@ public final class Server {
             }
             if (ids.size() == 0) {
                 LOGGER.info("Removing all stations!");               
-                Server.this.getStationManager().removeAllStations();
+                Server.this.getStationManager().removeAll();
                 if (Server.this.getStationManager().getStations().size() > 0) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
                 } else {
