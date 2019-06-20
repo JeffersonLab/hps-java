@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 
 /**
@@ -407,6 +408,48 @@ public class StationManager {
             ++started;
         }
         return started;
+    }
+    
+    boolean cleanup(StationInfo station) {
+        LOGGER.info("Cleaning up station: " + station.stationName);
+        update(station);
+        boolean deleted = false;
+        if (!station.alive) {
+            try {
+                LOGGER.info("Deleting station " + station.stationName + " dir: " + station.dir.getPath());
+                FileUtils.deleteDirectory(station.dir);
+                deleted = true;
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Failed to cleanup station: " + station.stationName, e);
+            }
+        } else {
+            LOGGER.warning("Cannot cleanup station " + station.stationName + " which is still alive.");
+        }
+        LOGGER.info("Done cleaning up station: " + station.stationName);
+        return deleted;
+    }
+    
+    int cleanup(List<Integer> ids) {
+        int cleaned = 0;
+        List<StationInfo> stations = this.find(ids);
+        for (StationInfo station : stations) {
+            if (cleanup(station)) {
+                cleaned++;
+            }
+        }
+        return cleaned;
+    }
+    
+    int cleanupAll() {
+        int n = 0;
+        for (StationInfo station : this.stations) {
+            if (!station.alive) {
+                if (cleanup(station)) {
+                    n++;
+                }
+            }
+        }
+        return n;
     }
     
     /*

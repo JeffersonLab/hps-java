@@ -69,6 +69,8 @@ public final class Server {
                         handler = new ConfigCommandHandler();
                     } else if (command.equals("remove")) {
                         handler = new RemoveCommandHandler();
+                    } else if (command.equals("cleanup")) {
+                        handler = new CleanupCommandHandler();
                     }
                     
                     if (handler != null) {
@@ -366,6 +368,38 @@ public final class Server {
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
                 }
+            }            
+            return res;
+        }
+    }
+    
+    class CleanupCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject parameters) {
+            CommandResult res = null;
+            List<Integer> ids = new ArrayList<Integer>();
+            if (parameters.has("ids")) {
+                JSONArray arr = parameters.getJSONArray("ids");
+                for (int i = 0; i < arr.length(); i++) {
+                    ids.add(arr.getInt(i));
+                }
+            }
+            if (ids.size() == 0) {
+                LOGGER.info("Cleaning up all inactive stations!");
+                int inactive = Server.this.stationManager.getInactiveCount();
+                int cleaned = Server.this.stationManager.cleanupAll();
+                if (cleaned < inactive) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station."); 
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
+                }
+            } else {
+                LOGGER.info("Cleaning up stations: " + ids.toString());
+                int cleaned = Server.this.stationManager.cleanup(ids);
+                if (cleaned < ids.size()) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station.");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
+                }                
             }            
             return res;
         }

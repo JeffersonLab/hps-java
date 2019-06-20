@@ -18,6 +18,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.hps.online.recon.ClientCommand.CleanupCommand;
 import org.hps.online.recon.ClientCommand.ConfigCommand;
 import org.hps.online.recon.ClientCommand.CreateCommand;
 import org.hps.online.recon.ClientCommand.ListCommand;
@@ -65,12 +66,14 @@ public final class Client {
     }
     
     private void buildCommandMap() {
+        
         addCommand(new CreateCommand());
         addCommand(new StartCommand());
         addCommand(new StopCommand());
         addCommand(new RemoveCommand());
         addCommand(new ListCommand());
         addCommand(new ConfigCommand());
+        addCommand(new CleanupCommand());
         
         commands = commandMap.keySet();
     }

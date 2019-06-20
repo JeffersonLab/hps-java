@@ -275,6 +275,29 @@ abstract class ClientCommand {
         }        
     }
     
+    static final class CleanupCommand extends ClientCommand {
+        private List<Integer> ids = new ArrayList<Integer>();
+        
+        CleanupCommand() {            
+            super("cleanup", "Delete a station's working directory and files", "[IDs]",
+                    "Provide a list of IDs or none to cleanup all");
+        }
+                
+        void process(CommandLine cl) {
+            super.process(cl);
+            for (String arg : cl.getArgList()) {
+                ids.add(Integer.parseInt(arg));
+            }
+        }
+        
+        public JSONObject toJSON() {
+            JSONObject jo = super.toJSON();
+            JSONObject params = jo.getJSONObject("parameters");
+            params.put("ids", this.ids);
+            return jo;
+        }
+    }
+    
     /**
      * Start a list of existing stations by their IDs or 
      * attempt to start all stations if no IDs are provided.
