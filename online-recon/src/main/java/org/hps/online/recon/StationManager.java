@@ -15,13 +15,16 @@ import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 
 /**
- * Manages online reconstruction system processes.
+ * Manages online reconstruction stations.
  */
 public class StationManager {
 
+    /**
+     * Information for managing a single online reconstruction station.
+     */
     class StationInfo {
         
-        volatile boolean alive;
+        volatile boolean active;
         List<String> command;
         File dir;
         int id;
@@ -33,7 +36,7 @@ public class StationManager {
         JSONObject toJSON() {
             JSONObject jo = new JSONObject();
             jo.put("pid", pid);
-            jo.put("alive", alive);
+            jo.put("active", active);
             jo.put("id", id);
             jo.put("station", stationName);
             jo.put("command", String.join(" ", command));
@@ -72,7 +75,11 @@ public class StationManager {
     private final Server server;
     
     private volatile int stationID = 1;
-    
+
+    /**
+     * Define station list as synchronized because we do not want different
+     * threads mucking with it at the same time.
+     */
     private final List<StationInfo> stations = Collections.synchronizedList(
             new ArrayList<StationInfo>());
     
@@ -100,7 +107,7 @@ public class StationManager {
         
         update(station);
                 
-        if (!station.alive) {
+        if (!station.active) {
                 
             List<String> command = station.command;
             File dir = station.dir;
@@ -122,11 +129,11 @@ public class StationManager {
 
             station.process = p;
             station.pid = getPid(p);
-            station.alive = true;
+            station.active = true;
         
             LOGGER.info("Successfully started station: " + station.stationName);
         } else {
-            LOGGER.warning("Station is already alive: " + station.stationName);
+            LOGGER.warning("Station is already active: " + station.stationName);
         }            
     }
     
@@ -294,7 +301,7 @@ public class StationManager {
                 e.printStackTrace();
             }
             if (!p.isAlive()) {
-                info.alive = false;
+                info.active = false;
                 LOGGER.info("Stopped station: " + info.stationName);
                 success = true;
             } else {
@@ -313,12 +320,12 @@ public class StationManager {
     synchronized boolean remove(StationInfo info) {
         LOGGER.info("Removing station: " + info.stationName);
         update(info);
-        if (info.alive == false) {
+        if (info.active == false) {
             this.stations.remove(info);
             LOGGER.info("Done removing station: " + info.stationName);
             return true;
         } else {
-            LOGGER.warning("Failed to remove station " + info.stationName + " because it is still alive!");
+            LOGGER.warning("Failed to remove station " + info.stationName + " because it is still active!");
             return false;
         }
     }
@@ -385,7 +392,7 @@ public class StationManager {
     synchronized private void update(StationInfo station) {
         if (station.process != null) {
             if (!station.process.isAlive()) {
-                station.alive = false;
+                station.active = false;
             }
         }
     }
@@ -398,7 +405,7 @@ public class StationManager {
         int n = 0;
         for (StationInfo station : this.stations) {
             update(station);
-            if (station.alive) {
+            if (station.active) {
                 ++n;
             }
         }
@@ -409,7 +416,7 @@ public class StationManager {
         int n = 0;
         for (StationInfo station : this.stations) {
             update(station);
-            if (!station.alive) {
+            if (!station.active) {
                 ++n;
             }
         }
@@ -420,7 +427,7 @@ public class StationManager {
         int started = 0;
         for (StationInfo station : this.stations) {
             update(station);
-            if (!station.alive) {
+            if (!station.active) {
                 try {
                     this.start(station);
                     ++started;
@@ -450,7 +457,7 @@ public class StationManager {
         LOGGER.info("Cleaning up station: " + station.stationName);
         update(station);
         boolean deleted = false;
-        if (!station.alive) {
+        if (!station.active) {
             try {
                 LOGGER.info("Deleting station work dir: " + station.dir.getPath());
                 FileUtils.deleteDirectory(station.dir);
@@ -459,7 +466,7 @@ public class StationManager {
                 LOGGER.log(Level.SEVERE, "Failed to cleanup station: " + station.stationName, e);
             }
         } else {
-            LOGGER.warning("Cannot cleanup station " + station.stationName + " which is still alive.");
+            LOGGER.warning("Cannot cleanup station " + station.stationName + " which is still active.");
         }
         LOGGER.info("Done cleaning up station: " + station.stationName);
         return deleted;
@@ -479,7 +486,7 @@ public class StationManager {
     synchronized int cleanupAll() {
         int n = 0;
         for (StationInfo station : this.stations) {
-            if (!station.alive) {
+            if (!station.active) {
                 if (cleanup(station)) {
                     n++;
                 }
