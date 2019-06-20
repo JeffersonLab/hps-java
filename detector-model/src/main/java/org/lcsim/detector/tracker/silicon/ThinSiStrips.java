@@ -27,7 +27,7 @@ public class ThinSiStrips extends SiStrips {
      */
     public ThinSiStrips(ChargeCarrier carrier, double pitch, IDetectorElement detector, ITransform3D parentToLocal) {
         super(carrier, pitch, detector, parentToLocal);
-        System.out.println("ThinSiStrips::Setting up strips with pitch = " + pitch);
+    //        System.out.println("ThinSiStrips::Setting up strips with pitch = " + pitch);
         _length = getLength();
     }
 
@@ -36,7 +36,7 @@ public class ThinSiStrips extends SiStrips {
      */
     public ThinSiStrips(ChargeCarrier carrier, double pitch, int nStrips, IDetectorElement detector, ITransform3D parentToLocal) {
         super(carrier, pitch, nStrips, detector, parentToLocal);
-        System.out.println("ThinSiStrips::Setting up strips with pitch = " + pitch);
+//        System.out.println("ThinSiStrips::Setting up strips with pitch = " + pitch);
         _length = getLength();
     }
 
@@ -53,14 +53,14 @@ public class ThinSiStrips extends SiStrips {
 
     @Override
     public int getCellID(Hep3Vector position) {
-        System.out.println("[ ThinSiStrips ][ getCellID ]: Local to Global: " + getLocalToGlobal().transformed(position).toString());
-        System.out.println("[ ThinSiStrips ][ getCellID ]: Local to Parent: " + getParentToLocal().inverse().transformed(position).toString());
+//        System.out.println("[ ThinSiStrips ][ getCellID ]: Local to Global: " + getLocalToGlobal().transformed(position).toString());
+//        System.out.println("[ ThinSiStrips ][ getCellID ]: Local to Parent: " + getParentToLocal().inverse().transformed(position).toString());
 
         int id = (int) Math.round((position.x() + _strip_offset) / _pitch);
-        System.out.println("[ ThinSiStrips ][ getCellID ]: ID Before check: " + id);
+//        System.out.println("[ ThinSiStrips ][ getCellID ]: ID Before check: " + id);
         if (position.y() > 0)
             id = (getNCells() - id - 1);
-        System.out.println("[ ThinSiStrips ][ getCellID ]: ID After check: " + id);
+//        System.out.println("[ ThinSiStrips ][ getCellID ]: ID After check: " + id);
         return id;
     }
 
@@ -75,12 +75,12 @@ public class ThinSiStrips extends SiStrips {
             xmax = Math.max(xmax, vertex.x());
         }
 
-        System.out.println("[ ThinSiStrips ][ setStripNumbering ]: x min: " + xmin);
-        System.out.println("[ ThinSiStrips ][ setStripNumbering ]: x max: " + xmax);
+  //      System.out.println("[ ThinSiStrips ][ setStripNumbering ]: x min: " + xmin);
+  //      System.out.println("[ ThinSiStrips ][ setStripNumbering ]: x max: " + xmax);
 
         int nStrips = 2 * ((int) Math.ceil((xmax - xmin) / getPitch(0)));
 
-        System.out.println("[ ThinSiStrips ][ setStripNumbering ]: Number of strips: " + nStrips);
+//        System.out.println("[ ThinSiStrips ][ setStripNumbering ]: Number of strips: " + nStrips);
 
         super.setNStrips(nStrips);
     }
@@ -95,16 +95,16 @@ public class ThinSiStrips extends SiStrips {
             xmax = Math.max(xmax, vertex.x());
         }
 
-        System.out.println("[ ThinSiStrips ][ setStripOffset ]: x min: " + xmin);
-        System.out.println("[ ThinSiStrips ][ setStripOffset ]: x max: " + xmax);
+//        System.out.println("[ ThinSiStrips ][ setStripOffset ]: x min: " + xmin);
+//        System.out.println("[ ThinSiStrips ][ setStripOffset ]: x max: " + xmax);
 
         double stripsCenter = (xmin + xmax) / 2;
-        System.out.println("[ ThinSiStrips ][ setStripOffset ]: strips center: " + stripsCenter);
-        System.out.println("[ ThinSiStrips ][ setStripOffset ]: ((nStrips/2) - 1)*pitch)/2: " + (((_nstrips / 2) - 1) * _pitch) / 2);
+ //       System.out.println("[ ThinSiStrips ][ setStripOffset ]: strips center: " + stripsCenter);
+ //       System.out.println("[ ThinSiStrips ][ setStripOffset ]: ((nStrips/2) - 1)*pitch)/2: " + (((_nstrips / 2) - 1) * _pitch) / 2);
 
         _strip_offset = (((_nstrips / 2) - 1) * _pitch) / 2 - stripsCenter;
 
-        System.out.println("[ ThinSiStrips ][ setStripOffset ]: Offset: " + _strip_offset);
+ //       System.out.println("[ ThinSiStrips ][ setStripOffset ]: Offset: " + _strip_offset);
     }
     // length of strip
 
@@ -124,10 +124,10 @@ public class ThinSiStrips extends SiStrips {
         }
 
 //        System.out.println("[ ThinSiStrips ][ getCellPosition ]: After strip #: " + stripNumber);  
-        System.out.println("[ ThinSiStrips ][ getCellPosition ]: strip # = " + stripNumber
-                + " stripFromEdge = " + stripFromEdge);
+//        System.out.println("[ ThinSiStrips ][ getCellPosition ]: strip # = " + stripNumber
+//                + " stripFromEdge = " + stripFromEdge);
         Hep3Vector stripPosition = new BasicHep3Vector(stripFromEdge * _pitch - _strip_offset, vposition, 0.0);
-        System.out.println("[ ThinSiStrips ][ getCellPosition ]: stripPosition = " + stripPosition.toString());
+//        System.out.println("[ ThinSiStrips ][ getCellPosition ]: stripPosition = " + stripPosition.toString());
         return stripPosition;
     }
 

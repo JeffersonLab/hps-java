@@ -121,7 +121,6 @@ public class StripMaker {
             if (electrodes instanceof ThinSiStrips) {
                 if (thin_hits.get(electrodes) == null)
                     thin_hits.put(electrodes, new ArrayList<FittedRawTrackerHit>());                    
-                System.out.println("Adding a thin hit "+hps_hit.getRawTrackerHit().getCellID());
                 thin_hits.get(electrodes).add(hps_hit);
             } else {
                 if (electrode_hits.get(electrodes) == null)
