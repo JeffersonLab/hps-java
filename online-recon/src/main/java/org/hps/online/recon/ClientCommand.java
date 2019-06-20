@@ -303,25 +303,4 @@ abstract class ClientCommand {
         }        
     }
     
-    /**
-     * Get a command by name.    
-     * @param name The name of the command
-     * @return The named command or null if it does not exist
-     */
-    static ClientCommand getCommand(String name) {
-        if (name.equals("create")) {
-            return new CreateCommand();
-        } else if (name.equals("start")) {
-            return new StartCommand();
-        } else if (name.equals("stop")) {
-            return new StopCommand();
-        } else if (name.equals("list")) {
-            return new ListCommand();
-        } else if (name.equals("config")) {
-            return new ConfigCommand();
-        } else if (name.equals("remove")) {
-            return new RemoveCommand();
-        }
-        return null;
-    }
 }

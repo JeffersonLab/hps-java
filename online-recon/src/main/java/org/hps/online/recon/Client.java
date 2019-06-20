@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -15,6 +17,12 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.hps.online.recon.ClientCommand.ConfigCommand;
+import org.hps.online.recon.ClientCommand.CreateCommand;
+import org.hps.online.recon.ClientCommand.ListCommand;
+import org.hps.online.recon.ClientCommand.RemoveCommand;
+import org.hps.online.recon.ClientCommand.StartCommand;
+import org.hps.online.recon.ClientCommand.StopCommand;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,11 +39,36 @@ public final class Client {
     private File outputFile;
     
     private CommandLineParser parser = new DefaultParser();
-                 
+       
+    private Map<String, ClientCommand> commandMap = new LinkedHashMap<String, ClientCommand>();
+    
+    Client() {
+        buildCommandMap();
+    }
+    
     final void printUsage(Options options) {
         final HelpFormatter help = new HelpFormatter();
+        final String commands = String.join(" ", commandMap.keySet());
         help.printHelp("Client [command]", "Send commands to the online recon server",
-                options, "Commands: create start stop list config remove");
+                options, "Commands: " + commands);
+    }
+    
+    void buildCommandMap() {
+        addCommand(new CreateCommand());
+        addCommand(new StartCommand());
+        addCommand(new StopCommand());
+        addCommand(new RemoveCommand());
+        addCommand(new ListCommand());
+        addCommand(new ConfigCommand());
+    }
+    
+    void addCommand(ClientCommand command) {
+        String name = command.getName();
+        commandMap.put(name, command);
+    }
+    
+    ClientCommand getCommand(String name) {
+        return commandMap.get(name);
     }
 
     void run(String args[]) {
@@ -79,7 +112,7 @@ public final class Client {
         ClientCommand command = null;
         if (cl.getArgs().length > 0) {
             final String commandName = cl.getArgs()[0];
-            command = ClientCommand.getCommand(commandName);
+            command = getCommand(commandName);
             if (command == null) {
                 // Extra argument was not a valid command.
                 printUsage(options);
