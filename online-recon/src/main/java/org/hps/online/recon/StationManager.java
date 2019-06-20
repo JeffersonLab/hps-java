@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.json.JSONObject;
@@ -36,7 +37,7 @@ public class StationManager {
             jo.put("station", stationName);
             jo.put("command", String.join(" ", command));
             jo.put("dir", dir.getPath());
-            jo.put("log", log.getPath());
+            jo.put("log", log != null ? log.getPath() : "");
             return jo;
         }
     }
@@ -49,13 +50,15 @@ public class StationManager {
     
     static Long getPid(Process p) {
         long pid = -1;       
-        try {
-            Field f = p.getClass().getDeclaredField("pid");
-            f.setAccessible(true);
-            pid = f.getLong(p);
-            f.setAccessible(false);
-        } catch (Exception e) {
-            pid = -1;
+        if (p != null) {
+            try {
+                Field f = p.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                pid = f.getLong(p);
+                f.setAccessible(false);
+            } catch (Exception e) {
+                pid = -1;
+            }
         }
         return pid;
     }
@@ -75,7 +78,7 @@ public class StationManager {
         stations.add(info);
     }
        
-    synchronized File createProcessDir(String name) {
+    synchronized File createStationDir(String name) {
         String path = server.getWorkDir().getPath() + File.separator + name;
         File dir = new File(path);
         dir.mkdir();
@@ -85,15 +88,51 @@ public class StationManager {
         return dir;
     }
     
-    void createStation(JSONObject parameters) throws IOException {
+    void start(StationInfo station) throws IOException {
+        
+        LOGGER.info("Starting station: " + station.stationName);
+        
+        update(station);
+                
+        if (!station.alive) {
+                
+            List<String> command = station.command;
+            File dir = station.dir;
+            Integer stationID = station.id;
+
+            ProcessBuilder pb = new ProcessBuilder(command);
+
+            pb.directory(dir);
+            File log = new File(dir.getPath() + File.separator + "out." + stationID.toString() + ".log");
+            pb.redirectErrorStream(true);
+            pb.redirectOutput(Redirect.appendTo(log));
+
+            station.log = log;
+
+            LOGGER.info("Starting command: " + String.join(" ", pb.command()));        
+
+            // Can throw exception.
+            Process p = pb.start();
+
+            station.process = p;
+            station.pid = getPid(p);
+            station.alive = true;
+        
+            LOGGER.info("Successfully started station: " + station.stationName);
+        } else {
+            LOGGER.warning("Station is already alive: " + station.stationName);
+        }            
+    }
+    
+    StationInfo create(JSONObject parameters) {
         
         StationConfiguration stationConfig = server.getStationConfig();
         
         String jarPath = OnlineReconStation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
           
-        Integer processID = getNextStationID();
-        String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", processID);
-        File dir = createProcessDir(stationName);
+        Integer stationID = getNextStationID();
+        String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
+        File dir = createStationDir(stationName);
         
         Properties prop = System.getProperties();
                 
@@ -138,41 +177,29 @@ public class StationManager {
         command.add(stationConfig.getEventPrintInterval().toString());
         command.add("-e");
         command.add(stationConfig.getEventSaveInterval().toString());
-                 
-        ProcessBuilder pb = new ProcessBuilder(command);
-               
-        pb.directory(dir);
-        File log = new File(dir.getPath() + File.separator + "out." + processID.toString() + ".log");
-        pb.redirectErrorStream(true);
-        pb.redirectOutput(Redirect.appendTo(log));
-
-        LOGGER.info("Starting command: " + String.join(" ", pb.command()));
-
-        // This will throw an exception if there is a problem starting the process
-        // which is fine as the caller should catch and handle it.  The process 
-        // won't be registered, which is also fine as it isn't valid.
-        Process p = pb.start();
         
         // Add new station info.
         StationInfo info = new StationInfo();
-        info.process = p;
-        info.pid = getPid(p);
-        info.id = processID;
+
+        info.id = stationID;
         info.stationName = stationName;
         info.dir = dir;
-        info.log = log;
         info.command = command;
-        info.alive = true;
-        add(info);       
+        
+        add(info);
+        
+        return info;
     }
                 
-    StationInfo findStation(int id) {
+    StationInfo find(int id) {
+        StationInfo station = null;
         for (StationInfo info : stations) {
             if (info.id == id) {
-                return info;
+                station = info;
+                break;
             }
         }
-        return null;
+        return station;
     }
     
     synchronized int getNextStationID() {
@@ -193,7 +220,7 @@ public class StationManager {
         LOGGER.info("Stopping ALL stations!");
         int n = 0;
         for (StationInfo info : this.stations) {
-            if (stopStation(info)) {
+            if (stop(info)) {
                 ++n;
             }
         }
@@ -201,12 +228,12 @@ public class StationManager {
         return n;
     }
     
-    boolean stopStation(int id) {
+    boolean stop(int id) {
         LOGGER.info("Stopping station with id: " + id);
-        StationInfo info = this.findStation(id);
+        StationInfo info = this.find(id);
         boolean success = false;
         if (info != null) {
-            success = stopStation(info);
+            success = stop(info);
         } else {
             throw new RuntimeException("Unknown process id: " + id);
         }
@@ -216,12 +243,12 @@ public class StationManager {
     /**
      * Stop a station.
      * 
-     * This does not remove it from the station list.  The 'remove' command
+     * This does not remove it from the station list.  The "remove" command
      * must be used to do this separately.
      * 
      * @param info
      */
-    synchronized boolean stopStation(StationInfo info) {
+    synchronized boolean stop(StationInfo info) {
         boolean success = false;
         if (info != null) {
             Process p = info.process;
@@ -251,9 +278,9 @@ public class StationManager {
      * @param info
      * @return True if the station was successfully removed.
      */
-    boolean removeStation(StationInfo info) {
+    boolean remove(StationInfo info) {
         LOGGER.info("Removing station: " + info.stationName);
-        updateStation(info);
+        update(info);
         if (info.alive == false) {
             this.stations.remove(info);
             LOGGER.info("Done removing station: " + info.stationName);
@@ -269,22 +296,22 @@ public class StationManager {
      * @param ids
      * @return The number of stations successfully removed.
      */
-    synchronized int removeStations(List<Integer> ids) {
+    synchronized int remove(List<Integer> ids) {
         int n = 0;
-        List<StationInfo> stations = findStations(ids);
+        List<StationInfo> stations = find(ids);
         for (StationInfo station : stations) {
-            if (removeStation(station)) {
+            if (remove(station)) {
                 ++n;
             }
         }
         return n;
     }
     
-    synchronized int stopStations(List<Integer> ids) {
+    synchronized int stop(List<Integer> ids) {
         int n = 0;
-        List<StationInfo> stations = findStations(ids);
+        List<StationInfo> stations = find(ids);
         for (StationInfo station : stations) {
-            if (stopStation(station)) {
+            if (stop(station)) {
                 ++n;
             }
         }
@@ -296,11 +323,11 @@ public class StationManager {
      * @return The number of stations removed.
      */
     synchronized int removeAll() {
-        return removeStations(getStationIDs());
+        return remove(getStationIDs());
     }
         
     // FIXME: Should have some kind of exception/error if ID does not exist.
-    private List<StationInfo> findStations(List<Integer> ids) {
+    private List<StationInfo> find(List<Integer> ids) {
         List<StationInfo> stations = new ArrayList<StationInfo>();
         for (StationInfo station : this.stations) {
             if (ids.contains(station.id)) {
@@ -318,21 +345,68 @@ public class StationManager {
         return ids;
     }
     
-    private void updateStation(StationInfo station) {
-        if (!station.process.isAlive()) {
-            station.alive = false;
+    private void update(StationInfo station) {
+        if (station.process != null) {
+            if (!station.process.isAlive()) {
+                station.alive = false;
+            }
         }
+    }
+    
+    int getStationCount() {
+        return this.stations.size();
     }
     
     int getAliveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
-            updateStation(station);
+            update(station);
             if (station.alive) {
                 ++n;
             }
         }
         return n;
+    }
+    
+    int getInactiveCount() {
+        int n = 0;
+        for (StationInfo station : this.stations) {
+            update(station);
+            if (!station.alive) {
+                ++n;
+            }
+        }
+        return n;
+    }
+    
+    int startAll() {
+        int started = 0;
+        for (StationInfo station : this.stations) {
+            update(station);
+            if (!station.alive) {
+                try {
+                    this.start(station);
+                    ++started;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return started;
+    }
+    
+    int start(List<Integer> ids) {
+        int started = 0;
+        List<StationInfo> stations = this.find(ids);
+        for (StationInfo station : stations) {
+            try {
+                start(station);
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
+            }
+            ++started;
+        }
+        return started;
     }
     
     /*

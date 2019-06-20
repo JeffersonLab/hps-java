@@ -20,8 +20,8 @@ import org.json.JSONObject;
 abstract class ClientCommand {
 
     private final String name;
-    private Map<String, Object> parameters = new HashMap<String, Object>();
-    
+    private Map<String, Object> parameters = new HashMap<String, Object>();    
+        
     ClientCommand(String name) {
         this.name = name;
     }
@@ -78,23 +78,28 @@ abstract class ClientCommand {
     abstract void process(CommandLine cl);
                
     /**
-     * Start one or more new online reconstruction stations using
+     * Create one or more new online reconstruction stations using
      * the current configuration properties from the server
      * (the "config" command can be used to change the properties).
      */
-    static final class StartCommand extends ClientCommand {
+    static final class CreateCommand extends ClientCommand {
 
-        StartCommand() {
-            super("start");
+        CreateCommand() {
+            super("create");
         }
                                         
         void setCount(Integer count) {
             this.setParameter("count", count.toString());
         }
         
+        void setStart(Boolean start) {
+            this.setParameter("start", start);
+        }
+        
         Options getOptions() {
             Options options = new Options();
             options.addOption(new Option("n", "number", true, "number of instances to start (default 1)")); 
+            options.addOption(new Option("s", "start", false, "automatically start the new stations"));
             return options;
         }
                 
@@ -102,6 +107,11 @@ abstract class ClientCommand {
         void process(CommandLine cl) {
             if (cl.hasOption("n")) {
                 setCount(Integer.valueOf(cl.getOptionValue("n")));
+            }
+            if (cl.hasOption("s")) {
+                setStart(true);
+            } else {
+                setStart(false);
             }
         }
     }    
@@ -229,8 +239,36 @@ abstract class ClientCommand {
         }        
     }
     
+    /**
+     * Start a list of existing stations by their IDs or 
+     * attempt to start all stations if no IDs are provided.
+     */
+    static final class StartCommand extends ClientCommand {
+        
+        private List<Integer> ids = new ArrayList<Integer>();
+        
+        StartCommand() {            
+            super("start");
+        }
+                
+        void process(CommandLine cl) {
+            for (String arg : cl.getArgList()) {
+                ids.add(Integer.parseInt(arg));
+            }
+        }
+        
+        public JSONObject toJSON() {
+            JSONObject jo = super.toJSON();
+            JSONObject params = jo.getJSONObject("parameters");
+            params.put("ids", this.ids);
+            return jo;
+        }        
+    }
+        
     static ClientCommand getCommand(String name) {
-        if (name.equals("start")) {
+        if (name.equals("create")) {
+            return new CreateCommand();
+        } else if (name.equals("start")) {
             return new StartCommand();
         } else if (name.equals("stop")) {
             return new StopCommand();

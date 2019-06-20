@@ -13,6 +13,7 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -56,7 +57,9 @@ public final class Server {
                 try {
                     CommandHandler handler = null;
                     // TODO: lookup handlers in a static map
-                    if (command.equals("start")) {
+                    if (command.equals("create")) {
+                        handler = new CreateCommandHandler();
+                    } else if (command.equals("start")) {
                         handler = new StartCommandHandler();
                     } else if (command.equals("stop")) {
                         handler = new StopCommandHandler();
@@ -112,6 +115,10 @@ public final class Server {
     abstract class CommandResult {
     }
        
+    /**
+     * Return a result which describes result of command execution
+     * i.e. success or failure.
+     */
     class CommandStatus extends CommandResult {
         
         String message;
@@ -134,6 +141,10 @@ public final class Server {
         }
     }
     
+    /**
+     * Return a generic result with an object which can be converted to
+     * a JSON string.
+     */
     class GenericResult extends CommandResult {
         
         final Object o;
@@ -147,6 +158,9 @@ public final class Server {
         }        
     }
     
+    /**
+     * Return a JSON object.
+     */
     class JSONResult extends CommandResult {
         
         final JSONObject jo;
@@ -173,13 +187,15 @@ public final class Server {
             }
             JSONArray arr = new JSONArray();
             if (ids.size() == 0) {
+                // Return info on all stations.
                 for (StationInfo station : stationManager.getStations()) {
                     JSONObject jo = station.toJSON();
                     arr.put(jo);
                 }                
             } else {
+                // Return info on selected station IDs.
                 for (Integer id : ids) {
-                    StationInfo station = stationManager.findStation(id);
+                    StationInfo station = stationManager.find(id);
                     if (station == null) {                               
                         // One of the station IDs is invalid.  Just return message about the first bad one.
                         res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
@@ -198,24 +214,80 @@ public final class Server {
         
     }
     
-    class StartCommandHandler extends CommandHandler {
+    class CreateCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandStatus res = null;
             int count = 1;
+            boolean start = false;
             if (parameters.has("count")) {
                 count = parameters.getInt("count");
             }
-            try {                 
-                LOGGER.info("Starting stations: " + count);
-                for (int i = 0; i < count; i++) {
-                    LOGGER.info("Creating process: " + i);
-                    Server.this.stationManager.createStation(parameters);
-                }
-                res = new CommandStatus(STATUS_SUCCESS, "Started " + count + " processes successfully.");
-            } catch (IOException e) {
-                e.printStackTrace();
-                res = new CommandStatus(STATUS_ERROR, "Error creating new process.");
+            LOGGER.info("Creating stations: " + count);
+            if (parameters.has("start")) {
+                start = parameters.getBoolean("start");
+                LOGGER.info("Stations will be automatically started: " + start);
             }
+            int started = 0;
+            int created = 0;
+            for (int i = 0; i < count; i++) {
+                LOGGER.info("Creating station number: " + i);
+                StationInfo station = Server.this.stationManager.create(parameters);
+                LOGGER.info("Created station: " + station.stationName);
+                ++created;
+                if (start) {
+                    LOGGER.info("Starting station: " + station.stationName);
+                    try {
+                        Server.this.stationManager.start(station);
+                        ++started;
+                    } catch (IOException e) {
+                        LOGGER.log(Level.SEVERE, "Station failed to start.", e);
+                    }
+                }
+            }
+            LOGGER.info("Created " + created + " stations.");
+            if (start) {
+                LOGGER.info("Started " + started + " stations.");
+                if (started < count) {
+                    res = new CommandStatus(STATUS_SUCCESS, "Some stations failed to start.");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "Created and started " + started + " stations successfully.");
+                }
+            } else {
+                res = new CommandStatus(STATUS_SUCCESS, "Created " + created + " stations successfully.");
+            }
+            return res;
+        }
+    }
+    
+    class StartCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject parameters) {
+            CommandResult res = null;
+            List<Integer> ids = new ArrayList<Integer>();
+            if (parameters.has("ids")) {
+                JSONArray arr = parameters.getJSONArray("ids");
+                for (int i = 0; i < arr.length(); i++) {
+                    ids.add(arr.getInt(i));
+                }
+            }            
+            int started = 0;            
+            if (ids.size() == 0) {
+                int inactive = Server.this.getStationManager().getInactiveCount();
+                LOGGER.info("Attepting to start " + inactive + " inactive stations.");
+                started = Server.this.getStationManager().startAll();
+                if (started < inactive) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to start some stations.");
+                } else {
+                    res = new CommandStatus(STATUS_ERROR, "Started all stations successfull.");
+                }
+            } else {
+                started = Server.this.getStationManager().start(ids);
+                if (started < ids.size()) {
+                    res = new CommandStatus(STATUS_ERROR, "Failed to start some stations.");
+                } else {
+                    res = new CommandStatus(STATUS_ERROR, "Started " + ids.size() + " stations successfully.");
+                }
+            }
+           
             return res;
         }
     }
@@ -231,7 +303,7 @@ public final class Server {
                 }
             }
             if (ids.size() == 0) {
-                LOGGER.info("Stopping ALL stations!");
+                LOGGER.info("Stopping all stations!");
                 int nalive = Server.this.getStationManager().getAliveCount();
                 int nstopped = Server.this.getStationManager().stopAll();
                 if (nstopped < nalive) {
@@ -241,7 +313,7 @@ public final class Server {
                 }
             } else {
                 LOGGER.info("Stopping stations: " + ids.toString());
-                int n = Server.this.getStationManager().stopStations(ids);
+                int n = Server.this.getStationManager().stop(ids);
                 if (n < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
                 } else {
@@ -256,13 +328,13 @@ public final class Server {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
             if (parameters.length() == 0) {
-                LOGGER.info("Returning existing station config");
+                LOGGER.info("Returning existing station config.");
                 res = new JSONResult(Server.this.getStationConfig().toJSON());
             } else {
                 LOGGER.config("Loading new station config: " + parameters.toString());
                 Server.this.getStationConfig().fromJSON(parameters);
-                LOGGER.info("New config loaded.  Start a new station to use the new parameters.");
-                res = new CommandStatus(STATUS_SUCCESS, "Loaded new station config.");                
+                LOGGER.info("New config loaded.");
+                res = new CommandStatus(STATUS_SUCCESS, "Loaded new station config. Create a new station to use it.");
             }
             return res;
         }
@@ -281,14 +353,14 @@ public final class Server {
             if (ids.size() == 0) {
                 LOGGER.info("Removing all stations!");               
                 Server.this.getStationManager().removeAll();
-                if (Server.this.getStationManager().getStations().size() > 0) {
+                if (Server.this.getStationManager().getStationCount() > 0) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Removed all stations.");
                 }
             } else {
                 LOGGER.info("Removing stations: " + ids.toString());
-                int n = Server.this.getStationManager().removeStations(ids);
+                int n = Server.this.getStationManager().remove(ids);
                 if (n < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
                 } else {
@@ -390,7 +462,7 @@ public final class Server {
         if (cl.hasOption("h")) {
             final HelpFormatter help = new HelpFormatter();
             help.printHelp("Server", 
-                    "start the online reconstruction server",
+                    "Start the online reconstruction server",
                     options, "");
             System.exit(0);
         }
@@ -462,7 +534,7 @@ public final class Server {
         
     void start() {
         
-        // Schedule the plot timer.
+        // Schedule the plot task.
         if (this.plotFile != null) {
             LOGGER.info("Starting plot add task with output file " + this.plotFile + " and update interval of " + this.plotIntervalMillis + " ms.");
             this.plotTimer.schedule(new PlotAddTask(this, this.plotFile, dryRun), this.plotIntervalMillis, this.plotIntervalMillis);
