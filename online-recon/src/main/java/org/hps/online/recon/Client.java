@@ -112,7 +112,7 @@ public final class Client {
         // Create arg array for base client command.
         String baseArgs[] = new String[commandPos];
         System.arraycopy(args, 0, baseArgs, 0, commandPos);
-        System.out.println(Arrays.asList("baseArgs: " + Arrays.asList(baseArgs)));
+        //System.out.println(Arrays.asList("baseArgs: " + Arrays.asList(baseArgs)));
                 
         CommandLine cl;
         try {
@@ -141,7 +141,7 @@ public final class Client {
         int cmdArrayLen = args.length - baseArgs.length - 1;
         String cmdArgs[] = new String[cmdArrayLen];
         System.arraycopy(args, commandPos + 1, cmdArgs, 0, cmdArrayLen);
-        System.out.println("cmdArgs: " + Arrays.asList(cmdArgs));
+        //System.out.println("cmdArgs: " + Arrays.asList(cmdArgs));
                 
         // Parse command options.
         DefaultParser commandParser = new DefaultParser();
