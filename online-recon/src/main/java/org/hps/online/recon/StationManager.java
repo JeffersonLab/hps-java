@@ -48,6 +48,11 @@ public class StationManager {
     private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
        
     private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
+
+    private static final String JAR_PATH = 
+            OnlineReconStation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    
+    private static final Properties SYSTEM_PROPERTIES = System.getProperties();
     
     static Long getPid(Process p) {
         long pid = -1;       
@@ -89,7 +94,7 @@ public class StationManager {
         return dir;
     }
     
-    void start(StationInfo station) throws IOException {
+    synchronized void start(StationInfo station) throws IOException {
         
         LOGGER.info("Starting station: " + station.stationName);
         
@@ -128,34 +133,51 @@ public class StationManager {
     StationInfo create(JSONObject parameters) {
         
         StationConfiguration stationConfig = server.getStationConfig();
-        
-        String jarPath = OnlineReconStation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-          
+                  
         Integer stationID = getNextStationID();
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
         File dir = createStationDir(stationName);
+                       
+        List<String> command = buildCommand(stationConfig, stationName, dir);
+                        
+        // Add new station info.
+        StationInfo info = new StationInfo();
+        info.id = stationID;
+        info.stationName = stationName;
+        info.dir = dir;
+        info.command = command;        
+        add(info);
         
-        Properties prop = System.getProperties();
-                
+        return info;
+    }
+    
+    /**
+     * Build the command for running the station.
+     * @param stationConfig The station configuration
+     * @param stationName The unique name of the station
+     * @param dir The station's output directory
+     * @return A command list to be sent to the ProcessBuilder
+     */
+    private List<String> buildCommand(StationConfiguration stationConfig,
+            String stationName, File dir) {
         List<String> command = new ArrayList<String>();
         command.add("java");        
-        if (prop.containsKey(LOGGING_PROPERTY)) {
-            String logProp = prop.getProperty(LOGGING_PROPERTY);
+        if (SYSTEM_PROPERTIES.containsKey(LOGGING_PROPERTY)) {
+            String logProp = SYSTEM_PROPERTIES.getProperty(LOGGING_PROPERTY);
             if (new File(logProp).isAbsolute()) {
                 command.add("-D" + LOGGING_PROPERTY + "=" + logProp);
             }
         }
-        if (prop.containsKey(CONDITIONS_PROPERTY)) {
-            String condProp = prop.getProperty(CONDITIONS_PROPERTY);
+        if (SYSTEM_PROPERTIES.containsKey(CONDITIONS_PROPERTY)) {
+            String condProp = SYSTEM_PROPERTIES.getProperty(CONDITIONS_PROPERTY);
             if (new File(condProp.replaceAll("jdbc:sqlite:", "")).isAbsolute()) {
                 command.add("-D" + CONDITIONS_PROPERTY + "=" + condProp);
             }
         }
         command.add("-cp");
-        command.add(jarPath);
+        command.add(JAR_PATH);
         command.add(OnlineReconStation.class.getCanonicalName());
         
-        // TODO: This command string could be created via a utility method in the configuration class.
         command.add("-d");
         command.add(stationConfig.getDetectorName());
         command.add("-s");
@@ -179,17 +201,7 @@ public class StationManager {
         command.add("-e");
         command.add(stationConfig.getEventSaveInterval().toString());
         
-        // Add new station info.
-        StationInfo info = new StationInfo();
-
-        info.id = stationID;
-        info.stationName = stationName;
-        info.dir = dir;
-        info.command = command;
-        
-        add(info);
-        
-        return info;
+        return command;
     }
                 
     StationInfo find(int id) {
@@ -208,15 +220,29 @@ public class StationManager {
         return stationID - 1;
     }
     
+    /**
+     * Get an unmodifiable list of stations.
+     * @return
+     */
     List<StationInfo> getStations() {
         return Collections.unmodifiableList(this.stations);
     }
     
-    synchronized void setStationID(int stationID) {
-        this.stationID = stationID;
-        LOGGER.config("Set station ID: " + stationID);
+    synchronized boolean setStationID(int stationID) {
+        if (stationID >= 0) {
+            this.stationID = stationID;
+            LOGGER.config("Set station ID: " + stationID);
+            return true;
+        } else {
+            LOGGER.warning("Ignored bad station ID arg: " + stationID);
+            return false;
+        }
     }
     
+    /**
+     * Stop all stations.
+     * @return The number of stations stopped
+     */
     synchronized int stopAll() {
         LOGGER.info("Stopping ALL stations!");
         int n = 0;
@@ -229,6 +255,11 @@ public class StationManager {
         return n;
     }
     
+    /**
+     * Stop a station by its ID.
+     * @param id
+     * @return
+     */
     boolean stop(int id) {
         LOGGER.info("Stopping station with id: " + id);
         StationInfo info = this.find(id);
@@ -279,7 +310,7 @@ public class StationManager {
      * @param info
      * @return True if the station was successfully removed.
      */
-    boolean remove(StationInfo info) {
+    synchronized boolean remove(StationInfo info) {
         LOGGER.info("Removing station: " + info.stationName);
         update(info);
         if (info.alive == false) {
@@ -308,6 +339,11 @@ public class StationManager {
         return n;
     }
     
+    /**
+     * Stop a list of stations by their IDs.
+     * @param ids
+     * @return
+     */
     synchronized int stop(List<Integer> ids) {
         int n = 0;
         List<StationInfo> stations = find(ids);
@@ -346,7 +382,7 @@ public class StationManager {
         return ids;
     }
     
-    private void update(StationInfo station) {
+    synchronized private void update(StationInfo station) {
         if (station.process != null) {
             if (!station.process.isAlive()) {
                 station.alive = false;
@@ -358,7 +394,7 @@ public class StationManager {
         return this.stations.size();
     }
     
-    int getAliveCount() {
+    synchronized int getActiveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
             update(station);
@@ -369,7 +405,7 @@ public class StationManager {
         return n;
     }
     
-    int getInactiveCount() {
+    synchronized int getInactiveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
             update(station);
@@ -380,7 +416,7 @@ public class StationManager {
         return n;
     }
     
-    int startAll() {
+    synchronized int startAll() {
         int started = 0;
         for (StationInfo station : this.stations) {
             update(station);
@@ -396,7 +432,7 @@ public class StationManager {
         return started;
     }
     
-    int start(List<Integer> ids) {
+    synchronized int start(List<Integer> ids) {
         int started = 0;
         List<StationInfo> stations = this.find(ids);
         for (StationInfo station : stations) {
@@ -410,13 +446,13 @@ public class StationManager {
         return started;
     }
     
-    boolean cleanup(StationInfo station) {
+    synchronized boolean cleanup(StationInfo station) {
         LOGGER.info("Cleaning up station: " + station.stationName);
         update(station);
         boolean deleted = false;
         if (!station.alive) {
             try {
-                LOGGER.info("Deleting station " + station.stationName + " dir: " + station.dir.getPath());
+                LOGGER.info("Deleting station work dir: " + station.dir.getPath());
                 FileUtils.deleteDirectory(station.dir);
                 deleted = true;
             } catch (IOException e) {
@@ -429,7 +465,7 @@ public class StationManager {
         return deleted;
     }
     
-    int cleanup(List<Integer> ids) {
+    synchronized int cleanup(List<Integer> ids) {
         int cleaned = 0;
         List<StationInfo> stations = this.find(ids);
         for (StationInfo station : stations) {
@@ -440,7 +476,7 @@ public class StationManager {
         return cleaned;
     }
     
-    int cleanupAll() {
+    synchronized int cleanupAll() {
         int n = 0;
         for (StationInfo station : this.stations) {
             if (!station.alive) {
@@ -453,7 +489,7 @@ public class StationManager {
     }
     
     /*
-    private boolean stationExists(Integer id) {
+    private boolean exists(Integer id) {
         boolean exists = false;
         for (StationInfo station : this.stations) {
             if (station.id == id) {
