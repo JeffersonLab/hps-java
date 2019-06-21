@@ -160,7 +160,7 @@ public class SvtTimingInPlots extends Driver {
             maxSampleNumberPerSensorOppPlots.put(sensor,
                     histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number - Opposite", 6, 0, 6));
 
-            if (sensor.getLayerNumber() < 7) {
+            if (sensor.getLayerNumber() < 9) {
                 plotters.get("L1-L4 t0").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0Plots.get(sensor), this.createStyle("t0 [ns]", ""));
                 plotters.get("L1-L4 Amplitude").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
