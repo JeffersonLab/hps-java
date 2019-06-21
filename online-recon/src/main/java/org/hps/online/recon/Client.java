@@ -61,8 +61,9 @@ public final class Client {
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", commandMap.keySet());
-        help.printHelp("Client [command]", "Send commands to the online recon server",
-                OPTIONS, "Commands: " + commands);
+        help.printHelp("Client [options] [command] [command_options]", "Send commands to the online reconstruction server",
+                OPTIONS, "Commands: " + commands + '\n'
+                    + "Use 'Client [command] --help' for help with a specific command.");
     }
     
     private void buildCommandMap() {
