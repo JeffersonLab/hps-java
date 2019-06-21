@@ -28,8 +28,8 @@ public final class EvioEventConstants {
      */
     public static final int VTP_BANK_TAG = 57634;
 
-    public static final int VTP_TOP_RocID = 60011;
-    public static final int VTP_BOT_RocID = 60012;
+    public static final int VTP_TOP_RocID = 11;
+    public static final int VTP_BOT_RocID = 12;
 
     
     /**
