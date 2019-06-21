@@ -114,7 +114,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
      * @param subdetector the SVT subdetector object
      * @param conditions the conditions object
      */
-    void loadDefault(final Subdetector subdetector, final SvtConditions conditions) {
+    public void loadDefault(final Subdetector subdetector, final SvtConditions conditions) {
 
         LOGGER.info("loading default SVT conditions onto subdetector " + subdetector.getName());
 
