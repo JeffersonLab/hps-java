@@ -88,21 +88,33 @@ abstract class ClientCommand {
     }
     
     /**
-     * Process the command line options.
+     * Parse command line options.
      * 
      * This method checks for the help option, and if it exists,
      * prints usage and exits the program.
      * 
      * Sub-classes should always call the super method when overriding
-     * for usage to be printed properly.
+     * so that the help option is activated properly.
      * 
      * @param cl
      */
-    void process(CommandLine cl) {
+    void parse(CommandLine cl) {
         if (cl.hasOption("help")) {
             printUsage();
             System.exit(0);
         }
+    }
+    
+    /**
+     * Read station ID list from extra arguments and add as list parameter.
+     * @param cl
+     */
+    void readStationIDs(CommandLine cl) {
+        List<Integer> ids = new ArrayList<Integer>();
+        for (String arg : cl.getArgList()) {
+            ids.add(Integer.parseInt(arg));
+        }
+        this.setParameter("ids", ids);
     }
                
     /**
@@ -131,8 +143,8 @@ abstract class ClientCommand {
         }
                 
         @Override
-        void process(CommandLine cl) {
-            super.process(cl);
+        void parse(CommandLine cl) {
+            super.parse(cl);
             if (cl.hasOption("n")) {
                 setCount(Integer.valueOf(cl.getOptionValue("n")));
             }
@@ -149,27 +161,16 @@ abstract class ClientCommand {
      * then stop all stations.
      */
     static final class StopCommand extends ClientCommand {
-
-        private List<Integer> ids = new ArrayList<Integer>();
         
         StopCommand() {            
             super("stop", "Stop a station", "[IDs]", 
                     "Provide a list of IDs or none for all");
         }
             
-        void process(CommandLine cl) {
-            super.process(cl);
-            for (String arg : cl.getArgList()) {
-                ids.add(Integer.parseInt(arg));
-            }
-        }
-        
-        public JSONObject toJSON() {
-            JSONObject jo = super.toJSON();
-            JSONObject params = jo.getJSONObject("parameters");
-            params.put("ids", this.ids);
-            return jo;
-        }
+        void parse(CommandLine cl) {
+            super.parse(cl);
+            readStationIDs(cl);
+        }        
     }
     
     /**
@@ -177,27 +178,16 @@ abstract class ClientCommand {
      * if none are given then return info for all stations.
      */
     static final class ListCommand extends ClientCommand {
-
-        private List<Integer> ids = new ArrayList<Integer>();
         
         ListCommand() {
             super("list", "List station information in JSON format", "[IDs]",
                     "Provide a list of IDs or none to list information for all");
         }
                 
-        void process(CommandLine cl) {
-            super.process(cl);
-            for (String arg : cl.getArgList()) {
-                ids.add(Integer.parseInt(arg));
-            }
-        }
-        
-        public JSONObject toJSON() {
-            JSONObject jo = super.toJSON();
-            JSONObject params = jo.getJSONObject("parameters");
-            params.put("ids", this.ids);
-            return jo;
-        }          
+        void parse(CommandLine cl) {
+            super.parse(cl);
+            readStationIDs(cl);
+        }       
     }
     
     /**
@@ -232,8 +222,8 @@ abstract class ClientCommand {
         }
                 
         @Override
-        void process(CommandLine cl) {
-            super.process(cl);
+        void parse(CommandLine cl) {
+            super.parse(cl);
             if (cl.hasOption("c")) {
                 File propFile = new File(cl.getOptionValue("c")); 
                 try {
@@ -252,49 +242,28 @@ abstract class ClientCommand {
      * Stations can only be removed after they are stopped.
      */
     static final class RemoveCommand extends ClientCommand {
-        
-        private List<Integer> ids = new ArrayList<Integer>();
-        
+                 
         RemoveCommand() {            
             super("remove", "Remove a station that is inactive", "[IDs]",
                     "Provide a list of IDs or none to remove all");
         }
                 
-        void process(CommandLine cl) {
-            super.process(cl);
-            for (String arg : cl.getArgList()) {
-                ids.add(Integer.parseInt(arg));
-            }
-        }
-        
-        public JSONObject toJSON() {
-            JSONObject jo = super.toJSON();
-            JSONObject params = jo.getJSONObject("parameters");
-            params.put("ids", this.ids);
-            return jo;
+        void parse(CommandLine cl) {
+            super.parse(cl);
+            readStationIDs(cl);
         }        
     }
     
     static final class CleanupCommand extends ClientCommand {
-        private List<Integer> ids = new ArrayList<Integer>();
         
         CleanupCommand() {            
             super("cleanup", "Delete a station's working directory and files", "[IDs]",
                     "Provide a list of IDs or none to cleanup all");
         }
                 
-        void process(CommandLine cl) {
-            super.process(cl);
-            for (String arg : cl.getArgList()) {
-                ids.add(Integer.parseInt(arg));
-            }
-        }
-        
-        public JSONObject toJSON() {
-            JSONObject jo = super.toJSON();
-            JSONObject params = jo.getJSONObject("parameters");
-            params.put("ids", this.ids);
-            return jo;
+        void parse(CommandLine cl) {
+            super.parse(cl);
+            readStationIDs(cl);
         }
     }
     
@@ -303,28 +272,16 @@ abstract class ClientCommand {
      * attempt to start all stations if no IDs are provided.
      */
     static final class StartCommand extends ClientCommand {
-        
-        private List<Integer> ids = new ArrayList<Integer>();
-        
+                
         StartCommand() {            
             super("start", "Start a station that is inactive", "[IDs]",
                     "Provide a list of IDs or none to start all inactive stations");
         }
-                
-        void process(CommandLine cl) {
-            super.process(cl);
-            for (String arg : cl.getArgList()) {
-                ids.add(Integer.parseInt(arg));
-            }
-            //this.setParameter("ids", this.ids);
-        }
-        
-        public JSONObject toJSON() {
-            JSONObject jo = super.toJSON();
-            JSONObject params = jo.getJSONObject("parameters");
-            params.put("ids", this.ids);
-            return jo;
-        }        
+
+        void parse(CommandLine cl) {
+            super.parse(cl);
+            readStationIDs(cl);
+        }       
     }
     
     static final class SettingsCommand extends ClientCommand {
@@ -342,8 +299,8 @@ abstract class ClientCommand {
             return options;
         }
         
-        void process(CommandLine cl) {
-            super.process(cl);
+        void parse(CommandLine cl) {
+            super.parse(cl);
             if (cl.hasOption("s")) {
                 setParameter("start", cl.getOptionValue("s"));
             }

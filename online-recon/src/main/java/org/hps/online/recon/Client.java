@@ -162,7 +162,7 @@ public final class Client {
         }
         
         // Setup the command parameters from the parsed options.
-        command.process(cmdResult);
+        command.parse(cmdResult);
         
         // Send the command to server.
         LOGGER.info("Sending command " + command.toString());
