@@ -29,7 +29,7 @@ public class StationManager {
         File dir;
         int id;
         File log;
-        long pid;
+        long pid = -1L;
         Process process;
         String stationName;
         
@@ -127,6 +127,8 @@ public class StationManager {
             // Can throw exception.
             Process p = pb.start();
 
+            // These won't be set if exception is thrown but that's fine because
+            // process failed to start.
             station.process = p;
             station.pid = getPid(p);
             station.active = true;
@@ -247,18 +249,21 @@ public class StationManager {
     }
     
     /**
-     * Stop all stations.
+     * Stop all active tations.
      * @return The number of stations stopped
      */
     synchronized int stopAll() {
-        LOGGER.info("Stopping ALL stations!");
+        LOGGER.info("Stopping all active stations!");
         int n = 0;
         for (StationInfo info : this.stations) {
-            if (stop(info)) {
-                ++n;
+            update(info);
+            if (info.active) {
+                if (stop(info)) {
+                    ++n;
+                }
             }
         }
-        LOGGER.info("Stopped ALL stations!");
+        LOGGER.info("Stopped all active stations!");
         return n;
     }
     
@@ -291,22 +296,27 @@ public class StationManager {
         boolean success = false;
         if (info != null) {
             Process p = info.process;
-            LOGGER.info("Stopping station: " + info.stationName);
-            p.destroy();
-            try {
-                LOGGER.fine("Waiting for station " + info.stationName + " to stop");
-                p.waitFor();
-                LOGGER.fine("Done waiting for station " + info.stationName + " to stop!");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (!p.isAlive()) {
-                info.active = false;
-                LOGGER.info("Stopped station: " + info.stationName);
-                success = true;
+            if (p != null) {
+                LOGGER.info("Stopping station: " + info.stationName);
+                p.destroy();
+                try {
+                    LOGGER.fine("Waiting for station to stop: " + info.stationName);
+                    p.waitFor();
+                    LOGGER.fine("Done waiting for station to stop: " + info.stationName);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (!p.isAlive()) {
+                    info.active = false;
+                    info.pid = -1L;
+                    info.process = null;
+                    LOGGER.info("Stopped station: " + info.stationName);
+                    success = true;
+                } else {
+                    LOGGER.severe("Failed to stop station: " + info.stationName);
+                }
             } else {
-                LOGGER.severe("Failed to stop station: " + info.stationName);
-                // FIXME: Should this throw an exception???
+                LOGGER.warning("Station is not active so stop command is ignored: " + info.stationName);
             }
         }
         return success;
@@ -322,10 +332,10 @@ public class StationManager {
         update(info);
         if (info.active == false) {
             this.stations.remove(info);
-            LOGGER.info("Done removing station: " + info.stationName);
+            LOGGER.info("Removed station: " + info.stationName);
             return true;
         } else {
-            LOGGER.warning("Failed to remove station " + info.stationName + " because it is still active!");
+            LOGGER.warning("Failed to remove station because it is still active: " + info.stationName);
             return false;
         }
     }
@@ -389,11 +399,9 @@ public class StationManager {
         return ids;
     }
     
-    synchronized private void update(StationInfo station) {
+    void update(StationInfo station) {
         if (station.process != null) {
-            if (!station.process.isAlive()) {
-                station.active = false;
-            }
+            station.active = station.process.isAlive();
         }
     }
     
@@ -466,7 +474,7 @@ public class StationManager {
                 LOGGER.log(Level.SEVERE, "Failed to cleanup station: " + station.stationName, e);
             }
         } else {
-            LOGGER.warning("Cannot cleanup station " + station.stationName + " which is still active.");
+            LOGGER.warning("Cannot cleanup station which is still active: " + station.stationName);
         }
         LOGGER.info("Done cleaning up station: " + station.stationName);
         return deleted;
