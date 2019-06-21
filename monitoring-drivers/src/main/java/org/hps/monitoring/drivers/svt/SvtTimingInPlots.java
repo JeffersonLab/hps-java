@@ -27,6 +27,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
+import org.lcsim.util.aida.AIDA;
 
 /**
  * Monitoring driver that will be used when 'timing in' the SVT.
@@ -44,7 +45,8 @@ public class SvtTimingInPlots extends Driver {
 
     ITree tree;
     IHistogramFactory histogramFactory;
-    IPlotterFactory plotterFactory = IAnalysisFactory.create().createPlotterFactory();
+      private final IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
+    IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Timing In Plots");
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     protected Map<SiSensor, IHistogram1D> t0Plots = new HashMap<SiSensor, IHistogram1D>();
     protected Map<SiSensor, IHistogram1D> amplitudePlots = new HashMap<SiSensor, IHistogram1D>();
@@ -84,7 +86,7 @@ public class SvtTimingInPlots extends Driver {
     protected void detectorChanged(Detector detector) {
 
         tree = IAnalysisFactory.create().createTreeFactory().create();
-        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
+        histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         List<HpsSiSensor> sensors = detector.getSubdetector("Tracker").getDetectorElement()
                 .findDescendants(HpsSiSensor.class);

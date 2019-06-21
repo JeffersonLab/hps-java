@@ -16,7 +16,7 @@ import org.lcsim.geometry.Subdetector;
  * Test run SVT EVIO reader used to convert SVT bank integer data to LCIO
  * objects.
  * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 
@@ -170,5 +170,17 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
 
     protected void checkSvtSampleCount(int sampleCount, SvtHeaderDataInfo headerData) throws SvtEvioHeaderException {
         // Overridden from super class to do nothing.
+    }
+
+    @Override
+    protected List<RawTrackerHit> makeHits(int bankNumber, int[] data) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected List<int[]> extractMultiSamples(int sampleCount, int[] data) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
