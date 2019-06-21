@@ -102,7 +102,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private double minPeakOccupancy = 0.0001;
     private double maxPeakOccupancy = 0.01;
 
-    private boolean dropSmallHitEvents = true;
+    private boolean dropSmallHitEvents = false;
 
     private boolean enableClusterTimeCuts = true;
     private double clusterTimeCutMax = 4.0;
@@ -503,9 +503,9 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // when writing the plots out to a ROOT file
         if (runNumber == -1)
             runNumber = event.getRunNumber();
-
+       
         if (enableTriggerFilter && event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
-
+            System.out.println("SensorOccupancyPlotsDriver::  Filtering Event");
             // Get the list of trigger banks from the event
             List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
 
@@ -515,13 +515,13 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
-        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)){
+        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
             System.out.println("No SVT RawTrackerHits in this event???");
             return;
         }
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
-
+//        System.out.println("Number of SVT RawTrackerHts = " + rawHits.size());
         if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawHits) > 3)
             return;
 
@@ -531,10 +531,9 @@ public class SensorOccupancyPlotsDriver extends Driver {
         }
 
         eventCount++;
-        System.out.println("Number of SVT RawTrackerHts = "+rawHits.size());
+
         // Increment strip hit count.
         for (RawTrackerHit rawHit : rawHits) {
-
             // Obtain the raw ADC samples for each of the six samples readout
             short[] adcValues = rawHit.getADCValues();
 
@@ -549,11 +548,13 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     maxAmplitude = adcValues[sampleN];
                     maxSamplePositionFound = sampleN;
                 }
-
-            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
+            System.out.println("channel = " + rawHit
+                    .getIdentifierFieldValue("strip") + " maxSamplePosition = " + maxSamplePositionFound);
+            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) {
                 occupancyMap.get(((HpsSiSensor) rawHit.getDetectorElement()).getName())[rawHit
                         .getIdentifierFieldValue("strip")]++;
-
+                System.out.println("Filling occupancy");
+            }
             if (enableMaxSamplePlots)
                 maxSamplePositionPlots.get(((HpsSiSensor) rawHit.getDetectorElement()).getName()).fill(
                         maxSamplePositionFound);
@@ -591,7 +592,9 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     positionPlots.get(sensor.getName()).reset();
                 for (int channel = 0; channel < strips.length; channel++) {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
+
                     stripOccupancy /= this.timeWindowWeight;
+                    System.out.println("channel " + channel + " occupancy = " + stripOccupancy);
                     occupancyPlots.get(sensor.getName()).fill(channel, stripOccupancy);
 
                     if (enablePositionPlots) {

@@ -300,12 +300,9 @@ public class SvtHitPlots extends Driver {
 
         this.clearHitMaps();
         for (RawTrackerHit rawHit : rawHits) {
-            System.out.println("rawHit in layer = " + rawHit.getLayerNumber());
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-            System.out.println("sensor = " + sensor.getName());
             int channel = (int) rawHit.getIdentifierFieldValue("strip");
 //            int channel=(int) rawHit.getIdentifierFieldValue("strip")
-            System.out.println("sensor = " + sensor.getName() + " channel = " + channel);
             double pedestal = sensor.getPedestal(channel, 0);
             // Find the sample with maximum ADC count
             int maxSample = 0;

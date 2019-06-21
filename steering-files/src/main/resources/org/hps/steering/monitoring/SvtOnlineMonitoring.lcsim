@@ -6,7 +6,7 @@
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-<!--        <driver name="RawTrackerHitSensorSetup"/>-->
+        <!--        <driver name="RawTrackerHitSensorSetup"/>-->
         <driver name="SvtHitPlots" /> 
         <!--<driver name="SamplesPlots" />
         <driver name="PedestalPlots" />-->
@@ -27,8 +27,10 @@
             <eventRefreshRate>100</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
-            <maxSamplePosition>3</maxSamplePosition>
-            <timeWindowWeight>3</timeWindowWeight>
+            <!--            <maxSamplePosition>3</maxSamplePosition>  -->
+            <maxSamplePosition>-1</maxSamplePosition>
+<!--            <timeWindowWeight>3</timeWindowWeight>-->
+            <timeWindowWeight>1</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
         </driver>
