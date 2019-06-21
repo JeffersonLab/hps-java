@@ -1,6 +1,7 @@
 package org.hps.evio;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import org.hps.record.svt.SvtEvioUtils;
 import org.hps.record.svt.SvtHeaderDataInfo;
@@ -29,6 +30,9 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     public static final int MAX_ROC_BANK_TAG = 66;
     public static final int DATA_BANK_TAG = 3;
     private static final int ROC_BANK_NUMBER = 0;
+
+    // Container for sample headers
+    List< SvtHeaderDataInfo > headers = new ArrayList< SvtHeaderDataInfo >(); 
 
     /**
      * Get the minimum SVT ROC bank tag in the event.
@@ -104,7 +108,8 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         for (HpsSiSensor sensor : sensors) {
             Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
-            LOGGER.fine("FEB ID: " + sensor.getFebID() + " Hybrid ID: " + sensor.getFebHybridID());
+            System.out.println("[ SvtEvioReader ][ setupDaqMap ] FEB ID: " 
+                    + sensor.getFebID() + " Hybrid ID: " + sensor.getFebHybridID());
             daqPairToSensor.put(daqPair, sensor);
         }
         this.isDaqMapSetup = true;
@@ -121,8 +126,8 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected HpsSiSensor getSensor(int[] data) {
 
-        // logger.fine("FEB ID: " + SvtEvioUtils.getFebID(data)
-        // + " Hybrid ID: " + SvtEvioUtils.getFebHybridID(data));
+        //System.out.println("FEB ID: " + SvtEvioUtils.getFebIDFromMultisample(data)
+        // + " Hybrid ID: " + SvtEvioUtils.getFebHybridIDFromMultisample(data));
 
         Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(SvtEvioUtils.getFebIDFromMultisample(data),
                 SvtEvioUtils.getFebHybridIDFromMultisample(data));
@@ -157,23 +162,6 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         // the configuration of the SVT.
         boolean success = super.processEvent(event, lcsimEvent);
 
-        /*
-         * logger.fine("Event contains " + eventBanks.size() + " event banks");
-         * // Loop through all of the event banks and process them
-         * for (BaseStructure eventBank : eventBanks) {
-         * logger.fine(eventBank.toString());
-         * if (eventBank.getHeader().getTag() == 57614) {
-         * logger.fine("Configuration bank found");
-         * String[] stringData = eventBank.getStringData();
-         * logger.fine("String data size: " + stringData.length);
-         * System.out.println("Configuration: ");
-         * for (String stringDatum : stringData) {
-         * System.out.println("Data: " + stringDatum);
-         * }
-         * }
-         * }
-         */
-
         return success;
     }
 
@@ -186,15 +174,106 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected RawTrackerHit makeHit(int[] data) {
 
-        // logger.fine("Channel: " + SvtEvioUtils.getPhysicalChannelNumber(data));
+        //System.out.println("[ SvtEvioReader ][ makeHit ]: Channel: " 
+        //        + SvtEvioUtils.getPhysicalChannelNumber(data));
         return makeHit(data, SvtEvioUtils.getPhysicalChannelNumber(data));
     }
 
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent)
             throws SvtEvioHeaderException {
-        // TODO Auto-generated method stub
-
+        // Not used ...
     }
 
+    @Override
+    protected List< int[] > extractMultiSamples(int sampleCount, int[] data) {
+        
+
+        List<int[]> sampleList = new ArrayList<int[]>();
+        // Loop through all of the samples and make hits
+        for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
+            int[] samples = new int[4];
+            System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
+            sampleList.add(samples);
+        }
+        return sampleList;
+    }  
+    
+    @Override
+    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) 
+        throws SvtEvioReaderException {
+        
+        // First extract the multisamples and headers
+        super.makeHits(event, lcsimEvent);
+
+        // Process the headers
+        this.processSvtHeaders(headers, lcsimEvent);
+        
+        return true; 
+    }
+
+    @Override
+    protected List<RawTrackerHit> makeHits(int bankNumber, int[] data) 
+        throws SvtEvioReaderException { 
+   
+        List<RawTrackerHit> rawHits = new ArrayList<RawTrackerHit>();
+
+        // Check that a complete set of samples exists 
+        int sampleCount = data.length - this.getDataHeaderLength() - this.getDataTailLength();
+        //System.out.println("Total number of  samples: " + sampleCount);
+        if (sampleCount % 4 != 0) {
+            throw new SvtEvioReaderException("[ " + this.getClass().getSimpleName()
+                    + " ]: Size of samples array is not divisible by 4");
+        }
+        //System.out.println("Total number of multisamples: " + sampleCount);
+    
+        // Extract header and tail information
+        SvtHeaderDataInfo headerData = this.extractSvtHeader(bankNumber, data);
+            
+        // Check that the multisample count is consistent
+        this.checkSvtSampleCount(sampleCount, headerData);
+       
+        // Add header to list
+        headers.add(headerData);
+
+        // Store the multisample headers. Note that the length is not known but
+        // can't be longer than the multisample count in other words the data 
+        // can be only header multisamples for example.
+        int multisampleHeaderData[] = new int[sampleCount];
+        int multisampleHeaderIndex = 0;
+    
+        List< int[] > multiSamples = extractMultiSamples(sampleCount, data);
+        
+        for (int[] samples : multiSamples) { 
+    
+            if (SvtEvioUtils.isMultisampleHeader(samples)) {
+                
+                //System.out.println("[ SvtEvioReader ][ processMultiSamples ]: This is a header multisample for APV "
+                //         + SvtEvioUtils.getApvFromMultiSample(samples) + " CH " 
+                //         + SvtEvioUtils.getChannelNumber(samples));
+                
+                // Extract data words from multisample header and update index
+                multisampleHeaderIndex += this.extractMultisampleHeaderData(samples, multisampleHeaderIndex, multisampleHeaderData);
+            
+            } else { 
+                
+                //System.out.println("[ SvtEvioReader ][ processMultiSamples ]: This is a data multisample for APV "
+                //        + SvtEvioUtils.getApvFromMultiSample(samples) + " CH " + SvtEvioUtils.getChannelNumber(samples));
+            }
+            
+            // If a set of samples is associated with an APV header or tail, skip it
+            if (!this.isValidSampleSet(samples)) continue;
+        
+            // Create raw hits and add them to the list of raw hits
+            rawHits.add(this.makeHit(samples));
+        }
+
+        //System.out.println("[ SvtEvioReader ][ processMultiSamples ]: Got " 
+        //        + multisampleHeaderIndex + " multisampleHeaderIndex for " + sampleCount + " sampleCount");
+        
+        // add multisample header tails to header data object
+        this.setMultiSampleHeaders(headerData, multisampleHeaderIndex, multisampleHeaderData);
+        
+        return rawHits; 
+    }
 }
