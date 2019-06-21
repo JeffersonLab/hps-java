@@ -53,7 +53,10 @@ class EtParallelStation extends EtConnection {
             stationConfig.setPrescale(prescale);
         }
 
+        // Position relative to grand central.
         int position = 1;
+        
+        // Parallel position of station which is always after the last one.
         int pposition = EtConstants.end;
 
         // Create the station.
@@ -68,6 +71,9 @@ class EtParallelStation extends EtConnection {
         this.chunkSize = chunkSize;
     }
     
+    /**
+     * Cleanup the connection by detaching the station and removing it from the ET system.
+     */
     public void cleanup() {
         try {
             if (!this.sys.alive()) {

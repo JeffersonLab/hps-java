@@ -174,7 +174,11 @@ final class StationConfiguration {
         OPTIONS.addOption(new Option("p", "port", true, "ET port name"));
         OPTIONS.addOption(new Option("help", false, "help"));
     }
-    
+
+    /**
+     * Create station configuration from a properties file.
+     * @param file The properties file
+     */
     StationConfiguration(File file) {
         if (file != null) {
             load(file);
@@ -186,6 +190,10 @@ final class StationConfiguration {
     StationConfiguration() {        
     }
         
+    /**
+     * Load configuration from a properties file.
+     * @param file The properties filec
+     */
     void load(File file) {
         LOGGER.config("Loading properties from file: " + file.getPath());
         try {
@@ -197,12 +205,18 @@ final class StationConfiguration {
         LOGGER.config("Loaded properties: " + this.props.toString());
     }
    
+    /**
+     * Parse command line arguments.
+     * @param args The command line arguments
+     * @throws ParseException If there is an error parsing the command line
+     */
     void parse(String args[]) throws ParseException {
             
         CommandLineParser parser = new DefaultParser();
         CommandLine cl = parser.parse(OPTIONS, args);
     
         // If help option is present then program will print usage and exit!
+        // FIXME: Does not seem like a good idea to exit from here (caller should prob do this).
         if (cl.hasOption("help")) {
             HelpFormatter help = new HelpFormatter();
             help.printHelp("[class]", "configure online recon command line options", OPTIONS, "");
@@ -305,7 +319,7 @@ final class StationConfiguration {
     
     /**
      * Load parameter settings from JSON data.
-     * @param jo
+     * @param jo The JSON object
      */
     void fromJSON(JSONObject jo) {
         for (String key : jo.keySet()) {
@@ -316,7 +330,7 @@ final class StationConfiguration {
 
     /**
      * Convert properties to JSON.
-     * @return
+     * @return The converted JSON object
      */
     JSONObject toJSON() {
         JSONObject jo = new JSONObject();
@@ -326,6 +340,10 @@ final class StationConfiguration {
         return jo;
     }
     
+    /**
+     * Check if required parameters are set and look valid.
+     * @return True if configuration looks valid
+     */
     boolean isValid() {
         if (this.detectorName == null) {
             LOGGER.severe("Detector name was not set.");

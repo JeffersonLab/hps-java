@@ -17,6 +17,7 @@ import org.json.JSONObject;
 /**
  * Manages online reconstruction stations.
  */
+// FIXME: Having methods return boolean to indicate success isn't great.  Preferable to have exceptions with the caller handling them.
 public class StationManager {
 
     /**
@@ -32,7 +33,11 @@ public class StationManager {
         long pid = -1L;
         Process process;
         String stationName;
-        
+
+        /**
+         * Convert station data to JSON.
+         * @return The converted JSON data
+         */
         JSONObject toJSON() {
             JSONObject jo = new JSONObject();
             jo.put("pid", pid);
@@ -46,17 +51,38 @@ public class StationManager {
         }
     }
     
+    /**
+     * System property for specifying local or alternate conditions database.
+     */
+    // FIXME: User and password should also be passed to station if they are set.
     private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
 
+    /**
+     * The package logger.
+     */
     private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
        
+    /**
+     * Property for setting Java logging config file.
+     */
     private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
 
+    /**
+     * Path to the runnable jar file.
+     */
     private static final String JAR_PATH = 
             OnlineReconStation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     
+    /**
+     * The system properties.
+     */
     private static final Properties SYSTEM_PROPERTIES = System.getProperties();
     
+    /**
+     * Get the PID of a system process
+     * @param p The system process
+     * @return The process's PID
+     */
     static Long getPid(Process p) {
         long pid = -1;       
         if (p != null) {
@@ -72,8 +98,14 @@ public class StationManager {
         return pid;
     }
        
+    /**
+     * Reference to the server.
+     */
     private final Server server;
     
+    /**
+     * Next station ID.
+     */
     private volatile int stationID = 1;
 
     /**
@@ -90,17 +122,27 @@ public class StationManager {
     void add(StationInfo info) {
         stations.add(info);
     }
-       
+    
+    /**
+     * Create the work directory for a station.
+     * @param name The name of the station
+     * @return The File of the new directory
+     */
     synchronized File createStationDir(String name) {
         String path = server.getWorkDir().getPath() + File.separator + name;
         File dir = new File(path);
         dir.mkdir();
         if (!dir.isDirectory()) {
-            throw new RuntimeException("Error creating dir: " + dir.getPath());
+            throw new RuntimeException("Error creating station dir: " + dir.getPath());
         }
         return dir;
     }
     
+    /**
+     * Start an online reconstruction station's system process.
+     * @param station The station to start
+     * @throws IOException If there is a problem starting the station's process
+     */
     synchronized void start(StationInfo station) throws IOException {
         
         LOGGER.info("Starting station: " + station.stationName);
@@ -139,6 +181,11 @@ public class StationManager {
         }            
     }
     
+    /**
+     * Create a new station.
+     * @param parameters The JSON parameters defining the station
+     * @return The new station info
+     */
     StationInfo create(JSONObject parameters) {
         
         StationConfiguration stationConfig = server.getStationConfig();
@@ -217,6 +264,11 @@ public class StationManager {
         return command;
     }
                 
+    /**
+     * Find a station by its ID.
+     * @param id The station's ID
+     * @return The station or null if not found
+     */
     StationInfo find(int id) {
         StationInfo station = null;
         for (StationInfo info : stations) {
@@ -228,6 +280,10 @@ public class StationManager {
         return station;
     }
     
+    /**
+     * Get the next station ID, which automatically increments the stationID value.
+     * @return The next station ID
+     */
     synchronized int getNextStationID() {
         ++stationID;
         return stationID - 1;
@@ -235,12 +291,17 @@ public class StationManager {
     
     /**
      * Get an unmodifiable list of stations.
-     * @return
+     * @return An unmodifiable list of stations
      */
     List<StationInfo> getStations() {
         return Collections.unmodifiableList(this.stations);
     }
     
+    /**
+     * Set the next station ID.
+     * @param stationID The next station ID
+     * @throws IllegalArgumentException If the new value is bad
+     */
     synchronized void setStationID(int stationID) throws IllegalArgumentException {
         if (stationID >= 0) {
             this.stationID = stationID;
@@ -271,8 +332,8 @@ public class StationManager {
     
     /**
      * Stop a station by its ID.
-     * @param id
-     * @return
+     * @param id The ID of the station to stop
+     * @return True if the station was stopped successfully
      */
     boolean stop(int id) {
         LOGGER.info("Stopping station with id: " + id);
@@ -292,7 +353,8 @@ public class StationManager {
      * This does not remove it from the station list.  The "remove" command
      * must be used to do this separately.
      * 
-     * @param info
+     * @param info The station info
+     * @return True if the station was stopped successfully
      */
     synchronized boolean stop(StationInfo info) {
         boolean success = false;
@@ -344,8 +406,8 @@ public class StationManager {
 
     /**
      * Remove a list of stations by their IDs. 
-     * @param ids
-     * @return The number of stations successfully removed.
+     * @param ids The list of station IDs to remove
+     * @return The number of stations successfully removed
      */
     synchronized int remove(List<Integer> ids) {
         int n = 0;
@@ -360,8 +422,8 @@ public class StationManager {
     
     /**
      * Stop a list of stations by their IDs.
-     * @param ids
-     * @return
+     * @param ids The list of stations to stop
+     * @return The number of stations stopped
      */
     synchronized int stop(List<Integer> ids) {
         int n = 0;
@@ -376,13 +438,17 @@ public class StationManager {
     
     /**
      * Remove all stations, returning number of stations removed.
-     * @return The number of stations removed.
+     * @return The number of stations removed
      */
     synchronized int removeAll() {
         return remove(getStationIDs());
     }
         
-    // FIXME: Should have some kind of exception/error if ID does not exist.
+    /**
+     * Find a list of stations by their IDs.
+     * @param ids The IDs of the stations to find
+     * @return A list of stations
+     */
     private List<StationInfo> find(List<Integer> ids) {
         List<StationInfo> stations = new ArrayList<StationInfo>();
         for (StationInfo station : this.stations) {
@@ -393,6 +459,10 @@ public class StationManager {
         return stations;
     }
     
+    /**
+     * Get a list of all station IDs
+     * @return A list of all station IDs
+     */
     private List<Integer> getStationIDs() {
         List<Integer> ids = new ArrayList<Integer>();
         for (StationInfo station : this.stations) {
@@ -401,16 +471,28 @@ public class StationManager {
         return ids;
     }
     
+    /**
+     * Update the active status of a station from its process state
+     * @param station The station to update
+     */
     void update(StationInfo station) {
         if (station.process != null) {
             station.active = station.process.isAlive();
         }
     }
     
+    /**
+     * Get the number of stations.
+     * @return The number of stations
+     */
     int getStationCount() {
         return this.stations.size();
     }
     
+    /**
+     * Get the number of active stations.
+     * @return The number of active stations
+     */
     synchronized int getActiveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
@@ -422,6 +504,10 @@ public class StationManager {
         return n;
     }
     
+    /**
+     * Get the number of inactive stations
+     * @return The number of inactive stations
+     */
     synchronized int getInactiveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
@@ -433,6 +519,10 @@ public class StationManager {
         return n;
     }
     
+    /**
+     * Start all inactive stations.
+     * @return The number of stations started
+     */
     synchronized int startAll() {
         int started = 0;
         for (StationInfo station : this.stations) {
@@ -449,6 +539,11 @@ public class StationManager {
         return started;
     }
     
+    /**
+     * Start a list of stations by their IDs
+     * @param ids A list of station IDs to start
+     * @return The number of stations started
+     */
     synchronized int start(List<Integer> ids) {
         int started = 0;
         List<StationInfo> stations = this.find(ids);
@@ -463,6 +558,11 @@ public class StationManager {
         return started;
     }
     
+    /**
+     * Cleanup a station by deleting its working directory.
+     * @param station The station to cleanup
+     * @return True if the station was successfully cleaned up
+     */
     synchronized boolean cleanup(StationInfo station) {
         LOGGER.info("Cleaning up station: " + station.stationName);
         update(station);
@@ -482,6 +582,11 @@ public class StationManager {
         return deleted;
     }
     
+    /**
+     * Cleanup a list of stations by their IDs.
+     * @param ids A list of station IDs to cleanup
+     * @return The number of stations cleaned up
+     */
     synchronized int cleanup(List<Integer> ids) {
         int cleaned = 0;
         List<StationInfo> stations = this.find(ids);
@@ -493,6 +598,10 @@ public class StationManager {
         return cleaned;
     }
     
+    /**
+     * Cleanup all inactive stations.
+     * @return The number of stations cleanup up
+     */
     synchronized int cleanupAll() {
         int n = 0;
         for (StationInfo station : this.stations) {
@@ -505,6 +614,11 @@ public class StationManager {
         return n;
     }
     
+    /**
+     * Check if a station exists with given ID.
+     * @param id The ID of the station
+     * @return True if a station with this ID exists
+     */
     private boolean exists(Integer id) {
         boolean exists = false;
         for (StationInfo station : this.stations) {
@@ -517,9 +631,9 @@ public class StationManager {
     }
     
     /**
-     * Get the current stationID to be used for next station,
+     * Get the current stationID to be used for the next station assignment,
      * without incrementing it.
-     * @return
+     * @return The current station ID
      */
     int getCurrentStationID() {
         return this.stationID;

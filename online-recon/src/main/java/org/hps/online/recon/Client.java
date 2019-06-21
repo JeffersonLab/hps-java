@@ -34,19 +34,45 @@ import org.json.JSONObject;
  */
 public final class Client {
 
+    /**
+     * Package logger.
+     */
     private static Logger LOGGER = Logger.getLogger(Client.class.getPackageName());
     
+    /**
+     * Hostname of the server with default.
+     */
     private String hostname = "localhost";
+    
+    /**
+     * Port of the server with default.
+     */
     private int port = 22222;
 
+    /**
+     * Output file for writing server responses.
+     * By default it is null, which results in output being written to the console (System.out).
+     */
     private File outputFile;
     
+    /**
+     * Parser for base options.
+     */
     private CommandLineParser parser = new DefaultParser();
        
+    /**
+     * Map of names to client commands.
+     */
     private Map<String, ClientCommand> commandMap = new LinkedHashMap<String, ClientCommand>();
 
+    /**
+     * The set of valid client commands.
+     */
     private Set<String> commands;
     
+    /**
+     * The base options (commands have their own Options objects).
+     */
     private static Options OPTIONS = new Options();
     static {
         OPTIONS.addOption(new Option("", "help", false, "print help"));
@@ -54,11 +80,18 @@ public final class Client {
         OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
         OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
     }
-    
+   
+    /**
+     * Class constructor.
+     */
     Client() { 
+        // Build the command map.
         buildCommandMap();
     }
     
+    /**
+     * Print the base command usage.
+     */
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", commandMap.keySet());
@@ -67,8 +100,12 @@ public final class Client {
                     + "Use 'Client [command] --help' for help with a specific command.");
     }
     
+    /**
+     * Build a map of names to client commands.
+     */
     private void buildCommandMap() {
         
+        // Add commands.
         addCommand(new CreateCommand());
         addCommand(new StartCommand());
         addCommand(new StopCommand());
@@ -78,18 +115,33 @@ public final class Client {
         addCommand(new CleanupCommand());
         addCommand(new SettingsCommand());
         
+        // Define set of valid command names.
         commands = commandMap.keySet();
     }
     
+    /**
+     * Add a client command.
+     * @param command The client command to add
+     */
     private void addCommand(ClientCommand command) {
         String name = command.getName();
         commandMap.put(name, command);
     }
     
+    /**
+     * Get a client command by its name.
+     * @param name The name of the client command
+     * @return The client command or null if does not exist
+     */
     private ClientCommand getCommand(String name) {
         return commandMap.get(name);
     }
     
+    /**
+     * Scan for a valid command on the command line.
+     * @param args The arg array
+     * @return The position of the command or -1 if not found
+     */
     private int scanForCommand(String args[]) {
         int commandPos = -1;
         for (int i = 0; i < args.length; i++) {
@@ -101,9 +153,14 @@ public final class Client {
         return commandPos;
     }
 
+    /**
+     * Run the client using command line arguments
+     * @param args The command line arguments
+     */
     void run(String args[]) {
         
         // Scan for command.
+        // FIXME: This doesn't work properly if an option value is the same as a command name.
         int commandPos = scanForCommand(args);
         
         // No arguments or no valid command was provided.
@@ -116,7 +173,7 @@ public final class Client {
         // Get name of command from arguments.
         final String commandName = args[commandPos];
 
-        // Create arg array for base client command.
+        // Create argument array for base client command.
         String baseArgs[] = new String[commandPos];
         System.arraycopy(args, 0, baseArgs, 0, commandPos);
         //System.out.println(Arrays.asList("baseArgs: " + Arrays.asList(baseArgs)));
@@ -162,7 +219,7 @@ public final class Client {
         }
         
         // Setup the command parameters from the parsed options.
-        command.parse(cmdResult);
+        command.process(cmdResult);
         
         // Send the command to server.
         LOGGER.info("Sending command " + command.toString());
@@ -171,7 +228,7 @@ public final class Client {
     
     /**
      * Send a command to the online reconstruction server.
-     * @param command
+     * @param command The client command to send
      */
     private void send(ClientCommand command) {
         try (Socket socket = new Socket(hostname, port)) {
@@ -220,6 +277,10 @@ public final class Client {
         }
     }
     
+    /**
+     * Run the client from the command line.
+     * @param args The argument array
+     */
     public static void main(String[] args) {
         Client client = new Client();
         client.run(args);

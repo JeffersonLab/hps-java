@@ -20,15 +20,44 @@ import org.json.JSONObject;
  */
 abstract class ClientCommand {
 
+    /**
+     * Short name of the command.
+     */
     private final String name;
+    
+    /**
+     * Description of the command for printing usage.
+     */
     private final String description;
+    
+    /**
+     * Extra options string for printing usage.
+     */
     private final String commandExtra;
+    
+    /**
+     * Footer text for printing usage.
+     */
     private final String commandFooter;
     
+    /**
+     * Parameter map from parsing command line options.
+     * This will be sent to the server as a JSON object.
+     */
     private Map<String, Object> parameters = new HashMap<String, Object>();    
     
+    /**
+     * The command line options for this command.
+     */
     protected Options options = new Options();
             
+    /**
+     * Define a new client command
+     * @param name The name of the command
+     * @param description The description of the command
+     * @param commandExtra The extra command options for printing usage
+     * @param commandFooter The footer text for printing usage
+     */
     ClientCommand(String name, String description, String commandExtra, String commandFooter) {
         this.name = name;
         this.description = description;
@@ -40,7 +69,7 @@ abstract class ClientCommand {
 
     /**
      * Get the name of the command.
-     * @return
+     * @return The name of the command
      */
     String getName() {
         return this.name;
@@ -48,8 +77,8 @@ abstract class ClientCommand {
 
     /**
      * Set a parameter for the command.
-     * @param name
-     * @param value
+     * @param name The name of the parameter
+     * @param value The value of the parameter
      */
     void setParameter(String name, Object value) {
         parameters.put(name, value);
@@ -57,7 +86,7 @@ abstract class ClientCommand {
     
     /**
      * Convert the object to JSON.
-     * @return
+     * @return A JSON string with this object's data
      */
     JSONObject toJSON() {
         JSONObject jo = new JSONObject();
@@ -67,7 +96,7 @@ abstract class ClientCommand {
     }
     
     /**
-     * Convert the object to a string (by default returns JSON format).
+     * Convert the object to a string, by default in JSON format.
      */
     public String toString() {
         return toJSON().toString();
@@ -75,12 +104,15 @@ abstract class ClientCommand {
     
     /**
      * Get the options for command line usage.
-     * @return
+     * @return The options for command line usage
      */
     Options getOptions() {
         return options;
     }
     
+    /**
+     * Print the usage statement for this command.
+     */
     void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         help.printHelp(this.name + " " + this.commandExtra, this.description, 
@@ -96,9 +128,9 @@ abstract class ClientCommand {
      * Sub-classes should always call the super method when overriding
      * so that the help option is activated properly.
      * 
-     * @param cl
+     * @param cl The parsed command line
      */
-    void parse(CommandLine cl) {
+    void process(CommandLine cl) {
         if (cl.hasOption("help")) {
             printUsage();
             System.exit(0);
@@ -106,8 +138,8 @@ abstract class ClientCommand {
     }
     
     /**
-     * Read station ID list from extra arguments and add as list parameter.
-     * @param cl
+     * Read a station ID list from extra command line arguments and add as a parameter.
+     * @param cl The parsed command line
      */
     void readStationIDs(CommandLine cl) {
         List<Integer> ids = new ArrayList<Integer>();
@@ -119,7 +151,7 @@ abstract class ClientCommand {
                
     /**
      * Create one or more new stations using the current configuration properties 
-     * from the server (the "config" command can be used to change theSE properties).
+     * of the server.  
      */
     static final class CreateCommand extends ClientCommand {
 
@@ -127,11 +159,19 @@ abstract class ClientCommand {
             super("create", "Create a new station", "", 
                     "Stations are not started by default.");
         }
-                                        
+        
+        /**
+         * Set the number of stations to create
+         * @param count The number of stations to create
+         */
         void setCount(Integer count) {
             this.setParameter("count", count.toString());
         }
         
+        /**
+         * Set whether or not the stations should be started automatically.
+         * @param start True if stations should be started automatically
+         */
         void setStart(Boolean start) {
             this.setParameter("start", start);
         }
@@ -143,8 +183,8 @@ abstract class ClientCommand {
         }
                 
         @Override
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             if (cl.hasOption("n")) {
                 setCount(Integer.valueOf(cl.getOptionValue("n")));
             }
@@ -167,8 +207,8 @@ abstract class ClientCommand {
                     "Provide a list of IDs or none for all");
         }
             
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             readStationIDs(cl);
         }        
     }
@@ -184,8 +224,8 @@ abstract class ClientCommand {
                     "Provide a list of IDs or none to list information for all");
         }
                 
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             readStationIDs(cl);
         }       
     }
@@ -193,8 +233,7 @@ abstract class ClientCommand {
     /**
      * Set server configuration properties from a local file.
      * 
-     * If no file is provided with the -c option then the existing
-     * server configuration will be returned as JSON.
+     * Running this command with no arguments returns the current configuration.
      */
     static final class ConfigCommand extends ClientCommand {
 
@@ -208,10 +247,15 @@ abstract class ClientCommand {
         
         @Override        
         Options getOptions() {
-            options.addOption(new Option("c", "config", true, "config file"));
+            options.addOption(new Option("c", "config", true, "new config properties file"));
             return options;
         }
         
+        /**
+         * Load properties file into command parameters.
+         * @param propFile The properties file
+         * @throws IOException If there is an error loading the properties
+         */
         private void loadProperties(File propFile) throws IOException {
             prop = new Properties();
             prop.load(new FileInputStream(propFile));
@@ -222,8 +266,8 @@ abstract class ClientCommand {
         }
                 
         @Override
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             if (cl.hasOption("c")) {
                 File propFile = new File(cl.getOptionValue("c")); 
                 try {
@@ -239,7 +283,7 @@ abstract class ClientCommand {
      * Remove a list of stations by their IDs or if none are
      * given then try to remove all stations.
      * 
-     * Stations can only be removed after they are stopped.
+     * This will only work on inactive stations.
      */
     static final class RemoveCommand extends ClientCommand {
                  
@@ -248,12 +292,17 @@ abstract class ClientCommand {
                     "Provide a list of IDs or none to remove all");
         }
                 
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             readStationIDs(cl);
         }        
     }
     
+    /**
+     * Cleanup a station by deleting its working directory.
+     * 
+     * This will only work on inactive stations.
+     */
     static final class CleanupCommand extends ClientCommand {
         
         CleanupCommand() {            
@@ -261,8 +310,8 @@ abstract class ClientCommand {
                     "Provide a list of IDs or none to cleanup all");
         }
                 
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             readStationIDs(cl);
         }
     }
@@ -278,12 +327,19 @@ abstract class ClientCommand {
                     "Provide a list of IDs or none to start all inactive stations");
         }
 
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             readStationIDs(cl);
         }       
     }
     
+    /**
+     * Update values of server settings.
+     * 
+     * The new settings will only take effect for new stations.
+     * 
+     * Running this command with no arguments returns the current settings.
+     */
     static final class SettingsCommand extends ClientCommand {
         
         SettingsCommand() {            
@@ -299,8 +355,8 @@ abstract class ClientCommand {
             return options;
         }
         
-        void parse(CommandLine cl) {
-            super.parse(cl);
+        void process(CommandLine cl) {
+            super.process(cl);
             if (cl.hasOption("s")) {
                 setParameter("start", cl.getOptionValue("s"));
             }

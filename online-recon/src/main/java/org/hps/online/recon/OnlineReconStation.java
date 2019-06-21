@@ -26,18 +26,36 @@ import org.lcsim.util.Driver;
  */
 public class OnlineReconStation {
        
+    /**
+     * Class logger.
+     */
     private static Logger LOGGER = Logger.getLogger(OnlineReconStation.class.getPackageName());
                 
+    /**
+     * The station configuration.
+     */
     private StationConfiguration config = null;
        
-    public OnlineReconStation(StationConfiguration config) {
+    /**
+     * Create new online reconstruction station with a configuration.
+     * @param config The station configuration
+     */
+    OnlineReconStation(StationConfiguration config) {
         this.config = config;
     }
            
-    public StationConfiguration getConfiguration() {
+    /**
+     * Get the configuration of the station.
+     * @return The configuration of the station.
+     */
+    StationConfiguration getConfiguration() {
         return this.config;
     }
     
+    /**
+     * Run from the command line.
+     * @param args The command line arguments
+     */
     public static void main(String args[]) {
         StationConfiguration config = new StationConfiguration();
         try {
@@ -55,7 +73,7 @@ public class OnlineReconStation {
     /**
      * Run the online reconstruction station.
      */
-    public void run() {
+    void run() {
                 
         // Composite loop configuration.
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
@@ -92,6 +110,7 @@ public class OnlineReconStation {
         mgr.setup(config.getSteeringResource());
        
         // Setup event number print outs.
+        // FIXME: use loop adapter instead
         if (this.config.getEventPrintInterval() > 0) {
             loopConfig.add(new EventMarkerDriver(this.config.getEventPrintInterval()));
         } else {
@@ -157,8 +176,9 @@ public class OnlineReconStation {
                
         // Run the loop.
         CompositeLoop loop = new CompositeLoop(loopConfig);
-        LOGGER.info("Running composite loop");
+        LOGGER.info("Running record loop for station: " + this.getConfiguration().getStation());
         loop.loop(-1);
+        LOGGER.info("Station is done looping: " + this.getConfiguration().getStation());
     }
     
     /**

@@ -30,12 +30,20 @@ import org.json.JSONObject;
 /**
  * Server for managing instances of the online reconstruction.
  * 
+ * Accepts commands from the Client class and sends back a JSON result.
+ * 
  * @author jeremym
  */
 public final class Server {        
        
+    /**
+     * Conversion of milliseconds to seconds.
+     */
     private static final long MILLIS_TO_SECONDS = 1000L;
 
+    /**
+     * Handles a single client request.
+     */
     private class ClientTask implements Runnable {
         
         private final Socket socket;
@@ -44,6 +52,9 @@ public final class Server {
             this.socket = socket;
         }
 
+        /**
+         * Handle client request by dispatching to a command handler.
+         */
         public void run() {               
             try {
                 Scanner in = new Scanner(socket.getInputStream());                                            
@@ -110,6 +121,11 @@ public final class Server {
      */
     abstract class CommandHandler {                   
                
+        /**
+         * Execute the command.
+         * @param jo The JSON input parameters
+         * @return The command result
+         */
         abstract CommandResult execute(JSONObject jo);
     }
 
@@ -178,6 +194,9 @@ public final class Server {
         }        
     }
             
+    /**
+     * Handle the list command.
+     */
     class ListCommandHandler extends CommandHandler {
 
         CommandResult execute(JSONObject parameters) {
@@ -220,6 +239,9 @@ public final class Server {
         
     }
     
+    /**
+     * Handle the create command.
+     */
     class CreateCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandStatus res = null;
@@ -265,6 +287,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the start command.
+     */
     class StartCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
@@ -298,6 +323,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the stop command.
+     */
     class StopCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
@@ -329,6 +357,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the config command.
+     */
     class ConfigCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
@@ -345,6 +376,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the remove command.
+     */
     class RemoveCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
@@ -376,6 +410,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the cleanup command.
+     */
     class CleanupCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
@@ -408,6 +445,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the settings command.
+     */
     class SettingsCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
@@ -459,16 +499,40 @@ public final class Server {
         }
     }
     
+    /**
+     * The default server port.
+     */
     private static final int DEFAULT_PORT = 22222;
         
+    /**
+     * The package logger.
+     */
     static Logger LOGGER = Logger.getLogger(Server.class.getPackageName());    
+    
+    /**
+     * Max allowed server port number.
+     */
     private static final int MAX_PORT = 49152;
     
+    /**
+     * Minimum allowed server port number.
+     */
     private static final int MIN_PORT = 1024;
     
+    /**
+     * Error status string.
+     */
     public static final String STATUS_ERROR = "ERROR";
+    
+    /**
+     * Success status string.
+     */
     public static final String STATUS_SUCCESS = "SUCCESS";
         
+    /**
+     * Run from command line.
+     * @param args The command line args
+     */
     public static void main(String args[]) { 
         Server server = new Server();
         try {
@@ -479,33 +543,74 @@ public final class Server {
         server.start();
     }
     
+    /**
+     * The pool of threads for processing client commands.
+     */
     final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
             
+    /**
+     * Default work dir path (current working dir).
+     */
     private final String DEFAULT_WORK_PATH = System.getProperty("user.dir");
     
+    /**
+     * Output plot file.
+     */
     private File plotFile;
+    
+    /**
+     * Default interval for running plot task.
+     */
     private Long plotIntervalMillis = (long) (60 * 1000);
+    
+    /**
+     * Timer for running plot task.
+     */
     private Timer plotTimer = new Timer();
     
+    /**
+     * The server port number.
+     */
     private int port = DEFAULT_PORT;
         
+    /**
+     * The station base name to which the ID will be appended.
+     */
     private String stationBase = "HPS_RECON";
         
+    /**
+     * The station configuration.
+     */
     private StationConfiguration stationConfig = new StationConfiguration();
         
+    /**
+     * The station manager.
+     */
     private final StationManager stationManager;
     
+    /**
+     * The server work directory.
+     */
     private File workDir;
-    
-    private String workPath = DEFAULT_WORK_PATH;    
-  
+      
+    /**
+     * Whether to enable dry run for plotting.
+     */
     private boolean dryRun = false;
     
-    public Server() {        
+    /**
+     * Create a new server instance.
+     */
+    Server() {
         this.stationManager = new StationManager(this);
     }
         
-    File createProcessDir(String name) {
+    /**
+     * Create the work directory for a station.
+     * @param name The name of the station
+     * @return The File for the new directory
+     */
+    File createStationDir(String name) {
         String path = this.workDir.getPath() + File.separator + name;
         File dir = new File(path);
         dir.mkdir();
@@ -514,11 +619,19 @@ public final class Server {
         }
         return dir;
     }
-            
+
+    /**
+     * Get the string used for station base name.
+     * @return The string used for station base name
+     */
     String getStationBaseName() {
         return this.stationBase;
     }
     
+    /**
+     * Set the string for station base name.
+     * @param stationBase The string for station base name
+     */
     void setStationBaseName(String stationBase) {
         if (stationBase == null) {
             throw new IllegalArgumentException("The stationBase points to null.");
@@ -526,31 +639,60 @@ public final class Server {
         this.stationBase = stationBase;
     }
         
+    /**
+     * Get the current station configuration.
+     * @return The current station configuration
+     */
     StationConfiguration getStationConfig() {
         return this.stationConfig;
     }
     
+    /**
+     * Get the station manager.
+     * @return The station manager
+     */
     StationManager getStationManager() {
         return this.stationManager;
     }
     
+    /**
+     * Get the server's work directory.
+     * @return The server's work directory
+     */
     File getWorkDir() {
         return this.workDir;
     }
     
-    void setWorkDir(File workDir) {
+    /**
+     * Check whether a work directory exists, is a directory, and is writable.
+     * @param workDir The work directory to check
+     */
+    static void checkWorkDir(File workDir) {
         if (!workDir.exists()) {
-            throw new RuntimeException("Work dir does not exist: " + this.workPath);
+            throw new RuntimeException("Work dir does not exist: " + workDir.getPath());
         }
         if (!workDir.isDirectory()) {
-            throw new RuntimeException("Work dir is not a directory: " + this.workPath);
+            throw new RuntimeException("Work dir is not a directory: " + workDir.getPath());
         }
         if (!workDir.canWrite()) {
-            throw new RuntimeException("Work dir is not writable: " + this.workPath);
+            throw new RuntimeException("Work dir is not writable: " + workDir.getPath());
         }
+    }
+    
+    /**
+     * Set the server working directory.
+     * @param workDir The new server working directory
+     */
+    void setWorkDir(File workDir) {
+        checkWorkDir(workDir);
         this.workDir = workDir;
     }
     
+    /**
+     * Parse command line options.
+     * @param args The command line arguments
+     * @throws ParseException If there is a problem parsing the command line
+     */
     void parse(String args[]) throws ParseException {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
@@ -593,11 +735,13 @@ public final class Server {
         }
         
         // Base work directory for creating station directories.
+        String workPath = DEFAULT_WORK_PATH;
         if (cl.hasOption("w")) {
-            this.workPath = cl.getOptionValue("w");
+            workPath = cl.getOptionValue("w");
         }                  
-        setWorkDir(new File(this.workPath));
-        LOGGER.config("Server work dir: " + this.workDir);
+        setWorkDir(new File(workPath));
+
+        LOGGER.config("Server work dir: " + this.workDir.getPath());
         
         // Base name for station to which will be appended the station ID.
         if (cl.hasOption("b")) {
@@ -631,6 +775,9 @@ public final class Server {
         }
     }
         
+    /**
+     * Start the server.
+     */
     void start() {
         
         // Schedule the plot task.
@@ -641,7 +788,7 @@ public final class Server {
             LOGGER.info("Plot task was not enabled (no plot file was provided with -a option).");
         }
         
-        // Start the server.
+        // Start the server instance.
         LOGGER.info("Starting server on port <" + this.port + ">");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {

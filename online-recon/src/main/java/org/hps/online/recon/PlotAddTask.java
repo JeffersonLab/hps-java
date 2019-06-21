@@ -26,16 +26,42 @@ import org.hps.online.recon.StationManager.StationInfo;
  */
 final class PlotAddTask extends TimerTask {
 
+    /**
+     * Package logger.
+     */
     private static Logger LOGGER = Logger.getLogger(PlotAddTask.class.getPackageName());
     
+    /**
+     * Reference to the online reconstruction server.
+     */
     private final Server server;
     
+    /**
+     * Target output file.
+     */
     private final File targetFile;
        
+    /**
+     * True if plots should not be added or deleted.
+     */
     private boolean dryRun = true;
     
+    /**
+     * Command for adding ROOT plots.
+     */
     private static final String HADD = "hadd";
     
+    /**
+     * Number of CPUs to use when running hadd (hard-coded to 4).
+     */
+    private static final Integer NCPUS = 4;
+    
+    /**
+     * Class constructor.
+     * @param server Reference to the online reconstruction server
+     * @param targetFile The target output file
+     * @param dryRun True if dry run should be enabled
+     */
     PlotAddTask(Server server, File targetFile, boolean dryRun) {
         this.server = server;       
         this.targetFile = targetFile;
@@ -48,6 +74,9 @@ final class PlotAddTask extends TimerTask {
         checkHadd();
     }
 
+    /**
+     * Check that the hadd command runs okay.
+     */
     private void checkHadd() {
         ProcessBuilder pb = new ProcessBuilder(HADD);
         try {
@@ -61,10 +90,17 @@ final class PlotAddTask extends TimerTask {
         }
     }
     
+    /**
+     * Enable or disable dry run.
+     * @param dryRun True to enable dry run
+     */
     void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
     }
             
+    /**
+     * Find ROOT files using pattern matching.
+     */
     static class RootFileFinder extends SimpleFileVisitor<Path> {
                 
         List<File> files = new ArrayList<File>();
@@ -105,6 +141,11 @@ final class PlotAddTask extends TimerTask {
         }
     }
     
+    /**
+     * Get the list of ROOT files.
+     * @return The list of ROOT files
+     * @throws IOException If there is a problem getting the list of files
+     */
     List<File> getRootFiles() throws IOException {
         final StationManager mgr = server.getStationManager();
         RootFileFinder finder = new RootFileFinder();
@@ -116,6 +157,13 @@ final class PlotAddTask extends TimerTask {
         return finder.getFiles();
     }
     
+    /**
+     * Add plots and write to a target file.
+     * @param target The target output file
+     * @param inFiles The list of input files
+     * @throws IOException If there is a problem adding the plots
+     * @throws InterruptedException If the method is interrupted
+     */
     void addPlots(File target, List<File> inFiles) throws IOException, InterruptedException { 
         if (inFiles.size() > 0) {
             LOGGER.info("Adding plots with target " + target.getPath() + " and plot files: " + inFiles.toString());
@@ -139,13 +187,15 @@ final class PlotAddTask extends TimerTask {
             }
 
             /*
-        Usage: hadd [-f[fk][0-9]] [-k] [-T] [-O] [-a]
-                [-n maxopenedfiles] [-cachesize size] [-j ncpus] [-v [verbosity]]
-                targetfile source1 [source2 source3 ...]
-             */
+            Usage: hadd [-f[fk][0-9]] [-k] [-T] [-O] [-a]
+            [-n maxopenedfiles] [-cachesize size] [-j ncpus] [-v [verbosity]]
+            targetfile source1 [source2 source3 ...]
+            */
 
             List<String> cmd = new ArrayList<String>();
             cmd.add("hadd");
+            cmd.add("-j");
+            cmd.add(NCPUS.toString());
             cmd.add("-v");
             cmd.add(target.getPath());
             for (File file : files) {
@@ -170,6 +220,9 @@ final class PlotAddTask extends TimerTask {
         }
     }
 
+    /**
+     * Run the plot task to add files.
+     */
     @Override
     public void run() {
         try {
