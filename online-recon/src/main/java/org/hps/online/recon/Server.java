@@ -191,6 +191,7 @@ public final class Server {
             if (ids.size() == 0) {
                 // Return info on all stations.
                 for (StationInfo station : stationManager.getStations()) {
+                    stationManager.update(station);
                     JSONObject jo = station.toJSON();
                     arr.put(jo);
                 }                
@@ -203,6 +204,7 @@ public final class Server {
                         res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
                         break;
                     } else {
+                        stationManager.update(station);
                         JSONObject jo = station.toJSON();
                         arr.put(jo);
                     }
@@ -305,7 +307,6 @@ public final class Server {
                 }
             }
             if (ids.size() == 0) {
-                LOGGER.info("Stopping all stations!");
                 int nactive = Server.this.getStationManager().getActiveCount();
                 int nstopped = Server.this.getStationManager().stopAll();
                 if (nstopped < nactive) {
