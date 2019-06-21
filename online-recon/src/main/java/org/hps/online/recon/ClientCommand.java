@@ -316,6 +316,7 @@ abstract class ClientCommand {
             for (String arg : cl.getArgList()) {
                 ids.add(Integer.parseInt(arg));
             }
+            //this.setParameter("ids", this.ids);
         }
         
         public JSONObject toJSON() {
@@ -326,4 +327,32 @@ abstract class ClientCommand {
         }        
     }
     
+    static final class SettingsCommand extends ClientCommand {
+        
+        SettingsCommand() {            
+            super("settings", "Update or get server settings", "[options]",
+                    "Updated settings will take effect only for newly created stations." + '\n' +
+                    "Run with no arguments to get the current settings.");
+        }
+        
+        Options getOptions() {
+            options.addOption(new Option("s", "start", true, "starting station ID"));
+            options.addOption(new Option("w", "workdir", true, "work dir (default is current dir where server is started)"));
+            options.addOption(new Option("b", "basename", true, "station base name"));
+            return options;
+        }
+        
+        void process(CommandLine cl) {
+            super.process(cl);
+            if (cl.hasOption("s")) {
+                setParameter("start", cl.getOptionValue("s"));
+            }
+            if (cl.hasOption("w")) {
+                setParameter("workdir", cl.getOptionValue("w"));
+            }
+            if (cl.hasOption("b")) {
+                setParameter("basename", cl.getOptionValue("b"));
+            }
+        }
+    }    
 }

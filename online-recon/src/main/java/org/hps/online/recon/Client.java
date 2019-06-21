@@ -23,6 +23,7 @@ import org.hps.online.recon.ClientCommand.ConfigCommand;
 import org.hps.online.recon.ClientCommand.CreateCommand;
 import org.hps.online.recon.ClientCommand.ListCommand;
 import org.hps.online.recon.ClientCommand.RemoveCommand;
+import org.hps.online.recon.ClientCommand.SettingsCommand;
 import org.hps.online.recon.ClientCommand.StartCommand;
 import org.hps.online.recon.ClientCommand.StopCommand;
 import org.json.JSONArray;
@@ -75,6 +76,7 @@ public final class Client {
         addCommand(new ListCommand());
         addCommand(new ConfigCommand());
         addCommand(new CleanupCommand());
+        addCommand(new SettingsCommand());
         
         commands = commandMap.keySet();
     }

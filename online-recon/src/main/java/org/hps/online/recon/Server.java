@@ -55,8 +55,8 @@ public final class Server {
                 
                 CommandResult res = null;
                 try {
+                    // TODO: lookup handlers using a factory or map
                     CommandHandler handler = null;
-                    // TODO: lookup handlers in a map
                     if (command.equals("create")) {
                         handler = new CreateCommandHandler();
                     } else if (command.equals("start")) {
@@ -71,6 +71,8 @@ public final class Server {
                         handler = new RemoveCommandHandler();
                     } else if (command.equals("cleanup")) {
                         handler = new CleanupCommandHandler();
+                    } else if (command.equals("settings")) {
+                        handler = new SettingsCommandHandler();
                     }
                     
                     if (handler != null) {
@@ -78,7 +80,7 @@ public final class Server {
                     } else {
                         res = new CommandStatus(STATUS_ERROR, "Unknown command: " + command);
                     }
-                } catch (Exception e) {                   
+                } catch (Exception e) {
                     e.printStackTrace();
                     res = new CommandStatus(STATUS_ERROR, e.getMessage());
                 }
@@ -406,6 +408,57 @@ public final class Server {
         }
     }
     
+    class SettingsCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject parameters) {
+            CommandResult res = null;
+            StationManager mgr = Server.this.getStationManager();
+            boolean error = false;
+            if (parameters.length() > 0) {
+                if (parameters.has("start")) {
+                    int startID = parameters.getInt("start");            
+                    try {
+                        Server.this.getStationManager().setStationID(startID); 
+                        LOGGER.config("Set new station start ID: " + mgr.getCurrentStationID());
+                    } catch (IllegalArgumentException e) {                        
+                        LOGGER.log(Level.SEVERE, "Failed to set new station ID", e);
+                        error = true;
+                    }
+                }
+                if (parameters.has("workdir")) {
+                    File newWorkDir = new File(parameters.getString("workdir"));
+                    try {
+                        Server.this.setWorkDir(newWorkDir);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.SEVERE, "Failed to set new work dir: " + newWorkDir.getPath(), e);
+                        error = true;
+                    }
+                }
+                if (parameters.has("basename")) {
+                    String stationBase = parameters.getString("basename");
+                    try {
+                        Server.this.setStationBaseName(stationBase);
+                    } catch (IllegalArgumentException e) {
+                        LOGGER.log(Level.SEVERE, "Failed to set station base name: " + stationBase, e);
+                        error = true;
+                    }
+                }            
+                if (error) {
+                    res = new CommandStatus(STATUS_ERROR, "At least one setting failed to update (see server log).");
+                } else {
+                    res = new CommandStatus(STATUS_SUCCESS, "All settings updated successfully.");
+                }
+            } else {
+                JSONObject jo = new JSONObject();
+                jo.put("start", mgr.getCurrentStationID());
+                jo.put("workdir", Server.this.getWorkDir());
+                jo.put("basename", Server.this.getStationBaseName());
+                res = new JSONResult(jo);
+            }
+                
+            return res;
+        }
+    }
+    
     private static final int DEFAULT_PORT = 22222;
         
     static Logger LOGGER = Logger.getLogger(Server.class.getPackageName());    
@@ -465,6 +518,13 @@ public final class Server {
     String getStationBaseName() {
         return this.stationBase;
     }
+    
+    void setStationBaseName(String stationBase) {
+        if (stationBase == null) {
+            throw new IllegalArgumentException("The stationBase points to null.");
+        }
+        this.stationBase = stationBase;
+    }
         
     StationConfiguration getStationConfig() {
         return this.stationConfig;
@@ -476,6 +536,19 @@ public final class Server {
     
     File getWorkDir() {
         return this.workDir;
+    }
+    
+    void setWorkDir(File workDir) {
+        if (!workDir.exists()) {
+            throw new RuntimeException("Work dir does not exist: " + this.workPath);
+        }
+        if (!workDir.isDirectory()) {
+            throw new RuntimeException("Work dir is not a directory: " + this.workPath);
+        }
+        if (!workDir.canWrite()) {
+            throw new RuntimeException("Work dir is not writable: " + this.workPath);
+        }
+        this.workDir = workDir;
     }
     
     void parse(String args[]) throws ParseException {
@@ -522,18 +595,9 @@ public final class Server {
         // Base work directory for creating station directories.
         if (cl.hasOption("w")) {
             this.workPath = cl.getOptionValue("w");
-        }                
-        this.workDir = new File(this.workPath);
+        }                  
+        setWorkDir(new File(this.workPath));
         LOGGER.config("Server work dir: " + this.workDir);
-        if (!this.workDir.exists()) {
-            throw new RuntimeException("Work dir does not exist: " + this.workPath);
-        }
-        if (!this.workDir.isDirectory()) {
-            throw new RuntimeException("Work path is not a directory: " + this.workPath);
-        }
-        if (!this.workDir.canWrite()) {
-            throw new RuntimeException("Work dir is not writable: " + this.workPath);
-        }
         
         // Base name for station to which will be appended the station ID.
         if (cl.hasOption("b")) {
@@ -587,5 +651,5 @@ public final class Server {
         } catch (IOException e) {
             throw new RuntimeException("Server exception", e);
         }
-    }
+    }   
 }

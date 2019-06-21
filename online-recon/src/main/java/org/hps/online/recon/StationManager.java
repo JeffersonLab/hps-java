@@ -144,6 +144,10 @@ public class StationManager {
         StationConfiguration stationConfig = server.getStationConfig();
                   
         Integer stationID = getNextStationID();
+        if (exists(stationID)) {
+            LOGGER.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
+            throw new RuntimeException("Station ID already exists: " + stationID);
+        }        
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
         File dir = createStationDir(stationName);
                        
@@ -237,19 +241,17 @@ public class StationManager {
         return Collections.unmodifiableList(this.stations);
     }
     
-    synchronized boolean setStationID(int stationID) {
+    synchronized void setStationID(int stationID) throws IllegalArgumentException {
         if (stationID >= 0) {
             this.stationID = stationID;
             LOGGER.config("Set station ID: " + stationID);
-            return true;
         } else {
-            LOGGER.warning("Ignored bad station ID arg: " + stationID);
-            return false;
+            throw new IllegalArgumentException("Bad value for new station ID: " + stationID);
         }
     }
     
     /**
-     * Stop all active tations.
+     * Stop all active stations.
      * @return The number of stations stopped
      */
     synchronized int stopAll() {
@@ -503,7 +505,6 @@ public class StationManager {
         return n;
     }
     
-    /*
     private boolean exists(Integer id) {
         boolean exists = false;
         for (StationInfo station : this.stations) {
@@ -514,5 +515,13 @@ public class StationManager {
         }
         return exists;
     }
-    */
+    
+    /**
+     * Get the current stationID to be used for next station,
+     * without incrementing it.
+     * @return
+     */
+    int getCurrentStationID() {
+        return this.stationID;
+    }   
 }
