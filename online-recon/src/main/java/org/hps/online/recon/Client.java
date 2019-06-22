@@ -2,6 +2,7 @@ package org.hps.online.recon;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -75,6 +76,11 @@ public final class Client {
     private Set<String> commands;
     
     /**
+     * Append rather than overwrite if writing to output file.
+     */
+    private boolean append = false;
+    
+    /**
      * The base options (commands have their own Options objects).
      */
     private static Options OPTIONS = new Options();
@@ -84,6 +90,7 @@ public final class Client {
         OPTIONS.addOption(new Option("p", "port", true, "server port"));
         OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
         OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
+        OPTIONS.addOption(new Option("a", "append", false, "append if writing to output file (default will overwrite)"));
     }
    
     /**
@@ -198,6 +205,11 @@ public final class Client {
             this.outputFile = new File(cl.getOptionValue("o"));
             LOGGER.config("Output file: " + this.outputFile.getPath());
         }
+        
+        if (cl.hasOption("a")) {
+            this.append = true;
+            LOGGER.config("Appending to output file: " + this.append);
+        }
 
         // If extra arguments are provided then try to run a command.
         if (argList.size() != 0) {
@@ -256,13 +268,14 @@ public final class Client {
             // Print server response or write to output file.
             PrintWriter pw = null;
             if (this.outputFile != null) {
-                pw = new PrintWriter(this.outputFile);
+                FileWriter fw = new FileWriter(this.outputFile, this.append);
+                pw = new PrintWriter(fw);
             }
             if (resp.startsWith("{")) {
                 // Handle JSON object.
                 JSONObject jo = new JSONObject(resp);
                 if (pw != null) {
-                    pw.write(jo.toString(4));
+                    pw.write(jo.toString(4) + '\n');
                 } else {
                     System.out.println(jo.toString(4));
                 }
@@ -270,7 +283,7 @@ public final class Client {
                 // Handle JSON array.
                 JSONArray ja = new JSONArray(resp);
                 if (pw != null) {
-                    pw.write(ja.toString(4));
+                    pw.write(ja.toString(4) + '\n');
                 } else {
                     System.out.println(ja.toString(4));
                 }
@@ -332,4 +345,12 @@ public final class Client {
             this.outputFile = null;
         }
     }        
+    
+    void setAppend(boolean append) {
+        this.append = append;
+    }
+    
+    boolean getAppend() {
+        return this.append;
+    }
 }
