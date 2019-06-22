@@ -74,6 +74,14 @@ abstract class ClientCommand {
     String getName() {
         return this.name;
     }
+    
+    /**
+     * Get the description of the command.
+     * @return The description of the command
+     */
+    String getDescription() {
+        return this.description;
+    }
 
     /**
      * Set a parameter for the command.
@@ -394,6 +402,15 @@ abstract class ClientCommand {
             } else {
                 setVerbose(false);
             }
+        }
+    }
+    
+    /**
+     * Start an interactive console.
+     */
+    static final class ConsoleCommand extends ClientCommand {
+        ConsoleCommand() {
+            super("console", "Start interactive console", "", "");
         }
     }
 }
