@@ -74,12 +74,8 @@ public class Console {
                     if (args.size() == 0) {
                         System.out.println(client.getHostname());
                     } else {
-                        try {
-                            String hostname = args.get(0);
-                            client.setHostname(hostname);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        String hostname = args.get(0);
+                        client.setHostname(hostname);
                     }
                 } else if (cmdStr.equals("file")) {
                     if (args.size() == 0) {
@@ -96,6 +92,12 @@ public class Console {
                     if (client.getOutputFile() != null) {
                         client.setOutputFile(null);
                         System.out.println("Redirected output back to the terminal.");
+                    }
+                } else if (cmdStr.equals("append")) {
+                    if (args.size() > 0) {
+                        client.setAppend(Boolean.parseBoolean(args.get(0)));
+                    } else {
+                        System.out.println(client.getAppend());
                     }
                 } else {
                     if (this.commands.contains(cmdStr)) {
@@ -129,11 +131,12 @@ public class Console {
         System.out.println("    help - print general information");
         System.out.println("    help [cmd] - print information for specific command");
         System.out.println("    exit - quit the console");
-        System.out.println('\n' + "SETTINGS" + '\n');        
+        System.out.println('\n' + "SETTINGS" + '\n');
         System.out.println("    port [port] - set the server port");
         System.out.println("    host [host]- set the server hostname");
         System.out.println("    file [filename] - write server output to a file");
         System.out.println("    terminal - redirect server output back to the terminal");
+        System.out.println("    append [true|false] - true to append to output file or false to overwrite");
         System.out.println('\n' + "COMMANDS" + '\n');
         for (Entry<String, ClientCommand> entry : this.commandMap.entrySet()) {
             System.out.println("    " + entry.getKey() + " - " + entry.getValue().getDescription());
