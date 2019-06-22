@@ -45,7 +45,7 @@ public class SvtTimingInPlots extends Driver {
 
     ITree tree;
     IHistogramFactory histogramFactory;
-      private final IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
+    private final IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
     IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Timing In Plots");
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     protected Map<SiSensor, IHistogram1D> t0Plots = new HashMap<SiSensor, IHistogram1D>();
