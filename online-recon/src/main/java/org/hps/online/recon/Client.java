@@ -6,8 +6,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -20,6 +23,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.hps.online.recon.ClientCommand.CleanupCommand;
 import org.hps.online.recon.ClientCommand.ConfigCommand;
+import org.hps.online.recon.ClientCommand.ConsoleCommand;
 import org.hps.online.recon.ClientCommand.CreateCommand;
 import org.hps.online.recon.ClientCommand.ListCommand;
 import org.hps.online.recon.ClientCommand.RemoveCommand;
@@ -77,6 +81,7 @@ public final class Client {
     private static Options OPTIONS = new Options();
     static {
         OPTIONS.addOption(new Option("", "help", false, "print help"));
+        OPTIONS.addOption(new Option("", "help-all", false, "print help for all commands"));
         OPTIONS.addOption(new Option("p", "port", true, "server port"));
         OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
         OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
@@ -93,12 +98,22 @@ public final class Client {
     /**
      * Print the base command usage.
      */
-    private void printUsage() {
+    private void printUsage(boolean exit) {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", commandMap.keySet());
         help.printHelp("Client [options] [command] [command_options]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
                     + "Use 'Client [command] --help' for help with a specific command.");
+        if (exit) {
+            System.exit(0);
+        }
+    }
+    
+    private void printCommandUsages() {
+        for (Entry<String, ClientCommand> entry : commandMap.entrySet()) {
+            entry.getValue().printUsage();
+            System.out.println();
+        }
     }
     
     /**
@@ -116,6 +131,7 @@ public final class Client {
         addCommand(new CleanupCommand());
         addCommand(new SettingsCommand());
         addCommand(new StatusCommand());
+        addCommand(new ConsoleCommand());
         
         // Define set of valid command names.
         commands = commandMap.keySet();
@@ -140,54 +156,43 @@ public final class Client {
     }
     
     /**
-     * Scan for a valid command on the command line.
-     * @param args The arg array
-     * @return The position of the command or -1 if not found
-     */
-    private int scanForCommand(String args[]) {
-        int commandPos = -1;
-        for (int i = 0; i < args.length; i++) {
-            if (commands.contains(args[i])) {
-                commandPos = i;
-                break;
-            }
-        }        
-        return commandPos;
-    }
-
-    /**
      * Run the client using command line arguments
      * @param args The command line arguments
      */
     void run(String args[]) {
         
-        // Scan for command.
-        // FIXME: This doesn't work properly if an option value is the same as a command name.
-        int commandPos = scanForCommand(args);
-        
-        // No arguments or no valid command was provided.
-        if (args.length == 0 || commandPos == -1) {
-            // Print usage and exit.
-            printUsage();
-            System.exit(0);
-        }
-
-        // Get name of command from arguments.
-        final String commandName = args[commandPos];
-
-        // Create argument array for base client command.
-        String baseArgs[] = new String[commandPos];
-        System.arraycopy(args, 0, baseArgs, 0, commandPos);
-        //System.out.println(Arrays.asList("baseArgs: " + Arrays.asList(baseArgs)));
-                
         // Parse base options.
         CommandLine cl;
         try {
-            cl = this.parser.parse(OPTIONS, baseArgs, true);
+            cl = this.parser.parse(OPTIONS, args, true);
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing arguments", e);
         }
-                        
+        
+        // Print usage and exit.
+        if (cl.hasOption("help")) {
+            this.printUsage(true);
+        }
+        
+        // Print usage for all commands and exit.
+        if (cl.hasOption("help-all")) {
+            System.out.println("CLIENT" + '\n');
+            this.printUsage(false);    
+            System.out.println('\n' + "COMMANDS");
+            this.printCommandUsages();
+            System.exit(0);
+        }
+         
+        // Get extra arg list.
+        List<String> argList = cl.getArgList();
+
+        // If no extra args print usage and exit.
+        if (argList.size() == 0) {
+            this.printUsage(true);
+        }
+        
+        String commandName = argList.get(0);
+        
         if (cl.hasOption("p")) {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
             LOGGER.config("Port: " + this.port);
@@ -202,19 +207,24 @@ public final class Client {
             this.outputFile = new File(cl.getOptionValue("o"));
             LOGGER.config("Output file: " + this.outputFile.getPath());
         }
-        
-        // Create arg array for command.
+
         ClientCommand command = getCommand(commandName);
-        int cmdArrayLen = args.length - baseArgs.length - 1;
-        String cmdArgs[] = new String[cmdArrayLen];
-        System.arraycopy(args, commandPos + 1, cmdArgs, 0, cmdArrayLen);
-        //System.out.println("cmdArgs: " + Arrays.asList(cmdArgs));
-                
+        if (command == null) {
+            printUsage(false);
+            throw new IllegalArgumentException("Unknown command: " + commandName);
+        }
+        
+        // Remove command from arg list.
+        argList.remove(0);
+        
+        // Convert command list to array.
+        String[] argArr = argList.toArray(new String[0]);
+                        
         // Parse command options.
         DefaultParser commandParser = new DefaultParser();
         CommandLine cmdResult = null;
         try {
-            cmdResult = commandParser.parse(command.getOptions(), cmdArgs);
+            cmdResult = commandParser.parse(command.getOptions(), argArr);
         } catch (ParseException e) {
             command.printUsage();
             throw new RuntimeException("Error parsing command options", e);            
@@ -224,15 +234,21 @@ public final class Client {
         command.process(cmdResult);
         
         // Send the command to server.
-        LOGGER.info("Sending command " + command.toString());
-        send(command);
+        if (command.getName() != "console") {
+            LOGGER.info("Sending command " + command.toString());
+            send(command);
+        } else {
+            LOGGER.info("Starting console");
+            Console cn = new Console(this);
+            cn.run();
+        }
     }
     
     /**
      * Send a command to the online reconstruction server.
      * @param command The client command to send
      */
-    private void send(ClientCommand command) {
+    void send(ClientCommand command) {
         try (Socket socket = new Socket(hostname, port)) {
             // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
@@ -286,5 +302,25 @@ public final class Client {
     public static void main(String[] args) {
         Client client = new Client();
         client.run(args);
+    }
+    
+    String getHostname() {
+        return this.hostname;
+    }
+    
+    int getPort() {
+        return this.port;
+    }
+    
+    File getOutputFile() {
+        return this.outputFile;
+    }
+    
+    Map<String, ClientCommand> getCommandMap() {
+        return Collections.unmodifiableMap(this.commandMap);
+    }
+    
+    Set<String> getCommands() {
+        return Collections.unmodifiableSet(this.commands);
     }
 }
