@@ -23,7 +23,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.hps.online.recon.ClientCommand.CleanupCommand;
 import org.hps.online.recon.ClientCommand.ConfigCommand;
-import org.hps.online.recon.ClientCommand.ConsoleCommand;
 import org.hps.online.recon.ClientCommand.CreateCommand;
 import org.hps.online.recon.ClientCommand.ListCommand;
 import org.hps.online.recon.ClientCommand.RemoveCommand;
@@ -131,7 +130,6 @@ public final class Client {
         addCommand(new CleanupCommand());
         addCommand(new SettingsCommand());
         addCommand(new StatusCommand());
-        addCommand(new ConsoleCommand());
         
         // Define set of valid command names.
         commands = commandMap.keySet();
@@ -168,12 +166,12 @@ public final class Client {
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing arguments", e);
         }
-        
+
         // Print usage and exit.
         if (cl.hasOption("help")) {
             this.printUsage(true);
         }
-        
+
         // Print usage for all commands and exit.
         if (cl.hasOption("help-all")) {
             System.out.println("CLIENT" + '\n');
@@ -182,63 +180,58 @@ public final class Client {
             this.printCommandUsages();
             System.exit(0);
         }
-         
+
         // Get extra arg list.
         List<String> argList = cl.getArgList();
 
-        // If no extra args print usage and exit.
-        if (argList.size() == 0) {
-            this.printUsage(true);
-        }
-        
-        String commandName = argList.get(0);
-        
         if (cl.hasOption("p")) {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
             LOGGER.config("Port: " + this.port);
         }
-        
+
         if (cl.hasOption("h")) {
             this.hostname = cl.getOptionValue("h");
             LOGGER.config("Hostname: " + this.hostname);
         }
-        
+
         if (cl.hasOption("o")) {
             this.outputFile = new File(cl.getOptionValue("o"));
             LOGGER.config("Output file: " + this.outputFile.getPath());
         }
 
-        ClientCommand command = getCommand(commandName);
-        if (command == null) {
-            printUsage(false);
-            throw new IllegalArgumentException("Unknown command: " + commandName);
-        }
-        
-        // Remove command from arg list.
-        argList.remove(0);
-        
-        // Convert command list to array.
-        String[] argArr = argList.toArray(new String[0]);
-                        
-        // Parse command options.
-        DefaultParser commandParser = new DefaultParser();
-        CommandLine cmdResult = null;
-        try {
-            cmdResult = commandParser.parse(command.getOptions(), argArr);
-        } catch (ParseException e) {
-            command.printUsage();
-            throw new RuntimeException("Error parsing command options", e);            
-        }
-        
-        // Setup the command parameters from the parsed options.
-        command.process(cmdResult);
-        
-        // Send the command to server.
-        if (command.getName() != "console") {
+        // If extra arguments are provided then try to run a command.
+        if (argList.size() != 0) {
+            String commandName = argList.get(0);
+            ClientCommand command = getCommand(commandName);
+            if (command == null) {
+                printUsage(false);
+                throw new IllegalArgumentException("Unknown command: " + commandName);
+            }
+
+            // Remove command from arg list.
+            argList.remove(0);
+
+            // Convert command list to array.
+            String[] argArr = argList.toArray(new String[0]);
+
+            // Parse command options.
+            DefaultParser commandParser = new DefaultParser();
+            CommandLine cmdResult = null;
+            try {
+                cmdResult = commandParser.parse(command.getOptions(), argArr);
+            } catch (ParseException e) {
+                command.printUsage();
+                throw new RuntimeException("Error parsing command options", e);            
+            }
+
+            // Setup the command parameters from the parsed options.
+            command.process(cmdResult);
+
+            // Send the command to server.
             LOGGER.info("Sending command " + command.toString());
             send(command);
         } else {
-            LOGGER.info("Starting console");
+            // No command was provided so run the interactive console.
             Console cn = new Console(this);
             cn.run();
         }
@@ -331,4 +324,12 @@ public final class Client {
     void setHostname(String hostname) {
         this.hostname = hostname;
     }
+    
+    void setOutputFile(String outputPath) {
+        if (outputPath != null) {
+            this.outputFile = new File(outputPath);
+        } else {
+            this.outputFile = null;
+        }
+    }        
 }
