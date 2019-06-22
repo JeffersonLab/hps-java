@@ -85,7 +85,7 @@ public final class Client {
      */
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
-        final String commands = String.join(" ", cf.getCommands());
+        final String commands = String.join(" ", cf.getCommandNames());
         help.printHelp("Client [options] [command] [command_options]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
                     + "Use 'Client [command] --help' for information about a specific command." + '\n'

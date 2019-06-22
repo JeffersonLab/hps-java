@@ -130,7 +130,7 @@ public class Console {
         System.out.println("    append [true|false] - true to append to output file or false to overwrite");
         System.out.println("    terminal - redirect server output back to the terminal");
         System.out.println('\n' + "COMMANDS" + '\n');
-        for (String command : cf.getCommands()) {
+        for (String command : cf.getCommandNames()) {
             System.out.println("    " + command + " - " + cf.create(command).getDescription());
         }
     }

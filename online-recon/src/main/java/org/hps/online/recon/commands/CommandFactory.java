@@ -51,7 +51,7 @@ public class CommandFactory {
      * Get the set of valid commands.
      * @return The set of valid commands
      */
-    public Set<String> getCommands() {
+    public Set<String> getCommandNames() {
         return Collections.unmodifiableSet(commands);
     }
     
