@@ -7,12 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -22,15 +17,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.hps.online.recon.ClientCommand.CleanupCommand;
-import org.hps.online.recon.ClientCommand.ConfigCommand;
-import org.hps.online.recon.ClientCommand.CreateCommand;
-import org.hps.online.recon.ClientCommand.ListCommand;
-import org.hps.online.recon.ClientCommand.RemoveCommand;
-import org.hps.online.recon.ClientCommand.SettingsCommand;
-import org.hps.online.recon.ClientCommand.StartCommand;
-import org.hps.online.recon.ClientCommand.StatusCommand;
-import org.hps.online.recon.ClientCommand.StopCommand;
+import org.hps.online.recon.commands.CommandFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -64,21 +51,13 @@ public final class Client {
      * Parser for base options.
      */
     private CommandLineParser parser = new DefaultParser();
-       
-    /**
-     * Map of names to client commands.
-     */
-    private Map<String, ClientCommand> commandMap = new LinkedHashMap<String, ClientCommand>();
-
-    /**
-     * The set of valid client commands.
-     */
-    private Set<String> commands;
-    
+           
     /**
      * Append rather than overwrite if writing to output file.
      */
     private boolean append = false;
+    
+    private CommandFactory cf = new CommandFactory();
     
     /**
      * The base options (commands have their own Options objects).
@@ -97,8 +76,6 @@ public final class Client {
      * Class constructor.
      */
     Client() { 
-        // Build the command map.
-        buildCommandMap();
     }
     
     /**
@@ -106,7 +83,7 @@ public final class Client {
      */
     private void printUsage(boolean exit) {
         final HelpFormatter help = new HelpFormatter();
-        final String commands = String.join(" ", commandMap.keySet());
+        final String commands = String.join(" ", cf.getCommands());
         help.printHelp("Client [options] [command] [command_options]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
                     + "Use 'Client [command] --help' for help with a specific command.");
@@ -116,50 +93,12 @@ public final class Client {
     }
     
     private void printCommandUsages() {
-        for (Entry<String, ClientCommand> entry : commandMap.entrySet()) {
-            entry.getValue().printUsage();
+        for (String cmd : cf.getCommands()) {
+            cf.create(cmd).printUsage();
             System.out.println();
         }
     }
-    
-    /**
-     * Build a map of names to client commands.
-     */
-    private void buildCommandMap() {
-        
-        // Add commands.
-        addCommand(new CreateCommand());
-        addCommand(new StartCommand());
-        addCommand(new StopCommand());
-        addCommand(new RemoveCommand());
-        addCommand(new ListCommand());
-        addCommand(new ConfigCommand());
-        addCommand(new CleanupCommand());
-        addCommand(new SettingsCommand());
-        addCommand(new StatusCommand());
-        
-        // Define set of valid command names.
-        commands = commandMap.keySet();
-    }
-    
-    /**
-     * Add a client command.
-     * @param command The client command to add
-     */
-    private void addCommand(ClientCommand command) {
-        String name = command.getName();
-        commandMap.put(name, command);
-    }
-    
-    /**
-     * Get a client command by its name.
-     * @param name The name of the client command
-     * @return The client command or null if does not exist
-     */
-    private ClientCommand getCommand(String name) {
-        return commandMap.get(name);
-    }
-    
+               
     /**
      * Run the client using command line arguments
      * @param args The command line arguments
@@ -214,7 +153,7 @@ public final class Client {
         // If extra arguments are provided then try to run a command.
         if (argList.size() != 0) {
             String commandName = argList.get(0);
-            ClientCommand command = getCommand(commandName);
+            ClientCommand command = cf.create(commandName);
             if (command == null) {
                 printUsage(false);
                 throw new IllegalArgumentException("Unknown command: " + commandName);
@@ -321,15 +260,7 @@ public final class Client {
     File getOutputFile() {
         return this.outputFile;
     }
-    
-    Map<String, ClientCommand> getCommandMap() {
-        return Collections.unmodifiableMap(this.commandMap);
-    }
-    
-    Set<String> getCommands() {
-        return Collections.unmodifiableSet(this.commands);
-    }
-    
+        
     void setPort(int port) {
         this.port = port;
     }
