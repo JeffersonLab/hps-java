@@ -22,12 +22,12 @@ import hep.aida.ITree;
  * 
  * @author jermc
  */
-public class OnlineReconAidaDriver extends Driver {
+public class PlotDriver extends Driver {
 
     /**
      * Package logger.
      */
-    private static Logger LOGGER = Logger.getLogger(OnlineReconAidaDriver.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(PlotDriver.class.getPackageName());
     
     /** 
      * File name pattern which requires: 

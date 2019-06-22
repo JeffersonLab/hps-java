@@ -125,7 +125,7 @@ public class OnlineReconStation {
         }
         
         // Configure and add the AIDA driver for intermediate plot saving.
-        OnlineReconAidaDriver aidaDriver = new OnlineReconAidaDriver();
+        PlotDriver aidaDriver = new PlotDriver();
         aidaDriver.setStationName(config.getStation());
         aidaDriver.setOutputDir(config.getOutputDir());
         aidaDriver.setResetAfterSave(true);
