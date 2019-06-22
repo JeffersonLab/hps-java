@@ -2,55 +2,66 @@ package org.hps.online.recon;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.enums.Mode;
 import org.json.JSONObject;
 
 /**
  * Configuration parameters for an online reconstruction ET station.
  * 
+ * These are key-value pairs that can be loaded from a properties file
+ * or a JSON object.
+ * 
  * @author jeremym
  */
 final class StationConfiguration {
+
+    /*
+     * Property name definitions.    
+     */    
+    static final String CHUNK_SIZE_PROPERTY = "et.chunkSize";
+
+    static final String WAIT_TIME_PROPERTY = "et.waitTime";
+
+    static final String WAIT_MODE_PROPERTY = "et.waitMode";
+
+    static final String STATION_PROPERTY = "et.station";
+
+    static final String PRESCALE_PROPERTY = "et.prescale";
+
+    static final String QUEUE_SIZE_PROPERTY = "et.queueSize";
+
+    static final String PORT_PROPERTY = "et.port";
+
+    static final String HOST_PROPERTY = "et.host";
+
+    static final String ET_NAME_PROPERTY = "et.name";
     
-    private static final String CHUNK_SIZE_PROPERTY = "et.chunkSize";
+    static final String ET_LOG_LEVEL_PROPERTY = "et.logLevel";
+    
+    static final String EVENT_PRINT_INTERVAL_PROPERTY = "lcsim.eventPrintInterval";
 
-    private static final String WAIT_TIME_PROPERTY = "et.waitTime";
+    static final String EVENT_SAVE_INTERVAL_PROPERTY = "lcsim.eventSaveInterval";
 
-    private static final String WAIT_MODE_PROPERTY = "et.waitMode";
+    static final String RUN_PROPERTY = "lcsim.run";
 
-    private static final String STATION_PROPERTY = "et.station";
+    static final String STEERING_PROPERTY = "lcsim.steering";
 
-    private static final String PRESCALE_PROPERTY = "et.prescale";
-
-    private static final String QUEUE_SIZE_PROPERTY = "et.queueSize";
-
-    private static final String PORT_PROPERTY = "et.port";
-
-    private static final String HOST_PROPERTY = "et.host";
-
-    private static final String ET_NAME_PROPERTY = "et.name";
-
-    private static final String EVENT_PRINT_INTERVAL_PROPERTY = "lcsim.eventPrintInterval";
-
-    private static final String EVENT_SAVE_INTERVAL_PROPERTY = "lcsim.eventSaveInterval";
-
-    private static final String RUN_PROPERTY = "lcsim.run";
-
-    private static final String STEERING_PROPERTY = "lcsim.steering";
-
-    private static final String DETECTOR_PROPERTY = "lcsim.detector";
-
+    static final String DETECTOR_PROPERTY = "lcsim.detector";
+    
+    static final String OUTPUT_DIR_PROPERTY = "lcsim.outputDir";
+    
+    static final String OUTPUT_NAME_PROPERTY = "lcsim.outputName";
+    
+    /**
+     * Package logger.
+     */
     private static Logger LOGGER = Logger.getLogger(StationConfiguration.class.getPackageName());
 
     /** 
@@ -74,14 +85,12 @@ final class StationConfiguration {
     /**
      * Name for output files such as LCIO events.
      * This is a required parameter with no default.
-     * It cannot be set by property file.
      */
     private String outputName;
     
     /**
      * Directory for writing output files such as AIDA plots.
      * The default is the process' working directory.
-     * It cannot be set by property file.
      */
     private String outputDir = System.getProperty("user.dir");
 
@@ -120,61 +129,48 @@ final class StationConfiguration {
         
     /**
      * The wait mode which is for the station to sleep forever until events arrive.
-     * This cannot be set via the command line.
      */
     private Mode waitMode = Mode.SLEEP; // sleep = 0; timed = 1; async = 2
     
     /**
      * The wait time when timed mode is selected.
-     * This cannot be set via the command line.
      */
     private Integer waitTime = 999999999;
     
     /**
      * The chunk size when getting ET events.
-     * This cannot be set via the command line.
      */
     private Integer chunkSize = 1;
     
     /**
      * The number of events to queue at once.
-     * This cannot be set via the command line.
      */
     private Integer queueSize = 0;
     
     /**
      * The event prescale parameter.
-     * This cannot be set via the command line.
      */
     private Integer prescale = 0;
     
     /**
      * The backing properties for the station configuration.
      */
-    private Properties props = new Properties();;
-    
-    /**
-     * The valid command line options for reading in configuration from the command line.
-     */
-    private static Options OPTIONS = new Options();
-        
-    /**
-     * Set the command line options.
-     */
-    static {
-        OPTIONS.addOption(new Option("d", "detector", true, "detector name"));
-        OPTIONS.addOption(new Option("s", "steering", true, "steering resource"));
-        OPTIONS.addOption(new Option("r", "run", true, "run number"));
-        OPTIONS.addOption(new Option("n", "station", true, "station name"));
-        OPTIONS.addOption(new Option("o", "output", true, "output file name"));
-        OPTIONS.addOption(new Option("l", "dir", true, "output directory"));
-        OPTIONS.addOption(new Option("P", "print", true, "event print interval"));
-        OPTIONS.addOption(new Option("e", "event", true, "event save interval (AIDA)"));
-        OPTIONS.addOption(new Option("h", "host", true, "ET host name"));
-        OPTIONS.addOption(new Option("p", "port", true, "ET port name"));
-        OPTIONS.addOption(new Option("help", false, "help"));
-    }
+    private Properties props = new Properties();
 
+    /**
+     * Log level of the ET system.
+     */
+    private int etLogLevel = EtConstants.debugInfo;
+
+    // From EtConstants.java
+    /*
+    public static final int    debugNone           = 0;
+    public static final int    debugSevere         = 1;
+    public static final int    debugError          = 2;
+    public static final int    debugWarn           = 3;
+    public static final int    debugInfo           = 4;
+    */
+    
     /**
      * Create station configuration from a properties file.
      * @param file The properties file
@@ -187,9 +183,49 @@ final class StationConfiguration {
         }
     }
     
-    StationConfiguration() {        
+    /**
+     * Copy constructor.
+     * @param config Existing configuration object
+     */
+    StationConfiguration(StationConfiguration config) {        
+        this.props = (Properties) config.props.clone();
+        update();
+    }
+    
+    /**
+     * No argument constructor.
+     */
+    StationConfiguration() {
     }
         
+    /**
+     * Get the backing properties.
+     * @return The backing properties
+     */
+    Properties getProperties() {
+        return this.props;
+    }
+    
+    /**
+     * Set a property value.
+     * @param name The name of the property
+     * @param value The value of the property
+     */
+    void setProperty(String name, String value) {
+        this.props.setProperty(name, value);
+    }
+    
+    /**
+     * Write properties to a file.
+     * @param file The output file
+     * @param comment The comment (can be null)
+     * @throws FileNotFoundException If file is not found
+     * @throws IOException If there is an IO error
+     */
+    void write(File file, String comment) throws FileNotFoundException, IOException {
+        this.props.store(new FileOutputStream(file), comment);
+    }
+            
     /**
      * Load configuration from a properties file.
      * @param file The properties filec
@@ -201,78 +237,18 @@ final class StationConfiguration {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        setProperties();
+        update();
         LOGGER.config("Loaded properties: " + this.props.toString());
-    }
-   
-    /**
-     * Parse command line arguments.
-     * @param args The command line arguments
-     * @throws ParseException If there is an error parsing the command line
-     */
-    void parse(String args[]) throws ParseException {
-            
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cl = parser.parse(OPTIONS, args);
-    
-        // If help option is present then program will print usage and exit!
-        // FIXME: Does not seem like a good idea to exit from here (caller should prob do this).
-        if (cl.hasOption("help")) {
-            HelpFormatter help = new HelpFormatter();
-            help.printHelp("[class]", "configure online recon command line options", OPTIONS, "");
-            System.exit(0);
-        }
-        
-        if (cl.hasOption("o")) {
-            this.outputName = cl.getOptionValue("o");
-        }
-            
-        if (cl.hasOption("l")) {
-            this.outputDir = cl.getOptionValue("l");
-        }
-       
-        if (cl.hasOption("d")) {
-            props.setProperty(DETECTOR_PROPERTY, cl.getOptionValue("d"));
-        }
-        
-        if (cl.hasOption("s")) {
-            props.setProperty(STEERING_PROPERTY, cl.getOptionValue("s"));
-        }
-        
-        if (cl.hasOption("r")) {
-            props.setProperty(RUN_PROPERTY, cl.getOptionValue("r"));
-        }
-        
-        if (cl.hasOption("n")) {
-            props.setProperty(STATION_PROPERTY, cl.getOptionValue("n"));
-        }
-                
-        if (cl.hasOption("P")) {
-            props.setProperty(EVENT_PRINT_INTERVAL_PROPERTY, cl.getOptionValue("P"));
-        }
-        
-        if (cl.hasOption("e")) {
-            props.setProperty(EVENT_SAVE_INTERVAL_PROPERTY, cl.getOptionValue("e"));
-        }               
-        
-        if (cl.hasOption("p")) {
-            props.setProperty(PORT_PROPERTY, cl.getOptionValue("p"));
-        }
-        
-        if (cl.hasOption("h")) {
-            props.setProperty(HOST_PROPERTY, cl.getOptionValue("h"));
-        }
-        
-        setProperties();
     }
 
     /**
      * Set typed variables from property keys and values.
      * 
-     * This is called after properties are loaded from command line,
-     * properties file, or JSON data.
+     * This is called after properties are loaded from properties file or JSON data.
+     * 
+     * It should be called manually after any property values are added or changed.
      */
-    private void setProperties() {
+    void update() {
         if (props.containsKey(DETECTOR_PROPERTY)) {
             detectorName = props.getProperty(DETECTOR_PROPERTY);
         }
@@ -315,6 +291,18 @@ final class StationConfiguration {
         if (props.containsKey(CHUNK_SIZE_PROPERTY)) {
             chunkSize = Integer.valueOf(props.getProperty(CHUNK_SIZE_PROPERTY));
         }
+        if (props.containsKey(OUTPUT_DIR_PROPERTY)) {
+            outputDir = props.getProperty(OUTPUT_DIR_PROPERTY);
+        }
+        if (props.containsKey(OUTPUT_NAME_PROPERTY)) {
+            outputName = props.getProperty(OUTPUT_NAME_PROPERTY);
+        }
+        if (props.containsKey(STATION_PROPERTY)) {
+            stationName = props.getProperty(STATION_PROPERTY);
+        }
+        if (props.containsKey(ET_LOG_LEVEL_PROPERTY)) {
+            etLogLevel = Integer.parseInt(props.getProperty(ET_LOG_LEVEL_PROPERTY));
+        }
     }
     
     /**
@@ -325,7 +313,7 @@ final class StationConfiguration {
         for (String key : jo.keySet()) {
             this.props.setProperty(key, jo.get(key).toString());
         }
-        this.setProperties();
+        update();
     }
 
     /**
@@ -345,29 +333,34 @@ final class StationConfiguration {
      * @return True if configuration looks valid
      */
     boolean isValid() {
+        boolean okay = true;
         if (this.detectorName == null) {
             LOGGER.severe("Detector name was not set.");
-            return false;
+            okay = false;
         }
         if (this.runNumber != null) {
             if (this.runNumber < 0) {
                 LOGGER.severe("Bad run number: " + this.runNumber);
-                return false;
+                okay = false;
             }
         }
         if (this.steering == null) {
             LOGGER.severe("Steering resource was not set.");
-            return false;
+            okay = false;
         }
         if (this.outputName == null) {
             LOGGER.severe("Output file name was not set.");
-            return false;
+            okay = false;
         }
         if (this.stationName == null) {
             LOGGER.severe("Station name was not set.");
-            return false;
+            okay = false;
         }
-        return true;
+        if (this.etLogLevel < EtConstants.debugNone || this.etLogLevel > EtConstants.debugInfo) {
+            LOGGER.severe("ET log level is not valid: " + this.etLogLevel);
+            okay = false;
+        }
+        return okay;
     }
 
     String getDetectorName() {
@@ -432,5 +425,9 @@ final class StationConfiguration {
 
     Integer getChunkSize() {
         return chunkSize;
+    }
+    
+    int getEtLogLevel() {
+        return etLogLevel;
     }
 }

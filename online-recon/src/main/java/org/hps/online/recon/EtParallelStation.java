@@ -29,13 +29,14 @@ class EtParallelStation extends EtConnection {
             final String stationName, 
             final Mode waitMode, 
             final int waitTime, 
-            final int chunkSize) throws Exception {
+            final int chunkSize,
+            final int logLevel) throws Exception {
 
         // make a direct connection to ET system's tcp server
         final EtSystemOpenConfig etConfig = new EtSystemOpenConfig(name, host, port);
         
         // create ET system object with verbose debugging output
-        sys = new EtSystem(etConfig, EtConstants.debugInfo);
+        sys = new EtSystem(etConfig, logLevel);
         sys.open();
         
         //LOGGER.config("ET system has " + sys.getNumStations() + " stations.");

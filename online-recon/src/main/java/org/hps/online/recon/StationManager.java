@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.json.JSONObject;
 
 /**
@@ -33,6 +34,8 @@ public class StationManager {
         long pid = -1L;
         Process process;
         String stationName;
+        File configFile;
+        StationConfiguration config;
 
         /**
          * Convert station data to JSON.
@@ -46,15 +49,21 @@ public class StationManager {
             jo.put("station", stationName);
             jo.put("command", String.join(" ", command));
             jo.put("dir", dir.getPath());
-            jo.put("log", log != null ? log.getPath() : "");
+            jo.put("log", log != null ? FilenameUtils.getBaseName(log.getPath()) : "");
+            jo.put("config", config.toJSON());
             return jo;
         }
     }
+
+    /**
+     * Name of station properties file.
+     */
+    private static final String STATION_CONFIG_NAME = "station.properties";
     
     /**
      * System property for specifying local or alternate conditions database.
      */
-    // FIXME: User and password should also be passed to station if they are set.
+    // TODO: User and password should also be passed to station if they are set.
     private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
 
     /**
@@ -150,18 +159,28 @@ public class StationManager {
         update(station);
                 
         if (!station.active) {
-                
-            List<String> command = station.command;
+                             
             File dir = station.dir;
-            Integer stationID = station.id;
+            if (!dir.exists()) {
+                LOGGER.info("Recreating missing station dir: " + dir.getPath());
+                dir.mkdir();
+            }
 
+            // The config file disappeared, probably from the cleanup command.
+            if (!station.configFile.exists()) {
+                LOGGER.info("Rewriting station config file: " + station.configFile.getPath());
+                this.writeStationConfig(station.config, dir, station.stationName);
+            }
+            
+            List<String> command = station.command;            
             ProcessBuilder pb = new ProcessBuilder(command);
 
+            Integer stationID = station.id;
+           
             pb.directory(dir);
             File log = new File(dir.getPath() + File.separator + "out." + stationID.toString() + ".log");
             pb.redirectErrorStream(true);
             pb.redirectOutput(Redirect.appendTo(log));
-
             station.log = log;
 
             LOGGER.info("Starting command: " + String.join(" ", pb.command()));        
@@ -181,31 +200,55 @@ public class StationManager {
         }            
     }
     
+    File writeStationConfig(StationConfiguration sc, File dir, String stationName) {
+        File scf = new File(dir.getPath() + File.separator + STATION_CONFIG_NAME);
+        try {
+            sc.write(scf, "Configuration properties for online recon station " + stationName);
+        } catch (Exception e) {
+            throw new RuntimeException("Error writing station config file", e);
+        }
+        return scf;
+    }
+    
     /**
      * Create a new station.
      * @param parameters The JSON parameters defining the station
      * @return The new station info
      */
     StationInfo create(JSONObject parameters) {
-        
-        StationConfiguration stationConfig = server.getStationConfig();
-                  
+                                  
         Integer stationID = getNextStationID();
         if (exists(stationID)) {
             LOGGER.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
             throw new RuntimeException("Station ID already exists: " + stationID);
-        }        
+        }       
+        
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
+        
         File dir = createStationDir(stationName);
-                       
-        List<String> command = buildCommand(stationConfig, stationName, dir);
+        
+        /* 
+         * Create new station configuration file by copying server's configuration and setting 
+         * additional station-specific properties.
+         */
+        StationConfiguration sc = new StationConfiguration(this.server.getStationConfig());
+        sc.setProperty(StationConfiguration.STATION_PROPERTY, stationName);
+        sc.setProperty(StationConfiguration.OUTPUT_NAME_PROPERTY, stationName.toLowerCase());
+        sc.setProperty(StationConfiguration.OUTPUT_DIR_PROPERTY, dir.getPath());
+        sc.update();
+        File scf = writeStationConfig(sc, dir, stationName);
+                
+        // Build the command for the station.
+        List<String> command = buildCommand(scf);
                         
         // Add new station info.
         StationInfo info = new StationInfo();
         info.id = stationID;
         info.stationName = stationName;
         info.dir = dir;
-        info.command = command;        
+        info.command = command;
+        info.config = sc;
+        info.configFile = scf;
         add(info);
         
         return info;
@@ -217,9 +260,10 @@ public class StationManager {
      * @param stationName The unique name of the station
      * @param dir The station's output directory
      * @return A command list to be sent to the ProcessBuilder
+     * @throws IOException 
+     * @throws FileNotFoundException 
      */
-    private List<String> buildCommand(StationConfiguration stationConfig,
-            String stationName, File dir) {
+    private List<String> buildCommand(File configFile) {
         List<String> command = new ArrayList<String>();
         command.add("java");        
         if (SYSTEM_PROPERTIES.containsKey(LOGGING_PROPERTY)) {
@@ -236,31 +280,8 @@ public class StationManager {
         }
         command.add("-cp");
         command.add(JAR_PATH);
-        command.add(Station.class.getCanonicalName());
-        
-        command.add("-d");
-        command.add(stationConfig.getDetectorName());
-        command.add("-s");
-        command.add(stationConfig.getSteeringResource());        
-        if (stationConfig.getRunNumber() != null) {
-            command.add("-r");
-            command.add(stationConfig.getRunNumber().toString());
-        }
-        command.add("-p");
-        command.add(stationConfig.getPort().toString());
-        command.add("-h");
-        command.add(stationConfig.getHost());
-        command.add("-n");
-        command.add(stationName);
-        command.add("-o");
-        command.add(stationName.toLowerCase());
-        command.add("-l");
-        command.add(dir.getPath());
-        command.add("-P");
-        command.add(stationConfig.getEventPrintInterval().toString());
-        command.add("-e");
-        command.add(stationConfig.getEventSaveInterval().toString());
-        
+        command.add(Station.class.getCanonicalName());        
+        command.add(configFile.getPath());                   
         return command;
     }
                 
@@ -478,6 +499,11 @@ public class StationManager {
     void update(StationInfo station) {
         if (station.process != null) {
             station.active = station.process.isAlive();
+            if (!station.active) {
+                // Station no longer has a valid system process.
+                station.pid = -1L;
+                station.process = null;
+            }
         }
     }
     

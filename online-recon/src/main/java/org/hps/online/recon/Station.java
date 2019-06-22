@@ -3,7 +3,6 @@ package org.hps.online.recon;
 import java.io.File;
 import java.util.logging.Logger;
 
-import org.apache.commons.cli.ParseException;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.evio.LCSimEngRunEventBuilder;
 import org.hps.job.DatabaseConditionsManagerSetup;
@@ -56,17 +55,15 @@ public class Station {
      * Run from the command line.
      * @param args The command line arguments
      */
-    public static void main(String args[]) {
-        StationConfiguration config = new StationConfiguration();
-        try {
-            config.parse(args);
-        } catch (ParseException e) {
-            throw new RuntimeException("Error parsing command line", e);
-        }
-        if (!config.isValid()) {
+    public static void main(String args[]) {        
+        if (args.length == 0) {
+            throw new RuntimeException("Missing config properties file.");
+        }         
+        StationConfiguration sc = new StationConfiguration(new File(args[0]));
+        if (!sc.isValid()) {
             throw new RuntimeException("Station configuration is not valid (see log messages).");
         }
-        Station recon = new Station(config);
+        Station recon = new Station(sc);
         recon.run();
     }
         
@@ -75,6 +72,8 @@ public class Station {
      */
     void run() {
                 
+        LOGGER.config("Running station with config " + this.config.toString());
+        
         // Composite loop configuration.
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
                 
@@ -197,6 +196,7 @@ public class Station {
                 config.getStation(),
                 config.getWaitMode(),
                 config.getWaitTime(),
-                config.getChunkSize());
+                config.getChunkSize(),
+                config.getEtLogLevel());
     }
 }
