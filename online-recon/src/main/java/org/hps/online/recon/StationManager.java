@@ -71,7 +71,7 @@ public class StationManager {
      * Path to the runnable jar file.
      */
     private static final String JAR_PATH = 
-            OnlineReconStation.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+            Station.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     
     /**
      * The system properties.
@@ -236,7 +236,7 @@ public class StationManager {
         }
         command.add("-cp");
         command.add(JAR_PATH);
-        command.add(OnlineReconStation.class.getCanonicalName());
+        command.add(Station.class.getCanonicalName());
         
         command.add("-d");
         command.add(stationConfig.getDetectorName());

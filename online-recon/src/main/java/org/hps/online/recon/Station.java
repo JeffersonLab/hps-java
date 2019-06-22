@@ -24,12 +24,12 @@ import org.lcsim.util.Driver;
  * 
  * @author jeremym
  */
-public class OnlineReconStation {
+public class Station {
        
     /**
      * Class logger.
      */
-    private static Logger LOGGER = Logger.getLogger(OnlineReconStation.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(Station.class.getPackageName());
                 
     /**
      * The station configuration.
@@ -40,7 +40,7 @@ public class OnlineReconStation {
      * Create new online reconstruction station with a configuration.
      * @param config The station configuration
      */
-    OnlineReconStation(StationConfiguration config) {
+    Station(StationConfiguration config) {
         this.config = config;
     }
            
@@ -66,7 +66,7 @@ public class OnlineReconStation {
         if (!config.isValid()) {
             throw new RuntimeException("Station configuration is not valid (see log messages).");
         }
-        OnlineReconStation recon = new OnlineReconStation(config);
+        Station recon = new Station(config);
         recon.run();
     }
         
