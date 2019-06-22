@@ -146,6 +146,13 @@ abstract class ClientCommand {
     }
     
     /**
+     * Reset command parameters.
+     */
+    void reset() {
+        this.parameters.clear();
+    }
+    
+    /**
      * Read a station ID list from extra command line arguments and add as a parameter.
      * @param cl The parsed command line
      */
@@ -252,19 +259,16 @@ abstract class ClientCommand {
                     "Configuration will take effect for newly created stations."
                     + " If no new config is provided the existing config will be printed.");
         }
-        
-        @Override        
-        Options getOptions() {
-            options.addOption(new Option("c", "config", true, "new config properties file"));
-            return options;
-        }
-        
+                
         /**
          * Load properties file into command parameters.
          * @param propFile The properties file
          * @throws IOException If there is an error loading the properties
          */
         private void loadProperties(File propFile) throws IOException {
+            if (!propFile.exists()) {
+                throw new IllegalArgumentException("Prop file does not exist: " + propFile.getPath());
+            }
             prop = new Properties();
             prop.load(new FileInputStream(propFile));
             for (Object ko : this.prop.keySet()) {
@@ -276,8 +280,9 @@ abstract class ClientCommand {
         @Override
         void process(CommandLine cl) {
             super.process(cl);
-            if (cl.hasOption("c")) {
-                File propFile = new File(cl.getOptionValue("c")); 
+            //System.out.println("config arg list: " + cl.getArgList());
+            if (cl.getArgList().size() > 0) {                
+                File propFile = new File(cl.getArgList().get(0));
                 try {
                     loadProperties(propFile);
                 } catch (IOException e) {
@@ -403,15 +408,6 @@ abstract class ClientCommand {
                 setVerbose(false);
             }
         }
-    }
-    
-    /**
-     * Start an interactive console.
-     */
-    static final class ConsoleCommand extends ClientCommand {
-        ConsoleCommand() {
-            super("console", "Start interactive console", "", "");
-        }
-    }
+    }    
 }
  
