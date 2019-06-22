@@ -369,7 +369,7 @@ public final class Server {
                 if (n < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
                 } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
+                    res = new CommandStatus(STATUS_SUCCESS, "Stopped stations: " + ids.toString());
                 }
             }            
             return res;
