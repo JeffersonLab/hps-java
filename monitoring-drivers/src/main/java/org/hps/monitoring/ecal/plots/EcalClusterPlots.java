@@ -60,7 +60,7 @@ public class EcalClusterPlots extends Driver {
     private boolean logScale = false;
     private AIDA aida = AIDA.defaultInstance();
     private double maxE = 5000 * EcalUtils.MeV;
-    private IPlotter[] plotter = new IPlotter[4];
+    private IPlotter[] plotter = new IPlotter[5];
     private String clusterCollectionName = "EcalClusters";
     double clusterPairTimeCut = 4;
 
