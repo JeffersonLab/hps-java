@@ -25,6 +25,7 @@ import org.hps.online.recon.ClientCommand.ListCommand;
 import org.hps.online.recon.ClientCommand.RemoveCommand;
 import org.hps.online.recon.ClientCommand.SettingsCommand;
 import org.hps.online.recon.ClientCommand.StartCommand;
+import org.hps.online.recon.ClientCommand.StatusCommand;
 import org.hps.online.recon.ClientCommand.StopCommand;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -114,6 +115,7 @@ public final class Client {
         addCommand(new ConfigCommand());
         addCommand(new CleanupCommand());
         addCommand(new SettingsCommand());
+        addCommand(new StatusCommand());
         
         // Define set of valid command names.
         commands = commandMap.keySet();

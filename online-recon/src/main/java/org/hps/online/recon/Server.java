@@ -24,6 +24,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.hps.online.recon.StationManager.StationInfo;
+import org.jlab.coda.et.EtConstants;
+import org.jlab.coda.et.EtStation;
+import org.jlab.coda.et.EtSystem;
+import org.jlab.coda.et.EtSystemOpenConfig;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -57,43 +61,34 @@ public final class Server {
          */
         public void run() {               
             try {
+                
+                LOGGER.fine("Got new connection from: " + socket.getInetAddress().getHostName());
+                
                 Scanner in = new Scanner(socket.getInputStream());                                            
                 JSONObject jo = new JSONObject(in.nextLine());
                  
                 String command = jo.getString("command");
                 JSONObject params = jo.getJSONObject("parameters");
+                
                 LOGGER.info("Received client command <" + command + "> with parameters " + params);
                 
                 CommandResult res = null;
-                try {
-                    // TODO: lookup handlers using a factory or map
-                    CommandHandler handler = null;
-                    if (command.equals("create")) {
-                        handler = new CreateCommandHandler();
-                    } else if (command.equals("start")) {
-                        handler = new StartCommandHandler();
-                    } else if (command.equals("stop")) {
-                        handler = new StopCommandHandler();
-                    } else if (command.equals("list")) {
-                        handler = new ListCommandHandler();
-                    } else if (command.equals("config")) {
-                        handler = new ConfigCommandHandler();
-                    } else if (command.equals("remove")) {
-                        handler = new RemoveCommandHandler();
-                    } else if (command.equals("cleanup")) {
-                        handler = new CleanupCommandHandler();
-                    } else if (command.equals("settings")) {
-                        handler = new SettingsCommandHandler();
-                    }
-                    
-                    if (handler != null) {
+
+                // Find the handler for the client command.
+                CommandHandler handler = getCommandHandler(command);
+                if (handler == null) {
+                    // Command name is invalid. This shouldn't happen normally.
+                    res = new CommandStatus(STATUS_ERROR, "Unknown command: " + command);
+                } else {
+                    try {
+                        // Execute the command and get its result.
+                        LOGGER.info("Executing command: " + command);
                         res = handler.execute(params);
-                    } else {
-                        res = new CommandStatus(STATUS_ERROR, "Unknown command: " + command);
+                    } catch (Exception e) {
+                        // Some kind of error occurred executing the command.
+                        LOGGER.log(Level.SEVERE, "Error executing command: " + command, e);
+                        res = new CommandStatus(STATUS_ERROR, e.getMessage());
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    res = new CommandStatus(STATUS_ERROR, e.getMessage());
                 }
                                 
                 // Send command result back to client.
@@ -114,6 +109,30 @@ public final class Server {
                 }
             }
         }
+        
+        CommandHandler getCommandHandler(String command) {
+            CommandHandler handler = null;
+            if (command.equals("create")) {
+                handler = new CreateCommandHandler();
+            } else if (command.equals("start")) {
+                handler = new StartCommandHandler();
+            } else if (command.equals("stop")) {
+                handler = new StopCommandHandler();
+            } else if (command.equals("list")) {
+                handler = new ListCommandHandler();
+            } else if (command.equals("config")) {
+                handler = new ConfigCommandHandler();
+            } else if (command.equals("remove")) {
+                handler = new RemoveCommandHandler();
+            } else if (command.equals("cleanup")) {
+                handler = new CleanupCommandHandler();
+            } else if (command.equals("settings")) {
+                handler = new SettingsCommandHandler();
+            } else if (command.equals("status")) {
+                handler = new StatusCommandHandler();
+            }
+            return handler;
+        }
     }
 
     /**
@@ -126,9 +145,9 @@ public final class Server {
          * @param jo The JSON input parameters
          * @return The command result
          */
-        abstract CommandResult execute(JSONObject jo);
+        abstract CommandResult execute(JSONObject jo);       
     }
-
+   
     /**
      * Generic class for returning command results.
      */
@@ -499,6 +518,106 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle status command. 
+     */
+    class StatusCommandHandler extends CommandHandler {
+
+        CommandResult execute(JSONObject jo) {
+
+            boolean verbose = false;
+            if (jo.has("verbose")) {
+                verbose = jo.getBoolean("verbose");
+            }
+            
+            JSONObject res = new JSONObject();
+            
+            // Update active status of all stations.
+            StationManager mgr = Server.this.getStationManager();
+            mgr.updateAll();
+            
+            // Put station status counts.
+            JSONObject stationRes = new JSONObject();
+            stationRes.put("total", mgr.getStationCount());
+            stationRes.put("active", mgr.getActiveCount());
+            stationRes.put("inactive", mgr.getInactiveCount());
+            res.put("stations", stationRes);
+            
+            // Put ET system status.
+            JSONObject etRes = new JSONObject();
+            getEtStatus(etRes, verbose);
+            res.put("ET", etRes);
+            
+            return new JSONResult(res);
+        }
+    }
+    
+    /**
+     * Get the status and state of the ET system.
+     * @param jo The JSON object to update with status
+     */
+    synchronized private void getEtStatus(JSONObject jo, boolean verbose) {
+        EtSystem sys = null;
+        try {
+            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(this.stationConfig.getBufferName(),
+                    this.stationConfig.getHost(), this.stationConfig.getPort());
+            sys = new EtSystem(etConfig, EtConstants.debugWarn);
+            sys.open();
+            jo.put("alive", sys.alive());
+            jo.put("host", etConfig.getHost());
+            jo.put("port", etConfig.getTcpPort());
+            if (sys.alive()) {
+                jo.put("pid", sys.getPid());
+                jo.put("num_stations", sys.getNumStations());
+                jo.put("attachments", sys.getNumAttachments());
+                jo.put("attachments_max", sys.getAttachmentsMax());
+            }            
+            if (verbose) {
+                JSONObject joRes = new JSONObject();
+                final List<StationInfo> stations = 
+                        Server.this.getStationManager().getStations();
+                for (StationInfo station : stations) {
+                    if (sys.stationExists(station.stationName)) {
+                        EtStation etStation = sys.stationNameToObject(station.stationName);                        
+                        JSONObject joStat = new JSONObject();
+                        joStat.put("usable", etStation.isUsable());
+                        joStat.put("input_count", etStation.getInputCount());
+                        joStat.put("status", getStatusString(etStation.getStatus()));
+                        joStat.put("id", etStation.getId());
+                        joRes.put(station.stationName, joStat);
+                    }
+                }
+                jo.put("stations", joRes);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error getting ET status", e);
+            jo.put("error", e.getMessage());
+        } finally {
+            if (sys != null) {                
+                sys.close();
+            }
+        }
+    }
+    
+    /**
+     * Get ET station status from code.
+     * @param status The status string from the code.
+     * @return The station status string
+     */
+    static String getStatusString(int status) {
+        String statusString = "unknown";
+        if (status == EtConstants.stationUnused) {
+            statusString = "unused";
+        } else if (status == EtConstants.stationCreating) {
+            statusString = "creating";
+        } else if (status == EtConstants.stationIdle) {
+            statusString = "idle";
+        } else if (status == EtConstants.stationActive) {
+            statusString = "active";
+        }
+        return statusString;
+    }
+            
     /**
      * The default server port.
      */

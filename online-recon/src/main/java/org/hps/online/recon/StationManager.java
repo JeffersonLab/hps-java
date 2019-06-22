@@ -637,5 +637,14 @@ public class StationManager {
      */
     int getCurrentStationID() {
         return this.stationID;
-    }   
+    }
+    
+    /**
+     * Update the status of all stations.
+     */
+    synchronized void updateAll() {
+        for (StationInfo station : this.stations) {
+            update(station);
+        }
+    }
 }

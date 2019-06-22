@@ -368,4 +368,33 @@ abstract class ClientCommand {
             }
         }
     }    
+    
+    /**
+     * Show status summary of online reconstruction server and ET system.
+     */
+    static final class StatusCommand extends ClientCommand {
+               
+        StatusCommand() {
+            super("status", "Show server and station status", "", "");
+        }
+        
+        Options getOptions() {
+            options.addOption(new Option("v", "verbose", false, "show verbose station info"));
+            return options;
+        }
+        
+        void setVerbose(boolean verbose) {
+            setParameter("verbose", verbose);
+        }
+        
+        void process(CommandLine cl) {
+            super.process(cl);
+            if (cl.hasOption("v")) {
+                setVerbose(true);
+            } else {
+                setVerbose(false);
+            }
+        }
+    }
 }
+ 
