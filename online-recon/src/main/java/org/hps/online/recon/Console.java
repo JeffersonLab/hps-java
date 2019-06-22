@@ -3,14 +3,12 @@ package org.hps.online.recon;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.ParseException;
+import org.hps.online.recon.commands.CommandFactory;
 
 /**
  * Interactive console for online reconstruction client.
@@ -20,13 +18,11 @@ import org.apache.commons.cli.ParseException;
 public class Console {
 
     private final Client client;
-    private final Set<String> commands;
-    private final Map<String, ClientCommand> commandMap;
+    
+    private CommandFactory cf = new CommandFactory();
     
     Console(Client client) {
         this.client = client;
-        this.commands = client.getCommands();
-        this.commandMap = client.getCommandMap();
     }
          
     public void run() {
@@ -100,8 +96,8 @@ public class Console {
                         System.out.println(client.getAppend());
                     }
                 } else {
-                    if (this.commands.contains(cmdStr)) {
-                        ClientCommand cmd = this.commandMap.get(cmdStr);
+                    if (cf.has(cmdStr)) {
+                        ClientCommand cmd = cf.create(cmdStr);
                         DefaultParser parser = new DefaultParser();
                         try {
                             String cmdArr[] = args.toArray(new String[0]);
@@ -109,7 +105,6 @@ public class Console {
                             try {
                                 cmd.process(cl);
                                 client.send(cmd);
-                                cmd.reset();
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -138,14 +133,14 @@ public class Console {
         System.out.println("    terminal - redirect server output back to the terminal");
         System.out.println("    append [true|false] - true to append to output file or false to overwrite");
         System.out.println('\n' + "COMMANDS" + '\n');
-        for (Entry<String, ClientCommand> entry : this.commandMap.entrySet()) {
-            System.out.println("    " + entry.getKey() + " - " + entry.getValue().getDescription());
+        for (String command : cf.getCommands()) {
+            System.out.println("    " + command + " - " + cf.create(command).getDescription());
         }
     }
     
     void printCommandHelp(String command) {
-        if (this.commands.contains(command)) {
-            this.commandMap.get(command).printUsage();        
+        if (cf.has(command)) {
+            cf.create(command).printUsage();        
         } else {
             System.err.println("Unknown command: " + command);
         }
