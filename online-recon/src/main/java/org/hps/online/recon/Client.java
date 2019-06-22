@@ -323,4 +323,12 @@ public final class Client {
     Set<String> getCommands() {
         return Collections.unmodifiableSet(this.commands);
     }
+    
+    void setPort(int port) {
+        this.port = port;
+    }
+    
+    void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
 }
