@@ -153,7 +153,7 @@ public final class Client {
         // If extra arguments are provided then try to run a command.
         if (argList.size() != 0) {
             String commandName = argList.get(0);
-            ClientCommand command = cf.create(commandName);
+            Command command = cf.create(commandName);
             if (command == null) {
                 printUsage(false);
                 throw new IllegalArgumentException("Unknown command: " + commandName);
@@ -192,7 +192,7 @@ public final class Client {
      * Send a command to the online reconstruction server.
      * @param command The client command to send
      */
-    void send(ClientCommand command) {
+    void send(Command command) {
         try (Socket socket = new Socket(hostname, port)) {
             // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());

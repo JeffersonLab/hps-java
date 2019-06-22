@@ -14,7 +14,7 @@ import org.json.JSONObject;
 /**
  * Command to be sent to the online reconstruction server.
  */
-public abstract class ClientCommand {
+public abstract class Command {
 
     /**
      * Short name of the command.
@@ -54,7 +54,7 @@ public abstract class ClientCommand {
      * @param commandExtra The extra command options for printing usage
      * @param commandFooter The footer text for printing usage
      */
-    public ClientCommand(String name, String description, String commandExtra, String commandFooter) {
+    public Command(String name, String description, String commandExtra, String commandFooter) {
         this.name = name;
         this.description = description;
         this.commandExtra = commandExtra;

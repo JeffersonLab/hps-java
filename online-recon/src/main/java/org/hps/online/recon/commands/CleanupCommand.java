@@ -1,14 +1,14 @@
 package org.hps.online.recon.commands;
 
 import org.apache.commons.cli.CommandLine;
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Cleanup a station by deleting its working directory.
  * 
  * This will only work on inactive stations.
  */
-class CleanupCommand extends ClientCommand {
+class CleanupCommand extends Command {
     
     CleanupCommand() {            
         super("cleanup", "Delete a station's working directory and files", "[IDs]",

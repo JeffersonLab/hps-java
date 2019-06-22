@@ -97,7 +97,7 @@ public class Console {
                     }
                 } else {
                     if (cf.has(cmdStr)) {
-                        ClientCommand cmd = cf.create(cmdStr);
+                        Command cmd = cf.create(cmdStr);
                         DefaultParser parser = new DefaultParser();
                         try {
                             String cmdArr[] = args.toArray(new String[0]);

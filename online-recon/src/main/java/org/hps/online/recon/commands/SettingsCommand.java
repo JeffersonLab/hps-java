@@ -3,7 +3,7 @@ package org.hps.online.recon.commands;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Update values of server settings.
@@ -12,7 +12,7 @@ import org.hps.online.recon.ClientCommand;
  * 
  * Running this command with no arguments returns the current settings.
  */
-public final class SettingsCommand extends ClientCommand {
+public final class SettingsCommand extends Command {
     
     SettingsCommand() {            
         super("settings", "Update or get server settings", "[options]",

@@ -3,13 +3,13 @@ package org.hps.online.recon.commands;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Create one or more new stations using the current configuration properties 
  * of the server.  
  */
-public class CreateCommand extends ClientCommand {
+public class CreateCommand extends Command {
 
     CreateCommand() {
         super("create", "Create a new station", "", 

@@ -1,7 +1,7 @@
 package org.hps.online.recon.commands;
 
 import org.apache.commons.cli.CommandLine;
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Remove a list of stations by their IDs or if none are
@@ -9,7 +9,7 @@ import org.hps.online.recon.ClientCommand;
  * 
  * This will only work on inactive stations.
  */
-public class RemoveCommand extends ClientCommand {
+public class RemoveCommand extends Command {
              
     RemoveCommand() {            
         super("remove", "Remove a station that is inactive", "[IDs]",

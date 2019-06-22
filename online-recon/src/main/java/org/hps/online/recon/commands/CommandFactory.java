@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Factory for creating instances of command class.
@@ -60,12 +60,12 @@ public class CommandFactory {
      * @param name The name of the command
      * @return The command or null if does not exist
      */
-    public ClientCommand create(String name) {
-        ClientCommand cmd = null;
+    public Command create(String name) {
+        Command cmd = null;
         Class<?> klass = this.classMap.get(name);
         if (klass != null) {
             try {
-                cmd = (ClientCommand) klass.newInstance();
+                cmd = (Command) klass.newInstance();
             } catch (Exception  e) {
                 throw new RuntimeException("Error creating class", e);
             }

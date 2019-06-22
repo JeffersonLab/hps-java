@@ -6,14 +6,14 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Set server configuration properties from a local file.
  * 
  * Running this command with no arguments returns the current configuration.
  */
-public class ConfigCommand extends ClientCommand {
+public class ConfigCommand extends Command {
 
     private Properties prop;
             

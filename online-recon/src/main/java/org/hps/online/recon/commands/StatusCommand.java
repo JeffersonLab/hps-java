@@ -3,12 +3,12 @@ package org.hps.online.recon.commands;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.hps.online.recon.ClientCommand;
+import org.hps.online.recon.Command;
 
 /**
  * Show status summary of online reconstruction server and ET system.
  */
-public class StatusCommand extends ClientCommand {
+public class StatusCommand extends Command {
            
     StatusCommand() {
         super("status", "Show server and station status", "", "");
