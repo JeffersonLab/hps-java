@@ -28,7 +28,6 @@ public final class SettingsCommand extends Command {
     }
     
     protected void process(CommandLine cl) {
-        super.process(cl);
         if (cl.hasOption("s")) {
             setParameter("start", cl.getOptionValue("s"));
         }

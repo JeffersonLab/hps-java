@@ -8,7 +8,7 @@ import java.util.Set;
 import org.hps.online.recon.Command;
 
 /**
- * Factory for creating instances of command class.
+ * Factory for creating instances of <code>Command</code> class.
  *
  * @author jeremym
  */

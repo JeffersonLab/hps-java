@@ -17,7 +17,6 @@ public class RemoveCommand extends Command {
     }
             
     protected void process(CommandLine cl) {
-        super.process(cl);
         readStationIDs(cl);
     }        
 }

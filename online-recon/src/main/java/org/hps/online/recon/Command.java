@@ -13,6 +13,9 @@ import org.json.JSONObject;
 
 /**
  * Command to be sent to the online reconstruction server.
+ * 
+ * Commands are sent as JSON containing the name of the command
+ * and a parameter map.
  */
 public abstract class Command {
 
@@ -108,10 +111,27 @@ public abstract class Command {
     
     /**
      * Get the options for command line usage.
+     * 
+     * Sub-classes should override this to add their options.
+     * 
      * @return The options for command line usage
      */
     protected Options getOptions() {
         return options;
+    }
+    
+    /**
+     * Return options of the command with no "help" option.
+     * @return The options without the "help" option
+     */
+    protected Options getOptionsNoHelp() {
+        Options noHelpOptions = new Options();
+        for (Option option : getOptions().getOptions()) {
+            if (!option.getLongOpt().equals("help")) {
+                noHelpOptions.addOption(option);
+            }
+        }
+        return noHelpOptions;
     }
     
     /**
@@ -124,22 +144,22 @@ public abstract class Command {
     }
     
     /**
+     * Print the usage statement for this command without the "help" option.
+     */
+    void printUsageNoHelp() {
+        final HelpFormatter help = new HelpFormatter();
+        help.printHelp(this.name + " " + this.commandExtra, this.description, 
+                getOptionsNoHelp(), this.commandFooter);
+    }
+    
+    /**
      * Parse command line options.
      * 
-     * This method checks for the help option, and if it exists,
-     * prints usage and exits the program.
-     * 
-     * Sub-classes should always call the super method when overriding
-     * so that the help option is activated properly.
+     * Sub-classes need to implement this method to handle their arguments.
      * 
      * @param cl The parsed command line
      */
-    protected void process(CommandLine cl) {
-        if (cl.hasOption("help")) {
-            printUsage();
-            System.exit(0);
-        }
-    }
+    abstract protected void process(CommandLine cl);
         
     /**
      * Read a station ID list from extra command line arguments and add as a parameter.

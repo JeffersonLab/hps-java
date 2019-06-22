@@ -57,6 +57,9 @@ public final class Client {
      */
     private boolean append = false;
     
+    /**
+     * The factory for creating <code>Command</code> objects.
+     */
     private CommandFactory cf = new CommandFactory();
     
     /**
@@ -65,7 +68,6 @@ public final class Client {
     private static Options OPTIONS = new Options();
     static {
         OPTIONS.addOption(new Option("", "help", false, "print help"));
-        OPTIONS.addOption(new Option("", "help-all", false, "print help for all commands"));
         OPTIONS.addOption(new Option("p", "port", true, "server port"));
         OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
         OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
@@ -81,24 +83,15 @@ public final class Client {
     /**
      * Print the base command usage.
      */
-    private void printUsage(boolean exit) {
+    private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", cf.getCommands());
         help.printHelp("Client [options] [command] [command_options]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
-                    + "Use 'Client [command] --help' for help with a specific command.");
-        if (exit) {
-            System.exit(0);
-        }
+                    + "Use 'Client [command] --help' for information about a specific command." + '\n'
+                    + "Run with no command to start the interactive console.");
     }
-    
-    private void printCommandUsages() {
-        for (String cmd : cf.getCommands()) {
-            cf.create(cmd).printUsage();
-            System.out.println();
-        }
-    }
-               
+                   
     /**
      * Run the client using command line arguments
      * @param args The command line arguments
@@ -115,15 +108,7 @@ public final class Client {
 
         // Print usage and exit.
         if (cl.hasOption("help")) {
-            this.printUsage(true);
-        }
-
-        // Print usage for all commands and exit.
-        if (cl.hasOption("help-all")) {
-            System.out.println("CLIENT" + '\n');
-            this.printUsage(false);    
-            System.out.println('\n' + "COMMANDS");
-            this.printCommandUsages();
+            this.printUsage();
             System.exit(0);
         }
 
@@ -155,7 +140,7 @@ public final class Client {
             String commandName = argList.get(0);
             Command command = cf.create(commandName);
             if (command == null) {
-                printUsage(false);
+                printUsage();
                 throw new IllegalArgumentException("Unknown command: " + commandName);
             }
 
@@ -170,9 +155,15 @@ public final class Client {
             CommandLine cmdResult = null;
             try {
                 cmdResult = commandParser.parse(command.getOptions(), argArr);
+                
+                // Print usage of the command and exit.
+                if (cmdResult.hasOption("help")) {
+                    command.printUsage();
+                    System.exit(0);
+                }
             } catch (ParseException e) {
                 command.printUsage();
-                throw new RuntimeException("Error parsing command options", e);            
+                throw new RuntimeException("Error parsing command options", e);
             }
 
             // Setup the command parameters from the parsed options.
@@ -249,26 +240,53 @@ public final class Client {
         client.run(args);
     }
     
+    /**
+     * Get the hostnae of the server.
+     * @return The hostname of the server
+     */
     String getHostname() {
         return this.hostname;
     }
     
+    /**
+     * Get the port number of the server.
+     * @return The port number of the server
+     */
     int getPort() {
         return this.port;
     }
     
+    /**
+     * Get the output file for writing server responses.
+     * 
+     * If this is null then server responses are written to <code>System.out</code>.
+     * 
+     * @return The output file for writing server responses.
+     */
     File getOutputFile() {
         return this.outputFile;
     }
         
+    /**
+     * Set the port number of the server.
+     * @param port The port number of the server
+     */
     void setPort(int port) {
         this.port = port;
     }
     
+    /**
+     * Set the hostname of the server.
+     * @param hostname The hostname of the server.
+     */
     void setHostname(String hostname) {
         this.hostname = hostname;
     }
     
+    /**
+     * Set the path to the output file for writing server responses.
+     * @param outputPath The output file path or null to print to the terminal
+     */
     void setOutputFile(String outputPath) {
         if (outputPath != null) {
             this.outputFile = new File(outputPath);
@@ -277,10 +295,21 @@ public final class Client {
         }
     }        
     
+    /**
+     * Set whether to append to the output file.
+     * 
+     * By default existing output files are overwritten.
+     * 
+     * @param append True to append to the output file
+     */
     void setAppend(boolean append) {
         this.append = append;
     }
     
+    /**
+     * Get whether to append to the output file.
+     * @return Whether to append to the output file
+     */
     boolean getAppend() {
         return this.append;
     }

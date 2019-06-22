@@ -24,7 +24,6 @@ public class StatusCommand extends Command {
     }
     
     public void process(CommandLine cl) {
-        super.process(cl);
         if (cl.hasOption("v")) {
             setVerbose(true);
         } else {

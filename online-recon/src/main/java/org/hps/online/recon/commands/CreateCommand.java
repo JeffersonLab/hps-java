@@ -40,7 +40,6 @@ public class CreateCommand extends Command {
             
     @Override
     protected void process(CommandLine cl) {
-        super.process(cl);
         if (cl.hasOption("n")) {
             setCount(Integer.valueOf(cl.getOptionValue("n")));
         }

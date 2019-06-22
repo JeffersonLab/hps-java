@@ -42,8 +42,6 @@ public class ConfigCommand extends Command {
             
     @Override
     protected void process(CommandLine cl) {
-        super.process(cl);
-        //System.out.println("config arg list: " + cl.getArgList());
         if (cl.getArgList().size() > 0) {                
             File propFile = new File(cl.getArgList().get(0));
             try {

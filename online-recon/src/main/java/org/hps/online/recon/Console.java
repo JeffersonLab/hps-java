@@ -26,7 +26,7 @@ public class Console {
     }
          
     public void run() {
-        String userInput;    
+        String userInput;
         
         Scanner sn = new Scanner(System.in);
 
@@ -37,16 +37,13 @@ public class Console {
             System.out.print("online> ");
             userInput = sn.nextLine();
             userInput = userInput.trim();
-            //System.out.println("userInput: " + userInput);
             if (userInput.length() > 0) {
                 String rawInputArr[] = userInput.split(" ");
                 String cmdStr = rawInputArr[0];
                 List<String> args = new ArrayList<String>(Arrays.asList(rawInputArr));
-                //System.out.println("args: " + args);
                 if (args.size() > 0) {
                     args.remove(0);
                 }
-                //System.out.println("cmd args: " + args);
                 if (cmdStr.equals("exit")) {
                     break;
                 } else if (cmdStr.equals("help")) {
@@ -101,7 +98,7 @@ public class Console {
                         DefaultParser parser = new DefaultParser();
                         try {
                             String cmdArr[] = args.toArray(new String[0]);
-                            CommandLine cl = parser.parse(cmd.getOptions(), cmdArr);
+                            CommandLine cl = parser.parse(cmd.getOptionsNoHelp(), cmdArr);
                             try {
                                 cmd.process(cl);
                                 client.send(cmd);
@@ -130,8 +127,8 @@ public class Console {
         System.out.println("    port [port] - set the server port");
         System.out.println("    host [host]- set the server hostname");
         System.out.println("    file [filename] - write server output to a file");
-        System.out.println("    terminal - redirect server output back to the terminal");
         System.out.println("    append [true|false] - true to append to output file or false to overwrite");
+        System.out.println("    terminal - redirect server output back to the terminal");
         System.out.println('\n' + "COMMANDS" + '\n');
         for (String command : cf.getCommands()) {
             System.out.println("    " + command + " - " + cf.create(command).getDescription());
@@ -140,7 +137,7 @@ public class Console {
     
     void printCommandHelp(String command) {
         if (cf.has(command)) {
-            cf.create(command).printUsage();        
+            cf.create(command).printUsageNoHelp();
         } else {
             System.err.println("Unknown command: " + command);
         }
