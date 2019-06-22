@@ -181,12 +181,12 @@ public class SvtHitPlots extends Driver {
         plotters.put("Number of layers hit", plotterFactory.create("Number of layers hit"));
         plotters.get("Number of layers hit").createRegions(1, 2);
 
-        layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 12, 0, 12));
+        layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 14, 0, 14));
         plotters.get("Number of layers hit")
                 .region(0)
                 .plot(layersHitPlots.get("Top"),
                         SvtPlotUtils.createStyle(plotterFactory, "Number of Top Layers Hit", ""));
-        layersHitPlots.put("Bottom", histogramFactory.createHistogram1D("Bottom Layers Hit", 12, 0, 12));
+        layersHitPlots.put("Bottom", histogramFactory.createHistogram1D("Bottom Layers Hit", 14, 0, 14));
         plotters.get("Number of layers hit")
                 .region(1)
                 .plot(layersHitPlots.get("Bottom"),
@@ -300,12 +300,8 @@ public class SvtHitPlots extends Driver {
 
         this.clearHitMaps();
         for (RawTrackerHit rawHit : rawHits) {
-            System.out.println("rawHit in layer = " + rawHit.getLayerNumber());
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-            System.out.println("sensor = " + sensor.getName());
             int channel = (int) rawHit.getIdentifierFieldValue("strip");
-//            int channel=(int) rawHit.getIdentifierFieldValue("strip")
-            System.out.println("sensor = " + sensor.getName() + " channel = " + channel);
             double pedestal = sensor.getPedestal(channel, 0);
             // Find the sample with maximum ADC count
             int maxSample = 0;

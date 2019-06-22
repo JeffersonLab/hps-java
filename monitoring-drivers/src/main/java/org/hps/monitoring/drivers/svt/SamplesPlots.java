@@ -61,7 +61,7 @@ public class SamplesPlots extends Driver {
             samplesPlots.put(sensor,
                     histogramFactory.createHistogram2D(sensor.getName() + " - Samples", 6, 0, 6, 1000, -200.0, 3000));
 
-            if (sensor.getLayerNumber() < 7) {
+            if (sensor.getLayerNumber() < 9) {
                 plotters.get("L1-L4 Raw hit samples")
                         .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(samplesPlots.get(sensor),
