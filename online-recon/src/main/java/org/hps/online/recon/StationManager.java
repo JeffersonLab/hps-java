@@ -159,7 +159,8 @@ public class StationManager {
         update(station);
                 
         if (!station.active) {
-                             
+
+            // Make sure station dir exists.
             File dir = station.dir;
             if (!dir.exists()) {
                 LOGGER.info("Recreating missing station dir: " + dir.getPath());
@@ -229,7 +230,7 @@ public class StationManager {
         
         /* 
          * Create new station configuration file by copying server's configuration and setting 
-         * additional station-specific properties.
+         * some additional, required station-specific properties.
          */
         StationConfiguration sc = new StationConfiguration(this.server.getStationConfig());
         sc.setProperty(StationConfiguration.STATION_PROPERTY, stationName);
@@ -256,12 +257,7 @@ public class StationManager {
     
     /**
      * Build the command for running the station.
-     * @param stationConfig The station configuration
-     * @param stationName The unique name of the station
-     * @param dir The station's output directory
-     * @return A command list to be sent to the ProcessBuilder
-     * @throws IOException 
-     * @throws FileNotFoundException 
+     * @param configFile The station configuration properties file
      */
     private List<String> buildCommand(File configFile) {
         List<String> command = new ArrayList<String>();
