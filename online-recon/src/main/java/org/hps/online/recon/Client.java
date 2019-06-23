@@ -57,6 +57,12 @@ public final class Client {
      */
     private boolean append = false;
     
+    
+    /**
+     * Run interactive console after command file.
+     */
+    private boolean interactive = false;
+    
     /**
      * The factory for creating <code>Command</code> objects.
      */
@@ -72,6 +78,7 @@ public final class Client {
         OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
         OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
         OPTIONS.addOption(new Option("a", "append", false, "append if writing to output file (default will overwrite)"));
+        OPTIONS.addOption(new Option("i", "interactive", false, "start interactive console after executing command file"));
     }
    
     /**
@@ -86,10 +93,11 @@ public final class Client {
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", cf.getCommandNames());
-        help.printHelp("Client [options] [command] [command_options]", "Send commands to the online reconstruction server",
+        help.printHelp("Client [options] [[file] | [command] [command_options]]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
                     + "Use 'Client [command] --help' for information about a specific command." + '\n'
-                    + "Run with no command to start the interactive console.");
+                    + "Run with no client arguments to start the interactive console."
+                    + "Provide a file with commands as a single argument to execute it.");
     }
                    
     /**
@@ -134,44 +142,71 @@ public final class Client {
             this.append = true;
             LOGGER.config("Appending to output file: " + this.append);
         }
+        
+        if (cl.hasOption("i")) {
+            this.interactive = true;
+            LOGGER.config("Interactive mode enable: " + this.interactive);
+        }
 
         // If extra arguments are provided then try to run a command.
         if (argList.size() != 0) {
+            
+            // See if a command was provided.
             String commandName = argList.get(0);
             Command command = cf.create(commandName);
-            if (command == null) {
-                printUsage();
-                throw new IllegalArgumentException("Unknown command: " + commandName);
-            }
 
-            // Remove command from arg list.
-            argList.remove(0);
+            // There was a valid command to execute.
+            if (command != null) {
 
-            // Convert command list to array.
-            String[] argArr = argList.toArray(new String[0]);
+                // Remove command from arg list.
+                argList.remove(0);
 
-            // Parse command options.
-            DefaultParser commandParser = new DefaultParser();
-            CommandLine cmdResult = null;
-            try {
-                cmdResult = commandParser.parse(command.getOptions(), argArr);
-                
-                // Print usage of the command and exit.
-                if (cmdResult.hasOption("help")) {
+                // Convert command list to array.
+                String[] argArr = argList.toArray(new String[0]);
+
+                // Parse command options.
+                DefaultParser commandParser = new DefaultParser();
+                CommandLine cmdResult = null;
+                try {
+                    cmdResult = commandParser.parse(command.getOptions(), argArr);
+
+                    // Print usage of the command and exit.
+                    if (cmdResult.hasOption("help")) {
+                        command.printUsage();
+                        System.exit(0);
+                    }
+                } catch (ParseException e) {
                     command.printUsage();
-                    System.exit(0);
+                    throw new RuntimeException("Error parsing command options", e);
                 }
-            } catch (ParseException e) {
-                command.printUsage();
-                throw new RuntimeException("Error parsing command options", e);
+
+                // Setup the command parameters from the parsed options.
+                command.process(cmdResult);
+
+                // Send the command to server.
+                LOGGER.info("Sending command " + command.toString());
+                send(command);
+            } else {
+                // If there is a single argument, see if it looks like a command file to execute.
+                File execFile = new File(argList.get(0));
+                if (argList.size() == 1 && execFile.exists()) {
+                    Console cn = new Console(this);
+                    try {
+                        cn.setEcho(true);
+                        cn.execFile(execFile);
+                        if (this.interactive) {
+                            cn.setEcho(false);
+                            cn.run();
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error executing command file: " + execFile.getPath(), e);
+                    }
+                } else {
+                    // Could not parse command line options.
+                    printUsage();
+                    throw new IllegalArgumentException("Unknown command: " + commandName);
+                }
             }
-
-            // Setup the command parameters from the parsed options.
-            command.process(cmdResult);
-
-            // Send the command to server.
-            LOGGER.info("Sending command " + command.toString());
-            send(command);
         } else {
             // No command was provided so run the interactive console.
             Console cn = new Console(this);

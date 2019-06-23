@@ -1,5 +1,10 @@
 package org.hps.online.recon;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,11 +23,20 @@ import org.hps.online.recon.commands.CommandFactory;
 public class Console {
 
     private final Client client;
+
+    /**
+     * True to echo commands as they are executed.
+     */
+    private boolean echo = false;
     
     private CommandFactory cf = new CommandFactory();
     
     Console(Client client) {
         this.client = client;
+    }
+    
+    void setEcho(boolean echo) {
+        this.echo = echo;
     }
          
     public void run() {
@@ -35,17 +49,38 @@ public class Console {
         
         while (true) {
             System.out.print("online> ");
-            userInput = sn.nextLine();
-            userInput = userInput.trim();
-            if (userInput.length() > 0) {
+            userInput = sn.nextLine().trim();
+            boolean exit = false;
+            try {
+                exit = exec(userInput);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (exit) {
+                break;
+            }
+
+        }
+        
+        sn.close();
+    }
+    
+    private boolean exec(String userInput) {
+        if (echo) {
+            System.out.println(userInput);
+        }
+        if (userInput.length() > 0) {
+            // Ignore comments.
+            if (!userInput.startsWith("#")) {
                 String rawInputArr[] = userInput.split(" ");
                 String cmdStr = rawInputArr[0];
                 List<String> args = new ArrayList<String>(Arrays.asList(rawInputArr));
                 if (args.size() > 0) {
                     args.remove(0);
                 }
+
                 if (cmdStr.equals("exit")) {
-                    break;
+                    return true;
                 } else if (cmdStr.equals("help")) {
                     if (args.size() == 0) {
                         printHelp();
@@ -114,8 +149,16 @@ public class Console {
                 }
             }
         }
-        
-        sn.close();
+        return false;
+    }
+    
+    void execFile(File file) throws FileNotFoundException, IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                this.exec(line);
+            }
+        }
     }
     
     void printHelp() {
