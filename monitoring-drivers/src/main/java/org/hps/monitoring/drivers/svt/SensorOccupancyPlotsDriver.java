@@ -548,12 +548,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     maxAmplitude = adcValues[sampleN];
                     maxSamplePositionFound = sampleN;
                 }
-            System.out.println("channel = " + rawHit
-                    .getIdentifierFieldValue("strip") + " maxSamplePosition = " + maxSamplePositionFound);
+//            System.out.println("channel = " + rawHit
+//                    .getIdentifierFieldValue("strip") + " maxSamplePosition = " + maxSamplePositionFound);
             if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) {
                 occupancyMap.get(((HpsSiSensor) rawHit.getDetectorElement()).getName())[rawHit
                         .getIdentifierFieldValue("strip")]++;
-                System.out.println("Filling occupancy");
+//                System.out.println("Filling occupancy");
             }
             if (enableMaxSamplePlots)
                 maxSamplePositionPlots.get(((HpsSiSensor) rawHit.getDetectorElement()).getName()).fill(
@@ -594,7 +594,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
 
                     stripOccupancy /= this.timeWindowWeight;
-                    System.out.println("channel " + channel + " occupancy = " + stripOccupancy);
+  //                  System.out.println("channel " + channel + " occupancy = " + stripOccupancy);
                     occupancyPlots.get(sensor.getName()).fill(channel, stripOccupancy);
 
                     if (enablePositionPlots) {
