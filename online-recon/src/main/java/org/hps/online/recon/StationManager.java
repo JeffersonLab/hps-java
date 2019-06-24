@@ -180,7 +180,15 @@ public class StationManager {
            
             pb.directory(dir);
             File log = new File(dir.getPath() + File.separator + "out." + stationID.toString() + ".log");
-            pb.redirectErrorStream(true);
+            if (log.exists()) {
+                //LOGGER.info("Deleting old log file: " + log.getPath());
+                if (log.delete()) {
+                    LOGGER.info("Deleted old log file: " + log.getPath());
+                } else {
+                    LOGGER.warning("Failed to delete old log file " + log.getPath());
+                }
+            }
+            pb.redirectErrorStream(true);            
             pb.redirectOutput(Redirect.appendTo(log));
             station.log = log;
 
