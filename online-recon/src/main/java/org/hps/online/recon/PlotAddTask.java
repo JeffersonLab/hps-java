@@ -1,15 +1,15 @@
 package org.hps.online.recon;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +17,8 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.online.recon.StationManager.StationInfo;
-
 /**
- * Task to add ROOT histograms from the reconstruction stations periodically using the hadd utility.
+ * Task to add ROOT histograms from the reconstruction stations using the hadd utility.
  * 
  * @author jeremym
  */
@@ -40,12 +38,7 @@ final class PlotAddTask extends TimerTask {
      * Target output file.
      */
     private final File targetFile;
-       
-    /**
-     * True if plots should not be added or deleted.
-     */
-    private boolean dryRun = true;
-    
+           
     /**
      * Command for adding ROOT plots.
      */
@@ -55,23 +48,39 @@ final class PlotAddTask extends TimerTask {
      * Number of CPUs to use when running hadd (hard-coded to 4).
      */
     private static final Integer NCPUS = 4;
+   
+    /**
+     * List of station IDs with directories to look for plot files.
+     * If this is empty then all station directories will be used.
+     */
+    private List<Integer> ids = new ArrayList<Integer>();
     
+    /**
+     * True to delete intermediate plot files when done adding them.
+     */
+    private boolean delete = true;
+        
     /**
      * Class constructor.
      * @param server Reference to the online reconstruction server
      * @param targetFile The target output file
-     * @param dryRun True if dry run should be enabled
+     * @param delete True to delete existing station plot files
      */
-    PlotAddTask(Server server, File targetFile, boolean dryRun) {
-        this.server = server;       
+    PlotAddTask(Server server, File targetFile, boolean delete) {
+        this.server = server;        
         this.targetFile = targetFile;
-        if (this.targetFile.exists()) {
-            throw new RuntimeException("Target plot file already exists: " + this.targetFile.getPath());
-        }
-        this.dryRun = dryRun;
+        this.delete = delete;
         
         // Check that the hadd command exists.
         checkHadd();
+    }
+    
+    /**
+     * Add a list of station IDs for adding plots.
+     * @param ids The list of station IDs for adding plots
+     */
+    void addStationIDs(List<Integer> ids) {
+        this.ids.addAll(ids);
     }
 
     /**
@@ -89,15 +98,7 @@ final class PlotAddTask extends TimerTask {
             ie.printStackTrace();
         }
     }
-    
-    /**
-     * Enable or disable dry run.
-     * @param dryRun True to enable dry run
-     */
-    void setDryRun(boolean dryRun) {
-        this.dryRun = dryRun;
-    }
-            
+                
     /**
      * Find ROOT files using pattern matching.
      */
@@ -109,15 +110,20 @@ final class PlotAddTask extends TimerTask {
         void find(Path file) {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
-                files.add(file.toFile());
-                LOGGER.info("Found matching file: " + name.getFileName().toString());
+                // Ignore temp files written by the PlotDriver.
+                if (!name.toFile().getName().startsWith("tmp.")) {
+                    files.add(file.toFile());
+                    LOGGER.info("Found matching file: " + name.getFileName().toString());
+                } /*else {
+                    LOGGER.info("Ignored temp file: " + name.getFileName());
+                }*/
             }
         }
         
         @Override
         public FileVisitResult visitFile(Path file,
                 BasicFileAttributes attrs) {
-            LOGGER.info("Visiting " + file.toFile().toPath());
+            //LOGGER.info("Visiting: " + file.toFile().toPath());
             find(file);
             return FileVisitResult.CONTINUE;
         }
@@ -146,13 +152,11 @@ final class PlotAddTask extends TimerTask {
      * @return The list of ROOT files
      * @throws IOException If there is a problem getting the list of files
      */
-    List<File> getRootFiles() throws IOException {
-        final StationManager mgr = server.getStationManager();
+    private List<File> findRootFiles(List<File> dirs) throws IOException {
         RootFileFinder finder = new RootFileFinder();
-        for (StationInfo statInfo : mgr.getStations()) {
-            LOGGER.info("Checking for plot files from station: " + statInfo.stationName);
-            final File statDir = statInfo.dir;
-            Files.walkFileTree(statDir.toPath(), finder);
+        for (File dir : dirs) {
+            LOGGER.info("Checking for plot files in dir: " + dir.getPath());
+            Files.walkFileTree(dir.toPath(), finder);
         }
         return finder.getFiles();
     }
@@ -164,27 +168,26 @@ final class PlotAddTask extends TimerTask {
      * @throws IOException If there is a problem adding the plots
      * @throws InterruptedException If the method is interrupted
      */
-    void addPlots(File target, List<File> inFiles) throws IOException, InterruptedException { 
+    private void addPlots(File target, List<File> inFiles) throws IOException, InterruptedException { 
         if (inFiles.size() > 0) {
-            LOGGER.info("Adding plots with target " + target.getPath() + " and plot files: " + inFiles.toString());
+            LOGGER.info("Adding plots with target <" + target.getPath() + "> and plot files: " + inFiles.toString());
             List<File> files = new ArrayList<File>(inFiles);
-            if (target.exists() && !this.dryRun) {
+            /*
+            if (target.exists()) {
                 Path oldTarget = Paths.get(target.getPath() + ".old");
                 Path newTarget = Paths.get(target.getPath());
-                LOGGER.info("Copying existing target to <" + oldTarget + ">");
+                LOGGER.info("Moving existing target to <" + oldTarget + ">");
                 Files.copy(newTarget, oldTarget, StandardCopyOption.REPLACE_EXISTING);
                 File oldTargetFile = oldTarget.toFile();
                 if (oldTargetFile.exists()) {
-                    newTarget.toFile().delete();
-                    if (newTarget.toFile().exists()) {
-                        throw new RuntimeException("Failed to delete existing target file: " + newTarget.toFile().getPath());
+                    if (!newTarget.toFile().delete()) {
+                        throw new IOException("Failed to delete old backup file: " + newTarget.toFile().getPath());
                     }
                 } else {
-                    throw new RuntimeException("Failed to move existing target file: " + oldTargetFile.getPath());
+                    throw new RuntimeException("Failed to create backup of existing target: " + oldTargetFile.getPath());
                 }
-            } else {
-                LOGGER.info("Did not check for existing target (dry run enabled)");
             }
+            */
 
             /*
             Usage: hadd [-f[fk][0-9]] [-k] [-T] [-O] [-a]
@@ -194,29 +197,35 @@ final class PlotAddTask extends TimerTask {
 
             List<String> cmd = new ArrayList<String>();
             cmd.add("hadd");
-            cmd.add("-j");
-            cmd.add(NCPUS.toString());
+            //cmd.add("-j");
+            //cmd.add(NCPUS.toString());
             cmd.add("-v");
             cmd.add(target.getPath());
             for (File file : files) {
                 cmd.add(file.getPath());
             }
             ProcessBuilder pb = new ProcessBuilder(cmd);        
-            LOGGER.info("hadd command " + cmd);
-            if (!dryRun) {
-                LOGGER.info("Running hadd on " + files.size() + " files");
-                Process p = pb.start();
-                p.waitFor();
-                if (!target.exists()) {
-                    throw new IOException("Failed to create new plot file: " + target.getPath());
-                } else {
-                    LOGGER.info("Wrote new plot file: " + target.getPath());
-                }
+            LOGGER.info("hadd command " + String.join(" ", cmd));
+            
+            LOGGER.info("Running hadd on " + files.size() + " files");
+            Process p = pb.start();
+            
+            // DEBUG: print hadd output
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(p.getInputStream()));
+            String readline;
+            while ((readline = reader.readLine()) != null) {
+                System.out.println("hadd>> " +readline);
+            }            
+            
+            p.waitFor();
+            if (!target.exists()) {
+                throw new IOException("Failed to create new plot file: " + target.getPath());
             } else {
-                LOGGER.info("The hadd command was not run (dry run enabled).");
-            }
+                LOGGER.info("Wrote new plot file: " + target.getPath());
+            }            
         } else {
-            LOGGER.info("hadd did not run (not enough new plot files).");
+            LOGGER.warning("No plot files found so hadd did not run!");
         }
     }
 
@@ -225,20 +234,31 @@ final class PlotAddTask extends TimerTask {
      */
     @Override
     public void run() {
-        try {
-            List<File> files = this.getRootFiles();
-            this.addPlots(this.targetFile, files);            
-            if (!this.dryRun) {
-                for (File file : files) {
-                    boolean deleted = file.delete();
-                    if (deleted) {
-                        LOGGER.info("Deleted plot file: " + file.getPath());
-                    } else {
-                        LOGGER.warning("Failed to delete plot file: " + file.getPath());
-                    }
-                }
+        try {            
+            List<File> dirs;
+            StationManager mgr = this.server.getStationManager();
+            if (this.ids.size() == 0) {                
+                LOGGER.info("Getting plot files from all stations");
+                dirs = mgr.getStationDirectories();
             } else {
-                LOGGER.info("Plot files were not deleted (dry run enabled).");
+                LOGGER.info("Getting plot files from stations IDs: " + ids.toString());
+                dirs = mgr.getStationDirectories(this.ids);
+            }
+            List<File> files = this.findRootFiles(dirs);
+            if (files.size() != 0) {
+                this.addPlots(this.targetFile, files);
+                if (this.delete) {
+                    for (File file : files) {
+                        boolean deleted = file.delete();
+                        if (deleted) {
+                            LOGGER.info("Deleted plot file: " + file.getPath());
+                        } else {
+                            LOGGER.warning("Failed to delete plot file: " + file.getPath());
+                        }
+                    }
+                }    
+            } else {
+                LOGGER.warning("Task did not run because no plot files were found!");
             }
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error adding plots", e);

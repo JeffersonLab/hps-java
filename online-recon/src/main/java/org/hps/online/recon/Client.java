@@ -93,10 +93,10 @@ public final class Client {
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", cf.getCommandNames());
-        help.printHelp("Client [options] [[file] | [command] [command_options]]", "Send commands to the online reconstruction server",
+        help.printHelp(80, "Client [options] [[file] | [command] [command_options]]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
                     + "Use 'Client [command] --help' for information about a specific command." + '\n'
-                    + "Run with no client arguments to start the interactive console."
+                    + "Run with no client arguments to start the interactive console." + '\n'
                     + "Provide a file with commands as a single argument to execute it.");
     }
                    

@@ -37,6 +37,7 @@ public class CommandFactory {
         classMap.put("config", ConfigCommand.class);
         classMap.put("create", CreateCommand.class);
         classMap.put("list", ListCommand.class);
+        classMap.put("plot-add", PlotAddCommand.class);
         classMap.put("remove", RemoveCommand.class);
         classMap.put("settings", SettingsCommand.class);
         classMap.put("start", StartCommand.class);

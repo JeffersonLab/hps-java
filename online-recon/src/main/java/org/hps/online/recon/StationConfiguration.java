@@ -47,7 +47,7 @@ final class StationConfiguration {
     
     static final String EVENT_PRINT_INTERVAL_PROPERTY = "lcsim.eventPrintInterval";
 
-    static final String EVENT_SAVE_INTERVAL_PROPERTY = "lcsim.eventSaveInterval";
+    static final String PLOT_SAVE_INTERVAL_PROPERTY = "lcsim.plotSaveInterval";
 
     static final String RUN_PROPERTY = "lcsim.run";
 
@@ -95,10 +95,10 @@ final class StationConfiguration {
     private String outputDir = System.getProperty("user.dir");
 
     /**
-     * Event saving interval for intermediate outputs such as AIDA plots.
+     * Event interval for periodically saving plots.
      * Default is saving every 1000 processed events.
      */
-    private Integer eventSaveInterval = 1000;
+    private Integer plotSaveInterval = 1000;
     
     /**
      * Event printing interval.
@@ -258,8 +258,8 @@ final class StationConfiguration {
         if (props.containsKey(RUN_PROPERTY)) {
             runNumber = Integer.parseInt(props.getProperty(RUN_PROPERTY));
         }
-        if (props.containsKey(EVENT_SAVE_INTERVAL_PROPERTY)) {
-            eventSaveInterval = Integer.parseInt(props.getProperty(EVENT_SAVE_INTERVAL_PROPERTY));
+        if (props.containsKey(PLOT_SAVE_INTERVAL_PROPERTY)) {
+            plotSaveInterval = Integer.parseInt(props.getProperty(PLOT_SAVE_INTERVAL_PROPERTY));
         }
         if (props.containsKey(EVENT_PRINT_INTERVAL_PROPERTY)) {
             eventPrintInterval = Integer.parseInt(props.getProperty(EVENT_PRINT_INTERVAL_PROPERTY));
@@ -383,8 +383,8 @@ final class StationConfiguration {
         return outputDir;
     }
     
-    Integer getEventSaveInterval() {
-        return this.eventSaveInterval;
+    Integer getPlotSaveInterval() {
+        return this.plotSaveInterval;
     }
     
     Integer getEventPrintInterval() {

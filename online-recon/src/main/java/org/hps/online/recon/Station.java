@@ -124,13 +124,19 @@ public class Station {
         }
         
         // Configure and add the AIDA driver for intermediate plot saving.
-        PlotDriver aidaDriver = new PlotDriver();
-        aidaDriver.setStationName(config.getStation());
-        aidaDriver.setOutputDir(config.getOutputDir());
-        aidaDriver.setResetAfterSave(true);
-        aidaDriver.setEventSaveInterval(config.getEventSaveInterval());
-        LOGGER.config("Adding AIDA driver to save plots every " + config.getEventSaveInterval() + " events");
-        loopConfig.add(aidaDriver);
+        int plotSaveInterval = config.getPlotSaveInterval();
+        LOGGER.config("Plot save interval: " + plotSaveInterval);
+        if (plotSaveInterval > 0) {
+            PlotDriver aidaDriver = new PlotDriver();
+            aidaDriver.setStationName(config.getStation());
+            aidaDriver.setOutputDir(config.getOutputDir());
+            aidaDriver.setResetAfterSave(true); // TODO: Should this be a config option?
+            aidaDriver.setEventSaveInterval(plotSaveInterval);
+            LOGGER.config("Adding AIDA driver to save plots every " + config.getPlotSaveInterval() + " events");
+            loopConfig.add(aidaDriver);
+        } else {
+            LOGGER.config("Automatic plot saving is disabled.");
+        }
                 
         // Activate the conditions system, if possible.
         if (activateConditions) {
@@ -154,7 +160,6 @@ public class Station {
         }
         
         // Cleanly shutdown the ET station on exit.
-        // TODO: Check if this is actually being run!
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {

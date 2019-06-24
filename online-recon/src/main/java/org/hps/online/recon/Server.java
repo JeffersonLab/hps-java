@@ -130,11 +130,24 @@ public final class Server {
                 handler = new SettingsCommandHandler();
             } else if (command.equals("status")) {
                 handler = new StatusCommandHandler();
+            } else if (command.equals("plot-add")) {
+                handler = new PlotAddCommandHandler();
             }
             return handler;
         }
     }
 
+    static List<Integer> getStationIDs(JSONObject parameters) {
+        List<Integer> ids = new ArrayList<Integer>();
+        if (parameters.has("ids")) {
+            JSONArray arr = parameters.getJSONArray("ids");
+            for (int i = 0; i < arr.length(); i++) {
+                ids.add(arr.getInt(i));
+            }
+        }
+        return ids;
+    }
+    
     /**
      * Handler for a client command on the server.
      */
@@ -146,8 +159,9 @@ public final class Server {
          * @return The command result
          */
         abstract CommandResult execute(JSONObject jo);       
+        
     }
-   
+    
     /**
      * Generic class for returning command results.
      */
@@ -158,7 +172,7 @@ public final class Server {
      * Return a result which describes result of command execution
      * i.e. success or failure.
      */
-    class CommandStatus extends CommandResult {
+    public class CommandStatus extends CommandResult {
         
         String message;
         String status;
@@ -277,7 +291,7 @@ public final class Server {
             int started = 0;
             int created = 0;
             for (int i = 0; i < count; i++) {
-                LOGGER.info("Creating station number: " + i);
+                LOGGER.info("Creating station " + (i + 1) + " of " + count);
                 StationInfo station = Server.this.stationManager.create(parameters);
                 LOGGER.info("Created station: " + station.stationName);
                 ++created;
@@ -552,6 +566,31 @@ public final class Server {
         }
     }
     
+    class PlotAddCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject jo) {     
+            CommandResult res = null;
+            if (!jo.has("target")) {
+                res = new CommandStatus(STATUS_ERROR, "Missing required target parameter.");
+            } else {
+                String target = jo.getString("target");
+                boolean delete = false;
+                if (jo.has("delete")) {
+                    delete = jo.getBoolean("delete");
+                }
+                PlotAddTask pat =    
+                        new PlotAddTask(Server.this, new File(target),delete);
+                if (jo.has("ids")) {
+                    List<Integer> ids = getStationIDs(jo);                     
+                    pat.addStationIDs(ids);
+                }
+                LOGGER.info("Scheduling plot task with output target: " + target);
+                Server.this.schedulePlotTask(pat);
+                res = new CommandStatus(STATUS_SUCCESS, "Scheduled new plot task.");
+            }
+            return res;
+        }
+    }
+    
     /**
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
@@ -631,7 +670,7 @@ public final class Server {
     /**
      * Max allowed server port number.
      */
-    private static final int MAX_PORT = 49152;
+    private static final int MAX_PORT = 65535;
     
     /**
      * Minimum allowed server port number.
@@ -671,12 +710,7 @@ public final class Server {
      * Default work dir path (current working dir).
      */
     private final String DEFAULT_WORK_PATH = System.getProperty("user.dir");
-    
-    /**
-     * Output plot file.
-     */
-    private File plotFile;
-    
+        
     /**
      * Default interval for running plot task.
      */
@@ -711,12 +745,7 @@ public final class Server {
      * The server work directory.
      */
     private File workDir;
-      
-    /**
-     * Whether to enable dry run for plotting.
-     */
-    private boolean dryRun = false;
-    
+          
     /**
      * Create a new server instance.
      */
@@ -820,9 +849,7 @@ public final class Server {
         options.addOption(new Option("w", "workdir", true, "work dir (default is current dir where server is started)"));
         options.addOption(new Option("b", "basename", true, "station base name"));
         options.addOption(new Option("c", "config", true, "config properties file"));
-        options.addOption(new Option("a", "add-plots", true, "output file for adding plots"));
         options.addOption(new Option("i", "interval", true, "update interval in seconds for adding plots (default is every 1 minute)"));
-        options.addOption(new Option("D", "dry-run", false, "run plot task in dry run mode (plots will not be added or deleted)"));
         
         final CommandLineParser parser = new DefaultParser();
         CommandLine cl = parser.parse(options, args);
@@ -867,12 +894,6 @@ public final class Server {
             this.stationBase = cl.getOptionValue("b");
         }
         LOGGER.config("Station base name: " + this.stationBase);
-
-        // Output file for combined plots.
-        if (cl.hasOption("a")) {
-            this.plotFile = new File(cl.getOptionValue("a"));
-            LOGGER.config("Plot file set to: " + this.plotFile.toPath());
-        }
         
         // Plot update interval in seconds.
         if (cl.hasOption("i")) {
@@ -887,11 +908,7 @@ public final class Server {
                 throw new RuntimeException("Config file does not exist: " + configFile.getPath());
             }
             this.stationConfig.load(configFile);
-        }
-        
-        if (cl.hasOption("D")) {
-            this.dryRun = true;
-        }
+        }        
     }
         
     /**
@@ -900,12 +917,14 @@ public final class Server {
     void start() {
         
         // Schedule the plot task.
+        /*
         if (this.plotFile != null) {
             LOGGER.info("Starting plot add task with output file " + this.plotFile + " and update interval of " + this.plotIntervalMillis + " ms.");
             this.plotTimer.schedule(new PlotAddTask(this, this.plotFile, dryRun), this.plotIntervalMillis, this.plotIntervalMillis);
         } else {
             LOGGER.info("Plot task was not enabled (no plot file was provided with -a option).");
         }
+        */
         
         // Start the server instance.
         LOGGER.info("Starting server on port <" + this.port + ">");
@@ -918,4 +937,8 @@ public final class Server {
             throw new RuntimeException("Server exception", e);
         }
     }   
+    
+    void schedulePlotTask(PlotAddTask pat) {
+        plotTimer.schedule(pat, 0L);
+    }
 }

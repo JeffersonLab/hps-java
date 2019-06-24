@@ -669,4 +669,17 @@ public class StationManager {
             update(station);
         }
     }
+    
+    List<File> getStationDirectories(List<Integer> ids) {
+        List<StationInfo> stations = this.find(ids);
+        List<File> dirs = new ArrayList<File>();
+        for (StationInfo station : stations) {
+            dirs.add(station.dir);
+        }
+        return dirs;
+    }
+    
+    List<File> getStationDirectories() {
+        return getStationDirectories(this.getStationIDs());
+    }
 }

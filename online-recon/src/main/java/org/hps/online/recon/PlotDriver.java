@@ -160,12 +160,21 @@ public class PlotDriver extends Driver {
     }
     
     /**
-     * Save plots to new output file name, resetting the AIDA instance if enabled.
+     * Save plots to new output file name, resetting the AIDA instance if enabled. 
+     * 
+     * Uses a temp file and then renames to target because saving the AIDA file takes awhile
+     * and we don't want the plot add task to use only partially written files.
      */
     private void save() {
         try {
             LOGGER.info("Saving AIDA plots to: " + this.filePath);
-            aida.saveAs(this.filePath);
+            // Need to use a prepend for temp name as AIDA requires file extension to be .root for saving.
+            File tmpFile = new File(outputDir + File.separator + "tmp." + new File(this.filePath).getName());
+            LOGGER.info("Saving to temp file: " + tmpFile);
+            aida.saveAs(tmpFile);
+            File targetFile = new File(this.filePath);
+            LOGGER.info("Renaming temp file to: " + targetFile);
+            tmpFile.renameTo(targetFile);
             ++this.fileSeq;
             if (this.resetAfterSave) {
                 LOGGER.info("Resetting the AIDA plots after saving to output file.");
