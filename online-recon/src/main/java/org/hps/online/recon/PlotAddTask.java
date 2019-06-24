@@ -47,7 +47,12 @@ final class PlotAddTask extends TimerTask {
     /**
      * Number of CPUs to use when running hadd (hard-coded to 4).
      */
-    private static final Integer NCPUS = 4;
+    private Integer threads = 1;
+    
+    /**
+     * Verbosity of hadd command.
+     */
+    private Integer verbosity = 99;
    
     /**
      * List of station IDs with directories to look for plot files.
@@ -58,7 +63,12 @@ final class PlotAddTask extends TimerTask {
     /**
      * True to delete intermediate plot files when done adding them.
      */
-    private boolean delete = true;
+    private boolean delete = false;
+    
+    /**
+     * True to append to existing output file.
+     */
+    private boolean append = false;
         
     /**
      * Class constructor.
@@ -66,13 +76,30 @@ final class PlotAddTask extends TimerTask {
      * @param targetFile The target output file
      * @param delete True to delete existing station plot files
      */
-    PlotAddTask(Server server, File targetFile, boolean delete) {
+    PlotAddTask(Server server, File targetFile, boolean delete, boolean append) {
         this.server = server;        
         this.targetFile = targetFile;
         this.delete = delete;
+        this.append = append;
         
         // Check that the hadd command exists.
         checkHadd();
+    }
+   
+    /**
+     * Set number of CPU threads to use when running hadd.
+     * @param threads Number of CPU threads to use when running hadd
+     */
+    void setThreadCount(int threads) {
+        this.threads = threads;
+    }
+    
+    /**
+     * Set verbosity level of hadd command (0-99).
+     * @param verbosity Verbosity of the hadd command
+     */
+    void setVerbosity(int verbosity) {
+        this.verbosity = verbosity;
     }
     
     /**
@@ -92,8 +119,7 @@ final class PlotAddTask extends TimerTask {
             Process p = pb.start();
             p.waitFor();            
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "The hadd command does not exist (did you run the thisroot.sh setup script?).", e);
-            throw new RuntimeException("The hadd command does not exist.", e);
+            throw new RuntimeException("The hadd command was not found (did you source the thisroot.sh setup script?).", e);
         } catch (InterruptedException ie) {
             ie.printStackTrace();
         }
@@ -172,22 +198,19 @@ final class PlotAddTask extends TimerTask {
         if (inFiles.size() > 0) {
             LOGGER.info("Adding plots with target <" + target.getPath() + "> and plot files: " + inFiles.toString());
             List<File> files = new ArrayList<File>(inFiles);
-            /*
+            
+            // If target exists then move it to a backup file.
             if (target.exists()) {
-                Path oldTarget = Paths.get(target.getPath() + ".old");
-                Path newTarget = Paths.get(target.getPath());
-                LOGGER.info("Moving existing target to <" + oldTarget + ">");
-                Files.copy(newTarget, oldTarget, StandardCopyOption.REPLACE_EXISTING);
-                File oldTargetFile = oldTarget.toFile();
-                if (oldTargetFile.exists()) {
-                    if (!newTarget.toFile().delete()) {
-                        throw new IOException("Failed to delete old backup file: " + newTarget.toFile().getPath());
-                    }
-                } else {
-                    throw new RuntimeException("Failed to create backup of existing target: " + oldTargetFile.getPath());
+                File oldTarget = new File(target.getPath() + ".old");
+                File newTarget = new File(target.getPath());
+                LOGGER.info("Moving existing target: " + oldTarget);
+                newTarget.renameTo(oldTarget);
+                // If appending to existing output then include old target in hadd command.
+                if (this.append) {
+                    LOGGER.info("Including old target in hadd: " + oldTarget.getPath());
+                    files.add(0, oldTarget);
                 }
             }
-            */
 
             /*
             Usage: hadd [-f[fk][0-9]] [-k] [-T] [-O] [-a]
@@ -197,33 +220,32 @@ final class PlotAddTask extends TimerTask {
 
             List<String> cmd = new ArrayList<String>();
             cmd.add("hadd");
-            //cmd.add("-j");
-            //cmd.add(NCPUS.toString());
-            cmd.add("-v");
+            cmd.add("-j" + this.threads.toString());
+            cmd.add("-v" + this.verbosity.toString());
             cmd.add(target.getPath());
             for (File file : files) {
                 cmd.add(file.getPath());
             }
             ProcessBuilder pb = new ProcessBuilder(cmd);        
-            LOGGER.info("hadd command " + String.join(" ", cmd));
-            
-            LOGGER.info("Running hadd on " + files.size() + " files");
+            LOGGER.info("Running hadd command: " + String.join(" ", cmd));            
             Process p = pb.start();
             
-            // DEBUG: print hadd output
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(p.getInputStream()));
+            StringBuffer sb = new StringBuffer();
             String readline;
             while ((readline = reader.readLine()) != null) {
-                System.out.println("hadd>> " +readline);
+                sb.append(readline);
             }            
+            LOGGER.fine("hadd output: " + '\n' + sb.toString());
             
             p.waitFor();
+            LOGGER.fine("hadd is done!");
             if (!target.exists()) {
                 throw new IOException("Failed to create new plot file: " + target.getPath());
             } else {
                 LOGGER.info("Wrote new plot file: " + target.getPath());
-            }            
+            }
         } else {
             LOGGER.warning("No plot files found so hadd did not run!");
         }
