@@ -106,7 +106,7 @@ public class EcalClusterPlots extends Driver {
         clusterCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
                 + " : Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
-                + " : Cluster Size", 10, -0.5, 9.5);
+                + " : Cluster Size", 15, -0.5, 15.5);
         clusterEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
                 + " : Cluster Energy", 100, -0.1, maxE);
         clusterMaxEnergyPlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
@@ -124,10 +124,10 @@ public class EcalClusterPlots extends Driver {
         pairEnergySlope = aida.histogram1D("Pair Energy Slope Distribution", 150, 0.0, 3.0);
         pairEnergyPositionMeanX = aida.histogram1D("Cluster Pair Weighted Energy Position (x-Index)", 100, -250, 250);
         pairEnergyPositionMeanY = aida.histogram1D("Cluster Pair Weighted Energy Position (y-Index)", 100, -100, 100);
-        pairMassSameHalf = aida.histogram1D("Cluster Pair Mass: Same Half", 100, 0.0, 0.2);
-        pairMassOppositeHalf = aida.histogram1D("Cluster Pair Mass: Top Bottom", 100, 0.0, 0.2);
-        pairMassSameHalf = aida.histogram1D("Cluster Pair Mass: Same Half Fiducial", 100, 0.0, 0.2);
-        pairMassOppositeHalf = aida.histogram1D("Cluster Pair Mass: Top Bottom Fiducial", 100, 0.0, 0.2);
+        pairMassSameHalf = aida.histogram1D("Cluster Pair Mass: Same Half", 100, 0.0, 0.35);
+        pairMassOppositeHalf = aida.histogram1D("Cluster Pair Mass: Top Bottom", 100, 0.0, 0.35);
+        pairMassSameHalfFid = aida.histogram1D("Cluster Pair Mass: Same Half Fiducial", 100, 0.0, 0.35);
+        pairMassOppositeHalfFid = aida.histogram1D("Cluster Pair Mass: Top Bottom Fiducial", 100, 0.0, 0.35);
         // Setup the plotter factory.
         IPlotterFactory plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Cluster Plots");
 

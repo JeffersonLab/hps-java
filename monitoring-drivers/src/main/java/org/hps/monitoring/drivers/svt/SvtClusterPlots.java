@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtTimingConstants;
 
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
@@ -43,7 +45,7 @@ public class SvtClusterPlots extends Driver {
     private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Clusters");
     private IHistogramFactory histogramFactory = null;
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
-    private static int nmodlayers=7; 
+    private static int nmodlayers = 7;
     // Histogram Maps
     private static Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
@@ -51,12 +53,10 @@ public class SvtClusterPlots extends Driver {
     private static Map<String, IHistogram2D> hitTimeTrigTimePlots = new HashMap<String, IHistogram2D>();
     private static IHistogram1D[][] hitTimeTrigTimePlots1D = new IHistogram1D[nmodlayers][2];
     private static IHistogram2D[][] hitTimeTrigTimePlots2D = new IHistogram2D[nmodlayers][2];
-
+    private SvtTimingConstants timingConstants;
     private static final int TOP = 0;
     private static final int BOTTOM = 1;
 
-  
-    
     private List<HpsSiSensor> sensors;
     // private Map<RawTrackerHit, FittedRawTrackerHit> fittedRawTrackerHitMap
     // = new HashMap<RawTrackerHit, FittedRawTrackerHit>();
@@ -208,7 +208,7 @@ public class SvtClusterPlots extends Driver {
 
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
-
+        timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
         if (sensors.size() == 0)
             throw new RuntimeException("No sensors were found in this detector.");
 
@@ -274,12 +274,12 @@ public class SvtClusterPlots extends Driver {
         plotters.get("SVT-trigger timing top-bottom").createRegions(1, 2);
 
         hitTimeTrigTimePlots.put("Top",
-                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, 0, 24));
+                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -15, 15));
         plotters.get("SVT-trigger timing top-bottom")
                 .region(0)
                 .plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
-                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, 0, 24));
+                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -15, 15));
         plotters.get("SVT-trigger timing top-bottom")
                 .region(1)
                 .plot(hitTimeTrigTimePlots.get("Bottom"),
@@ -347,21 +347,21 @@ public class SvtClusterPlots extends Driver {
 
             // Fill all plots
             clusterChargePlots.get(sensor.getName()).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-
+            
             if (cluster.getRawHits().size() == 1)
                 singleHitClusterChargePlots.get(sensor.getName()).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-
+            double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
             clusterTimePlots.get(sensor.getName()).fill(cluster.getTime());
             if (sensor.isTopLayer()) {
                 hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime());
                 hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime(),
                         cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-                hitTimeTrigTimePlots.get("Top").fill(cluster.getTime(), event.getTimeStamp() % 24);
+                hitTimeTrigTimePlots.get("Top").fill(cluster.getTime(), trigPhase);
             } else {
                 hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)][BOTTOM].fill(cluster.getTime());
                 hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][BOTTOM].fill(cluster.getTime(),
                         cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-                hitTimeTrigTimePlots.get("Bottom").fill(cluster.getTime(), event.getTimeStamp() % 24);
+                hitTimeTrigTimePlots.get("Bottom").fill(cluster.getTime(), trigPhase);
             }
         }
     }

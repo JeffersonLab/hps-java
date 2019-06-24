@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     Steering file used to run monitoring that will be used when "timing in" 
     the SVT.
@@ -10,17 +11,44 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="SvtHitPlots" /> 
         <driver name="SvtTimingInPlots" />
-        <driver name="SamplesPlots" />
+        <driver name="SamplesPlots" />    
+         <driver name="SensorOccupancy" />
     </execute>
     <drivers>
+  <driver name="SensorOccupancy" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver" >
+            <eventRefreshRate>100</eventRefreshRate>
+            <enablePositionPlots>false</enablePositionPlots>
+            <enableMaxSamplePlots>true</enableMaxSamplePlots>
+                     <maxSamplePosition>3</maxSamplePosition>  
+            <timeWindowWeight>3</timeWindowWeight>
+            <resetPeriod>50000</resetPeriod>
+            <saveRootFile>false</saveRootFile>
+        </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
-            <subtractTOF>true</subtractTOF>
+            <correctTimeOffset>false</correctTimeOffset>
+            <subtractTriggerTime>false</subtractTriggerTime>            
+            <trigTimeScale>55.0</trigTimeScale>
+            <subtractRFTime>false</subtractRFTime> 
+            <subtractTOF>false</subtractTOF>
+            <correctChanT0>false</correctChanT0>
             <debug>false</debug>
         </driver>
+  <!--  <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Linear</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>           
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <trigTimeScale>55.0</trigTimeScale>
+            <subtractRFTime>true</subtractRFTime> 
+            <correctChanT0>true</correctChanT0>
+            <debug>false</debug>
+        </driver> -->
         <driver name="SvtTimingInPlots" type="org.hps.monitoring.drivers.svt.SvtTimingInPlots" >
             <useTriggerFilter>false</useTriggerFilter>
         </driver>
