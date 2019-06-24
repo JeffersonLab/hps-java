@@ -351,6 +351,9 @@ public final class Server {
                     res = new CommandStatus(STATUS_SUCCESS, "Started " + ids.size() + " stations successfully.");
                 }
             }
+            if (started == 0) {
+                res = new CommandStatus(STATUS_WARNING, "No stations were started.");
+            }
            
             return res;
         }
@@ -369,23 +372,27 @@ public final class Server {
                     ids.add(arr.getInt(i));
                 }
             }
+            int stopped = 0;
             if (ids.size() == 0) {
                 int nactive = Server.this.getStationManager().getActiveCount();
-                int nstopped = Server.this.getStationManager().stopAll();
-                if (nstopped < nactive) {
+                stopped = Server.this.getStationManager().stopAll();
+                if (stopped < nactive) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Stopped all stations.");
                 }
             } else {
                 LOGGER.info("Stopping stations: " + ids.toString());
-                int n = Server.this.getStationManager().stop(ids);
-                if (n < ids.size()) {
+                stopped = Server.this.getStationManager().stop(ids);
+                if (stopped < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Stopped stations: " + ids.toString());
                 }
             }            
+            if (stopped == 0) {
+                res = new CommandStatus(STATUS_WARNING, "No stations were stopped.");
+            }
             return res;
         }
     }
@@ -422,9 +429,10 @@ public final class Server {
                     ids.add(arr.getInt(i));
                 }
             }
+            int removed = 0;
             if (ids.size() == 0) {
                 LOGGER.info("Removing all stations!");               
-                Server.this.getStationManager().removeAll();
+                removed = Server.this.getStationManager().removeAll();
                 if (Server.this.getStationManager().getStationCount() > 0) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
                 } else {
@@ -432,13 +440,16 @@ public final class Server {
                 }
             } else {
                 LOGGER.info("Removing stations: " + ids.toString());
-                int n = Server.this.getStationManager().remove(ids);
-                if (n < ids.size()) {
+                removed = Server.this.getStationManager().remove(ids);
+                if (removed < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
                 }
-            }            
+            }          
+            if (removed == 0) {
+                res = new CommandStatus(STATUS_ERROR, "No stations were removed.");
+            }
             return res;
         }
     }
@@ -456,10 +467,11 @@ public final class Server {
                     ids.add(arr.getInt(i));
                 }
             }
+            int cleaned = 0;
             if (ids.size() == 0) {
                 LOGGER.info("Cleaning up all inactive stations!");
                 int inactive = Server.this.stationManager.getInactiveCount();
-                int cleaned = Server.this.stationManager.cleanupAll();
+                cleaned = Server.this.stationManager.cleanupAll();
                 if (cleaned < inactive) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station."); 
                 } else {
@@ -467,13 +479,16 @@ public final class Server {
                 }
             } else {
                 LOGGER.info("Cleaning up stations: " + ids.toString());
-                int cleaned = Server.this.stationManager.cleanup(ids);
+                cleaned = Server.this.stationManager.cleanup(ids);
                 if (cleaned < ids.size()) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
                 }                
-            }            
+            }   
+            if (cleaned == 0) {
+                res = new CommandStatus(STATUS_ERROR, "No stations were cleaned up.");
+            }
             return res;
         }
     }
@@ -577,11 +592,21 @@ public final class Server {
                 if (jo.has("delete")) {
                     delete = jo.getBoolean("delete");
                 }
+                boolean append = false;
+                if (jo.has("append")) {
+                    append = jo.getBoolean("append");
+                }
                 PlotAddTask pat =    
-                        new PlotAddTask(Server.this, new File(target),delete);
+                        new PlotAddTask(Server.this, new File(target), delete, append);
                 if (jo.has("ids")) {
                     List<Integer> ids = getStationIDs(jo);                     
                     pat.addStationIDs(ids);
+                }
+                if (jo.has("threads")) {
+                    pat.setThreadCount(jo.getInt("threads"));
+                }
+                if (jo.has("verbosity")) {
+                    pat.setVerbosity(jo.getInt("verbosity"));
                 }
                 LOGGER.info("Scheduling plot task with output target: " + target);
                 Server.this.schedulePlotTask(pat);
@@ -686,6 +711,11 @@ public final class Server {
      * Success status string.
      */
     public static final String STATUS_SUCCESS = "SUCCESS";
+    
+    /**
+     * Warning status string.
+     */
+    public static final String STATUS_WARNING = "WARNING";
         
     /**
      * Run from command line.
