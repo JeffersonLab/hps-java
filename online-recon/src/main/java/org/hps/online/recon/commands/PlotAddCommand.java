@@ -12,9 +12,12 @@ public class PlotAddCommand extends Command {
     }
     
     protected Options getOptions() {
+        options.addOption(new Option("T", "threads", true, "number of CPU threads to use for hadd command"));
+        options.addOption(new Option("a", "append", false, "append to existing target if exists"));
         options.addOption(new Option("d", "delete", false, "delete intermediate plot files when finished adding"));
         options.addOption(new Option("t", "target", true, "target output file for combined plots"));
         options.getOption("t").setRequired(true);
+        options.addOption(new Option("v", "verbosity", true, "verbosity of the hadd command (0-99)"));
         return options;
     }
     
@@ -27,6 +30,17 @@ public class PlotAddCommand extends Command {
             setParameter("delete", true);
         } else {
             setParameter("delete", false);
+        }
+        if (cl.hasOption("a")) {
+            setParameter("append", true);
+        } else {
+            setParameter("append", false);
+        }
+        if (cl.hasOption("T")) {
+            setParameter("threads", Integer.parseInt(cl.getOptionValue("T")));
+        }
+        if (cl.hasOption("v")) {
+            setParameter("verbosity", Integer.parseInt(cl.getOptionValue("v")));
         }
         this.readStationIDs(cl);
     }
