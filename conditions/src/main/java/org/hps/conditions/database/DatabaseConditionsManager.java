@@ -80,6 +80,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     private static final int TEST_RUN_MAX_RUN = 1365;
 
+
+    /**
+     * The run marking the beginning of the 2019 Physics Run. 
+     */
+    private static final int PHYS_2019_MIN_RUN = 9000; 
+
     /**
      * Default database URL.
      */
@@ -206,6 +212,16 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      */
     public static boolean isTestRun(final int runNumber) {
         return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
+    }
+
+    /**
+     * Utility method to determine if a run number is from the 2019 Physics Run.
+     *
+     * @param runNumber The run number.
+     * @return <code>true</code> if the run number is from the 2019 Physics Run.
+     */
+    public static boolean isPhys2019Run(final int runNumber) { 
+        return runNumber > PHYS_2019_MIN_RUN;  
     }
 
     /**
