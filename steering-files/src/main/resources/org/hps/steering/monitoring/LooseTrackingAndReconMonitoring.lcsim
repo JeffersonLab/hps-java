@@ -56,6 +56,20 @@
             <correctChanT0>true</correctChanT0>
             <debug>false</debug>
         </driver>
+     <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>
+            <trigTimeScale>55.0</trigTimeScale>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <subtractRFTime>true</subtractRFTime> 
+            <correctChanT0>true</correctChanT0>
+            <debug>false</debug>
+        </driver>
+
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
@@ -131,6 +145,7 @@
             <storeTrackStates>true</storeTrackStates>
         </driver>
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
+
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>

@@ -27,10 +27,8 @@
             <eventRefreshRate>100</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
-            <!--            <maxSamplePosition>3</maxSamplePosition>  -->
-            <maxSamplePosition>-1</maxSamplePosition>
-<!--            <timeWindowWeight>3</timeWindowWeight>-->
-            <timeWindowWeight>1</timeWindowWeight>
+            <maxSamplePosition>3</maxSamplePosition> 
+            <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
         </driver>
@@ -40,7 +38,21 @@
         </driver>
         <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
         <!--<driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />-->
+      
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctT0Shift>false</correctT0Shift>
+            <correctTimeOffset>false</correctTimeOffset>
+            <subtractTriggerTime>false</subtractTriggerTime>            
+            <trigTimeScale>55.0</trigTimeScale>
+            <subtractRFTime>false</subtractRFTime> 
+            <subtractTOF>false</subtractTOF>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+   
+        <!--        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Linear</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
@@ -50,7 +62,7 @@
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>true</correctChanT0>
             <debug>false</debug>
-        </driver>
+        </driver>-->
         <driver name="TrackerHitDriverL2L6Hack" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
