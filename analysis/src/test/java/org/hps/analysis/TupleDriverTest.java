@@ -41,7 +41,7 @@ abstract public class TupleDriverTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(lcioInputFile);
         
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
         
         loop.add(new org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver());

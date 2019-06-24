@@ -180,6 +180,18 @@ public class MCFullDetectorTruth{
                     int layer = trackHitLayerNum(de, sensors, true);
                     System.out.println("InActive Hits " + layer);
                 }
+                else
+                    hitlist.add(new Pair<SimTrackerHit,String>(hit,"inactive"));
+                
+            } while(inactive);
+        }
+        if(n_inact_used > 0){
+            int n_inact = 0;
+            for(SimTrackerHit hit:hits_in){
+                n_inact++;
+                if(n_inact_used >= n_inact) continue;
+                hitlist.add(new Pair<SimTrackerHit,String>(hit,"inactive"));
+
             }
         }*/
         
@@ -270,6 +282,7 @@ public class MCFullDetectorTruth{
     
     public static Map<MCParticle, List<SimTrackerHit>> BuildTrackerHitMap(List<SimTrackerHit> trackerHits){
         Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
+        if(trackerHits == null) { return trackerHitMap; }
         for (SimTrackerHit hit : trackerHits) {
             MCParticle p = hit.getMCParticle();
             if (p == null) {

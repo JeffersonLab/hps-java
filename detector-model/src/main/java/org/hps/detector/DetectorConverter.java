@@ -10,8 +10,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.imageio.spi.ServiceRegistry;
+import java.util.ServiceLoader;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -62,7 +61,7 @@ public class DetectorConverter {
     }
 
     private static <T> Iterator<T> getServices(Class<T> providerClass) {
-        return ServiceRegistry.lookupProviders(providerClass, DetectorConverter.class.getClassLoader());
+        return ServiceLoader.load(providerClass, DetectorConverter.class.getClassLoader()).iterator();
     }
 
     private void run(String args[]) throws Exception {
@@ -103,7 +102,7 @@ public class DetectorConverter {
             throw new IllegalArgumentException("No converter found for format: " + outputFormat);
 
         if (runNumber != null) {
-            DatabaseConditionsManager mgr = new DatabaseConditionsManager();
+            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
             String name = "DUMMY";
             ConditionsReader dummyReader = ConditionsReader.createDummy();
             ((ConditionsManagerImplementation) mgr).setConditionsReader(dummyReader, name);

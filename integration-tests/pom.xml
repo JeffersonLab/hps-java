@@ -7,7 +7,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.1-SNAPSHOT</version>
+    <version>4.4-SNAPSHOT</version>
   </parent>
   <dependencies>
     <dependency>
@@ -63,6 +63,7 @@
             <exclude>**/ReadoutNoPileupTest.java</exclude>
             <exclude>**/ReconSteeringTest.java</exclude>
             <exclude>**/SimpleSvtReadoutTest.java</exclude>
+            <exclude>**/HodoscopeSimDataTest.java</exclude>
           </excludes>
           <systemPropertyVariables>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>

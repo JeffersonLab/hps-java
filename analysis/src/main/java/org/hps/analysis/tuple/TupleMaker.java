@@ -371,7 +371,7 @@ public abstract class TupleMaker extends Driver {
     }
     protected void addVertexVariables(boolean doBsc, boolean doTar, boolean doVzc) {
         String[] newVars = new String[] {"uncPX/D", "uncPY/D", "uncPZ/D", "uncP/D", "uncVX/D", "uncVY/D", "uncVZ/D",
-                "uncChisq/D", "uncM/D", "uncMErr/D", "uncCovXX/D", "uncCovXY/D", "uncCovXZ/D", "uncCovYX/D", "uncCovYY/D",
+                "uncChisq/D", "uncM/D", "uncMErr/D", "uncChisqProb/D", "uncCovXX/D", "uncCovXY/D", "uncCovXZ/D", "uncCovYX/D", "uncCovYY/D",
                 "uncCovYZ/D", "uncCovZX/D", "uncCovZY/D", "uncCovZZ/D", "uncElePX/D", "uncElePY/D", "uncElePZ/D",
                 "uncPosPX/D", "uncPosPY/D", "uncPosPZ/D", "uncEleP/D", "uncPosP/D", "uncEleWtP/D", "uncPosWtP/D", "uncWtM/D",
                 "uncMom/D","uncMomX/D","uncMomY/D","uncMomZ/D","uncMomErr/D","uncMomXErr/D","uncMomYErr/D","uncMomZErr/D",
@@ -379,13 +379,16 @@ public abstract class TupleMaker extends Driver {
         tupleVariables.addAll(Arrays.asList(newVars));
         if (doBsc) {
             String[] newVars2 = new String[] {"bscPX/D", "bscPY/D", "bscPZ/D", "bscP/D", "bscVX/D", "bscVY/D", "bscVZ/D",
-                    "bscChisq/D", "bscM/D", "bscElePX/D", "bscElePY/D", "bscElePZ/D", "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D", 
-                    "bscEleWtP/D", "bscPosWtP/D", "bscWtM/D"};
+                    "bscChisq/D", "bscM/D", "bscMErr/D", "bscChisqProb/D", "bscCovXX/D", "bscCovXY/D", "bscCovXZ/D", "bscCovYX/D", "bscCovYY/D",
+                    "bscCovYZ/D", "bscCovZX/D", "bscCovZY/D", "bscCovZZ/D", "bscElePX/D", "bscElePY/D", "bscElePZ/D",
+                    "bscPosPX/D", "bscPosPY/D", "bscPosPZ/D", "bscEleP/D", "bscPosP/D", "bscEleWtP/D", "bscPosWtP/D", "bscWtM/D",
+                    "bscMom/D","bscMomX/D","bscMomY/D","bscMomZ/D","bscMomErr/D","bscMomXErr/D","bscMomYErr/D","bscMomZErr/D",
+                    "bscTargProjX/D","bscTargProjY/D","bscTargProjXErr/D","bscTargProjYErr/D","bscPosX/D","bscPosY/D","bscPosZ/D"};
             tupleVariables.addAll(Arrays.asList(newVars2));
         }
         if (doTar) {
             String[] newVars3 = new String[] {"tarPX/D", "tarPY/D", "tarPZ/D", "tarP/D", "tarVX/D", "tarVY/D", "tarVZ/D",
-                    "tarChisq/D", "tarM/D", "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D", "tarEleWtP/D", "tarPosWtP/D", "tarWtM/D"};
+                    "tarChisq/D", "tarM/D", "tarChisqProb/D", "tarElePX/D", "tarElePY/D", "tarElePZ/D", "tarPosPX/D", "tarPosPY/D", "tarPosPZ/D", "tarEleP/D", "tarPosP/D", "tarEleWtP/D", "tarPosWtP/D", "tarWtM/D"};
             tupleVariables.addAll(Arrays.asList(newVars3));
         }
         if (doVzc) {
@@ -1231,7 +1234,7 @@ public abstract class TupleMaker extends Driver {
         int nClusters2 = particle2.getClusters().size();
         
         Hep3Vector momRot = VecOp.mult(beamAxisRotation, theV0.getMomentum());
-        Hep3Vector theVtx = VecOp.mult(beamAxisRotation, theV0.getStartVertex().getPosition());
+        Hep3Vector theVtx = VecOp.mult(beamAxisRotation, theV0.getStartVertex().getPosition()); 
 
         tupleMap.put(prefix + "PX/D", momRot.x());
         tupleMap.put(prefix + "PY/D", momRot.y());
@@ -1242,6 +1245,7 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(prefix + "VZ/D", theVtx.z());
         tupleMap.put(prefix + "Chisq/D", theV0.getStartVertex().getChi2());
         tupleMap.put(prefix + "M/D", theV0.getMass());
+        tupleMap.put(prefix + "ChisqProb/D", theV0.getStartVertex().getProbability());
         
         String particleNames[] = isMoller ? mollerParticleNames : v0ParticleNames;
         

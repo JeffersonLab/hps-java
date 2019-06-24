@@ -8,7 +8,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>4.1-SNAPSHOT</version>
+  <version>4.4-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
@@ -22,6 +22,7 @@
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
+    <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
   </properties>
 
   <scm>
@@ -211,6 +212,11 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-ecal-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-hodo-recon</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

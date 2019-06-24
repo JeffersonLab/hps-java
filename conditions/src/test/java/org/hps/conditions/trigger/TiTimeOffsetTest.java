@@ -12,7 +12,7 @@ public final class TiTimeOffsetTest extends TestCase {
     private static DatabaseConditionsManager conditionsManager;
 
     public void setUp() {
-        conditionsManager = new DatabaseConditionsManager();
+        conditionsManager = DatabaseConditionsManager.getInstance();
         try {
             conditionsManager.setDetector("HPS-PhysicsRun2016-Nominal-v4-4", RUN_NUMBER);
         } catch (final ConditionsNotFoundException e) {

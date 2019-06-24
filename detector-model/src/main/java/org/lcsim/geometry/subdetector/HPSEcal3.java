@@ -3,11 +3,13 @@ package org.lcsim.geometry.subdetector;
 import hep.graphics.heprep.HepRep;
 import hep.graphics.heprep.HepRepFactory;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jdom.Element;
@@ -32,6 +34,7 @@ public class HPSEcal3 extends AbstractSubdetector {
     //private double dface;
     private boolean oddX;
     List<CrystalRange> removeCrystals = new ArrayList<CrystalRange>();
+    private Map<Long, Point> cellIDMap = null;
 
     public static class NeighborMap extends HashMap<Long, Set<Long>> {
         IIdentifierHelper helper;
@@ -330,12 +333,23 @@ public class HPSEcal3 extends AbstractSubdetector {
      * @return A map of neighbors for each crystal ID.
      */
     public NeighborMap getNeighborMap() {
-        if (neighborMap != null) {
-            return neighborMap;
+        if (neighborMap == null) {
+            instantiateMaps();
         }
-
+        return neighborMap;
+    }
+    
+    public Point getCellIndices(long cellID) {
+        if(cellIDMap == null) {
+            instantiateMaps();
+        }
+        return cellIDMap.get(cellID);
+    }
+    
+    private void instantiateMaps() {
         // Setup the private instance of the map.
         neighborMap = new NeighborMap(this.getDetectorElement().getIdentifierHelper());
+        cellIDMap = new HashMap<Long, Point>();
 
         IDDecoder dec = getIDDecoder();
         IDEncoder enc = new IDEncoder(dec.getIDDescription());
@@ -347,18 +361,6 @@ public class HPSEcal3 extends AbstractSubdetector {
 
         int idxx = dec.getFieldIndex("ix");
         int idxy = dec.getFieldIndex("iy");
-
-        /*
-        int hnx = nx;
-
-        // Calculate number of X for loop. (from LCDD conv)
-        if (oddX) {
-            hnx -= 1;
-            hnx /= 2;
-        } else {
-            hnx /= 2;
-        }
-        */
 
         // Loop over y.
         for (int iy = -ny; iy <= ny; iy++) {
@@ -375,10 +377,9 @@ public class HPSEcal3 extends AbstractSubdetector {
                 Set<Long> neighbors = getNeighbors(id);
 
                 neighborMap.put(id, neighbors);
+                cellIDMap.put(id, new Point(ix, iy));
             }
         }
-
-        return neighborMap;
     }
 
     public void appendHepRep(HepRepFactory factory, HepRep heprep) {

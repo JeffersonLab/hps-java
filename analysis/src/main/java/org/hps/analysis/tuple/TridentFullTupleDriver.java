@@ -17,7 +17,7 @@ public class TridentFullTupleDriver extends FullTruthTupleMaker {
         addVertexVariables();
         addParticleVariables("ele");
         addParticleVariables("pos");
-        addMCTridentVariables();
+        //addMCTridentVariables();
         addFullTruthVertexVariables();
 
         String[] newVars = new String[]{"minPositiveIso/D", "minNegativeIso/D", "minIso/D"};
@@ -33,7 +33,7 @@ public class TridentFullTupleDriver extends FullTruthTupleMaker {
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
             boolean isOK = fillBasicTuple(event, triggerData, uncV0, false);
-            fillMCTridentVariables(event);
+            //fillMCTridentVariables(event);
             
             ReconstructedParticle electron = uncV0.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = uncV0.getParticles().get(ReconParticleDriver.POSITRON);

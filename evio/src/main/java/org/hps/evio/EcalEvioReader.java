@@ -256,8 +256,12 @@ public class EcalEvioReader extends EvioReader {
                 }
 
                 if (id == null) {
+                    // TODO: We *should* have something here that makes sure the we don't also store all the Hodoscope hits.
+                    // OR we should simply parse the GenericHits elsewhere.
+                    // 
                     FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_RAW_MODE, crate, slot, channel, cdata, nSamples);
-                    processUnrecognizedChannel(hit);
+                    processUnrecognizedChannel(hit);  
+
                 } else {
                     BaseRawTrackerHit hit = makeECalRawHit(0, id, cdata, nSamples);
                     hits.add(hit);

@@ -791,13 +791,14 @@
         <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
             <comment>The crystal ECal</comment>
             <material name="LeadTungstate" />
-            <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />          
-            <layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+            <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+            <layout beamgapBottom="22.4*mm" beamgapTop="22.3*mm" nx="46" ny="5" dface="ecal_dface">
                 <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
                 <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0." />
                 <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0." />
             </layout>
         </detector>
+
     </detectors>
     
     <readouts>   
