@@ -103,7 +103,9 @@ public class Phys2019SvtEvioReader extends AbstractSvtEvioReader {
             int channel = SvtEvioUtils.getChannelNumber(data);
 
             // Extract the APV ID from the data
-            int apv = SvtEvioUtils.getApvFromMultiSample(data); 
+            int apv = SvtEvioUtils.getApvFromMultiSample(data);
+            if (apv == 0) apv = 1; 
+            else if (apv == 1) apv = 0;   
 
             // Get the physical channel number
             pChannel = apv*CHANNELS_PER_APV25 + channel; 
