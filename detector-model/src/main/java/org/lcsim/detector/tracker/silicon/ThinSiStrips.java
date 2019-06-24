@@ -12,7 +12,6 @@ import org.lcsim.detector.solids.GeomOp3D;
 import org.lcsim.detector.solids.Line3D;
 import org.lcsim.detector.solids.LineSegment3D;
 import org.lcsim.detector.solids.Point3D;
-import org.lcsim.detector.solids.Polygon3D;
 
 /**
  * @author Omar Moreno, SLAC National Accelerator Laboratory
