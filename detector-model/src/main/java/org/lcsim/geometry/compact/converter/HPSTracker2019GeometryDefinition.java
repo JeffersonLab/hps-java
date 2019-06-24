@@ -751,8 +751,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // private static final double length = ShortSensor.length - (100.00 -
         // 98.33);
         private static final double length = ShortSensor.length;
-        //private static final double width = ShortSensor.width - 2 * 0.250;
-        private static final double width = ShortSensor.width - 2 * 0.250 - 0.055; //subtract strip length since we have n - 1 strips
+        private static final double width = ShortSensor.width - 2 * 0.250;
+        //private static final double width = ShortSensor.width - 2 * 0.250 - 0.055; //subtract strip length since we have n - 1 strips
         private static final double thickness = ShortSensor.thickness;
 
         public ActiveShortSensor(String name, SurveyVolume m) {
