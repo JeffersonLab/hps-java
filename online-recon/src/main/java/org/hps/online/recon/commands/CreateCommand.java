@@ -41,7 +41,7 @@ public class CreateCommand extends Command {
     protected void process(CommandLine cl) {
         if (cl.getArgList().size() == 1) {
             setCount(Integer.valueOf(cl.getArgList().get(0)));
-        } else {
+        } else if (cl.getArgList().size() > 1) {
             throw new IllegalArgumentException("Too many extra args.");
         }
         if (cl.hasOption("s")) {
