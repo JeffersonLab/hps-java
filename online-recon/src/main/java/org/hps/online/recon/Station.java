@@ -59,7 +59,7 @@ public class Station {
      */
     public static void main(String args[]) {        
         if (args.length == 0) {
-            throw new RuntimeException("Missing config properties file.");
+            throw new RuntimeException("Missing config properties file");
         }         
         StationConfiguration sc = new StationConfiguration(new File(args[0]));
         if (!sc.isValid()) {
@@ -121,7 +121,6 @@ public class Station {
         }
         
         // Add drivers from the job manager to the loop.
-        LOGGER.config("Adding " + mgr.getDriverExecList().size() + " drivers to loop ...");
         for (Driver driver : mgr.getDriverExecList()) {
             LOGGER.config("Adding driver " + driver.getClass().getCanonicalName());
             loopConfig.add(driver);
@@ -129,7 +128,6 @@ public class Station {
         
         // Configure and add the AIDA driver for intermediate plot saving.
         int plotSaveInterval = config.getPlotSaveInterval();
-        LOGGER.config("Plot save interval: " + plotSaveInterval);
         if (plotSaveInterval > 0) {
             PlotDriver aidaDriver = new PlotDriver();
             aidaDriver.setStationName(config.getStation());
@@ -150,7 +148,6 @@ public class Station {
         } else {
             LOGGER.config("Event statistics disabled.");
         }
-            
                 
         // Activate the conditions system, if possible.
         if (activateConditions) {
