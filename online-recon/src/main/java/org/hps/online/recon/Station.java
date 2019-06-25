@@ -1,6 +1,8 @@
 package org.hps.online.recon;
 
 import java.io.File;
+import java.util.Date;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -72,7 +74,9 @@ public class Station {
      */
     void run() {
                 
-        LOGGER.config("Running station with config " + this.config.toString());
+        LOGGER.info("Started: " + new Date().toString());
+        LOGGER.config("Running station <" + this.getConfiguration().getStation() + 
+                "> with config " + this.config.toString());
         
         // Composite loop configuration.
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
@@ -137,6 +141,16 @@ public class Station {
         } else {
             LOGGER.config("Automatic plot saving is disabled.");
         }
+        
+        if (config.getEventStatisticsInterval() > 0) {
+            EventStatisticsDriver esd = new EventStatisticsDriver();
+            esd.setEventPrintInterval(config.getEventStatisticsInterval());
+            loopConfig.add(esd);
+            LOGGER.config("Added event statistics driver with event interval: " + config.getEventStatisticsInterval());
+        } else {
+            LOGGER.config("Event statistics disabled.");
+        }
+            
                 
         // Activate the conditions system, if possible.
         if (activateConditions) {
@@ -181,15 +195,21 @@ public class Station {
         // Run the loop.
         CompositeLoop loop = new CompositeLoop(loopConfig);
         LOGGER.info("Running record loop for station: " + this.getConfiguration().getStation());
-        loop.loop(-1);
-        LOGGER.info("Station is done looping: " + this.getConfiguration().getStation());
+        try {
+            loop.loop(-1);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Event processing error", e);
+            e.printStackTrace();
+        }
+        //LOGGER.info("Station is done looping: " + this.getConfiguration().getStation());
+        LOGGER.info("Ended: " + new Date().toString());
     }
     
     /**
      * Create an ET connection appropriate for parallel stations.
-     * @param config
-     * @return
-     * @throws Exception
+     * @param config The station configuration with ET parameters
+     * @return The <code>EtConnection</code>
+     * @throws Exception If there are ET system errors when connecting
      */
     private EtConnection createEtConnection(StationConfiguration config) throws Exception {
         return new EtParallelStation(
