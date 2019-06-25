@@ -241,13 +241,7 @@ public final class Server {
 
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            List<Integer> ids = new ArrayList<Integer>();
-            if (parameters.has("ids")) {
-                JSONArray arr = parameters.getJSONArray("ids");
-                for (int i = 0; i < arr.length(); i++) {
-                    ids.add(arr.getInt(i));
-                }
-            }
+            List<Integer> ids = getStationIDs(parameters);
             JSONArray arr = new JSONArray();
             if (ids.size() == 0) {
                 // Return info on all stations.
@@ -333,13 +327,7 @@ public final class Server {
     class StartCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            List<Integer> ids = new ArrayList<Integer>();
-            if (parameters.has("ids")) {
-                JSONArray arr = parameters.getJSONArray("ids");
-                for (int i = 0; i < arr.length(); i++) {
-                    ids.add(arr.getInt(i));
-                }
-            }            
+            List<Integer> ids = getStationIDs(parameters);        
             int started = 0;            
             if (ids.size() == 0) {
                 int inactive = Server.this.getStationManager().getInactiveCount();
@@ -372,13 +360,7 @@ public final class Server {
     class StopCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            List<Integer> ids = new ArrayList<Integer>();
-            if (parameters.has("ids")) {
-                JSONArray arr = parameters.getJSONArray("ids");
-                for (int i = 0; i < arr.length(); i++) {
-                    ids.add(arr.getInt(i));
-                }
-            }
+            List<Integer> ids = getStationIDs(parameters);
             int stopped = 0;
             if (ids.size() == 0) {
                 int nactive = Server.this.getStationManager().getActiveCount();
@@ -429,13 +411,7 @@ public final class Server {
     class RemoveCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            List<Integer> ids = new ArrayList<Integer>();
-            if (parameters.has("ids")) {
-                JSONArray arr = parameters.getJSONArray("ids");
-                for (int i = 0; i < arr.length(); i++) {
-                    ids.add(arr.getInt(i));
-                }
-            }
+            List<Integer> ids = getStationIDs(parameters);
             int removed = 0;
             if (ids.size() == 0) {
                 LOGGER.info("Removing all stations!");               
@@ -467,13 +443,7 @@ public final class Server {
     class CleanupCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            List<Integer> ids = new ArrayList<Integer>();
-            if (parameters.has("ids")) {
-                JSONArray arr = parameters.getJSONArray("ids");
-                for (int i = 0; i < arr.length(); i++) {
-                    ids.add(arr.getInt(i));
-                }
-            }
+            List<Integer> ids = getStationIDs(parameters);
             int cleaned = 0;
             if (ids.size() == 0) {
                 LOGGER.info("Cleaning up all inactive stations!");
@@ -642,7 +612,7 @@ public final class Server {
             return new CommandStatus(STATUS_SUCCESS, "Stopped all plot tasks.");
         }
     }
-    
+        
     /**
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
