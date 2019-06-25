@@ -12,7 +12,7 @@ import org.hps.online.recon.Command;
 public class CreateCommand extends Command {
 
     CreateCommand() {
-        super("create", "Create a new station", "", 
+        super("create", "Create a new station", "[options] [number_of_stations]",
                 "Stations are not started by default.");
     }
     
@@ -33,15 +33,16 @@ public class CreateCommand extends Command {
     }
     
     protected Options getOptions() {
-        options.addOption(new Option("n", "number", true, "number of instances to start (default 1)")); 
         options.addOption(new Option("s", "start", false, "automatically start the new stations"));
         return options;
     }
             
     @Override
     protected void process(CommandLine cl) {
-        if (cl.hasOption("n")) {
-            setCount(Integer.valueOf(cl.getOptionValue("n")));
+        if (cl.getArgList().size() == 1) {
+            setCount(Integer.valueOf(cl.getArgList().get(0)));
+        } else {
+            throw new IllegalArgumentException("Too many extra args.");
         }
         if (cl.hasOption("s")) {
             setStart(true);
