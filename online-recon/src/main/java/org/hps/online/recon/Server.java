@@ -43,7 +43,7 @@ public final class Server {
     /**
      * Conversion of milliseconds to seconds.
      */
-    private static final long MILLIS_TO_SECONDS = 1000L;
+    private static final long SECONDS_TO_MILLIS = 1000L;
 
     /**
      * Handles a single client request.
@@ -586,30 +586,43 @@ public final class Server {
             CommandResult res = null;
             if (!jo.has("target")) {
                 res = new CommandStatus(STATUS_ERROR, "Missing required target parameter.");
-            } else {
-                String target = jo.getString("target");
+            } else {                
+                String target = jo.getString("target");                
                 boolean delete = false;
                 if (jo.has("delete")) {
                     delete = jo.getBoolean("delete");
-                }
+                }                
                 boolean append = false;
                 if (jo.has("append")) {
                     append = jo.getBoolean("append");
-                }
-                PlotAddTask pat =    
+                }                
+                long period = -1L;
+                if (jo.has("period")) {
+                    period = jo.getLong("period");
+                }                
+                PlotAddTask task =    
                         new PlotAddTask(Server.this, new File(target), delete, append);
                 if (jo.has("ids")) {
-                    List<Integer> ids = getStationIDs(jo);                     
-                    pat.addStationIDs(ids);
-                }
+                    List<Integer> ids = getStationIDs(jo);
+                    task.addStationIDs(ids);
+                }                
                 if (jo.has("threads")) {
-                    pat.setThreadCount(jo.getInt("threads"));
+                    task.setThreadCount(jo.getInt("threads"));
+                
                 }
                 if (jo.has("verbosity")) {
-                    pat.setVerbosity(jo.getInt("verbosity"));
+                    task.setVerbosity(jo.getInt("verbosity"));
                 }
-                LOGGER.info("Scheduling plot task with output target: " + target);
-                Server.this.schedulePlotTask(pat);
+                LOGGER.info("Scheduling plot task with target: " + target);
+                if (period < 0) {
+                    // Run once.
+                    Server.this.schedulePlotTask(task);
+                } else {
+                    // Run periodically.
+                    Server.this.schedulePlotTask(task, period * SECONDS_TO_MILLIS);
+                    LOGGER.info("Plot task will run with period: " + 
+                            (period / SECONDS_TO_MILLIS) + "s");
+                }                
                 res = new CommandStatus(STATUS_SUCCESS, "Scheduled new plot task.");
             }
             return res;
@@ -928,7 +941,7 @@ public final class Server {
         // Plot update interval in seconds.
         if (cl.hasOption("i")) {
             this.plotIntervalMillis = Long.valueOf(cl.getOptionValue("i")) * 1000L;
-            LOGGER.config("Plot interval set to " + this.plotIntervalMillis + " ms (" + this.plotIntervalMillis / MILLIS_TO_SECONDS + " seconds).");
+            LOGGER.config("Plot interval set to " + this.plotIntervalMillis + " ms (" + this.plotIntervalMillis / SECONDS_TO_MILLIS + " seconds).");
         }
         
         // Load station configuration properties.
@@ -945,17 +958,7 @@ public final class Server {
      * Start the server.
      */
     void start() {
-        
-        // Schedule the plot task.
-        /*
-        if (this.plotFile != null) {
-            LOGGER.info("Starting plot add task with output file " + this.plotFile + " and update interval of " + this.plotIntervalMillis + " ms.");
-            this.plotTimer.schedule(new PlotAddTask(this, this.plotFile, dryRun), this.plotIntervalMillis, this.plotIntervalMillis);
-        } else {
-            LOGGER.info("Plot task was not enabled (no plot file was provided with -a option).");
-        }
-        */
-        
+                
         // Start the server instance.
         LOGGER.info("Starting server on port <" + this.port + ">");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -968,7 +971,11 @@ public final class Server {
         }
     }   
     
-    void schedulePlotTask(PlotAddTask pat) {
-        plotTimer.schedule(pat, 0L);
+    void schedulePlotTask(PlotAddTask task) {
+        plotTimer.schedule(task, 0L);
+    }
+    
+    void schedulePlotTask(PlotAddTask task, long period) {
+        plotTimer.schedule(task, 0L, period);
     }
 }
