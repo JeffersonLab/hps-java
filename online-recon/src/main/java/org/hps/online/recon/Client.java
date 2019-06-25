@@ -225,9 +225,9 @@ public final class Client {
      * Send a command to the online reconstruction server.
      * @param command The client command to send
      */
-    // FIXME: Cleanup handling of PrintWriter etc.
     void send(Command command) {
         
+        // Setup writing to output file.
         try {
             if (this.outputFile != null) {
                 FileWriter fw = new FileWriter(this.outputFile, this.append);
@@ -237,7 +237,9 @@ public final class Client {
             throw new RuntimeException("Error opening output file: " + this.outputFile.getPath(), e);
         }
         
+        // Open socket to server.
         try (Socket socket = new Socket(hostname, port)) {
+            
             // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.write(command.toString() + '\n');            
@@ -249,13 +251,13 @@ public final class Client {
             String resp = br.readLine();
             
             if (resp.startsWith("{")) {
-                // Handle JSON object.
+                // Print JSON object response.
                 printResponse(new JSONObject(resp));
             } else if (resp.startsWith("[")) {
-                // Handle JSON array.
+                // Handle JSON array response.
                 printResponse(new JSONArray(resp));
             } else {
-                // Try to read data stream from server. 
+                // Try to read continuous data stream from server.
                 
                 LOGGER.info("Reading stream from server");
 
@@ -263,26 +265,41 @@ public final class Client {
                 printResponse(resp);
                 
                 // Read data stream from server.
-                //Scanner sc = new Scanner(System.in);
-                while (true) {                    
-                    String line = br.readLine();
-                    printResponse(line);
-                    /*
-                    if (sc.hasNext()) {
-                        String userInput = sc.next();
-                        if (userInput.equals("q")) {
-                            LOGGER.info("Stopping log tail");
+                while (true) {
+                    
+                    // Quit if user presses 'q' key and Enter.
+                    if (System.in.available() > 0) {
+                        if ((char)System.in.read() == 'q') {
                             break;
                         }
                     }
-                    */
+                    // This blocks if server does not send response.
+                    String line = br.readLine();
+                    
+                    // Print server response line.
+                    printResponse(line);
                 }
-                //sc.close();
             }
+            
+            // Close the PrintWriter.
             if (pw != null) {
                 LOGGER.info("Wrote server response to: " + this.outputFile.getPath());
                 pw.flush();
-                pw.close();
+                pw.close();            
+            }
+            
+            // Close the socket's BufferedReader.
+            try {
+                br.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+            // Close the socket's InputStream.
+            try {
+                is.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } catch (Exception e) {
             throw new RuntimeException("Client error", e);

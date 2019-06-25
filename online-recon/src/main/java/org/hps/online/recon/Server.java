@@ -108,20 +108,22 @@ public final class Server {
                         SimpleLogListener listener = logStreamResult.listener;
                         listener.setBufferedWriter(bw);
                         LOGGER.fine("Running tailer");
-                        bw.write("Press 'q' to stop tailing." + '\n');
+                        bw.write("Press 'q' and Enter to exit." + '\n');
                         bw.write("[ " + logStreamResult.log.getPath() + " ]" + '\n');
                         try {
                             // Thread will block here until client closes connection!
                             logStreamResult.tailer.run();
+                            LOGGER.fine("After tailer run");
                         } finally {
                             // Stop the tailer.
                             try {
                                 logStreamResult.tailer.stop();
                             } catch (Exception e) {  
+                                e.printStackTrace();
                             }
                         }
                         LOGGER.info("Done running tailer");
-                    } else {                                
+                    } else {
                         // Send single line command result back to client.                
                         bw.write(res.toString());
                         bw.flush();
