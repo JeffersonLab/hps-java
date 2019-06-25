@@ -3,6 +3,7 @@ package org.hps.online.recon;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -67,6 +68,12 @@ public final class Client {
      * The factory for creating <code>Command</code> objects.
      */
     private CommandFactory cf = new CommandFactory();
+    
+    /**
+     * Writer for file output.
+     * If null output is written to System.out.
+     */
+    PrintWriter pw = null;
     
     /**
      * The base options (commands have their own Options objects).
@@ -218,7 +225,18 @@ public final class Client {
      * Send a command to the online reconstruction server.
      * @param command The client command to send
      */
+    // FIXME: Cleanup handling of PrintWriter etc.
     void send(Command command) {
+        
+        try {
+            if (this.outputFile != null) {
+                FileWriter fw = new FileWriter(this.outputFile, this.append);
+                this.pw = new PrintWriter(fw);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error opening output file: " + this.outputFile.getPath(), e);
+        }
+        
         try (Socket socket = new Socket(hostname, port)) {
             // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
@@ -230,31 +248,36 @@ public final class Client {
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String resp = br.readLine();
             
-            // Print server response or write to output file.
-            PrintWriter pw = null;
-            if (this.outputFile != null) {
-                FileWriter fw = new FileWriter(this.outputFile, this.append);
-                pw = new PrintWriter(fw);
-            }
             if (resp.startsWith("{")) {
                 // Handle JSON object.
-                JSONObject jo = new JSONObject(resp);
-                if (pw != null) {
-                    pw.write(jo.toString(4) + '\n');
-                } else {
-                    System.out.println(jo.toString(4));
-                }
+                printResponse(new JSONObject(resp));
             } else if (resp.startsWith("[")) {
                 // Handle JSON array.
-                JSONArray ja = new JSONArray(resp);
-                if (pw != null) {
-                    pw.write(ja.toString(4) + '\n');
-                } else {
-                    System.out.println(ja.toString(4));
-                }
+                printResponse(new JSONArray(resp));
             } else {
-                // Response from server isn't valid JSON.
-                throw new RuntimeException("Invalid server response: " + resp.toString());
+                // Try to read data stream from server. 
+                
+                LOGGER.info("Reading stream from server");
+
+                // Print first line which was already read.
+                printResponse(resp);
+                
+                // Read data stream from server.
+                //Scanner sc = new Scanner(System.in);
+                while (true) {                    
+                    String line = br.readLine();
+                    printResponse(line);
+                    /*
+                    if (sc.hasNext()) {
+                        String userInput = sc.next();
+                        if (userInput.equals("q")) {
+                            LOGGER.info("Stopping log tail");
+                            break;
+                        }
+                    }
+                    */
+                }
+                //sc.close();
             }
             if (pw != null) {
                 LOGGER.info("Wrote server response to: " + this.outputFile.getPath());
@@ -347,5 +370,29 @@ public final class Client {
      */
     boolean getAppend() {
         return this.append;
+    }
+    
+    void printResponse(JSONObject jo) {
+        if (pw != null) {
+            pw.write(jo.toString(4) + '\n');
+        } else {
+            System.out.println(jo.toString(4));
+        }
+    }
+    
+    void printResponse(JSONArray ja) {
+        if (pw != null) {
+            pw.write(ja.toString(4) + '\n');
+        } else {
+            System.out.println(ja.toString(4));
+        }
+    }
+    
+    void printResponse(String line) {
+        if (pw != null) {
+            pw.write(line);
+        } else {
+            System.out.println(line);
+        }
     }
 }

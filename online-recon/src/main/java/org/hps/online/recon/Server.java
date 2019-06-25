@@ -23,6 +23,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListenerAdapter;
 import org.hps.online.recon.StationManager.StationInfo;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStation;
@@ -57,24 +59,27 @@ public final class Server {
         }
 
         /**
-         * Handle client request by dispatching to a command handler.
+         * Handle client request by dispatching to a command handler and 
+         * sending back response to client.
          */
         public void run() {               
             try {
                 
                 LOGGER.fine("Got new connection from: " + socket.getInetAddress().getHostName());
                 
+                // Read input from client.
                 Scanner in = new Scanner(socket.getInputStream());                                            
                 JSONObject jo = new JSONObject(in.nextLine());
                  
+                // Get the command and its parameters.
                 String command = jo.getString("command");
                 JSONObject params = jo.getJSONObject("parameters");
-                
                 LOGGER.info("Received client command <" + command + "> with parameters " + params);
                 
+                // Command result to send back to client.
                 CommandResult res = null;
 
-                // Find the handler for the client command.
+                // Find the handler for the command.
                 CommandHandler handler = getCommandHandler(command);
                 if (handler == null) {
                     // Command name is invalid. This shouldn't happen normally.
@@ -90,24 +95,65 @@ public final class Server {
                         res = new CommandStatus(STATUS_ERROR, e.getMessage());
                     }
                 }
-                                
-                // Send command result back to client.
+
+                // Setup writer to send data back to client.
                 OutputStream os = socket.getOutputStream();
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-                bw.write(res.toString());
-                bw.flush();
-                bw.close();
                 
-                in.close();
-            } catch (IOException e) {
+                try {                    
+                    if (res instanceof LogStreamResult) {
+                        // Stream tail of log file back to client.
+                        LOGGER.fine("Sending log tail back to client");
+                        LogStreamResult logStreamResult = (LogStreamResult) res;
+                        SimpleLogListener listener = logStreamResult.listener;
+                        listener.setBufferedWriter(bw);
+                        LOGGER.fine("Running tailer");
+                        bw.write("Press 'q' to stop tailing." + '\n');
+                        bw.write("[ " + logStreamResult.log.getPath() + " ]" + '\n');
+                        try {
+                            // Thread will block here until client closes connection!
+                            logStreamResult.tailer.run();
+                        } finally {
+                            // Stop the tailer.
+                            try {
+                                logStreamResult.tailer.stop();
+                            } catch (Exception e) {  
+                            }
+                        }
+                        LOGGER.info("Done running tailer");
+                    } else {                                
+                        // Send single line command result back to client.                
+                        bw.write(res.toString());
+                        bw.flush();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Error sending data to client", e);
+                } finally {
+                    // Close the writer.
+                    try {
+                        bw.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    // Close the input reader.
+                    try {
+                        in.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }                
+            } catch (Exception e) {
                 e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error sending or receiving data", e);
             } finally {
+                // Close the socket.
                 try {
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
+            } 
         }
         
         /**
@@ -139,6 +185,8 @@ public final class Server {
                 handler = new PlotAddCommandHandler();
             } else if (command.equals("plot-stop")) {
                 handler = new PlotStopCommandHandler();
+            } else if (command.equals("log")) {
+                handler = new LogCommandHandler();
             }
             return handler;
         }
@@ -269,10 +317,9 @@ public final class Server {
                 res = new GenericResult(arr);
             }
             return res;
-        }
-        
+        }        
     }
-    
+        
     /**
      * Handle the create command.
      */
@@ -605,11 +652,71 @@ public final class Server {
             return res;
         }
     }
-    
+
+    /**
+     * Cancel and purge the current plot tasks.
+     */
     class PlotStopCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject jo) {
             Server.this.stopPlotTasks();
             return new CommandStatus(STATUS_SUCCESS, "Stopped all plot tasks.");
+        }
+    }
+    
+    class SimpleLogListener extends TailerListenerAdapter {
+
+        BufferedWriter bw;
+        
+        void setBufferedWriter(BufferedWriter bw) {
+            this.bw = bw;
+        }
+        
+        public void handle(String line) {
+            try {
+                bw.write(line + '\n');
+                bw.flush();
+            } catch (IOException e) {
+                throw new RuntimeException("Error writing log line", e);
+            }
+        }
+    }
+    
+    class LogStreamResult extends CommandResult {
+        
+        SimpleLogListener listener;
+        Tailer tailer;
+        File log;
+        
+        LogStreamResult(Tailer tailer, SimpleLogListener listener, File log) {
+            this.listener = listener;
+            this.tailer = tailer;
+            this.log = log;
+        }
+    }
+    
+    /**
+     * Print or tail a station's log file.
+     */
+    class LogCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject jo) {
+            CommandResult res = null;
+            List<Integer> ids = getStationIDs(jo);
+            if (ids.size() == 1) {
+                int id = ids.get(0);
+                Long delayMillis = 1000L;
+                if (jo.has("delayMillis")) {
+                    delayMillis = jo.getLong("delayMillis");
+                }
+                SimpleLogListener listener = new SimpleLogListener();
+                Tailer tailer = Server.this.getStationManager().getLogTailer(id, listener, delayMillis);
+                File logFile = Server.this.getStationManager().find(id).log;
+                res = new LogStreamResult(tailer, listener, logFile);
+            } else if (ids.size() > 1) {
+                res = new CommandStatus(STATUS_ERROR, "Multiple station IDs not supported for log command.");
+            } else if (ids.size() == 0) {
+                res = new CommandStatus(STATUS_ERROR, "No station IDs were given in parameters.");
+            }            
+            return res;
         }
     }
         

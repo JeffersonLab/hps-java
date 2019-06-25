@@ -44,6 +44,7 @@ public class CommandFactory {
         classMap.put("start", StartCommand.class);
         classMap.put("stop", StopCommand.class);
         classMap.put("status", StatusCommand.class);
+        classMap.put("log", LogCommand.class);
         
         // Set of valid commands.
         commands = classMap.keySet();

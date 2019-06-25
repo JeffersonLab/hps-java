@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListener;
 import org.json.JSONObject;
 
 /**
@@ -691,4 +693,20 @@ public class StationManager {
     List<File> getStationDirectories() {
         return getStationDirectories(this.getStationIDs());
     }
+    
+    Tailer getLogTailer(Integer id, TailerListener listener, long delayMillis) {
+        if (!this.exists(id)) {
+            throw new IllegalArgumentException("Station ID does not exist: " + id);
+        }
+        StationInfo station = this.find(id);
+        update(station);
+        if (!station.active) {
+            throw new RuntimeException("Station is not active: " + station.stationName);
+        }
+        File logFile = station.log;
+        if (!logFile.exists()) {
+            throw new RuntimeException("Station log file does not exist: " + logFile.getPath());
+        }
+        return new Tailer(logFile, listener, delayMillis, true);        
+    }       
 }
