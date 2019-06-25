@@ -48,6 +48,11 @@ public final class Server {
     private static final long SECONDS_TO_MILLIS = 1000L;
 
     /**
+     * When streaming data, client sends to server to keep connection alive.
+     */
+    static final String KEEPALIVE_RESPONSE = "<KEEPALIVE>";
+    
+    /**
      * Handles a single client request.
      */
     private class ClientTask implements Runnable {
@@ -98,39 +103,20 @@ public final class Server {
 
                 // Setup writer to send data back to client.
                 OutputStream os = socket.getOutputStream();
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+                final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
                 
                 try {                    
                     if (res instanceof LogStreamResult) {
-                        // Stream tail of log file back to client.
-                        LOGGER.fine("Sending log tail back to client");
-                        LogStreamResult logStreamResult = (LogStreamResult) res;
-                        SimpleLogListener listener = logStreamResult.listener;
-                        listener.setBufferedWriter(bw);
-                        LOGGER.fine("Running tailer");
-                        bw.write("Press 'q' and Enter to exit." + '\n');
-                        bw.write("[ " + logStreamResult.log.getPath() + " ]" + '\n');
-                        try {
-                            // Thread will block here until client closes connection!
-                            logStreamResult.tailer.run();
-                            LOGGER.fine("After tailer run");
-                        } finally {
-                            // Stop the tailer.
-                            try {
-                                logStreamResult.tailer.stop();
-                            } catch (Exception e) {  
-                                e.printStackTrace();
-                            }
-                        }
-                        LOGGER.info("Done running tailer");
+                        // Stream log file back to client.
+                        runTailer(res, bw, in);
                     } else {
                         // Send single line command result back to client.                
                         bw.write(res.toString());
                         bw.flush();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOGGER.log(Level.SEVERE, "Error sending data to client", e);
+                    e.printStackTrace();
                 } finally {
                     // Close the writer.
                     try {
@@ -146,8 +132,8 @@ public final class Server {
                     }
                 }                
             } catch (Exception e) {
-                e.printStackTrace();
                 LOGGER.log(Level.SEVERE, "Error sending or receiving data", e);
+                e.printStackTrace();
             } finally {
                 // Close the socket.
                 try {
@@ -157,6 +143,60 @@ public final class Server {
                 }
             } 
             LOGGER.fine("Done running client thread!");
+        }
+
+        /**
+         * Stream the tail of a log file back to the client.
+         * @param res The CommandResult with the <code>Tailer</code> setup
+         * @param bw The writer for output to client
+         * @param in The reader for input from client
+         * @throws IOException
+         * @throws InterruptedException
+         */
+        private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in) 
+                throws IOException, InterruptedException {
+            
+            LOGGER.fine("Sending log tail back to client");            
+            
+            LogStreamResult logStreamResult = (LogStreamResult) res;
+            SimpleLogListener listener = logStreamResult.listener;
+            listener.setBufferedWriter(bw);
+            
+            bw.write("Press 'q' and Enter to exit." + '\n');
+            bw.write("[ " + logStreamResult.log.getPath() + " ]" + '\n');
+            
+            final Tailer tailer = logStreamResult.tailer;
+            
+            // Create a thread to stop the tailer if the client closes the connection.
+            Thread clientCheckThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while (true) {
+                            // If the client stops sending keep alive responses, then
+                            // this will fail eventually and an exception will be thrown.
+                            in.nextLine();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        tailer.stop();
+                    }
+                }
+            });
+            clientCheckThread.start();
+                
+            // Main thread will block here until client closes the connection.
+            LOGGER.info("Running tailer");
+            tailer.run();
+
+            // Kill the thread checking the client, in case it is still alive.
+            if (clientCheckThread.isAlive()) {
+                LOGGER.fine("Killing client check thread");
+                clientCheckThread.interrupt();
+                clientCheckThread.join();
+            }
+                                            
+            LOGGER.info("Done running tailer");
         }
         
         /**
@@ -195,6 +235,11 @@ public final class Server {
         }
     }
 
+    /**
+     * Get a list of station IDs from JSON parameters.
+     * @param parameters The JSON parameters
+     * @return A list of station IDs
+     */
     static List<Integer> getStationIDs(JSONObject parameters) {
         List<Integer> ids = new ArrayList<Integer>();
         if (parameters.has("ids")) {
@@ -665,7 +710,10 @@ public final class Server {
             return new CommandStatus(STATUS_SUCCESS, "Stopped all plot tasks.");
         }
     }
-    
+
+    /**
+     * Writes lines from <code>Tailer</code> to the client socket.
+     */
     class SimpleLogListener extends TailerListenerAdapter {
 
         BufferedWriter bw;
@@ -684,6 +732,10 @@ public final class Server {
         }
     }
     
+    /**
+     * Encapsulates information needed for streaming log files
+     * back to the client.
+     */
     class LogStreamResult extends CommandResult {
         
         SimpleLogListener listener;
@@ -698,7 +750,7 @@ public final class Server {
     }
     
     /**
-     * Print or tail a station's log file.
+     * Tail a station's log file.
      */
     class LogCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject jo) {
@@ -768,6 +820,26 @@ public final class Server {
                 sys.close();
             }
         }
+    }
+    
+    /**
+     * Get whether the ET system is alive or not.
+     * @return True if ET system is alive; false if fail to connect
+     */
+    boolean isEtSystemAlive() {
+        try {
+            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(this.stationConfig.getBufferName(),
+                    this.stationConfig.getHost(), this.stationConfig.getPort());
+            EtSystem sys = new EtSystem(etConfig, EtConstants.debugWarn);
+            sys.open();
+            try {
+                return sys.alive();
+            } finally {
+                sys.close();
+            }
+        } catch (Exception e) {
+            return false;
+        }        
     }
     
     /**
@@ -844,15 +916,10 @@ public final class Server {
     final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
             
     /**
-     * Default work dir path (current working dir).
+     * Default work dir path (current working dir by default).
      */
     private final String DEFAULT_WORK_PATH = System.getProperty("user.dir");
-        
-    /**
-     * Default interval for running plot task.
-     */
-    private Long plotIntervalMillis = (long) (60 * 1000);
-    
+            
     /**
      * Timer for running plot task.
      */
@@ -919,7 +986,7 @@ public final class Server {
      */
     synchronized void setStationBaseName(String stationBase) {
         if (stationBase == null) {
-            throw new IllegalArgumentException("The stationBase points to null.");
+            throw new IllegalArgumentException("The stationBase argument points to null.");
         }
         this.stationBase = stationBase;
     }
@@ -965,7 +1032,7 @@ public final class Server {
     }
     
     /**
-     * Set the server working directory.
+     * Set the server base working directory.
      * @param workDir The new server working directory
      */
     synchronized void setWorkDir(File workDir) {
@@ -1032,12 +1099,6 @@ public final class Server {
         }
         LOGGER.config("Station base name: " + this.stationBase);
         
-        // Plot update interval in seconds.
-        if (cl.hasOption("i")) {
-            this.plotIntervalMillis = Long.valueOf(cl.getOptionValue("i")) * 1000L;
-            LOGGER.config("Plot interval set to " + this.plotIntervalMillis + " ms (" + this.plotIntervalMillis / SECONDS_TO_MILLIS + " seconds).");
-        }
-        
         // Load station configuration properties.
         if (cl.hasOption("c")) {
             File configFile = new File(cl.getOptionValue("c"));
@@ -1052,9 +1113,7 @@ public final class Server {
      * Start the server.
      */
     void start() {
-                
-        // Start the server instance.
-        LOGGER.info("Starting server on port <" + this.port + ">");
+        LOGGER.info("Starting server on port: " + this.port);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
@@ -1065,18 +1124,29 @@ public final class Server {
         }
     }   
     
+    /**
+     * Schedule plot task to run once.
+     * @param task The task to run
+     */
     synchronized void schedulePlotTask(PlotAddTask task) {
         plotTimer.schedule(task, 0L);
     }
     
+    /**
+     * Schedule plot task to run periodically.
+     * @param task The task to run
+     * @param period The period in millis
+     */
     synchronized void schedulePlotTask(PlotAddTask task, long period) {
         plotTimer.schedule(task, 0L, period);
     }
     
+    /**
+     * Cancel all plot tasks, purge the timer, and create a new <code>Timer</code> instance.
+     */
     synchronized void stopPlotTasks() {
         plotTimer.cancel();
         plotTimer.purge();
-
         plotTimer = new Timer();
     }
 }

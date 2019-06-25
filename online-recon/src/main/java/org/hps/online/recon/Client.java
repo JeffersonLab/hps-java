@@ -238,11 +238,28 @@ public final class Client {
         }
         
         // Open socket to server.
-        try (Socket socket = new Socket(hostname, port)) {
+        try (final Socket socket = new Socket(hostname, port)) {
+            
+            // Add shutdown hook to make sure socket is closed cleanly.
+            // FIXME: Is this even needed???
+            Runtime.getRuntime().addShutdownHook(new Thread() { 
+                public void run() { 
+                    if (socket != null) {
+                        try {
+                            if (!socket.isClosed()) {
+                                LOGGER.info("Shutdown hook is closing socket");
+                                socket.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } 
+            }); 
             
             // Send command to the server.           
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
-            writer.write(command.toString() + '\n');            
+            writer.write(command.toString() + '\n');
             writer.flush();
 
             // Get server response.
@@ -273,11 +290,15 @@ public final class Client {
                             break;
                         }
                     }
-                    // This blocks if server does not send response.
+                    
+                    // This blocks waiting for server response.                    
                     String line = br.readLine();
                     
                     // Print server response line.
                     printResponse(line);
+                    
+                    // Let the server know we are still alive.
+                    writer.write(Server.KEEPALIVE_RESPONSE + '\n');
                 }
             }
             
