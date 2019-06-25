@@ -156,6 +156,7 @@ public final class Server {
                     e.printStackTrace();
                 }
             } 
+            LOGGER.fine("Done running client thread!");
         }
         
         /**
