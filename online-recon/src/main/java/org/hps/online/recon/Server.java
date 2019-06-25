@@ -132,6 +132,8 @@ public final class Server {
                 handler = new StatusCommandHandler();
             } else if (command.equals("plot-add")) {
                 handler = new PlotAddCommandHandler();
+            } else if (command.equals("plot-stop")) {
+                handler = new PlotStopCommandHandler();
             }
             return handler;
         }
@@ -629,6 +631,13 @@ public final class Server {
         }
     }
     
+    class PlotStopCommandHandler extends CommandHandler {
+        CommandResult execute(JSONObject jo) {
+            Server.this.stopPlotTasks();
+            return new CommandStatus(STATUS_SUCCESS, "Stopped all plot tasks.");
+        }
+    }
+    
     /**
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
@@ -698,7 +707,7 @@ public final class Server {
     /**
      * The default server port.
      */
-    private static final int DEFAULT_PORT = 22222;
+    static final int DEFAULT_PORT = 22222;
         
     /**
      * The package logger.
@@ -801,7 +810,7 @@ public final class Server {
      * @param name The name of the station
      * @return The File for the new directory
      */
-    File createStationDir(String name) {
+    synchronized File createStationDir(String name) {
         String path = this.workDir.getPath() + File.separator + name;
         File dir = new File(path);
         dir.mkdir();
@@ -823,7 +832,7 @@ public final class Server {
      * Set the string for station base name.
      * @param stationBase The string for station base name
      */
-    void setStationBaseName(String stationBase) {
+    synchronized void setStationBaseName(String stationBase) {
         if (stationBase == null) {
             throw new IllegalArgumentException("The stationBase points to null.");
         }
@@ -874,7 +883,7 @@ public final class Server {
      * Set the server working directory.
      * @param workDir The new server working directory
      */
-    void setWorkDir(File workDir) {
+    synchronized void setWorkDir(File workDir) {
         checkWorkDir(workDir);
         this.workDir = workDir;
     }
@@ -971,11 +980,18 @@ public final class Server {
         }
     }   
     
-    void schedulePlotTask(PlotAddTask task) {
+    synchronized void schedulePlotTask(PlotAddTask task) {
         plotTimer.schedule(task, 0L);
     }
     
-    void schedulePlotTask(PlotAddTask task, long period) {
+    synchronized void schedulePlotTask(PlotAddTask task, long period) {
         plotTimer.schedule(task, 0L, period);
+    }
+    
+    synchronized void stopPlotTasks() {
+        plotTimer.cancel();
+        plotTimer.purge();
+
+        plotTimer = new Timer();
     }
 }

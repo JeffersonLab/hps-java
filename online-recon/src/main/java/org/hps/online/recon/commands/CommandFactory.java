@@ -38,6 +38,7 @@ public class CommandFactory {
         classMap.put("create", CreateCommand.class);
         classMap.put("list", ListCommand.class);
         classMap.put("plot-add", PlotAddCommand.class);
+        classMap.put("plot-stop", PlotStopCommand.class);
         classMap.put("remove", RemoveCommand.class);
         classMap.put("settings", SettingsCommand.class);
         classMap.put("start", StartCommand.class);
@@ -81,5 +82,5 @@ public class CommandFactory {
      */
     public boolean has(String name) {
         return this.commands.contains(name);
-    }
+    }    
 }

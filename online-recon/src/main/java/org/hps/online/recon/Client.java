@@ -37,9 +37,9 @@ public final class Client {
     private String hostname = "localhost";
     
     /**
-     * Port of the server with default.
+     * Port of the server with default from server.
      */
-    private int port = 22222;
+    private int port = Server.DEFAULT_PORT;
 
     /**
      * Output file for writing server responses.
