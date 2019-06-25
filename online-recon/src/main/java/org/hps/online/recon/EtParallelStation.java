@@ -38,17 +38,13 @@ class EtParallelStation extends EtConnection {
         // create ET system object with verbose debugging output
         sys = new EtSystem(etConfig, logLevel);
         sys.open();
-        
-        //LOGGER.config("ET system has " + sys.getNumStations() + " stations.");
-                
+                        
         // configuration of a new station
         final EtStationConfig stationConfig = new EtStationConfig();
         stationConfig.setFlowMode(EtConstants.stationParallel);
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-
-        //stationConfig.compatibleParallelConfigs(group, config)
-
+        
         // Set prescale.
         if (prescale > 0) {
             stationConfig.setPrescale(prescale);
