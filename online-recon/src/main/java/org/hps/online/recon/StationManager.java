@@ -159,6 +159,11 @@ public class StationManager {
         
         LOGGER.info("Starting station: " + station.stationName);
         
+        if (!server.isEtSystemAlive()) {
+            LOGGER.severe("Station cannot be started because ET system is down: " + station.stationName);
+            throw new RuntimeException("ET system is not alive!");
+        }
+        
         update(station);
                 
         if (!station.active) {
@@ -271,19 +276,29 @@ public class StationManager {
      * @param configFile The station configuration properties file
      */
     private List<String> buildCommand(File configFile) {
+
         List<String> command = new ArrayList<String>();
+        
         command.add("java");
         command.add("-Djava.util.logging.config.class=" + StationLoggingConfig.class.getCanonicalName());
+        
+        // Check for conditions property to use local conditions sqlite db file.
+        // Alternate MySQL conditions database is not supported.
         if (SYSTEM_PROPERTIES.containsKey(CONDITIONS_PROPERTY)) {
             String condProp = SYSTEM_PROPERTIES.getProperty(CONDITIONS_PROPERTY);
-            if (new File(condProp.replaceAll("jdbc:sqlite:", "")).isAbsolute()) {
-                command.add("-D" + CONDITIONS_PROPERTY + "=" + condProp);
+            if (condProp.contains("sqlite:")) {
+                File dbFile = new File(condProp.replaceAll("jdbc:sqlite:", ""));
+                if (dbFile.isAbsolute() && dbFile.exists() && dbFile.canRead()) {
+                    command.add("-D" + CONDITIONS_PROPERTY + "=" + condProp);
+                }
             }
         }
+        
         command.add("-cp");
         command.add(JAR_PATH);
         command.add(Station.class.getCanonicalName());        
         command.add(configFile.getPath());                   
+        
         return command;
     }
                 
