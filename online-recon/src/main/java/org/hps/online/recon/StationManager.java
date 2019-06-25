@@ -272,13 +272,8 @@ public class StationManager {
      */
     private List<String> buildCommand(File configFile) {
         List<String> command = new ArrayList<String>();
-        command.add("java");        
-        if (SYSTEM_PROPERTIES.containsKey(LOGGING_PROPERTY)) {
-            String logProp = SYSTEM_PROPERTIES.getProperty(LOGGING_PROPERTY);
-            if (new File(logProp).isAbsolute()) {
-                command.add("-D" + LOGGING_PROPERTY + "=" + logProp);
-            }
-        }
+        command.add("java");
+        command.add("-Djava.util.logging.config.class=" + StationLoggingConfig.class.getCanonicalName());
         if (SYSTEM_PROPERTIES.containsKey(CONDITIONS_PROPERTY)) {
             String condProp = SYSTEM_PROPERTIES.getProperty(CONDITIONS_PROPERTY);
             if (new File(condProp.replaceAll("jdbc:sqlite:", "")).isAbsolute()) {
