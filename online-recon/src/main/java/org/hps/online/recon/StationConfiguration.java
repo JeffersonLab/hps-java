@@ -60,9 +60,7 @@ final class StationConfiguration {
     static final String OUTPUT_DIR_PROPERTY = "lcsim.outputDir";
     
     static final String OUTPUT_NAME_PROPERTY = "lcsim.outputName";
-    
-    static final String LOGGING_RESOURCE_PROPERTY = "lcsim.logging.resource";
-       
+              
     /**
      * Package logger.
      */
@@ -155,12 +153,7 @@ final class StationConfiguration {
      * The event prescale parameter.
      */
     private Integer prescale = 0;
-    
-    /**
-     * The logging resource in the hps-java jar to use when running the station.
-     */
-    private String loggingResource = null;
-    
+
     /**
      * The backing properties for the station configuration.
      */
@@ -321,12 +314,7 @@ final class StationConfiguration {
         }
         if (props.containsKey(EVENT_STATISTICS_INTERVAL_PROPERTY)) {
             eventStatisticsInterval = Integer.parseInt(props.getProperty(EVENT_STATISTICS_INTERVAL_PROPERTY));
-        }
-        /*
-        if (props.containsKey(LOGGING_RESOURCE_PROPERTY)) {
-            loggingResource = 
-        }
-        */
+        }        
     }
     
     /**
