@@ -235,7 +235,7 @@ final class PlotAddTask extends TimerTask {
             StringBuffer sb = new StringBuffer();
             String readline;
             while ((readline = reader.readLine()) != null) {
-                sb.append(readline);
+                sb.append(readline + '\n');
             }            
             LOGGER.fine("hadd output: " + '\n' + sb.toString());
             
