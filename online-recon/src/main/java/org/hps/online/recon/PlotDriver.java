@@ -20,7 +20,7 @@ import hep.aida.ITree;
  * Plots can be reset after they are saved so that combined plot file can be
  * created incrementally.
  * 
- * @author jermc
+ * @author jeremym
  */
 public class PlotDriver extends Driver {
 

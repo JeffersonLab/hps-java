@@ -65,6 +65,11 @@ public class Console {
         sn.close();
     }
     
+    /**
+     * Execute a line of input.
+     * @param userInput The user input to execute
+     * @return True if console should exit after this command
+     */
     private boolean exec(String userInput) {
         if (echo) {
             System.out.println(userInput);
