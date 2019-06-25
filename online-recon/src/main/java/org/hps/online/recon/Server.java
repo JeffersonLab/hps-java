@@ -110,6 +110,11 @@ public final class Server {
             }
         }
         
+        /**
+         * Find a <code>CommandHandler</code> for the given command name.
+         * @param command The command name
+         * @return The <code>CommandHandler</code> or null if does not exist
+         */
         CommandHandler getCommandHandler(String command) {
             CommandHandler handler = null;
             if (command.equals("create")) {

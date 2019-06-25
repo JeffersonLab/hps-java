@@ -18,7 +18,8 @@ import org.json.JSONObject;
 /**
  * Manages online reconstruction stations.
  */
-// FIXME: Having methods return boolean to indicate success isn't great.  Preferable to have exceptions with the caller handling them.
+// FIXME: Having methods return boolean to indicate success isn't great.  
+//        Preferable to have exceptions with the caller handling them.
 public class StationManager {
 
     /**
