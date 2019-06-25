@@ -32,7 +32,6 @@ public class EventStatisticsDriver extends Driver {
 
     public void process(EventHeader event) {
         ++eventsProcessed;
-        LOGGER.info(eventsProcessed.toString());
         if (eventsProcessed % eventPrintInterval == 0) {
             printStatistics();
         }
@@ -47,7 +46,7 @@ public class EventStatisticsDriver extends Driver {
             endTime = System.currentTimeMillis();
             long elapsed = endTime - startTime;
             if (elapsed > 1000) {
-                LOGGER.info("Event statistics: " + '\n' +
+                LOGGER.info('\n' + "Event statistics: " + '\n' +
                         "    Events Processed: " + eventsProcessed + '\n' +
                         "    Elapsed: " + (elapsed / MILLIS_TO_SECONDS) + "s" + '\n' +
                         "    Time per event: " + (elapsed / eventsProcessed) + "ms");
