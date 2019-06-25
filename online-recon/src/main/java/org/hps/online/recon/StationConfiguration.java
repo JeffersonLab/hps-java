@@ -49,6 +49,8 @@ final class StationConfiguration {
 
     static final String PLOT_SAVE_INTERVAL_PROPERTY = "lcsim.plotSaveInterval";
 
+    static final String EVENT_STATISTICS_INTERVAL_PROPERTY = "lcsim.eventStatisticsInterval";
+    
     static final String RUN_PROPERTY = "lcsim.run";
 
     static final String STEERING_PROPERTY = "lcsim.steering";
@@ -59,6 +61,8 @@ final class StationConfiguration {
     
     static final String OUTPUT_NAME_PROPERTY = "lcsim.outputName";
     
+    static final String LOGGING_RESOURCE_PROPERTY = "lcsim.logging.resource";
+       
     /**
      * Package logger.
      */
@@ -153,6 +157,11 @@ final class StationConfiguration {
     private Integer prescale = 0;
     
     /**
+     * The logging resource in the hps-java jar to use when running the station.
+     */
+    private String loggingResource = null;
+    
+    /**
      * The backing properties for the station configuration.
      */
     private Properties props = new Properties();
@@ -170,6 +179,13 @@ final class StationConfiguration {
     public static final int    debugWarn           = 3;
     public static final int    debugInfo           = 4;
     */
+    
+    
+    /**
+     * True to print out job statistics with event interval.
+     * A value below 0 means no statistics will be enabled.
+     */
+    private int eventStatisticsInterval = -1;
     
     /**
      * Create station configuration from a properties file.
@@ -303,6 +319,14 @@ final class StationConfiguration {
         if (props.containsKey(ET_LOG_LEVEL_PROPERTY)) {
             etLogLevel = Integer.parseInt(props.getProperty(ET_LOG_LEVEL_PROPERTY));
         }
+        if (props.containsKey(EVENT_STATISTICS_INTERVAL_PROPERTY)) {
+            eventStatisticsInterval = Integer.parseInt(props.getProperty(EVENT_STATISTICS_INTERVAL_PROPERTY));
+        }
+        /*
+        if (props.containsKey(LOGGING_RESOURCE_PROPERTY)) {
+            loggingResource = 
+        }
+        */
     }
     
     /**
@@ -429,5 +453,9 @@ final class StationConfiguration {
     
     int getEtLogLevel() {
         return etLogLevel;
+    }
+    
+    int getEventStatisticsInterval() {
+        return eventStatisticsInterval;
     }
 }
