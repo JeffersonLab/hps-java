@@ -11,7 +11,7 @@ public class StopCommand extends Command {
     
     StopCommand() {
         super("stop", "Stop a station", "[IDs]", 
-                "Provide a list of IDs or none for all");
+                "Provide a list of IDs or none for all.");
     }
         
     protected void process(CommandLine cl) {

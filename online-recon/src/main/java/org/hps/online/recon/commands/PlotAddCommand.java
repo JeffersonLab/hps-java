@@ -10,7 +10,8 @@ public class PlotAddCommand extends Command {
     PlotAddCommand() {
         super("plot-add", "Manage plot files from stations", "[options] [IDs]", 
                 "Set the -p option to specify a time in seconds for running the task periodically." + '\n' +
-                    "By default the plots will just be added once and the task will not reoccur."
+                    "By default the plots will just be added once and the task will not reoccur." + '\n' +
+                    "If no IDs are provided then plots from all active stations will be added."
         );
     }
     

@@ -11,7 +11,7 @@ import org.hps.online.recon.Command;
 public class StatusCommand extends Command {
            
     StatusCommand() {
-        super("status", "Show server and station status", "", "");
+        super("status", "Show server and station status", "[options]", "");
     }
     
     protected Options getOptions() {

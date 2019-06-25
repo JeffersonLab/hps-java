@@ -18,7 +18,7 @@ public class ConfigCommand extends Command {
     private Properties prop;
             
     ConfigCommand() {
-        super("config", "Set new server configuration properties", "",
+        super("config", "Set new server configuration properties", "[config.properties]",
                 "Configuration will take effect for newly created stations."
                 + " If no new config is provided the existing config will be printed.");
     }
