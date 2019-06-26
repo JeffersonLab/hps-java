@@ -132,7 +132,7 @@ public class Station {
             PlotDriver aidaDriver = new PlotDriver();
             aidaDriver.setStationName(config.getStation());
             aidaDriver.setOutputDir(config.getOutputDir());
-            aidaDriver.setResetAfterSave(true); // TODO: Should this be a config option?
+            aidaDriver.setResetAfterSave(config.getResetPlots());
             aidaDriver.setEventSaveInterval(plotSaveInterval);
             LOGGER.config("Adding AIDA driver to save plots every " + config.getPlotSaveInterval() + " events");
             loopConfig.add(aidaDriver);
