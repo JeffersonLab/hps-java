@@ -25,13 +25,31 @@ final class StationConfiguration {
     /*
      * Property name definitions.    
      */    
+    static final String RUN_PROPERTY = "lcsim.run";
+
+    static final String STEERING_PROPERTY = "lcsim.steering";
+
+    static final String DETECTOR_PROPERTY = "lcsim.detector";
+    
+    static final String STATION_PROPERTY = "station.name";
+
+    static final String EVENT_PRINT_INTERVAL_PROPERTY = "station.eventPrintInterval";
+
+    static final String PLOT_SAVE_INTERVAL_PROPERTY = "station.plotSaveInterval";
+
+    static final String EVENT_STATISTICS_INTERVAL_PROPERTY = "station.eventStatisticsInterval";
+
+    static final String PLOT_RESET_PROPERTY = "station.resetPlots";
+
+    static final String OUTPUT_DIR_PROPERTY = "station.outputDir";
+    
+    static final String OUTPUT_NAME_PROPERTY = "station.outputName";
+        
     static final String CHUNK_SIZE_PROPERTY = "et.chunkSize";
 
     static final String WAIT_TIME_PROPERTY = "et.waitTime";
 
     static final String WAIT_MODE_PROPERTY = "et.waitMode";
-
-    static final String STATION_PROPERTY = "et.station";
 
     static final String PRESCALE_PROPERTY = "et.prescale";
 
@@ -44,23 +62,7 @@ final class StationConfiguration {
     static final String ET_NAME_PROPERTY = "et.name";
     
     static final String ET_LOG_LEVEL_PROPERTY = "et.logLevel";
-    
-    static final String EVENT_PRINT_INTERVAL_PROPERTY = "lcsim.eventPrintInterval";
-
-    static final String PLOT_SAVE_INTERVAL_PROPERTY = "lcsim.plotSaveInterval";
-
-    static final String EVENT_STATISTICS_INTERVAL_PROPERTY = "lcsim.eventStatisticsInterval";
-    
-    static final String RUN_PROPERTY = "lcsim.run";
-
-    static final String STEERING_PROPERTY = "lcsim.steering";
-
-    static final String DETECTOR_PROPERTY = "lcsim.detector";
-    
-    static final String OUTPUT_DIR_PROPERTY = "lcsim.outputDir";
-    
-    static final String OUTPUT_NAME_PROPERTY = "lcsim.outputName";
-              
+                
     /**
      * Package logger.
      */
@@ -163,7 +165,6 @@ final class StationConfiguration {
      * Log level of the ET system.
      */
     private int etLogLevel = EtConstants.debugInfo;
-
     // From EtConstants.java
     /*
     public static final int    debugNone           = 0;
@@ -172,7 +173,13 @@ final class StationConfiguration {
     public static final int    debugWarn           = 3;
     public static final int    debugInfo           = 4;
     */
-    
+        
+    /**
+     * True to reset plots after they are saved.
+     * This should be enabled if pre-existing target plot file
+     * is being included in the hadd command.
+     */
+    private boolean resetPlots = false;
     
     /**
      * True to print out job statistics with event interval.
@@ -315,6 +322,9 @@ final class StationConfiguration {
         if (props.containsKey(EVENT_STATISTICS_INTERVAL_PROPERTY)) {
             eventStatisticsInterval = Integer.parseInt(props.getProperty(EVENT_STATISTICS_INTERVAL_PROPERTY));
         }        
+        if (props.containsKey(PLOT_RESET_PROPERTY)) {
+            resetPlots = Boolean.parseBoolean(PLOT_RESET_PROPERTY);
+        }
     }
     
     /**
@@ -445,5 +455,9 @@ final class StationConfiguration {
     
     int getEventStatisticsInterval() {
         return eventStatisticsInterval;
+    }
+    
+    Boolean getResetPlots() {
+        return resetPlots;
     }
 }
