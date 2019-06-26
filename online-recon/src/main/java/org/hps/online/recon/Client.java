@@ -258,15 +258,15 @@ public final class Client {
             }); 
             
             // Send command to the server.           
-            PrintWriter writer = new PrintWriter(socket.getOutputStream());
+            final PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.write(command.toString() + '\n');
             writer.flush();
 
             // Get server response.
-            InputStream is = socket.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            final InputStream is = socket.getInputStream();
+            final BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String resp = br.readLine();
-            
+            //LOGGER.info("resp: " + resp);
             if (resp.startsWith("{")) {
                 // Print JSON object response.
                 printResponse(new JSONObject(resp));
@@ -278,35 +278,63 @@ public final class Client {
                 
                 LOGGER.info("Reading stream from server");
 
+                System.out.println("Press 'q' and Enter to exit." + '\n');
+                
                 // Print first line which was already read.
                 printResponse(resp);
-                
-                // Read data stream from server.
+ 
+                // Read server responses on separate thread so we can interrupt.
+                Thread readThread = new Thread() {
+                    public void run() {
+                        while (!this.isInterrupted()) {
+                            try {                        
+                                // This blocks waiting for server response.                    
+                                String line = br.readLine();
+                        
+                                // Print server response line.
+                                printResponse(line);
+                        
+                                // Let the server know we are still alive.
+                                writer.write(Server.KEEPALIVE_RESPONSE + '\n');
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                break;
+                            }
+                        }
+                    }       
+                };
+                readThread.start();
+                                
+                // Read data stream from server until user quits or presses Ctrl+C.
                 while (true) {
-                    
                     // Quit if user presses 'q' key and Enter.
                     if (System.in.available() > 0) {
-                        if ((char)System.in.read() == 'q') {
+                        if ((char)System.in.read() == 'q') {                           
                             break;
                         }
                     }
-                    
-                    // This blocks waiting for server response.                    
-                    String line = br.readLine();
-                    
-                    // Print server response line.
-                    printResponse(line);
-                    
-                    // Let the server know we are still alive.
-                    writer.write(Server.KEEPALIVE_RESPONSE + '\n');
+                    // Quit if read thread dies.
+                    if (!readThread.isAlive()) {
+                        break;
+                    }
+                    Thread.sleep(100);
+                }
+                
+                // Kill the read thread.
+                if (readThread.isAlive()) {
+                    readThread.interrupt();
+                    readThread.join(1000);
+                    if (readThread.isAlive()) {
+                        readThread.stop();
+                    }
                 }
             }
             
             // Close the PrintWriter.
             if (pw != null) {
-                LOGGER.info("Wrote server response to: " + this.outputFile.getPath());
+                System.out.println("Wrote server response to: " + this.outputFile.getPath());
                 pw.flush();
-                pw.close();            
+                pw.close();
             }
             
             // Close the socket's BufferedReader.
