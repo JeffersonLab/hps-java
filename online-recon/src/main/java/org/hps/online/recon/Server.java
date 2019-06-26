@@ -178,7 +178,7 @@ public final class Server {
                             in.nextLine();
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                         tailer.stop();
                     }
                 }
