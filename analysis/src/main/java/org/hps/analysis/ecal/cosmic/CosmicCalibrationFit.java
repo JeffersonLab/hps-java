@@ -38,16 +38,16 @@ public class CosmicCalibrationFit extends Driver {
     private EcalConditions ecalConditions = null;
 
     // Tune-able parameters:
-    // optimum signal window, 35-55 (in units of 4ns)
-    private int MINS = 35;
-    private int MAXS = 55;
-    // pedestal window for calculating an average pedestal
-    private int MINP = 10;
-    private int MAXP = 30;
+    // optimum signal window, 35-55 (in units of 4ns) (35-55 in 2016)
+    private int MINS = 25;
+    private int MAXS = 45;
+    // pedestal window for calculating an average pedestal (10-30 in 2016)
+    private int MINP = 0;
+    private int MAXP = 20;
     // number of bins used to calculate the pedestal
     private int NWIN = MAXP - MINP;
     // threshold in mV (2.5mV in 2015, 3.5mV in 2016)
-    private double THR = 3.00;// for 2016
+    private double THR = 3.0;// for 2016
     // 0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically
     // (fit available only with strict geo
     // cut)
@@ -65,6 +65,28 @@ public class CosmicCalibrationFit extends Driver {
     private double ADC2V = 0.25;
 
     AIDA aida = AIDA.defaultInstance();
+
+    public void setMinSampleSignal(int N) {
+        this.MINS = N;
+    }
+
+    public void setMaxSampleSignal(int N) {
+        this.MAXS = N;
+    }
+
+    public void setMinSamplePedestal(int N) {
+        this.MINP = N;
+        this.NWIN = (MAXP - MINP);
+    }
+
+    public void setMaxSamplePedestal(int N) {
+        this.MAXP = N;
+        this.NWIN = (MAXP - MINP);
+    }
+
+    public void setThreshold(double thr) {
+        this.THR = thr;
+    }
 
     protected void detectorChanged(Detector detector) {
 
@@ -135,7 +157,6 @@ public class CosmicCalibrationFit extends Driver {
         float signal[][] = new float[NX][NY];
         int time0 = 0;
 
-
         // loop over crystal y
         for (int iy = 0; iy < NY; iy++) {
             // loop over crystal x
@@ -152,7 +173,7 @@ public class CosmicCalibrationFit extends Driver {
 
                     // This may happen if - for any reason - a FADC channel is missing data.
                     // In principle, cosmics data should be taken with no 0-suppression.
-                    if (ihit == null) {                  
+                    if (ihit == null) {
                         pulse[ix][iy] = 0;
                         signal[ix][iy] = 0;
                         continue;
@@ -172,7 +193,7 @@ public class CosmicCalibrationFit extends Driver {
                         double peak = (adc - pedestal[ix][iy] / NWIN) * ADC2V;
 
                         if (peak > THR) {
-                            trigger = 1;
+                            trigger = trigger + 1;
                             time0 = nTime;
                             // System.out.println("\t greater than thresh:\t"+peak+"\t"+THR);
                         }
@@ -180,16 +201,16 @@ public class CosmicCalibrationFit extends Driver {
                     } // end loop over time samples
 
                     // subtract pedestal from pulse and plot
-                    if (trigger == 1) {
+                    if (trigger >= 1) {
                         signal[ix][iy] = (float) ((pulse[ix][iy] - pedestal[ix][iy]) * ADC2V);
 
                         // Crystal has passed threshold trigger cut, now must pass geometry cuts
                         int geomCut0 = 0;// 0 passes, ix+1
                         int geomCut1 = 0;// 0 passes, ix-1
-                        int geomCut2 = 0;// 0 passes, iy+1
-                        int geomCut3 = 0;// 0 passes, iy-1
-                        int geomCut4 = 0;// 0 passes, if iy is 9,4, iy-2
-                        int geomCut5 = 0;// 0 passes, if iy is 0,5, iy+2
+                        int geomCut2 = 1;// 0 passes, iy+1
+                        int geomCut3 = 1;// 0 passes, iy-1
+                        int geomCut4 = 1;// 0 passes, if iy is 9,4, iy-2
+                        int geomCut5 = 1;// 0 passes, if iy is 0,5, iy+2
 
                         // define geometry cuts-no other hit on left and right passing raw thresh
                         // loop over time samples, integrate adc values
@@ -254,7 +275,7 @@ public class CosmicCalibrationFit extends Driver {
                         }
 
                         if (!ishole(ix, iy + 1) && (iy + 1) < 10 && iy != 4) {
-                            geomCut2 = 1;
+                            geomCut2 = 0;
                             Point cidyp1 = new Point(ix, iy + 1);
                             RawTrackerHit ihityp1 = hitMap.get(cidyp1);
                             // This may happen if - for any reason - a FADC channel is missing data.
@@ -277,14 +298,14 @@ public class CosmicCalibrationFit extends Driver {
                                 int adc = samplesyp1[nTime];
                                 double peak = (adc - pedestal[ix][iy + 1] / NWIN) * ADC2V;
                                 if (peak > THR) {
-                                    geomCut2 = 0;
-                                    break;
+                                    geomCut2 = geomCut2 + 1;
+                                    // break;
                                 }
                             } // end loop over time samples
                         }
 
                         if (!ishole(ix, iy - 1) && (iy - 1) > -1 && iy != 5) {
-                            geomCut3 = 1;
+                            geomCut3 = 0;
                             Point cidym1 = new Point(ix, iy - 1);
                             RawTrackerHit ihitym1 = hitMap.get(cidym1);
                             if (ihitym1 == null) {
@@ -305,8 +326,8 @@ public class CosmicCalibrationFit extends Driver {
                                 int adc = samplesym1[nTime];
                                 double peak = (adc - pedestal[ix][iy - 1] / NWIN) * ADC2V;
                                 if (peak > THR) {
-                                    geomCut3 = 0;
-                                    break;
+                                    geomCut3 = geomCut3 + 1;
+                                    // break;
                                 }
 
                             } // end loop over time samples
@@ -317,13 +338,13 @@ public class CosmicCalibrationFit extends Driver {
                         // since it does not have 1 above and 1 below
                         if (iy == 9 || iy == 4 || ishole(ix, iy + 1)) // look at iy-2
                         {
-                            geomCut4 = 1;
+                            geomCut4 = 0;
                             Point cidym2 = new Point(ix, iy - 2);
                             RawTrackerHit ihitym2 = hitMap.get(cidym2);
                             if (ihitym2 == null) {
                                 pulse[ix][iy - 2] = 0;
                                 signal[ix][iy - 2] = 0;
-                                continue;
+                                // continue;
                             }
                             final short samplesym2[] = ihitym2.getADCValues();
 
@@ -337,22 +358,22 @@ public class CosmicCalibrationFit extends Driver {
                                 int adc = samplesym2[nTime];
                                 double peak = (adc - pedestal[ix][iy - 2] / NWIN) * ADC2V;
                                 if (peak > THR) {
-                                    geomCut4 = 0;
-                                    break;
+                                    geomCut4 = geomCut4 + 1;
+                                    // break;
                                 }
 
                             } // end loop over time samples
                         } // end for iy-2
                         if (iy == 0 || iy == 5 || ishole(ix, iy - 1)) // look at iy+2
                         {
-                            geomCut5 = 1;
+                            geomCut5 = 0;
                             pedestal[ix][iy + 2] = 0;
                             Point cidyp2 = new Point(ix, iy + 2);
                             RawTrackerHit ihityp2 = hitMap.get(cidyp2);
                             if (ihityp2 == null) {
                                 pulse[ix][iy + 2] = 0;
                                 signal[ix][iy + 2] = 0;
-                                continue;
+                                // continue;
                             }
                             final short samplesyp2[] = ihityp2.getADCValues();
                             for (int nTime = MINP; nTime < MAXP; nTime++) {
@@ -364,8 +385,8 @@ public class CosmicCalibrationFit extends Driver {
                                 int adc = samplesyp2[nTime];
                                 double peak = (adc - pedestal[ix][iy + 2] / NWIN) * ADC2V;
                                 if (peak > THR) {
-                                    geomCut5 = 0;
-                                    break;
+                                    geomCut5 = geomCut5 + 1;
+                                    // break;
                                 }
                             } // end loop over time samples
                         } // end for iy+2
@@ -377,8 +398,8 @@ public class CosmicCalibrationFit extends Driver {
 
                         if (cutType == 0) // strict geometry cut
                         {
-                            if (geomCut0 == 0 && geomCut1 == 0 && geomCut2 == 0 && geomCut3 == 0 && geomCut4 == 0
-                                    && geomCut5 == 0) {
+                            if (geomCut0 == 0 && geomCut1 == 0 && geomCut2 >= 1 && geomCut3 >= 1 && geomCut4 >= 1
+                                    && geomCut5 >= 1) {
                                 // double rangeMin = MINS-5;
                                 // double rangeMax = MAXS+5;
                                 double sumADC = 0;
