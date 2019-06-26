@@ -156,14 +156,13 @@ public final class Server {
         private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in) 
                 throws IOException, InterruptedException {
             
-            LOGGER.fine("Sending log tail back to client");            
+            LOGGER.fine("Sending log tail back to client");
             
             LogStreamResult logStreamResult = (LogStreamResult) res;
             SimpleLogListener listener = logStreamResult.listener;
             listener.setBufferedWriter(bw);
             
-            bw.write("Press 'q' and Enter to exit." + '\n');
-            bw.write("[ " + logStreamResult.log.getPath() + " ]" + '\n');
+            bw.write("--- " + logStreamResult.log.getPath() + " ---" + '\n');
             
             final Tailer tailer = logStreamResult.tailer;
             
