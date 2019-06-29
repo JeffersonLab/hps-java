@@ -53,9 +53,9 @@ public class HPSTracker2019Converter extends HPSTracker2014v1Converter {
             //if (layer < 3 || layer > 4) {
             if (layer > 4) {
                 if (HPSTrackerBuilder.isHoleFromName(surveyVolume)) {
-                    moduleNumber = 2;
+                        moduleNumber = 0;
                 } else {
-                    moduleNumber = 0;
+                      moduleNumber = 2;
                 }
             } else {
                 moduleNumber = 0;

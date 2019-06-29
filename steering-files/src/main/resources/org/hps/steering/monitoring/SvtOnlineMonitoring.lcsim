@@ -14,7 +14,6 @@
         <driver name="RawTrackerHitFitterDriver" />
         <!--<driver name="SVTPulseFitPlots" />--> 
         <driver name="TrackerHitDriver" /> 
-        <!--    <driver name="TrackerHitDriverL2L6Hack" /> -->
         <driver name="ClusterPlots" /> 
         <driver name="AidaSaveDriver" />
         <driver name="CleanupDriver" />
@@ -43,28 +42,13 @@
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
-            <correctTimeOffset>false</correctTimeOffset>
-            <subtractTriggerTime>false</subtractTriggerTime>            
+            <correctTimeOffset>true</correctTimeOffset>
+            <subtractTriggerTime>true</subtractTriggerTime>            
             <trigTimeScale>55.0</trigTimeScale>
             <subtractRFTime>false</subtractRFTime> 
-            <subtractTOF>false</subtractTOF>
+            <subtractTOF>true</subtractTOF>
             <correctChanT0>false</correctChanT0>
             <debug>false</debug>
-        </driver>
-   
-        <!--        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Linear</fitAlgorithm>
-            <useTimestamps>false</useTimestamps>
-            <correctTimeOffset>true</correctTimeOffset>
-            <correctT0Shift>true</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
-            <subtractTOF>true</subtractTOF>
-            <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>true</correctChanT0>
-            <debug>false</debug>
-        </driver>-->
-        <driver name="TrackerHitDriverL2L6Hack" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
-            <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
@@ -74,9 +58,10 @@
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <saveRootFile>false</saveRootFile>
         </driver>
+              
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>svtmon_plots2.root</outputFileName>
-        </driver>
+        </driver>    
     </drivers>
 </lcsim>

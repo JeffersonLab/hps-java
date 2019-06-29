@@ -5,7 +5,7 @@
         
         <!--Cutoffs-->
         
-        <MinPT>0.050</MinPT>
+        <MinPT>0.20</MinPT>
         <MinHits>4</MinHits>
         <MinConfirm>1</MinConfirm>
         

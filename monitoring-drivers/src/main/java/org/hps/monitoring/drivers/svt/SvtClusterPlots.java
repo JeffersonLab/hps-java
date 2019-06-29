@@ -20,6 +20,7 @@ import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
@@ -53,6 +54,7 @@ public class SvtClusterPlots extends Driver {
     private static Map<String, IHistogram2D> hitTimeTrigTimePlots = new HashMap<String, IHistogram2D>();
     private static IHistogram1D[][] hitTimeTrigTimePlots1D = new IHistogram1D[nmodlayers][2];
     private static IHistogram2D[][] hitTimeTrigTimePlots2D = new IHistogram2D[nmodlayers][2];
+    private static final Map<String, IHistogram1D> clusterYPlots = new HashMap<String, IHistogram1D>();
     private SvtTimingConstants timingConstants;
     private static final int TOP = 0;
     private static final int BOTTOM = 1;
@@ -235,6 +237,11 @@ public class SvtClusterPlots extends Driver {
         plotters.put("Cluster Time: L5-L7", plotterFactory.create("Cluster Time: L5-L7"));
         plotters.get("Cluster Time: L5-L7").createRegions(6, 4);
 
+        plotters.put("L1-L4 Cluster Y", plotterFactory.create("L1-L4 Cluster Y"));
+        plotters.get("L1-L4 Cluster Y").createRegions(4, 4);
+        plotters.put("L5-L7 Cluster Y", plotterFactory.create("L5-L7 Cluster Y"));
+        plotters.get("L5-L7 Cluster Y").createRegions(6, 4);
+
         for (HpsSiSensor sensor : sensors) {
 
             clusterChargePlots.put(sensor.getName(),
@@ -243,7 +250,7 @@ public class SvtClusterPlots extends Driver {
                     .put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName()
                             + " - Single Hit Cluster Charge", 100, 0, 5000));
             clusterTimePlots.put(sensor.getName(),
-                    histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Time", 100, -75, 50));
+                    histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Time", 100, -75, 75));
 
             if (sensor.getLayerNumber() < 9) {
                 plotters.get("Cluster Amplitude: L1-L4")
@@ -268,6 +275,18 @@ public class SvtClusterPlots extends Driver {
                 plotters.get("Cluster Time: L5-L7").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(clusterTimePlots.get(sensor.getName()), this.createStyle(null, "Cluster Time [ns]", ""));
             }
+
+            clusterYPlots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - Cluster Y", 100, 0, 25.0));
+            if (sensor.getLayerNumber() < 9)
+                plotters.get("L1-L4 Cluster Y")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(clusterYPlots.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit Cluster abs(Y)", ""));
+            else
+                plotters.get("L5-L7 Cluster Y")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(clusterYPlots.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit Cluster abs(Y)", ""));
         }
 
         plotters.put("SVT-trigger timing top-bottom", plotterFactory.create("SVT-trigger timing top-bottom"));
@@ -315,16 +334,7 @@ public class SvtClusterPlots extends Driver {
 
         if (runNumber == -1)
             runNumber = event.getRunNumber();
-
-        // // If the event doesn't contain fitted raw hits, skip it
-        // if (!event.hasCollection(FittedRawTrackerHit.class, fittedHitsCollectionName)) {
-        // return;
-        // }
-        // Get the list of fitted hits from the event
-        // List<FittedRawTrackerHit> fittedHits = event.get(FittedRawTrackerHit.class, fittedHitsCollectionName);
-        //
-        // // Map the fitted hits to their corresponding raw hits
-        // this.mapFittedRawHits(fittedHits);
+      
         // If the event doesn't contain any clusters, skip it
         if (!event.hasCollection(SiTrackerHitStrip1D.class, clusterCollectionName))
             return;
@@ -344,10 +354,10 @@ public class SvtClusterPlots extends Driver {
 
             // Get the sensor associated with this cluster
             HpsSiSensor sensor = (HpsSiSensor) cluster.getSensor();
-
+            double absClY = Math.abs(cluster.getPosition()[1]);
             // Fill all plots
             clusterChargePlots.get(sensor.getName()).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-            
+            clusterYPlots.get(sensor.getName()).fill(absClY);
             if (cluster.getRawHits().size() == 1)
                 singleHitClusterChargePlots.get(sensor.getName()).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);

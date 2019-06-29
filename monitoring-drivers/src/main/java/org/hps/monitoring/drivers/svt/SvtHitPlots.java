@@ -64,7 +64,7 @@ public class SvtHitPlots extends Driver {
     private static final Map<String, IHistogram2D> t0VsTriggerTime = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> t0VsTriggerBank = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> t0VsChannel = new HashMap<String, IHistogram2D>();
-    private List<HpsSiSensor> sensors;
+     private List<HpsSiSensor> sensors;
     private SvtTimingConstants timingConstants;
     private static final String SUBDETECTOR_NAME = "Tracker";
     private final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
@@ -234,28 +234,26 @@ public class SvtHitPlots extends Driver {
 
         plotters.put("L1-L4 t0", plotterFactory.create("L1-L4 t0"));
         plotters.get("L1-L4 t0").createRegions(4, 4);
-
         plotters.put("L5-L7 t0", plotterFactory.create("L5-L7 t0"));
         plotters.get("L5-L7 t0").createRegions(6, 4);
 
         plotters.put("L1-L4 t0 vs Trigger Phase", plotterFactory.create("L1-L4 t0 vs Trigger Phase"));
         plotters.get("L1-L4 t0 vs Trigger Phase").createRegions(4, 4);
-
         plotters.put("L5-L7 t0 vs Trigger Phase", plotterFactory.create("L5-L7 t0 vs Trigger Phase"));
         plotters.get("L5-L7 t0 vs Trigger Phase").createRegions(6, 4);
 
         plotters.put("L1-L4 t0 vs Channel", plotterFactory.create("L1-L4 t0 vs Channel"));
         plotters.get("L1-L4 t0 vs Channel").createRegions(4, 4);
-
         plotters.put("L5-L7 t0 vs Channel", plotterFactory.create("L5-L7 t0 vs Channel"));
         plotters.get("L5-L7 t0 vs Channel").createRegions(6, 4);
-        
+
+     
+
 //          plotters.put("L1-L4 t0 vs Trigger Bank", plotterFactory.create("L1-L4 t0 vs Trigger Phase"));
 //        plotters.get("L1-L4 t0 vs Trigger Bank").createRegions(4, 4);
 //
 //        plotters.put("L5-L7 t0 vs Trigger Bank", plotterFactory.create("L5-L7 t0 vs Trigger Bank"));
 //        plotters.get("L5-L7 t0 vs Trigger Bank").createRegions(6, 4);
-
         // plotters.put("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)",
         // plotterFactory.create("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)"));
         // plotters.get("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)").createRegions(6, 6);
@@ -345,7 +343,7 @@ public class SvtHitPlots extends Driver {
                         .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0VsChannel.get(sensor.getName()),
                                 this.createStyle(sensor, "Hit t0 vs Channel", ""));
-            }
+            }           
         }
 
         for (IPlotter plotter : plotters.values())
@@ -357,7 +355,7 @@ public class SvtHitPlots extends Driver {
     public void process(EventHeader event
     ) {
 
-        TIData triggerData=null;
+        TIData triggerData = null;
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
             return;
 
@@ -366,11 +364,9 @@ public class SvtHitPlots extends Driver {
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    triggerData = new TIData(data);
-//                    System.out.println(triggerData.getIntVal(1) + "   "
-//                            + triggerData.getIntVal(2)                  );
-                }
+                if (AbstractIntData.getTag(data) == TIData.BANK_TAG)
+                    triggerData = new TIData(data); //                    System.out.println(triggerData.getIntVal(1) + "   "
+            //                            + triggerData.getIntVal(2)                  );
         }
         if (debug && ((int) eventCount % 100 == 0))
             System.out.println(this.getClass().getSimpleName() + ": processed " + String.valueOf(eventCount)

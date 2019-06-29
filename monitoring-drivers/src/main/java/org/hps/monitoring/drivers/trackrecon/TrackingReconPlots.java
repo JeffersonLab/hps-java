@@ -78,9 +78,11 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D[] hthBot = new IHistogram1D[nmodules];
     IHistogram2D[] xvsyTop = new IHistogram2D[nmodules];
     IHistogram2D[] xvsyBot = new IHistogram2D[nmodules];
-    public void setFeeMomentumCut(double cut){
-        this.feeMomentumCut=cut;
+
+    public void setFeeMomentumCut(double cut) {
+        this.feeMomentumCut = cut;
     }
+
     @Override
     protected void detectorChanged(Detector detector) {
         aida.tree().cd("/");
@@ -163,9 +165,8 @@ public class TrackingReconPlots extends Driver {
         plotterXvsY.createRegions(4, 4);
 
         for (int i = 1; i <= nmodules; i++) {
-
-            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top", 100, -100, 150, 55, 0, 55);
-            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom", 100, -100, 150, 55, 0, 55);
+            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -100, 150, 55, 0, 55);
+            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -100, 150, 55, 0, 55);
             hthTop[i - 1] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
             hthBot[i - 1] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
             plot(plotterHTH, hthTop[i - 1], null, computePlotterRegion(i - 1, true));
@@ -174,7 +175,7 @@ public class TrackingReconPlots extends Driver {
             plot(plotterXvsY, xvsyBot[i - 1], null, computePlotterRegion(i - 1, false));
         }
         plotterHTH.show();
-        plotterXvsY.show();
+        plotterXvsY.show();            
 
     }
 
@@ -276,7 +277,7 @@ public class TrackingReconPlots extends Driver {
 //            double ecal_face = 1393.00;// mm ~approximately ... this matters! Should use typical shower depth...or, once
 //            // have cluster match, use that value of Z
             TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
-            if(stateAtEcal==null){
+            if (stateAtEcal == null) {
                 System.out.println("Couldn't get track state at ECal");
                 continue;
             }
