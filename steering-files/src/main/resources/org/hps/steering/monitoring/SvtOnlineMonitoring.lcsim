@@ -7,11 +7,11 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
         <!--        <driver name="RawTrackerHitSensorSetup"/>-->
+        <driver name="SensorOccupancy" />
+        <driver name="RawTrackerHitFitterDriver" />
         <driver name="SvtHitPlots" /> 
         <!--<driver name="SamplesPlots" />
         <driver name="PedestalPlots" />-->
-        <driver name="SensorOccupancy" />
-        <driver name="RawTrackerHitFitterDriver" />
         <!--<driver name="SVTPulseFitPlots" />--> 
         <driver name="TrackerHitDriver" /> 
         <driver name="ClusterPlots" /> 

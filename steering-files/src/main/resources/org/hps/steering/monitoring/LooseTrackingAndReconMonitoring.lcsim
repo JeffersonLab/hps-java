@@ -69,7 +69,7 @@
             <neighborDeltaT>9000.0</neighborDeltaT>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
-            <debug>true</debug>
+            <debug>false</debug>
             <clusterTimeCut>40.0</clusterTimeCut>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
             <maxDt>40.0</maxDt>
