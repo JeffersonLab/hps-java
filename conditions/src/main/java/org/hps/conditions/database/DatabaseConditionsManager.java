@@ -52,15 +52,16 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * <code>java -Dorg.hps.conditions.url=jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions
  *       -Dorg.hps.conditions.user=hpsuser -Dorg.hps.conditions.password=darkphoton [...]</code>
  * <p>
- * To use a local SQLite database, provide a URL that looks something like this:</br>
+ * To use a local SQLite database, provide a URL that looks something like
+ * this:</br>
  * <code>jdbc:sqlite:hps_conditions.db</code>
  * <p>
  * The last part should be the relative or absolute path to the SQLite db file.
  * <p>
  * When using a SQLite database, no username or password needs to be provided.
  * <p>
- * SQLite is not supported in write mode.  The local database should be a clone of a 
- * particular version of the master MySQL database at JLab.
+ * SQLite is not supported in write mode. The local database should be a clone
+ * of a particular version of the master MySQL database at JLab.
  *
  * @see org.lcsim.conditions.ConditionsManager
  * @author Jeremy McCormick, SLAC
@@ -90,12 +91,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Default database URL.
      */
     private static String DEFAULT_URL = "jdbc:mysql://hpsdb.jlab.org:3306/hps_conditions";
-    
+
     /**
      * Default database user for read access.
      */
     private static String DEFAULT_USER = "hpsuser";
-    
+
     /**
      * Password for default account 'hpsuser'.
      */
@@ -113,11 +114,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private static final int RETRY_WAIT = 5000;
 
     /**
-     * Get a connection to the conditions database, possibly using
-     * properties from the command line for the database URL, username,
-     * and password (otherwise the defaults are used to provide a 
-     * read only connection).
-     * 
+     * Get a connection to the conditions database, possibly using properties
+     * from the command line for the database URL, username, and password
+     * (otherwise the defaults are used to provide a read only connection).
+     *
      * @return A connection to the conditions database
      */
     private Connection createConnection() {
@@ -230,8 +230,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private ConditionsRecordCollection conditionsRecordCollection = null;
 
     /**
-     * The currently active conditions tag; an empty collection means that no tag is
-     * active.
+     * The currently active conditions tag; an empty collection means that no
+     * tag is active.
      */
     private final ConditionsTagCollection conditionsTagCollection = new ConditionsTagCollection();
 
@@ -251,8 +251,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private ConditionsConverter ecalConverter;
 
     /**
-     * True if the conditions system has been frozen and will ignore updates after
-     * it is initialized.
+     * True if the conditions system has been frozen and will ignore updates
+     * after it is initialized.
      */
     private boolean isFrozen = false;
 
@@ -283,10 +283,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     private final Set<String> tags = new HashSet<String>();
 
     private ConditionsConverter hodoscopeConverter;
-    
+
     /**
-     * Class constructor. Calling this will automatically register this manager as
-     * the global default.
+     * Class constructor. Calling this will automatically register this manager
+     * as the global default.
      */
     private DatabaseConditionsManager() {
 
@@ -351,7 +351,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * (final Exception e) { LOGGER.warning("could not cache conditions " +
      * meta.getKey()); } } }
      */
-
     /**
      * Clear the tags used to filter the
      * {@link org.hps.conditions.api.ConditionsRecord}s.
@@ -381,10 +380,10 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * This method will return <code>true</code> if the given collection ID already
-     * exists in the table.
+     * This method will return <code>true</code> if the given collection ID
+     * already exists in the table.
      *
-     * @param tableName    the name of the table
+     * @param tableName the name of the table
      * @param collectionID the collection ID value
      * @return <code>true</code> if collection exists
      */
@@ -406,8 +405,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Find a collection of conditions validity records by key name. The key name is
-     * distinct from the table name, but they are usually set to the same value.
+     * Find a collection of conditions validity records by key name. The key
+     * name is distinct from the table name, but they are usually set to the
+     * same value.
      *
      * @param name the conditions key name
      * @return the set of matching conditions records
@@ -480,12 +480,12 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Add a row for a new collection and return the new collection ID assigned to
-     * it.
-     * 
-     * @param collection  the conditions object collection
-     * @param description text description for the new collection ID record in the
-     *                    database
+     * Add a row for a new collection and return the new collection ID assigned
+     * to it.
+     *
+     * @param collection the conditions object collection
+     * @param description text description for the new collection ID record in
+     * the database
      * @return the collection's ID
      * @throws SQLException
      */
@@ -526,8 +526,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the list of conditions records for the run, filtered by the current set
-     * of active tags.
+     * Get the list of conditions records for the run, filtered by the current
+     * set of active tags.
      *
      * @return the list of conditions records for the run
      */
@@ -556,9 +556,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Get a conditions series with one or more collections.
      *
      * @param collectionType the type of the collection
-     * @param tableName      the name of the data table
-     * @param                <ObjectType> the type of the conditions object
-     * @param                <CollectionType> the type of the conditions collection
+     * @param tableName the name of the data table
+     * @param <ObjectType> the type of the conditions object
+     * @param <CollectionType> the type of the conditions collection
      * @return the conditions series
      */
     @SuppressWarnings("unchecked")
@@ -596,8 +596,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Get the current LCSim compact <code>Detector</code> object with the geometry
-     * and detector model.
+     * Get the current LCSim compact <code>Detector</code> object with the
+     * geometry and detector model.
      *
      * @return the detector object
      */
@@ -614,7 +614,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return this.getCachedConditions(EcalConditions.class, "ecal_conditions").getCachedData();
     }
 
-    
     /**
      * Get the combined Hodo conditions for this run.
      *
@@ -624,8 +623,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
         return this.getCachedConditions(HodoscopeConditions.class, "hodo_conditions").getCachedData();
     }
 
-    
-    
     /**
      * Get the combined SVT conditions for this run.
      *
@@ -639,7 +636,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * True if there is a conditions record with the given name.
      *
      * @param name the conditions record name (usually will match to table name)
-     * @return <code>true</code> if a conditions record exists with the given name
+     * @return <code>true</code> if a conditions record exists with the given
+     * name
      */
     public boolean hasConditionsRecord(final String name) {
         return this.findConditionsRecords(name).size() != 0;
@@ -662,7 +660,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     public boolean isInitialized() {
         return this.isInitialized;
     }
-
 
     /**
      * Reset the static instance..
@@ -710,7 +707,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * Create a new collection with the given type and table name.
      *
      * @param collectionType the collection type
-     * @param tableName      the table name
+     * @param tableName the table name
      * @return the new collection
      */
     public <CollectionType extends ConditionsObjectCollection<?>> CollectionType newCollection(
@@ -730,8 +727,8 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     /**
      * Open the database connection.
      *
-     * @return <code>true</code> if a connection was opened; <code>false</code> if
-     *         using an existing connection.
+     * @return <code>true</code> if a connection was opened; <code>false</code>
+     * if using an existing connection.
      */
     public synchronized void openConnection() {
         try {
@@ -756,7 +753,7 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             // Remove old ECAL converter.
             this.removeConditionsConverter(this.ecalConverter);
         }
-        
+
         if (this.hodoscopeConverter != null) {
             this.removeConditionsConverter(this.hodoscopeConverter);
         }
@@ -799,9 +796,9 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * This method handles changes to the detector name and run number. It is called
-     * every time an LCSim event is created, and so it has internal logic to figure
-     * out if the conditions system actually needs to be updated.
+     * This method handles changes to the detector name and run number. It is
+     * called every time an LCSim event is created, and so it has internal logic
+     * to figure out if the conditions system actually needs to be updated.
      */
     @Override
     public synchronized void setDetector(final String detectorName, final int runNumber)

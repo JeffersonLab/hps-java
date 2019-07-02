@@ -33,7 +33,7 @@ public class TrackResiduals extends Driver {
     String gblStripClusterDataCollectionName = "GBLStripClusterData";
     private AIDA aida = AIDA.defaultInstance();
     int nEvents = 0;
-    int nmodules = 7;
+    int nmodules = 6;
 
     IPlotter plotterResX;
     IPlotter plotterResY;
@@ -81,8 +81,8 @@ public class TrackResiduals extends Driver {
         fitFactory = aida.analysisFactory().createFitFactory();
         plotterResX = pfac.create("X Residuals");
         plotterResY = pfac.create("Y Residuals");
-        plotterResX.createRegions(4, 4);
-        plotterResY.createRegions(4, 4);
+        plotterResX.createRegions(3, 4);
+        plotterResY.createRegions(3, 4);
 
         for (int i = 1; i <= nmodules; i++) {
             xresidTop[i - 1] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true),
@@ -129,11 +129,10 @@ public class TrackResiduals extends Driver {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-//        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
-//            return;
+        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
+            return;
         if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName))
             return;
-   
         nEvents++;
         List<GenericObject> trdList = event.get(GenericObject.class, trackResidualsCollectionName);
         for (GenericObject trd : trdList) {
@@ -214,30 +213,30 @@ public class TrackResiduals extends Driver {
         double range = 2.5;
         if (isX) {
             if (layer == 1)
-                return 1.0;
+                return 0.5;
             if (layer == 2)
-                return 1.0;
+                return 0.5;
             if (layer == 3)
-                return 1.0;
+                return 0.5;
             if (layer == 4)
-                return 2.0;
+                return 1.0;
             if (layer == 5)
-                return 2.0;
+                return 1.0;
             if (layer == 6)
-                return 2.0;
+                return 1.0;
         } else {
             if (layer == 1)
-                return 0.1;
+                return 0.005;
             if (layer == 2)
                 return 0.5;
             if (layer == 3)
                 return 0.5;
             if (layer == 4)
-                return 0.5;
+                return 1.0;
             if (layer == 5)
-                return 0.5;
+                return 1.0;
             if (layer == 6)
-                return 0.5;
+                return 1.5;
         }
         return range;
 

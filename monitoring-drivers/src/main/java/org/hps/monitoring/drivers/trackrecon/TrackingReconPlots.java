@@ -23,9 +23,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
-import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
@@ -38,16 +36,16 @@ import org.lcsim.util.aida.AIDA;
 public class TrackingReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
-    private String trackCollectionName = "GBLTracks";
+    private String trackCollectionName = "MatchedTracks";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     String ecalSubdetectorName = "Ecal";
-    String ecalCollectionName = "EcalClustersCorr";
+    String ecalCollectionName = "EcalClusters";
     IDDecoder dec;
     private String outputPlots = null;
     private boolean debug = false;
 
     double feeMomentumCut = 0.8;
-    int nmodules = 7;
+    int nmodules = 6;
 
     IPlotter plotter;
     IPlotter plotter22;
@@ -99,11 +97,13 @@ public class TrackingReconPlots extends Driver {
 
         plotter.createRegions(2, 3);
         // plotterFrame.addPlotter(plotter);
+
         nhits = aida.histogram1D("Hits per Track", 4, 4, 8);
+
         charge = aida.histogram1D("Track Charge", 3, -1, 2);
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
-        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 5);
+        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 3);
         trkChi2 = aida.histogram1D("Track Chi2", 50, 0, 25.0);
 
         plot(plotter, nhits, null, 0);
@@ -135,10 +135,10 @@ public class TrackingReconPlots extends Driver {
         plotter22.show();
 
         // ******************************************************************
-        heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 3.0);
+        heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 2.0);
         hdelXECal = aida.histogram1D("delta X @ ECal (mm) ", 50, -15.0, 15.0);
         hdelYECal = aida.histogram1D("delta Y @ ECal (mm) ", 50, -15.0, 15.0);
-        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 3, 50, 0, 3);
+        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 2.5, 50, 0, 2.5);
 
         plotterECal = pfac.create("Cluster Matching");
         plotterECal.createRegions(2, 2);
@@ -151,7 +151,7 @@ public class TrackingReconPlots extends Driver {
 
         // ******************************************************************
         // fix the ranges here...
-        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 4.6);
+        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 2.2);
         hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
         hfeePOverE = aida.histogram1D("FEE POverE", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
@@ -166,9 +166,9 @@ public class TrackingReconPlots extends Driver {
         plotterFEE.show();
 
         plotterHTH = pfac.create("Track Hits");
-        plotterHTH.createRegions(4, 4);
+        plotterHTH.createRegions(3, 4);
         plotterXvsY = pfac.create("3d Hit Positions");
-        plotterXvsY.createRegions(4, 4);
+        plotterXvsY.createRegions(3, 4);
 
         for (int i = 1; i <= nmodules; i++) {
             xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -100, 150, 55, 0, 55);
@@ -219,8 +219,8 @@ public class TrackingReconPlots extends Driver {
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
             return;
 
-        int[] topHits = {0, 0, 0, 0, 0, 0, 0};
-        int[] botHits = {0, 0, 0, 0, 0, 0, 0};
+        int[] topHits = {0, 0, 0, 0, 0, 0};
+        int[] botHits = {0, 0, 0, 0, 0, 0};
         List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
         for (TrackerHit hit : hth) {
             int module = -99;
@@ -235,10 +235,8 @@ public class TrackingReconPlots extends Driver {
                 module = 4;
             else if (layer < 10)
                 module = 5;
-            else if (layer < 12)
-                module = 6;
             else
-                module = 7;
+                module = 6;
 
             if (hit.getPosition()[1] > 0) {
                 topHits[module - 1]++;
@@ -297,8 +295,10 @@ public class TrackingReconPlots extends Driver {
                 System.out.println("Couldn't get track state at ECal");
                 continue;
             }
+
             Hep3Vector posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
-//            Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0, event.getDetector().getFieldMap())[0];
+            // Hep3Vector posAtEcal = hpstrk.getPositionAtZMap(svt_l12, ecal_face, 5.0,
+            // event.getDetector().getFieldMap())[0];
             List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
             if (clusters != null) {
                 if (debug)
@@ -309,6 +309,10 @@ public class TrackingReconPlots extends Driver {
                         System.out.println("\t\t\t Found the best clusters");
                     Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
+                    // improve the extrapolation...use the reconstructed cluster z-position
+                    // stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, zCluster, 5.0,
+                    // event.getDetector().getFieldMap());
+                    // posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
                     double eOverP = clust.getEnergy() / pmag;
                     double dx = posAtEcal.y() - clusterPos.x();
                     double dy = posAtEcal.z() - clusterPos.y();
@@ -321,11 +325,10 @@ public class TrackingReconPlots extends Driver {
                         hfeePOverE.fill(pmag / clust.getEnergy());
                         hfeeClustPos.fill(posAtEcal.x(), posAtEcal.y());
                     }
-
                 }
             }
-
         }
+
     }
 
     @Override

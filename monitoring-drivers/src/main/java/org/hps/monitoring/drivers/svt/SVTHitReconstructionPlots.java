@@ -208,8 +208,8 @@ public class SVTHitReconstructionPlots extends Driver {
 
         List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, trackerHitCollectionName);
-        int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        int[] layersTop = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        int[] layersBot = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         for (FittedRawTrackerHit hrth : fittedrawHits) {
             SiSensor sensor = (SiSensor) hrth.getRawTrackerHit().getDetectorElement();
             int layer = hrth.getRawTrackerHit().getLayerNumber();

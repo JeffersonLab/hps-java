@@ -56,12 +56,6 @@ public class V0ReconPlots extends Driver {
     IHistogram2D pyEleVspyPos;
     IHistogram2D pxEleVspxPos;
     IHistogram2D massVsVtxZ;
-    
-    double maxMomentum=4.5;
-    
-    public void setMaxMomentum(double max){
-        this.maxMomentum=max;       
-    }
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -97,7 +91,7 @@ public class V0ReconPlots extends Driver {
         plotter2d = pfac.create("Unconstrained 2d plots");
         plotter2d.createRegions(2, 2);
 
-        pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, maxMomentum, 50, 0, maxMomentum);
+        pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
         pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);

@@ -10,7 +10,7 @@ import org.lcsim.event.GenericObject;
  *
  * @author rafopar
  */
-final class SimpleGenericObject implements GenericObject{
+final public class SimpleGenericObject implements GenericObject{
     
     private int[] int_values = new int[]{};
     private double[] double_values = new double[]{};
