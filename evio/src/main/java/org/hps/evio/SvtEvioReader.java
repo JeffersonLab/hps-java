@@ -1,6 +1,7 @@
 package org.hps.evio;
 
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.ArrayList;
 
 import org.hps.record.svt.SvtEvioUtils;
@@ -20,7 +21,9 @@ import org.lcsim.geometry.Subdetector;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SvtEvioReader extends AbstractSvtEvioReader {
-
+    
+    protected static final Logger LOGGER = Logger.getLogger(SvtEvioReader.class.getCanonicalName());
+    
     // -----------------//
     // --- Constants ---//
     // -----------------//
@@ -105,13 +108,14 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected void setupDaqMap(Subdetector subdetector) {
 
+        StringBuffer sb = new StringBuffer();
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         for (HpsSiSensor sensor : sensors) {
             Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
-            System.out.println("[ SvtEvioReader ][ setupDaqMap ] FEB ID: " 
-                    + sensor.getFebID() + " Hybrid ID: " + sensor.getFebHybridID());
+            sb.append("FEB ID: " + sensor.getFebID() + "; Hybrid ID: " + sensor.getFebHybridID() + '\n');
             daqPairToSensor.put(daqPair, sensor);
         }
+        LOGGER.config('\n' + "---- SVT DAQ Map ----" + '\n' + sb.toString());
         this.isDaqMapSetup = true;
     }
 
