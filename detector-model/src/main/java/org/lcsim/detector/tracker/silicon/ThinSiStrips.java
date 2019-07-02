@@ -115,11 +115,11 @@ public class ThinSiStrips extends SiStrips {
     @Override
     public Hep3Vector getCellPosition(int stripNumber) {
         int stripFromEdge = stripNumber;
-        double vposition = -0.25 * this.getStripLength(stripNumber);
+        double vposition = -0.5 * this.getStripLength(stripNumber);
 //        System.out.println("[ ThinSiStrips ][ getCellPosition ]: Before strip #: " + stripNumber);  
         if (stripNumber >= getNCells() / 2) {
             stripFromEdge = (getNCells() - stripNumber - 1);
-            vposition = 0.25 * this.getStripLength(stripNumber);
+            vposition = 0.5 * this.getStripLength(stripNumber);
         }
 
 //        System.out.println("[ ThinSiStrips ][ getCellPosition ]: After strip #: " + stripNumber);  

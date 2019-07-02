@@ -44,8 +44,8 @@ public class TrackingReconPlots extends Driver {
     private String outputPlots = null;
     private boolean debug = false;
 
-    double feeMomentumCut = 0.8;
-    int nmodules = 6;
+    double feeMomentumCut = 3.5;
+    int nmodules = 7;
 
     IPlotter plotter;
     IPlotter plotter22;
@@ -151,7 +151,7 @@ public class TrackingReconPlots extends Driver {
 
         // ******************************************************************
         // fix the ranges here...
-        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 2.2);
+        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 5.0);
         hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
         hfeePOverE = aida.histogram1D("FEE POverE", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
@@ -166,9 +166,9 @@ public class TrackingReconPlots extends Driver {
         plotterFEE.show();
 
         plotterHTH = pfac.create("Track Hits");
-        plotterHTH.createRegions(3, 4);
+        plotterHTH.createRegions(4, 4);
         plotterXvsY = pfac.create("3d Hit Positions");
-        plotterXvsY.createRegions(3, 4);
+        plotterXvsY.createRegions(4, 4);
 
         for (int i = 1; i <= nmodules; i++) {
             xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -100, 150, 55, 0, 55);
@@ -219,8 +219,8 @@ public class TrackingReconPlots extends Driver {
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
             return;
 
-        int[] topHits = {0, 0, 0, 0, 0, 0};
-        int[] botHits = {0, 0, 0, 0, 0, 0};
+        int[] topHits = {0, 0, 0, 0, 0, 0,0};
+        int[] botHits = {0, 0, 0, 0, 0, 0,0};
         List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
         for (TrackerHit hit : hth) {
             int module = -99;
@@ -235,8 +235,10 @@ public class TrackingReconPlots extends Driver {
                 module = 4;
             else if (layer < 10)
                 module = 5;
-            else
+            else if (layer < 12)
                 module = 6;
+            else
+                module = 7;
 
             if (hit.getPosition()[1] > 0) {
                 topHits[module - 1]++;
@@ -259,7 +261,7 @@ public class TrackingReconPlots extends Driver {
             Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
             double pmag = momentum.magnitude();
             double pt = Math.sqrt(momentum.z() * momentum.z() + momentum.y() * momentum.y());
-            double theta = Math.acos(pt / pmag);
+            double theta = Math.asin(pt / pmag);
 
             trkPx.fill(momentum.y());
             trkPy.fill(momentum.z());
