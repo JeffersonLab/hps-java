@@ -422,6 +422,10 @@ final class StationConfiguration {
             LOGGER.severe("ET log level is not valid: " + this.etLogLevel);
             okay = false;
         }
+        if (this.connectionAttempts < 0) {
+            LOGGER.severe("Connection attempts is not valid (must be > 0): " + this.connectionAttempts);
+            okay = false;
+        }
         return okay;
     }
 

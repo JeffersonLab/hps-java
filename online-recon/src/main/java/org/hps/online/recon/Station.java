@@ -155,22 +155,46 @@ public class Station {
             conditionsSetup.postInitialize();
         }
         
-        // Configure the ET connection.
+        // Try to connect to the ET system, retrying up to the configured number of max attempts.
         LOGGER.config("Configuring ET system");
-        final EtConnection conn;
-        try {
-            conn = createEtConnection(config);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating ET connection", e);
+        EtConnection conn = null;
+        final int maxConnectionAttempts = this.config.getConnectionAttempts();
+        int connectionAttempt = 0;
+        Exception error = null;
+        while (true) {
+            connectionAttempt++;
+            LOGGER.info("Attempting connection to ET system: " + connectionAttempt);
+            try {
+                conn = createEtConnection(config);
+                LOGGER.info("Successfully connected to ET system");
+                break;
+            } catch (Exception e) {
+                error = e;
+                e.printStackTrace();
+            }
+            if (connectionAttempt >= maxConnectionAttempts) {
+                LOGGER.warning("Reached max ET connection attempts: " + maxConnectionAttempts);
+                break;
+            }
+            // Sleep for one second between retry attempts.
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                break;
+            }
         }
-        
+        if (conn == null) {
+            throw new RuntimeException("Error creating ET connection", error);
+        }
+                
         // Cleanly shutdown the ET station on exit.
+        final EtConnection shutdownConn = conn;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if (conn != null && conn.getEtStation() != null) {
-                    LOGGER.info("Cleaning up ET station: " + conn.getEtStation().getName());
-                    conn.cleanup();
+                if (shutdownConn != null && shutdownConn.getEtStation() != null) {
+                    LOGGER.info("Cleaning up ET station: " + shutdownConn.getEtStation().getName());
+                    shutdownConn.cleanup();
                 }
             }
         });
