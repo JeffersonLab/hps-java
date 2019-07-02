@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import org.freehep.record.loop.RecordEvent;
 import org.freehep.record.loop.RecordListener;
-import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
@@ -117,11 +116,8 @@ public class CompositeEventPrintLoopAdapter implements RecordListener {
                 }
                 if (printEvio && compRec.getEvioEvent() != null) {
                     EvioEvent evioEvent = compRec.getEvioEvent();
-                    final int eventId = EvioEventUtilities.getEventIdData(evioEvent)[0];
-                    final int timestamp = EvioEventUtilities.getHeadBankData(evioEvent)[3];                                                
-                    LOGGER.info("EVIO event: " + evioEvent.getEventNumber() 
-                            + "; event ID: " + eventId
-                            + "; timestamp: " + timestamp);
+                    LOGGER.info("EVIO event: " + evioEvent.getEventNumber());
+                    // TODO: Add information from ID bank
                 } 
                 if (printEt && compRec.getEtEvent() != null) {
                     EtEvent etEvent = compRec.getEtEvent();
