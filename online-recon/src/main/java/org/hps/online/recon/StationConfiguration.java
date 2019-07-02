@@ -44,6 +44,14 @@ final class StationConfiguration {
     static final String OUTPUT_DIR_PROPERTY = "station.outputDir";
     
     static final String OUTPUT_NAME_PROPERTY = "station.outputName";
+    
+    static final String PRINT_LCIO_PROPERTY = "station.printLcio";
+    
+    static final String PRINT_EVIO_PROPERTY = "station.printEvio";
+    
+    static final String PRINT_ET_PROPERTY = "station.printEt";
+    
+    static final String CONNECTION_ATTEMPTS_PROPERTY = "station.connectionAttempts";
         
     static final String CHUNK_SIZE_PROPERTY = "et.chunkSize";
 
@@ -188,6 +196,26 @@ final class StationConfiguration {
     private int eventStatisticsInterval = -1;
     
     /**
+     * Whether to print LCIO event information.
+     */
+    boolean printLcio = false;
+    
+    /**
+     * Whether to print EVIO event information.
+     */
+    boolean printEvio = false;
+    
+    /**
+     * Whether to print ET event information.
+     */
+    boolean printEt = false;
+    
+    /**
+     * Number of times to try and connect to ET system before failing.
+     */
+    Integer connectionAttempts = 1;
+    
+    /**
      * Create station configuration from a properties file.
      * @param file The properties file
      */
@@ -325,6 +353,18 @@ final class StationConfiguration {
         if (props.containsKey(PLOT_RESET_PROPERTY)) {
             resetPlots = Boolean.parseBoolean(PLOT_RESET_PROPERTY);
         }
+        if (props.containsKey(PRINT_LCIO_PROPERTY)) {
+            printLcio = Boolean.parseBoolean(props.getProperty(PRINT_LCIO_PROPERTY));
+        }
+        if (props.containsKey(PRINT_EVIO_PROPERTY)) {
+            printEvio = Boolean.parseBoolean(props.getProperty(PRINT_EVIO_PROPERTY));
+        }
+        if (props.containsKey(PRINT_ET_PROPERTY)) {
+            printEt = Boolean.parseBoolean(props.getProperty(PRINT_ET_PROPERTY));
+        }
+        if (props.containsKey(CONNECTION_ATTEMPTS_PROPERTY)) {
+            connectionAttempts = Integer.parseInt(props.getProperty(CONNECTION_ATTEMPTS_PROPERTY));
+        }
     }
     
     /**
@@ -459,5 +499,21 @@ final class StationConfiguration {
     
     Boolean getResetPlots() {
         return resetPlots;
+    }
+    
+    Boolean getPrintLcio() {
+        return this.printLcio;
+    }
+    
+    Boolean getPrintEvio() {
+        return this.printEvio;
+    }
+    
+    Boolean getPrintEt() {
+        return this.printEt;
+    }
+    
+    Integer getConnectionAttempts() {
+        return this.connectionAttempts;
     }
 }

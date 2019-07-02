@@ -12,11 +12,11 @@ import org.hps.job.JobManager;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.composite.CompositeLoop;
 import org.hps.record.composite.CompositeLoopConfiguration;
+import org.hps.record.composite.CompositeEventPrintLoopAdapter;
 import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 
 /**
@@ -73,7 +73,8 @@ public class Station {
      * Run the online reconstruction station.
      */
     void run() {
-                
+       
+        // Print start messages.
         LOGGER.info("Started: " + new Date().toString());
         LOGGER.config("Running station <" + this.getConfiguration().getStation() + 
                 "> with config " + this.config.toString());
@@ -111,15 +112,7 @@ public class Station {
         mgr.addVariableDefinition("outputFile", outputFilePath);
         mgr.setConditionsSetup(conditionsSetup); // FIXME: Is this even needed since not calling the run() method?
         mgr.setup(config.getSteeringResource());
-       
-        // Setup event number print outs.
-        // FIXME: use loop adapter instead
-        if (this.config.getEventPrintInterval() > 0) {
-            loopConfig.add(new EventMarkerDriver(this.config.getEventPrintInterval()));
-        } else {
-            LOGGER.config("Event number printing is disabled.");
-        }
-        
+               
         // Add drivers from the job manager to the loop.
         for (Driver driver : mgr.getDriverExecList()) {
             LOGGER.config("Adding driver " + driver.getClass().getCanonicalName());
@@ -140,6 +133,7 @@ public class Station {
             LOGGER.config("Automatic plot saving is disabled.");
         }
         
+        // Enable event statistics printing.
         if (config.getEventStatisticsInterval() > 0) {
             EventStatisticsDriver esd = new EventStatisticsDriver();
             esd.setEventPrintInterval(config.getEventStatisticsInterval());
@@ -189,8 +183,28 @@ public class Station {
         loopConfig.setStopOnEndRun(true);
         loopConfig.setStopOnErrors(true);
                
-        // Run the loop.
+        // Create the record loop.
         CompositeLoop loop = new CompositeLoop(loopConfig);
+
+        // Enable event printing.
+        if (this.config.getEventPrintInterval() > 0) {
+            LOGGER.config("Enabling event printing with interval: " + this.config.getEventPrintInterval());
+            CompositeEventPrintLoopAdapter eventPrinter = new CompositeEventPrintLoopAdapter();
+            eventPrinter.setPrintInterval(this.config.getEventPrintInterval());
+            eventPrinter.setPrintEt(this.config.getPrintEt());
+            eventPrinter.setPrintEvio(this.config.getPrintEvio());
+            eventPrinter.setPrintLcio(this.config.getPrintLcio());
+            LOGGER.config("ET event printing enabled: " + this.config.getPrintEt());
+            LOGGER.config("EVIO event printing enabled: " + this.config.getPrintEvio());
+            LOGGER.config("LCIO event printing enabled: " + this.config.getPrintLcio());
+            eventPrinter.setPrintEvio(this.config.getPrintEvio());
+            eventPrinter.setPrintLcio(this.config.getPrintLcio());
+            loop.addRecordListener(eventPrinter);
+        } else {
+            LOGGER.config("Event printing is disabled.");
+        }
+        
+        // Run the event loop.
         LOGGER.info("Running record loop for station: " + this.getConfiguration().getStation());
         try {
             loop.loop(-1);
@@ -198,7 +212,6 @@ public class Station {
             LOGGER.log(Level.WARNING, "Event processing error", e);
             e.printStackTrace();
         }
-        //LOGGER.info("Station is done looping: " + this.getConfiguration().getStation());
         LOGGER.info("Ended: " + new Date().toString());
     }
     
