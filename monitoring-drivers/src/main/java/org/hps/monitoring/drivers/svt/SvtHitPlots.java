@@ -192,12 +192,12 @@ public class SvtHitPlots extends Driver {
         plotters.put("Number of layers hit", plotterFactory.create("Number of layers hit"));
         plotters.get("Number of layers hit").createRegions(1, 2);
 
-        layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 14, 0, 14));
+        layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 15, 0, 15));
         plotters.get("Number of layers hit")
                 .region(0)
                 .plot(layersHitPlots.get("Top"),
                         SvtPlotUtils.createStyle(plotterFactory, "Number of Top Layers Hit", ""));
-        layersHitPlots.put("Bottom", histogramFactory.createHistogram1D("Bottom Layers Hit", 14, 0, 14));
+        layersHitPlots.put("Bottom", histogramFactory.createHistogram1D("Bottom Layers Hit", 15, 0, 15));
         plotters.get("Number of layers hit")
                 .region(1)
                 .plot(layersHitPlots.get("Bottom"),

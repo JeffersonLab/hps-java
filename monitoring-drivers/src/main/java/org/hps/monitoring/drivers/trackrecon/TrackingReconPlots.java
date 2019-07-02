@@ -23,6 +23,9 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
+import org.lcsim.fit.helicaltrack.HelicalTrackHit;
+import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
@@ -50,6 +53,7 @@ public class TrackingReconPlots extends Driver {
     IPlotter plotter22;
     IPlotter plotterECal;
     IPlotter plotterFEE;
+    IPlotter plotterLayers;
     IPlotter plotterHTH;
     IPlotter plotterXvsY;
 
@@ -73,6 +77,8 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D hfeeTheta;
     IHistogram1D hfeePOverE;
     IHistogram2D hfeeClustPos;
+    IHistogram1D htopLay;
+    IHistogram1D hbotLay;
 
     IHistogram1D[] hthTop = new IHistogram1D[nmodules];
     IHistogram1D[] hthBot = new IHistogram1D[nmodules];
@@ -175,8 +181,15 @@ public class TrackingReconPlots extends Driver {
             plot(plotterXvsY, xvsyBot[i - 1], null, computePlotterRegion(i - 1, false));
         }
         plotterHTH.show();
-        plotterXvsY.show();            
+        plotterXvsY.show();
 
+        htopLay = aida.histogram1D("Top Layers on Track", 8, 0, 8);
+        hbotLay = aida.histogram1D("Bottom Layers on Track", 8, 0, 8);
+        plotterLayers = pfac.create("Layers Hit on Track");
+        plotterLayers.createRegions(1, 2);
+        plot(plotterLayers, htopLay, null, 0);
+        plot(plotterLayers, hbotLay, null, 1);
+        plotterLayers.show();
     }
 
     public TrackingReconPlots() {
@@ -269,13 +282,16 @@ public class TrackingReconPlots extends Driver {
                 hfeeTheta.fill(theta);
             }
 
-//            SeedTrack stEle = (SeedTrack) trk;
-//            SeedCandidate seedEle = stEle.getSeedCandidate();
-//            HelicalTrackFit ht = seedEle.getHelix();
-//            HpsHelicalTrackFit hpstrk = new HpsHelicalTrackFit(ht);
-//            double svt_l12 = 900.00;// mm ~approximately...this doesn't matter much
-//            double ecal_face = 1393.00;// mm ~approximately ... this matters! Should use typical shower depth...or, once
-//            // have cluster match, use that value of Z
+            List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
+            for (TrackerHit hthOnTrack : hitsOnTrack) {
+                HelicalTrackHit htc = (HelicalTrackHit) hthOnTrack;
+                int layer = htc.Layer();
+                if (htc.getPosition()[2] > 0)
+                    htopLay.fill(layer / 2.);
+                else
+                    hbotLay.fill(layer / 2.);
+            }
+
             TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
             if (stateAtEcal == null) {
                 System.out.println("Couldn't get track state at ECal");

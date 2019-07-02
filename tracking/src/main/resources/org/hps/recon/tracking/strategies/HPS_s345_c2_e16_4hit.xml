@@ -24,6 +24,7 @@
             <Layer type="Confirm" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Extend" layer_number="11" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="13" detector_name="Tracker" be_flag="BARREL" />
         </Layers>
     </Strategy>
 </StrategyList>

@@ -23,7 +23,7 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <driver name="SensorOccupancy" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver" >
-            <eventRefreshRate>100</eventRefreshRate>
+            <eventRefreshRate>1000</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
             <maxSamplePosition>3</maxSamplePosition> 
