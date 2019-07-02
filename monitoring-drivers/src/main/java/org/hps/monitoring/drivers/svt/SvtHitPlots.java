@@ -64,7 +64,7 @@ public class SvtHitPlots extends Driver {
     private static final Map<String, IHistogram2D> t0VsTriggerTime = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> t0VsTriggerBank = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> t0VsChannel = new HashMap<String, IHistogram2D>();
-     private List<HpsSiSensor> sensors;
+    private List<HpsSiSensor> sensors;
     private SvtTimingConstants timingConstants;
     private static final String SUBDETECTOR_NAME = "Tracker";
     private final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
