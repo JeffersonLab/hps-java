@@ -273,6 +273,7 @@ public final class Client {
                                 // This blocks waiting for server response.               
                                 String line = br.readLine();
                                 
+                                // Line will be null if server is killed.
                                 if (line == null) {
                                     break;
                                 }
