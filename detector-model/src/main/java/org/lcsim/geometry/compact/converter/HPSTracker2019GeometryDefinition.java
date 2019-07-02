@@ -467,12 +467,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         }
 
     }
-
-    public static class ModuleL2Bot extends ModuleL13Bot {
-        protected final static double shift_across_uchannel = 0;
-        protected final static double shift_vertically_uchannel = 0;
+    //public static class ModuleL2Bot extends ModuleL13Bot {
+    public static class ModuleL2Bot extends ShortModuleBot {
+        protected final static double shift_along_uchannel = 0; //positive is downstream
+        protected final static double shift_across_uchannel = 0; //positive is beam right
+        protected final static double shift_vertically_uchannel = 0; //positive is towards beam
         // Note the L1 measures are used here
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel;
+        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
@@ -481,21 +482,22 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
 
-        protected Hep3Vector getHolePosition() {
+        //protected Hep3Vector getHolePosition() {
+        protected Hep3Vector getHole() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
             double z = cone_to_hole_vertical_from_uchannel;
             return new BasicHep3Vector(x, y, z);
         }
-
     }
-
-    public static class ModuleL2Top extends ModuleL13Top {
-        protected final static double shift_across_uchannel = 0;
-        protected final static double shift_vertically_uchannel = 0;
+    //public static class ModuleL2Top extends ModuleL13Top {
+    public static class ModuleL2Top extends ShortModuleTop {
+        protected final static double shift_along_uchannel = 0; //positive is downstream
+        protected final static double shift_across_uchannel = 0; //positive is beam left
+        protected final static double shift_vertically_uchannel = 0; //positive is towards beam
 
         // Note the L1 measures are used here
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel;
+        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel + shift_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
@@ -504,7 +506,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
 
-        protected Hep3Vector getHolePosition() {
+        //protected Hep3Vector getHolePosition() {
+        protected Hep3Vector getHole() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
             double z = cone_to_hole_vertical_from_uchannel;
@@ -518,7 +521,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_vertical_from_uchannel;
-        protected final static double L3_new_vertical_shift = 0.8;
+        protected final static double L3_new_vertical_shift = 0.7;
 
         public ModuleL3Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -539,7 +542,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_vertical_from_uchannel;
-        protected final static double L3_new_vertical_shift = 0.8;
+        protected final static double L3_new_vertical_shift = 0.7;
 
         public ModuleL3Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -560,7 +563,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_vertical_from_uchannel;
-        protected final static double L4_new_vertical_shift = 0.8;
+        protected final static double L4_new_vertical_shift = 0.7;
 
         public ModuleL4Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -581,7 +584,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_vertical_from_uchannel;
-        protected final static double L4_new_vertical_shift = 0.8;
+        protected final static double L4_new_vertical_shift = 0.7;
 
         public ModuleL4Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -1462,7 +1465,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             }
 
             // flip around v ~ along the strips
-            Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
             // apply stereo angle around w ~ normal to the sensor plane
             Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
             // Build full rotation
@@ -1564,7 +1568,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             }
 
             // flip around v ~ along the strips
-            Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
             // apply stereo angle around w ~ normal to the sensor plane
             Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
             // Build full rotation
