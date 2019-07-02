@@ -652,6 +652,9 @@ public final class Server {
         }
     }
     
+    /**
+     * Handle the plot-add command.
+     */
     class PlotAddCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject jo) {     
             CommandResult res = null;

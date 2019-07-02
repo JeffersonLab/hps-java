@@ -20,6 +20,20 @@ class EtParallelStation extends EtConnection {
     
     private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackageName());
     
+    /**
+     * Class constructor.
+     * @param name The file buffer name
+     * @param host The ET system hostname
+     * @param port The ET system port
+     * @param queueSize The queue size when reading events
+     * @param prescale The prescale factor
+     * @param stationName The name of the new station
+     * @param waitMode The wait mode (see ET documentation)
+     * @param waitTime The wait time if using timed mode
+     * @param chunkSize The chunk size when reading events
+     * @param logLevel The ET system log level
+     * @throws Exception If there is an error initializing and connecting to the ET system
+     */
     EtParallelStation(
             final String name, 
             final String host,

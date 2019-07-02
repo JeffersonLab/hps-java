@@ -22,6 +22,9 @@ import org.hps.online.recon.commands.CommandFactory;
  */
 public class Console {
 
+    /**
+     * Reference to the client object.
+     */
     private final Client client;
 
     /**
@@ -29,17 +32,31 @@ public class Console {
      */
     private boolean echo = false;
     
+    /**
+     * Factory class for creating <code>Command</code> objects.
+     */
     private CommandFactory cf = new CommandFactory();
     
+    /**
+     * Class constructor.
+     * @param client The reference to the client object
+     */
     Console(Client client) {
         this.client = client;
     }
     
+    /**
+     * Set whether to echo commands back to the terminal.
+     * @param echo True to echo commands back to the terminal
+     */
     void setEcho(boolean echo) {
         this.echo = echo;
     }
-         
-    public void run() {
+    
+    /**
+     * Run the console, accepting and executing user input.
+     */
+    void run() {
         String userInput;
         
         Scanner sn = new Scanner(System.in);
@@ -157,6 +174,12 @@ public class Console {
         return false;
     }
     
+    /**
+     * Execute a file containing commands.
+     * @param file The path to the file
+     * @throws FileNotFoundException If the file does not exist
+     * @throws IOException If there is a problem reading the file
+     */
     void execFile(File file) throws FileNotFoundException, IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -166,6 +189,9 @@ public class Console {
         }
     }
     
+    /**
+     * Print help for the interactive console.
+     */
     void printHelp() {
         System.out.println('\n' + "GENERAL" + '\n');
         System.out.println("    help - print general information");
@@ -183,6 +209,10 @@ public class Console {
         }
     }
     
+    /**
+     * Print the help for a specific command.
+     * @param command The name of the command to print
+     */
     void printCommandHelp(String command) {
         if (cf.has(command)) {
             cf.create(command).printUsageNoHelp();

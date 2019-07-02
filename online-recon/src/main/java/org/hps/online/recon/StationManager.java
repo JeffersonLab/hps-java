@@ -65,8 +65,9 @@ public class StationManager {
     
     /**
      * System property for specifying local or alternate conditions database.
+     * 
+     * This will only be passed to the station if it specifies a local sqlite database.
      */
-    // TODO: User and password should also be passed to station if they are set.
     private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
 
     /**
@@ -74,11 +75,6 @@ public class StationManager {
      */
     private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
        
-    /**
-     * Property for setting Java logging config file.
-     */
-    private static final String LOGGING_PROPERTY = "java.util.logging.config.file";
-
     /**
      * Path to the runnable jar file.
      */
@@ -95,7 +91,7 @@ public class StationManager {
      * @param p The system process
      * @return The process's PID
      */
-    static Long getPid(Process p) {
+    private static Long getPid(Process p) {
         long pid = -1;       
         if (p != null) {
             try {
@@ -131,6 +127,10 @@ public class StationManager {
         this.server = server;
     }
         
+    /**
+     * Add information about a station
+     * @param info The station information
+     */
     void add(StationInfo info) {
         stations.add(info);
     }
@@ -217,6 +217,13 @@ public class StationManager {
         }            
     }
     
+    /**
+     * Write station configuration properties to a file.
+     * @param sc The station configuration properties
+     * @param dir The target directory
+     * @param stationName The name of the station
+     * @return The file with the station configuration
+     */
     File writeStationConfig(StationConfiguration sc, File dir, String stationName) {
         File scf = new File(dir.getPath() + File.separator + STATION_CONFIG_NAME);
         try {
@@ -690,7 +697,12 @@ public class StationManager {
             update(station);
         }
     }
-    
+
+    /**
+     * Get a list of station directories from a list of IDs.
+     * @param ids The list of station IDs
+     * @return The list of station directories
+     */
     List<File> getStationDirectories(List<Integer> ids) {
         List<StationInfo> stations = this.find(ids);
         List<File> dirs = new ArrayList<File>();
@@ -700,10 +712,21 @@ public class StationManager {
         return dirs;
     }
     
+    /**
+     * Get the list of all station directories.
+     * @return The list of all station directories
+     */
     List<File> getStationDirectories() {
         return getStationDirectories(this.getStationIDs());
     }
     
+    /**
+     * Create a <code>Tailer</code> for tailing the log file of a station.
+     * @param id The ID of the station
+     * @param listener The <code>TailerListener</code> to be attached to the <code>Tailer</code>
+     * @param delayMillis The delay in milliseconds between reading the <code>Tailer</code>
+     * @return The <code>Tailer</code> for the station's log file
+     */
     Tailer getLogTailer(Integer id, TailerListener listener, long delayMillis) {
         if (!this.exists(id)) {
             throw new IllegalArgumentException("Station ID does not exist: " + id);

@@ -50,23 +50,24 @@ final class PlotAddTask extends TimerTask {
     private Integer threads = 1;
     
     /**
-     * Verbosity of hadd command.
+     * Verbosity of the ROOT "hadd" command.
      */
     private Integer verbosity = 99;
    
     /**
      * List of station IDs with directories to look for plot files.
-     * If this is empty then all station directories will be used.
+     * 
+     * If this is empty then all station IDs will be used.
      */
     private List<Integer> ids = new ArrayList<Integer>();
     
     /**
-     * True to delete intermediate plot files when done adding them.
+     * Whether to delete intermediate plot files when done adding them.
      */
     private boolean delete = false;
     
     /**
-     * True to append to existing output file.
+     * Whether to append to an existing ROOT target file.
      */
     private boolean append = false;
         

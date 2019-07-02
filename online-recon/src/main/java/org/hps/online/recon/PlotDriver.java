@@ -30,8 +30,13 @@ public class PlotDriver extends Driver {
     private static Logger LOGGER = Logger.getLogger(PlotDriver.class.getPackageName());
     
     /** 
-     * File name pattern which requires: 
-     * station name, run number, file sequence number, file extension
+     * File name pattern which requires:
+     * <ul> 
+     * <li>station name</li>
+     * <li>run number</li>
+     * <li>file sequence number<li> 
+     * <li>file extension</li>
+     * </ul>
      */
     private String fileNamePat = "%s_run_%05d_seq_%03d%s";
     
