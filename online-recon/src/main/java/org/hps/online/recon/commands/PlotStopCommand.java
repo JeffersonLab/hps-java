@@ -5,6 +5,7 @@ import org.hps.online.recon.Command;
 
 /**
  * Stop and cancel all server-side plot tasks.
+ * 
  * @author jeremym
  */
 public class PlotStopCommand extends Command {

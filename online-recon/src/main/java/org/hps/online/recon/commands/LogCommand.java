@@ -5,6 +5,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.online.recon.Command;
 
+/**
+ * Tail the log file of a station.
+ * 
+ * @author jeremym
+ */
 public class LogCommand extends Command {
 
     LogCommand() {

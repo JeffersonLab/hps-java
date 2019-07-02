@@ -5,6 +5,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.online.recon.Command;
 
+/**
+ * Add plots produced by one or more stations.
+ * 
+ * @author jeremym
+ */
 public class PlotAddCommand extends Command {
     
     PlotAddCommand() {
