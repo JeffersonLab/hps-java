@@ -58,7 +58,6 @@ public final class Client {
      */
     private boolean append = false;
     
-    
     /**
      * Run interactive console after command file.
      */
@@ -239,24 +238,7 @@ public final class Client {
         
         // Open socket to server.
         try (final Socket socket = new Socket(hostname, port)) {
-            
-            // Add shutdown hook to make sure socket is closed cleanly.
-            // FIXME: Is this even needed???
-            Runtime.getRuntime().addShutdownHook(new Thread() { 
-                public void run() { 
-                    if (socket != null) {
-                        try {
-                            if (!socket.isClosed()) {
-                                LOGGER.info("Shutdown hook is closing socket");
-                                socket.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } 
-            }); 
-            
+                        
             // Send command to the server.           
             final PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.write(command.toString() + '\n');
@@ -288,9 +270,13 @@ public final class Client {
                     public void run() {
                         while (!this.isInterrupted()) {
                             try {                        
-                                // This blocks waiting for server response.                    
+                                // This blocks waiting for server response.               
                                 String line = br.readLine();
-                        
+                                
+                                if (line == null) {
+                                    break;
+                                }
+                                                        
                                 // Print server response line.
                                 printResponse(line);
                         
@@ -365,7 +351,7 @@ public final class Client {
     }
     
     /**
-     * Get the hostnae of the server.
+     * Get the hostname of the server.
      * @return The hostname of the server
      */
     String getHostname() {
@@ -383,9 +369,9 @@ public final class Client {
     /**
      * Get the output file for writing server responses.
      * 
-     * If this is null then server responses are written to <code>System.out</code>.
+     * If this is <code>null</code> then server responses are written to <code>System.out</code>.
      * 
-     * @return The output file for writing server responses.
+     * @return The output file for writing server responses
      */
     File getOutputFile() {
         return this.outputFile;
@@ -401,7 +387,7 @@ public final class Client {
     
     /**
      * Set the hostname of the server.
-     * @param hostname The hostname of the server.
+     * @param hostname The hostname of the server
      */
     void setHostname(String hostname) {
         this.hostname = hostname;
@@ -438,15 +424,23 @@ public final class Client {
         return this.append;
     }
     
-    void printResponse(JSONObject jo) {
+    /**
+     * Print JSON object to file or <code>System.out</code>.
+     * @param jo The JSON object to print out
+     */
+    private void printResponse(JSONObject jo) {
         if (pw != null) {
             pw.write(jo.toString(4) + '\n');
         } else {
             System.out.println(jo.toString(4));
         }
     }
-    
-    void printResponse(JSONArray ja) {
+
+    /**
+     * Print JSON array to file or <code>System.out</code>.
+     * @param jo The JSON array to print out
+     */
+    private void printResponse(JSONArray ja) {
         if (pw != null) {
             pw.write(ja.toString(4) + '\n');
         } else {
@@ -454,7 +448,11 @@ public final class Client {
         }
     }
     
-    void printResponse(String line) {
+    /**
+     * Print server response line to file or <code>System.out</code>.
+     * @param jo The line to print out
+     */
+    private void printResponse(String line) {
         if (pw != null) {
             pw.write(line);
         } else {
