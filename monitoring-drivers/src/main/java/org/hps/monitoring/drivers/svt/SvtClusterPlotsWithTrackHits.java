@@ -9,13 +9,11 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
-import hep.physics.vec.BasicHep3Vector;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
 
@@ -25,7 +23,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -491,7 +488,7 @@ public class SvtClusterPlotsWithTrackHits extends Driver {
 
 //        if (positronCluster == null)
 //            System.out.println(this.getName() + "::  No Positron Cluster Found"); //            return;
-         if (positronCluster != null) {
+        if (positronCluster != null) {
             //get positron cluster y and make a line from target (0,0,0)...all I care about is Y
             double cluYSlope = positronCluster.getPosition()[1] / positronCluster.getPosition()[2];
             //loop over siClusters and pick out ones that are in delta of projection
@@ -513,12 +510,12 @@ public class SvtClusterPlotsWithTrackHits extends Driver {
             // purpose of this is to see if method makes sense
             if (event.hasCollection(Track.class, trackCollectionName)) {
                 List<Track> tracks = event.get(Track.class, trackCollectionName);
- //               System.out.println("Number of Tracks = " + tracks.size());
+                //               System.out.println("Number of Tracks = " + tracks.size());
                 for (Track trk : tracks) {
                     if (trk.getTrackStates().get(0).getOmega() > 0)
                         continue;//only pick positrons (-ive omega)
                     double trkSlope = trk.getTrackStates().get(0).getTanLambda();
-  //                  System.out.println("track slope  = " + trkSlope);
+                    //                  System.out.println("track slope  = " + trkSlope);
                     if (trkSlope * cluYSlope < 0)
                         continue;//make sure it's in the same half
                     double projToEcal = trkSlope * positronCluster.getPosition()[2];
@@ -575,10 +572,9 @@ public class SvtClusterPlotsWithTrackHits extends Driver {
     private boolean matchHits(HelicalTrackStrip hts, SiTrackerHitStrip1D siStrip) {
         List<RawTrackerHit> rthHts = hts.rawhits();
         List<RawTrackerHit> rtsSi = siStrip.getRawHits();
-        if (rtsSi == rthHts) {
+        if (rtsSi == rthHts)
 //            System.out.println("Found a siStrip that matches a HelicaTrackStrip!!!");
             return true;
-        }
         return false;
     }
 }

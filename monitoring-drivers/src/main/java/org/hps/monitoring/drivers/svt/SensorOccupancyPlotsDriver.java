@@ -387,7 +387,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
             occupancyPlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - Occupancy: L5-L7", 640, 0, 640));
 
-             if (sensor.getLayerNumber() < 9)
+            if (sensor.getLayerNumber() < 9)
                 plotters.get("Occupancy: L1-L4")
                         .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(occupancyPlots.get(sensor.getName()),
@@ -428,21 +428,21 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
             if (enableMaxSamplePlots) {
                 maxSamplePositionPlots.put(sensor.getName(),
-                    histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number: L1-L4", 640, 0, 640));
-            maxSamplePositionPlots.put(sensor.getName(),
-                    histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number: L5-L7", 640, 0, 640));
-            System.out.println("Number of regions : " + plotters.get("Max Sample Number: L1-L4").numberOfRegions());
-            if (sensor.getLayerNumber() < 9)
-                plotters.get("Max Sample Number: L1-L4")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(occupancyPlots.get(sensor.getName()),
-                                this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
-            else
-                plotters.get("Max Sample Number: L5-L7")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(occupancyPlots.get(sensor.getName()),
-                                this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
-           }
+                        histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number: L1-L4", 640, 0, 640));
+                maxSamplePositionPlots.put(sensor.getName(),
+                        histogramFactory.createHistogram1D(sensor.getName() + " - Max Sample Number: L5-L7", 640, 0, 640));
+                System.out.println("Number of regions : " + plotters.get("Max Sample Number: L1-L4").numberOfRegions());
+                if (sensor.getLayerNumber() < 9)
+                    plotters.get("Max Sample Number: L1-L4")
+                            .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                            .plot(occupancyPlots.get(sensor.getName()),
+                                    this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
+                else
+                    plotters.get("Max Sample Number: L5-L7")
+                            .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                            .plot(occupancyPlots.get(sensor.getName()),
+                                    this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
+            }
         }
 
         for (IPlotter plotter : plotters.values())

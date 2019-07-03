@@ -170,21 +170,21 @@ public class TrackingReconPlots extends Driver {
         plotterXvsY = pfac.create("3d Hit Positions");
         plotterXvsY.createRegions(4, 4);
 
-        for (int i = 1; i <= nmodules; i++) {
-            double maxHTHX=100.0;
-            double maxHTHY=50.0;
-            if(i<3){
-                maxHTHX=20;
-                maxHTHY=20;
-                        }
-            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
-            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
-            hthTop[i - 1] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
-            hthBot[i - 1] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
-            plot(plotterHTH, hthTop[i - 1], null, computePlotterRegion(i - 1, true));
-            plot(plotterHTH, hthBot[i - 1], null, computePlotterRegion(i - 1, false));
-            plot(plotterXvsY, xvsyTop[i - 1], null, computePlotterRegion(i - 1, true));
-            plot(plotterXvsY, xvsyBot[i - 1], null, computePlotterRegion(i - 1, false));
+        for (int i = 0; i < nmodules; i++) {
+            double maxHTHX = 100.0;
+            double maxHTHY = 50.0;
+            if (i < 3) {
+                maxHTHX = 20;
+                maxHTHY = 20;
+            }
+            xvsyTop[i] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
+            xvsyBot[i] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
+            hthTop[i] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
+            hthBot[i] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
+            plot(plotterHTH, hthTop[i], null, computePlotterRegion(i, true));
+            plot(plotterHTH, hthBot[i], null, computePlotterRegion(i, false));
+            plot(plotterXvsY, xvsyTop[i], null, computePlotterRegion(i, true));
+            plot(plotterXvsY, xvsyBot[i], null, computePlotterRegion(i, false));
         }
         plotterHTH.show();
         plotterXvsY.show();
@@ -225,8 +225,8 @@ public class TrackingReconPlots extends Driver {
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
             return;
 
-        int[] topHits = {0, 0, 0, 0, 0, 0,0};
-        int[] botHits = {0, 0, 0, 0, 0, 0,0};
+        int[] topHits = {0, 0, 0, 0, 0, 0, 0};
+        int[] botHits = {0, 0, 0, 0, 0, 0, 0};
         List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
         for (TrackerHit hit : hth) {
             int module = -99;
