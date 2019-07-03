@@ -103,8 +103,8 @@ public class TrackingReconPlots extends Driver {
         charge = aida.histogram1D("Track Charge", 3, -1, 2);
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
-        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 3);
-        trkChi2 = aida.histogram1D("Track Chi2", 50, 0, 25.0);
+        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 5);
+        trkChi2 = aida.histogram1D("Track Chi2", 50, 0, 50.0);
 
         plot(plotter, nhits, null, 0);
         plot(plotter, charge, null, 1);
@@ -171,8 +171,14 @@ public class TrackingReconPlots extends Driver {
         plotterXvsY.createRegions(4, 4);
 
         for (int i = 1; i <= nmodules; i++) {
-            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -100, 150, 55, 0, 55);
-            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -100, 150, 55, 0, 55);
+            double maxHTHX=100.0;
+            double maxHTHY=50.0;
+            if(i<3){
+                maxHTHX=20;
+                maxHTHY=20;
+                        }
+            xvsyTop[i - 1] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
+            xvsyBot[i - 1] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
             hthTop[i - 1] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
             hthBot[i - 1] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
             plot(plotterHTH, hthTop[i - 1], null, computePlotterRegion(i - 1, true));
