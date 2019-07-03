@@ -149,4 +149,8 @@ public class HodoRawConverter {
         return hodo_ids;
     }
     
+    public void setUseRunningPedestal(boolean useRunningPedestal) {
+        this.useRunningPedestal = useRunningPedestal;
+    }
+    
 }

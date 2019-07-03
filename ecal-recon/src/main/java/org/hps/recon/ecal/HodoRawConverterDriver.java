@@ -283,4 +283,17 @@ public class HodoRawConverterDriver extends Driver {
         }
     }
 
+    /**
+     * Set to <code>true</code> to use a running pedestal calibration from mode 7 data.
+     * <p>
+     * The running pedestal values are retrieved from the event collection "HodoRunningPedestals" which is a
+     * <code>Map</code> between {@link org.hps.conditions.ecal.HodoscopeChannel} objects are their average pedestal.
+     * 
+     * @param useRunningPedestal True to use a running pedestal value.
+     */
+    public void setUseRunningPedestal(boolean useRunningPedestal) {
+        converter.setUseRunningPedestal(useRunningPedestal);
+    }
+    
+    
 }
