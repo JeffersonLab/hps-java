@@ -102,7 +102,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public void conditionsChanged(final ConditionsEvent conditionsEvent) {
 
         super.conditionsChanged(conditionsEvent);
-        svtEventFlagger.initialize();
+        if(svtEventFlagger !=null) svtEventFlagger.initialize();
 
         // Set TI time offset from run database.
         currentTiTimeOffset = Long.valueOf(0);

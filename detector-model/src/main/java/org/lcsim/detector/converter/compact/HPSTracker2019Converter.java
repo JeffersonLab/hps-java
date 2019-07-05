@@ -49,27 +49,24 @@ public class HPSTracker2019Converter extends HPSTracker2014v1Converter {
         boolean isTopLayer = HPSTrackerBuilder.getHalfFromName(surveyVolume).equals("top") ? true : false;
         int layer = HPSTrackerBuilder.getLayerFromVolumeName(surveyVolume);
         int moduleNumber = -1;
-        if (isTopLayer) {
-            if (layer < 3 || layer > 4) {
-                if (HPSTrackerBuilder.isHoleFromName(surveyVolume)) {
-                    moduleNumber = 2;
-                } else {
+        if (isTopLayer)
+            //if (layer < 3 || layer > 4) {
+            if (layer > 4)
+                if (HPSTrackerBuilder.isHoleFromName(surveyVolume))
                     moduleNumber = 0;
-                }
-            } else {
+                else
+                    moduleNumber = 2;
+            else
                 moduleNumber = 0;
-            }
-        } else {
-            if (layer < 3 || layer > 4) {
-                if (HPSTrackerBuilder.isHoleFromName(surveyVolume)) {
+        else
+            //if (layer < 3 || layer > 4) {
+            if (layer > 4)
+                if (HPSTrackerBuilder.isHoleFromName(surveyVolume))
                     moduleNumber = 1;
-                } else {
+                else
                     moduleNumber = 3;
-                }
-            } else {
+            else
                 moduleNumber = 1;
-            }
-        }
 
         if (moduleNumber < 0)
             throw new RuntimeException("Invalid module nr found for " + surveyVolume);
