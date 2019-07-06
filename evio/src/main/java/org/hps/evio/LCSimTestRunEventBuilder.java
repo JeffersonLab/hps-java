@@ -30,6 +30,7 @@ import org.lcsim.event.base.BaseLCSimEvent;
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
     protected VTPEvioReader vtpReader = null;
+    protected TSEvioReader tsReader = null;
     protected EcalEvioReader ecalReader = null;
     protected HodoEvioReader hodoReader = null;
     protected AbstractSvtEvioReader svtReader = null;
@@ -43,6 +44,9 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         ecalReader = new EcalEvioReader(0x1, 0x2);
         
         vtpReader = new VTPEvioReader();
+        
+        tsReader = new TSEvioReader();
+        
         
         svtReader = new TestRunSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();

@@ -183,6 +183,14 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error reading VTP bank", e);
         }
+        
+        // Make TS collection
+        // into one list.
+        try {
+            tsReader.makeHits(evioEvent, lcsimEvent);
+        } catch (final Exception e) {
+            LOGGER.log(Level.SEVERE, "Error reading TS bank", e);
+        }
 
         // Make SVT RawTrackerHits.
         try {
