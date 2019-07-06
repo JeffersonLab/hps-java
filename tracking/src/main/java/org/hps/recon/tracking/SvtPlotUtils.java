@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
@@ -40,22 +42,19 @@ public class SvtPlotUtils {
                 return 6 * (sensor.getLayerNumber() - 1);
             else
                 return 6 * (sensor.getLayerNumber() - 1) + 1;
-        else
-
-            if (sensor.isTopLayer())
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
-                    return 6 * (sensor.getLayerNumber() - 7) + 2;
-                else
-                    return 6 * (sensor.getLayerNumber() - 7) + 3;
-            else if (sensor.isBottomLayer())
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
-                    return 6 * (sensor.getLayerNumber() - 7) + 4;
-                else
-                    return 6 * (sensor.getLayerNumber() - 7) + 5;
+        else if (sensor.isTopLayer())
+            if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                return 6 * (sensor.getLayerNumber() - 7) + 2;
+            else
+                return 6 * (sensor.getLayerNumber() - 7) + 3;
+        else if (sensor.isBottomLayer())
+            if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                return 6 * (sensor.getLayerNumber() - 7) + 4;
+            else
+                return 6 * (sensor.getLayerNumber() - 7) + 5;
 
         return -1;
     }
-
 
     public static int computePlotterRegionSvtUpgrade(HpsSiSensor sensor) {
         int plotno = -1;
@@ -69,18 +68,16 @@ public class SvtPlotUtils {
                 plotno = 4 * (sensor.getLayerNumber() - 5) + 2;
             else
                 plotno = 4 * (sensor.getLayerNumber() - 5) + 3;
-        else
-
-            if (sensor.isTopLayer())
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
-                    plotno = 4 * (sensor.getLayerNumber() - 9);
-                else
-                    plotno = 4 * (sensor.getLayerNumber() - 9) + 1;
-            else if (sensor.isBottomLayer())
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
-                    plotno = 4 * (sensor.getLayerNumber() - 9) + 2;
-                else
-                    plotno = 4 * (sensor.getLayerNumber() - 9) + 3;
+        else if (sensor.isTopLayer())
+            if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                plotno = 4 * (sensor.getLayerNumber() - 9);
+            else
+                plotno = 4 * (sensor.getLayerNumber() - 9) + 1;
+        else if (sensor.isBottomLayer())
+            if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                plotno = 4 * (sensor.getLayerNumber() - 9) + 2;
+            else
+                plotno = 4 * (sensor.getLayerNumber() - 9) + 3;
         //   System.out.println("Layer = "+sensor.getLayerNumber()+"; plotno = "+plotno);
         return plotno;
     }
@@ -94,17 +91,16 @@ public class SvtPlotUtils {
                 return 6 * (l - 1);
             else
                 return 6 * (l - 1) + 1;
-        else
-            if (sensor.isTopLayer())
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
-                    return 6 * (l - 4) + 2;
-                else
-                    return 6 * (l - 4) + 3;
-            else if (sensor.isBottomLayer())
-                if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
-                    return 6 * (l - 4) + 4;
-                else
-                    return 6 * (l - 4) + 5;
+        else if (sensor.isTopLayer())
+            if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                return 6 * (l - 4) + 2;
+            else
+                return 6 * (l - 4) + 3;
+        else if (sensor.isBottomLayer())
+            if (sensor.getSide() == HpsSiSensor.POSITRON_SIDE)
+                return 6 * (l - 4) + 4;
+            else
+                return 6 * (l - 4) + 5;
 
         return -1;
     }
@@ -264,5 +260,17 @@ public class SvtPlotUtils {
                 style = store.getStyle(store.getAllStyleNames()[0]);
         }
         return style;
+    }
+
+    public static String fixSensorNumberLabel(String sensorName) {
+        Pattern pattern = Pattern.compile("module_L(\\d*)");
+        Matcher matcher = pattern.matcher(sensorName);
+
+        if (matcher.find()) {
+            int newNumber = Integer.parseInt(matcher.group(1)) - 1;
+            String reallyNewString = sensorName.replaceAll("module_L(\\d*)", "module_L" + Integer.toString(newNumber));
+            return reallyNewString;
+        }
+        return "foobar";
     }
 }
