@@ -812,7 +812,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
      */
     public abstract static class ShortModule extends BaseModule {
 
-        protected final static double distance_between_stereo_axial_norm_dir = 3.0 / 16.0 * inch;
+        //protected final static double distance_between_stereo_axial_norm_dir = 3.0 / 16.0 * inch;
+        protected final static double distance_between_stereo_axial_norm_dir = 5.0 / 16.0 * inch;
 
         // OLD STUFF MOSTLY
         protected final static double hole_to_center_of_plate_width_dir = 5.875 * inch;
@@ -919,7 +920,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_along_uchannel = -50.;
         protected final static double shift_vertically_uchannel = 0.0;//0;// 20.6658;
         protected final static double shift_across_uchannel = 0;//5.19;
-        protected final static double shift_again_along_uchannel = 4.66;
+        protected final static double shift_again_along_uchannel = 0;//4.66;
 
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel
                 + shift_along_uchannel - shift_again_along_uchannel;
@@ -950,7 +951,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_along_uchannel = -50.;
         protected final static double shift_vertically_uchannel = 0.0;
         protected final static double shift_across_uchannel = 0;//4.81;
-        protected final static double shift_again_along_uchannel = 4.32;
+        protected final static double shift_again_along_uchannel = 0;//4.32;
         // note flip wr.t. bottom
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel
                 + shift_along_uchannel + shift_again_along_uchannel;
