@@ -48,15 +48,14 @@ public class HodoRawConverterDriver extends Driver {
         converter.setUseRunningPedestal(useRunningPedestal);
     }
 
-    
-    public void setTETAllChannels( int arg_tet ){
-        if( arg_tet <= 0 ){
+    public void setTETAllChannels(int arg_tet) {
+        if (arg_tet <= 0) {
             throw new RuntimeException("TET value should be a positive integer");
         }
-        
+
         converter.setTETAllChannels(arg_tet);
     }
-    
+
     @Override
     public void startOfData() {
         if (hodoCollectionName == null) {
