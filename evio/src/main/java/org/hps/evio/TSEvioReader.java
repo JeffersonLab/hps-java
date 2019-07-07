@@ -30,8 +30,6 @@ public class TSEvioReader extends EvioReader {
         boolean foundTS = false;
         int[] trigger_flags = new int[] {}; // This array contains trigger flags for the given event
 
-
-        
         // ======== Defining GenericObjects for an integer array of trigger flags
         TSGenericObject ts_generic = new TSGenericObject();
 
@@ -55,21 +53,22 @@ public class TSEvioReader extends EvioReader {
 
                     if (childBank.getHeader().getTag() == EvioEventConstants.TS_BANK_TAG) {
                         int[] vals = childBank.getIntData();
-
-                        ArrayList<Integer> list = new ArrayList<Integer>();
-                        // the trigger pattern is in the 5th word
-                        for (int i = 0; i < 32; i++) {
-                            if (vals[4] % 2 == 1) {
-                                list.add(i);
+                        if (vals.length == 7) {
+                            ArrayList<Integer> list = new ArrayList<Integer>();
+                            // the trigger pattern is in the 5th word
+                            for (int i = 0; i < 32; i++) {
+                                if (vals[4] % 2 == 1) {
+                                    list.add(i);
+                                }
+                                vals[4] = vals[4] / 2;
                             }
-                            vals[4] = vals[4] / 2;
+                            Integer[] array = list.toArray(new Integer[0]);
+                            int[] triggers = new int[array.length];
+                            for (int i = 0; i < array.length; i++) {
+                                triggers[i] = array[i].intValue();
+                            }
+                            trigger_flags = ArrayUtils.addAll(trigger_flags, triggers);
                         }
-                        Integer[] array = (Integer[]) list.toArray(new Integer[0]);
-                        int[] triggers = new int[array.length];
-                        for (int i = 0; i < array.length; i++) {
-                            triggers[i] = array[i].intValue();
-                        }
-                        trigger_flags = ArrayUtils.addAll(trigger_flags, triggers);
                     }
                 }
 
