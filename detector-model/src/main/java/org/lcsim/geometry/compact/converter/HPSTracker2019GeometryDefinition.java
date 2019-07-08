@@ -471,7 +471,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     public static class ModuleL2Bot extends ShortModuleBot {
         protected final static double shift_along_uchannel = 0; //positive is downstream
         protected final static double shift_across_uchannel = 0.0; //positive is beam right
-        protected final static double shift_vertically_uchannel = 0.0; //positive is towards beam
+        protected final static double shift_vertically_uchannel = 0.350; //positive is towards beam
         // Note the L1 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
@@ -494,7 +494,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     public static class ModuleL2Top extends ShortModuleTop {
         protected final static double shift_along_uchannel = 0; //positive is downstream
         protected final static double shift_across_uchannel = 0; //positive is beam left
-        protected final static double shift_vertically_uchannel = 0.0; //positive is towards beam
+        protected final static double shift_vertically_uchannel = 0.350; //positive is towards beam
 
         // Note the L1 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel + shift_along_uchannel;
