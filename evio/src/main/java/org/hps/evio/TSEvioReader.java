@@ -13,8 +13,8 @@ import org.lcsim.event.EventHeader;
 /**
  *
  * This code reads TS banks from the EVIO, and use the 5th word (trigger
- * pattern) to extract trigger flags which are written as a genericObject. In
- * GenericObject there is an integer arrays. Each element of the array
+ * pattern) to extract trigger flags which are written into a genericObject. In
+ * GenericObject there is an integer array. Each element of the array
  * corresponds a trigger flag.
  * 
  * 
