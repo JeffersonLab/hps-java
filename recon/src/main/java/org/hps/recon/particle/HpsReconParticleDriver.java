@@ -1,26 +1,14 @@
 package org.hps.recon.particle;
 
-import hep.physics.matrix.SymmetricMatrix;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.BasicHepLorentzVector;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.HepLorentzVector;
-import hep.physics.vec.VecOp;
 import static java.lang.Math.sqrt;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Logger;
 
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.ReconstructedParticle;
-import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
-import org.lcsim.event.Vertex;
-import org.lcsim.event.base.BaseReconstructedParticle;
+import org.hps.conditions.beam.BeamPosition;
+import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -28,10 +16,26 @@ import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
 import org.hps.record.StandardCuts;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
+import org.lcsim.event.Vertex;
+import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
+import org.lcsim.geometry.Detector;
+
+import hep.physics.matrix.SymmetricMatrix;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.BasicHepLorentzVector;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.HepLorentzVector;
+import hep.physics.vec.VecOp;
 
 /**
  * The main HPS implementation of ReconParticleDriver. Method generates V0
@@ -40,6 +44,8 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class HpsReconParticleDriver extends ReconParticleDriver {
+    
+    private Logger LOGGER = Logger.getLogger(HpsReconParticleDriver.class.getPackageName());
 
     /**
      * LCIO collection name for Moller candidate particles generated without
@@ -114,11 +120,28 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     protected List<Vertex> unconstrainedVcVertices;
 
     private boolean makeConversionCols = true;
+    
     private boolean makeMollerCols = true;
+    
     private boolean includeUnmatchedTracksInFSP = true;
+
     // for the Pass2 reconstruction of 2016 data, use hard-coded values for the beamspot X-Y 
-    private boolean useInternalVertexXYPositions = false;
-    private Map<Integer, double[]> beamPositionMap;
+    // Disabled this setting so beam conditions can be used from database instead.  --JM
+    //private boolean useInternalVertexXYPositions = false;
+        
+    /**
+     * Whether to read beam positions from the conditions database.
+     */
+    private boolean useBeamPositionConditions = false;
+    
+    /**
+     * Whether to use a fixed Z position for the 2016 run.
+     */
+    private boolean useFixedVertexZPosition = true;
+
+    // Old beam position map.  --JM
+    //private Map<Integer, double[]> beamPositionMap;
+    
     private double[] beamPositionToUse = new double[3];
 
     /**
@@ -149,6 +172,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
     public HpsReconParticleDriver() {
         super();
+        // Old hard-coded beam position map values.  --JM
+        /*
         beamPositionMap = new HashMap<Integer, double[]>();
         // now populate it
         // Note that the vertexing code uses the tracking frame coordinates
@@ -241,6 +266,31 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         beamPositionMap.put(8097, new double[]{-4.19022011872, 0.00740408472403, -0.0735952313026});
         beamPositionMap.put(8098, new double[]{-4.20923479595, 0.00408775878779, -0.0755429310062});
         beamPositionMap.put(8099, new double[]{-4.20773101369, 0.0051498614277, -0.0797183115611});
+        */
+    }
+    
+    public void detectorChanged(Detector detector) {
+        final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        if (this.useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")) {
+            LOGGER.config("Using beam position from conditions database");
+            BeamPositionCollection beamPositions = 
+                    mgr.getCachedConditions(BeamPositionCollection.class, "beam_positions").getCachedData();
+            BeamPosition beamPositionCond = beamPositions.get(0);            
+            beamPositionToUse = new double[]{
+                    beamPositionCond.getPositionZ(),
+                    beamPositionCond.getPositionX(),
+                    beamPositionCond.getPositionY()
+            };
+            if (this.useFixedVertexZPosition) {
+                LOGGER.config("Using fixed Z position: " + this.beamPosition[0]);
+                beamPositionToUse[0] = this.beamPosition[0];
+            }
+        } else {
+            LOGGER.config("Using beam position from steering file");
+            beamPositionToUse = beamPosition;
+        }
+        LOGGER.config("Beam position [ Z, X, Y ]: " + String.format("[ %d, %d, %d ]", 
+                beamPositionToUse[0], beamPositionToUse[1], beamPositionToUse[2]));
     }
 
     public void setMaxMollerP(double input) {
@@ -289,12 +339,44 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         includeUnmatchedTracksInFSP = setUMTrks;
     }
 
+    /**
+     * This method used to activate usage of the internal map of run numbers to beam positions.
+     * 
+     * Now, it activates usage of the beam positions from the conditions database instead.
+     * This should result in the same behavior as before, and steering files should not need
+     * to be updated (though eventually they should be).
+     * 
+     * @deprecated Use {@link #setUseBeamPositionConditions(boolean)} instead.
+     */
+    @Deprecated 
     public void setUseInternalVertexXYPositions(boolean b) {
-        useInternalVertexXYPositions = b;
+        // Changed this method to activate reading of conditions from the database. --JM
+        this.useBeamPositionConditions = b;
+        LOGGER.warning("The method HpsReconParticleDriver.setUseInternalVertexXYPositions() is deprecated.  Use setUseBeamPositionConditions() instead.");
     }
     
+    /**
+     * Set whether to use beam positions from the database.
+     * @param b True to use beam positions from the database
+     */
+    public void setUseBeamPositionConditions(boolean b) {
+        this.useBeamPositionConditions = b;
+    }
+        
     public void setStoreCovTrkMomList(boolean b){
         _storeCovTrkMomList=b;
+    }
+    
+    /**
+     * Set whether to use a fixed vertex Z position.
+     * 
+     * By default, this is set to <code>true</code> in the Driver's class variable.   
+     * 
+     * @param useFixedVertexZPosition True to use a fixed vertex Z position; 
+     *                                False to use Z position from database (if enabled)
+     */
+    public void setUseFixedVertexZPosition(boolean useFixedVertexZPosition) {
+        this.useFixedVertexZPosition = useFixedVertexZPosition;
     }
 
     /**
@@ -306,13 +388,15 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      */
     @Override
     protected void process(EventHeader event) {
-        beamPositionToUse = beamPosition;
+        //beamPositionToUse = beamPosition;
+        /*
         int runNumber = event.getRunNumber();
         if (useInternalVertexXYPositions && beamPositionMap.containsKey(runNumber)) {
             beamPositionToUse = beamPositionMap.get(runNumber);
             // only use one target z position
             beamPositionToUse[0] = beamPosition[0];
         }
+        */
         if (makeMollerCols) {
             unconstrainedMollerCandidates = new ArrayList<ReconstructedParticle>();
             beamConMollerCandidates = new ArrayList<ReconstructedParticle>();
