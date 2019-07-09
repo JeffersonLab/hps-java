@@ -269,7 +269,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         */
     }
     
-    public void detectorChanged(Detector detector) {
+    protected void detectorChanged(Detector detector) {
+
+        // Make sure super-class setup is activated.
+        super.detectorChanged(detector);
+        
+        // Setup optional usage of beam positions from database.
         final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
         if (this.useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")) {
             LOGGER.config("Using beam position from conditions database");
@@ -289,7 +294,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             LOGGER.config("Using beam position from steering file or default");
             beamPositionToUse = beamPosition;
         }
-        LOGGER.config("Beam position [ Z, X, Y ]: " + String.format("[ %d, %d, %d ]", 
+        LOGGER.config("Using beam position [ Z, X, Y ]: " + String.format("[ %f, %f, %f ]",
                 beamPositionToUse[0], beamPositionToUse[1], beamPositionToUse[2]));
     }
 
