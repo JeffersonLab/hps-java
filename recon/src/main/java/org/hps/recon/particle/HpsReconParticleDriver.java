@@ -286,7 +286,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 beamPositionToUse[0] = this.beamPosition[0];
             }
         } else {
-            LOGGER.config("Using beam position from steering file");
+            LOGGER.config("Using beam position from steering file or default");
             beamPositionToUse = beamPosition;
         }
         LOGGER.config("Beam position [ Z, X, Y ]: " + String.format("[ %d, %d, %d ]", 
