@@ -45,7 +45,7 @@ import hep.physics.vec.VecOp;
  */
 public class HpsReconParticleDriver extends ReconParticleDriver {
     
-    private Logger LOGGER = Logger.getLogger(HpsReconParticleDriver.class.getPackageName());
+    private Logger LOGGER = Logger.getLogger(HpsReconParticleDriver.class.getPackage().getName());
 
     /**
      * LCIO collection name for Moller candidate particles generated without
