@@ -53,7 +53,7 @@ public class TSEvioReader extends EvioReader {
 
                     if (childBank.getHeader().getTag() == EvioEventConstants.TS_BANK_TAG) {
                         int[] vals = childBank.getIntData();
-                        if (vals.length == 7) {
+                        if (vals.length == 7) { // number of words is 7 for TS bank of 2019 data, but not 7 for 2015 & 2016 data
                             ArrayList<Integer> list = new ArrayList<Integer>();
                             // the trigger pattern is in the 5th word
                             for (int i = 0; i < 32; i++) {

@@ -187,9 +187,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         // Make TS collection
         // into one list.
         try {
-            if(lcsimEvent.getRunNumber() > 9000) {
-                tsReader.makeHits(evioEvent, lcsimEvent);
-            }
+            tsReader.makeHits(evioEvent, lcsimEvent);
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error reading TS bank", e);
         }

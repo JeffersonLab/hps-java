@@ -69,7 +69,6 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
                 int seconds = data[0];
                 time = ((long) seconds) * 1000000000;
                 int run = data[1];
-                System.out.println(run);
                 LOGGER.info("Prestart event: time " + seconds + " - " + new Date(((long) seconds) * 1000) + ", run " + run + ", run type " + data[2]);
             }
         } else if (EvioEventUtilities.isGoEvent(evioEvent)) {
