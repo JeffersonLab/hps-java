@@ -25,6 +25,7 @@ public class BeamPositionTest extends TestCase {
         beamPositionMap = new LinkedHashMap<Integer, double[]>();
 
         // Values copied from HpsReconParticleDriver.java
+        // 20190111 Values from Matt Solt's analysis of tuple output from Pass2 (note copied here)
         beamPositionMap.put(7629, new double[]{-4.17277481802, -0.12993997991, -0.0853344591497});
         beamPositionMap.put(7630, new double[]{-4.14431582882, -0.131667930281, -0.0818403429116});
         beamPositionMap.put(7636, new double[]{-4.21047915591, -0.133674849016, -0.089578068184});
