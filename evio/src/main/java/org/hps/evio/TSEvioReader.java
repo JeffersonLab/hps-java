@@ -53,6 +53,8 @@ public class TSEvioReader extends EvioReader {
 
                     if (childBank.getHeader().getTag() == EvioEventConstants.TS_BANK_TAG) {
                         int[] vals = childBank.getIntData();
+                        
+                        System.out.println(vals.length);
                         if (vals.length == 7) {
                             ArrayList<Integer> list = new ArrayList<Integer>();
                             // the trigger pattern is in the 5th word
