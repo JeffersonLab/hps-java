@@ -25,7 +25,8 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     private int _iterativeConfirmedFits = 0;
     private boolean doIterativeHelix = false;
     private boolean debug;
-
+    private int maxHelicalTrackHits=250;
+    
     public SeedTracker(List<SeedStrategy> strategylist) {
         // use base class only if this constructor is called!
         super(strategylist);
@@ -33,6 +34,10 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     
     public void setIterativeHelix(boolean value) {
         doIterativeHelix = value;
+    }
+    
+    public void setMaxHelicalTrackHits(int max){
+        this.maxHelicalTrackHits=max;
     }
 
     private void initialize(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
@@ -136,7 +141,8 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         // Loop over strategies and perform track finding
         for (SeedStrategy strategy : _strategylist) {
-
+            if(hitcol.size()>maxHelicalTrackHits)
+                continue;
             // Set the strategy for the diagnostics
             if (_diag != null)
                 _diag.fireStrategyChanged(strategy);
