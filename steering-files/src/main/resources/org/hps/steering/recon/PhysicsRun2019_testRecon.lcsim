@@ -19,6 +19,9 @@
         <driver name="ReconClusterer" />
         <!--<driver name="ClusterRFTimeCorrDriver"/>-->
 
+        <driver name="HodoRunningPedestal"/>
+        <driver name="HodoRawConverter"/>
+
         <!--<driver name="CopyCluster" />-->
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
@@ -143,6 +146,18 @@
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+
+        <!-- Hodo reconstruction drivers -->
+
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
+           <!--<useRunningPedestal>true</useRunningPedestal>-->
+           <!--<tETAllChannels>20</tETAllChannels>-->
+           <logLevel>CONFIG</logLevel>
         </driver>
         
         <!-- SVT reconstruction drivers -->
