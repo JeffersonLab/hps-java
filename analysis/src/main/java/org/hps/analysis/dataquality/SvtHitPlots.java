@@ -240,7 +240,6 @@ public class SvtHitPlots extends Driver {
         for(TrackerHit hit : helicalTrackHits){
             int i = 1;
             HpsSiSensor sensor =  ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
-            System.out.println("HELICAL TRACK HIT POSITION X " + sensor.getName() + " " + hit.getPosition()[0]);
             helicalTrackHitTime.get(sensor.getName()).fill(hit.getTime());
             helicalTrackHitPositionZ.get(sensor.getName()).fill(hit.getPosition()[2]);
             helicalTrackHitPosition.get(sensor.getName()).fill(hit.getPosition()[0],hit.getPosition()[1]);
