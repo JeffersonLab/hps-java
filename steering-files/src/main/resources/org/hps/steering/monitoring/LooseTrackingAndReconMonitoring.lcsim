@@ -10,28 +10,46 @@
         <driver name="RawTrackerHitFitterDriver" /> 
         <driver name="TrackerHitDriver" />  
         <driver name="HelicalTrackHitDriver" />
-        <!--   tracking  -->      
-        <driver name="TrackReconSeed123Conf4Extd564Hit"/>
-        <driver name="TrackReconSeed123Conf5Extd464Hit"/>
-        <driver name="TrackReconSeed345Conf2Extd164Hit"/>
+        <!--  regular tracking and recon -->
+        <!--                <driver name="FullTrackerReconDriver"/> -->
+        <!-- 
+            Will run track finding algorithm using layers 567 as a seed, 
+            layer 3 to confirm and layer 4 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks"
+            after running MergeTrackCollections.
+        -->
+        <!--        <driver name="TrackReconSeed567Conf3Extd4"/>-->
+        <!-- 
+            Will run track finding algorithm using layers 235 as a seed, 
+            layer 6 to confirm and layer 1,4,7 to extend. The collection
+            name of the tracks found with this strategy will be "MatchedTracks".
+        -->
+        <driver name="TrackReconSeed235Conf6Extd147"/>
+        <driver name="TrackReconSeed234Conf6Extd1574Hit"/>
+            <driver name="TrackReconSeed123Conf5Extd464Hit"/>
+             <driver name="TrackReconSeed123Conf4Extd564Hit"/>
+            <!--       <driver name="TrackReconSeed345Conf2Extd164Hit"/>-->
         <driver name="TrackReconSeed456Conf3Extd214Hit"/>
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver"/>   
         <!-- Ecal reconstruction drivers -->        
-        <driver name="EcalRunningPedestal"/>
+                <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
         <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
-        <driver name="ReconParticleDriver" /> 
+        <driver name="MergeTrackCollections"/>
+                <driver name="GBLRefitterDriver" />
+                <driver name="TrackDataDriver"/>   
+                <driver name="ReconParticleDriver" /> 
         <!-- Online Monitoring Drivers -->
-        <driver name="ClusterPlotsWithTrackHits"/>
+        <driver name="ClusterPlots"/>
         <driver name="TrackingMonitoring" />
-        <driver name="TrackingResiduals"/>  
-<!--        <driver name="TrackTime"/>  -->
-        <driver name="V0Monitoring"/>   
+        <!--        <driver name="TrackingResiduals"/>  
+        <driver name="TrackTime"/>  -->
+                <driver name="V0Monitoring"/>   
         <driver name="CleanupDriver" />
     </execute>
     <drivers>    
@@ -56,15 +74,17 @@
             <clusterTimeCut>40.0</clusterTimeCut>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
             <maxDt>40.0</maxDt>
+            <vThin>7.0</vThin>
             <saveAxialHits>false</saveAxialHits>
         </driver>
-     
+             
         
         <driver name="TrackReconSeed567Conf3Extd4" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s567_c3_e4</trackCollectionName>
             <strategyResource>HPS_s567_c3_e4_2019.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>9000.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
      
         <driver name="TrackReconSeed235Conf6Extd147" type="org.hps.recon.tracking.TrackerReconDriver">
@@ -72,6 +92,7 @@
             <strategyResource>HPS_s235_c6_e147.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>9000.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         
         <driver name="TrackReconSeed356Conf7Extd124" type="org.hps.recon.tracking.TrackerReconDriver">
@@ -79,36 +100,55 @@
             <strategyResource>HPS_s356_c7_e124.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>9000.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         
         <driver name="TrackReconSeed123Conf5Extd464Hit" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c5_e46_4hit</trackCollectionName>
             <strategyResource>HPS_s123_c5_e46_4hit.xml</strategyResource>
             <debug>false</debug>
-            <rmsTimeCut>40.0</rmsTimeCut>
+            <rmsTimeCut>9000.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
-        
-        <driver name="TrackReconSeed123Conf4Extd564Hit" type="org.hps.recon.tracking.TrackerReconDriver">
+         <driver name="TrackReconSeed123Conf4Extd564Hit" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c4_e56_4hit</trackCollectionName>
             <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
             <debug>false</debug>
-            <rmsTimeCut>40.0</rmsTimeCut>
+            <rmsTimeCut>9000.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
-   
         <driver name="TrackReconSeed345Conf2Extd164Hit" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s345_c1_e16_4hit</trackCollectionName>
             <strategyResource>HPS_s345_c2_e16_4hit.xml</strategyResource>
             <debug>false</debug>
-            <rmsTimeCut>40.0</rmsTimeCut>
+            <rmsTimeCut>9000.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         <driver name="TrackReconSeed456Conf3Extd214Hit" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s456_c3_e21_4hit</trackCollectionName>
             <strategyResource>HPS_s456_c3_e21_4hit.xml</strategyResource>
             <debug>false</debug>
             <rmsTimeCut>40.0</rmsTimeCut>
+             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         
-    
+         <driver name="TrackReconSeed234Conf6Extd1574Hit" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s234_c6_e157_4hit</trackCollectionName>
+            <strategyResource>HPS_s234_c6_e157_4hit.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>40.0</rmsTimeCut>
+            <maxTrackerHits>250</maxTrackerHits>
+        </driver>
+        
+        
+        <!--        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>MatchedTracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-OutsideIn.xml</strategyResource>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>-->
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
+        </driver>
         
                       
                 
@@ -139,8 +179,8 @@
 
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <!--        <trackCollectionNames>MatchedTracks</trackCollectionNames>-->
+                        <trackCollectionNames>GBLTracks</trackCollectionNames>
+            <!--<trackCollectionNames>MatchedTracks</trackCollectionNames>-->
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
             <beamPositionX> -0.224 </beamPositionX>
@@ -157,6 +197,7 @@
         </driver>
        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">                
+            <!--<trackCollectionName>MatchedTracks</trackCollectionName>-->
             <trackCollectionName>GBLTracks</trackCollectionName>
         </driver>
         <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">              
@@ -166,7 +207,7 @@
         <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
             <trackCollectionName>GBLTracks</trackCollectionName>
         </driver>
-        <driver name="ClusterPlotsWithTrackHits" type="org.hps.monitoring.drivers.svt.SvtClusterPlotsWithTrackHits">
+        <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <saveRootFile>false</saveRootFile>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
