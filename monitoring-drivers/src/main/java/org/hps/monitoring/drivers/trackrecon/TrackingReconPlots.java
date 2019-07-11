@@ -189,8 +189,8 @@ public class TrackingReconPlots extends Driver {
         plotterHTH.show();
         plotterXvsY.show();
 
-        htopLay = aida.histogram1D("Top Layers on Track", 8, 0, 8);
-        hbotLay = aida.histogram1D("Bottom Layers on Track", 8, 0, 8);
+        htopLay = aida.histogram1D("Top Layers on Track", 7, 0, 7);
+        hbotLay = aida.histogram1D("Bottom Layers on Track", 7, 0, 7);
         plotterLayers = pfac.create("Layers Hit on Track");
         plotterLayers.createRegions(1, 2);
         plot(plotterLayers, htopLay, null, 0);
