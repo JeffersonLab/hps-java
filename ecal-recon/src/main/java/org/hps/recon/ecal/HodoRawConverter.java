@@ -26,6 +26,7 @@ public class HodoRawConverter {
      * If true, running pedestal is used.
      */
     private boolean useRunningPedestal = true;
+    private int tet = HodoConstants.TET_AllCh;
 
     public ArrayList<Integer> FindThresholdCrossings(RawTrackerHit hit, double ped) {
 
@@ -41,7 +42,7 @@ public class HodoRawConverter {
         // ==== This list will be populated with threshold crossings
         ArrayList<Integer> thr_crossings = new ArrayList<Integer>();
 
-        double Threshold = ped + HodoConstants.TET_AllCh;
+        double Threshold = ped + tet;
 
         // special case, first sample is above threshold:
         if (samples[0] > Threshold) {
@@ -147,6 +148,14 @@ public class HodoRawConverter {
         hodo_ids[3] = hodoConditions.getChannels().findGeometric(cellID).getHole();
         
         return hodo_ids;
+    }
+    
+    public void setUseRunningPedestal(boolean useRunningPedestal) {
+        this.useRunningPedestal = useRunningPedestal;
+    }
+    
+    public void setTETAllChannels(int arg_tet){
+        this.tet = arg_tet;
     }
     
 }

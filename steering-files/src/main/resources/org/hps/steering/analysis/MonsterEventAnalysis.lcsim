@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @brief Steering file that will be used for pass 1 reconstruction of 
+             the 2016 Engineering Run data. 
+      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
+    -->
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <!-- Skip events with known bad conditions -->
+        <!--<driver name="EventFlagFilter"/>-->
+        <!--RF driver-->
+        <driver name="RfFitter"/>
+ 
+        <!-- Ecal reconstruction drivers -->        
+        <!--<driver name="EcalRunningPedestal"/>-->
+        <!--<driver name="EcalRawConverter" />-->
+        <!--<driver name="ReconClusterer" />-->
+        <!--<driver name="ClusterRFTimeCorrDriver"/>-->
+
+        <!--<driver name="CopyCluster" />-->
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <!--<driver name="TrackerHitDriver"/>-->
+        <!--<driver name="HelicalTrackHitDriver"/>-->
+        <driver name="MonsterEventDriver"/>
+        <driver name="AidaSaveDriver"/>            
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10</eventInterval>
+        </driver>
+         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
+         </driver>    
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver>
+         <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>  
+
+        <!--<driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <fixShapeParameter>true</fixShapeParameter>
+            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
+        </driver>-->
+
+
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+        
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
+            <useTimestamps>false</useTimestamps>     
+            <!--offset to get times centered at 0 after timestamp correction-->                 
+            <!--<tsCorrectionScale>121</tsCorrectionScale>-->    
+            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
+            <correctTimeOffset>true</correctTimeOffset>   
+            <!--per sensor shift...set false becasue it's not in readout sim-->       
+            <correctT0Shift>true</correctT0Shift>      
+            <!--use truth time for MC???  typically not used-->             
+            <useTruthTime>false</useTruthTime>    
+            <!--time of flight corrections-->              
+            <subtractTOF>true</subtractTOF>     
+            <!--set this false for MC, true for data-->              
+            <subtractTriggerTime>true</subtractTriggerTime>           
+            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
+            <correctChanT0>true</correctChanT0>          
+            <debug>false</debug>
+        </driver>
+        <!--<driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <neighborDeltaT>1000.0</neighborDeltaT>
+            <debug>false</debug>
+        </driver>-->
+        
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <!--<neighborDeltaT>8.0</neighborDeltaT>-->
+            <neighborDeltaT>20.0</neighborDeltaT>
+            <!--<debug>true</debug>-->
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <!--<clusterTimeCut>12.0</clusterTimeCut>-->
+            <clusterTimeCut>20.0</clusterTimeCut>
+            <!--<maxDt>16.0</maxDt>-->
+            <maxDt>20.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+        <driver name="MonsterEventDriver" type="org.hps.analysis.dataquality.MonsterEventAnalysis"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>             
+    </drivers>
+</lcsim>

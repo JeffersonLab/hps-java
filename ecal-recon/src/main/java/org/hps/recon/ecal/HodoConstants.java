@@ -10,7 +10,7 @@ package org.hps.recon.ecal;
  */
 public class HodoConstants {
     
-    public static final int TET_AllCh = 15;
+    public static final int TET_AllCh = 20;
     
     public static final int NSA = 11;  // # of samples after the threshold crossings
     public static final int NSB = 4;   // # of samples before the threshold crossing

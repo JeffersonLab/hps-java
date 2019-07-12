@@ -470,7 +470,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     //public static class ModuleL2Bot extends ModuleL13Bot {
     public static class ModuleL2Bot extends ShortModuleBot {
         protected final static double shift_along_uchannel = 0; //positive is downstream
-        protected final static double shift_across_uchannel = 0.0; //positive is beam right
+        protected final static double shift_across_uchannel = 0.250; //positive is beam right
         protected final static double shift_vertically_uchannel = 0.350; //positive is towards beam
         // Note the L1 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
@@ -493,7 +493,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     //public static class ModuleL2Top extends ModuleL13Top {
     public static class ModuleL2Top extends ShortModuleTop {
         protected final static double shift_along_uchannel = 0; //positive is downstream
-        protected final static double shift_across_uchannel = 0; //positive is beam left
+        protected final static double shift_across_uchannel = -0.250; //positive is beam left
         protected final static double shift_vertically_uchannel = 0.350; //positive is towards beam
 
         // Note the L1 measures are used here
@@ -813,7 +813,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     public abstract static class ShortModule extends BaseModule {
 
         //protected final static double distance_between_stereo_axial_norm_dir = 3.0 / 16.0 * inch;
-        protected final static double distance_between_stereo_axial_norm_dir = 5.0 / 16.0 * inch;
+        //protected final static double distance_between_stereo_axial_norm_dir = 5.0 / 16.0 * inch;
+        protected final static double distance_between_stereo_axial_norm_dir = 0.299 * inch;
 
         // OLD STUFF MOSTLY
         protected final static double hole_to_center_of_plate_width_dir = 5.875 * inch;
@@ -1422,8 +1423,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
-        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
-                ShortSensor.length / 2, 0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,
+                0, 0);
 
         public ShortStereoHoleHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
@@ -1534,8 +1537,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,-1*ActiveShortSensor.length/2,0);
-        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
-                -ShortSensor.length / 2, 0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        -ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2 - 0.5,
+                0, 0);
 
         public ShortStereoSlotHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
