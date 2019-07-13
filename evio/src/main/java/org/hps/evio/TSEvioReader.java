@@ -51,10 +51,12 @@ public class TSEvioReader extends EvioReader {
                         ts = ArrayUtils.addAll(ts, EvioEventConstants.TS_BANK_TAG);
                         int[] vals = childBank.getIntData();
                         ts = ArrayUtils.addAll(ts, vals);
+                        foundTS = true;
+                        break;                                                  // No need to look further, we found the bank.
                     }
                 }
 
-                foundTS = true;
+                break;                                                         // There is only one TS_RocID bank per event. If we found it, we are done.
             }
         }
 
