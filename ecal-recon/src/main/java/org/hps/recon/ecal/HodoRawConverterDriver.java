@@ -44,6 +44,18 @@ public class HodoRawConverterDriver extends Driver {
         converter = new HodoRawConverter();
     }
 
+    public void setUseRunningPedestal(boolean useRunningPedestal) {
+        converter.setUseRunningPedestal(useRunningPedestal);
+    }
+
+    public void setTETAllChannels(int arg_tet) {
+        if (arg_tet <= 0) {
+            throw new RuntimeException("TET value should be a positive integer");
+        }
+
+        converter.setTETAllChannels(arg_tet);
+    }
+
     @Override
     public void startOfData() {
         if (hodoCollectionName == null) {
@@ -197,7 +209,6 @@ public class HodoRawConverterDriver extends Driver {
 
             for (int i = 0; i < n_hits; i++) {
 
-
                 // Check if this hit is already paired, if so, then let's pass to the next hit
                 if (paired.contains(i)) {
                     continue;
@@ -215,7 +226,6 @@ public class HodoRawConverterDriver extends Driver {
 
                     continue;
                 }
-
 
                 boolean pair_found = false;
 
@@ -248,7 +258,7 @@ public class HodoRawConverterDriver extends Driver {
                     }
 
                 }
-     
+
                 // ===== In case if no pair is found, then make a cluster, which will have identical energy and time as this hit
                 if (!pair_found) {
                     cl_ix = ArrayUtils.add(cl_ix, hit_ix[i]);
@@ -283,4 +293,15 @@ public class HodoRawConverterDriver extends Driver {
         }
     }
 
+    /**
+     * Set to <code>true</code> to use a running pedestal calibration from mode
+     * 7 data.
+     * <p>
+     * The running pedestal values are retrieved from the event collection
+     * "HodoRunningPedestals" which is a <code>Map</code> between
+     * {@link org.hps.conditions.ecal.HodoscopeChannel} objects are their
+     * average pedestal.
+     *
+     * @param useRunningPedestal True to use a running pedestal value.
+     */
 }

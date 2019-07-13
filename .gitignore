@@ -32,4 +32,6 @@ target
 *.root
 *.slcio
 *.stdhep
-/.metadata/
+# POM 
+*.pom
+
