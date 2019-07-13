@@ -14,10 +14,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtTimingConstants;
+import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.ShapeFitParameters;
 
 import org.hps.recon.tracking.SvtPlotUtils;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -37,7 +45,6 @@ public class SvtHitPlots extends Driver {
     //static {
     //    hep.aida.jfree.AnalysisFactory.register();
     //}
-
     // Plotting
     private static ITree tree = null;
     private final IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
@@ -53,19 +60,22 @@ public class SvtHitPlots extends Driver {
     private static final Map<String, IHistogram1D> firstSamplePlots = new HashMap<String, IHistogram1D>();
     // private static Map<String, IHistogram1D> firstSamplePlotsNoise = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram2D> firstSamplePlotsNoisePerChannel = new HashMap<String, IHistogram2D>();
-
+    private static final Map<String, IHistogram1D> t0Plots = new HashMap<String, IHistogram1D>();
+    private static final Map<String, IHistogram2D> t0VsTriggerTime = new HashMap<String, IHistogram2D>();
+    private static final Map<String, IHistogram2D> t0VsTriggerBank = new HashMap<String, IHistogram2D>();
+    private static final Map<String, IHistogram2D> t0VsChannel = new HashMap<String, IHistogram2D>();
     private List<HpsSiSensor> sensors;
-
+    private SvtTimingConstants timingConstants;
     private static final String SUBDETECTOR_NAME = "Tracker";
     private final String rawTrackerHitCollectionName = "SVTRawTrackerHits";
-
+    private String fittedHitsCollectioName = "SVTFittedRawTrackerHits";
     // Counters
     double eventCount = 0;
     double totalHitCount = 0;
     double totalTopHitCount = 0;
     double totalBotHitCount = 0;
 
-    private boolean dropSmallHitEvents = true;
+    private boolean dropSmallHitEvents = false;
     private static final boolean debug = false;
     private boolean doPerChannelSamplePlots = false;
     private int maxSampleCutForNoise = -1;
@@ -110,9 +120,8 @@ public class SvtHitPlots extends Driver {
     }
 
     private void clearHitMaps() {
-        for (HpsSiSensor sensor : sensors) {
+        for (HpsSiSensor sensor : sensors)
             hitsPerSensor.get(sensor.getName())[0] = 0;
-        }
     }
 
     /**
@@ -129,18 +138,15 @@ public class SvtHitPlots extends Driver {
             hitsPerSensorPlots.get(sensor.getName()).reset();
             firstSamplePlots.get(sensor.getName()).reset();
             // firstSamplePlotsNoise.get(sensor.getName()).reset();
-            if (doPerChannelSamplePlots) {
+            if (doPerChannelSamplePlots)
                 firstSamplePlotsNoisePerChannel.get(sensor.getName()).reset();
-            }
         }
 
-        for (IHistogram1D histogram : layersHitPlots.values()) {
+        for (IHistogram1D histogram : layersHitPlots.values())
             histogram.reset();
-        }
 
-        for (IHistogram1D histogram : hitCountPlots.values()) {
+        for (IHistogram1D histogram : hitCountPlots.values())
             histogram.reset();
-        }
 
     }
 
@@ -150,9 +156,9 @@ public class SvtHitPlots extends Driver {
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        if (sensors.isEmpty()) {
+        timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
+        if (sensors.isEmpty())
             throw new RuntimeException("No sensors were found in this detector.");
-        }
 
         // // If the tree already exist, clear all existing plots of any old data
         // // they might contain.
@@ -163,26 +169,33 @@ public class SvtHitPlots extends Driver {
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
-        plotters.put("Raw hits per sensor", plotterFactory.create("Raw hits per sensor"));
-        plotters.get("Raw hits per sensor").createRegions(6, 6);
+        plotters.put("Raw hits per sensor: L1-L4", plotterFactory.create("Raw hits per sensor: L1-L4"));
+        plotters.get("Raw hits per sensor: L1-L4").createRegions(4, 4);
+        plotters.put("Raw hits per sensor: L5-L7", plotterFactory.create("Raw hits per sensor: L5-L7"));
+        plotters.get("Raw hits per sensor: L5-L7").createRegions(6, 4);
 
         for (HpsSiSensor sensor : sensors) {
             hitsPerSensorPlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - Raw Hits", 25, 0, 25));
-            plotters.get("Raw hits per sensor").region(SvtPlotUtils.computePlotterRegion(sensor))
-                    .plot(hitsPerSensorPlots.get(sensor.getName()), this.createStyle(sensor, "Number of Raw Hits", ""));
+
+            if (sensor.getLayerNumber() < 9)
+                plotters.get("Raw hits per sensor: L1-L4").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(hitsPerSensorPlots.get(sensor.getName()), this.createStyle(sensor, "Number of Raw Hits", ""));
+            else
+                plotters.get("Raw hits per sensor: L5-L7").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(hitsPerSensorPlots.get(sensor.getName()), this.createStyle(sensor, "Number of Raw Hits", ""));
             hitsPerSensor.put(sensor.getName(), new int[1]);
         }
 
         plotters.put("Number of layers hit", plotterFactory.create("Number of layers hit"));
         plotters.get("Number of layers hit").createRegions(1, 2);
 
-        layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 12, 0, 12));
+        layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 15, 0, 15));
         plotters.get("Number of layers hit")
                 .region(0)
                 .plot(layersHitPlots.get("Top"),
                         SvtPlotUtils.createStyle(plotterFactory, "Number of Top Layers Hit", ""));
-        layersHitPlots.put("Bottom", histogramFactory.createHistogram1D("Bottom Layers Hit", 12, 0, 12));
+        layersHitPlots.put("Bottom", histogramFactory.createHistogram1D("Bottom Layers Hit", 15, 0, 15));
         plotters.get("Number of layers hit")
                 .region(1)
                 .plot(layersHitPlots.get("Bottom"),
@@ -209,99 +222,166 @@ public class SvtHitPlots extends Driver {
                 .plot(hitCountPlots.get("SVT bottom raw hit counts/Event"),
                         SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Bits in the Bottom Volume", ""));
 
-        plotters.put("First sample distributions (pedestal shifts)",
-                plotterFactory.create("First sample distributions (pedestal shifts)"));
-        plotters.get("First sample distributions (pedestal shifts)").createRegions(6, 6);
+        plotters.put("First sample distributions (pedestal shifts): L1-L4", plotterFactory.create("First sample distributions (pedestal shifts): L1-L4"));
+        plotters.get("First sample distributions (pedestal shifts): L1-L4").createRegions(4, 4);
+        plotters.put("First sample distributions (pedestal shifts): L5-L7", plotterFactory.create("First sample distributions (pedestal shifts): L5-L7"));
+        plotters.get("First sample distributions (pedestal shifts): L5-L7").createRegions(6, 4);
 
-        // plotters.put("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)",
-        // plotterFactory.create("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)"));
-        // plotters.get("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)").createRegions(6, 6);
+        plotters.put("L1-L4 t0", plotterFactory.create("L1-L4 t0"));
+        plotters.get("L1-L4 t0").createRegions(4, 4);
+        plotters.put("L5-L7 t0", plotterFactory.create("L5-L7 t0"));
+        plotters.get("L5-L7 t0").createRegions(6, 4);
+
+        plotters.put("L1-L4 t0 vs Trigger Phase", plotterFactory.create("L1-L4 t0 vs Trigger Phase"));
+        plotters.get("L1-L4 t0 vs Trigger Phase").createRegions(4, 4);
+        plotters.put("L5-L7 t0 vs Trigger Phase", plotterFactory.create("L5-L7 t0 vs Trigger Phase"));
+        plotters.get("L5-L7 t0 vs Trigger Phase").createRegions(6, 4);
+
+        plotters.put("L1-L4 t0 vs Channel", plotterFactory.create("L1-L4 t0 vs Channel"));
+        plotters.get("L1-L4 t0 vs Channel").createRegions(4, 4);
+        plotters.put("L5-L7 t0 vs Channel", plotterFactory.create("L5-L7 t0 vs Channel"));
+        plotters.get("L5-L7 t0 vs Channel").createRegions(6, 4);
+
         if (doPerChannelSamplePlots) {
-            plotters.put("First sample channel distributions (pedestal shifts)",
-                    plotterFactory.create("First sample channel distributions (pedestal shifts)"));
-            plotters.get("First sample channel distributions (pedestal shifts)").createRegions(6, 6);
+            plotters.put("First sample channel distributions (pedestal shifts): L1-L4", plotterFactory.create("First sample channel distributions (pedestal shifts): L1-L4"));
+            plotters.get("First sample channel distributions (pedestal shifts): L1-L4").createRegions(4, 4);
+            plotters.put("First sample channel distributions (pedestal shifts): L5-L7", plotterFactory.create("First sample channel distributions (pedestal shifts): L5-L7"));
+            plotters.get("First sample channel distributions (pedestal shifts): L5-L7").createRegions(6, 4);
+
         }
 
         for (HpsSiSensor sensor : sensors) {
             firstSamplePlots.put(sensor.getName(),
                     histogramFactory.createHistogram1D(sensor.getName() + " - first sample", 100, -500.0, 2000.0));
-            plotters.get("First sample distributions (pedestal shifts)")
-                    .region(SvtPlotUtils.computePlotterRegion(sensor))
-                    .plot(firstSamplePlots.get(sensor.getName()),
-                            this.createStyle(sensor, "First sample - pedestal [ADC counts]", ""));
-            // firstSamplePlotsNoise.put(sensor.getName(),
-            // histogramFactory.createHistogram1D(sensor.getName() + " - first sample (MAX_SAMPLE>=4)", 100, -500.0,
-            // 2000.0));
-            // plotters.get("First sample distributions (pedestal shifts, MAX_SAMPLE>=4)").region(SvtPlotUtils.computePlotterRegion(sensor))
-            // .plot(firstSamplePlotsNoise.get(sensor.getName()), this.createStyle(sensor,
-            // "First sample - pedestal (MAX_SAMPLE>=4) [ADC counts]", ""));
+            if (sensor.getLayerNumber() < 9)
+                plotters.get("First sample distributions (pedestal shifts): L1-L4")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(firstSamplePlots.get(sensor.getName()),
+                                this.createStyle(sensor, "First sample - pedestal [ADC counts]", ""));
+            else
+                plotters.get("First sample distributions (pedestal shifts): L5-L7")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(firstSamplePlots.get(sensor.getName()),
+                                this.createStyle(sensor, "First sample - pedestal [ADC counts]", ""));
 
             if (doPerChannelSamplePlots) {
                 firstSamplePlotsNoisePerChannel.put(sensor.getName(), histogramFactory.createHistogram2D(
                         sensor.getName() + " channels - first sample", 640, -0.5, 639.5, 20, -500.0, 500.0));
-                plotters.get("First sample channel distributions (pedestal shifts)")
-                        .region(SvtPlotUtils.computePlotterRegion(sensor))
-                        .plot(firstSamplePlotsNoisePerChannel.get(sensor.getName()),
-                                this.createStyle(sensor, "First sample channels - pedestal [ADC counts]", ""));
+                if (sensor.getLayerNumber() < 9)
+                    plotters.get("First sample channel distributions (pedestal shifts): L1-L4")
+                            .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                            .plot(firstSamplePlotsNoisePerChannel.get(sensor.getName()),
+                                    this.createStyle(sensor, "First sample channels - pedestal [ADC counts]", ""));
+                else
+                    plotters.get("First sample channel distributions (pedestal shifts): L5-L7")
+                            .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                            .plot(firstSamplePlotsNoisePerChannel.get(sensor.getName()),
+                                    this.createStyle(sensor, "First sample channels - pedestal [ADC counts]", ""));
             }
 
+            t0Plots.put(sensor.getName(), histogramFactory.createHistogram1D(sensor.getName() + " - t0", 100, -100, 100.0));
+            t0VsTriggerTime.put(sensor.getName(), histogramFactory.createHistogram2D(sensor.getName() + "Hit Time vs. Trigger Phase",
+                    120, -60, 60, 30, -15, 15));
+//            t0VsTriggerBank.put(sensor.getName(), histogramFactory.createHistogram2D(sensor.getName() + "Hit Time vs. Trigger Bank",
+//                    100, -100, 100, 10, 5,12));
+            t0VsChannel.put(sensor.getName(), histogramFactory.createHistogram2D(sensor.getName() + "Hit Time vs. Channel",
+                    100, -100, 100, 640, 0, 639));
+            if (sensor.getLayerNumber() < 9) {
+                plotters.get("L1-L4 t0")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(t0Plots.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit t0", ""));
+                plotters.get("L1-L4 t0 vs Trigger Phase")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(t0VsTriggerTime.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit t0 vs Trigger Phase", ""));
+//                plotters.get("L1-L4 t0 vs Trigger Bank")
+//                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+//                        .plot(t0VsTriggerBank.get(sensor.getName()),
+//                                this.createStyle(sensor, "Hit t0 vs Trigger Bank", ""));
+                plotters.get("L1-L4 t0 vs Channel")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(t0VsChannel.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit t0 vs Channel", ""));
+            } else {
+                plotters.get("L5-L7 t0")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(t0Plots.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit t0", ""));
+                plotters.get("L5-L7 t0 vs Trigger Phase")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(t0VsTriggerTime.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit t0 vs Trigger Phase", ""));
+//                 plotters.get("L5-L7 t0 vs Trigger Bank")
+//                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+//                        .plot(t0VsTriggerBank.get(sensor.getName()),
+//                                this.createStyle(sensor, "Hit t0 vs Trigger Bank", ""));
+                plotters.get("L5-L7 t0 vs Channel")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(t0VsChannel.get(sensor.getName()),
+                                this.createStyle(sensor, "Hit t0 vs Channel", ""));
+            }
         }
 
-        for (IPlotter plotter : plotters.values()) {
-            if (showPlots) {
+        for (IPlotter plotter : plotters.values())
+            if (showPlots)
                 plotter.show();
-            }
-        }
     }
 
     @Override
-    public void process(EventHeader event) {
+    public void process(EventHeader event
+    ) {
 
-        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
+        TIData triggerData = null;
+        if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
             return;
-        }
 
-        if (debug && ((int) eventCount % 100 == 0)) {
+        if (!event.hasCollection(LCRelation.class, fittedHitsCollectioName))
+            return;
+        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TIData.BANK_TAG)
+                    triggerData = new TIData(data); //                    System.out.println(triggerData.getIntVal(1) + "   "
+            //                            + triggerData.getIntVal(2)                  );
+        }
+        if (debug && ((int) eventCount % 100 == 0))
             System.out.println(this.getClass().getSimpleName() + ": processed " + String.valueOf(eventCount)
                     + " events");
-        }
 
         eventCount++;
 
-        if (outputRootFilename.isEmpty()) {
+        if (outputRootFilename.isEmpty())
             outputRootFilename = "run" + String.valueOf(event.getRunNumber());
-        }
 
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+        List<LCRelation> fittedHits = event.get(LCRelation.class, fittedHitsCollectioName);
 
-        if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawHits) > 3) {
+        if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawHits) > 3)
             return;
-        }
 
         this.clearHitMaps();
         for (RawTrackerHit rawHit : rawHits) {
             HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-            int channel = rawHit.getIdentifierFieldValue("strip");
+            int channel = (int) rawHit.getIdentifierFieldValue("strip");
             double pedestal = sensor.getPedestal(channel, 0);
             // Find the sample with maximum ADC count
             int maxSample = 0;
             double maxSampleValue = 0;
-            for (int s = 0; s < 6; ++s) {
+            for (int s = 0; s < 6; ++s)
                 if (((double) rawHit.getADCValues()[s] - pedestal) > maxSampleValue) {
                     maxSample = s;
                     maxSampleValue = ((double) rawHit.getADCValues()[s]) - pedestal;
                 }
-            }
 
             hitsPerSensor.get(sensor.getName())[0]++;
             firstSamplePlots.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
             // if (maxSampleCutForNoise >= 0 && maxSample >= maxSampleCutForNoise) {
             // firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
-            if (doPerChannelSamplePlots) {
+            if (doPerChannelSamplePlots)
                 firstSamplePlotsNoisePerChannel.get(sensor.getName())
                         .fill(channel, rawHit.getADCValues()[0] - pedestal);
-            }
             // } else {
             // firstSamplePlotsNoise.get(sensor.getName()).fill(rawHit.getADCValues()[0] - pedestal);
             // if (doPerChannelSamplePlots) {
@@ -310,8 +390,27 @@ public class SvtHitPlots extends Driver {
             // }
         }
 
-        int[] topLayersHit = new int[12];
-        int[] botLayersHit = new int[12];
+        for (LCRelation fittedHit : fittedHits) {
+            // Obtain the SVT raw hit associated with this relation
+            RawTrackerHit rawHit = (RawTrackerHit) fittedHit.getFrom();
+            int channel = (int) rawHit.getIdentifierFieldValue("strip");
+            // Obtain the HpsSiSensor associated with the raw hit
+            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+            double t0 = FittedRawTrackerHit.getT0(fittedHit);
+            double amplitude = FittedRawTrackerHit.getAmp(fittedHit);
+            double chi2Prob = ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
+            t0Plots.get(sensor.getName()).fill(t0);
+            double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
+            t0VsTriggerTime.get(sensor.getName()).fill(t0, trigPhase);
+//            System.out.println( triggerData.getIntVal(1)*0.0000001);
+//            t0VsTriggerBank.get(sensor.getName()).fill(t0, triggerData.getIntVal(1)*0.0000001);
+            t0VsChannel.get(sensor.getName()).fill(t0, channel);
+//            amplitudePlots.get(sensor).fill(amplitude);
+            //           chi2Plots.get(sensor).fill(chi2Prob);
+        }
+
+        int[] topLayersHit = new int[14];
+        int[] botLayersHit = new int[14];
         int eventHitCount = 0;
         int topEventHitCount = 0;
         int botEventHitCount = 0;
@@ -321,7 +420,7 @@ public class SvtHitPlots extends Driver {
 
             eventHitCount += hitCount;
 
-            if (hitsPerSensor.get(sensor.getName())[0] > 0) {
+            if (hitsPerSensor.get(sensor.getName())[0] > 0)
                 if (sensor.isTopLayer()) {
                     topLayersHit[sensor.getLayerNumber() - 1]++;
                     topEventHitCount += hitCount;
@@ -329,7 +428,6 @@ public class SvtHitPlots extends Driver {
                     botLayersHit[sensor.getLayerNumber() - 1]++;
                     botEventHitCount += hitCount;
                 }
-            }
         }
 
         totalHitCount += eventHitCount;
@@ -342,13 +440,12 @@ public class SvtHitPlots extends Driver {
 
         int totalTopLayersHit = 0;
         int totalBotLayersHit = 0;
-        for (int layerN = 0; layerN < 12; layerN++) {
-            if (topLayersHit[layerN] > 0) {
+
+        for (int layerN = 0; layerN < 14; layerN++) {
+            if (topLayersHit[layerN] > 0)
                 totalTopLayersHit++;
-            }
-            if (botLayersHit[layerN] > 0) {
+            if (botLayersHit[layerN] > 0)
                 totalBotLayersHit++;
-            }
         }
 
         layersHitPlots.get("Top").fill(totalTopLayersHit);

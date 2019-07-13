@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     Steering file for online monitoring of the SVT.
 
@@ -5,41 +6,48 @@
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
+        <!--        <driver name="RawTrackerHitSensorSetup"/>-->
+        <driver name="SensorOccupancy" />
+        <driver name="RawTrackerHitFitterDriver" />
         <driver name="SvtHitPlots" /> 
         <!--<driver name="SamplesPlots" />
         <driver name="PedestalPlots" />-->
-        <driver name="SensorOccupancy" />
-        <driver name="RawTrackerHitFitterDriver" />
         <!--<driver name="SVTPulseFitPlots" />--> 
-        <driver name="TrackerHitDriver" />
+        <driver name="TrackerHitDriver" /> 
         <driver name="ClusterPlots" /> 
+        <driver name="AidaSaveDriver" />
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
         <driver name="SensorOccupancy" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver" >
-            <eventRefreshRate>100</eventRefreshRate>
+            <eventRefreshRate>1000</eventRefreshRate>
             <enablePositionPlots>false</enablePositionPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
-            <maxSamplePosition>3</maxSamplePosition>
+            <maxSamplePosition>3</maxSamplePosition> 
             <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
-       </driver>
+        </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
             <!--<saveRootFile>false</saveRootFile>-->
         </driver>
         <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
         <!--<driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />-->
+      
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Linear</fitAlgorithm>
+            <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
+            <correctT0Shift>false</correctT0Shift>
             <correctTimeOffset>true</correctTimeOffset>
-            <correctT0Shift>true</correctT0Shift>
-            <useTruthTime>false</useTruthTime>
+            <subtractTriggerTime>true</subtractTriggerTime>            
+            <trigTimeScale>55.0</trigTimeScale>
+            <subtractRFTime>false</subtractRFTime> 
             <subtractTOF>true</subtractTOF>
-            <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>true</correctChanT0>
+            <correctChanT0>false</correctChanT0>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
@@ -50,6 +58,10 @@
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <saveRootFile>false</saveRootFile>
         </driver>
+              
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>svtmon_plots2.root</outputFileName>
+        </driver>    
     </drivers>
 </lcsim>

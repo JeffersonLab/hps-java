@@ -1471,7 +1471,7 @@ public class TrackUtils {
     }
 
     public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        return getIsolations(trk, hitToStrips, hitToRotated, 6);
+        return getIsolations(trk, hitToStrips, hitToRotated, 7);
     }
 
     /**

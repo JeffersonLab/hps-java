@@ -67,7 +67,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
     private final String timeresidDir = "HitTimeResiduals/";
     private final String kinkDir = "Kinks/";
     String[] trackingQuantNames = {"avg_N_tracks", "avg_N_hitsPerTrack", "avg_d0", "avg_z0", "avg_absslope", "avg_chi2"};
-    int nmodules = 6;
+    int nmodules = 7;
     IHistogram1D[] hthTop = new IHistogram1D[nmodules];
     IHistogram1D[] hthBot = new IHistogram1D[nmodules];
     IHistogram2D[] xvsyTop = new IHistogram2D[nmodules];
@@ -200,7 +200,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trkomega = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "omega", 100, -omegaCut, omegaCut);
         trklam = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "tan(lambda)", 100, -lambdaCut, lambdaCut);
         trkz0 = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "z0", 100, -z0Cut, z0Cut);
-        nHits = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Hits per Track", 4, 3, 7);
+        nHits = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Hits per Track", 5, 3, 8);
         trackMeanTime = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Mean time of hits on track", 100, -timeCut, timeCut);
         trackRMSTime = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "RMS time of hits on track", 100, 0., 15.);
         trackChi2RMSTime = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track chi2 vs. RMS time of hits", 100, 0., 15., 25, 0, 25.0);
@@ -235,7 +235,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trkomegaPos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "omega", 100, -omegaCut, omegaCut);
         trklamPos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "tan(lambda)", 100, -lambdaCut, lambdaCut);
         trkz0Pos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "z0", 100, -z0Cut, z0Cut);
-        nHitsPos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "Hits per Track", 4, 3, 7);
+        nHitsPos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "Hits per Track", 5, 3, 8);
         trkTimePos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "Mean time of hits on track", 100, -timeCut, timeCut);
 
         trkChi2Ele = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "Track Chi2", 25, 0, 25.0);
@@ -245,7 +245,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trkomegaEle = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "omega", 100, -omegaCut, omegaCut);
         trklamEle = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "tan(lambda)", 100, -lambdaCut, lambdaCut);
         trkz0Ele = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "z0", 100, -z0Cut, z0Cut);
-        nHitsEle = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "Hits per Track", 4, 3, 7);
+        nHitsEle = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "Hits per Track", 5, 3, 8);
         trkTimeEle = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + electronDir + "Mean time of hits on track", 100, -timeCut, timeCut);
 
         trkChi2Top = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "Track Chi2", 25, 0, 25.0);
@@ -255,7 +255,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trkomegaTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "omega", 100, -omegaCut, omegaCut);
         trklamTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "tan(lambda)", 100, 0.0, lambdaCut);
         trkz0Top = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "z0", 100, -z0Cut, z0Cut);
-        nHitsTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "Hits per Track", 4, 3, 7);
+        nHitsTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "Hits per Track", 5, 3, 8);
         trkTimeTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "Mean time of hits on track", 100, -timeCut, timeCut);
 
         trkChi2Bot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Track Chi2", 25, 0, 25.0);
@@ -265,7 +265,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trkomegaBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "omega", 100, -omegaCut, omegaCut);
         trklamBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "tan(lambda)", 100, 0, lambdaCut);
         trkz0Bot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "z0", 100, -z0Cut, z0Cut);
-        nHitsBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Hits per Track", 4, 3, 7);
+        nHitsBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Hits per Track", 5, 3, 8);
         trkTimeBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Mean time of hits on track", 100, -timeCut, timeCut);
 
         //correlation plots
@@ -331,8 +331,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
         if (!matchTrigger(event)) {
             return;
         }
-        int[] topHits = {0, 0, 0, 0, 0, 0};
-        int[] botHits = {0, 0, 0, 0, 0, 0};
+        int[] topHits = {0, 0, 0, 0, 0, 0, 0};
+        int[] botHits = {0, 0, 0, 0, 0, 0, 0};
         List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
         for (TrackerHit hit : hth) {
             int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();

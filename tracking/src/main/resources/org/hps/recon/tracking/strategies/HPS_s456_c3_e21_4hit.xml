@@ -5,7 +5,7 @@
         
         <!--Cutoffs-->
         
-        <MinPT>0.050</MinPT>
+        <MinPT>0.20</MinPT>
         <MinHits>4</MinHits>
         <MinConfirm>1</MinConfirm>
         
@@ -23,7 +23,8 @@
             <Layer type="Seed" layer_number="7" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Confirm" layer_number="5" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Extend" layer_number="3" detector_name="Tracker" be_flag="BARREL" />
-             <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="1" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Extend" layer_number="13" detector_name="Tracker" be_flag="BARREL" />             
         </Layers>
     </Strategy>
 </StrategyList>

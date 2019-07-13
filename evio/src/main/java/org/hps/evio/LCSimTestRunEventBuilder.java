@@ -28,7 +28,7 @@ import org.lcsim.event.base.BaseLCSimEvent;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
-
+    
     protected VTPEvioReader vtpReader = null;
     protected TSEvioReader tsReader = null;
     protected EcalEvioReader ecalReader = null;
@@ -37,7 +37,8 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
     protected int sspBankTag = 0xe106; //SSP bank's tag
-    protected static Logger LOGGER = Logger.getLogger(LCSimTestRunEventBuilder.class.getPackage().getName());
+    //protected static Logger LOGGER = Logger.getLogger(LCSimTestRunEventBuilder.class.getPackage().getName());
+    private static Logger LOGGER = Logger.getLogger(LCSimTestRunEventBuilder.class.getCanonicalName());
     protected List<IntBankDefinition> intBanks = null;
 
     public LCSimTestRunEventBuilder() {
@@ -110,14 +111,16 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
         
 //        // Make RawHodoscopeHit collection, combining top and bottom section of Hodo into one list.
-//        try {
-//            System.out.println("Kuku");
-//            hodoReader.makeHits(evioEvent, lcsimEvent);
-//        } catch (Exception e) {
-//            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making Hodo hits", e);
-//        }
-        
-        
+        if (hodoReader != null) {
+            try {
+                LOGGER.fine("Making Hodo hits");
+                hodoReader.makeHits(evioEvent, lcsimEvent);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error making Hodo hits", e);
+                //Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making Hodo hits", e);
+            }
+        }
+                
         // Make SVT RawTrackerHits
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
@@ -216,12 +219,12 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
                 hodoReader = new HodoEvioReader(0x1, 0x2);   // Rafo: Have to understand what are 0x1 and 0x2 = Topbank and Bottombank (MWH).
                 hodoReader.setTopBankTag(0x25);
                 hodoReader.setBotBankTag(0x27); 
-//                hodoReader.setTopBankTag(0x41);  // Temporaty for the EEL test setup
-//                hodoReader.setBotBankTag(0x41);  // Temporaty for the EEL test setup
+//                hodoReader.setTopBankTag(0x41);  // Temporary for the EEL test setup
+//                hodoReader.setBotBankTag(0x41);  // Temporary for the EEL test setup
             }
             hodoReader.initialize();
-
+        } else {
+            LOGGER.warning("No hodo_channels condition in this run so Hodoscope EVIO reader was not enabled.");
         }
-
     }
 }

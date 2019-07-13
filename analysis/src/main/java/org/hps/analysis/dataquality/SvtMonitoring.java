@@ -105,6 +105,7 @@ public class SvtMonitoring extends DataQualityMonitor {
             IHistogram1D chiProbPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "chiProb_", sensor, 50, 0, 1.0);
             IHistogram1D t0ClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "t0Cluster_", sensor, 400, -100., 100.);
             IHistogram2D t0TrigTimePlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "t0ClusterTrigTime_", sensor, 400, -100., 100., 6, 0, 24);
+            IHistogram2D clusterPositionPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "clusterPositionPlot_", sensor, 50, -50., 50., 100, -10, 10);
             IHistogram1D dedxClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "electrons_", sensor, 50, 0., 10.);
             occupancyPlot.reset();
         }
@@ -117,9 +118,8 @@ public class SvtMonitoring extends DataQualityMonitor {
     public void process(EventHeader event) {
 
         //check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event)) {
+        if (!matchTrigger(event))
             return;
-        }
 
         /*  increment the strip occupancy arrays */
         Map<String, Integer> hitsPerSensor = new HashMap<String, Integer>();
@@ -132,9 +132,8 @@ public class SvtMonitoring extends DataQualityMonitor {
                 strips[hit.getIdentifierFieldValue("strip")] += 1;
 
                 Integer nHits = hitsPerSensor.get(hit.getDetectorElement().getName());
-                if (nHits == null) {
+                if (nHits == null)
                     nHits = 0;
-                }
                 nHits++;
                 hitsPerSensor.put(hit.getDetectorElement().getName(), nHits);
             }
@@ -143,20 +142,18 @@ public class SvtMonitoring extends DataQualityMonitor {
         for (HpsSiSensor sensor : sensors) {
             IHistogram1D sensorHist = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "nHitsPerEvent_", sensor);
             Integer nHits = hitsPerSensor.get(sensor.getName());
-            if (nHits == null) {
+            if (nHits == null)
                 sensorHist.fill(0);
-            } else {
+            else
                 sensorHist.fill(nHits);
-            }
         }
         /*  fill the FittedTrackerHit related histograms */
         if (event.hasCollection(LCRelation.class, fittedTrackerHitCollectionName)) {
             List<LCRelation> fittedTrackerHits = event.get(LCRelation.class, fittedTrackerHitCollectionName);
 
             RelationalTable rthtofit = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-            for (LCRelation hit : fittedTrackerHits) {
+            for (LCRelation hit : fittedTrackerHits)
                 rthtofit.add(FittedRawTrackerHit.getRawTrackerHit(hit), FittedRawTrackerHit.getShapeFitParameters(hit));
-            }
 
             for (LCRelation hit : fittedTrackerHits) {
                 RawTrackerHit rth = (RawTrackerHit) hit.getFrom();
@@ -191,6 +188,7 @@ public class SvtMonitoring extends DataQualityMonitor {
                 double t0 = cluster.getTime();
                 double dedx = cluster.getdEdx() * 1e6;
 //                LOGGER.info("dedx = "+dedx);
+                PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "clusterPositionPlot_", sensor).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "t0Cluster_", sensor).fill(t0);
                 PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0ClusterTrigTime_", sensor).fill(t0, event.getTimeStamp() % 24);
                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "electrons_", sensor).fill(dedx);
@@ -245,9 +243,8 @@ public class SvtMonitoring extends DataQualityMonitor {
             int[] strips = occupancyMap.get(sensor.getName());
             for (int i = 0; i < strips.length; i++) {
                 double stripOccupancy = (double) strips[i] / (double) (eventCountRaw);
-                if (stripOccupancy != 0) {
+                if (stripOccupancy != 0)
                     sensorHist.fill(i, stripOccupancy);
-                }
                 avg += stripOccupancy;
             }
             //do the end-of-run quantities here too since we've already done the loop.  

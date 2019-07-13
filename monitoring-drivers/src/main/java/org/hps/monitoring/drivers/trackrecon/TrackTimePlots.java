@@ -35,18 +35,18 @@ public class TrackTimePlots extends Driver {
     private String hitCollection = "StripClusterer_SiTrackerHitStrip1D";
     private String trackCollectionName = "MatchedTracks";
     IPlotter plotter, plotter2, plotter3, plotter4, plotter5, plotter6, plotter7;
-    private IHistogram1D[][] t0 = new IHistogram1D[4][12];
-    private IHistogram1D[][] trackHitT0 = new IHistogram1D[4][12];
-    private IHistogram1D[][] trackHitDt = new IHistogram1D[4][12];
-    private IHistogram2D[] trackHit2D = new IHistogram2D[12];
+    private IHistogram1D[][] t0 = new IHistogram1D[4][14];
+    private IHistogram1D[][] trackHitT0 = new IHistogram1D[4][14];
+    private IHistogram1D[][] trackHitDt = new IHistogram1D[4][14];
+    private IHistogram2D[] trackHit2D = new IHistogram2D[124];
     private IHistogram1D[] trackT0 = new IHistogram1D[4];
     private IHistogram2D[] trackTrigTime = new IHistogram2D[4];
-    private IHistogram2D[] trackHitDtChan = new IHistogram2D[12];
+    private IHistogram2D[] trackHitDtChan = new IHistogram2D[14];
     private IHistogram1D[] trackTimeRange = new IHistogram1D[4];
     private IHistogram2D[] trackTimeMinMax = new IHistogram2D[4];
 
     private static final String subdetectorName = "Tracker";
-    int nlayers = 12;
+    int nlayers = 14;
 
     public void setTrackCollectionName(String name) {
         this.trackCollectionName = name;
