@@ -11,19 +11,14 @@ import hep.aida.IPlotterFactory;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
-import java.io.IOException;
 import static java.lang.Math.sqrt;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
-import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
-import org.lcsim.event.Vertex;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
