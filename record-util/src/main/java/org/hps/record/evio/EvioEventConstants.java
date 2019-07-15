@@ -33,6 +33,14 @@ public final class EvioEventConstants {
 
     
     /**
+     * TS Bank tag.
+     */
+    public static final int TS_BANK_TAG = 57610;
+
+    public static final int TS_RocID = 46;
+
+    
+    /**
      * Tag of bank containing the EPICS data bank.
      */
     public static final int EPICS_PARENT_BANK_TAG = 129;
