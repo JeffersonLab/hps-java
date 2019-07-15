@@ -22,7 +22,7 @@ import org.lcsim.util.cache.FileCache;
  *
  * @author Norman A. Graf
  */
-public class PhysRun2019ReconTest  extends TestCase {
+public class PhysRun2019ReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
     static final String testFileName = "hps_009600_nan_error.evio";
@@ -63,8 +63,8 @@ public class PhysRun2019ReconTest  extends TestCase {
 //        comparePlots();
         System.out.println("Done!");
     }
-    
-       public void comparePlots() throws Exception {
+
+    public void comparePlots() throws Exception {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
@@ -72,7 +72,7 @@ public class PhysRun2019ReconTest  extends TestCase {
         FileCache cache = new FileCache();
         File aidaRefFile = cache.getCachedFile(refFileURL);
 
-        File aidaTstFile = new File(aidaOutputFile+".aida");
+        File aidaTstFile = new File(aidaOutputFile + ".aida");
 
         ITree ref = af.createTreeFactory().create(aidaRefFile.getAbsolutePath());
         ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());
@@ -89,10 +89,10 @@ public class PhysRun2019ReconTest  extends TestCase {
                 IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
                 assertEquals(h1_r.entries(), h1_t.entries());
                 assertEquals(h1_r.mean(), h1_t.mean(), tolerance * abs(h1_r.mean()));
-                if(histoName.equals("./TargetConstrainedV0Vertices/V0 Vertex z") ) {
-                    System.out.println("Excpeption for rms of "+histoName+ " = "+h1_r.rms()+ "  ref = "+h1_t.rms());
+                if (histoName.equals("./TargetConstrainedV0Vertices/V0 Vertex z")) {
+                    System.out.println("Excpeption for rms of " + histoName + " = " + h1_r.rms() + "  ref = " + h1_t.rms());
                     assertEquals(h1_r.rms(), 1E-6, 1E-6);
-                }else {
+                } else {
                     assertEquals(h1_r.rms(), h1_t.rms(), tolerance * abs(h1_r.rms()));
                 }
             }
