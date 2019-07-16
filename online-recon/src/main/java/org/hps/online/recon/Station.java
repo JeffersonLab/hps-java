@@ -30,7 +30,7 @@ public class Station {
     /**
      * Class logger.
      */
-    private static Logger LOGGER = Logger.getLogger(Station.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(Station.class.getPackage().getName());
                 
     /**
      * The station configuration.

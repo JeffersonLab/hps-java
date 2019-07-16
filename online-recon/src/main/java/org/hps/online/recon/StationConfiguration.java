@@ -74,7 +74,7 @@ final class StationConfiguration {
     /**
      * Package logger.
      */
-    private static Logger LOGGER = Logger.getLogger(StationConfiguration.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(StationConfiguration.class.getPackage().getName());
 
     /** 
      * Name of detector for conditions system.  

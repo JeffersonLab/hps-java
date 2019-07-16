@@ -18,7 +18,7 @@ import org.jlab.coda.et.enums.Mode;
  */
 class EtParallelStation extends EtConnection {
     
-    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackageName());
+    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
     
     /**
      * Class constructor.

@@ -27,7 +27,7 @@ public class PlotDriver extends Driver {
     /**
      * Package logger.
      */
-    private static Logger LOGGER = Logger.getLogger(PlotDriver.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(PlotDriver.class.getPackage().getName());
     
     /** 
      * File name pattern which requires:

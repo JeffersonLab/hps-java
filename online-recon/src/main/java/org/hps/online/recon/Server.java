@@ -871,7 +871,7 @@ public final class Server {
     /**
      * The package logger.
      */
-    static Logger LOGGER = Logger.getLogger(Server.class.getPackageName());    
+    static Logger LOGGER = Logger.getLogger(Server.class.getPackage().getName());    
     
     /**
      * Max allowed server port number.
