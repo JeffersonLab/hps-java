@@ -54,6 +54,7 @@ public class TrackingReconPlots extends Driver {
     IPlotter plotterLayers;
     IPlotter plotterHTH;
     IPlotter plotterXvsY;
+    IPlotter plotterXvsYHOT;
 
     IHistogram1D nTracks;
     IHistogram1D nhits;
@@ -82,6 +83,8 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D[] hthBot = new IHistogram1D[nmodules];
     IHistogram2D[] xvsyTop = new IHistogram2D[nmodules];
     IHistogram2D[] xvsyBot = new IHistogram2D[nmodules];
+    IHistogram2D[] xvsyTopHOT = new IHistogram2D[nmodules];
+    IHistogram2D[] xvsyBotHOT = new IHistogram2D[nmodules];
 
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
@@ -170,27 +173,35 @@ public class TrackingReconPlots extends Driver {
         plotterXvsY = pfac.create("3d Hit Positions");
         plotterXvsY.createRegions(4, 4);
 
+        plotterXvsYHOT = pfac.create("3d Hits-On-Track");
+        plotterXvsYHOT.createRegions(4, 4);
+
         for (int i = 0; i < nmodules; i++) {
             double maxHTHX = 100.0;
             double maxHTHY = 50.0;
-            if (i < 3) {
-                maxHTHX = 20;
-                maxHTHY = 20;
+            if (i < 2) {
+                maxHTHX = 10;
+                maxHTHY = 15;
             }
             xvsyTop[i] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
             xvsyBot[i] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
+            xvsyTopHOT[i] = aida.histogram2D("Module " + i + " Top HOT (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
+            xvsyBotHOT[i] = aida.histogram2D("Module " + i + " Bottom HOT (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
             hthTop[i] = aida.histogram1D("Module " + i + "Top: Track Hits", 25, 0, 25);
             hthBot[i] = aida.histogram1D("Module " + i + "Bot: Track Hits", 25, 0, 25);
             plot(plotterHTH, hthTop[i], null, computePlotterRegion(i, true));
             plot(plotterHTH, hthBot[i], null, computePlotterRegion(i, false));
             plot(plotterXvsY, xvsyTop[i], null, computePlotterRegion(i, true));
             plot(plotterXvsY, xvsyBot[i], null, computePlotterRegion(i, false));
+            plot(plotterXvsYHOT, xvsyTopHOT[i], null, computePlotterRegion(i, true));
+            plot(plotterXvsYHOT, xvsyBotHOT[i], null, computePlotterRegion(i, false));
         }
         plotterHTH.show();
         plotterXvsY.show();
+        plotterXvsYHOT.show();
 
-        htopLay = aida.histogram1D("Top Layers on Track", 8, 0, 8);
-        hbotLay = aida.histogram1D("Bottom Layers on Track", 8, 0, 8);
+        htopLay = aida.histogram1D("Top Layers on Track", 7, 0, 7);
+        hbotLay = aida.histogram1D("Bottom Layers on Track", 7, 0, 7);
         plotterLayers = pfac.create("Layers Hit on Track");
         plotterLayers.createRegions(1, 2);
         plot(plotterLayers, htopLay, null, 0);
@@ -229,23 +240,7 @@ public class TrackingReconPlots extends Driver {
         int[] botHits = {0, 0, 0, 0, 0, 0, 0};
         List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
         for (TrackerHit hit : hth) {
-            int module = -99;
-            int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
-            if (layer < 2)
-                module = 1;
-            else if (layer < 4)
-                module = 2;
-            else if (layer < 6)
-                module = 3;
-            else if (layer < 8)
-                module = 4;
-            else if (layer < 10)
-                module = 5;
-            else if (layer < 12)
-                module = 6;
-            else
-                module = 7;
-
+            int module = getModuleNumber(hit);
             if (hit.getPosition()[1] > 0) {
                 topHits[module - 1]++;
                 xvsyTop[module - 1].fill(hit.getPosition()[0], hit.getPosition()[1]);
@@ -290,12 +285,16 @@ public class TrackingReconPlots extends Driver {
 
             List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
             for (TrackerHit hthOnTrack : hitsOnTrack) {
+                int module = getModuleNumber(hthOnTrack) - 1;
                 HelicalTrackHit htc = (HelicalTrackHit) hthOnTrack;
-                int layer = htc.Layer();
-                if (htc.getPosition()[2] > 0)
-                    htopLay.fill(layer / 2.);
-                else
-                    hbotLay.fill(layer / 2.);
+//                System.out.println("HTC Corrected Position = "+htc.getCorrectedPosition().toString());
+                if (htc.getPosition()[2] > 0) {
+                    htopLay.fill(module);
+                    xvsyTopHOT[module].fill(htc.getCorrectedPosition().y(), htc.getCorrectedPosition().z());
+                } else {
+                    hbotLay.fill(module);
+                    xvsyBotHOT[module].fill(htc.getCorrectedPosition().y(), -1 * htc.getCorrectedPosition().z());
+                }
             }
 
             TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
@@ -317,10 +316,6 @@ public class TrackingReconPlots extends Driver {
                         System.out.println("\t\t\t Found the best clusters");
                     Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
-                    // improve the extrapolation...use the reconstructed cluster z-position
-                    // stateAtEcal = TrackUtils.extrapolateTrackUsingFieldMap(trk, svt_l12, zCluster, 5.0,
-                    // event.getDetector().getFieldMap());
-                    // posAtEcal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
                     double eOverP = clust.getEnergy() / pmag;
                     double dx = posAtEcal.y() - clusterPos.x();
                     double dy = posAtEcal.z() - clusterPos.y();
@@ -366,7 +361,8 @@ public class TrackingReconPlots extends Driver {
             // double dist = Math.sqrt(Math.pow(clPos[0] - posonhelix.y(), 2) + Math.pow(clPos[1] - posonhelix.z(), 2));
             // //coordinates!!!
             double dist = Math.sqrt(Math.pow(clPos[1] - posonhelix.z(), 2)); // coordinates!!!
-            if (dist < minDist && clEne < 3.0) {
+//            if (dist < minDist && clEne < 3.0) {
+            if (dist < minDist) {
                 closest = cluster;
                 minDist = dist;
             }
@@ -388,6 +384,26 @@ public class TrackingReconPlots extends Driver {
             region = (i - 3) * 4 + 3;
         // System.out.println("Setting region to "+region);
         return region;
+    }
+
+    private int getModuleNumber(TrackerHit hit) {
+        int module = -666;
+        int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+        if (layer < 2)
+            module = 1;
+        else if (layer < 4)
+            module = 2;
+        else if (layer < 6)
+            module = 3;
+        else if (layer < 8)
+            module = 4;
+        else if (layer < 10)
+            module = 5;
+        else if (layer < 12)
+            module = 6;
+        else
+            module = 7;
+        return module;
     }
 
 }

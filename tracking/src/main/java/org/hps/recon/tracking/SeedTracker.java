@@ -25,8 +25,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     private int _iterativeConfirmedFits = 0;
     private boolean doIterativeHelix = false;
     private boolean debug;
-    private int _maxHelicalTrackHits=250;
-
+    private int maxHelicalTrackHits=250;
     public SeedTracker(List<SeedStrategy> strategylist) {
         // use base class only if this constructor is called!
         super(strategylist);
@@ -35,7 +34,10 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
     public void setIterativeHelix(boolean value) {
         doIterativeHelix = value;
     }
-        
+    
+    public void setMaxHelicalTrackHits(int max){
+        this.maxHelicalTrackHits=max;
+    }
 
     private void initialize(List<SeedStrategy> strategylist, boolean useHPSMaterialManager, boolean includeMS) {
 
@@ -138,7 +140,7 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
 
         // Loop over strategies and perform track finding
         for (SeedStrategy strategy : _strategylist) {
-            if(hitcol.size()>_maxHelicalTrackHits)
+            if(hitcol.size()>maxHelicalTrackHits)
                 continue;
             // Set the strategy for the diagnostics
             if (_diag != null)
@@ -170,7 +172,17 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
                 SeedStrategy strategy = seed.getSeedStrategy();
                 boolean success = false;
                 for (int iterFit = 0; iterFit < _iterativeConfirmedFits; ++iterFit) {
-                    success = _helixfitter.FitCandidate(seed, strategy);
+                    try {
+                        success = _helixfitter.FitCandidate(seed, strategy);
+                    } catch (Exception e) {
+                        System.out.printf("ERROR -- Exception in SeedTracker:: \n");
+                        if (e.getMessage().equals("NaN in track direction")) {
+                            System.out.printf("Known error - Nan in tack direction ... carry on, nothing to see.\n");
+                            e.printStackTrace();
+                        } else {
+                            throw (e); // Re-throw.
+                        }
+                    }
                 }
                 if (!success) {
                     seedsToRemove.add(seed);
