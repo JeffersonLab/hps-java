@@ -169,5 +169,9 @@
       <groupId>org.hps</groupId>
       <artifactId>hps-logging</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-online-recon</artifactId>
+    </dependency>
   </dependencies>
 </project>
