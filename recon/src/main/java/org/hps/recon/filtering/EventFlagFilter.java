@@ -13,7 +13,7 @@ import org.lcsim.event.EventHeader;
  */
 public class EventFlagFilter extends EventReconFilter {
 
-    private static Logger LOGGER = Logger.getLogger(EventFlagFilter.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(EventFlagFilter.class.getPackage().getName());
     
     String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good", "svt_event_header_good", "svt_latency_good"};
 

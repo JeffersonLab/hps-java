@@ -27,7 +27,7 @@ final class PlotAddTask extends TimerTask {
     /**
      * Package logger.
      */
-    private static Logger LOGGER = Logger.getLogger(PlotAddTask.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(PlotAddTask.class.getPackage().getName());
     
     /**
      * Reference to the online reconstruction server.

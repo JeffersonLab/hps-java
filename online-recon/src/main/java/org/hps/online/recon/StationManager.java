@@ -73,7 +73,7 @@ public class StationManager {
     /**
      * The package logger.
      */
-    private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackageName());
+    private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackage().getName());
        
     /**
      * Path to the runnable jar file.
