@@ -25,7 +25,8 @@ import org.lcsim.util.cache.FileCache;
 public class PhysRun2019ReconTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
-    static final String testFileName = "hps_009600_nan_error.evio";
+//    static final String testFileName = "hps_009600_nan_error.evio";
+    static final String testFileName = "hps_009600_00000_onePositron.evio";
     static final String detectorName = "HPS-PhysicsRun2019-v1-4pt5";
     static final String steeringFileName = "/org/hps/steering/recon/PhysicsRun2019_testRecon.lcsim";
     private final int nEvents = 5000;
