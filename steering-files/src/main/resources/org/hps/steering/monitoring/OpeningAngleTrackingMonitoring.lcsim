@@ -11,50 +11,44 @@
         <driver name="TrackerHitDriver" />  
         <driver name="HelicalTrackHitDriver" />
         <!--  SVT opening angle alignment -->
-        <driver name="TrackerL1to3ReconDriver"/> 
-        <driver name="TrackerL4to6ReconDriver"/> 
-        <driver name="SVTAlignment"/> 
-        <!--  regular tracking and recon -->
-        <driver name="FullTrackerReconDriver"/> 
-        <driver name="TrackDataDriver"/>   
-        <driver name="EcalRawConverter" /> 
-        <driver name="EcalClusterer" />
-        <driver name="ReconParticle" /> 
+        <driver name="TrackerL0to3ReconDriver"/> 
+        <driver name="TrackerL4to6ReconDriver"/>   
         <!-- Online Monitoring Drivers -->
-        <driver name="TrackingMonitoring" />
-        <driver name="TrackingResiduals"/>  
-        <driver name="TrackTime"/>  
-        <driver name="V0Monitoring"/>   
+        <driver name="SVTAlignment" />
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
-        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
-        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+     <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
-            <correctT0Shift>true</correctT0Shift>
+            <correctT0Shift>false</correctT0Shift>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
-            <correctChanT0>true</correctChanT0>
+            <correctChanT0>false</correctChanT0>
             <debug>false</debug>
         </driver>
+   
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
-        </driver>
+        </driver>            
+
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
-            <clusterTimeCut>12.0</clusterTimeCut>
+            <clusterTimeCut>40.0</clusterTimeCut>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-            <maxDt>16.0</maxDt>
+            <maxDt>40.0</maxDt>
+            <vThin>0.0</vThin>
             <saveAxialHits>false</saveAxialHits>
         </driver>
-        <driver name="TrackerL1to3ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+   
+        <driver name="TrackerL0to3ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <trackCollectionName>L1to3Tracks</trackCollectionName>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L1-3.xml</strategyResource>
+            <trackCollectionName>L0to3Tracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L0-3.xml</strategyResource>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
         <driver name="TrackerL4to6ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
@@ -70,32 +64,26 @@
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
+        </driver>       
+        
+         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
         </driver>
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <use2014Gain>false</use2014Gain>
-            <useTimestamps>false</useTimestamps>
-            <useTruthTime>false</useTruthTime>
-            <useRunningPedestal>false</useRunningPedestal>
-            <useTimeWalkCorrection>false</useTimeWalkCorrection>
-            <emulateFirmware>true</emulateFirmware>
-            <emulateMode7>false</emulateMode7>
-            <leadingEdgeThreshold>12</leadingEdgeThreshold>
-            <nsa>100</nsa>
-            <nsb>20</nsb>
-            <nPeak>3</nPeak>
-        </driver>
-        <driver name="EcalClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+                
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver> 
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/> 
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.01</hitEnergyThreshold>
-            <seedEnergyThreshold>0.100</seedEnergyThreshold> 
-            <clusterEnergyThreshold>0.200</clusterEnergyThreshold>
-            <minTime>0.0</minTime>
-            <timeWindow>25.0</timeWindow>
-            <useTimeCut>true</useTimeCut>
-            <writeRejectedHitCollection>false</writeRejectedHitCollection>
+        </driver> 
+        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>          
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>
+              
+                   
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
             <debug>false</debug>
         </driver>   

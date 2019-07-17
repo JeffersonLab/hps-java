@@ -35,15 +35,15 @@ public class SVTOpeningAlignment extends Driver {
     static private AIDA aida = AIDA.defaultInstance();
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
-    private String l1to3CollectionName = "L1to3Tracks";
+    private String l0to3CollectionName = "L0to3Tracks";
     private String l4to6CollectionName = "L4to6Tracks";
     private String outputPlots = null;
     IPlotter plotterTop;
     IPlotter plotterBot;
     IHistogram1D nTracks46Top;
-    IHistogram1D nTracks13Top;
+    IHistogram1D nTracks03Top;
     IHistogram1D nTracks46Bot;
-    IHistogram1D nTracks13Bot;
+    IHistogram1D nTracks03Bot;
     IHistogram1D deld0Top;
     IHistogram1D delphiTop;
     IHistogram1D delwTop;
@@ -82,8 +82,8 @@ public class SVTOpeningAlignment extends Driver {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
 
-    public void setL1to3CollectionName(String trackCollectionName) {
-        this.l1to3CollectionName = trackCollectionName;
+    public void setL0to3CollectionName(String trackCollectionName) {
+        this.l0to3CollectionName = trackCollectionName;
     }
 
     public void setL4to6CollectionName(String trackCollectionName) {
@@ -116,14 +116,14 @@ public class SVTOpeningAlignment extends Driver {
         functionStyle.dataStyle().markerStyle().setShape("dot");
         functionStyle.dataStyle().markerStyle().setSize(2);
 
-        nTracks13Top = aida.histogram1D("Number of L1-3 Tracks: Top ", 7, 0, 7.0);
+        nTracks03Top = aida.histogram1D("Number of L0-3 Tracks: Top ", 7, 0, 7.0);
         nTracks46Top = aida.histogram1D("Number of L4-6 Tracks: Top ", 7, 0, 7.0);
 
         deld0Top = aida.histogram1D("Delta d0: Top", 50, -20.0, 20.0);
         delphiTop = aida.histogram1D("Delta sin(phi): Top", 50, -0.1, 0.1);
         delwTop = aida.histogram1D("Delta curvature: Top", 50, -0.0002, 0.0002);
-        dellambdaTop = aida.histogram1D("Delta slope: Top", 50, -0.02, 0.02);
-        delz0Top = aida.histogram1D("Delta y0: Top", 50, -5, 5.0);
+        dellambdaTop = aida.histogram1D("Delta slope: Top", 50, -0.01, 0.01);
+        delz0Top = aida.histogram1D("Delta y0: Top", 50, -2.5, 2.5);
 
         fd0Top = functionFactory.createFunctionByName("Gaussian", "G");
         fphi0Top = functionFactory.createFunctionByName("Gaussian", "G");
@@ -136,7 +136,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterTop.region(6).plot(delwTop);
         plotterTop.region(1).plot(dellambdaTop);
         plotterTop.region(4).plot(delz0Top);
-        plotterTop.region(2).plot(nTracks13Top);
+        plotterTop.region(2).plot(nTracks03Top);
         plotterTop.region(5).plot(nTracks46Top);
         plotterTop.region(0).plot(fd0Top, functionStyle);
         plotterTop.region(3).plot(fphi0Top, functionStyle);
@@ -153,14 +153,14 @@ public class SVTOpeningAlignment extends Driver {
         styleBot.dataStyle().outlineStyle().setVisible(false);
         plotterBot.createRegions(3, 3);
 
-        nTracks13Bot = aida.histogram1D("Number of L1-3 Tracks: Bot ", 7, 0, 7.0);
+        nTracks03Bot = aida.histogram1D("Number of L0-3 Tracks: Bot ", 7, 0, 7.0);
         nTracks46Bot = aida.histogram1D("Number of L4-6 Tracks: Bot ", 7, 0, 7.0);
 
         deld0Bot = aida.histogram1D("Delta d0: Bot", 50, -20.0, 20.0);
         delphiBot = aida.histogram1D("Delta sin(phi): Bot", 50, -0.1, 0.1);
         delwBot = aida.histogram1D("Delta curvature: Bot", 50, -0.0002, 0.0002);
-        dellambdaBot = aida.histogram1D("Delta slope: Bot", 50, -0.02, 0.02);
-        delz0Bot = aida.histogram1D("Delta y0: Bot", 50, -5, 5.0);
+        dellambdaBot = aida.histogram1D("Delta slope: Bot", 50, -0.01, 0.01);
+        delz0Bot = aida.histogram1D("Delta y0: Bot", 50, -2.5, 2.5);
 
         fd0Bot = functionFactory.createFunctionByName("Gaussian", "G");
         fphi0Bot = functionFactory.createFunctionByName("Gaussian", "G");
@@ -173,7 +173,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterBot.region(6).plot(delwBot);
         plotterBot.region(1).plot(dellambdaBot);
         plotterBot.region(4).plot(delz0Bot);
-        plotterBot.region(2).plot(nTracks13Bot);
+        plotterBot.region(2).plot(nTracks03Bot);
         plotterBot.region(5).plot(nTracks46Bot);
         plotterBot.region(0).plot(fd0Bot, functionStyle);
         plotterBot.region(3).plot(fphi0Bot, functionStyle);
@@ -189,34 +189,34 @@ public class SVTOpeningAlignment extends Driver {
         if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName))
             return;
 
-        if (!event.hasCollection(Track.class, l1to3CollectionName))
+        if (!event.hasCollection(Track.class, l0to3CollectionName))
             return;
 
         if (!event.hasCollection(Track.class, l4to6CollectionName))
             return;
 
-        List<Track> l1to3tracks = event.get(Track.class, l1to3CollectionName);
+        List<Track> l0to3tracks = event.get(Track.class, l0to3CollectionName);
         List<Track> l4to6tracks = event.get(Track.class, l4to6CollectionName);
 
-        List<Track> l1to3tracksTop = splitTrackList(l1to3tracks, true);
-        List<Track> l1to3tracksBot = splitTrackList(l1to3tracks, false);
+        List<Track> l0to3tracksTop = splitTrackList(l0to3tracks, true);
+        List<Track> l0to3tracksBot = splitTrackList(l0to3tracks, false);
         List<Track> l4to6tracksTop = splitTrackList(l4to6tracks, true);
         List<Track> l4to6tracksBot = splitTrackList(l4to6tracks, false);
 
-        nTracks13Top.fill(l1to3tracksTop.size());
-        nTracks13Bot.fill(l1to3tracksBot.size());
+        nTracks03Top.fill(l0to3tracksTop.size());
+        nTracks03Bot.fill(l0to3tracksBot.size());
         nTracks46Top.fill(l4to6tracksTop.size());
         nTracks46Bot.fill(l4to6tracksBot.size());
 
         for (Track trk46 : l4to6tracksTop) {
             TrackState ts46 = trk46.getTrackStates().get(0);
-            for (Track trk13 : l1to3tracksTop) {
-                TrackState ts13 = trk13.getTrackStates().get(0);
-                deld0Top.fill(ts46.getD0() - ts13.getD0());
-                delphiTop.fill(Math.sin(ts46.getPhi()) - Math.sin(ts13.getPhi()));
-                delwTop.fill(ts46.getOmega() - ts13.getOmega());
-                delz0Top.fill(ts46.getZ0() - ts13.getZ0());
-                dellambdaTop.fill(ts46.getTanLambda() - ts13.getTanLambda());
+            for (Track trk03 : l0to3tracksTop) {
+                TrackState ts03 = trk03.getTrackStates().get(0);
+                deld0Top.fill(ts46.getD0() - ts03.getD0());
+                delphiTop.fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
+                delwTop.fill(ts46.getOmega() - ts03.getOmega());
+                delz0Top.fill(ts46.getZ0() - ts03.getZ0());
+                dellambdaTop.fill(ts46.getTanLambda() - ts03.getTanLambda());
             }
         }
         fitAndPutParameters(deld0Top, fd0Top);
@@ -227,13 +227,13 @@ public class SVTOpeningAlignment extends Driver {
 
         for (Track trk46 : l4to6tracksBot) {
             TrackState ts46 = trk46.getTrackStates().get(0);
-            for (Track trk13 : l1to3tracksBot) {
-                TrackState ts13 = trk13.getTrackStates().get(0);
-                deld0Bot.fill(ts46.getD0() - ts13.getD0());
-                delphiBot.fill(Math.sin(ts46.getPhi()) - Math.sin(ts13.getPhi()));
-                delwBot.fill(ts46.getOmega() - ts13.getOmega());
-                delz0Bot.fill(ts46.getZ0() - ts13.getZ0());
-                dellambdaBot.fill(ts46.getTanLambda() - ts13.getTanLambda());
+            for (Track trk03 : l0to3tracksBot) {
+                TrackState ts03 = trk03.getTrackStates().get(0);
+                deld0Bot.fill(ts46.getD0() - ts03.getD0());
+                delphiBot.fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
+                delwBot.fill(ts46.getOmega() - ts03.getOmega());
+                delz0Bot.fill(ts46.getZ0() - ts03.getZ0());
+                dellambdaBot.fill(ts46.getTanLambda() - ts03.getTanLambda());
             }
         }
 
