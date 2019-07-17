@@ -9,8 +9,8 @@
         <MinHits>3</MinHits>
         <MinConfirm>0</MinConfirm>
         
-        <MaxDCA>20.0</MaxDCA>
-        <MaxZ0>20.0</MaxZ0>
+        <MaxDCA>50.0</MaxDCA>
+        <MaxZ0>50.0</MaxZ0>
 
         <MaxChisq>50.0</MaxChisq>
         <BadHitChisq>10.0</BadHitChisq>
@@ -18,9 +18,12 @@
         <!--Layers-->
 
         <Layers>                 
-            <Layer type="Seed" layer_number="13" detector_name="Tracker" be_flag="BARREL" />
+            <Layer type="Seed" layer_number="12" detector_name="Tracker" be_flag="BARREL" />
             <Layer type="Seed" layer_number="11" detector_name="Tracker" be_flag="BARREL" />
-            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />          
+            <Layer type="Seed" layer_number="9" detector_name="Tracker" be_flag="BARREL" />  
+            <Layer type="Extend" layer_number="14" detector_name="Tracker" be_flag="BARREL" />  
+            <Layer type="Extend" layer_number="13" detector_name="Tracker" be_flag="BARREL" />  
+            <Layer type="Extend" layer_number="10" detector_name="Tracker" be_flag="BARREL" />          
         </Layers>
     </Strategy>
 </StrategyList>

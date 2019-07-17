@@ -44,6 +44,10 @@ public class SVTOpeningAlignment extends Driver {
     IHistogram1D nTracks03Top;
     IHistogram1D nTracks46Bot;
     IHistogram1D nTracks03Bot;
+    IHistogram1D nHits03Top;
+    IHistogram1D nHits46Top;
+    IHistogram1D nHits03Bot;
+    IHistogram1D nHits46Bot;
     IHistogram1D deld0Top;
     IHistogram1D delphiTop;
     IHistogram1D delwTop;
@@ -116,9 +120,10 @@ public class SVTOpeningAlignment extends Driver {
         functionStyle.dataStyle().markerStyle().setShape("dot");
         functionStyle.dataStyle().markerStyle().setSize(2);
 
-        nTracks03Top = aida.histogram1D("Number of L0-3 Tracks: Top ", 7, 0, 7.0);
-        nTracks46Top = aida.histogram1D("Number of L4-6 Tracks: Top ", 7, 0, 7.0);
-
+        nTracks03Top = aida.histogram1D("Number of L0-3 Tracks: Top ", 7, 0, 7);
+        nTracks46Top = aida.histogram1D("Number of L4-6 Tracks: Top ", 7, 0, 7);
+        nHits03Top = aida.histogram1D("Number of L0-3 Hits: Top ", 6, 3, 9);
+        nHits46Top = aida.histogram1D("Number of L4-6 Hits: Top ", 6, 3, 9);
         deld0Top = aida.histogram1D("Delta d0: Top", 50, -20.0, 20.0);
         delphiTop = aida.histogram1D("Delta sin(phi): Top", 50, -0.1, 0.1);
         delwTop = aida.histogram1D("Delta curvature: Top", 50, -0.0002, 0.0002);
@@ -138,6 +143,8 @@ public class SVTOpeningAlignment extends Driver {
         plotterTop.region(4).plot(delz0Top);
         plotterTop.region(2).plot(nTracks03Top);
         plotterTop.region(5).plot(nTracks46Top);
+        plotterTop.region(7).plot(nHits03Top);
+        plotterTop.region(8).plot(nHits46Top);
         plotterTop.region(0).plot(fd0Top, functionStyle);
         plotterTop.region(3).plot(fphi0Top, functionStyle);
         plotterTop.region(6).plot(fwTop, functionStyle);
@@ -153,9 +160,10 @@ public class SVTOpeningAlignment extends Driver {
         styleBot.dataStyle().outlineStyle().setVisible(false);
         plotterBot.createRegions(3, 3);
 
-        nTracks03Bot = aida.histogram1D("Number of L0-3 Tracks: Bot ", 7, 0, 7.0);
-        nTracks46Bot = aida.histogram1D("Number of L4-6 Tracks: Bot ", 7, 0, 7.0);
-
+        nTracks03Bot = aida.histogram1D("Number of L0-3 Tracks: Bot ", 7, 0, 7);
+        nTracks46Bot = aida.histogram1D("Number of L4-6 Tracks: Bot ", 7, 0, 7);
+        nHits03Bot = aida.histogram1D("Number of L0-3 Hits: Bot ", 6, 3, 9);
+        nHits46Bot = aida.histogram1D("Number of L4-6 Hits: Bot ", 6, 3, 9);
         deld0Bot = aida.histogram1D("Delta d0: Bot", 50, -20.0, 20.0);
         delphiBot = aida.histogram1D("Delta sin(phi): Bot", 50, -0.1, 0.1);
         delwBot = aida.histogram1D("Delta curvature: Bot", 50, -0.0002, 0.0002);
@@ -175,6 +183,8 @@ public class SVTOpeningAlignment extends Driver {
         plotterBot.region(4).plot(delz0Bot);
         plotterBot.region(2).plot(nTracks03Bot);
         plotterBot.region(5).plot(nTracks46Bot);
+        plotterBot.region(7).plot(nHits03Bot);
+        plotterBot.region(8).plot(nHits46Bot);
         plotterBot.region(0).plot(fd0Bot, functionStyle);
         plotterBot.region(3).plot(fphi0Bot, functionStyle);
         plotterBot.region(6).plot(fwBot, functionStyle);
@@ -207,6 +217,16 @@ public class SVTOpeningAlignment extends Driver {
         nTracks03Bot.fill(l0to3tracksBot.size());
         nTracks46Top.fill(l4to6tracksTop.size());
         nTracks46Bot.fill(l4to6tracksBot.size());
+
+        for (Track trk03 : l0to3tracksTop)
+            nHits03Top.fill(trk03.getTrackerHits().size());
+        for (Track trk46 : l4to6tracksTop)
+            nHits46Top.fill(trk46.getTrackerHits().size());
+
+        for (Track trk03 : l0to3tracksBot)
+            nHits03Bot.fill(trk03.getTrackerHits().size());
+        for (Track trk46 : l4to6tracksBot)
+            nHits46Bot.fill(trk46.getTrackerHits().size());
 
         for (Track trk46 : l4to6tracksTop) {
             TrackState ts46 = trk46.getTrackStates().get(0);
