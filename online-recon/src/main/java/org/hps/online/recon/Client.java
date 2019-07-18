@@ -30,7 +30,7 @@ public final class Client {
     /**
      * Package logger.
      */
-    private static Logger LOGGER = Logger.getLogger(Client.class.getPackageName());
+    private static Logger LOGGER = Logger.getLogger(Client.class.getPackage().getName());
     
     /**
      * Hostname of the server with default.
