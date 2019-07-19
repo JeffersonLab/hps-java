@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.detector.hodoscope.HodoscopePixelDetectorElement;
 
 import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 
@@ -85,6 +86,9 @@ public class TrackingReconPlots extends Driver {
     IHistogram2D[] xvsyBot = new IHistogram2D[nmodules];
     IHistogram2D[] xvsyTopHOT = new IHistogram2D[nmodules];
     IHistogram2D[] xvsyBotHOT = new IHistogram2D[nmodules];
+//HODOSCOPE Stuff
+    private static final String SUBDETECTOR_NAME = "Hodoscope";
+    private List<HodoscopePixelDetectorElement> pixels;
 
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
@@ -92,6 +96,15 @@ public class TrackingReconPlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
+
+        // Get the HpsSiSensor objects from the geometry
+        pixels = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopePixelDetectorElement.class);
+        for(HodoscopePixelDetectorElement pix: pixels){
+            System.out.println("TrackingReconPlots:: pix = "+pix.getName()+" position = "+pix.getGeometry().getPosition().toString());
+             //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
+        }
+        
+       
         aida.tree().cd("/");
 
         IAnalysisFactory fac = aida.analysisFactory();

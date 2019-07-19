@@ -610,15 +610,64 @@ public class TrackUtils {
     public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, double stepSize) {
         BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtLast(trk);
         if (ts != null) {
-            return getTrackExtrapAtEcalRK(ts, fM, stepSize);
+            return getTrackExtrapAtHodoRK(ts, fM, stepSize);
         }
         return null;
     }
 
     public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM) {
-        return getTrackExtrapAtEcalRK(trk, fM, 0);
+        return getTrackExtrapAtHodoRK(trk, fM, 0);
     }
 
+    /**
+     * Get track extrapolation to hodoscope layers
+     * 
+     */
+    
+       public static BaseTrackState getTrackExtrapAtHodoRK(TrackState ts, FieldMap fM) {
+        return getTrackExtrapAtEcalRK(ts, fM, 0);
+    }
+
+    public static BaseTrackState getTrackExtrapAtHodoRK(TrackState ts, FieldMap fM, double stepSize) {
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
+        double distanceZ = BeamlineConstants.ECAL_FACE - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        double charge = -1.0 * Math.signum(getR(ts));
+
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
+
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != BeamlineConstants.ECAL_FACE) {
+            Hep3Vector mom = RKresults.getSecondElement();
+            double dz = BeamlineConstants.ECAL_FACE - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        bts.setReferencePoint(finalPos.v());
+        bts.setLocation(TrackState.AtCalorimeter);
+        return bts;
+    }
+
+    public static BaseTrackState getTrackExtrapAtHodoRK(Track trk, FieldMap fM, double stepSize) {
+        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtLast(trk);
+        if (ts != null) {
+            return getTrackExtrapAtEcalRK(ts, fM, stepSize);
+        }
+        return null;
+    }
+
+    public static BaseTrackState getTrackExtrapAtHodoRK(Track trk, FieldMap fM) {
+        return getTrackExtrapAtEcalRK(trk, fM, 0);
+    }
+    
     /**
      * Extrapolate track to given position. For backwards compatibility.
      *
