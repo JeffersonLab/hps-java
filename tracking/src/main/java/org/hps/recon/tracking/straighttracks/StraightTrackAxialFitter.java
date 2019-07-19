@@ -79,8 +79,10 @@ public class StraightTrackAxialFitter implements HPSFitter{
         }
         //  Call the line fitter and check for success
         success = _lfitter.fit(s, z, dz, nhit);
-        if (!success)
+        if (!success){
+            System.out.println("SZLineFitFailed");
             return FitStatus.SZLineFitFailed;
+        }
         SlopeInterceptLineFit szFit = _lfitter.getFit();
         par[3] = szFit.intercept();
         par[4] = szFit.slope();
