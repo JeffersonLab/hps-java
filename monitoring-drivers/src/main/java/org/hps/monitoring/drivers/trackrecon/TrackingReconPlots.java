@@ -9,14 +9,23 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.detector.hodoscope.HodoscopePixelDetectorElement;
 
 import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
+import org.hps.recon.ecal.HodoUtils;
+import org.hps.recon.ecal.SimpleGenericObject;
+import org.hps.recon.tracking.CoordinateTransformations;
 
 import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.detector.DetectorElement;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
@@ -56,6 +65,7 @@ public class TrackingReconPlots extends Driver {
     IPlotter plotterHTH;
     IPlotter plotterXvsY;
     IPlotter plotterXvsYHOT;
+    IPlotter plotterHodo;
 
     IHistogram1D nTracks;
     IHistogram1D nhits;
@@ -80,6 +90,16 @@ public class TrackingReconPlots extends Driver {
     IHistogram1D htopLay;
     IHistogram1D hbotLay;
 
+    IHistogram2D htrkProjH1TopMatch;
+    IHistogram2D htrkProjH2TopMatch;
+    IHistogram2D htrkProjH1BotMatch;
+    IHistogram2D htrkProjH2BotMatch;
+
+    IHistogram2D htrkProjH1TopNoMatch;
+    IHistogram2D htrkProjH2TopNoMatch;
+    IHistogram2D htrkProjH1BotNoMatch;
+    IHistogram2D htrkProjH2BotNoMatch;
+
     IHistogram1D[] hthTop = new IHistogram1D[nmodules];
     IHistogram1D[] hthBot = new IHistogram1D[nmodules];
     IHistogram2D[] xvsyTop = new IHistogram2D[nmodules];
@@ -89,6 +109,15 @@ public class TrackingReconPlots extends Driver {
 //HODOSCOPE Stuff
     private static final String SUBDETECTOR_NAME = "Hodoscope";
     private List<HodoscopePixelDetectorElement> pixels;
+    private List<HodoscopeDetectorElement> hodos;
+    private Map<IIdentifier, DetectorElement> hodoMap = new HashMap<IIdentifier, DetectorElement>();
+
+    // ===== The Mode1 Hodo hit collection name =====
+//    private String rawCollectionName = "HodoReadoutHits";
+//    private String hodoCollectionName = "HodoCalHits";
+//    private final String hodoReadoutCollectionName = "HodoscopeHits";
+//    private String hodoHitsCollectionName = "HodoGenericHits";
+    private String hodoClustersCollectionName = "HodoGenericClusters";
 
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
@@ -98,13 +127,20 @@ public class TrackingReconPlots extends Driver {
     protected void detectorChanged(Detector detector) {
 
         // Get the HpsSiSensor objects from the geometry
-        pixels = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopePixelDetectorElement.class);
-        for(HodoscopePixelDetectorElement pix: pixels){
-            System.out.println("TrackingReconPlots:: pix = "+pix.getName()+" position = "+pix.getGeometry().getPosition().toString());
-             //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
-        }
+//        pixels = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopePixelDetectorElement.class);
+//
+//        for (HodoscopePixelDetectorElement pix : pixels) {
+//            System.out.println("TrackingReconPlots:: pix = " + pix.getName() + " position = " + pix.getGeometry().getPosition().toString());
+//            System.out.println("TrackingReconPlots:: cellID =" + pix.getIdentifier().toString());
+//            hodoMap.put(pix.getIdentifier(), pix);
+//        }
         
-       
+        hodoMap=HodoUtils.getHodoscopeMap(detector);
+
+        //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
+//         hodos = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopeDetectorElement.class);
+//        for (HodoscopeDetectorElement hod : hodos)
+//            System.out.println("TrackingReconPlots:: hod = " + hod.getName() + " position = " + hod.getGeometry().getPosition().toString()); //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
         aida.tree().cd("/");
 
         IAnalysisFactory fac = aida.analysisFactory();
@@ -220,6 +256,28 @@ public class TrackingReconPlots extends Driver {
         plot(plotterLayers, htopLay, null, 0);
         plot(plotterLayers, hbotLay, null, 1);
         plotterLayers.show();
+
+        plotterHodo = pfac.create("Hodoscope Matching");
+        plotterHodo.createRegions(2, 4);
+        htrkProjH1TopMatch = aida.histogram2D("Top Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH2TopMatch = aida.histogram2D("Top Hodoscope L2 Projection Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH1BotMatch = aida.histogram2D("Bottom Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH2BotMatch = aida.histogram2D("Bottom Hodoscope L2 Projection Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH1TopNoMatch = aida.histogram2D("Top Hodoscope L1 Projection No Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH2TopNoMatch = aida.histogram2D("Top Hodoscope L2 Projection No Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH1BotNoMatch = aida.histogram2D("Bottom Hodoscope L1 Projection No Match", 50, 0, 350, 50, 0, 100);
+        htrkProjH2BotNoMatch = aida.histogram2D("Bottom Hodoscope L2 Projection No Match", 50, 0, 350, 50, 0, 100);
+        plot(plotterHodo, htrkProjH1TopMatch, null, 0);
+        plot(plotterHodo, htrkProjH1BotMatch, null, 2);
+        plot(plotterHodo, htrkProjH2TopMatch, null, 4);
+        plot(plotterHodo, htrkProjH2BotMatch, null, 6);
+        plot(plotterHodo, htrkProjH1TopNoMatch, null, 1);
+        plot(plotterHodo, htrkProjH1BotNoMatch, null, 3);
+        plot(plotterHodo, htrkProjH2TopNoMatch, null, 5);
+        plot(plotterHodo, htrkProjH2BotNoMatch, null, 7);
+        setZAxis(plotterHodo);
+        plotterHodo.show();
+
     }
 
     public TrackingReconPlots() {
@@ -343,8 +401,70 @@ public class TrackingReconPlots extends Driver {
                     }
                 }
             }
-        }
 
+            //////   Do Track-Hodoscope Matching  //// 
+            // Get RawTrackerHit collection from event.
+            List<SimpleGenericObject> reconHits = event.get(SimpleGenericObject.class, hodoClustersCollectionName);
+
+            //System.out.println("Size of reconHitsi is " + reconHits.size());
+            int n_hits = reconHits.get(0).getNInt();
+
+//            // ======= Loop over hits, and fill corresponding histogram =======
+//            for (int ihit = 0; ihit < n_hits; ihit++) {
+//                int ix = reconHits.get(0).getIntVal(ihit);
+//                int iy = reconHits.get(1).getIntVal(ihit);
+//                int layer = reconHits.get(2).getIntVal(ihit);
+//                double Energy = reconHits.get(3).getDoubleVal(ihit);
+//                double hit_time = reconHits.get(4).getDoubleVal(ihit);
+//                int detid = reconHits.get(5).getIntVal(ihit);
+//            }
+            TrackState stateAtHodo1 = TrackUtils.getTrackStateAtHodoL1(trk);
+            TrackState stateAtHodo2 = TrackUtils.getTrackStateAtHodoL2(trk);
+            if (stateAtHodo1 != null && stateAtHodo2 != null) {
+                Hep3Vector posAtH1 = new BasicHep3Vector(stateAtHodo1.getReferencePoint());
+                Hep3Vector posAtH2 = new BasicHep3Vector(stateAtHodo2.getReferencePoint());
+                boolean isMatchHL1 = false;
+                boolean isMatchHL2 = false;
+                for (int ihit = 0; ihit < n_hits; ihit++) {
+                    int detid = reconHits.get(5).getIntVal(ihit);
+                    int layer = reconHits.get(2).getIntVal(ihit);
+                    DetectorElement thisTile = hodoMap.get(new Identifier(detid));
+                    if (thisTile == null) {
+                        System.out.println("Could not find this tile~~~~");
+                        continue;
+                    }
+                    if (layer == 0)
+                        isMatchHL1 = isMatchHL1 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH1),
+                                (DetectorElement) thisTile, 5.0);
+                    if (layer == 1)
+                        isMatchHL2 = isMatchHL2 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH2),
+                                (DetectorElement) thisTile, 5.0);
+                }
+                if (posAtH1.z() > 0)
+                    if (isMatchHL1)
+                        htrkProjH1TopMatch.fill(posAtH1.y(), posAtH1.z());
+                    else
+                        htrkProjH1TopNoMatch.fill(posAtH1.y(), posAtH1.z());
+                else if (isMatchHL1)
+                    htrkProjH1BotMatch.fill(posAtH1.y(), -1 * posAtH1.z());
+                else
+                    htrkProjH1BotNoMatch.fill(posAtH1.y(), -1 * posAtH1.z());
+
+                if (posAtH2.z() > 0)
+                    if (isMatchHL2)
+                        htrkProjH2TopMatch.fill(posAtH2.y(), posAtH2.z());
+                    else
+                        htrkProjH2TopNoMatch.fill(posAtH2.y(), posAtH2.z());
+                else if (isMatchHL2)
+                    htrkProjH2BotMatch.fill(posAtH2.y(), -1 * posAtH2.z());
+                else
+                    htrkProjH2BotNoMatch.fill(posAtH2.y(), -1 * posAtH2.z());
+            }
+        }
+//                for (HodoscopePixelDetectorElement pix : pixels) {
+////                    System.out.println("This pixel has hits = "+pix.getReadout().getHits(RawTrackerHit.class).size());
+//                    boolean inH1 = TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH1), (DetectorElement) pix, 1.5);
+//                }
     }
 
     @Override
@@ -353,8 +473,10 @@ public class TrackingReconPlots extends Driver {
             try {
                 plotter.writeToFile(outputPlots + "-mom.gif");
                 plotter22.writeToFile(outputPlots + "-trkparams.gif");
+
             } catch (IOException ex) {
-                Logger.getLogger(TrackingReconPlots.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TrackingReconPlots.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
 
         // plotterFrame.dispose();
@@ -417,6 +539,16 @@ public class TrackingReconPlots extends Driver {
         else
             module = 7;
         return module;
+    }
+
+    private void setZAxis(IPlotter plotter) {
+        for (int i = 0; i < plotter.numberOfRegions(); i++) {
+            plotter.region(i).style().setParameter("hist2DStyle", "colorMap");
+            plotter.region(i).style().dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+            plotter.region(i).style().zAxisStyle().setVisible(true);
+            plotter.region(i).style().zAxisStyle().setParameter("scale", "log");
+
+        }
     }
 
 }
