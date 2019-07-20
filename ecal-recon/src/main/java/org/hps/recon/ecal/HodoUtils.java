@@ -1,6 +1,5 @@
 package org.hps.recon.ecal;
 
-import hep.aida.IHistogram1D;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -435,10 +435,10 @@ public class TrackingReconPlots extends Driver {
                     }
                     if (layer == 0)
                         isMatchHL1 = isMatchHL1 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH1),
-                                (DetectorElement) thisTile, 5.0);
+                                (DetectorElement) thisTile, 20.0);
                     if (layer == 1)
                         isMatchHL2 = isMatchHL2 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH2),
-                                (DetectorElement) thisTile, 5.0);
+                                (DetectorElement) thisTile, 20.0);
                 }
                 if (posAtH1.z() > 0)
                     if (isMatchHL1)

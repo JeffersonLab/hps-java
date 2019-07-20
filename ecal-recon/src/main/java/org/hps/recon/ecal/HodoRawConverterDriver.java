@@ -18,7 +18,6 @@ import java.util.ArrayList;
 //import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.lcsim.detector.identifier.IIdentifier;
 
 /**
  *
