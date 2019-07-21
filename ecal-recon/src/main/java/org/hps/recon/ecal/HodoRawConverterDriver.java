@@ -47,6 +47,10 @@ public class HodoRawConverterDriver extends Driver {
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         converter.setUseRunningPedestal(useRunningPedestal);
     }
+    
+    public void setUseUserGains(double aUserGain){
+        converter.setUseUserGain(aUserGain);
+    }
 
     public void setTETAllChannels(int arg_tet) {
         if (arg_tet <= 0) {
