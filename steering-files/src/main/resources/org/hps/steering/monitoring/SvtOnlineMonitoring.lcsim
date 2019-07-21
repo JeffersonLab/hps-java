@@ -56,6 +56,8 @@
         </driver>
         <!--<driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots" />-->
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
+            <dropSmallHitEvents>false</dropSmallHitEvents>
+            <cutOutLowChargeClusters>true</cutOutLowChargeClusters>
             <saveRootFile>false</saveRootFile>
         </driver>
               

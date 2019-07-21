@@ -79,8 +79,13 @@ public class SvtClusterPlots extends Driver {
 
     private boolean dropSmallHitEvents = true;
 
+    private boolean cutOutLowChargeClusters=false;
+    
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
+    }
+     public void setCutOutLowChargeClusters(boolean cutOutLowChargeClusters) {
+        this.cutOutLowChargeClusters = cutOutLowChargeClusters;
     }
 
     public void setSaveRootFile(boolean saveRootFile) {
@@ -352,14 +357,18 @@ public class SvtClusterPlots extends Driver {
             double absClY = Math.abs(cluster.getPosition()[1]);
             // Fill all plots
             clusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-
+               
             clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(absClY);
+            if(cutOutLowChargeClusters){
+                if(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR<400.0)
+                    continue;
+            }
             if (cluster.getRawHits().size() == 1)
                 singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
-
+            
             clusterTimePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getTime());
-            if (sensor.isTopLayer()) {
+            if (sensor.isTopLayer()) {             
                 hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime());
                 hitTimeTrigTimePlots2D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime(),
                         cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
