@@ -516,35 +516,34 @@ public class SensorOccupancyPlotsDriver extends Driver {
             // to 0.
             int maxAmplitude = 0;
             int maxSamplePositionFound = -1;
-            for (int sampleN = 0; sampleN < 6; sampleN++) {
+            for (int sampleN = 0; sampleN < 6; sampleN++)
                 if (adcValues[sampleN] > maxAmplitude) {
                     maxAmplitude = adcValues[sampleN];
                     maxSamplePositionFound = sampleN;
                 }
-                if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
-                    occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))[rawHit
-                            .getIdentifierFieldValue("strip")]++; //                System.out.println("Filling occupancy");
+            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
+                occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))[rawHit
+                        .getIdentifierFieldValue("strip")]++; //                System.out.println("Filling occupancy");
 
-                if (enableMaxSamplePlots)
-                    maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName())).fill(
-                            maxSamplePositionFound);
-            }
+            if (enableMaxSamplePlots)
+                maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName())).fill(
+                        maxSamplePositionFound);
+        }
 
-            // Fill the strip cluster counts if available
-            if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
-                List<SiTrackerHitStrip1D> stripHits1D = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
-                for (SiTrackerHitStrip1D h : stripHits1D) {
-                    SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
-                    Hep3Vector pos_global = global.getPositionAsVector();
-                    if (enableClusterTimeCuts) {
-                        if (h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin)
-                            clusterPositionPlotCounts.get(
-                                    SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName())).fill(
-                                    pos_global.y());
-                    } else
-                        clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName()))
-                                .fill(pos_global.y());
-                }
+        // Fill the strip cluster counts if available
+        if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
+            List<SiTrackerHitStrip1D> stripHits1D = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
+            for (SiTrackerHitStrip1D h : stripHits1D) {
+                SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+                Hep3Vector pos_global = global.getPositionAsVector();
+                if (enableClusterTimeCuts) {
+                    if (h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin)
+                        clusterPositionPlotCounts.get(
+                                SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName())).fill(
+                                pos_global.y());
+                } else
+                    clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName()))
+                            .fill(pos_global.y());
             }
         }
 
