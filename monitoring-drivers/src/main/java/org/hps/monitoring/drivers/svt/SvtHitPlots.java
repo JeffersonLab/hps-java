@@ -22,6 +22,7 @@ import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
+import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -83,8 +84,14 @@ public class SvtHitPlots extends Driver {
     private String outputRootFilename = "";
     private boolean showPlots = true;
 
+    private boolean cutOutLowChargeHits = false;
+
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
+    }
+
+    public void setCutOutLowChargeHits(boolean cutOutLowChargeHits) {
+        this.cutOutLowChargeHits = cutOutLowChargeHits;
     }
 
     public void setDoPerChannelsSampleplots(boolean val) {
@@ -399,6 +406,9 @@ public class SvtHitPlots extends Driver {
             double t0 = FittedRawTrackerHit.getT0(fittedHit);
             double amplitude = FittedRawTrackerHit.getAmp(fittedHit);
             double chi2Prob = ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
+            if (cutOutLowChargeHits)
+                if (amplitude / DopedSilicon.ENERGY_EHPAIR < 400.0)
+                    continue;
             t0Plots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(t0);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
             t0VsTriggerTime.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(t0, trigPhase);

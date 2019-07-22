@@ -33,6 +33,7 @@
         </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
+            <cutOutLowChargeHits>true</cutOutLowChargeHits>
             <!--<saveRootFile>false</saveRootFile>-->
         </driver>
         <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
