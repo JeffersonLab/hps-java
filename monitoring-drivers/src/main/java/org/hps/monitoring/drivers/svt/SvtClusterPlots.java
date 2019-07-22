@@ -80,9 +80,14 @@ public class SvtClusterPlots extends Driver {
     private boolean dropSmallHitEvents = true;
 
     private boolean cutOutLowChargeClusters = false;
+    private double clusterChargeCut = 400;
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
+    }
+
+    public void setClusterChargeCut(double clusterCharge) {
+        this.clusterChargeCut = clusterCharge;
     }
 
     public void setCutOutLowChargeClusters(boolean cutOutLowChargeClusters) {
@@ -365,7 +370,7 @@ public class SvtClusterPlots extends Driver {
                 singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
             if (cutOutLowChargeClusters)
-                if (cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR < 400.0)
+                if (cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR < clusterChargeCut)
                     continue;
             clusterTimePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getTime());
             if (sensor.isTopLayer()) {

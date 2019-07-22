@@ -1838,7 +1838,6 @@ public class TrackUtils {
             System.out.printf("Track-to-vertex Position: %f \n", GeomOp3D.distanceBetween(trackPositionPoint, transformedSensorFace));
         }
         double distance=GeomOp3D.distanceBetween(trackPositionPoint, transformedSensorFace);
-        System.out.printf("Track-to-vertex Position: %f \n", GeomOp3D.distanceBetween(trackPositionPoint, transformedSensorFace));
         return (Math.abs(distance) < tolerance);
         //return GeomOp3D.intersects(trackPositionPoint, transformedSensorFace);
     }

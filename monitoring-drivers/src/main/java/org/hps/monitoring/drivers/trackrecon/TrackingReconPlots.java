@@ -119,6 +119,8 @@ public class TrackingReconPlots extends Driver {
 //    private String hodoHitsCollectionName = "HodoGenericHits";
     private String hodoClustersCollectionName = "HodoGenericClusters";
 
+    double pMax = 7.0;
+
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
     }
@@ -134,8 +136,7 @@ public class TrackingReconPlots extends Driver {
 //            System.out.println("TrackingReconPlots:: cellID =" + pix.getIdentifier().toString());
 //            hodoMap.put(pix.getIdentifier(), pix);
 //        }
-        
-        hodoMap=HodoUtils.getHodoscopeMap(detector);
+        hodoMap = HodoUtils.getHodoscopeMap(detector);
 
         //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
 //         hodos = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopeDetectorElement.class);
@@ -155,8 +156,8 @@ public class TrackingReconPlots extends Driver {
         charge = aida.histogram1D("Track Charge", 3, -1, 2);
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
-        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, 5);
-        trkChi2 = aida.histogram1D("Track Chi2", 50, 0, 50.0);
+        trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, pMax);
+        trkChi2 = aida.histogram1D("Track Chi2/NDF", 50, 0, 15.0);
 
         plot(plotter, nhits, null, 0);
         plot(plotter, charge, null, 1);
@@ -190,7 +191,7 @@ public class TrackingReconPlots extends Driver {
         heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 2.0);
         hdelXECal = aida.histogram1D("delta X @ ECal (mm) ", 50, -15.0, 15.0);
         hdelYECal = aida.histogram1D("delta Y @ ECal (mm) ", 50, -15.0, 15.0);
-        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 2.5, 50, 0, 2.5);
+        heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 7.0, 50, 0, 7.0);
 
         plotterECal = pfac.create("Cluster Matching");
         plotterECal.createRegions(2, 2);
@@ -203,7 +204,7 @@ public class TrackingReconPlots extends Driver {
 
         // ******************************************************************
         // fix the ranges here...
-        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, 5.0);
+        hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, pMax);
         hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
         hfeePOverE = aida.histogram1D("FEE POverE", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
@@ -338,7 +339,7 @@ public class TrackingReconPlots extends Driver {
             trkPx.fill(momentum.y());
             trkPy.fill(momentum.z());
             trkPz.fill(momentum.x());
-            trkChi2.fill(trk.getChi2());
+            trkChi2.fill(trk.getChi2()/trk.getNDF());            
 
             nhits.fill(trk.getTrackerHits().size());
             charge.fill(-trk.getCharge());

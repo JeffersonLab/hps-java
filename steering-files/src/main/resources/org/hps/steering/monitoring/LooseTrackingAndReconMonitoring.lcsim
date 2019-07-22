@@ -48,8 +48,8 @@
         <!-- Online Monitoring Drivers -->
         <driver name="ClusterPlots"/>
         <driver name="TrackingMonitoring" />
-        <!--        <driver name="TrackingResiduals"/>  
-        <driver name="TrackTime"/>  -->
+        <driver name="TrackingResiduals"/>  
+        <driver name="TrackTime"/>  
         <driver name="FinalStateMonitoring" />
         <driver name="V0Monitoring"/>   
         <driver name="CleanupDriver" />
@@ -72,6 +72,7 @@
    
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
+            
             <debug>false</debug>
         </driver>        
         <driver name="TrackerHitDriverL2L6Hack" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">
@@ -80,9 +81,9 @@
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <clusterTimeCut>40.0</clusterTimeCut>
-            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-            <maxDt>40.0</maxDt>
-            <vThin>0.0</vThin>
+            <clusterAmplitudeCut>800.0</clusterAmplitudeCut>
+            <maxDt>20.0</maxDt>
+            <vThin>7.0</vThin>
             <saveAxialHits>false</saveAxialHits>
         </driver>
              
@@ -202,10 +203,10 @@
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <maxElectronP> 5.0 </maxElectronP>
-            <maxVertexP> 5.0 </maxVertexP>
+            <maxElectronP> 7.0 </maxElectronP>
+            <maxVertexP> 7.0 </maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-            <maxVertexClusterDt> 2.5 </maxVertexClusterDt>           
+            <maxVertexClusterDt> 10.0 </maxVertexClusterDt>           
             <maxMatchDt>1000</maxMatchDt>
             <trackClusterTimeOffset>55</trackClusterTimeOffset>
             <debug>false</debug>
