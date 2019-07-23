@@ -21,6 +21,7 @@ import java.util.Collections;
 //        give the hit to the closest track, unless it fits perfectly to both
 //        refit tracks from which hits were removed
 
+
 public class KalmanPatRecHPS {
 
     public ArrayList<KalTrack> TkrList; // Final good tracks
@@ -31,6 +32,28 @@ public class KalmanPatRecHPS {
         TkrList = new ArrayList<KalTrack>();
         int tkID = 0;
         int nModules = data.size();
+        
+        // Make a list of hits for each tracker layer, 0 through 12
+        // This is needed because one layer can have multiple SiModules
+        // Also make a list of Si modules with hits in each layer
+        int numLayers = 13;
+        ArrayList<ArrayList<KalHit>> lyrHits = new ArrayList<ArrayList<KalHit>>(numLayers);
+        ArrayList<ArrayList<SiModule>> moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
+        for (int lyr = 0; lyr < numLayers; lyr++) {
+            ArrayList<KalHit> hits = new ArrayList<KalHit>();
+            ArrayList<SiModule> modules = new ArrayList<SiModule>();
+            lyrHits.add(hits);
+            moduleList.add(modules);
+        }
+        for (SiModule thisSi : data) {
+            for (Measurement m : thisSi.hits) {
+                KalHit hit = new KalHit(thisSi,m);
+                lyrHits.get(thisSi.Layer).add(hit);
+            }
+            if (thisSi.hits.size()>0) {
+                moduleList.get(thisSi.Layer).add(thisSi);
+            }
+        }
 
         ArrayList<int[]> lyrList = new ArrayList<int[]>(6); // Array of seed strategies
         // Each list should contain 3 stereo layers and 2 non-stereo layers
@@ -91,50 +114,21 @@ public class KalmanPatRecHPS {
                 }
                 ArrayList<SeedTrack> seedList = new ArrayList<SeedTrack>();
                 int[] idx = new int[nLyrs];
-                // int nLyr1 = -1;
-                for (idx[0] = 0; idx[0] < data.get(list[0]).hits.size(); idx[0]++) {
-                    if (data.get(list[0]).hits.get(idx[0]).tracks.size() > 0)
-                        continue;
-                    // if (data.get(list[0]).stereo == 0.) nLyr1 = 0;
-                    for (idx[1] = 0; idx[1] < data.get(list[1]).hits.size(); idx[1]++) {
-                        if (data.get(list[1]).hits.get(idx[1]).tracks.size() > 0)
-                            continue;
-                        // if (data.get(list[1]).stereo == 0.) { // *** this test hardly ever rejects anything ***
-                        // if (nLyr1 < 0) {
-                        // nLyr1 = 1;
-                        // } else if (nLyr1 != 1) {
-                        // if (seedNoGood(list[nLyr1], idx[nLyr1], list[1], idx[1])) continue;
-                        // }
-                        // }
-                        for (idx[2] = 0; idx[2] < data.get(list[2]).hits.size(); idx[2]++) {
-                            if (data.get(list[2]).hits.get(idx[2]).tracks.size() > 0)
-                                continue;
-                            // if (data.get(list[2]).stereo == 0.) {
-                            // if (nLyr1 < 0) {
-                            // nLyr1 = 2;
-                            // } else if (nLyr1 != 2) {
-                            // if (seedNoGood(list[nLyr1], idx[nLyr1], list[2], idx[2])) continue;
-                            // }
-                            // }
-                            for (idx[3] = 0; idx[3] < data.get(list[3]).hits.size(); idx[3]++) {
-                                if (data.get(list[3]).hits.get(idx[3]).tracks.size() > 0)
-                                    continue;
-                                // if (data.get(list[3]).stereo == 0.) {
-                                // if (nLyr1 < 0) {
-                                // nLyr1 = 3;
-                                // } else if (nLyr1 != 3) {
-                                // if (seedNoGood(list[nLyr1], idx[nLyr1], list[3], idx[3])) continue;
-                                // }
-                                // }
-                                for (idx[4] = 0; idx[4] < data.get(list[4]).hits.size(); idx[4]++) {
-                                    if (data.get(list[4]).hits.get(idx[4]).tracks.size() > 0)
-                                        continue;
-                                    // if (data.get(list[4]).stereo == 0.) {
-                                    // if (nLyr1 >= 0 && nLyr1 != 4) if (seedNoGood(list[nLyr1], idx[nLyr1], list[4], idx[4])) continue;
-                                    // }
+                for (idx[0] = 0; idx[0] < lyrHits.get(list[0]).size(); idx[0]++) {
+                    if (lyrHits.get(list[0]).get(idx[0]).hit.tracks.size() > 0) continue; // don't use hits already on tracks
+                    for (idx[1] = 0; idx[1] < lyrHits.get(list[1]).size(); idx[1]++) {
+                        if (lyrHits.get(list[1]).get(idx[1]).hit.tracks.size() > 0) continue;
+                        for (idx[2] = 0; idx[2] < lyrHits.get(list[2]).size(); idx[2]++) {
+                            if (lyrHits.get(list[2]).get(idx[2]).hit.tracks.size() > 0) continue;
+                            for (idx[3] = 0; idx[3] < lyrHits.get(list[3]).size(); idx[3]++) {
+                                if (lyrHits.get(list[3]).get(idx[3]).hit.tracks.size() > 0) continue;
+                                for (idx[4] = 0; idx[4] < lyrHits.get(list[4]).size(); idx[4]++) {
+                                    if (lyrHits.get(list[4]).get(idx[4]).hit.tracks.size() > 0) continue;
                                     ArrayList<int[]> hitList = new ArrayList<int[]>(nLyrs);
                                     for (int i = 0; i < nLyrs; i++) {
-                                        int[] elm = { list[i], idx[i] };
+                                        int[] elm = new int[2];
+                                        elm[0] = data.indexOf(lyrHits.get(list[i]).get(idx[i]).module);
+                                        elm[1] = lyrHits.get(list[i]).get(idx[i]).module.hits.indexOf(lyrHits.get(list[i]).get(idx[i]).hit);
                                         hitList.add(elm);
                                     }
                                     SeedTrack seed = new SeedTrack(data, yOrigin, hitList, false);
@@ -173,9 +167,8 @@ public class KalmanPatRecHPS {
                 for (SeedTrack seed : seedList) {
                     // Skip if too many seed hits are already taken
                     int nTaken = 0;
-                    for (int i = 0; i < nLyrs; i++) {
-                        Measurement m = data.get(list[i]).hits.get(seed.hits[i]);
-                        if (m.tracks.size() > 0)
+                    for (KalHit hit : seed.hits) {
+                        if (hit.hit.tracks.size() > 0)
                             nTaken++;
                     }
                     if (nLyrs - nTaken < minUnique) {
@@ -189,9 +182,9 @@ public class KalmanPatRecHPS {
                     Cov.scale(1000.);
                     StateVector sI = new StateVector(-1, seed.helixParams(), Cov, new Vec(0., 0., 0.), Bmag, tB, pivot, false);
                     if (verbose) {
-                        System.out.format("\n\n Filtering seed with hits ");
-                        for (int j = 0; j < nLyrs; j++) {
-                            System.out.format(" %d ", seed.hits[j]);
+                        System.out.format("\n\n Filtering seed with hits \n");
+                        for (KalHit hit : seed.hits) {
+                            hit.print(" filtered ");
                         }
                         System.out.format("   nTaken = %d\n", nTaken);
                     }
@@ -203,65 +196,83 @@ public class KalmanPatRecHPS {
                     MeasurementSite prevSite = null;
                     int thisSite = -1;
                     boolean success = true;
-                    int idxSeed = 0;
                     int nHits = 0;
                     // Filter from the start of the seed to the last downstream detector layer
-                    for (int lyr = list[0]; lyr < nModules; lyr++) {
-                        SiModule m = data.get(lyr);
+                    layerLoop:
+                    for (int lyr = list[0]; lyr < numLayers; lyr++) {
+                        SiModule m = null;
                         int hitno = -1;
-                        if (idxSeed < nLyrs) {
-                            for (int j = 0; j < nLyrs; j++) {
-                                if (lyr == list[j]) {
-                                    hitno = seed.hits[idxSeed]; // Use exactly the hits present in the 5-hit seed track
-                                    idxSeed++;
-                                    break;
+                        for (int j = 0; j < nLyrs; j++) {
+                            if (lyr == list[j]) {
+                                for (KalHit ht : seed.hits) {
+                                    if (ht.module.Layer == lyr) {
+                                        hitno = ht.module.hits.indexOf(ht.hit);
+                                        m = ht.module;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                        thisSite++;
-                        newSite = new MeasurementSite(lyr, m, mxResid[trial], mxResidShare);
-                        int rF;
-                        if (lyr == list[0]) {
-                            rF = newSite.makePrediction(sI, hitno, nTaken <= mxShared, true);
-                            if (rF > 0) {
-                                if (m.hits.get(newSite.hitID).tracks.size() > 0)
-                                    nTaken++;
-                            } else if (rF < 0) {
+                        
+                        for (int imod=0; imod < moduleList.get(lyr).size(); ++imod) {
+                            SiModule thisSi = moduleList.get(lyr).get(imod);
+                            if (m != null) {
+                                if (thisSi != m) continue;
+                            } else {
+                                m = thisSi;
+                            }
+                            
+                            newSite = new MeasurementSite(lyr, m, mxResid[trial], mxResidShare);
+                            int rF;
+                            if (lyr == list[0]) {
+                                rF = newSite.makePrediction(sI, null, hitno, nTaken <= mxShared, true, imod<moduleList.get(lyr).size()-1);
+                                if (rF > 0) {
+                                    if (m.hits.get(newSite.hitID).tracks.size() > 0) {
+                                        nTaken++;
+                                    }
+                                } else if (rF < 0) {
+                                    if (rF == -2) continue;
+                                    if (verbose) {
+                                        System.out.format("KalmanPatRecHPS: Failed to make initial prediction at site %d, idx=%d. Abort\n", thisSite+1, idx);
+                                    }
+                                    success = false;
+                                    break layerLoop;
+                                }
+                            } else {
+                                rF = newSite.makePrediction(prevSite.aF, prevSite.m, hitno, nTaken <= mxShared, true, imod<moduleList.get(lyr).size()-1);
+                                if (rF > 0) {
+                                    if (m.hits.get(newSite.hitID).tracks.size() > 0) {
+                                        nTaken++;
+                                    }
+                                } else if (rF < 0) {
+                                    if (rF == -2) continue;
+                                    if (verbose) {
+                                        System.out.format("KalmanPatRecHPS: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite+1, idx);
+                                    }
+                                    success = false;
+                                    break layerLoop;
+                                }
+                            }
+                            thisSite++;
+                            nHits += rF;
+                            if (!newSite.filter()) {
                                 if (verbose)
-                                    System.out.format("KalmanPatRecHPS: Failed to make initial prediction at site %d, idx=%d. Abort\n", thisSite, idx);
+                                    System.out.format("KalmanPatRecHPS: Failed to filter at site %d, idx=%d.  Ignore remaining sites\n", thisSite, idx);
                                 success = false;
                                 break;
                             }
-                        } else {
-                            rF = newSite.makePrediction(prevSite.aF, hitno, nTaken <= mxShared, true);
-                            if (rF > 0) {
-                                if (m.hits.get(newSite.hitID).tracks.size() > 0)
-                                    nTaken++;
-                            } else if (rF < 0) {
-                                if (verbose)
-                                    System.out.format("KalmanPatRecHPS: Failed to make prediction at site %d, idx=%d.  Abort\n", thisSite, idx);
-                                success = false;
-                                break;
-                            }
-                        }
-                        nHits += rF;
-                        if (!newSite.filter()) {
-                            if (verbose)
-                                System.out.format("KalmanPatRecHPS: Failed to filter at site %d, idx=%d.  Ignore remaining sites\n", thisSite, idx);
-                            success = false;
+    
+                            // if (verbose) {
+                            // newSite.print("initial filtering");
+                            // }
+                            chi2f += newSite.chi2inc;
+    
+                            sites.add(newSite);
+                            prevSite = newSite;
                             break;
                         }
-
-                        // if (verbose) {
-                        // newSite.print("initial filtering");
-                        // }
-                        chi2f += newSite.chi2inc;
-
-                        sites.add(newSite);
-                        prevSite = newSite;
                     }
-                    if (!success)
-                        continue; // Try the next seed
+                    if (!success) continue; // Try the next seed
                     if (verbose) {
                         System.out.format("\n KalmanPatRecHPS: Fit chi^2 initial filtering = %12.4e with %d hits, %d shared\n", chi2f, nHits, nTaken);
                         for (MeasurementSite site : sites) {
@@ -292,31 +303,31 @@ public class KalmanPatRecHPS {
                             System.out.format("Initial filtering has too large chi^2. Skip to the next seed.\n");
                         continue;
                     }
-                    int[] hits = new int[nModules];
-                    for (int i = 0; i < nModules; i++)
+                    int[] hits = new int[numLayers];
+                    for (int i = 0; i < numLayers; i++) {
                         hits[i] = -1;
+                    }
                     for (MeasurementSite site : sites) { // Save the hit assignments for the next step
                         SiModule m = site.m;
-                        int jdx = m.Layer * 2;
-                        if (m.isStereo)
-                            jdx++;
-                        hits[jdx] = site.hitID;
+                        hits[m.Layer] = site.hitID;
                     }
                     if (verbose) {
                         System.out.format("Hits after initial filtering= ");
-                        for (int i = 0; i < nModules; i++) {
+                        for (int i = 0; i < numLayers; i++) {
                             System.out.format("%2d ", hits[i]);
                         }
                         System.out.format("\n");
                     }
 
-                    startSite = newSite;
-                    sites.clear();
+                    startSite = newSite; // The fit will be restarted at the last site in the previous filtering
 
                     // Restart the fit at the last layer and filter to the 1st layer. Iterate the fit if necessary.
                     double chi2s = 0;
                     nTaken = 0;
                     for (int iteration = 0; iteration < nIterations; iteration++) {
+                        if (iteration == 0) {
+                            sites.clear();
+                        }
                         nHits = 0;
                         int nStereo = 0;
                         StateVector sH = null;
@@ -330,71 +341,85 @@ public class KalmanPatRecHPS {
                             System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
                             // sH.print("starting state vector for iteration");
                         }
-                        if (iteration == 0)
-                            sites.clear();
 
                         chi2f = 0.;
                         success = true;
                         thisSite = -1;
                         // Prediction and filter step
-                        for (int mdx = nModules - 1; mdx >= 0; mdx--) {
-                            SiModule m = data.get(mdx);
-                            int jdx = m.Layer * 2;
-                            if (m.isStereo)
-                                jdx++;
-                            thisSite++;
-                            newSite = new MeasurementSite(thisSite, m, mxResid[trial], mxResidShare);
-                            int rF;
-                            int theHit = -1;
-                            if (iteration > 0) {
-                                theHit = sites.get(thisSite).hitID;
-                            } else if (iteration == 0) {
-                                theHit = hits[jdx];
-                            }
-                            if (thisSite == 0) {
-                                rF = newSite.makePrediction(sH, theHit, nTaken <= mxShared, iteration < nIterations - 1);
-                                if (rF > 0) {
-                                    if (m.hits.get(newSite.hitID).tracks.size() > 0)
-                                        nTaken++;
-                                } else if (rF < 0) {
+                        layerLoop: 
+                        for (int lyr=numLayers-1; lyr >= 0; --lyr) { 
+                            for (int imod=0; imod<moduleList.get(lyr).size(); ++imod) {
+                                SiModule m = moduleList.get(lyr).get(imod);
+                                
+                                newSite = new MeasurementSite(thisSite+1, m, mxResid[trial], mxResidShare);
+                                int rF;
+                                int theHit = -1;
+                                if (iteration > 0) {
+                                    theHit = sites.get(thisSite+1).hitID;
+                                } else  {
+                                    theHit = hits[m.Layer];
+                                }
+                                // Note: for the last module in the list we don't check detector bounds. We have to use something.
+                                if (thisSite < 0) {
+                                    rF = newSite.makePrediction(sH, null, theHit, nTaken <= mxShared, iteration < nIterations - 1, imod < moduleList.get(lyr).size()-1);
+                                    if (rF > 0) {
+                                        if (m.hits.get(newSite.hitID).tracks.size() > 0) { // Check if the hit is shared
+                                            nTaken++;
+                                        }
+                                    } else if (rF < 0) {
+                                        if (rF == -2) {
+                                            continue;  // Try the next module
+                                        }
+                                        if (verbose) {
+                                            System.out.format("KalmanPatRecHPS: Failed to make initial prediction at site %d, iteration %d.  Abort\n", thisSite+1, iteration);
+                                        }
+                                        success = false;
+                                        break layerLoop;
+                                    }
+                                } else {
+                                    rF = newSite.makePrediction(prevSite.aF, prevSite.m, theHit, nTaken <= mxShared, iteration < nIterations - 1, imod < moduleList.get(lyr).size()-1);
+                                    if (rF > 0) {
+                                        if (m.hits.get(newSite.hitID).tracks.size() > 0) {  // Check if the hit is shared
+                                            nTaken++;
+                                        }
+                                    } else if (rF < 0) {
+                                        if (rF == -2) {
+                                            continue; // Try the next module
+                                        }
+                                        if (verbose) {
+                                            System.out.format("KalmanPatRecHPS: Failed to make prediction at site %d, iteration %d.  Abort seed\n", thisSite+1, iteration);
+                                        }
+                                        success = false;
+                                        break layerLoop;
+                                    }
+                                }
+                                thisSite++;
+    
+                                if (!newSite.filter()) {
                                     if (verbose)
-                                        System.out.format("KalmanPatRecHPS: Failed to make initial prediction at site %d, iteration %d.  Abort\n", thisSite, iteration);
+                                        System.out.format("KalmanPatRecHPS: Failed to filter at site %d, iteration %d.  Ignore remaining sites and try next seed.\n", thisSite, iteration);
                                     success = false;
                                     break;
                                 }
-                            } else {
-                                rF = newSite.makePrediction(prevSite.aF, theHit, nTaken <= mxShared, iteration < nIterations - 1);
-                                if (rF > 0) {
-                                    if (m.hits.get(newSite.hitID).tracks.size() > 0)
-                                        nTaken++;
-                                } else if (rF < 0) {
-                                    if (verbose)
-                                        System.out.format("KalmanPatRecHPS: Failed to make prediction at site %d, iteration %d.  Abort seed\n", thisSite, iteration);
-                                    success = false;
-                                    break;
+                                if (rF == 1) {
+                                    nHits++;
+                                    if (m.isStereo) {
+                                        nStereo++;
+                                    }
                                 }
+    
+                                // if (verbose) {
+                                // newSite.print(String.format("Iteration %d: filtering", iteration));
+                                // }
+                                chi2f += newSite.chi2inc;
+                                if (iteration == 0) {
+                                    sites.add(newSite);
+                                } else {
+                                    sites.set(thisSite, newSite);
+                                }
+                                prevSite = newSite;
+                                break;  // Don't look at more modules, as we already found one to use
                             }
-
-                            if (!newSite.filter()) {
-                                if (verbose)
-                                    System.out.format("KalmanPatRecHPS: Failed to filter at site %d, iteration %d.  Ignore remaining sites and try next seed.\n", thisSite, iteration);
-                                success = false;
-                                break;
-                            }
-                            nHits += rF;
-                            if (rF == 1 && m.isStereo)
-                                nStereo++;
-
-                            // if (verbose) {
-                            // newSite.print(String.format("Iteration %d: filtering", iteration));
-                            // }
-                            chi2f += newSite.chi2inc;
-                            if (iteration == 0) {
-                                sites.add(newSite);
-                            } else {
-                                sites.set(thisSite, newSite);
-                            }
-                            prevSite = newSite;
                         }
                         if (!success) {
                             if (verbose)

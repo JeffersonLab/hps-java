@@ -12,7 +12,7 @@ import java.util.Comparator;
 // the global coordinates, in order to optimize its alignment with the field.
 class SeedTrack {
     boolean success;
-    int[] hits; // Save information for the hit used in each layer
+    ArrayList<KalHit> hits; // Save information for the hit used in each layer
     private double drho, phi0, K, dz, tanl; // Helix parameters derived from the line/parabola fits
     private Vec hParm; // Final helix parameters rotated into the field frame
     // private RotMatrix Rot; // Orthogonal transformation from global to helix
@@ -49,8 +49,8 @@ class SeedTrack {
             System.out.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n",
                     yP, a[0], a[1], a[2], a[3], a[4]);
             System.out.format("  seed track hits:");
-            for (int j = 0; j < hits.length; j++) {
-                System.out.format(" %d ", hits[j]);
+            for (int j = 0; j < hits.size(); j++) {
+                System.out.format(" %d %10.5f", hits.get(j).module.Layer,hits.get(j).hit.v);
             }
             System.out.format("\n");
             Vec pInt = planeIntersection(p0);
@@ -60,19 +60,36 @@ class SeedTrack {
             System.out.format("Seed track %s fit unsuccessful.\n", s);
         }
     }
-
+    // Older interface
     SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
             double yOrigin, // New origin along beam to use for the fit
             ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
             boolean verbose // Set true for lots of debug printout
     ) {
+       ArrayList<KalHit> theHits = new ArrayList<KalHit>(hitList.size());
+       for (int i=0; i<hitList.size(); i++) {
+           SiModule thisSi = data.get(hitList.get(i)[0]);
+           KalHit tmpHit = new KalHit(thisSi,thisSi.hits.get(hitList.get(i)[1]));
+           theHits.add(tmpHit);
+       }
+       SeedTracker(theHits, yOrigin, verbose);
+    }
+
+    // Newer interface
+    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, boolean verbose) {
+        SeedTracker(hitList, yOrigin, verbose);
+    }
+    
+    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, boolean verbose) {
+ 
         minDistXZ = 0.25;
         p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
         this.verbose = verbose;
         this.yOrigin = yOrigin;
-        hits = new int[hitList.size()];
-        for (int i = 0; i < hitList.size(); i++) {
-            hits[i] = hitList.get(i)[1];
+        hits = new ArrayList<KalHit>(hitList.size());
+        for (KalHit hit : hitList) {
+            KalHit tmpHit = new KalHit(hit.module,hit.hit);
+            hits.add(tmpHit);
         }
 
         // Fit a straight line in the non-bending plane and a parabola in the bending
@@ -86,12 +103,8 @@ class SeedTrack {
         double[] mTrue = null;
         if (verbose) {
             System.out.format("Entering SeedTrack, yOrigin=%10.7f\n", yOrigin);
-            int n = 0;
-            for (int[] hit : hitList) {
-                System.out.format("      Hit %d is number %d in SiModule %d", n, hit[1], hit[0]);
-                SiModule thisSi = data.get(hit[0]);
-                System.out.format("  Layer=%d, Detector=%d\n", thisSi.Layer, thisSi.detector);
-                ++n;
+            for (KalHit hit : hitList) {
+                hit.print(" in SeedTrack ");
             }
             xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
             zMC = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
@@ -109,8 +122,8 @@ class SeedTrack {
 
         // First find the average field
         Vec Bvec = new Vec(0., 0., 0.);
-        for (int[] pnt : hitList) {
-            SiModule thisSi = data.get(pnt[0]);
+        for (KalHit pnt : hitList) {
+            SiModule thisSi = pnt.module;
             Vec thisB = KalmanInterface.getField(thisSi.toGlobal(new Vec(0., 0., 0.)), thisSi.Bfield);
             Bvec = Bvec.sum(thisB);
         }
@@ -125,22 +138,22 @@ class SeedTrack {
         alpha = 1000.0 * 1.0e9 / (c * Bavg); // Convert from pt in GeV to curvature in mm
 
         N = 0;
-        for (int[] itr : hitList) {
-            SiModule thisSi = data.get(itr[0]);
+        for (KalHit itr : hitList) {
+            SiModule thisSi = itr.module;
             if (!thisSi.isStereo) {
                 Nnonbending++;
             } else {
                 Nbending++;
             }
-            Measurement m = thisSi.hits.get(itr[1]);
+            Measurement m = itr.hit;
             Vec pnt = new Vec(0., m.v, 0.);
             pnt = thisSi.toGlobal(pnt);
             if (verbose) {
                 if (thisSi.isStereo) {
-                    System.out.format("itr=%d %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n", itr[0], itr[1], N,
+                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
                             m.v, thisSi.stereo);
                 } else {
-                    System.out.format("itr=%d %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", itr[0], itr[1], N,
+                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
                             m.v, thisSi.stereo);
                 }
                 pnt.print("point global");
@@ -196,7 +209,7 @@ class SeedTrack {
         chi2 = fit.chiSquared();
 
         // Now, derive the helix parameters and covariance from the two fits
-        double sgn = -1.0; // Careful with this sign--->selects the correct half of the circle!
+        double sgn = -1.0; // Careful with this sign--->selects the correct half of the circle! B in +z direction only
         sol = fit.solution();
         Vec coef = new Vec(sol.v[2], sol.v[3], sol.v[4]); // Parabola coefficients
 
@@ -244,8 +257,8 @@ class SeedTrack {
         // will give trouble here!
 
         // Rotate the result into the frame of the B field at the specified origin
-        int[] itr = hitList.get(0);
-        SiModule firstSi = data.get(itr[0]);
+        KalHit itr = hitList.get(0);
+        SiModule firstSi = itr.module;
         Vec firstB = KalmanInterface.getField(new Vec(0., yOrigin, 0.), firstSi.Bfield);
         if (Math.abs(firstB.v[1] / firstB.v[2]) > 0.002) {
             Vec zhat = firstB.unitVec();

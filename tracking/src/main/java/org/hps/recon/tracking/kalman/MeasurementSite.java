@@ -2,7 +2,7 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.Comparator;
 
-//Kalman fit measurement site, one for each silicon-strip detector that the track crosses
+//Kalman fit measurement site, one for each silicon-strip detector with hits
 class MeasurementSite {
     SiModule m; // Si detector hit data
     int hitID; // hit used on the track (-1 if none)
@@ -100,21 +100,30 @@ class MeasurementSite {
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
-
+    
     int makePrediction(StateVector pS, int hitNumber, boolean sharingOK, boolean pickup) {
         SiModule mPs = null;
-        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup);
+        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, false);
     }
     
-    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup) { // Create predicted state vector by propagating from previous site
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup) {
+        return makePrediction(pS, mPs, hitNumber, sharingOK, false, false);
+    }
+
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds) { // Create predicted state vector by propagating from previous site
         // pS = state vector that we are predicting from
-        // mPS = Si module that we are predicting from, if any					
+        // mPS = Si module that we are predicting from, if any
+        // sharingOK = whether to allow sharing of a hit between multiple tracks
+        // pickup = whether we are doing pattern recognition here and need to pick up hits to add to the track
         verbose = pS.verbose;
         int returnFlag = 0;
         double phi = pS.planeIntersect(m.p);
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
-            if (verbose)
+            if (verbose) {
                 System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+                m.p.print("of intersection");
+                pS.print("missing plane");
+            }
             return -1;
         }
 
@@ -126,6 +135,19 @@ class MeasurementSite {
             Plane pRot = m.p.toLocal(pS.Rot, pS.origin);
             double check = (X0.dif(pRot.X())).dot(pRot.T());
             System.out.format("MeasurementSite.makePrediction: dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
+        }
+        
+        // Check whether the intersection is within the bounds of the detector, with some margin
+        if (checkBounds) {
+            Vec rGlobal = pS.toGlobal(X0);   // Transform from field coordinates to global coordinates
+            Vec rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
+            double tol = 1.0;                // Tolerance on the check, in mm
+            if (rLocal.v[0] < m.xExtent[0]-tol || rLocal.v[0] > m.xExtent[1]+tol) {
+                return -2;
+            }
+            if (rLocal.v[1] < m.yExtent[0]-tol || rLocal.v[1] > m.yExtent[1]+tol) {
+                return -2;
+            }
         }
 
         double deltaE = 0.; // dEdx*thickness/ct;
@@ -147,7 +169,7 @@ class MeasurementSite {
         } else {
             double ct = pMom.unitVec().dot(mPs.p.T());        // cos(theta) at the previous site
             XL = mPs.thickness/radLen/Math.abs(ct);
-        }														
+        }
         aP = pS.predict(thisSite, X0, B, tB, origin, XL, deltaE);
         if (verbose) {
             pS.a.print("original helix in MeasurementSite.makePrediction");
@@ -244,7 +266,7 @@ class MeasurementSite {
 
         predicted = true;
 
-        return returnFlag;
+        return returnFlag;  // -2 for extrapolation not within detector, -1 for error, 1 for a hit was used, 0 no hit used
     }
 
     boolean filter() { // Produce the filtered state vector for this site
@@ -281,7 +303,7 @@ class MeasurementSite {
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
             //if (verbose)
             System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
-            aF.a.print("helix parameters (state vector)");
+            aF.print("missing plane");
             m.p.print("for the intersection");
             //return false;
         }
@@ -417,10 +439,9 @@ class MeasurementSite {
 
     double h(StateVector pS, double phi) { // Predict the measurement for a helix passing through this plane
         Vec rGlobal = pS.toGlobal(pS.atPhi(phi));
-        if (verbose)
-            rGlobal.print("MeasurementSite.h: global intersection");
         Vec rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
         if (verbose) {
+            rGlobal.print("MeasurementSite.h: global intersection");
             rLocal.print("MeasurementSite.h: local intersection");
             System.out.format("MeasurementSite.h: phi=%12.5e, detector coordinate out of the plane = %10.7f, h=%10.7f\n", phi, rLocal.v[2], rLocal.v[1]);
         }

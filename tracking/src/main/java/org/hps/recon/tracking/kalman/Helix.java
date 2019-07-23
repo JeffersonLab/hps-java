@@ -17,15 +17,15 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     private HelixPlaneIntersect hpi;
     RotMatrix R; // Rotation from global coordinates to the B field frame
     Vec origin; // Origin of the B-field reference frame in global coordinates
-    private org.lcsim.geometry.FieldMap fM;
+    private FieldMap fM;
     private Random rndm;
 
     // Construct a helix starting from a momentum vector
-    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, org.lcsim.geometry.FieldMap fM) {
+    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, FieldMap fM, Random rndm) {
         this.Q = Q;
         this.origin = origin.copy();
         this.fM = fM;
-        Vec Bf = KalmanInterface.getField(Xinit, fM);
+        Vec Bf = fM.getField(Xinit);
         B = Bf.mag();
         double c = 2.99793e8;
         alpha = 1000.0 * 1.0E9 / (c * B); // Units are Tesla, mm, GeV
@@ -37,9 +37,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         R = new RotMatrix(uB, vB, tB);
         X0 = R.rotate(Xinit.dif(origin));
         hpi = new HelixPlaneIntersect();
-        long seedLong = 123445439;
-        rndm = new Random();
-        rndm.setSeed(seedLong);
+        this.rndm = rndm;
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         double Pmag = Pinit.mag();
         Vec tnew = R.rotate(Pinit.unitVec(Pmag));
@@ -53,11 +51,11 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
     }
 
     // Construct a helix from given helix parameters (given in B field frame)
-    Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, org.lcsim.geometry.FieldMap fM) {
+    Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, FieldMap fM, Random rndm) {
         this.origin = origin.copy();
         this.fM = fM;
         p = HelixParams.copy();
-        Vec Bf = KalmanInterface.getField(pivotGlobal, fM);
+        Vec Bf = fM.getField(pivotGlobal);
         B = Bf.mag();
         double c = 2.99793e8;
         alpha = 1000.0 * 1.0E9 / (c * B); // Units are Tesla, mm, GeV
@@ -81,13 +79,11 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         // origin.print("new helix origin");
         // pivotGlobal.print("new helix pivot global");
         // X0.print("new helix pivot");
-        long seedLong = 123445439;
-        rndm = new Random();
-        rndm.setSeed(seedLong);
+        this.rndm = rndm;
     }
 
     Helix copy() {
-        return new Helix(p, R.inverseRotate(X0).sum(origin), origin, fM);
+        return new Helix(p, R.inverseRotate(X0).sum(origin), origin, fM, rndm);
     }
 
     void print(String s) {
@@ -100,7 +96,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         System.out.format("         Pivot in B-field frame=%10.5f, %10.5f, %10.5f\n", X0.v[0], X0.v[1], X0.v[2]);
         Vec pivotGlobal = R.inverseRotate(X0).sum(origin);
         System.out.format("         Pivot in global frame=%10.5f, %10.5f, %10.5f\n", pivotGlobal.v[0], pivotGlobal.v[1], pivotGlobal.v[2]);
-        Vec Bf = KalmanInterface.getField(pivotGlobal, fM);
+        Vec Bf = fM.getField(pivotGlobal);
         Bf.print("B field in global frame at the pivot point");
         Vec Bflocal = R.rotate(Bf);
         Bflocal.print("B field in its local frame; should be in +z direction");
@@ -165,24 +161,6 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         return R.inverseRotate(new Vec(px, py, pz));
     }
 
-    double[] gausRan() { // Return two gaussian random numbers
-
-        double x1, x2, w;
-        double[] gran = new double[2];
-        do {
-            x1 = 2.0 * Math.random() - 1.0;
-            x2 = 2.0 * Math.random() - 1.0;
-            // x1 = 2.0 * rndm.nextDouble() - 1.0;
-            // x2 = 2.0 * rndm.nextDouble() - 1.0;
-            w = x1 * x1 + x2 * x2;
-        } while (w >= 1.0);
-        w = Math.sqrt((-2.0 * Math.log(w)) / w);
-        gran[0] = x1 * w;
-        gran[1] = x2 * w;
-
-        return gran;
-    }
-
     Helix randomScat(Plane P, Vec r, Vec pmom, double X) { // Produce a new helix scattered randomly in a given plane P
         // X is the thickness of the silicon material in meters
         // r is the intersection point and pmom the momentum at that point
@@ -211,11 +189,8 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
             theta0 = 0.;
         else
             theta0 = Math.sqrt((X / radLen) / ct) * (0.0136 / pmom.mag()) * (1.0 + 0.038 * Math.log((X / radLen) / ct));
-        double[] gran = gausRan();
-        double thetaX = gran[0] * theta0;
-        double thetaY = gran[1] * theta0;
-        // double thetaX = rndm.nextGaussian() * theta0;
-        // double thetaY = rndm.nextGaussian() * theta0;
+        double thetaX = rndm.nextGaussian() * theta0;
+        double thetaY = rndm.nextGaussian() * theta0;
         // System.out.format("Helix.randomScat: X=%12.5e, ct=%12.5e, theta0=%12.5e, thetaX=%12.5e,
         // thetaY=%12.5e\n",X,ct,theta0,thetaX,thetaY);
         double tx = Math.sin(thetaX);
@@ -230,7 +205,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         // System.out.format("recalculated scattered angle=%10.7f\n", check);
 
         // Rotate the direction into the frame of the new field (evaluated at the new pivot)
-        Vec Bf = KalmanInterface.getField(r, fM);
+        Vec Bf = fM.getField(r);
         double Bnew = Bf.mag();
         Vec tBnew = Bf.unitVec(Bnew);
         Vec yhat = new Vec(0., 1., 0.);
@@ -254,7 +229,7 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         Vec H = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, at the plane intersection point, so drho and dz are zero
         // H.print("scattered helix parameters");
 
-        return new Helix(H, r, P.X(), fM); // Create the new helix with new origin and pivot point
+        return new Helix(H, r, P.X(), fM, rndm); // Create the new helix with new origin and pivot point
     }
 
     /*

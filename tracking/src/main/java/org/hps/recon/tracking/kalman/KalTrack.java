@@ -268,8 +268,8 @@ public class KalTrack {
         }
         // This propagated helix will have its pivot at the origin but is in the origin
         // B-field frame
-        Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
-        double ct = pMom.unitVec().dot(innerSite.m.p.T());
+        //Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
+        //double ct = pMom.unitVec().dot(innerSite.m.p.T());
 
         // XL has to be set to zero below to get the correct result for the covariance,
         // as the Kalman filter has already accounted for scattering in the first layer.

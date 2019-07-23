@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
 //This is for testing only and is not part of the Kalman fitting code
 public class HelixTest { // Program for testing the Kalman fitting code
@@ -36,6 +37,8 @@ public class HelixTest { // Program for testing the Kalman fitting code
                                    // piecewise helix
         boolean verbose = nTrials < 2;
 
+        Random rnd = new Random();
+        
         // Tracking instrument description
         int nPlanes = 6;
         Vec tInt = new Vec(0., 1., 0.); // Nominal detector plane orientation
@@ -193,7 +196,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
             Vec momentum = new Vec(p[i] * initialDirection.v[0], p[i] * initialDirection.v[1],
                     p[i] * initialDirection.v[2]);
             momentum.print("initial helix momentum");
-            TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM);
+            TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM, rnd);
             drho[i] = TkInitial[i].p.v[0];
             phi0[i] = TkInitial[i].p.v[1];
             K[i] = TkInitial[i].p.v[2];
@@ -292,7 +295,7 @@ public class HelixTest { // Program for testing the Kalman fitting code
             // hNew.print("new helix parameters");
             hNew.v[0] = 0.;
             hNew.v[3] = 0.;
-            Helix tkHnew = new Helix(hNew, pvt, pl.X(), fM);
+            Helix tkHnew = new Helix(hNew, pvt, pl.X(), fM, rnd);
             double phiInt6 = tkHnew.planeIntersect(pl6);
             Vec pnt6 = tkHnew.atPhiGlobal(phiInt6);
             // pnt6.print("point at plane 6");

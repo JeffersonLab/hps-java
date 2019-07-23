@@ -117,13 +117,13 @@ class StateVector {
     // site
     StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec origin, double XL, double deltaE) {
         // newSite = index of the new site
-        // pivot = pivot point of the new site in the local coordinates of this state
-        // vector
+        // pivot = pivot point of the new site in the local coordinates of this state vector
         // B and t = magnitude and direction of the magnetic field at the pivot point,
         // in global coordinates
         // XL = thickness of the scattering material
         // deltaE = energy loss in the scattering material
         // point (makes drho and dz zero)
+        //verbose = true;
         StateVector aPrime = new StateVector(newSite, B, t, origin, verbose);
         aPrime.kUp = kUp;
 
@@ -137,8 +137,12 @@ class StateVector {
         } else {
             aPrime.a = this.pivotTransform(pivot, deltaEoE);
         }
-        // if (verbose) aPrime.a.print("pivot transformed helix; should have zero drho
-        // and dz");
+        if (verbose) {
+            aPrime.a.print("StateVector predict: pivot transformed helix; should have zero drho and dz");
+            a.print("old helix");
+            pivot.print("new pivot");
+            X0.print("old pivot");
+        }
 
         F = this.makeF(aPrime.a); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
@@ -190,6 +194,9 @@ class StateVector {
         SquareMatrix Ctot;
         if (XL == 0.) {
             Ctot = this.C;
+            if (verbose) {
+                System.out.format("StateVector.predict: XL=%9.6f\n", XL);
+            }
         } else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
             double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
@@ -204,6 +211,37 @@ class StateVector {
         // site
         aPrime.C = Ctot.similarity(F);
 
+        // Temporary test of fine stepping the pivot transform (for uniform field)
+        // Verified that taking multiple steps gives the same result for both the helix parameters
+        // and the covariance matrix compared to making a single step, for uniform field.
+        /*
+        int Ntr = 5;
+        Vec delta = (pivot.dif(X0)).scale(1.0/(double)Ntr);
+        Vec oldPivot = X0;
+        Vec oldHelix = a;
+        System.out.format("Fine stepping test:\n");
+        pivot.print("target new pivot");
+        delta.print("delta");
+        oldPivot.print("oldPivot");
+        oldHelix.print("oldHelix");
+        SquareMatrix oldC = Ctot;
+        oldC.print("old C");
+        for (int itr=0; itr<Ntr; itr++) {
+            Vec newPivot = oldPivot.sum(delta);
+            Vec newHelix = StateVector.pivotTransform(newPivot, oldHelix, oldPivot, alpha, 0.);
+            SquareMatrix Ftmp = StateVector.makeF(newHelix, oldHelix, alpha);
+            SquareMatrix newC = oldC.similarity(Ftmp);
+            System.out.format("Fine stepping test itr=%d\n", itr);
+            newPivot.print("newPivot");
+            newHelix.print("newHelix");
+            newC.print("newC");
+            oldPivot = newPivot;
+            oldHelix = newHelix;
+            oldC = newC;
+        }
+        aPrime.a.print("transformed helix");
+        aPrime.C.print("transformed covariance");
+        */    
         return aPrime;
     }
 

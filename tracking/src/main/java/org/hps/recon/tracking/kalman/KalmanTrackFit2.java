@@ -157,7 +157,7 @@ public class KalmanTrackFit2 {
             while (itr.hasNext()) {
                 SiModule m = itr.next();
                 if (m.Layer >= 0 && m.hits.size() == 0) {
-                    continue;   //FixMe: eventually need to do prediction for every layer, even if no hit
+                    continue;  //FixMe: eventually need to do prediction for every layer, even if no hit
                 }
                 thisSite++;
                 MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
@@ -182,7 +182,15 @@ public class KalmanTrackFit2 {
                     success = false;
                     break;
                 }
-
+                if (verbose && previousSite != null) {
+                    System.out.format("KalmanTrackFit2: filter at layer %d detector %d\n", m.Layer, m.detector);
+                    previousSite.aF.a.print("old filtered helix");
+                    newSite.aP.a.print("new predicted helix");
+                    newSite.aF.a.print("new filtered helix");
+                    previousSite.aF.C.print("old filtered covariance");
+                    newSite.aP.C.print("new predicted covariance");
+                    newSite.aF.C.print("new filtered covariance");
+                }
                 // if (verbose) {
                 // newSite.print(String.format("Iteration %d: filtering", iteration));
                 // }
@@ -208,13 +216,17 @@ public class KalmanTrackFit2 {
                     if (Double.isNaN(phiF))
                         phiF = 0.;
                     double vPred = site.h(aF, phiF);
-                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt,
-                            m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
+                    double phiP = site.aP.planeIntersect(m.p);
+                    if (Double.isNaN(phiP)) phiP = 0.;
+                    double vPredP = site.h(site.aP, phiP);
+                    System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; vPredP=%10.6f Hits: ", cnt,
+                            m.Layer, m.stereo, site.hitID, site.chi2inc, vPred, vPredP);
                     for (Measurement hit : m.hits) {
                         double resid = hit.v - vPred;
                         System.out.format(" v=%10.6f r=%10.8f #tks=%d,", hit.v, resid, hit.tracks.size());
                     }
                     System.out.format("\n");
+                    if (m.Layer == 11) site.print("for comparison");
                     cnt++;
                 }
             }
@@ -226,7 +238,7 @@ public class KalmanTrackFit2 {
                 if (currentSite.m.Layer < 0 && currentSite.m.hits.size() == 0) {
                     currentSite.aS = currentSite.aF;
                     continue;
-                } 
+                }
 
                 if (nextSite == null) {
                     currentSite.aS = currentSite.aF.copy();
@@ -234,9 +246,7 @@ public class KalmanTrackFit2 {
                 } else {
                     currentSite.smooth(nextSite);
                 }
-
                 chi2s += currentSite.chi2inc;
-
                 if (iteration == nIterations - 1)
                     nHits++;
 

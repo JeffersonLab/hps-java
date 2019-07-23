@@ -8,72 +8,29 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Random;
 
 //This is for testing only and is not part of the Kalman fitting code
 public class PatRecTest {
 
+    Random rnd;
+
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
-        boolean MCplot = false; // true to plot MC tracks, otherwise fitted tracks
+        int nTrials = 1; // The number of test events to generate for fitting
+        boolean MCplot = true; // true to plot MC tracks, otherwise fitted tracks
         boolean perfect = false;
-        double thickness = 0.3; // Silicon thickness in mm
-        if (perfect) {
-            thickness = 0.0000000000001;
-        }
+
         boolean rungeKutta = true; // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = nTrials < 2;
+        
+        // Seed the random number generator
+        long rndSeed = -3263009337738135404L;
+        rnd = new Random();
+        rnd.setSeed(rndSeed);
 
-        int nHelices = 1; // Number of helix tracks to simulate
-        double[] Q = new double[nHelices]; // charge
-        double[] p = new double[nHelices]; // momentum
-        Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
-        double Phi = 90. * Math.PI / 180.;
-        double Theta = 88. * Math.PI / 180.;
-        Vec[] initialDirection = new Vec[nHelices];
-        for (int i = 0; i < nHelices; i++) {
-            double[] gran = gausRan();
-            if (gran[0] > 0.)
-                Q[i] = 1.0;
-            else
-                Q[i] = -1.0;
-            p[i] = 1.0 + gran[1] * 0.02;
-            gran = gausRan();
-            double PhiR = Phi + gran[0] * 0.5 * Math.PI / 180.;
-            double ThetaR = Theta + gran[1] * 0.5 * Math.PI / 180.;
-            initialDirection[i] = new Vec(Math.cos(PhiR) * Math.sin(ThetaR), Math.sin(PhiR) * Math.sin(ThetaR), Math.cos(ThetaR));
-            initialDirection[i].print("initial particle direction");
-        }
-        double[] drho = new double[nHelices]; // { -0., 0., 1. }; // Helix parameters
-        double[] dz = new double[nHelices]; // { 5.0, 1.0, 4.0 };
-        double[] phi0 = new double[nHelices]; // { 0.0, 0.04, 0.05 };
-        double[] tanl = new double[nHelices]; // { 0.1, 0.12, 0.13 };
-        double[] K = new double[nHelices];
-
-        // Tracking instrument description
-        int nPlanes = 6;
-        Vec tInt = new Vec(0., 1., 0.); // Nominal detector plane orientation
-        double[] location = { 100., 200., 300., 500., 700., 900. }; // Detector positions in y
-        double delta = 5.0; // Distance between stereo pairs
-        double[] stereoAngle = { 0.1, 0.1, 0.1, 0.05, 0.05, 0.05 }; // Angles of the stereo layers in radians
-        double resolution = 0.012; // SSD point resolution, in mm
-
-        double[] thetaR1 = new double[nPlanes];
-        double[] phiR1 = new double[nPlanes];
-        double[] thetaR2 = new double[nPlanes];
-        double[] phiR2 = new double[nPlanes];
-        for (int i = 0; i < nPlanes; i++) { // Generate some random misalignment of the detector planes
-            // double[] gran = gausRan();
-            thetaR1[i] = 0.; // Math.abs(gran[0]*0.087);
-            phiR1[i] = 0.; // Math.random()*2.0*Math.PI;
-            thetaR2[i] = 0.; // Math.abs(gran[1]*0.087);
-            phiR2[i] = 0.; // Math.random()*2.0*Math.PI;
-        }
-
-        double[] heights = { 100., 100., 100., 100., 100., 100. };
-        double[] widths = { 150., 150., 150., 300., 300., 300. };
-
+        // Definition of the magnetic field
         String mapType = "binary";
         String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
         FieldMap fM = null;
@@ -86,20 +43,138 @@ public class PatRecTest {
         if (mapType != "binary") {
             fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\fieldmap.bin");
         }
-        Vec Bpivot = fM.getField(helixOrigin);
-        helixOrigin.print("initial pivot point");
-        Bpivot.print("magnetic field at the initial pivot");
-        for (int pln = 0; pln < nPlanes; pln++) {
-            Vec bf = fM.getField(new Vec(0., location[pln], 0.));
-            System.out.format("B field at plane %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
+        
+        // Tracking instrument description
+        double thickness = 0.3; // Silicon thickness in mm
+        if (perfect) {
+            thickness = 0.0000000000001;
+        }
+        ArrayList<SiModule> SiModules = new ArrayList<SiModule>();
+        Plane plnInt;
+        SiModule newModule;
+
+        double yStart = 103.69;
+        plnInt = new Plane(new Vec(3.4814, yStart, 20.781), new Vec(-0.030928, -0.99952, 0.00056169));
+        newModule = new SiModule(1, plnInt, true, -0.100076, 200., 47.17, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(3.7752, 111.75, 20.770), new Vec(0.029092, 0.99957, 0.0031495));
+        newModule = new SiModule(2, plnInt, false, 0.000303, 200., 47.17, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(6.6595, 203.81, 22.296), new Vec(-0.029875, -0.99954, 0.0053661));
+        newModule = new SiModule(3, plnInt, true, -0.099851, 200., 47.17, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(6.7661, 211.87, 22.281), new Vec(0.028940, 0.99958, 0.0028008));
+        newModule = new SiModule(4, plnInt, false, 0.000145, 200., 47.17, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(9.4835, 303.76, 23.796), new Vec(-0.029471, -0.99955, 0.0048642));
+        newModule = new SiModule(5, plnInt, true, -0.100012, 200., 47.17, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(9.7121, 311.63, 23.777), new Vec(0.027875, 0.99961, -0.0027053));
+        newModule = new SiModule(6, plnInt, false, 0.000106, 200., 47.17, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(-35.087, 505.57, 29.328), new Vec(-0.029044, -0.99958, 0.0022785));
+        newModule = new SiModule(7, plnInt, true, -0.049060, 100., 40.34, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(65.791, 502.52, 24.294), new Vec(-0.030402, -0.99954, 0.0012687));
+        newModule = new SiModule(7, plnInt, true, -0.050671, 100., 40.34, thickness, fM, 1);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(-34.848, 513.08, 26.824), new Vec(0.030086, 0.99954, -0.0021664));
+        newModule = new SiModule(8, plnInt, false, 0.000199, 100., 40.34, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(65.958, 510.03, 26.821), new Vec(0.030452, 0.99954, -0.00060382));
+        newModule = new SiModule(8, plnInt, false, 0.000194, 100., 40.34, thickness, fM, 1);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(-29.010, 705.47, 32.358), new Vec(-0.030508, -0.99953, -0.00048837));
+        newModule = new SiModule(9, plnInt, true, -0.050035, 100., 40.34, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(71.778, 702.43, 27.322), new Vec(-0.029627, -0.99956, -0.0015542));
+        newModule = new SiModule(9, plnInt, true, -0.050102, 100., 40.34, thickness, fM, 1);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(-28.846, 713.07, 29.845), new Vec(0.029810, 0.99956, -0.00084633));
+        newModule = new SiModule(10, plnInt, false, 0.000172, 100., 40.34, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(72.034, 710.03, 29.845), new Vec(0.030891, 0.99952, 0.00016092));
+        newModule = new SiModule(10, plnInt, false, 0.000205, 100., 40.34, thickness, fM, 1);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280));
+        newModule = new SiModule(11, plnInt, true, -0.049801, 100., 40.34, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471));
+        newModule = new SiModule(11, plnInt, true, -0.049863, 100., 40.34, thickness, fM, 1);
+        SiModules.add(newModule);
+        
+        plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105));
+        newModule = new SiModule(12, plnInt, false, 0.000107, 100., 40.34, thickness, fM, 0);
+        SiModules.add(newModule);
+
+        plnInt = new Plane(new Vec(78.097, 909.99, 32.835), new Vec(0.030889, 0.99952, -0.00029751));
+        newModule = new SiModule(12, plnInt, false, 0.000071, 100., 40.34, thickness, fM, 1);
+        SiModules.add(newModule);
+
+        int nLayers = 13; // Layer 0 not yet implemented here
+        double resolution = 0.006; // SSD point resolution, in mm
+        double[] location = new double[nLayers];
+        double[] xdet = new double[SiModules.size()];
+        double[] ydet = new double[SiModules.size()];
+        double[] zdet = new double[SiModules.size()];
+        int[] lyr = new int[SiModules.size()];
+        for (int i = 0; i < SiModules.size(); i++) {
+            SiModule si = SiModules.get(i);
+            if (si.Layer >= 0) {
+                location[si.Layer] = si.p.X().v[1];
+            }
+            lyr[i] = si.Layer;
+            xdet[i] = si.p.X().v[0];
+            ydet[i] = si.p.X().v[1];
+            zdet[i] = si.p.X().v[2];
+            System.out.format("Si Module %d, Layer=%d, Detector=%d, location=%8.2f, x=%8.2f, y=%8.2f, z=%8.2f\n", i,
+                    si.Layer, si.detector, si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
 
+        int nHelices = 2; // Number of helix tracks to simulate
+        double[] Q = new double[nHelices]; // charge
+        double[] p = new double[nHelices]; // momentum
+        Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
+        double Phi = 91. * Math.PI / 180.;
+        double Theta = 88. * Math.PI / 180.;
+        Vec[] initialDirection = new Vec[nHelices];
+        for (int i = 0; i < nHelices; i++) {
+            if (rnd.nextGaussian() > 0.)
+                Q[i] = 1.0;
+            else
+                Q[i] = +1.0;
+            p[i] = 2.0 + rnd.nextGaussian() * 0.02;
+            double PhiR = Phi + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+            double ThetaR = Theta + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+            initialDirection[i] = new Vec(Math.cos(PhiR) * Math.sin(ThetaR), Math.sin(PhiR) * Math.sin(ThetaR), Math.cos(ThetaR));
+            initialDirection[i].print("initial particle direction");
+        }
+        double[] drho = new double[nHelices]; // { -0., 0., 1. }; // Helix parameters
+        double[] dz = new double[nHelices]; // { 5.0, 1.0, 4.0 };
+        double[] phi0 = new double[nHelices]; // { 0.0, 0.04, 0.05 };
+        double[] tanl = new double[nHelices]; // { 0.1, 0.12, 0.13 };
+        double[] K = new double[nHelices];        
         Helix[] TkInitial = new Helix[nHelices];
         Vec[] helixMCtrue = new Vec[nHelices];
         for (int i = 0; i < nHelices; i++) {
             Vec momentum = new Vec(p[i] * initialDirection[i].v[0], p[i] * initialDirection[i].v[1], p[i] * initialDirection[i].v[2]);
             momentum.print("initial helix momentum");
-            TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM);
+            TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM, rnd);
             drho[i] = TkInitial[i].p.v[0];
             phi0[i] = TkInitial[i].p.v[1];
             K[i] = TkInitial[i].p.v[2];
@@ -156,59 +231,67 @@ public class PatRecTest {
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
+        // Extrapolate each helix from the origin to the first detector layer
+        SiModule si1 = SiModules.get(0);
+        int plnBegin = si1.Layer;
+        System.out.format("Beginning layer number = %d", plnBegin);
+        Helix[] helixBegin = new Helix[nHelices];
+        for (int i = 0; i < nHelices; i++) {
+            double phi1 = TkInitial[i].planeIntersect(si1.p);
+            if (Double.isNaN(phi1)) {
+                if (verbose)
+                    System.out.format("Oops! No intersection found with initial plane");
+                return;
+            }
+            Vec p1 = new Vec(3);
+            HelixPlaneIntersect hpi1 = new HelixPlaneIntersect();
+            Vec pivotBegin = hpi1.rkIntersect(si1.p, TkInitial[i].atPhiGlobal(0.), TkInitial[i].getMomGlobal(0.), Q[i], fM, p1);
+            helixBegin[i] = new Helix(Q[i], pivotBegin, p1, pivotBegin, fM, rnd);
+            helixBegin[i].print("helixBegin");
+        }
+        
         Helix[] TkSaved = new Helix[nHelices];
-        Helix helixBegin = TkInitial[0].copy();
-        helixBegin.print("helixBegin");
-        TkInitial[0].print("TkInitial");
+        HelixPlaneIntersect hpi = new HelixPlaneIntersect();
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
-            double[] m1 = new double[nPlanes];
-            double[] m2 = new double[nPlanes];
 
             Helix[] Tk = new Helix[nHelices];
             for (int i = 0; i < nHelices; i++) {
-                Tk[i] = TkInitial[i].copy();
+                Tk[i] = helixBegin[i].copy();
                 if (verbose) {
-                    Tk[i].print("copied initial helix");
+                    Tk[i].print("copied beginning helix");
                 }
             }
-
-            // Make an array of Si detector planes
-            ArrayList<SiModule> SiModules = new ArrayList<SiModule>(2 * nPlanes);
-            for (int pln = 0; pln < nPlanes; pln++) {
-                Vec rInt1 = new Vec(0., location[pln], 0.);
-                if (verbose) {
-                    rInt1.print("  Plane first layer location=");
-                }
-
-                // Randomly tilt the measurement planes to mimic misalignment
-                RotMatrix Rt = new RotMatrix(phiR1[pln], thetaR1[pln], -phiR1[pln]);
-                Plane pInt1 = new Plane(rInt1, Rt.rotate(tInt));
-                SiModule newModule1 = new SiModule(pln, pInt1, 0., widths[pln], heights[pln], thickness, fM);
-                SiModules.add(newModule1);
-
-                Vec rInt2 = new Vec(0., location[pln] + delta, 0.);
-
-                RotMatrix Rt2 = new RotMatrix(phiR2[pln], thetaR2[pln], -phiR2[pln]);
-                Plane pInt2 = new Plane(rInt2, Rt2.rotate(tInt));
-                SiModule newModule2 = new SiModule(pln, pInt2, stereoAngle[pln], widths[pln], heights[pln], thickness, fM);
-                SiModules.add(newModule2);
+            
+            for (SiModule thisSi : SiModules) { // Zero out the hit lists from previous event
+                thisSi.reset();
             }
-
+            
             // Populate the Si detector planes with hits from helices scattered at each plane
-            for (int ih = 0; ih < nHelices; ih++) {
-                HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+            for (int ih = 0; ih < nHelices; ih++) {               
                 if (verbose) {
                     printWriter2.format("$helix%d << EOD\n", ih);
                 }
-                for (int pln = 0; pln < nPlanes; pln++) {
+                if (verbose) {
+                    System.out.format("Begin simulation of helix number %d\n", ih);
+                }
+                for (int icm = 0; icm < SiModules.size(); icm++) {
+                    SiModule thisSi = SiModules.get(icm);
+                    if (thisSi.Layer < 0) {
+                        continue;
+                    }
+                    int pln = thisSi.Layer;
+                    int det = thisSi.detector;
                     if (verbose) {
-                        System.out.format("Extrapolating to plane #%d\n", pln);
+                        System.out.format("Extrapolating to plane #%d, detector %d\n", pln, det);
                         Tk[ih].print("this plane");
                     }
-                    SiModule thisSi = SiModules.get(2 * pln);
                     double phiInt = Tk[ih].planeIntersect(thisSi.p);
-                    if (Double.isNaN(phiInt))
+                    if (Double.isNaN(phiInt)) {
+                        if (verbose) {
+                            System.out.format("Plane %d, detector %d, no intersection found",pln,det);
+                        }
                         break;
+                    }
                     if (verbose) {
                         System.out.format("Plane %d, phiInt1= %12.10f\n", pln, phiInt);
                     }
@@ -245,127 +328,88 @@ public class PatRecTest {
                     }
                     Vec rDet = thisSi.toLocal(rscat);
                     if (verbose) {
-                        thisSi.p.print("first layer");
+                        thisSi.p.print(String.format("layer %d, detector %d", pln, det));
                         rscat.print("       Gobal intersection point 1");
                         rDet.print("       helix intersection in detector frame");
+                    }
+                    // Check whether the intersection is within the bounds of the detector
+                    if (rDet.v[0] > thisSi.xExtent[1] || rDet.v[0] < thisSi.xExtent[0] || rDet.v[1] > thisSi.yExtent[1]
+                            || rDet.v[1] < thisSi.yExtent[0]) {
+                        if (verbose) {
+                            System.out.format("     Intersection point is outside of the detector %d in layer %d\n", det,
+                                    pln);
+                        }
+                        continue;
                     }
                     double[] gran = new double[2];
                     if (perfect) {
                         gran[0] = 0.;
                         gran[1] = 0.;
                     } else {
-                        gran = gausRan();
+                        //gran = gausRan();
+                        gran[0] = rnd.nextGaussian();
+                        gran[1] = rnd.nextGaussian();
                     }
-                    m1[pln] = rDet.v[1] + resolution * gran[0];
+                    double m1 = rDet.v[1] + resolution * gran[0];
                     if (verbose) {
-                        System.out.format("       Measurement 1= %10.7f,  Truth=%10.7f\n", m1[pln], rDet.v[1]);
+                        System.out.format("       Measurement 1= %10.7f,  Truth=%10.7f\n", m1, rDet.v[1]);
                     }
                     Measurement md = null;
                     for (Measurement mm : thisSi.hits) {
-                        if (Math.abs(mm.v - m1[pln]) < 0.04) { // assume hits overlap if less than 40 microns apart
+                        if (Math.abs(mm.v - m1) < 0.04) { // assume hits overlap if less than 40 microns apart
                             md = mm;
                             break;
                         }
                     }
                     if (md != null) {
-                        md.v = 0.5 * (md.v + m1[pln]); // overlapping hits
-                    } else {
-                        Measurement thisM1 = new Measurement(m1[pln], resolution, rscat, rDet.v[1]);
-                        thisSi.addMeasurement(thisM1);
-                    }
-
-                    Vec t1 = Tk[ih].getMomGlobal(phiInt).unitVec();
-                    if (verbose) {
-                        Tk[ih].getMom(phiInt).print("helix local momentum before scatter");
-                        Tk[ih].getMomGlobal(phiInt).print("helix global momentum before scatter");
-                    }
-                    Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
-                    if (pln == 0) {
-                        TkSaved[ih] = Tk[ih].copy();
-                    }
-                    Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
-                    if (verbose) {
-                        Tk[ih].print("scattered from the first layer of the detector plane");
-                        Vec p2 = Tk[ih].getMomGlobal(0.);
-                        p2.print("momentum after scatter");
-                        double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
-                        System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng, p2.mag());
-                    }
-
-                    // Now for the stereo layer
-                    thisSi = SiModules.get(2 * pln + 1);
-                    phiInt = Tk[ih].planeIntersect(thisSi.p);
-                    if (Double.isNaN(phiInt))
-                        break;
-                    if (verbose) {
-                        System.out.format("Plane %d, phiInt2= %f\n", pln, phiInt);
-                        double dPhi = (phiInt) / 5.0;
-                        int npnts = 0;
-                        for (double phi = 0.; phi < phiInt; phi = phi + dPhi) {
-                            npnts++;
-                            Vec r = Tk[ih].atPhiGlobal(phi);
-                            printWriter2.format(" %10.6f %10.6f %10.6f\n", r.v[0], r.v[1], r.v[2]);
-                            if (npnts > 1000)
-                                break;
-                        }
-                    }
-                    if (rungeKutta) {
-                        rscat = hpi.rkIntersect(thisSi.p, Tk[ih].atPhiGlobal(0.), Tk[ih].getMomGlobal(0.), Q[ih], fM, pInt);
-                    } else {
-                        rscat = Tk[ih].atPhiGlobal(phiInt);
-                        pInt = Tk[ih].getMomGlobal(phiInt);
-                    }
-                    // check = (rscat.dif(thisSi.p.X()).dot(thisSi.p.T()));
-                    // System.out.format("Dot product of vector in plane with plane
-                    // direction=%12.8e, should be zero\n", check);
-                    if (verbose) {
-                        thisSi.p.print("Second layer");
-                        rscat.print("       Global intersection point 2");
-                        if (rungeKutta) {
-                            Vec rIntTmp = Tk[ih].atPhiGlobal(phiInt);
-                            double errX = rscat.dif(rIntTmp).mag();
-                            System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d stereo\n", errX, pln);
-                        }
-                    }
-
-                    Vec rscatRot = thisSi.toLocal(rscat);
-                    if (verbose) {
-                        rscatRot.print("       helix intersection in detector frame");
-                    }
-                    m2[pln] = rscatRot.v[1] + resolution * gran[1];
-                    if (verbose)
-                        System.out.format("       Measurement 2= %10.7f, Truth=%10.7f\n", m2[pln], rscatRot.v[1]);
-                    md = null;
-                    for (Measurement mm : thisSi.hits) {
-                        if (Math.abs(mm.v - m2[pln]) < 0.04) { // assume hits overlap if less than 40 microns apart
-                            md = mm;
-                            break;
-                        }
-                    }
-                    if (md != null) {
-                        md.v = 0.5 * (md.v + m2[pln]); // overlapping hits
-                    } else {
-                        Measurement thisM2 = new Measurement(m2[pln], resolution, rscat, rscatRot.v[1]);
-                        thisSi.addMeasurement(thisM2);
-                    }
-                    if (pln != nPlanes - 1) {
-                        t1 = Tk[ih].getMomGlobal(phiInt).unitVec();
-                        Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
-                        t2 = Tk[ih].getMomGlobal(0.).unitVec();
+                        md.v = 0.5 * (md.v + m1); // overlapping hits, take the average
+                        md.sigma *= 1.5;          // reduce resolution for overlapping hits
                         if (verbose) {
-                            Tk[ih].print("scattered from the second layer of the measurement plane");
+                            System.out.format("Overlapping with hit at v=%8.4f\n", md.v);
+                        }
+                    } else {
+                        Measurement thisM1 = new Measurement(m1, resolution, rscat, rDet.v[1]);
+                        thisSi.addMeasurement(thisM1);
+                        if (verbose) {
+                            System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size());
+                        }
+                    }
+
+                    if (icm+1 < SiModules.size()) {
+                        Vec t1 = Tk[ih].getMomGlobal(phiInt).unitVec();
+                        if (verbose) {
+                            Tk[ih].getMom(phiInt).print("helix local momentum before scatter");
+                            Tk[ih].getMomGlobal(phiInt).print("helix global momentum before scatter");
+                        }
+                        // Scatter the helix before going on to the next plane
+                        Tk[ih] = Tk[ih].randomScat(thisSi.p, rscat, pInt, thisSi.thickness);
+                        if (pln == plnBegin) {
+                            TkSaved[ih] = Tk[ih].copy();
+                            if (verbose) {
+                                System.out.format("Saving helix after scatter in plane %d\n",pln);
+                            }
+                        }
+                        Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
+                        if (verbose) {
+                            Tk[ih].print("scattered from the detector plane");
+                            Vec p2 = Tk[ih].getMomGlobal(0.);
+                            p2.print("momentum after scatter");
                             double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
-                            System.out.format("Scattering angle from 2nd layer=%10.7f\n", scattAng);
+                            System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng, p2.mag());
                         }
                     }
                 }
-                if (verbose)
+                if (verbose) {
                     printWriter2.format("EOD\n");
+                }
             }
 
             if (verbose) {
                 printWriter2.format("$pnts << EOD\n");
                 System.out.format("\n\n ******* Printing out the list of Si modules: ********\n");
+                for (SiModule si : SiModules) {
+                    System.out.format("Layer %d, size of hit list=%d\n", si.Layer, si.hits.size());
+                }
                 for (SiModule si : SiModules) {
                     si.print("in list");
                     for (Measurement mm : si.hits) {
@@ -517,7 +561,7 @@ public class PatRecTest {
         hYerr.plot(path + "yErr.gp", true, " ", " ");
         hZerr.plot(path + "zErr.gp", true, " ", " ");
     }
-
+/*
     static double[] gausRan() { // Return two gaussian random numbers
 
         double x1, x2, w;
@@ -533,7 +577,8 @@ public class PatRecTest {
 
         return gran;
     }
-
+ */
+/*
     static double[] parabolaToCircle(double alpha, double sgn, Vec coef) {
         double R = -sgn / (2.0 * coef.v[2]);
         double yc = sgn * R * coef.v[1];
@@ -546,5 +591,5 @@ public class PatRecTest {
         r[0] = xc / Math.cos(r[1]) - R;
         return r;
     }
-
+*/
 }

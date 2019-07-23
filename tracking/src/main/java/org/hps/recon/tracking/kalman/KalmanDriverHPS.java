@@ -234,10 +234,10 @@ public class KalmanDriverHPS extends Driver {
             }
             
             // Associate the GBL track with the MC particle
-            TrackTruthMatching MCparticleMatch = null;
-            if (trackerHits != null && rawtomc.size()>0) {
-                MCparticleMatch = new TrackTruthMatching(trk, rawtomc, trackerHits);
-            }
+            //TrackTruthMatching MCparticleMatch = null;
+            //if (trackerHits != null && rawtomc.size()>0) {
+            //    MCparticleMatch = new TrackTruthMatching(trk, rawtomc, trackerHits);
+            //}
             
             List<MCParticle> particles = null;
             if (event.hasCollection(MCParticle.class, "MCParticle")) {
@@ -435,7 +435,7 @@ public class KalmanDriverHPS extends Driver {
                     }
                     aida.histogram1D("12-hit Kalman Track Chi2").fill(fullKalmanTrack.chi2);
                     aida.histogram1D("12-hit GBL Track Chi2").fill(trk.getChi2());
-                    
+/*                    
                     if (MCparticleMatch != null && particles != null) {
                         Hep3Vector MCp = MCparticleMatch.getMCParticle().getMomentum();
                         double pmagMC = MCp.magnitude();
@@ -446,6 +446,7 @@ public class KalmanDriverHPS extends Driver {
                         double pGBLmag  = Math.sqrt(pBL[0]*pBL[0] + pBL[1]*pBL[1] + pBL[2]*pBL[2]);                  
                         aida.histogram1D("12-hit GBL p error").fill(100.0*(pGBLmag-pmagMC)/pmagMC);
                     }
+                    */
                 } else if (fullKalmanTrack.nHits == 10) {
                     for (MeasurementSite site : ktf2.sites) {
                         aida.histogram1D(String.format("10-hit Kalman Track Chi2 Layer %d", site.m.Layer)).fill(site.chi2inc);
