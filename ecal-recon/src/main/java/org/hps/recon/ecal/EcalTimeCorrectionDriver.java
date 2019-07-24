@@ -76,8 +76,6 @@ public class EcalTimeCorrectionDriver extends Driver {
      * Time walk parameters for mode 1. These parameters were dervied from data for both 2015 and 2016 running.
      */
     public void detectorChanged(Detector detector) {
-        System.out.println("detector changed");
-
         if (useTimeWalkCondition) {
             DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
             EcalTimeWalkCollection timeWalks = manager.getCachedConditions(EcalTimeWalkCollection.class,
