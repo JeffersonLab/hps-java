@@ -33,7 +33,7 @@ public class TrackResiduals extends Driver {
     String gblStripClusterDataCollectionName = "GBLStripClusterData";
     private AIDA aida = AIDA.defaultInstance();
     int nEvents = 0;
-    int nmodules = 6;
+    int nmodules = 7;
 
     IPlotter plotterResX;
     IPlotter plotterResY;
@@ -81,33 +81,33 @@ public class TrackResiduals extends Driver {
         fitFactory = aida.analysisFactory().createFitFactory();
         plotterResX = pfac.create("X Residuals");
         plotterResY = pfac.create("Y Residuals");
-        plotterResX.createRegions(3, 4);
-        plotterResY.createRegions(3, 4);
+        plotterResX.createRegions(4, 4);
+        plotterResY.createRegions(4, 4);
 
-        for (int i = 1; i <= nmodules; i++) {
-            xresidTop[i - 1] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true),
+        for (int i = 0; i < nmodules; i++) {
+            xresidTop[i] = aida.histogram1D("Module " + i + " Top x Residual", 50, -getRange(i, true),
                     getRange(i, true));
-            yresidTop[i - 1] = aida.histogram1D("Module " + i + " Top y Residual", 50, -getRange(i, false),
+            yresidTop[i] = aida.histogram1D("Module " + i + " Top y Residual", 50, -getRange(i, false),
                     getRange(i, false));
-            xresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot x Residual", 50, -getRange(i, true),
+            xresidBot[i] = aida.histogram1D("Module " + i + " Bot x Residual", 50, -getRange(i, true),
                     getRange(i, true));
-            yresidBot[i - 1] = aida.histogram1D("Module " + i + " Bot y Residual", 50, -getRange(i, false),
+            yresidBot[i] = aida.histogram1D("Module " + i + " Bot y Residual", 50, -getRange(i, false),
                     getRange(i, false));
 
-            fxresidTop[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
-            fyresidTop[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
-            fxresidBot[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
-            fyresidBot[i - 1] = functionFactory.createFunctionByName("Gaussian", "G");
+            fxresidTop[i] = functionFactory.createFunctionByName("Gaussian", "G");
+            fyresidTop[i] = functionFactory.createFunctionByName("Gaussian", "G");
+            fxresidBot[i] = functionFactory.createFunctionByName("Gaussian", "G");
+            fyresidBot[i] = functionFactory.createFunctionByName("Gaussian", "G");
 
-            plot(plotterResX, xresidTop[i - 1], null, computePlotterRegion(i - 1, true));
-            plot(plotterResX, xresidBot[i - 1], null, computePlotterRegion(i - 1, false));
-            plot(plotterResY, yresidTop[i - 1], null, computePlotterRegion(i - 1, true));
-            plot(plotterResY, yresidBot[i - 1], null, computePlotterRegion(i - 1, false));
+            plot(plotterResX, xresidTop[i], null, computePlotterRegion(i, true));
+            plot(plotterResX, xresidBot[i], null, computePlotterRegion(i, false));
+            plot(plotterResY, yresidTop[i], null, computePlotterRegion(i, true));
+            plot(plotterResY, yresidBot[i], null, computePlotterRegion(i, false));
 
-            plot(plotterResX, fxresidTop[i - 1], null, computePlotterRegion(i - 1, true));
-            plot(plotterResX, fxresidBot[i - 1], null, computePlotterRegion(i - 1, false));
-            plot(plotterResY, fyresidTop[i - 1], null, computePlotterRegion(i - 1, true));
-            plot(plotterResY, fyresidBot[i - 1], null, computePlotterRegion(i - 1, false));
+            plot(plotterResX, fxresidTop[i], null, computePlotterRegion(i, true));
+            plot(plotterResX, fxresidBot[i], null, computePlotterRegion(i, false));
+            plot(plotterResY, fyresidTop[i], null, computePlotterRegion(i, true));
+            plot(plotterResY, fyresidBot[i], null, computePlotterRegion(i, false));
 
         }
 
@@ -129,17 +129,16 @@ public class TrackResiduals extends Driver {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-        if (!event.hasCollection(GenericObject.class, trackTimeDataCollectionName))
+        if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName)){
+            System.out.println("No residuals found for this event???");
             return;
-        if (!event.hasCollection(GenericObject.class, trackResidualsCollectionName))
-            return;
+        }
         nEvents++;
         List<GenericObject> trdList = event.get(GenericObject.class, trackResidualsCollectionName);
         for (GenericObject trd : trdList) {
             int nResid = trd.getNDouble();
             int isBot = trd.getIntVal(trd.getNInt() - 1);// last Int is the top/bottom flag
-            for (int i = 0; i < nResid; i++)
-
+            for (int i = 0; i < nResid; i++)               
                 if (isBot == 1) {
                     xresidBot[i].fill(trd.getDoubleVal(i));// x is the double value in the generic object
                     yresidBot[i].fill(trd.getFloatVal(i));// y is the float value in the generic object
@@ -210,35 +209,43 @@ public class TrackResiduals extends Driver {
     }
 
     private double getRange(int layer, boolean isX) {
-        double range = 2.5;
-        if (isX) {
-            if (layer == 1)
-                return 0.5;
-            if (layer == 2)
-                return 0.5;
-            if (layer == 3)
-                return 0.5;
-            if (layer == 4)
-                return 1.0;
-            if (layer == 5)
-                return 1.0;
-            if (layer == 6)
-                return 1.0;
-        } else {
-            if (layer == 1)
-                return 0.005;
-            if (layer == 2)
-                return 0.5;
-            if (layer == 3)
-                return 0.5;
-            if (layer == 4)
-                return 1.0;
-            if (layer == 5)
-                return 1.0;
-            if (layer == 6)
-                return 1.5;
-        }
-        return range;
+
+        if (isX)
+            return 1.0;
+        else 
+            return 0.4;
+//        double scalefactor=1;
+//        double range = 2.5;
+//        layer=layer+1;//this is dumb but I didn't want to change all the numbers below
+//        if (isX) {
+//            if (layer == 1)
+//                return scalefactor*0.5;
+//            if (layer == 2)
+//                return scalefactor*0.5;
+//            if (layer == 3)
+//                return scalefactor*0.5;
+//            if (layer == 4)
+//                return scalefactor*1.0;
+//            if (layer == 5)
+//                return scalefactor*1.0;
+//            if (layer == 6)
+//                return scalefactor*1.0;
+//        } else {
+//            if (layer == 1)
+//                   return scalefactor*0.4;
+////                return scalefactor*0.005;
+//            if (layer == 2)
+//                return scalefactor*0.5;
+//            if (layer == 3)
+//                return scalefactor*0.5;
+//            if (layer == 4)
+//                return scalefactor*1.0;
+//            if (layer == 5)
+//                return scalefactor*1.0;
+//            if (layer == 6)
+//                return scalefactor*1.5;
+//        }
+//        return scalefactor*range;
 
     }
 

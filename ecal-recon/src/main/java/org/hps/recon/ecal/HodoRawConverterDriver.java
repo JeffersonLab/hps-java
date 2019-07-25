@@ -47,20 +47,22 @@ public class HodoRawConverterDriver extends Driver {
     public void setUseRunningPedestal(boolean useRunningPedestal) {
         converter.setUseRunningPedestal(useRunningPedestal);
     }
+    
+    public void setUseUserGains(double aUserGain){
+        converter.setUseUserGain(aUserGain);
+    }
 
     public void setTETAllChannels(int arg_tet) {
-        if (arg_tet <= 0) {
+        if (arg_tet <= 0)
             throw new RuntimeException("TET value should be a positive integer");
-        }
 
         converter.setTETAllChannels(arg_tet);
     }
 
     @Override
     public void startOfData() {
-        if (hodoCollectionName == null) {
+        if (hodoCollectionName == null)
             throw new RuntimeException("The parameter hodoCollectionName was not set!");
-        }
 
     }
 
@@ -97,9 +99,10 @@ public class HodoRawConverterDriver extends Driver {
             int[] hit_ix = new int[]{};           // This array contains ix of hits
             int[] hit_iy = new int[]{};           // THis array contains iy of hits
             int[] hit_layer = new int[]{};        // THis array contains layer of hits
-            int[] hit_hole = new int[]{};         // THis array contains the hole of hits
+            int[] hit_hole = new int[]{};         // THis array contains the hole of hits           
             double[] hit_Energy = new double[]{}; // THis array contains the energy of hits
             double[] hit_Time = new double[]{};   // THis array contains the Time of hits
+            int[] hit_detid = new int[]{};         // THis array contains the detector id of hits
 
             // ======== Defining GenericObjects for Hodo Hit components, ix, it etc
             SimpleGenericObject generic_ix = new SimpleGenericObject();
@@ -108,7 +111,7 @@ public class HodoRawConverterDriver extends Driver {
             SimpleGenericObject generic_hole = new SimpleGenericObject();
             SimpleGenericObject generic_energy = new SimpleGenericObject();
             SimpleGenericObject generic_time = new SimpleGenericObject();
-
+            SimpleGenericObject generic_detid = new SimpleGenericObject();
             // ====== In order to write generic object in the file, 1st we should add generic objects
             // ====== in the List, so we will add above genericObjects into the list below
             List<SimpleGenericObject> hodo_hit_list = new ArrayList();
@@ -126,6 +129,8 @@ public class HodoRawConverterDriver extends Driver {
 
                 int[] hodo_identifiers = converter.getHodoIdentifiers(cellID);
 
+                int dEId = (int) hit.getDetectorElement().getIdentifier().getValue();
+//                System.out.println("HodoRawConverter:: dEId = "+dEId);
                 //System.out.println(Arrays.toString(hodo_identifiers));
                 // ====== Get Number of Threshold Crossings ==========
                 ArrayList<Integer> thr_crosings = converter.FindThresholdCrossings(hit, ped);
@@ -148,6 +153,7 @@ public class HodoRawConverterDriver extends Driver {
                     hit_hole = ArrayUtils.add(hit_hole, hodo_identifiers[3]);
                     hit_Energy = ArrayUtils.add(hit_Energy, energy);
                     hit_Time = ArrayUtils.add(hit_Time, time);
+                    hit_detid = ArrayUtils.add(hit_detid, dEId);
                 }
 
                 hodoHits.addAll(hits_in_this_channel);
@@ -169,6 +175,7 @@ public class HodoRawConverterDriver extends Driver {
             generic_hole.setIntValues(hit_hole);
             generic_energy.setDoubleValues(hit_Energy);
             generic_time.setDoubleValues(hit_Time);
+            generic_detid.setIntValues(hit_detid);
 
             hodo_hit_list.add(generic_ix);
             hodo_hit_list.add(generic_iy);
@@ -176,6 +183,7 @@ public class HodoRawConverterDriver extends Driver {
             hodo_hit_list.add(generic_hole);
             hodo_hit_list.add(generic_energy);
             hodo_hit_list.add(generic_time);
+            hodo_hit_list.add(generic_detid);
 
             // Writing HodoHit data into the event
             event.put("HodoGenericHits", hodo_hit_list, SimpleGenericObject.class, 0);
@@ -195,14 +203,14 @@ public class HodoRawConverterDriver extends Driver {
             int[] cl_layer = new int[]{};        // THis array contains layer of hits
             double[] cl_Energy = new double[]{}; // THis array contains the energy of hits
             double[] cl_Time = new double[]{};   // THis array contains the Time of hits
-
+            int[] cl_detid = new int[]{};
             // ======== Defining GenericObjects for Hodo Hit components, ix, it etc
             SimpleGenericObject generic_cl_ix = new SimpleGenericObject();
             SimpleGenericObject generic_cl_iy = new SimpleGenericObject();
             SimpleGenericObject generic_cl_layer = new SimpleGenericObject();
             SimpleGenericObject generic_cl_energy = new SimpleGenericObject();
             SimpleGenericObject generic_cl_time = new SimpleGenericObject();
-
+            SimpleGenericObject generic_cl_detid = new SimpleGenericObject();
             ArrayList<Integer> paired = new ArrayList<Integer>();
 
             int n_hits = hit_ix.length;
@@ -210,9 +218,8 @@ public class HodoRawConverterDriver extends Driver {
             for (int i = 0; i < n_hits; i++) {
 
                 // Check if this hit is already paired, if so, then let's pass to the next hit
-                if (paired.contains(i)) {
+                if (paired.contains(i))
                     continue;
-                }
 
                 // ====== These tiles are readout with a single PMT channlel, and therefore for these 
                 // ====== tiles cluster and the hit are identical 
@@ -223,6 +230,7 @@ public class HodoRawConverterDriver extends Driver {
                     cl_layer = ArrayUtils.add(cl_layer, hit_layer[i]);
                     cl_Energy = ArrayUtils.add(cl_Energy, hit_Energy[i]);
                     cl_Time = ArrayUtils.add(cl_Time, hit_Time[i]);
+                    cl_detid = ArrayUtils.add(cl_detid, hit_detid[i]);
 
                     continue;
                 }
@@ -232,9 +240,8 @@ public class HodoRawConverterDriver extends Driver {
                 for (int j = i + 1; j < n_hits; j++) {
 
                     // Check if this hit is already paired, if so, then let's pass to the next hit
-                    if (paired.contains(j)) {
+                    if (paired.contains(j))
                         continue;
-                    }
 
                     if (hit_ix[i] == hit_ix[j] && hit_iy[i] == hit_iy[j] && hit_layer[i] == hit_layer[j]
                             && Math.abs(hit_Time[i] - hit_Time[j]) < HodoConstants.cl_hit_dtMax && (hit_hole[i] * hit_hole[j] == -1)) {
@@ -245,6 +252,7 @@ public class HodoRawConverterDriver extends Driver {
                         cl_ix = ArrayUtils.add(cl_ix, hit_ix[i]);
                         cl_iy = ArrayUtils.add(cl_iy, hit_iy[i]);
                         cl_layer = ArrayUtils.add(cl_layer, hit_layer[i]);
+                        cl_detid = ArrayUtils.add(cl_detid, hit_detid[i]);
 
                         double energy = HodoConstants.cl_Esum_scale * (hit_Energy[i] + hit_Energy[j]) / 2.;
 
@@ -266,6 +274,7 @@ public class HodoRawConverterDriver extends Driver {
                     cl_layer = ArrayUtils.add(cl_layer, hit_layer[i]);
                     cl_Energy = ArrayUtils.add(cl_Energy, hit_Energy[i]);
                     cl_Time = ArrayUtils.add(cl_Time, hit_Time[i]);
+                    cl_detid = ArrayUtils.add(cl_detid, hit_detid[i]);
                 }
 
             }
@@ -276,6 +285,7 @@ public class HodoRawConverterDriver extends Driver {
             generic_cl_layer.setIntValues(cl_layer);
             generic_cl_energy.setDoubleValues(cl_Energy);
             generic_cl_time.setDoubleValues(cl_Time);
+            generic_cl_detid.setIntValues(cl_detid);
 
             // ====== In order to write generic object in the file, 1st we should add generic objects
             // ====== in the List, so we will add above genericObjects into the list below
@@ -286,6 +296,7 @@ public class HodoRawConverterDriver extends Driver {
             hodo_cl_list.add(generic_cl_layer);
             hodo_cl_list.add(generic_cl_energy);
             hodo_cl_list.add(generic_cl_time);
+            hodo_cl_list.add(generic_cl_detid);
 
             // Writing HodoCluster data into the event
             event.put("HodoGenericClusters", hodo_cl_list, SimpleGenericObject.class, 0);

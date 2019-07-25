@@ -39,7 +39,10 @@ public class SVTOpeningAlignment extends Driver {
     private String l4to6CollectionName = "L4to6Tracks";
     private String outputPlots = null;
     IPlotter plotterTop;
+    IPlotter plotterParsTop;
     IPlotter plotterBot;
+    IPlotter plotterParsBot;
+
     IHistogram1D nTracks46Top;
     IHistogram1D nTracks03Top;
     IHistogram1D nTracks46Bot;
@@ -53,11 +56,19 @@ public class SVTOpeningAlignment extends Driver {
     IHistogram1D delwTop;
     IHistogram1D dellambdaTop;
     IHistogram1D delz0Top;
+    IHistogram1D lambdaTopL03;
+    IHistogram1D z0TopL03;
+    IHistogram1D lambdaTopL46;
+    IHistogram1D z0TopL46;
     IHistogram1D deld0Bot;
     IHistogram1D delphiBot;
     IHistogram1D delwBot;
     IHistogram1D dellambdaBot;
     IHistogram1D delz0Bot;
+    IHistogram1D lambdaBotL03;
+    IHistogram1D z0BotL03;
+    IHistogram1D lambdaBotL46;
+    IHistogram1D z0BotL46;
 
     IPlotterFactory plotterFactory;
     IFunctionFactory functionFactory;
@@ -111,8 +122,8 @@ public class SVTOpeningAlignment extends Driver {
         style.legendBoxStyle().setVisible(false);
         style.dataStyle().outlineStyle().setVisible(false);
         plotterTop.createRegions(3, 3);
-        // plotterFrame.addPlotter(plotter);
 
+        // plotterFrame.addPlotter(plotter);
         IPlotterStyle functionStyle = pfac.createPlotterStyle();
         functionStyle.dataStyle().lineStyle().setColor("red");
         functionStyle.dataStyle().markerStyle().setVisible(true);
@@ -151,6 +162,18 @@ public class SVTOpeningAlignment extends Driver {
         plotterTop.region(1).plot(flambdaTop, functionStyle);
         plotterTop.region(4).plot(fz0Top, functionStyle);
         plotterTop.show();
+
+        plotterParsTop = pfac.create("Top Track Pars");
+        plotterParsTop.createRegions(2, 2);
+        lambdaTopL03 = aida.histogram1D("slope: Top L0-3", 50, 0, 0.1);
+        z0TopL03 = aida.histogram1D("y0: Top L0-3", 50, -2.5, 2.5);
+        lambdaTopL46 = aida.histogram1D("slope: Top L4-6", 50, 0, 0.1);
+        z0TopL46 = aida.histogram1D("y0: Top L4-6", 50, -2.5, 2.5);
+        plotterParsTop.region(0).plot(lambdaTopL03);
+        plotterParsTop.region(1).plot(lambdaTopL46);
+        plotterParsTop.region(2).plot(z0TopL03);
+        plotterParsTop.region(3).plot(z0TopL46);
+        plotterParsTop.show();
 
         plotterBot = pfac.create("Bottom Layers");
         IPlotterStyle styleBot = plotterBot.style();
@@ -191,6 +214,18 @@ public class SVTOpeningAlignment extends Driver {
         plotterBot.region(1).plot(flambdaBot, functionStyle);
         plotterBot.region(4).plot(fz0Bot, functionStyle);
         plotterBot.show();
+
+        plotterParsBot = pfac.create("Bot Track Pars");
+        plotterParsBot.createRegions(2, 2);
+        lambdaBotL03 = aida.histogram1D("slope: Bot L0-3", 50, -0.1, 0.0);
+        z0BotL03 = aida.histogram1D("y0: Bot L0-3", 50, -2.5, 2.5);
+        lambdaBotL46 = aida.histogram1D("slope: Bot L4-6", 50, -0.1, 0.0);
+        z0BotL46 = aida.histogram1D("y0: Bot L4-6", 50, -2.5, 2.5);
+        plotterParsBot.region(0).plot(lambdaBotL03);
+        plotterParsBot.region(1).plot(lambdaBotL46);
+        plotterParsBot.region(2).plot(z0BotL03);
+        plotterParsBot.region(3).plot(z0BotL46);
+        plotterParsBot.show();
     }
 
     @Override
@@ -218,15 +253,31 @@ public class SVTOpeningAlignment extends Driver {
         nTracks46Top.fill(l4to6tracksTop.size());
         nTracks46Bot.fill(l4to6tracksBot.size());
 
-        for (Track trk03 : l0to3tracksTop)
+        for (Track trk03 : l0to3tracksTop) {
             nHits03Top.fill(trk03.getTrackerHits().size());
-        for (Track trk46 : l4to6tracksTop)
-            nHits46Top.fill(trk46.getTrackerHits().size());
+            TrackState ts = trk03.getTrackStates().get(0);
+            z0TopL03.fill(ts.getZ0());
+            lambdaTopL03.fill(ts.getTanLambda());
+        }
 
-        for (Track trk03 : l0to3tracksBot)
+        for (Track trk46 : l4to6tracksTop) {
+            nHits46Top.fill(trk46.getTrackerHits().size());
+            TrackState ts = trk46.getTrackStates().get(0);
+            z0TopL46.fill(ts.getZ0());
+            lambdaTopL46.fill(ts.getTanLambda());
+        }
+        for (Track trk03 : l0to3tracksBot) {
             nHits03Bot.fill(trk03.getTrackerHits().size());
-        for (Track trk46 : l4to6tracksBot)
+            TrackState ts = trk03.getTrackStates().get(0);
+            z0BotL03.fill(ts.getZ0());
+            lambdaBotL03.fill(ts.getTanLambda());
+        }
+        for (Track trk46 : l4to6tracksBot) {
             nHits46Bot.fill(trk46.getTrackerHits().size());
+            TrackState ts = trk46.getTrackStates().get(0);
+            z0BotL46.fill(ts.getZ0());
+            lambdaBotL46.fill(ts.getTanLambda());
+        }
 
         for (Track trk46 : l4to6tracksTop) {
             TrackState ts46 = trk46.getTrackStates().get(0);

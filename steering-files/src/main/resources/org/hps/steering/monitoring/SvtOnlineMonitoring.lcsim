@@ -33,6 +33,7 @@
         </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
+            <cutOutLowChargeHits>true</cutOutLowChargeHits>
             <!--<saveRootFile>false</saveRootFile>-->
         </driver>
         <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
@@ -56,6 +57,8 @@
         </driver>
         <!--<driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots" />-->
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
+            <dropSmallHitEvents>false</dropSmallHitEvents>
+            <cutOutLowChargeClusters>true</cutOutLowChargeClusters>
             <saveRootFile>false</saveRootFile>
         </driver>
               
