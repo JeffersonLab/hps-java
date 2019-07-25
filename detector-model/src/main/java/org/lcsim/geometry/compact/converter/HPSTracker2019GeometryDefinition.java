@@ -679,7 +679,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // static final double length= 10.00 + 1.00;
         //static final double length = 10.00;
         static final double length = 10.00*2;
-        static final double width = 14.080 + 2 * 0.250;
+        //static final double width = 14.080 + 2 * 0.250;
+        static final double width = 14.025 + 2 * 0.250;
         static final double thickness = 0.200; // 0.250;
         static final double height = thickness;
 
