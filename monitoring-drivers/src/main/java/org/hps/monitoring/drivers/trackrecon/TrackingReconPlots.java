@@ -227,11 +227,14 @@ public class TrackingReconPlots extends Driver {
         plotterXvsYHOT.createRegions(4, 4);
 
         for (int i = 0; i < nmodules; i++) {
-            double maxHTHX = 100.0;
+            double maxHTHX = 150.0;
             double maxHTHY = 50.0;
             if (i < 2) {
                 maxHTHX = 10;
                 maxHTHY = 15;
+            } else if (i < 4) {
+                maxHTHX = 50;
+                maxHTHY = 30;
             }
             xvsyTop[i] = aida.histogram2D("Module " + i + " Top (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
             xvsyBot[i] = aida.histogram2D("Module " + i + " Bottom (abs(Y))", 100, -maxHTHX, maxHTHX, 55, 0, maxHTHY);
@@ -339,7 +342,7 @@ public class TrackingReconPlots extends Driver {
             trkPx.fill(momentum.y());
             trkPy.fill(momentum.z());
             trkPz.fill(momentum.x());
-            trkChi2.fill(trk.getChi2()/trk.getNDF());            
+            trkChi2.fill(trk.getChi2() / trk.getNDF());
 
             nhits.fill(trk.getTrackerHits().size());
             charge.fill(-trk.getCharge());
