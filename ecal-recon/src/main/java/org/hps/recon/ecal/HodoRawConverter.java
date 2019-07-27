@@ -62,7 +62,7 @@ public class HodoRawConverter {
 
                 // search for next threshold crossing begins at end of this
                 // pulse:
-                is = is + HodoConstants.NSA - 1;
+                is = is + HodoConstants.nGoForNextPeak - 1;
 
                 // Don't find more than NMax_peak peaks
                 if (thr_crossings.size() >= HodoConstants.NMax_peak) {

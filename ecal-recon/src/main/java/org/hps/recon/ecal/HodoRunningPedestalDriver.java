@@ -52,7 +52,7 @@ public class HodoRunningPedestalDriver extends Driver {
     private static final String runningPedestalsName = "HodoRunningPedestals";
 
     // number of samples from the beginning of the time window used to calculate the pedestal:
-    private static final int nSamples = 7;
+    private static final int nSamples = 4;
 
     // TODO: Get this from somewhere else.
     private final int nChannels = 32;
