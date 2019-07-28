@@ -104,7 +104,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         super.detectorChanged(detector);
         double maxFactor = 1.5;
         double feeMomentumCut = 0.75; // this number, multiplied by the beam energy, is the actual cut
-
+        beamEnergy = 4.5;
+        System.out.println("Using beamEnergy = " + beamEnergy);
         LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
@@ -213,9 +214,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 fsCluster = fsPart.getClusters().get(0);
             else
                 hasCluster = false;
-            if (fsPart.getCharge() == 0) {
+            if (fsPart.getCharge() == 0)
                 isPhoton = true;
-            }
 
             // deal with electrons & positrons first
             if (!isPhoton) {
