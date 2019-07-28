@@ -71,8 +71,7 @@
         </driver>
    
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>8.0</neighborDeltaT>
-            
+            <neighborDeltaT>8.0</neighborDeltaT>            
             <debug>false</debug>
         </driver>        
         <driver name="TrackerHitDriverL2L6Hack" type="org.hps.recon.tracking.DataTrackerHitDriverL2ThroughL6Hack">

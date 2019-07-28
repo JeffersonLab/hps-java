@@ -14,6 +14,7 @@
         <driver name="PedestalPlots" />-->
         <!--<driver name="SVTPulseFitPlots" />--> 
         <driver name="TrackerHitDriver" /> 
+        <driver name="ClusterOccupancy" />
         <driver name="ClusterPlots" /> 
         <driver name="AidaSaveDriver" />
         <driver name="CleanupDriver" />
@@ -59,6 +60,12 @@
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <dropSmallHitEvents>false</dropSmallHitEvents>
             <cutOutLowChargeClusters>true</cutOutLowChargeClusters>
+            <saveRootFile>false</saveRootFile>
+        </driver>
+        
+          <driver name="ClusterOccupancy" type="org.hps.monitoring.drivers.svt.ClusterOccupancyPlotsDriver" >
+            <eventRefreshRate>1000</eventRefreshRate>            
+            <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
         </driver>
               
