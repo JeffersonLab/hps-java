@@ -31,8 +31,6 @@
     <!--    <driver name="TrackerHitDriverL2L6Hack"/>  -->
         <driver name="HelicalTrackHitDriver"/>
      
-        <driver name="TrackReconSeed123Conf4Extd56"/>
-        <driver name="TrackReconSeed123Conf5Extd46"/>	
 	<driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
@@ -290,6 +288,7 @@
             <trackCollectionNames>GBLTracks</trackCollectionNames>          
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
+            <requireClustersForV0>false</requireClustersForV0>
             <beamPositionX> -0.224 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
@@ -298,9 +297,9 @@
             <maxElectronP> 7.0 </maxElectronP>
             <maxVertexP> 7.0 </maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-            <maxVertexClusterDt> 10.0 </maxVertexClusterDt>           
-            <maxMatchDt>1000</maxMatchDt>
-            <trackClusterTimeOffset>55</trackClusterTimeOffset>
+            <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
+            <maxMatchDt>40</maxMatchDt>
+            <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <debug>false</debug>
         </driver>  
 
@@ -334,6 +333,7 @@
         </driver>      
         <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <triggerType>all</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
         </driver>     
         <driver name="TrackingResiduals" type="org.hps.analysis.dataquality.TrackingResiduals">
             <triggerType>all</triggerType>
