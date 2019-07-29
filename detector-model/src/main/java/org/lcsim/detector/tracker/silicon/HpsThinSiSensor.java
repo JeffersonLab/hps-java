@@ -23,7 +23,7 @@ public class HpsThinSiSensor extends HpsSiSensor {
     /** @return The total number of sense strips per sensor. */
     @Override
     public int getNumberOfSenseStrips() {
-        return 512;
+        return 510;
     }
 
     /** @return The readout strip pitch in mm. */

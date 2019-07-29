@@ -7,6 +7,7 @@ import hep.aida.IFitter;
 import hep.aida.IFunction;
 import hep.aida.IFunctionFactory;
 import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
@@ -42,6 +43,7 @@ public class SVTOpeningAlignment extends Driver {
     IPlotter plotterParsTop;
     IPlotter plotterBot;
     IPlotter plotterParsBot;
+    IPlotter plotterHinge;
 
     IHistogram1D nTracks46Top;
     IHistogram1D nTracks03Top;
@@ -70,6 +72,20 @@ public class SVTOpeningAlignment extends Driver {
     IHistogram1D lambdaBotL46;
     IHistogram1D z0BotL46;
 
+    IHistogram2D lambdaVsz0TopL03;
+    IHistogram2D lambdaVsz0BotL03;
+    IHistogram2D lambdaVsz0TopL46;
+    IHistogram2D lambdaVsz0BotL46;
+
+    IHistogram1D delYAtHingeTop;
+    IHistogram1D delYAtHingeBot;
+    IHistogram2D yAtHingeL03VsL46Top;
+    IHistogram2D yAtHingeL03VsL46Bot;
+    IHistogram2D delYAtHingeVsL03SlopeTop;
+    IHistogram2D delYAtHingeVsL46SlopeTop;
+    IHistogram2D delYAtHingeVsL03SlopeBot;
+    IHistogram2D delYAtHingeVsL46SlopeBot;
+
     IPlotterFactory plotterFactory;
     IFunctionFactory functionFactory;
     IFitFactory fitFactory;
@@ -86,7 +102,18 @@ public class SVTOpeningAlignment extends Driver {
 
     IFitter jminChisq;
 
+    boolean matchFullTracks = false;
+    String fullTrackCollectionName = "s234_c5_e167";
+
     public SVTOpeningAlignment() {
+    }
+
+    public void setMatchFullTracks(boolean match) {
+        this.matchFullTracks = match;
+    }
+
+    public void setFullTrackCollectionName(String name) {
+        this.fullTrackCollectionName = name;
     }
 
     public void setOutputPlots(String output) {
@@ -164,15 +191,20 @@ public class SVTOpeningAlignment extends Driver {
         plotterTop.show();
 
         plotterParsTop = pfac.create("Top Track Pars");
-        plotterParsTop.createRegions(2, 2);
-        lambdaTopL03 = aida.histogram1D("slope: Top L0-3", 50, 0, 0.1);
+        plotterParsTop.createRegions(2, 3);
+        lambdaTopL03 = aida.histogram1D("slope: Top L0-3", 50, 0, 0.06);
         z0TopL03 = aida.histogram1D("y0: Top L0-3", 50, -2.5, 2.5);
-        lambdaTopL46 = aida.histogram1D("slope: Top L4-6", 50, 0, 0.1);
+        lambdaVsz0TopL03 = aida.histogram2D("slope vs y0: Top L0-3", 50, -2.5, 2.5, 50, 0.0, 0.06);
+        lambdaTopL46 = aida.histogram1D("slope: Top L4-6", 50, 0, 0.06);
         z0TopL46 = aida.histogram1D("y0: Top L4-6", 50, -2.5, 2.5);
+        lambdaVsz0TopL46 = aida.histogram2D("slope vs y0: Top L4-6", 50, -2.5, 2.5, 50, 0.0, 0.06);
+
         plotterParsTop.region(0).plot(lambdaTopL03);
-        plotterParsTop.region(1).plot(lambdaTopL46);
-        plotterParsTop.region(2).plot(z0TopL03);
-        plotterParsTop.region(3).plot(z0TopL46);
+        plotterParsTop.region(3).plot(lambdaTopL46);
+        plotterParsTop.region(1).plot(z0TopL03);
+        plotterParsTop.region(4).plot(z0TopL46);
+        plotterParsTop.region(2).plot(lambdaVsz0TopL03);
+        plotterParsTop.region(5).plot(lambdaVsz0TopL46);
         plotterParsTop.show();
 
         plotterBot = pfac.create("Bottom Layers");
@@ -216,16 +248,41 @@ public class SVTOpeningAlignment extends Driver {
         plotterBot.show();
 
         plotterParsBot = pfac.create("Bot Track Pars");
-        plotterParsBot.createRegions(2, 2);
-        lambdaBotL03 = aida.histogram1D("slope: Bot L0-3", 50, -0.1, 0.0);
+        plotterParsBot.createRegions(2, 3);
+        lambdaBotL03 = aida.histogram1D("slope: Bot L0-3", 50, -0.06, 0.0);
         z0BotL03 = aida.histogram1D("y0: Bot L0-3", 50, -2.5, 2.5);
-        lambdaBotL46 = aida.histogram1D("slope: Bot L4-6", 50, -0.1, 0.0);
+        lambdaVsz0BotL03 = aida.histogram2D("slope vs y0: Bot L0-3", 50, -2.5, 2.5, 50, -0.06, 0.0);
+        lambdaBotL46 = aida.histogram1D("slope: Bot L4-6", 50, -0.06, 0.0);
         z0BotL46 = aida.histogram1D("y0: Bot L4-6", 50, -2.5, 2.5);
+        lambdaVsz0BotL46 = aida.histogram2D("slope vs y0: Bot L4-6", 50, -2.5, 2.5, 50, -0.06, 0.0);
         plotterParsBot.region(0).plot(lambdaBotL03);
-        plotterParsBot.region(1).plot(lambdaBotL46);
-        plotterParsBot.region(2).plot(z0BotL03);
-        plotterParsBot.region(3).plot(z0BotL46);
+        plotterParsBot.region(3).plot(lambdaBotL46);
+        plotterParsBot.region(1).plot(z0BotL03);
+        plotterParsBot.region(4).plot(z0BotL46);
+        plotterParsBot.region(2).plot(lambdaVsz0BotL03);
+        plotterParsBot.region(5).plot(lambdaVsz0BotL46);
         plotterParsBot.show();
+
+        plotterHinge = pfac.create("Y @ Hinge");
+        plotterHinge.createRegions(2, 4);
+        delYAtHingeTop = aida.histogram1D("DeltaY at Hinge Top", 50, -1.0, 1.0);
+        delYAtHingeBot = aida.histogram1D("DeltaY at Hinge Bottom", 50, -1.0, 1.0);
+        yAtHingeL03VsL46Top = aida.histogram2D("Y at Hinge Top L46 vs L03", 50, 0, 20, 50, 0, 20);
+        yAtHingeL03VsL46Bot = aida.histogram2D("Y at Hinge Bottom L46 vs L03", 50, -20, 0, 50, -20, 0);
+        delYAtHingeVsL03SlopeTop = aida.histogram2D("DeltaY at Hinge vs L03 Slope Top", 50, -1.0, 1.0, 50, 0, 0.06);
+        delYAtHingeVsL46SlopeTop = aida.histogram2D("DeltaY at Hinge vs L46 Slope Top", 50, -1.0, 1.0, 50, 0, 0.06);
+        delYAtHingeVsL03SlopeBot = aida.histogram2D("DeltaY at Hinge vs L03 Slope Bottom", 50, -1.0, 1.0, 50, -0.060, 0.0);
+        delYAtHingeVsL46SlopeBot = aida.histogram2D("DeltaY at Hinge vs L46 Slope Bottom", 50, -1.0, 1.0, 50, -0.06, 0.0);
+        plotterHinge.region(0).plot(delYAtHingeTop);
+        plotterHinge.region(1).plot(yAtHingeL03VsL46Top);
+        plotterHinge.region(2).plot(delYAtHingeVsL03SlopeTop);
+        plotterHinge.region(3).plot(delYAtHingeVsL46SlopeTop);
+
+        plotterHinge.region(4).plot(delYAtHingeBot);
+        plotterHinge.region(5).plot(yAtHingeL03VsL46Bot);
+        plotterHinge.region(6).plot(delYAtHingeVsL03SlopeBot);
+        plotterHinge.region(7).plot(delYAtHingeVsL46SlopeBot);
+        plotterHinge.show();
     }
 
     @Override
@@ -240,8 +297,15 @@ public class SVTOpeningAlignment extends Driver {
         if (!event.hasCollection(Track.class, l4to6CollectionName))
             return;
 
+        if (matchFullTracks)
+            if (!event.hasCollection(Track.class, fullTrackCollectionName))
+                return;
+
         List<Track> l0to3tracks = event.get(Track.class, l0to3CollectionName);
         List<Track> l4to6tracks = event.get(Track.class, l4to6CollectionName);
+        List<Track> fulltracks = new ArrayList<Track>();
+        if (matchFullTracks)
+            fulltracks = event.get(Track.class, fullTrackCollectionName);
 
         List<Track> l0to3tracksTop = splitTrackList(l0to3tracks, true);
         List<Track> l0to3tracksBot = splitTrackList(l0to3tracks, false);
@@ -258,6 +322,7 @@ public class SVTOpeningAlignment extends Driver {
             TrackState ts = trk03.getTrackStates().get(0);
             z0TopL03.fill(ts.getZ0());
             lambdaTopL03.fill(ts.getTanLambda());
+            lambdaVsz0TopL03.fill(ts.getZ0(), ts.getTanLambda());
         }
 
         for (Track trk46 : l4to6tracksTop) {
@@ -265,29 +330,52 @@ public class SVTOpeningAlignment extends Driver {
             TrackState ts = trk46.getTrackStates().get(0);
             z0TopL46.fill(ts.getZ0());
             lambdaTopL46.fill(ts.getTanLambda());
+            lambdaVsz0TopL46.fill(ts.getZ0(), ts.getTanLambda());
+
         }
         for (Track trk03 : l0to3tracksBot) {
             nHits03Bot.fill(trk03.getTrackerHits().size());
             TrackState ts = trk03.getTrackStates().get(0);
             z0BotL03.fill(ts.getZ0());
             lambdaBotL03.fill(ts.getTanLambda());
+            lambdaVsz0BotL03.fill(ts.getZ0(), ts.getTanLambda());
         }
         for (Track trk46 : l4to6tracksBot) {
             nHits46Bot.fill(trk46.getTrackerHits().size());
             TrackState ts = trk46.getTrackStates().get(0);
             z0BotL46.fill(ts.getZ0());
             lambdaBotL46.fill(ts.getTanLambda());
+            lambdaVsz0BotL46.fill(ts.getZ0(), ts.getTanLambda());
         }
 
+        Track matchedTrack = null;
         for (Track trk46 : l4to6tracksTop) {
             TrackState ts46 = trk46.getTrackStates().get(0);
             for (Track trk03 : l0to3tracksTop) {
+                if (matchFullTracks) {
+                    matchedTrack = checkFullTrack(fulltracks, trk03, trk46);
+                    if (matchedTrack == null)
+                        continue;
+                }
                 TrackState ts03 = trk03.getTrackStates().get(0);
+                double slL03 = ts03.getTanLambda();
+                double slL46 = ts46.getTanLambda();
+                double y0L03 = ts03.getZ0();
+                double y0L46 = ts46.getZ0();
+
+                double yAtHingeL03 = 414.0 * slL03 + y0L03;
+                double yAtHingeL46 = 414.0 * slL46 + y0L46;
+                double deltaYAtHinge = yAtHingeL46 - yAtHingeL03;
                 deld0Top.fill(ts46.getD0() - ts03.getD0());
                 delphiTop.fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
                 delwTop.fill(ts46.getOmega() - ts03.getOmega());
                 delz0Top.fill(ts46.getZ0() - ts03.getZ0());
                 dellambdaTop.fill(ts46.getTanLambda() - ts03.getTanLambda());
+                delYAtHingeTop.fill(deltaYAtHinge);
+                yAtHingeL03VsL46Top.fill(yAtHingeL46, yAtHingeL03);
+                delYAtHingeVsL46SlopeTop.fill(deltaYAtHinge,slL46 );
+                delYAtHingeVsL03SlopeTop.fill(deltaYAtHinge,slL03);
+
             }
         }
         fitAndPutParameters(deld0Top, fd0Top);
@@ -299,12 +387,29 @@ public class SVTOpeningAlignment extends Driver {
         for (Track trk46 : l4to6tracksBot) {
             TrackState ts46 = trk46.getTrackStates().get(0);
             for (Track trk03 : l0to3tracksBot) {
+                if (matchFullTracks) {
+                    matchedTrack = checkFullTrack(fulltracks, trk03, trk46);
+                    if (matchedTrack == null)
+                        continue;
+                }
                 TrackState ts03 = trk03.getTrackStates().get(0);
+                double slL03 = ts03.getTanLambda();
+                double slL46 = ts46.getTanLambda();
+                double y0L03 = ts03.getZ0();
+                double y0L46 = ts46.getZ0();
+
+                double yAtHingeL03 = 414.0 * slL03 + y0L03;
+                double yAtHingeL46 = 414.0 * slL46 + y0L46;
+                double deltaYAtHinge = yAtHingeL46 - yAtHingeL03;
                 deld0Bot.fill(ts46.getD0() - ts03.getD0());
                 delphiBot.fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
                 delwBot.fill(ts46.getOmega() - ts03.getOmega());
                 delz0Bot.fill(ts46.getZ0() - ts03.getZ0());
                 dellambdaBot.fill(ts46.getTanLambda() - ts03.getTanLambda());
+                delYAtHingeBot.fill(deltaYAtHinge);
+                yAtHingeL03VsL46Bot.fill(yAtHingeL46, yAtHingeL03);
+                delYAtHingeVsL46SlopeBot.fill(deltaYAtHinge,slL46);
+                delYAtHingeVsL03SlopeBot.fill(deltaYAtHinge,slL03);
             }
         }
 
@@ -347,5 +452,18 @@ public class SVTOpeningAlignment extends Driver {
                 tracksHalf.add(trk);
         }
         return tracksHalf;
+    }
+
+    private Track checkFullTrack(List<Track> fullTracks, Track t03, Track t46) {
+        List<TrackerHit> trkHitsL03 = t03.getTrackerHits();
+        List<TrackerHit> trkHitsL46 = t46.getTrackerHits();
+
+        for (Track fullTr : fullTracks) {
+            List<TrackerHit> trkHitsFull = fullTr.getTrackerHits();
+            if (trkHitsFull.containsAll(trkHitsL03) && trkHitsFull.containsAll(trkHitsL46))
+                return fullTr;
+        }
+
+        return null;
     }
 }

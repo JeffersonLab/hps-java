@@ -158,7 +158,7 @@
 
         <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
            <useRunningPedestal>true</useRunningPedestal>
-           <tETAllChannels>20</tETAllChannels>
+           <tETAllChannels>8</tETAllChannels>
            <logLevel>CONFIG</logLevel>
         </driver>
         

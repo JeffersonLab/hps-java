@@ -13,12 +13,13 @@
         <!--  SVT opening angle alignment -->
         <driver name="TrackerL0to3ReconDriver"/> 
         <driver name="TrackerL4to6ReconDriver"/>   
+        <driver name="s234_c5_e167"/>
         <!-- Online Monitoring Drivers -->
         <driver name="SVTAlignment" />
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
-     <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
@@ -57,16 +58,23 @@
             <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full-L4-6.xml</strategyResource>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
-        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+        <driver name="s234_c5_e167" type="org.hps.recon.tracking.TrackerReconDriver">
             <debug>false</debug>
-            <trackCollectionName>MatchedTracks</trackCollectionName>
-            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+            <trackCollectionName>s234_c5_e167</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS_s234_c5_e167.xml</strategyResource>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+        
+        <driver name="s123_c5_e46" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>s123_c5_e46</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS_s123_c5_e46.xml</strategyResource>
             <rmsTimeCut>8.0</rmsTimeCut>
         </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
         </driver>       
         
-         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
         </driver>
                 
@@ -83,20 +91,22 @@
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>
               
-                   
+        <!--                   
         <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
             <debug>false</debug>
-        </driver>   
-        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">                
+        </driver>   -->
+        <!--        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">                
         </driver>
         <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">              
         </driver>
         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">               
-        </driver>      
-        <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">                 
+        </driver>      -->
+        <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">  
+            <matchFullTracks>true</matchFullTracks>
+            <fullTrackCollectionName>s234_c5_e167</fullTrackCollectionName>        
         </driver>   
-        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
-        </driver>
+        <!--        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
+        </driver>-->
 
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
     </drivers>

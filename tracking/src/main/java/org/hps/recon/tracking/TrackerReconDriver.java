@@ -247,7 +247,7 @@ public final class TrackerReconDriver extends Driver {
                         this.getLogger().warning(String.format(event.getRunNumber()+ " " + event.getEventNumber()+
                                 " Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f) Layer = %d"
                                 , correction, chisq,hth.Layer(),hth.Layer()));
-                        System.out.println("Y = "+hth.getPosition()[2]);
+//                        System.out.println("Y = "+hth.getPosition()[2]);
                         iter.remove();
                         continue trackLoop;
                     }

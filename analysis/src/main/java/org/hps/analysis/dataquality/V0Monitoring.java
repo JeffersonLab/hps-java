@@ -159,8 +159,10 @@ public class V0Monitoring extends DataQualityMonitor {
 
     @Override
     protected void detectorChanged(Detector detector) {
-
         super.detectorChanged(detector);
+        //mg 7/28/2019 ... hard code the beam energy...it's not in the database for 2019 running yet
+        beamEnergy=4.5;
+        System.out.println("Using beamEnergy = "+beamEnergy);
 
         feeMomentumCut = 0.75 * beamEnergy; // GeV
 
@@ -183,6 +185,7 @@ public class V0Monitoring extends DataQualityMonitor {
 
         double maxMass = .2 * beamEnergy;
         double maxMassMoller = .1 * Math.sqrt(beamEnergy);
+        
         /* V0 Quantities */
         /* Mass, vertex, chi^2 of fit */
         /* unconstrained */
