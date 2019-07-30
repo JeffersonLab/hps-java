@@ -7,7 +7,7 @@
     -->
     <execute>
         <!-- remove these two before committing...-->
-<!--        <driver name="EventMarkerDriver"/>-->
+        <driver name="EventMarkerDriver"/>
 <!--        <driver name="PreCleanupDriver"/>       -->
         <!--  Event Reconstruction  -->
         <!-- Skip events with known bad conditions -->
@@ -19,9 +19,9 @@
         <driver name="HodoRawConverter"/>
  
         <!-- Ecal reconstruction drivers -->        
-<!--        <driver name="EcalRunningPedestal"/>  --> 
+        <driver name="EcalRunningPedestal"/> 
         <driver name="EcalRawConverter" />
-<!--        <driver name="EcalTimeCorrection"/>  -->
+        <driver name="EcalTimeCorrection"/> 
         <driver name="ReconClusterer" /> 
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
@@ -90,16 +90,17 @@
         <driver name="V0MonitoringPairs1"/>          
         <driver name="TridentMonitoringPairs1"/>           -->
         <!--           -->
+        <driver name="LCIOWriter"/>
         <driver name="AidaToRootSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         
-<!--        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1</eventInterval>
+       <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10</eventInterval>
         </driver> 
         
-        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+ <!--        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
                   <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>  
             <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
         </driver>-->
@@ -119,9 +120,9 @@
             <logLevel>CONFIG</logLevel>
         </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <fixShapeParameter>true</fixShapeParameter>
-            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
+            <!-- ecalCollectionName>EcalCalHits</ecalCollectionName -->
+            <!-- fixShapeParameter>true</fixShapeParameter -->
+            <!-- globalFixedPulseWidth>2.4</globalFixedPulseWidth -->
         </driver> 
         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/> 
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
@@ -307,7 +308,10 @@
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
             <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
             <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
-        </driver>        
+        </driver> 
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>       
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.aida</outputFileName>
         </driver>
