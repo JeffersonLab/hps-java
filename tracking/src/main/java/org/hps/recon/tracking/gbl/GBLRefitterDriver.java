@@ -135,25 +135,37 @@ public class GBLRefitterDriver extends Driver {
             if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
+            try {
+                Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
 
-            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
-            if (newTrack == null)
-                continue;
-            Track gblTrk = newTrack.getFirst();
-            if (writeMilleBinary) {
-                if (gblTrk.getChi2() < writeMilleChi2Cut)
-                    newTrackTraj.getSecond().get_traj().milleOut(mille);
+                if (newTrackTraj == null) {
+                    System.out.println("GBLRefitterDriver::process() -- Aborted refit of track -- null pointer for newTrackTraj returned from MakeGblTracks.refitTrackWithTraj .");
+                    continue;
+                }
+                Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
+                if (newTrack == null) {
+                    continue;
+                }
+                Track gblTrk = newTrack.getFirst();
+                if (writeMilleBinary) {
+                    if (gblTrk.getChi2() < writeMilleChi2Cut) {
+                        newTrackTraj.getSecond().get_traj().milleOut(mille);
+                    }
+                }
+
+                //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+                if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size())) {
+                    continue;
+                }
+                refittedTracks.add(gblTrk);
+                trackRelations.add(new BaseLCRelation(track, gblTrk));
+                inputToRefitted.put(track, gblTrk);
+                kinkDataCollection.add(newTrack.getSecond());
+                kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                System.out.println("Skipping bad track refit in event "+event.getEventNumber()+" of run "+event.getRunNumber());
             }
-
-            //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
-            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
-                continue;
-            refittedTracks.add(gblTrk);
-            trackRelations.add(new BaseLCRelation(track, gblTrk));
-            inputToRefitted.put(track, gblTrk);
-            kinkDataCollection.add(newTrack.getSecond());
-            kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
 
         // Put the tracks back into the event and exit
