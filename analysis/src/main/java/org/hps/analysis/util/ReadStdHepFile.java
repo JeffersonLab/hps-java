@@ -129,6 +129,7 @@ public class ReadStdHepFile {
     static IHistogram1D pPosPassGen = aida.histogram1D("MadGraph Generated pPos (GeV)", nbinsH, 0, 1.1 * _ecm);
     static IHistogram1D pPosPassECal = aida.histogram1D("MadGraph Pass ECal pPos (GeV)", nbinsH, 0, 1.1 * _ecm);
     static IHistogram1D pPosPassECalAndMinLayers = aida.histogram1D("MadGraph Pass ECal+Layers pPos (GeV)", nbinsH, 0, 1.1 * _ecm);
+    static IHistogram1D pPosPassECalAndPosMinLayersAndEleMinLayers = aida.histogram1D("MadGraph Pass ECal+Layers+EleLayers pPos (GeV)", nbinsH, 0, 1.1 * _ecm);
 
     private static Options createCommandLineOptions() {
         Options options = new Options();
@@ -369,6 +370,8 @@ public class ReadStdHepFile {
                         pPosPassECal.fill(pPos.v3().magnitude());
                     if (passPosEcal && passPosMinLayers)
                         pPosPassECalAndMinLayers.fill(pPos.v3().magnitude());
+                    if((passEleMinLayers||passRecMinLayers)&&passPosEcal && passPosMinLayers)
+                         pPosPassECalAndPosMinLayersAndEleMinLayers.fill(pPos.v3().magnitude());
                     if (passPosEcal && !passPosMinLayers)
                         System.out.println("Passed ECal but not passPosMinLayers");
                     if (!passPosEcal && passPosMinLayers)

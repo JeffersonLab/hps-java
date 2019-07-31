@@ -6,14 +6,14 @@
         <!--Cutoffs-->
         
         <MinPT>0.100</MinPT>
-        <MinHits>3</MinHits>
+        <MinHits>6</MinHits>
         <MinConfirm>0</MinConfirm>
         
         <MaxDCA>50.0</MaxDCA>
         <MaxZ0>50.0</MaxZ0>
 
-        <MaxChisq>50.0</MaxChisq>
-        <BadHitChisq>10.0</BadHitChisq>
+        <MaxChisq>20.0</MaxChisq>
+        <BadHitChisq>5.0</BadHitChisq>
 
         <!--Layers-->
 
