@@ -48,7 +48,7 @@ public class V0Monitoring extends DataQualityMonitor {
     private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
     private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
     private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz",
-            "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
+        "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
     // some counters
     private int nRecoEvents = 0;
     private int nTotV0 = 0;
@@ -61,8 +61,8 @@ public class V0Monitoring extends DataQualityMonitor {
     private double sumChi2 = 0.0;
 
     /* V0 Quantities */
-    /* Mass, vertex, chi^2 of fit */
-    /* unconstrained */
+ /* Mass, vertex, chi^2 of fit */
+ /* unconstrained */
     private IHistogram1D unconMass;
     private IHistogram1D unconVx;
     private IHistogram1D unconVy;
@@ -146,6 +146,10 @@ public class V0Monitoring extends DataQualityMonitor {
     private IHistogram1D sumChargeHisto;
     private IHistogram1D numChargeHisto;
 
+    private IHistogram1D unconESum;
+    private IHistogram1D bsconESum;
+    private IHistogram1D tarconESum;
+
     private final String plotDir = "V0Monitoring/";
 
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
@@ -161,8 +165,8 @@ public class V0Monitoring extends DataQualityMonitor {
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
         //mg 7/28/2019 ... hard code the beam energy...it's not in the database for 2019 running yet
-        beamEnergy=4.5;
-        System.out.println("Using beamEnergy = "+beamEnergy);
+        beamEnergy = 4.5;
+        System.out.println("Using beamEnergy = " + beamEnergy);
 
         feeMomentumCut = 0.75 * beamEnergy; // GeV
 
@@ -183,20 +187,22 @@ public class V0Monitoring extends DataQualityMonitor {
         if (isGBL)
             trkType = "GBLTrack/";
 
-        double maxMass = .2 * beamEnergy;
+        double maxMass = .1 * beamEnergy;
         double maxMassMoller = .1 * Math.sqrt(beamEnergy);
-        
+
         /* V0 Quantities */
-        /* Mass, vertex, chi^2 of fit */
-        /* unconstrained */
+ /* Mass, vertex, chi^2 of fit */
+ /* unconstrained */
         unconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Invariant Mass (GeV)", 100, 0, maxMass);
         unconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Vx (mm)", 50, -10, 10);
         unconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
-                + "Vy (mm)", 50, -10, 10);
+                + "Vy (mm)", 50, -2, 2);
         unconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Vz (mm)", 50, -50, 50);
+        unconESum = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
+                + "ESum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
         unconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Chi2", 25, 0, 25);
         unconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
@@ -212,6 +218,8 @@ public class V0Monitoring extends DataQualityMonitor {
                 plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vy (mm)", 50, -10, 10);
         bsconVz = aida.histogram1D(
                 plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Vz (mm)", 50, -50, 50);
+        bsconESum = aida.histogram1D(
+                plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "ESum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
         bsconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2",
                 25, 0, 25);
         bsconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
@@ -227,6 +235,8 @@ public class V0Monitoring extends DataQualityMonitor {
                 + "Vy (mm)", 50, -1, 1);
         tarconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
                 + "Vz (mm)", 50, -10, 10);
+        tarconESum = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+                + "ESum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
         tarconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
                 + "Chi2", 25, 0, 25);
         tarconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
@@ -395,6 +405,7 @@ public class V0Monitoring extends DataQualityMonitor {
             unconVx.fill(vtxPosRot.x());
             unconVy.fill(vtxPosRot.y());
             unconVz.fill(vtxPosRot.z());
+            unconESum.fill(uncV0.getEnergy());
             unconMass.fill(uncV0.getMass());
             unconChi2.fill(uncVert.getChi2());
             unconVzVsChi2.fill(uncVert.getChi2(), vtxPosRot.z());
@@ -463,8 +474,8 @@ public class V0Monitoring extends DataQualityMonitor {
                 pxEleVspxPos.fill(pEleRot.x(), pPosRot.x());
                 pyEleVspyPos.fill(pEleRot.y(), pPosRot.y());
                 if (pe < v0MaxPCut && pp < v0MaxPCut && (pe + pp) > v0ESumMinCut && (pe + pp) < v0ESumMaxCut)// enrich
-                                                                                                             // radiative-like
-                                                                                                             // events
+                    // radiative-like
+                    // events
 
                     pEleVspPosWithCut.fill(pe, pp);
             }
@@ -493,6 +504,7 @@ public class V0Monitoring extends DataQualityMonitor {
             bsconVx.fill(vtxPosRot.x());
             bsconVy.fill(vtxPosRot.y());
             bsconVz.fill(vtxPosRot.z());
+            bsconESum.fill(bsV0.getEnergy());
             bsconMass.fill(bsV0.getMass());
             bsconChi2.fill(bsVert.getChi2());
             bsconVzVsChi2.fill(bsVert.getChi2(), vtxPosRot.z());
@@ -518,6 +530,7 @@ public class V0Monitoring extends DataQualityMonitor {
             tarconVx.fill(vtxPosRot.x());
             tarconVy.fill(vtxPosRot.y());
             tarconVz.fill(vtxPosRot.z());
+            tarconESum.fill(tarV0.getEnergy());
             tarconMass.fill(tarV0.getMass());
             tarconChi2.fill(tarVert.getChi2());
             tarconVzVsChi2.fill(tarVert.getChi2(), vtxPosRot.z());

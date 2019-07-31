@@ -19,6 +19,7 @@ import hep.aida.ref.plotter.style.registry.StyleRegistry;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hps.recon.tracking.SvtPlotUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 import org.lcsim.util.aida.AIDA;
@@ -38,15 +39,13 @@ public class PlotAndFitUtilities {
      *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     static IPlotter plot(IPlotterFactory plotterFactory, IBaseHistogram histogram, IPlotterStyle style, boolean show) {
-        if (style == null) {
+        if (style == null)
             style = getPlotterStyle(histogram);
-        }
         IPlotter plotter = plotterFactory.create(histogram.title());
         plotter.createRegion();
         plotter.region(0).plot(histogram, style);
-        if (show) {
+        if (show)
             plotter.show();
-        }
         return plotter;
     }
 
@@ -55,22 +54,20 @@ public class PlotAndFitUtilities {
      *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
     static void plot(IPlotter plotter, IBaseHistogram histogram, IPlotterStyle style, int region) {
-        if (style == null) {
+        if (style == null)
             style = getPlotterStyle(histogram);
-        }
         LOGGER.info("Putting plot in region " + region);
         plotter.region(region).plot(histogram, style);
 
     }
+
     /*
      *  puts a function on a plotter region with a  style
      *  copied from org.hps.monitoring.drivers.ecal.EcalMonitoringUtilities.java
      */
-
     static void plot(IPlotter plotter, IFunction function, IPlotterStyle style, int region) {
-        if (style == null) {
+        if (style == null)
             style = getPlotterStyle(function);
-        }
         LOGGER.info("Putting function in region " + region);
         plotter.region(region).plot(function, style);
     }
@@ -83,17 +80,16 @@ public class PlotAndFitUtilities {
         StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
         IStyleStore store = styleRegistry.getStore("DefaultStyleStore");
         IPlotterStyle style = null;
-        if ((histogram instanceof IHistogram1D) || (histogram instanceof ICloud1D) || (histogram instanceof IProfile1D)) {
+        if ((histogram instanceof IHistogram1D) || (histogram instanceof ICloud1D) || (histogram instanceof IProfile1D))
             style = store.getStyle("DefaultHistogram1DStyle");
-        } else if ((histogram instanceof IHistogram2D) || (histogram instanceof IProfile2D)) {
+        else if ((histogram instanceof IHistogram2D) || (histogram instanceof IProfile2D)) {
             style = store.getStyle("DefaultColorMapStyle");
             style.statisticsBoxStyle().setVisible(false);
             style.setParameter("hist2DStyle", "colorMap");
             style.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
         }
-        if (style == null) {
+        if (style == null)
             throw new RuntimeException("A default style could not be found for " + histogram.title());
-        }
 
         //custom stuff...mg
         style.dataStyle().errorBarStyle().setVisible(false);
@@ -112,9 +108,8 @@ public class PlotAndFitUtilities {
         IStyleStore store = styleRegistry.getStore("DefaultStyleStore");
         IPlotterStyle style = null;
         style = store.getStyle("DefaultFunctionStyle");
-        if (style == null) {
+        if (style == null)
             throw new RuntimeException("A default style could not be found for " + func.title());
-        }
         return style;
     }
 
@@ -163,6 +158,15 @@ public class PlotAndFitUtilities {
         return aida.histogram1D(hname);
     }
 
+    public static IHistogram1D getSensorPlot(String prefix, HpsSiSensor sensor, boolean fix) {
+        if (!fix) {
+            String hname = prefix + getNiceSensorName(sensor);
+            return aida.histogram1D(hname);
+        }
+        String hname = prefix + SvtPlotUtils.fixSensorNumberLabel(sensor.getName());
+        return aida.histogram1D(hname);
+    }
+
 //    private static IHistogram1D getSensorPlot(String prefix, String sensorName) {
 //        return aida.histogram1D(prefix + sensorName);
 //    }
@@ -170,12 +174,29 @@ public class PlotAndFitUtilities {
         String hname = prefix + getNiceSensorName(sensor);
         IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
         hist.setTitle(getNiceSensorName(sensor));
+        return hist;
+    }
 
+    public static IHistogram1D createSensorPlot(String prefix, HpsSiSensor sensor, int nchan, double min, double max, boolean fix) {
+        if (!fix)
+            return createSensorPlot(prefix, sensor, nchan, min, max);
+        String hname = prefix + SvtPlotUtils.fixSensorNumberLabel(sensor.getName());
+        IHistogram1D hist = aida.histogram1D(hname, nchan, min, max);
+        hist.setTitle(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
         return hist;
     }
 
     public static IHistogram2D getSensorPlot2D(String prefix, HpsSiSensor sensor) {
         String hname = prefix + getNiceSensorName(sensor);
+        return aida.histogram2D(hname);
+    }
+
+    public static IHistogram2D getSensorPlot2D(String prefix, HpsSiSensor sensor, boolean fix) {
+        if (!fix) {
+            String hname = prefix + getNiceSensorName(sensor);
+            return aida.histogram2D(hname);
+        }
+        String hname = prefix + SvtPlotUtils.fixSensorNumberLabel(sensor.getName());
         return aida.histogram2D(hname);
     }
 
@@ -186,6 +207,16 @@ public class PlotAndFitUtilities {
                 .replace("module", "mod")
                 .replace("layer", "lyr")
                 .replace("sensor", "sens"));
+
+        return hist;
+    }
+
+    public static IHistogram2D createSensorPlot2D(String prefix, HpsSiSensor sensor, int nchanX, double minX, double maxX, int nchanY, double minY, double maxY, boolean fix) {
+        if (!fix)
+            return createSensorPlot2D(prefix, sensor, nchanX, minX, maxX, nchanY, minY, maxY);
+        String hname = prefix + SvtPlotUtils.fixSensorNumberLabel(sensor.getName());
+        IHistogram2D hist = aida.histogram2D(hname, nchanX, minX, maxX, nchanY, minY, maxY);
+        hist.setTitle(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
 
         return hist;
     }
