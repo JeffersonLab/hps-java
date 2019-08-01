@@ -8,13 +8,13 @@
     <execute>
         <!-- remove these two before committing...-->
         <driver name="EventMarkerDriver"/>
-<!--        <driver name="PreCleanupDriver"/>       -->
+        <!--        <driver name="PreCleanupDriver"/>       -->
         <!--  Event Reconstruction  -->
         <!-- Skip events with known bad conditions -->
-<!--        <driver name="EventFlagFilter"/>  -->
+        <!--        <driver name="EventFlagFilter"/>  -->
         <!--RF driver-->
         <driver name="RfFitter"/>
-            <!-- add hodoscope drivers -->
+        <!-- add hodoscope drivers -->
         <driver name="HodoRunningPedestal"/>
         <driver name="HodoRawConverter"/>
  
@@ -28,10 +28,10 @@
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-    <!--    <driver name="TrackerHitDriverL2L6Hack"/>  -->
+        <!--    <driver name="TrackerHitDriverL2L6Hack"/>  -->
         <driver name="HelicalTrackHitDriver"/>
      
-	<driver name="TrackReconSeed567Conf4Extd123"/>
+        <driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
         <driver name="TrackReconSeed235Conf6Extd147"/>
@@ -56,39 +56,91 @@
         <driver name="FinalStateMonitoring"/>          
         <driver name="V0Monitoring"/>          
         <driver name="TridentMonitoring"/>           
-        <driver name="MuonCandidateMonitoring"/>              
-<!--         Singles0 
+        <driver name="MuonCandidateMonitoring"/>    
+        <driver name="TrackingMonitoringMatched"/>
+                  
+        <!--Singles0--> 
         <driver name="EcalMonitoringSingles0"/>  
         <driver name="EcalMonitoringCorrSingles0"/> 
+        <!--<driver name="SVTMonitoringSingles0"/>-->
         <driver name="TrackingMonitoringSingles0"/>        
         <driver name="TrackingResidualsSingles0"/>
         <driver name="FinalStateMonitoringSingles0"/>          
         <driver name="V0MonitoringSingles0"/>                         
         <driver name="TridentMonitoringSingles0"/>
-         Singles1 
+        <!--Singles1--> 
         <driver name="EcalMonitoringSingles1"/>  
         <driver name="EcalMonitoringCorrSingles1"/>  
+        <!--<driver name="SVTMonitoringSingles1"/>-->
         <driver name="TrackingMonitoringSingles1"/>         
         <driver name="TrackingResidualsSingles1"/>
         <driver name="FinalStateMonitoringSingles1"/>          
         <driver name="V0MonitoringSingles1"/>          
-        <driver name="TridentMonitoringSingles1"/>      
-         Pairs0 
+        <driver name="TridentMonitoringSingles1"/>  
+        <!--Singles2--> 
+        <driver name="EcalMonitoringSingles2"/>  
+        <driver name="EcalMonitoringCorrSingles2"/> 
+        <!--<driver name="SVTMonitoringSingles2"/>-->
+        <driver name="TrackingMonitoringSingles2"/>        
+        <driver name="TrackingResidualsSingles2"/>
+        <driver name="FinalStateMonitoringSingles2"/>          
+        <driver name="V0MonitoringSingles2"/>                         
+        <driver name="TridentMonitoringSingles2"/>    
+        <!--Singles3--> 
+        <driver name="EcalMonitoringSingles3"/>  
+        <driver name="EcalMonitoringCorrSingles3"/> 
+        <!--<driver name="SVTMonitoringSingles3"/>-->
+        <driver name="TrackingMonitoringSingles3"/>        
+        <driver name="TrackingResidualsSingles3"/>
+        <driver name="FinalStateMonitoringSingles3"/>          
+        <driver name="V0MonitoringSingles3"/>                         
+        <driver name="TridentMonitoringSingles3"/>  
+        <!--Fee--> 
+        <driver name="EcalMonitoringFee"/>  
+        <driver name="EcalMonitoringCorrFee"/> 
+        <!--<driver name="SVTMonitoringFee"/>-->
+        <driver name="TrackingMonitoringFee"/>        
+        <driver name="TrackingResidualsFee"/>
+        <driver name="FinalStateMonitoringFee"/>          
+        <driver name="V0MonitoringFee"/>                         
+        <driver name="TridentMonitoringFee"/>   
+         
+        <!--Pairs0--> 
         <driver name="EcalMonitoringPairs0"/>
         <driver name="EcalMonitoringCorrPairs0"/>   
+        <!--<driver name="SVTMonitoringPairs0"/>-->
         <driver name="TrackingMonitoringPairs0"/>        
         <driver name="TrackingResidualsPairs0"/>
         <driver name="FinalStateMonitoringPairs0"/>          
         <driver name="V0MonitoringPairs0"/>                            
         <driver name="TridentMonitoringPairs0"/>
-         Pairs1 
+        <!--Pairs1--> 
         <driver name="EcalMonitoringPairs1"/> 
-        <driver name="EcalMonitoringCorrPairs1"/>   
+        <driver name="EcalMonitoringCorrPairs1"/> 
+        <!--<driver name="SVTMonitoringPairs1"/>-->  
         <driver name="TrackingMonitoringPairs1"/>         
         <driver name="TrackingResidualsPairs1"/>
         <driver name="FinalStateMonitoringPairs1"/>               
         <driver name="V0MonitoringPairs1"/>          
-        <driver name="TridentMonitoringPairs1"/>           -->
+        <driver name="TridentMonitoringPairs1"/>       
+        <!--Pulser--> 
+        <driver name="EcalMonitoringPulser"/> 
+        <driver name="EcalMonitoringCorrPulser"/>  
+        <!--<driver name="SVTMonitoringPulser"/>--> 
+        <driver name="TrackingMonitoringPulser"/>         
+        <driver name="TrackingResidualsPulser"/>
+        <driver name="FinalStateMonitoringPulser"/>               
+        <driver name="V0MonitoringPulser"/>          
+        <driver name="TridentMonitoringPulser"/>   
+        <!--Faraday--> 
+        <driver name="EcalMonitoringFaraday"/> 
+        <driver name="EcalMonitoringCorrFaraday"/>   
+        <driver name="SVTMonitoringFaraday"/>
+        <driver name="TrackingMonitoringFaraday"/>         
+        <driver name="TrackingResidualsFaraday"/>
+        <driver name="FinalStateMonitoringFaraday"/>               
+        <driver name="V0MonitoringFaraday"/>          
+        <driver name="TridentMonitoringFaraday"/>    
         <!--           -->
         <driver name="LCIOWriter"/>
         <driver name="AidaToRootSaveDriver"/>
@@ -96,11 +148,11 @@
     </execute>    
     <drivers>    
         
-       <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>10</eventInterval>
         </driver> 
         
- <!--        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+        <!--        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
                   <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>  
             <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
         </driver>-->
@@ -306,8 +358,10 @@
 
        
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-            <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
+            <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+            <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
+            <maxTrackChisq5hits> 100. </maxTrackChisq5hits>
+            <maxTrackChisq6hits> 100. </maxTrackChisq6hits>
         </driver> 
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
@@ -355,6 +409,11 @@
             <isGBL>true</isGBL>
         </driver>
 
+        <driver name="TrackingMonitoringMatched" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <triggerType>all</triggerType>
+           
+        </driver>   
+
         <!-- singles0 triggers  -->
         <driver name="EcalMonitoringSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>singles0</triggerType>
@@ -369,6 +428,7 @@
         </driver>            
         <driver name="TrackingMonitoringSingles0" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <triggerType>singles0</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
         </driver>
         <driver name="TrackingResidualsSingles0" type="org.hps.analysis.dataquality.TrackingResiduals">
             <triggerType>singles0</triggerType>
@@ -400,6 +460,8 @@
         </driver>   
         <driver name="TrackingMonitoringSingles1" type="org.hps.analysis.dataquality.TrackingMonitoring">           
             <triggerType>singles1</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
         </driver>   
         <driver name="TrackingResidualsSingles1" type="org.hps.analysis.dataquality.TrackingResiduals">
             <triggerType>singles1</triggerType>
@@ -417,6 +479,107 @@
             <isGBL>true</isGBL>
         </driver>
  
+        <!-- singles2 triggers  -->
+        <driver name="EcalMonitoringSingles2" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>singles2</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrSingles2" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>singles2</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringSingles2" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>singles2</triggerType>
+        </driver>            
+        <driver name="TrackingMonitoringSingles2" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <triggerType>singles2</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsSingles2" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>singles2</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringSingles2" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <isGBL>true</isGBL>
+            <triggerType>singles2</triggerType>
+        </driver>       
+        <driver name="V0MonitoringSingles2" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>singles2</triggerType>
+            <isGBL>true</isGBL>            
+        </driver>
+        <driver name="TridentMonitoringSingles2" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>singles2</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+ 
+ 
+        <!-- singles3 triggers  -->
+        <driver name="EcalMonitoringSingles3" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>singles3</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrSingles3" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>singles3</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringSingles3" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>singles3</triggerType>
+        </driver>            
+        <driver name="TrackingMonitoringSingles3" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <triggerType>singles3</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsSingles3" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>singles3</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringSingles3" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <isGBL>true</isGBL>
+            <triggerType>singles3</triggerType>
+        </driver>       
+        <driver name="V0MonitoringSingles3" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>singles3</triggerType>
+            <isGBL>true</isGBL>            
+        </driver>
+        <driver name="TridentMonitoringSingles3" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>singles3</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+ 
+        <!-- fee triggers  -->
+        <driver name="EcalMonitoringFee" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>fee</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrFee" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>fee</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringFee" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>fee</triggerType>
+        </driver>            
+        <driver name="TrackingMonitoringFee" type="org.hps.analysis.dataquality.TrackingMonitoring">
+            <triggerType>fee</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsFee" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>fee</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringFee" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <isGBL>true</isGBL>
+            <triggerType>fee</triggerType>
+        </driver>       
+        <driver name="V0MonitoringFee" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>fee</triggerType>
+            <isGBL>true</isGBL>            
+        </driver>
+        <driver name="TridentMonitoringFee" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>fee</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+ 
+ 
         <!-- pairs0 triggers  -->
         <driver name="EcalMonitoringPairs0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs0</triggerType>
@@ -431,6 +594,8 @@
         </driver>      
         <driver name="TrackingMonitoringPairs0" type="org.hps.analysis.dataquality.TrackingMonitoring">         
             <triggerType>pairs0</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
         </driver>
       
         <driver name="TrackingResidualsPairs0" type="org.hps.analysis.dataquality.TrackingResiduals">
@@ -464,6 +629,8 @@
         </driver>      
         <driver name="TrackingMonitoringPairs1" type="org.hps.analysis.dataquality.TrackingMonitoring">          
             <triggerType>pairs1</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
         </driver>
         <driver name="TrackingResidualsPairs1" type="org.hps.analysis.dataquality.TrackingResiduals">
             <triggerType>pairs1</triggerType>
@@ -480,7 +647,73 @@
             <triggerType>pairs1</triggerType>
             <isGBL>true</isGBL>
         </driver>
-
+        
+        <!-- pulser triggers  -->
+        <driver name="EcalMonitoringPulser" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pulser</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrPulser" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pulser</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringPulser" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>pulser</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringPulser" type="org.hps.analysis.dataquality.TrackingMonitoring">          
+            <triggerType>pulser</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsPulser" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>pulser</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringPulser" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>pulser</triggerType>            
+            <isGBL>true</isGBL>
+        </driver>  
+        <driver name="V0MonitoringPulser" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>pulser</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TridentMonitoringPulser" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>pulser</triggerType>
+            <isGBL>true</isGBL>
+        </driver>        
+        
+           
+        <!-- faraday triggers  -->
+        <driver name="EcalMonitoringFaraday" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>faraday</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrFaraday" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>faraday</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringFaraday" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>faraday</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringFaraday" type="org.hps.analysis.dataquality.TrackingMonitoring">          
+            <triggerType>faraday</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsFaraday" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>faraday</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringFaraday" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>faraday</triggerType>
+            <isGBL>true</isGBL>
+        </driver>  
+        <driver name="V0MonitoringFaraday" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>faraday</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TridentMonitoringFaraday" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>faraday</triggerType>
+            <isGBL>true</isGBL>
+        </driver>        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
     </drivers>
