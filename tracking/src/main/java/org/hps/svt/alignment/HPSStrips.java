@@ -366,7 +366,7 @@ public class HPSStrips extends SiStrips {
         }
     }
 
-    private void setStripNumbering() {
+    protected void setStripNumbering() {
         double xmin = Double.MAX_VALUE;
         double xmax = Double.MIN_VALUE;
         for (Point3D vertex : _geometry.getVertices()) {
@@ -383,13 +383,13 @@ public class HPSStrips extends SiStrips {
         setNStrips((int) Math.ceil((xmax - xmin) / getPitch(0)));
     }
 
-    private void setNStrips(int nstrips) {
+    protected void setNStrips(int nstrips) {
         _nstrips = nstrips;
         setStripOffset();
         // _strip_offset = (_nstrips-1)*_pitch/2.;
     }
 
-    private void setStripOffset() {
+    protected void setStripOffset() {
         double xmin = Double.MAX_VALUE;
         double xmax = Double.MIN_VALUE;
         for (Point3D vertex : _geometry.getVertices()) {
