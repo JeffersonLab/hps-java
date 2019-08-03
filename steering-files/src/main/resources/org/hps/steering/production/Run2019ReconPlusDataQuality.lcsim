@@ -69,14 +69,14 @@
         <driver name="V0MonitoringSingles0"/>                         
         <driver name="TridentMonitoringSingles0"/>
         <!--Singles1--> 
-        <driver name="EcalMonitoringSingles1"/>  
+       	<driver name="EcalMonitoringSingles1"/>  
         <driver name="EcalMonitoringCorrSingles1"/>  
         <!--<driver name="SVTMonitoringSingles1"/>-->
-        <driver name="TrackingMonitoringSingles1"/>         
+      	<driver name="TrackingMonitoringSingles1"/>         
         <driver name="TrackingResidualsSingles1"/>
         <driver name="FinalStateMonitoringSingles1"/>          
         <driver name="V0MonitoringSingles1"/>          
-        <driver name="TridentMonitoringSingles1"/>  
+        <driver name="TridentMonitoringSingles1"/> 
         <!--Singles2--> 
         <driver name="EcalMonitoringSingles2"/>  
         <driver name="EcalMonitoringCorrSingles2"/> 
@@ -94,7 +94,7 @@
         <driver name="TrackingResidualsSingles3"/>
         <driver name="FinalStateMonitoringSingles3"/>          
         <driver name="V0MonitoringSingles3"/>                         
-        <driver name="TridentMonitoringSingles3"/>  
+        <driver name="TridentMonitoringSingles3"/> 
         <!--Fee--> 
         <driver name="EcalMonitoringFee"/>  
         <driver name="EcalMonitoringCorrFee"/> 
@@ -125,22 +125,22 @@
         <driver name="TridentMonitoringPairs1"/>       
         <!--Pulser--> 
         <driver name="EcalMonitoringPulser"/> 
-        <driver name="EcalMonitoringCorrPulser"/>  
+        <driver name="EcalMonitoringCorrPulser"/> 
         <!--<driver name="SVTMonitoringPulser"/>--> 
         <driver name="TrackingMonitoringPulser"/>         
         <driver name="TrackingResidualsPulser"/>
         <driver name="FinalStateMonitoringPulser"/>               
         <driver name="V0MonitoringPulser"/>          
-        <driver name="TridentMonitoringPulser"/>   
+        <driver name="TridentMonitoringPulser"/>  
         <!--Faraday--> 
-        <driver name="EcalMonitoringFaraday"/> 
+     <!--    <driver name="EcalMonitoringFaraday"/> 
         <driver name="EcalMonitoringCorrFaraday"/>   
         <driver name="SVTMonitoringFaraday"/>
         <driver name="TrackingMonitoringFaraday"/>         
         <driver name="TrackingResidualsFaraday"/>
         <driver name="FinalStateMonitoringFaraday"/>               
         <driver name="V0MonitoringFaraday"/>          
-        <driver name="TridentMonitoringFaraday"/>    
+        <driver name="TridentMonitoringFaraday"/>  -->   
         <!--           -->
         <driver name="LCIOWriter"/>
         <driver name="AidaToRootSaveDriver"/>
