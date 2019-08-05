@@ -61,6 +61,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private int truthVertexHasMatch = 0;
     private int nEcalHit = 2;
     
+    @Override
     protected void setupVariables() {
         tupleVariables.clear();
         addEventVariables();
@@ -85,8 +86,6 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     @Override
     public void process(EventHeader event) {
         setupCollections(event);
-        addTruthRefitVariables();
-        //unConstrainedV0List = event.get(ReconstructedParticle.class,"UnconstrainedV0Candidates_bad");
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
             boolean isOK = fillBasicRefitTuple(event, triggerData, uncV0);
