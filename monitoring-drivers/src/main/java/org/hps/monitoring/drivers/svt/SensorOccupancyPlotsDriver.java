@@ -112,7 +112,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private boolean saveRootFile = true;
     
     // Max Y range for occupancy plots.
-    private double occupancyYRange = 0.03;
+    private double occupancyYRange1 = 0.03;
+    private double occupancyYRange2 = 0.003;
 
     public SensorOccupancyPlotsDriver() {
         maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
@@ -205,8 +206,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
         this.saveRootFile = saveRootFile;
     }
 
-    public void setOccupancyYRange(double occupancyYRange) {
-        this.occupancyYRange = occupancyYRange;
+    public void setOccupancyYRange1(double occupancyYRange1) {
+        this.occupancyYRange1 = occupancyYRange1;
+    }
+    
+    public void setOccupancyYRange2(double occupancyYRange2) {
+        this.occupancyYRange2 = occupancyYRange2;
     }
     
     /**
@@ -450,12 +455,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         IPlotter plotter = plotters.get("Occupancy: L0-L3");
         for (int i = 0; i < plotter.numberOfRegions(); i++) {
-            plotter.region(i).setYLimits(occupancyYRange);
+            plotter.region(i).setYLimits(occupancyYRange1);
         }
 
         plotter = plotters.get("Occupancy: L4-L6");
         for (int i = 0; i < plotter.numberOfRegions(); i++) {
-            plotter.region(i).setYLimits(occupancyYRange);
+            plotter.region(i).setYLimits(occupancyYRange2);
         }
                 
         for (IPlotter plotterShow : plotters.values())
