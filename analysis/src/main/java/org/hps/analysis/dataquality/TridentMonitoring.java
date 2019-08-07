@@ -913,9 +913,7 @@ public class TridentMonitoring extends DataQualityMonitor {
             }
 
             if (bits.containsAll(EnumSet.range(Cut.values()[0], Cut.values()[Cut.firstVertexingCut - 1]))){
-                System.out.println("Adding a trident candidate: number of V0 for this event ="+ nV0);
                 candidateList.add(uncV0);
-                System.out.println("After add, current number of V0 Cands ="+ candidateList.size());
             }
             if (bits.equals(EnumSet.allOf(Cut.class)))
                 vertCandidateList.add(uncV0);
@@ -923,7 +921,7 @@ public class TridentMonitoring extends DataQualityMonitor {
 
         nTriCand.fill(candidateList.size());
         nVtxCand.fill(vertCandidateList.size());
-        System.out.println("Number of trident Candidates ="+ candidateList.size());
+//        System.out.println("Number of trident Candidates ="+ candidateList.size());
         if (!candidateList.isEmpty()) {
             // pick the best candidate...for now just pick a random one.
             ReconstructedParticle bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));

@@ -181,6 +181,9 @@ public class TrackingMonitoring extends DataQualityMonitor {
     double timeCut = 24.0;
     double maxChi2 = 100;
 
+    double ecalXRange = 500;
+    double ecalYRange = 100;
+
     public void setHelicalTrackHitCollectionName(String helicalTrackHitCollectionName) {
         this.helicalTrackHitCollectionName = helicalTrackHitCollectionName;
     }
@@ -210,24 +213,33 @@ public class TrackingMonitoring extends DataQualityMonitor {
         trigTimeTrackTime = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Trigger phase vs. mean time of hits", 100, -timeCut, timeCut, 6, 0, 24.0);
         trigTime = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Trigger phase", 6, 0., 24.);
         seedRMSTime = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "RMS time of hits on seed layers", 100, 0., 15.);
-        trkXAtECALTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track X at ECAL: Top", 100, -250, 250);
-        trkXAtECALBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track X at ECAL: Bot", 100, -250, 250);
-        trkYAtECALTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track Y at ECAL: Top", 100, 0, 100);
-        trkYAtECALBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track Y at ECAL: Bot", 100, 0, 100);
-        trkAtECAL = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track XY at ECAL", 100, -250, 250, 100, -100, 100);
-        for (int i = 1; i <= nmodules; i++) {
-            xvsyTop[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top", 250, -100, 150, 30, 0, 60);
-            xvsyBot[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom", 250, -100, 150, 30, 0, 60);
-            xvsyOnTrackTop[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top, Hits On Tracks", 250, -100, 150, 30, 0, 60);
-            xvsyOnTrackBot[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom, Hits On Tracks", 250, -100, 150, 30, 0, 60);
-            timevstimeTop[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Hit Times", 30, -15, 15, 30, -15, 15);
-            timevstimeBot[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Hit Times", 30, -15, 15, 30, -15, 15);
-            hthTop[i - 1] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Track Hits", 25, 0, 25);
-            hthBot[i - 1] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Track Hits", 25, 0, 25);
-            timevstimeOnTrackTop[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Hit Times, Hits On Tracks", 30, -15, 15, 30, -15, 15);
-            timevstimeOnTrackBot[i - 1] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Hit Times, Hits On Tracks", 30, -15, 15, 30, -15, 15);
-            deltaTOnTrackTop[i - 1] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Hit Time Differences, Hits On Tracks", 50, -25, 25);
-            deltaTOnTrackBot[i - 1] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Hit Time Differences, Hits On Tracks", 50, -25, 25);
+        trkXAtECALTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track X at ECAL: Top", 100, -ecalXRange, ecalXRange);
+        trkXAtECALBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track X at ECAL: Bot", 100, -ecalXRange, ecalXRange);
+        trkYAtECALTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track Y at ECAL: Top", 100, 0, ecalYRange);
+        trkYAtECALBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track Y at ECAL: Bot", 100, 0, ecalYRange);
+        trkAtECAL = aida.histogram2D(plotDir + trackCollectionName + "/" + triggerType + "/" + "Track XY at ECAL", 100, -ecalXRange, ecalXRange, 100, -ecalYRange, ecalYRange);
+        for (int i = 0; i < nmodules; i++) {
+            double maxHTHX = 150.0;
+            double maxHTHY = 50.0;
+            if (i < 2) {
+                maxHTHX = 10;
+                maxHTHY = 15;
+            } else if (i < 4) {
+                maxHTHX = 50;
+                maxHTHY = 30;
+            }
+            xvsyTop[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top", 250, -maxHTHX, maxHTHX, 30, 0, maxHTHY);
+            xvsyBot[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom", 250, -maxHTHX, maxHTHX, 30, 0, maxHTHY);
+            xvsyOnTrackTop[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top, Hits On Tracks", 250, -maxHTHX, maxHTHX, 30, 0, maxHTHY);
+            xvsyOnTrackBot[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom, Hits On Tracks", 250, -maxHTHX, maxHTHX, 30, 0, maxHTHY);
+            timevstimeTop[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Hit Times", 30, -15, 15, 30, -15, 15);
+            timevstimeBot[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Hit Times", 30, -15, 15, 30, -15, 15);
+            hthTop[i] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Track Hits", 25, 0, 25);
+            hthBot[i] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Track Hits", 25, 0, 25);
+            timevstimeOnTrackTop[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Hit Times, Hits On Tracks", 30, -15, 15, 30, -15, 15);
+            timevstimeOnTrackBot[i] = aida.histogram2D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Hit Times, Hits On Tracks", 30, -15, 15, 30, -15, 15);
+            deltaTOnTrackTop[i] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Top: Hit Time Differences, Hits On Tracks", 50, -25, 25);
+            deltaTOnTrackBot[i] = aida.histogram1D(hthplotDir + triggerType + "/" + "Module " + i + " Bottom: Hit Time Differences, Hits On Tracks", 50, -25, 25);
         }
 
         trkChi2Pos = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + positronDir + "Track Chi2", 50, 0, maxChi2);
@@ -260,7 +272,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         nHitsTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "Hits per Track", 5, 3, 8);
         trkTimeTop = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + topDir + "Mean time of hits on track", 100, -timeCut, timeCut);
 
-        trkChi2Bot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Track Chi2", 25, 0,maxChi2);
+        trkChi2Bot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Track Chi2", 25, 0, maxChi2);
         nTracksBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "Tracks per Event", 6, 0, 6);
         trkd0Bot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "d0", 100, -d0Cut, d0Cut);
         trkphiBot = aida.histogram1D(plotDir + trackCollectionName + "/" + triggerType + "/" + botDir + "sinphi", 100, -phiCut, phiCut);
@@ -306,11 +318,11 @@ public class TrackingMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
-            IHistogram1D hitTimeResidual = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor, 100, -20, 20);
-            IHistogram1D lambdaKink = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKink_", sensor, 100, -5e-3, 5e-3);
-            IHistogram1D phiKink = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKink_", sensor, 100, -5e-3, 5e-3);
-            IHistogram2D lambdaKink2D = PlotAndFitUtilities.createSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKinkVsOmega_", sensor, 100, -omegaCut, omegaCut, 100, -5e-3, 5e-3);
-            IHistogram2D phiKink2D = PlotAndFitUtilities.createSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKinkVsOmega_", sensor, 100, -omegaCut, omegaCut, 100, -5e-3, 5e-3);
+            IHistogram1D hitTimeResidual = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor, 100, -20, 20,true);
+            IHistogram1D lambdaKink = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKink_", sensor, 100, -5e-3, 5e-3,true);
+            IHistogram1D phiKink = PlotAndFitUtilities.createSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKink_", sensor, 100, -5e-3, 5e-3,true);
+            IHistogram2D lambdaKink2D = PlotAndFitUtilities.createSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKinkVsOmega_", sensor, 100, -omegaCut, omegaCut, 100, -5e-3, 5e-3,true);
+            IHistogram2D phiKink2D = PlotAndFitUtilities.createSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKinkVsOmega_", sensor, 100, -omegaCut, omegaCut, 100, -5e-3, 5e-3,true);
         }
     }
 
@@ -492,7 +504,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
                 int layer = sensor.getLayerNumber();
                 if (layer <= 6)
                     rmsSeedTime += Math.pow(hts.getTime() - meanSeedTime, 2);
-                PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor).fill((hts.getTime() - meanTime) * nStrips / (nStrips - 1)); //correct residual for bias
+                PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor,true).fill((hts.getTime() - meanTime) * nStrips / (nStrips - 1)); //correct residual for bias
             }
             rmsTime = Math.sqrt(rmsTime / nStrips);
             trackMeanTime.fill(meanTime);
@@ -514,10 +526,10 @@ public class TrackingMonitoring extends DataQualityMonitor {
                     double phiKink = GBLKinkData.getPhiKink(kinkData, i);
 //                    System.out.format("%d %d %f %f\n", i, layer, lambdaKink, phiKink);
 
-                    PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKink_", sensor).fill(lambdaKink);
-                    PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKink_", sensor).fill(phiKink);
-                    PlotAndFitUtilities.getSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKinkVsOmega_", sensor).fill(trk.getTrackStates().get(0).getOmega(), lambdaKink);
-                    PlotAndFitUtilities.getSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKinkVsOmega_", sensor).fill(trk.getTrackStates().get(0).getOmega(), phiKink);
+                    PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKink_", sensor,true).fill(lambdaKink);
+                    PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKink_", sensor,true).fill(phiKink);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "lambdaKinkVsOmega_", sensor,true).fill(trk.getTrackStates().get(0).getOmega(), lambdaKink);
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + trackCollectionName + "/" + triggerType + "/" + kinkDir + "phiKinkVsOmega_", sensor,true).fill(trk.getTrackStates().get(0).getOmega(), phiKink);
                 }
 
             if (trk.getTrackStates().get(0).getOmega() < 0) {//positrons
@@ -586,7 +598,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
 
         for (HpsSiSensor sensor : sensors) {
             //IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);
-            IHistogram1D hitTimeResidual = PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor);
+            IHistogram1D hitTimeResidual = PlotAndFitUtilities.getSensorPlot(plotDir + trackCollectionName + "/" + triggerType + "/" + timeresidDir + "hitTimeResidual_", sensor,true);
             IFitResult result = fitGaussian(hitTimeResidual, fitter, "range=\"(-20.0,20.0)\"");
             if (result != null)
                 System.out.format("%s\t%f\t%f\t%d\t%d\t%f\n", getNiceSensorName(sensor), result.fittedParameters()[1], result.fittedParameters()[2], sensor.getFebID(), sensor.getFebHybridID(), sensor.getT0Shift());

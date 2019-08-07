@@ -69,10 +69,10 @@
         <driver name="V0MonitoringSingles0"/>                         
         <driver name="TridentMonitoringSingles0"/>
         <!--Singles1--> 
-       	<driver name="EcalMonitoringSingles1"/>  
+        <driver name="EcalMonitoringSingles1"/>  
         <driver name="EcalMonitoringCorrSingles1"/>  
         <!--<driver name="SVTMonitoringSingles1"/>-->
-      	<driver name="TrackingMonitoringSingles1"/>         
+        <driver name="TrackingMonitoringSingles1"/>         
         <driver name="TrackingResidualsSingles1"/>
         <driver name="FinalStateMonitoringSingles1"/>          
         <driver name="V0MonitoringSingles1"/>          
@@ -80,7 +80,7 @@
         <!--Singles2--> 
         <driver name="EcalMonitoringSingles2"/>  
         <driver name="EcalMonitoringCorrSingles2"/> 
-        <!--<driver name="SVTMonitoringSingles2"/>-->
+        <driver name="SVTMonitoringSingles2"/>
         <driver name="TrackingMonitoringSingles2"/>        
         <driver name="TrackingResidualsSingles2"/>
         <driver name="FinalStateMonitoringSingles2"/>          
@@ -89,7 +89,7 @@
         <!--Singles3--> 
         <driver name="EcalMonitoringSingles3"/>  
         <driver name="EcalMonitoringCorrSingles3"/> 
-        <!--<driver name="SVTMonitoringSingles3"/>-->
+        <driver name="SVTMonitoringSingles3"/>
         <driver name="TrackingMonitoringSingles3"/>        
         <driver name="TrackingResidualsSingles3"/>
         <driver name="FinalStateMonitoringSingles3"/>          
@@ -108,7 +108,7 @@
         <!--Pairs0--> 
         <driver name="EcalMonitoringPairs0"/>
         <driver name="EcalMonitoringCorrPairs0"/>   
-        <!--<driver name="SVTMonitoringPairs0"/>-->
+        <driver name="SVTMonitoringPairs0"/>
         <driver name="TrackingMonitoringPairs0"/>        
         <driver name="TrackingResidualsPairs0"/>
         <driver name="FinalStateMonitoringPairs0"/>          
@@ -122,7 +122,26 @@
         <driver name="TrackingResidualsPairs1"/>
         <driver name="FinalStateMonitoringPairs1"/>               
         <driver name="V0MonitoringPairs1"/>          
-        <driver name="TridentMonitoringPairs1"/>       
+        <driver name="TridentMonitoringPairs1"/>     
+        <!--Pairs2--> 
+        <driver name="EcalMonitoringPairs2"/> 
+        <driver name="EcalMonitoringCorrPairs2"/> 
+        <!--<driver name="SVTMonitoringPairs2"/>-->  
+        <driver name="TrackingMonitoringPairs2"/>         
+        <driver name="TrackingResidualsPairs2"/>
+        <driver name="FinalStateMonitoringPairs2"/>               
+        <driver name="V0MonitoringPairs2"/>          
+        <driver name="TridentMonitoringPairs2"/>       
+        <!--Pairs3--> 
+        <driver name="EcalMonitoringPairs3"/> 
+        <driver name="EcalMonitoringCorrPairs3"/> 
+        <!--<driver name="SVTMonitoringPairs3"/>-->  
+        <driver name="TrackingMonitoringPairs3"/>         
+        <driver name="TrackingResidualsPairs3"/>
+        <driver name="FinalStateMonitoringPairs3"/>               
+        <driver name="V0MonitoringPairs3"/>          
+        <driver name="TridentMonitoringPairs3"/>       
+        <driver name="MuonCandidateMonitoringPairs3"/>             
         <!--Pulser--> 
         <driver name="EcalMonitoringPulser"/> 
         <driver name="EcalMonitoringCorrPulser"/> 
@@ -133,14 +152,14 @@
         <driver name="V0MonitoringPulser"/>          
         <driver name="TridentMonitoringPulser"/>  
         <!--Faraday--> 
-     <!--    <driver name="EcalMonitoringFaraday"/> 
+        <driver name="EcalMonitoringFaraday"/> 
         <driver name="EcalMonitoringCorrFaraday"/>   
         <driver name="SVTMonitoringFaraday"/>
         <driver name="TrackingMonitoringFaraday"/>         
         <driver name="TrackingResidualsFaraday"/>
         <driver name="FinalStateMonitoringFaraday"/>               
         <driver name="V0MonitoringFaraday"/>          
-        <driver name="TridentMonitoringFaraday"/>  -->   
+        <driver name="TridentMonitoringFaraday"/>     
         <!--           -->
         <driver name="LCIOWriter"/>
         <driver name="AidaToRootSaveDriver"/>
@@ -645,6 +664,76 @@
         </driver>
         <driver name="TridentMonitoringPairs1" type="org.hps.analysis.dataquality.TridentMonitoring">
             <triggerType>pairs1</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+        
+        <!-- pairs2 triggers  -->
+        <driver name="EcalMonitoringPairs2" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pairs2</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrPairs2" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pairs2</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringPairs2" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>pairs2</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringPairs2" type="org.hps.analysis.dataquality.TrackingMonitoring">          
+            <triggerType>pairs2</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsPairs2" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>pairs2</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringPairs2" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>pairs2</triggerType>
+            <isGBL>true</isGBL>
+        </driver>  
+        <driver name="V0MonitoringPairs2" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>pairs2</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TridentMonitoringPairs2" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>pairs2</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+        
+        <!-- pairs3 triggers  -->
+        <driver name="EcalMonitoringPairs3" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pairs3</triggerType>
+        </driver>
+        <driver name="EcalMonitoringCorrPairs3" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>pairs3</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoringPairs3" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>pairs3</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoringPairs3" type="org.hps.analysis.dataquality.TrackingMonitoring">          
+            <triggerType>pairs3</triggerType>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TrackingResidualsPairs3" type="org.hps.analysis.dataquality.TrackingResiduals">
+            <triggerType>pairs3</triggerType>
+        </driver>
+        <driver name="FinalStateMonitoringPairs3" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+            <triggerType>pairs3</triggerType>
+            <isGBL>true</isGBL>
+        </driver>  
+        <driver name="V0MonitoringPairs3" type="org.hps.analysis.dataquality.V0Monitoring">
+            <triggerType>pairs3</triggerType>
+            <isGBL>true</isGBL>
+        </driver>
+        <driver name="TridentMonitoringPairs3" type="org.hps.analysis.dataquality.TridentMonitoring">
+            <triggerType>pairs3</triggerType>
+            <isGBL>true</isGBL>             
+        </driver>
+        <driver name="MuonCandidateMonitoringPairs3" type="org.hps.analysis.dataquality.MuonCandidateMonitoring">         
+            <triggerType>pairs3</triggerType>
             <isGBL>true</isGBL>
         </driver>
         
