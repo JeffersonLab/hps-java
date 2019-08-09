@@ -108,8 +108,8 @@ public class HodoscopePlots extends Driver {
         plotters.get("Matched Hit Energies").createRegions(8, 4);
 
         for (int ich = 0; ich < n_PMT_ch; ich++) {
-            fADC_Spectrum_Top.put(String.format("Top fADC %d", ich), histogramFactory.createHistogram1D(String.format("Top fADC %d", ich), 101, -0.5, 100.5));
-            fADC_Spectrum_Bot.put(String.format("Bot fADC %d", ich), histogramFactory.createHistogram1D(String.format("Bot fADC %d", ich), 101, -0.5, 100.5));
+            fADC_Spectrum_Top.put(String.format("Top fADC %d", ich), histogramFactory.createHistogram1D(String.format("Top fADC %d", ich), 33, -0.5, 32.5));
+            fADC_Spectrum_Bot.put(String.format("Bot fADC %d", ich), histogramFactory.createHistogram1D(String.format("Bot fADC %d", ich), 33, -0.5, 32.5));
 
             plotters.get("Top FADC Spectra").region(ich).plot(fADC_Spectrum_Top.get(String.format("Top fADC %d", ich)));
             plotters.get("Bot FADC Spectra").region(ich).plot(fADC_Spectrum_Bot.get(String.format("Bot fADC %d", ich)));
