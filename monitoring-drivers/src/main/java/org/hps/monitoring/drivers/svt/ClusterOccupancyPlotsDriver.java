@@ -5,7 +5,6 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
-import hep.aida.IPlotterRegion;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
@@ -15,17 +14,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
-import org.hps.monitoring.subsys.StatusCode;
-import org.hps.monitoring.subsys.Subsystem;
-import org.hps.monitoring.subsys.SystemStatus;
-import org.hps.monitoring.subsys.SystemStatusImpl;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.event.EventHeader;
@@ -33,7 +28,6 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -49,25 +43,22 @@ import org.lcsim.util.aida.AIDA;
  * =======
  * >>>>>>> iss457
  */
-public class SensorOccupancyPlotsDriver extends Driver {
+public class ClusterOccupancyPlotsDriver extends Driver {
 
-    // Logger
-    private static Logger LOGGER = Logger.getLogger(SensorOccupancyPlotsDriver.class.getCanonicalName());
-    
+    // TODO: Add documentation
+    // static {
+    // hep.aida.jfree.AnalysisFactory.register();
+    // }
     // Plotting
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Occupancy");
+    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Cluster Occupancy");
     private IHistogramFactory histogramFactory = null;
 
     // Histogram maps
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
-    private static Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
-    private static Map<String, IHistogram1D> clusterPositionPlots = new HashMap<String, IHistogram1D>();
-    private static Map<String, IHistogram1D> clusterPositionPlotCounts = new HashMap<String, IHistogram1D>();
     private static Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
-    private static Map<String, IHistogram1D> maxSamplePositionPlots = new HashMap<String, IHistogram1D>();
 
     private List<HpsSiSensor> sensors;
     private Map<HpsSiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<HpsSiSensor, Map<Integer, Hep3Vector>>();
@@ -77,15 +68,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private String triggerBankCollectionName = "TriggerBank";
     private String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
 
-    private int maxSamplePosition = -1;
     private int timeWindowWeight = 1;
     private int eventCount = 0;
     private int eventRefreshRate = 1;
     private int runNumber = -1;
     private int resetPeriod = -1;
 
-    private boolean enablePositionPlots = false;
-    private boolean enableMaxSamplePlots = false;
     private boolean enableTriggerFilter = false;
     private boolean filterPulserTriggers = false;
     private boolean filterSingle0Triggers = false;
@@ -93,33 +81,18 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private boolean filterPair0Triggers = false;
     private boolean filterPair1Triggers = false;
 
-    SystemStatus maxSampleStatus;
-    private int maxSampleMonitorStart = 1000;
-    private int maxSampleMonitorPeriod = 100;
-
-    SystemStatus occupancyStatus;
-    private int occupancyMonitorStart = 5000;
-    private int occupancyMonitorPeriod = 100;
-    private double minPeakOccupancy = 0.0001;
-    private double maxPeakOccupancy = 0.01;
-
     private boolean dropSmallHitEvents = false;
 
     private boolean enableClusterTimeCuts = true;
-    private double clusterTimeCutMax = 4.0;
-    private double clusterTimeCutMin = -4.0;
-       
-    private boolean saveRootFile = true;
-    
-    // Max Y range for occupancy plots.
-    private double occupancyYRange1 = 0.03;
-    private double occupancyYRange2 = 0.003;
+    private double clusterTimeCutMax = 20.0;
+    private double clusterTimeCutMin = 0.0;
 
-    public SensorOccupancyPlotsDriver() {
-        maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
-        maxSampleStatus.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
-        occupancyStatus = new SystemStatusImpl(Subsystem.SVT, "Checks SVT occupancy", true);
-        occupancyStatus.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
+    private boolean enableClusterChargeCut = true;
+    private double clusterChargeCut = 400;
+
+    private boolean saveRootFile = true;
+
+    public ClusterOccupancyPlotsDriver() {
     }
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
@@ -138,16 +111,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
         this.resetPeriod = resetPeriod;
     }
 
-    public void setEnablePositionPlots(boolean enablePositionPlots) {
-        this.enablePositionPlots = enablePositionPlots;
-    }
-
-    public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
-        this.enableMaxSamplePlots = enableMaxSamplePlots;
-    }
-
     public void setEnableTriggerFilter(boolean enableTriggerFilter) {
         this.enableTriggerFilter = enableTriggerFilter;
+    }
+
+    public void setEnableClusterTimeCuts(boolean enableClusterTimeCuts) {
+        this.enableClusterTimeCuts = enableClusterTimeCuts;
     }
 
     public void setFilterPulserTriggers(boolean filterPulserTriggers) {
@@ -170,50 +139,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
         this.filterPair1Triggers = filterPair1Triggers;
     }
 
-    public void setMaxSamplePosition(int maxSamplePosition) {
-        this.maxSamplePosition = maxSamplePosition;
-    }
-
-    public void setTimeWindowWeight(int timeWindowWeight) {
-        this.timeWindowWeight = timeWindowWeight;
-    }
-
-    public void setMaxSampleMonitorStart(int maxSampleMonitorStart) {
-        this.maxSampleMonitorStart = maxSampleMonitorStart;
-    }
-
-    public void setMaxSampleMonitorPeriod(int maxSampleMonitorPeriod) {
-        this.maxSampleMonitorPeriod = maxSampleMonitorPeriod;
-    }
-
-    public void setOccupancyMonitorStart(int occupancyMonitorStart) {
-        this.occupancyMonitorStart = occupancyMonitorStart;
-    }
-
-    public void setOccupancyMonitorPeriod(int occupancyMonitorPeriod) {
-        this.occupancyMonitorPeriod = occupancyMonitorPeriod;
-    }
-
-    public void setMinPeakOccupancy(double minPeakOccupancy) {
-        this.minPeakOccupancy = minPeakOccupancy;
-    }
-
-    public void setMaxPeakOccupancy(double maxPeakOccupancy) {
-        this.maxPeakOccupancy = maxPeakOccupancy;
-    }
-
     public void setSaveRootFile(boolean saveRootFile) {
         this.saveRootFile = saveRootFile;
     }
 
-    public void setOccupancyYRange1(double occupancyYRange1) {
-        this.occupancyYRange1 = occupancyYRange1;
-    }
-    
-    public void setOccupancyYRange2(double occupancyYRange2) {
-        this.occupancyYRange2 = occupancyYRange2;
-    }
-    
     /**
      * Get the global strip position of a physical channel number for a given
      * sensor.
@@ -326,16 +255,6 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
             // Clear the occupancy plots.
             occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-
-            if (enablePositionPlots) {
-                positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-            }
-
-            if (enableMaxSamplePlots)
-                maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-
             // Reset the hit counters.
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
         }
@@ -367,31 +286,13 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // }
         // tree = analysisFactory.createTreeFactory().create();
         tree = AIDA.defaultInstance().tree();
-        tree.cd("/");
+        tree.cd("/");// aida.tree().cd("/");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         plotters.put("Occupancy: L0-L3", plotterFactory.create("Occupancy: L0-L3"));
         plotters.get("Occupancy: L0-L3").createRegions(4, 4);
         plotters.put("Occupancy: L4-L6", plotterFactory.create("Occupancy: L4-L6"));
         plotters.get("Occupancy: L4-L6").createRegions(6, 4);
-
-        occupancyStatus.setStatus(StatusCode.UNKNOWN, "Not enough statistics yet.");
-
-        if (enablePositionPlots) {
-            plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
-            plotters.get("Occupancy vs Position").createRegions(6, 6);
-            plotters.put("Cluster occupancy vs Position", plotterFactory.create("Cluster occupancy vs Position"));
-            plotters.get("Cluster occupancy vs Position").createRegions(6, 6);
-        }
-
-        if (enableMaxSamplePlots) {
-            plotters.put("Max Sample Number: L0-L3", plotterFactory.create("Max Sample Number: L0-L3"));
-            plotters.get("Max Sample Number: L0-L3").createRegions(4, 4);
-            plotters.put("Max Sample Number: L4-L6", plotterFactory.create("Max Sample Number: L4-L6"));
-            plotters.get("Max Sample Number: L4-L6").createRegions(6, 4);
-            maxSampleStatus.setStatus(StatusCode.UNKNOWN, "Not enough statistics yet.");
-        } else
-            maxSampleStatus.setStatus(StatusCode.UNKNOWN, "Monitor disabled in steering file.");
 
         for (HpsSiSensor sensor : sensors) {
 
@@ -409,62 +310,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
                         .plot(occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
                                 this.createOccupancyPlotStyle("Physical Channel", sensor, false));
 
-            if (enablePositionPlots) {
-                if (sensor.isTopLayer()) {
-                    positionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Occupancy vs Position", 1000, 0, 60));
-                    clusterPositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster occupancy vs Position", 1000, 0, 60));
-                    clusterPositionPlotCounts.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster count vs Position", 1000, 0, 60));
-                } else {
-                    positionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Occupancy vs Position", 1000, -60, 0));
-                    clusterPositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster occupancy vs Position", 1000, -60, 0));
-                    clusterPositionPlotCounts.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster count vs Position", 1000, -60, 0));
-                }
-
-                plotters.get("Occupancy vs Position")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor, false));
-                plotters.get("Cluster occupancy vs Position")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor, false));
-            }
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
 
-            if (enableMaxSamplePlots) {
-                maxSamplePositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                        histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Max Sample Number", 6, -0.5, 5.5));
-                if (sensor.getLayerNumber() < 9)
-                    plotters.get("Max Sample Number: L0-L3")
-                            .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                            .plot(maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                    this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
-                else
-                    plotters.get("Max Sample Number: L4-L6")
-                            .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                            .plot(maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                    this.createOccupancyPlotStyle("Max Sample Number", sensor, false));
-            }
         }
 
-        IPlotter plotter = plotters.get("Occupancy: L0-L3");
-        for (int i = 0; i < plotter.numberOfRegions(); i++) {
-            plotter.region(i).setYLimits(occupancyYRange1);
-        }
-
-        plotter = plotters.get("Occupancy: L4-L6");
-        for (int i = 0; i < plotter.numberOfRegions(); i++) {
-            plotter.region(i).setYLimits(occupancyYRange2);
-        }
-                
-        for (IPlotter plotterShow : plotters.values())
-            plotterShow.show();
+        for (IPlotter plotter : plotters.values())
+            plotter.show();
     }
 
     private boolean passTriggerFilter(List<GenericObject> triggerBanks) {
@@ -499,7 +350,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
         if (runNumber == -1)
             runNumber = event.getRunNumber();
         if (enableTriggerFilter && event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
-            LOGGER.info("Filtering Event");
+            System.out.println("SensorOccupancyPlotsDriver::  Filtering Event");
             // Get the list of trigger banks from the event
             List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
 
@@ -510,7 +361,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
-            LOGGER.warning("No SVT RawTrackerHits in this event.");
+            System.out.println("No SVT RawTrackerHits in this event???");
             return;
         }
         // Get RawTrackerHit collection from event.
@@ -527,213 +378,37 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         eventCount++;
 
-        // Increment strip hit count.
-        for (RawTrackerHit rawHit : rawHits) {
-            // Obtain the raw ADC samples for each of the six samples readout
-            short[] adcValues = rawHit.getADCValues();
-
-            // Find the sample that has the largest amplitude. This should
-            // correspond to the peak of the shaper signal if the SVT is timed
-            // in correctly. Otherwise, the maximum sample value will default
-            // to 0.
-            int maxAmplitude = 0;
-            int maxSamplePositionFound = -1;
-            for (int sampleN = 0; sampleN < 6; sampleN++)
-                if (adcValues[sampleN] > maxAmplitude) {
-                    maxAmplitude = adcValues[sampleN];
-                    maxSamplePositionFound = sampleN;
-                }
-            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
-                occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))[rawHit
-                        .getIdentifierFieldValue("strip")]++; //                System.out.println("Filling occupancy");
-
-            if (enableMaxSamplePlots)
-                maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName())).fill(
-                        maxSamplePositionFound);
-        }
-
         // Fill the strip cluster counts if available
         if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
             List<SiTrackerHitStrip1D> stripHits1D = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
             for (SiTrackerHitStrip1D h : stripHits1D) {
-                SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
-                Hep3Vector pos_global = global.getPositionAsVector();
-                if (enableClusterTimeCuts) {
-                    if (h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin)
-                        clusterPositionPlotCounts.get(
-                                SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName())).fill(
-                                pos_global.y());
-                } else
-                    clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName()))
-                            .fill(pos_global.y());
+                if (enableClusterChargeCut && h.getdEdx() / DopedSilicon.ENERGY_EHPAIR < clusterChargeCut)
+                    continue;
+                RawTrackerHit rth = h.getRawHits().get(0);
+                if ((h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin) || !enableClusterTimeCuts)
+                    occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rth.getDetectorElement()).getName()))[rth
+                            .getIdentifierFieldValue("strip")]++; //   
             }
         }
-
-        if (enableMaxSamplePlots && eventCount > maxSampleMonitorStart && eventCount % maxSampleMonitorPeriod == 0)
-            checkMaxSample();
-
-        if (eventCount > occupancyMonitorStart && eventCount % occupancyMonitorPeriod == 0)
-            checkOccupancy();
 
         // Plot strip occupancies.
         if (eventCount % eventRefreshRate == 0)
             for (HpsSiSensor sensor : sensors) {
                 int[] strips = occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
                 occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                if (enablePositionPlots)
-                    positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
+
                 for (int channel = 0; channel < strips.length; channel++) {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
 
                     stripOccupancy /= this.timeWindowWeight;
                     //                  System.out.println("channel " + channel + " occupancy = " + stripOccupancy);
                     occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(channel, stripOccupancy);
-
-                    if (enablePositionPlots) {
-                        double stripPosition = this.getStripPosition(sensor, channel).y();
-                        positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(stripPosition, stripOccupancy);
-                    }
                 }
-                if (enablePositionPlots) {
-                    clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                    IHistogram1D h = clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
-                    for (int bin = 0; bin < h.axis().bins(); ++bin) {
-                        int y = h.binEntries(bin);
-                        double stripClusterOccupancy = (double) y / (double) eventCount;
-                        double x = h.axis().binCenter(bin);
-                        clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(x, stripClusterOccupancy);
-                    }
-                }
-
             }
 
         if (plotters.get("Occupancy") != null)
             plotters.get("Occupancy").refresh();
 
-    }
-
-    private void checkMaxSample() {
-        StatusCode oldStatus = maxSampleStatus.getStatusCode();
-        boolean isSystemOK = true;
-
-        String label = "foo";
-        for (HpsSiSensor sensor : sensors) {
-
-            if (sensor.getLayerNumber() < 9)
-                label = "Max Sample Number: L0-L3";
-            else
-                label = "Max Sample Number: L4-L6";
-            IHistogram1D maxSamplePlot = maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
-//            IPlotterRegion region = plotters.get("Max Sample Number").region(SvtPlotUtils.computePlotterRegion(sensor));
-            IPlotterRegion region = plotters.get(label).region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor));
-
-            boolean isSensorOK = maxSamplePlot.binEntries(maxSamplePosition) > maxSamplePlot
-                    .binEntries(maxSamplePosition - 1)
-                    && maxSamplePlot.binEntries(maxSamplePosition) > maxSamplePlot.binEntries(maxSamplePosition + 1);
-            if (!isSensorOK) {
-                isSystemOK = false;
-                if (oldStatus != StatusCode.ALARM)
-                    maxSampleStatus.setStatus(StatusCode.ALARM, "Sensor " + SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " looks out of time.");
-                IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
-                // region.clear();
-                // region.plot(maxSamplePlot, plotterStyle);
-                region.applyStyle(plotterStyle);
-                // region.style().regionBoxStyle().backgroundStyle().setColor("246, 34, 34, 1");
-                // setBackgroundColor(region.style(),sensor.isAxial(),true);
-
-            } else {
-                IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, false);
-                // region.clear();
-                // region.plot(maxSamplePlot, plotterStyle);
-                region.applyStyle(plotterStyle);
-                // setBackgroundColor(region.style(),sensor.isAxial(),false);
-            }
-        }
-        if (isSystemOK)
-            if (oldStatus != StatusCode.OKAY)
-                maxSampleStatus.setStatus(StatusCode.OKAY, "All sensors are timed in.");
-    }
-
-    private void checkOccupancy() {
-        StatusCode oldStatus = occupancyStatus.getStatusCode();
-        boolean isSystemOK = true;
-        String label = "foo";
-        for (HpsSiSensor sensor : sensors) {
-            if (sensor.getLayerNumber() < 9)
-                label = "Occupancy: L0-L3";
-            else
-                label = "Occupancy: L4-L6";
-
-            IHistogram1D occupancyPlot = occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
-            IPlotterRegion region = plotters.get(label).region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor));
-
-            double apvOccupancy[] = new double[5];
-            for (int i = 0; i < occupancyPlot.axis().bins(); i++)
-                apvOccupancy[i / 128] += occupancyPlot.binHeight(i);
-            for (int i = 0; i < 5; i++)
-                apvOccupancy[i] /= 128.0;
-
-            boolean isSensorOK = isOccupancyOK(apvOccupancy);
-            if (!isSensorOK) {
-                LOGGER.info(String.format("%s: %f %f %f %f %f\n",
-                        SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), apvOccupancy[0], apvOccupancy[1],
-                        apvOccupancy[2], apvOccupancy[3], apvOccupancy[4]));
-                isSystemOK = false;
-                if (oldStatus != StatusCode.ALARM)
-                    occupancyStatus.setStatus(StatusCode.ALARM, "Sensor " + SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " occupancy abnormal.");
-                IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
-                // region.clear();
-                // region.plot(occupancyPlot, plotterStyle);
-                region.applyStyle(plotterStyle);
-
-            } else {
-                IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, false);
-                // region.clear();
-                // region.plot(occupancyPlot, plotterStyle);
-                region.applyStyle(plotterStyle);
-            }
-        }
-        if (isSystemOK)
-            if (oldStatus != StatusCode.OKAY)
-                occupancyStatus.setStatus(StatusCode.OKAY, "Occupancy looks OK.");
-    }
-
-    private boolean isOccupancyOK(double[] apvOccupancy) {
-        double peakOccupancy = 0;
-        int highestApv = -1;
-        for (int i = 0; i < 5; i++)
-            if (apvOccupancy[i] > peakOccupancy) {
-                peakOccupancy = apvOccupancy[i];
-                highestApv = i;
-            }
-        if (highestApv != 0 && highestApv != 4) {
-            LOGGER.warning("peak occupancy not at edge");
-            return false;
-        }
-        if (peakOccupancy > maxPeakOccupancy || peakOccupancy < minPeakOccupancy) {
-            LOGGER.warning("peak occupancy out of range");
-            return false;
-        }
-        if (highestApv == 0)
-            for (int i = 4; i > 0; i--) {
-                if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy)
-                    continue; // skip through the tail end of the sensor
-                if (0.9 * apvOccupancy[i] > apvOccupancy[i - 1]) {
-                    LOGGER.warning("occupancy not monotonic");
-                    return false;
-                }
-            }
-        else if (highestApv == 4)
-            for (int i = 0; i < 4; i++) {
-                if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy)
-                    continue; // skip through the tail end of the sensor
-                if (0.9 * apvOccupancy[i] > apvOccupancy[i + 1]) {
-                    LOGGER.warning("occupancy not monotonic");
-                    return false;
-                }
-            }
-
-        return true;
     }
 
     @Override

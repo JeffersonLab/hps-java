@@ -18,7 +18,7 @@ import org.lcsim.detector.solids.Point3D;
  */
 public class ThinSiStrips extends SiStrips {
 
-    private int channelOffset = 256;
+    private int channelOffset = 255;
     double _length;
 
     /**

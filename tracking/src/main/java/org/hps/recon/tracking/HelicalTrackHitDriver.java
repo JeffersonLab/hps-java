@@ -287,19 +287,17 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
                     if (_saveAxialHits)//                           
                     {
-                        if (((HpsSiSensor) h.getSensor()).isAxial()) {
-                            HelicalTrack2DHit haxial = makeDigiAxialHit(h);
-                            axialhits.add(haxial);
-                            if (hittomc != null) {
-                                List<RawTrackerHit> rl = haxial.getRawHits();
-                                for (RawTrackerHit rth : rl) {
-                                    for (Object simHit : hittomc.allFrom(rth)) {
-                                        haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
-                                    }
-                                }
-                            }
-                            axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+
+                        HelicalTrack2DHit haxial = makeDigiAxialHit(h);
+                        axialhits.add(haxial);
+                        if (hittomc != null) {
+                            List<RawTrackerHit> rl = haxial.getRawHits();
+                            for (RawTrackerHit rth : rl)
+                                for (Object simHit : hittomc.allFrom(rth))
+                                    haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
                         }
+                        axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+                        
                     }
                 }
             }

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      Steering file for tracking and v0 reconstruction monitoring, using L1-3 and L4-6 tracking to check SVT opening angle
+      @author Matt Graham <mgraham@slac.stanford.edu>
+    -->
+    <execute>     
+        <!--  the 3 drivers below are for reading out 6-sample ADC data -->
+        <!--      <driver name="RawTrackerHitSensorSetup" />  --> 
+        <driver name="RawTrackerHitFitterDriver" /> 
+        <driver name="TrackerHitDriver" />  
+        <driver name="HelicalTrackHitDriver" />
+        <!--  SVT opening angle alignment -->
+        <driver name="TrackerL0to3AxialReconDriver"/> 
+        <driver name="TrackerL4to6AxialReconDriver"/>   
+        <!-- Online Monitoring Drivers -->
+        <driver name="SVTAlignment" />
+        <driver name="CleanupDriver" />
+    </execute>
+    <drivers>
+     <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+   
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <debug>false</debug>
+        </driver>            
+
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>40.0</clusterTimeCut>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+            <maxDt>40.0</maxDt>
+            <vThin>0.0</vThin>
+            <saveAxialHits>true</saveAxialHits>
+        </driver>
+   
+        <driver name="TrackerL0to3AxialReconDriver" type="org.hps.recon.tracking.axial.AxialTrackReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>L0to3Tracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Axial-L0-3.xml</strategyResource>
+        </driver>
+        <driver name="TrackerL4to6AxialReconDriver" type="org.hps.recon.tracking.axial.AxialTrackReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>L4to6Tracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Axial-L4-6.xml</strategyResource>
+        </driver>
+        <driver name="FullTrackerReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>MatchedTracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS-Full.xml</strategyResource>
+            <!--<rmsTimeCut>8.0</rmsTimeCut>-->
+        </driver>
+                          
+        <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.SVTOpeningAlignment">                 
+        </driver>   
+       
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
+    </drivers>
+</lcsim>

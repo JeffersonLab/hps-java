@@ -42,14 +42,14 @@ public class TridentMonitoring extends DataQualityMonitor {
 
     private enum Cut {
 
-        TRK_QUALITY("Trk Quality"), 
-        VTX_QUALITY("Vtx Quality"), 
-        VERTEX_CUTS("Vtx Cuts"), 
-        TIMING("Timing"), 
-        TRACK_CUTS("Trk Cuts"), 
-        CLUSTER_CUTS("Cluster"), 
-        EVENT_QUALITY("Evt Quality"), 
-        FRONT_HITS("Front Hits"), 
+        TRK_QUALITY("Trk Quality"),
+        VTX_QUALITY("Vtx Quality"),
+        VERTEX_CUTS("Vtx Cuts"),
+        TIMING("Timing"),
+        TRACK_CUTS("Trk Cuts"),
+        CLUSTER_CUTS("Cluster"),
+        EVENT_QUALITY("Evt Quality"),
+        FRONT_HITS("Front Hits"),
         ISOLATION("Isolation");
 
         private final String name;
@@ -62,9 +62,8 @@ public class TridentMonitoring extends DataQualityMonitor {
 
         static int bitmask(EnumSet<Cut> flags) {
             int mask = 0;
-            for (Cut flag : flags) {
+            for (Cut flag : flags)
                 mask |= 1 << flag.ordinal();
-            }
             return mask;
         }
 
@@ -97,7 +96,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     // private final String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
     // private final String trackListName = "MatchedTracks";
     private final String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy",
-            "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
+        "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
     private final String plotDir = "TridentMonitoring/";
 
@@ -223,51 +222,51 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final IHistogram1D[][] cutVertexZ = new IHistogram1D[Cut.nCuts][2];
     private final IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[Cut.nCuts][2];
 
-    private final double plotsMinMass = 0.03;
-    private final double plotsMaxMass = 0.04;
+    private final double plotsMinMass = 0.01;
+    private final double plotsMaxMass = 0.1;
 
     // clean up event first
     private final int nTrkMax = 5;
     private final int nPosMax = 1;
 
     private final double maxChi2SeedTrack = 7.0;
-    private double maxChi2GBLTrack = 15.0;
-    private double maxUnconVertChi2 = 7.0;
+    private double maxChi2GBLTrack = 100.0;
+    private double maxUnconVertChi2 = 100.0;
     private double maxBsconVertChi2 = 1000.0; // disable by default
 
     // v0 plot ranges
-    private final double v0PzMax = 1.25;// GeV
-    private final double v0PzMin = 0.1;// GeV
-    private final double v0PyMax = 0.04;// GeV absolute value
-    private final double v0PxMax = 0.04;// GeV absolute value
+    private final double v0PzMax = 1.2;//  *beam energy
+    private final double v0PzMin = 0.1;//  *beam energy
+    private final double v0PyMax = 0.04;//  *beam energy absolute value
+    private final double v0PxMax = 0.04;//  *beam energy absolute value
     private final double v0VzMax = 50.0;// mm from target...someday make mass dependent
     private final double v0VyMax = 2.0;// mm from target...someday make mass dependent
     private final double v0VxMax = 2.0;// mm from target...someday make mass dependent
 
     // v0 cuts
-    private final double v0PzMaxCut = 1.25;// GeV
-    private final double v0PzMinCut = 0.1;// GeV
-    private final double v0PyCut = 0.04;// GeV absolute value
-    private final double v0PxCut = 0.04;// GeV absolute value
+    private final double v0PzMaxCut = 1.2;//  *beam energy
+    private final double v0PzMinCut = 0.1;//  *beam energy
+    private final double v0PyCut = 0.04;// *beam energy absolute value
+    private final double v0PxCut = 0.04;//  *beam energy absolute value
     private final double v0UnconVzCut = 50.0;// mm from target...someday make mass dependent
-    private double v0UnconVyCut = 2.0;// mm from target...someday make mass dependent
-    private double v0UnconVxCut = 2.0;// mm from target...someday make mass dependent
-    private double v0BsconVyCut = 10.0; // disable by default
-    private double v0BsconVxCut = 10.0; // disable by default
+    private double v0UnconVyCut = 20.0;// mm from target...someday make mass dependent
+    private double v0UnconVxCut = 20.0;// mm from target...someday make mass dependent
+    private double v0BsconVyCut = 20.0; // disable by default
+    private double v0BsconVxCut = 20.0; // disable by default
 
     // track quality cuts
-    private final double beamPCut = 0.85;
-    private final double minPCut = 0.05;
+    private final double beamPCut = 1.0;
+    private final double minPCut = 0.1;
     // private double trkPyMax = 0.2;
     // private double trkPxMax = 0.2;
-    private final double radCut = 0.8;
-    private final double trkTimeDiff = 5.0;
-    private final double clusterTimeDiffCut = 2.5;
+    private final double radCut = 0.6;
+    private final double trkTimeDiff = 10.0;
+    private final double clusterTimeDiffCut = 5.0;
 
-    private double l1IsoMin = 0.5;
+    private double l1IsoMin = 0.250;
 
     private final double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
-                                                             // production running
+    // production running
     private final double[] beamPos = {0.0, 0.0, 0.0};
     private final double[] vzcBeamSize = {0.001, 100, 100};
 
@@ -332,17 +331,17 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
-        /* tab */LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
+        /* tab */
+        LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
-
+        beamEnergy = 4.5;
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
-        if (isGBL) {
+        if (isGBL)
             trkType = "GBLTrack/";
-        }
         /* V0 Quantities */
-        /* Mass, vertex, chi^2 of fit */
-        /* beamspot constrained */
+ /* Mass, vertex, chi^2 of fit */
+ /* beamspot constrained */
         // IHistogram1D nV0 = aida.histogram1D(plotDir + triggerType + "/"+"Number of V0 per event", 10, 0, 10);
         // IHistogram1D bsconMass = aida.histogram1D(plotDir + triggerType + "/"+"BS Constrained Mass (GeV)", 100, 0,
         // 0.200);
@@ -361,7 +360,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         // "/"+"Target Constrained Vz (mm)", 50, -10, 10);
         // IHistogram1D tarconChi2 = aida.histogram1D(plotDir + triggerType + "/"+ triggerType +
         // "/"+"Target Constrained Chi2", 25, 0, 25);
-        nTriCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Trident Candidates", 5, 0, 4);
+        nTriCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Trident Candidates", 5, 0, 5);
 
         // triTrackTimeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Trident: Track time difference",
         // 100, -10, 10);
@@ -561,7 +560,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         vertRadUnconBsconChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/"
                 + "Radiative vertex: beamspot chi2 vs. uncon chi2", 100, 0, 25.0, 100, 0, 25.0);
 
-        nVtxCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Vertexing Candidates", 5, 0, 4);
+        nVtxCand = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Number of Vertexing Candidates", 5, 0, 5);
 
         maxTrkChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Cut: Trk Chi2", 50, 0.0, 50.0);
         zVsMaxTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs Trk Chi2", 50, 0.0, 50.0,
@@ -597,7 +596,7 @@ public class TridentMonitoring extends DataQualityMonitor {
         zVsL1Iso = aida.histogram2D(plotDir + trkType + triggerType + "/" + "Cut: Vz vs L1 Isolation", 100, 0.0, 5.0,
                 50, -v0VzMax, v0VzMax);
 
-        for (Cut cut : Cut.values()) {
+        for (Cut cut : Cut.values())
             for (int i = 0; i < 2; i++) {
                 cutVertexZ[cut.ordinal()][i] = aida.histogram1D(String.format(
                         "%s%s%s/failed cut %d: %s/%s: Vertex Z position (mm)", plotDir, trkType, triggerType,
@@ -610,18 +609,15 @@ public class TridentMonitoring extends DataQualityMonitor {
                                 triggerType, cut.ordinal(), cut.name, i == VERTEX ? "vertex" : "trident"), 100, 0,
                                 0.1 * beamEnergy, 100, -v0VzMax, v0VzMax);
             }
-        }
     }
 
     @Override
     public void process(EventHeader event) {
         /* make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             return;
-        }
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
             return;
-        }
         // if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
         // return;
         // }
@@ -630,20 +626,17 @@ public class TridentMonitoring extends DataQualityMonitor {
         // }
 
         // check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event)) {
+        if (!matchTrigger(event))
             return;
-        }
 
         nEvents++;
 
         int nV0 = 0;
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
                 unconstrainedV0CandidatesColName);
-        for (ReconstructedParticle v0 : unConstrainedV0List) {
-            if (isGBL == TrackType.isGBL(v0.getType())) {
+        for (ReconstructedParticle v0 : unConstrainedV0List)
+            if (isGBL == TrackType.isGBL(v0.getType()))
                 nV0++;
-            }
-        }
         nRecoV0 += nV0;
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
@@ -653,33 +646,31 @@ public class TridentMonitoring extends DataQualityMonitor {
         int npos = 0;
         int ntrk = 0;
         for (ReconstructedParticle fsp : fspList) {
-            if (isGBL != TrackType.isGBL(fsp.getType())) {
+            if (isGBL != TrackType.isGBL(fsp.getType()))
                 continue;
-            }
-            if (fsp.getCharge() != 0) {
+            if (fsp.getCharge() != 0)
                 ntrk++;
-            }
-            if (fsp.getCharge() > 0) {
+            if (fsp.getCharge() > 0)
                 npos++;
-            }
         }
 
         List<ReconstructedParticle> candidateList = new ArrayList<>();
         List<ReconstructedParticle> vertCandidateList = new ArrayList<>();
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
-            if (isGBL != TrackType.isGBL(uncV0.getType())) {
+            if (isGBL != TrackType.isGBL(uncV0.getType()))
                 continue;
-            }
             Vertex uncVert = uncV0.getStartVertex();
+//            System.out.println("uncVert Z = " + uncV0);
             // v0 & vertex-quality cuts
-            Hep3Vector v0MomRot = VecOp.mult(beamAxisRotation, uncV0.getMomentum());
-            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, uncVert.getPosition());
+//            Hep3Vector v0MomRot = VecOp.mult(beamAxisRotation, uncV0.getMomentum());
+            Hep3Vector v0Mom = uncV0.getMomentum();
+//            Hep3Vector v0Vtx = VecOp.mult(beamAxisRotation, uncVert.getPosition());
+            Hep3Vector v0Vtx = uncVert.getPosition();
 
             ReconstructedParticle electron = uncV0.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = uncV0.getParticles().get(ReconParticleDriver.POSITRON);
-            if (electron.getCharge() != -1 || positron.getCharge() != 1) {
+            if (electron.getCharge() != -1 || positron.getCharge() != 1)
                 throw new RuntimeException("incorrect charge on v0 daughters");
-            }
 
             Track eleTrack = electron.getTracks().get(0);
             Track posTrack = positron.getTracks().get(0);
@@ -687,22 +678,19 @@ public class TridentMonitoring extends DataQualityMonitor {
             List<Track> tracks = new ArrayList<Track>();
             tracks.add(eleTrack);
             tracks.add(posTrack);
-            if (tracks.size() != 2) {
+            if (tracks.size() != 2)
                 throw new RuntimeException("expected two tracks in vertex, got " + tracks.size());
-            }
             List<Double> hitTimes = new ArrayList<Double>();
             double mean = 0;
-            for (Track track : tracks) {
+            for (Track track : tracks)
                 for (TrackerHit hit : TrackUtils.getStripHits(track, hitToStrips, hitToRotated)) {
                     mean += hit.getTime();
                     hitTimes.add(hit.getTime());
                 }
-            }
             mean /= hitTimes.size();
             double stdDev = 0;
-            for (Double time : hitTimes) {
+            for (Double time : hitTimes)
                 stdDev += Math.pow(time - mean, 2);
-            }
             stdDev /= (hitTimes.size() - 1);
             stdDev = Math.sqrt(stdDev);
 
@@ -711,7 +699,7 @@ public class TridentMonitoring extends DataQualityMonitor {
             double minPositiveIso = 9999;
             double minNegativeIso = 9999;
             // double eleIsoStereo = -9999, eleIsoAxial = -9999;
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 6; i++)
                 if (eleIso[2 * i] != null) {
                     // if (pEleRot.y() < 0) {
                     // eleIsoStereo = eleIso[2 * i];
@@ -720,24 +708,17 @@ public class TridentMonitoring extends DataQualityMonitor {
                     // eleIsoAxial = eleIso[2 * i];
                     // eleIsoStereo = eleIso[2 * i + 1];
                     // }
-                    for (int j = 2 * i; j < 2 * i + 2; j++) {
-                        if (eleIso[j] < 100) {
+                    for (int j = 2 * i; j < 2 * i + 2; j++)
+                        if (eleIso[j] < 100)
                             if (eleIso[j] > 0) {
-                                if (minPositiveIso > 100 || eleIso[j] < minPositiveIso) {
+                                if (minPositiveIso > 100 || eleIso[j] < minPositiveIso)
                                     minPositiveIso = eleIso[j];
-                                }
-                            } else {
-                                if (minNegativeIso > 100 || eleIso[j] > minNegativeIso) {
-                                    minNegativeIso = eleIso[j];
-                                }
-                            }
-                        }
-                    }
+                            } else if (minNegativeIso > 100 || eleIso[j] > minNegativeIso)
+                                minNegativeIso = eleIso[j];
                     break;
                 }
-            }
             // double posIsoStereo = -9999, posIsoAxial = -9999;
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 6; i++)
                 if (posIso[2 * i] != null) {
                     // if (pPosRot.y() < 0) {
                     // posIsoStereo = posIso[2 * i];
@@ -746,22 +727,15 @@ public class TridentMonitoring extends DataQualityMonitor {
                     // posIsoAxial = posIso[2 * i];
                     // posIsoStereo = posIso[2 * i + 1];
                     // }
-                    for (int j = 2 * i; j < 2 * i + 2; j++) {
-                        if (posIso[j] < 100) {
+                    for (int j = 2 * i; j < 2 * i + 2; j++)
+                        if (posIso[j] < 100)
                             if (posIso[j] > 0) {
-                                if (minPositiveIso > 100 || posIso[j] < minPositiveIso) {
+                                if (minPositiveIso > 100 || posIso[j] < minPositiveIso)
                                     minPositiveIso = posIso[j];
-                                }
-                            } else {
-                                if (minNegativeIso > 100 || posIso[j] > minNegativeIso) {
-                                    minNegativeIso = posIso[j];
-                                }
-                            }
-                        }
-                    }
+                            } else if (minNegativeIso > 100 || posIso[j] > minNegativeIso)
+                                minNegativeIso = posIso[j];
                     break;
                 }
-            }
 
             double minIso = Math.min(Math.abs(minPositiveIso), Math.abs(minNegativeIso));
 
@@ -799,41 +773,52 @@ public class TridentMonitoring extends DataQualityMonitor {
 
             // start applying cuts
             EnumSet<Cut> bits = EnumSet.noneOf(Cut.class);
-
+//            System.out.println("Starting to apply cuts");
             boolean trackQualityCut = Math.max(electron.getTracks().get(0).getChi2(), positron.getTracks().get(0)
                     .getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
-            if (trackQualityCut) {
+//            System.out.println("Track quality cuts: " + trackQualityCut);
+            if (trackQualityCut)
                 bits.add(Cut.TRK_QUALITY);
-            }
 
-            boolean v0QualityCut = uncVert.getChi2() < maxUnconVertChi2 && bsconVertex.getChi2() < maxBsconVertChi2;
-            if (v0QualityCut) {
+//            boolean v0QualityCut = uncVert.getChi2() < maxUnconVertChi2 && bsconVertex.getChi2() < maxBsconVertChi2;
+            boolean v0QualityCut = uncVert.getChi2() < maxUnconVertChi2;
+//            System.out.println("V0 quality cuts: " + v0QualityCut);
+            if (v0QualityCut)
                 bits.add(Cut.VTX_QUALITY);
-            }
 
-            boolean vertexMomentumCut = v0MomRot.z() < v0PzMaxCut * beamEnergy
-                    && v0MomRot.z() > v0PzMinCut * beamEnergy && Math.abs(v0MomRot.x()) < v0PxCut * beamEnergy
-                    && Math.abs(v0MomRot.y()) < v0PyCut * beamEnergy;
+            boolean vertexMomentumCut = v0Mom.z() < v0PzMaxCut * beamEnergy
+                    && v0Mom.z() > v0PzMinCut * beamEnergy && Math.abs(v0Mom.x()) < v0PxCut * beamEnergy
+                    && Math.abs(v0Mom.y()) < v0PyCut * beamEnergy;
+//            boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0UnconVxCut && Math.abs(v0Vtx.y()) < v0UnconVyCut
+//                    && Math.abs(v0Vtx.z()) < v0UnconVzCut && Math.abs(bscVtx.x()) < v0BsconVxCut
+//                    && Math.abs(bscVtx.y()) < v0BsconVyCut;
             boolean vertexPositionCut = Math.abs(v0Vtx.x()) < v0UnconVxCut && Math.abs(v0Vtx.y()) < v0UnconVyCut
-                    && Math.abs(v0Vtx.z()) < v0UnconVzCut && Math.abs(bscVtx.x()) < v0BsconVxCut
-                    && Math.abs(bscVtx.y()) < v0BsconVyCut;
-            if (vertexMomentumCut && vertexPositionCut) {
+                    && Math.abs(v0Vtx.z()) < v0UnconVzCut;
+
+//            System.out.println("Vx = " + v0Vtx.x() + "; Vy = " + v0Vtx.y() + "; Vz = " + v0Vtx.z());
+//            System.out.println("Px = " + v0Mom.x() + ";v0PxCut * beamEnergy = " + ( v0PxCut* beamEnergy));
+//            System.out.println("Py = " + v0Mom.y() + ";v0PyCut * beamEnergy = " + ( v0PyCut* beamEnergy));
+//            System.out.println("Pz = " + v0Mom.z() + ";v0PzMaxCut * beamEnergy = " + (v0PzMaxCut * beamEnergy));
+//            System.out.println("Vertex Momentum Cut: " + vertexMomentumCut);
+//            System.out.println("Vertex Position Cut: " + vertexPositionCut);
+            if (vertexMomentumCut && vertexPositionCut)
                 bits.add(Cut.VERTEX_CUTS);
-            }
 
             boolean trackTimeDiffCut = Math.abs(tEle - tPos) < trkTimeDiff;
-            if (trackTimeDiffCut) {
+//            System.out.println("deltaT Tracks Cut: " + trackTimeDiffCut);
+            if (trackTimeDiffCut)
                 bits.add(Cut.TIMING);
-            }
 
             boolean topBottomCut = electron.getMomentum().y() * positron.getMomentum().y() < 0;
             boolean pMinCut = electron.getMomentum().magnitude() > minPCut * beamEnergy
                     && positron.getMomentum().magnitude() > minPCut * beamEnergy;
             boolean pMaxCut = electron.getMomentum().magnitude() < beamPCut * beamEnergy
                     && positron.getMomentum().magnitude() < beamPCut * beamEnergy;
-            if (topBottomCut && pMaxCut && pMinCut) {
+//            System.out.println("topBottomCut: " + topBottomCut);
+//            System.out.println("pMaxCut: " + pMaxCut);
+//            System.out.println("pMinCut: " + pMinCut);
+            if (topBottomCut && pMaxCut && pMinCut)
                 bits.add(Cut.TRACK_CUTS);
-            }
 
             boolean clusterMatchCut = !electron.getClusters().isEmpty() && !positron.getClusters().isEmpty();
             boolean clusterTimeCut = clusterMatchCut
@@ -846,38 +831,36 @@ public class TridentMonitoring extends DataQualityMonitor {
 
             boolean eventTrkCountCut = ntrk >= 2 && ntrk <= nTrkMax;
             boolean eventPosCountCut = npos >= 1 && npos <= nPosMax;
-            if (eventTrkCountCut && eventPosCountCut) {
+//            System.out.println("eventTrkCountCut: "+eventTrkCountCut);
+//            System.out.println("eventPosCountCut: "+eventPosCountCut);
+            if (eventTrkCountCut && eventPosCountCut)
                 bits.add(Cut.EVENT_QUALITY);
-            }
 
-            boolean frontHitsCut = eleIso[0] != null && posIso[0] != null && eleIso[2] != null && posIso[2] != null;
-            if (frontHitsCut) {
+//            boolean frontHitsCut = eleIso[0] != null && posIso[0] != null && eleIso[2] != null && posIso[2] != null;
+            boolean frontHitsCut = true;
+//            System.out.println("frontHitsCut: "+frontHitsCut);
+            if (frontHitsCut)
                 bits.add(Cut.FRONT_HITS);
-            }
-
             boolean isoCut = minIso > l1IsoMin;
-            if (!frontHitsCut || isoCut) { // diagnostic plots look better if failing the front hits cut makes you pass
-                                           // this one
+//            System.out.println("isoCut: "+isoCut);
+            if (!frontHitsCut || isoCut) // diagnostic plots look better if failing the front hits cut makes you pass
+//                // this one
                 bits.add(Cut.ISOLATION);
-            }
-
-            for (Cut cut : Cut.values()) {
+            for (Cut cut : Cut.values())
                 if (bits.contains(cut)) {
-                    if (cut.ordinal() == Cut.firstVertexingCut) {// if we get here, we've passed all non-vertexing cuts
-                        candidateList.add(uncV0);
-                    }
+//                    if (cut.ordinal() == Cut.firstVertexingCut)// if we get here, we've passed all non-vertexing cuts
+//                        candidateList.add(uncV0);
                     nPassCut[cut.ordinal()]++;
-                } else {
+                } else
                     break;
-                }
-            }
 
             for (Cut cut : Cut.values()) {
                 EnumSet<Cut> allButThisCut = EnumSet.allOf(Cut.class);
                 allButThisCut.remove(cut);
                 if (bits.containsAll(allButThisCut)) {
-                    if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy
-                            && uncV0.getMomentum().magnitude() > radCut * beamEnergy) {
+//                    if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy
+//                            && uncV0.getMomentum().magnitude() > radCut * beamEnergy)
+                    if (1 == 1)
                         switch (cut) {
                             case ISOLATION:
                                 l1Iso.fill(minIso);
@@ -909,11 +892,9 @@ public class TridentMonitoring extends DataQualityMonitor {
                                         v0Vtx.z());
                                 break;
                         }
-                    }
                     if (!bits.contains(cut)) {
-                        if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy) {
+                        if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy)
                             cutVertexZ[cut.ordinal()][VERTEX].fill(v0Vtx.z());
-                        }
                         cutVertexMass[cut.ordinal()][VERTEX].fill(uncV0.getMass());
                         cutVertexZVsMass[cut.ordinal()][VERTEX].fill(uncV0.getMass(), v0Vtx.z());
                     }
@@ -922,28 +903,25 @@ public class TridentMonitoring extends DataQualityMonitor {
                 EnumSet<Cut> allTriCutsButThisCut = EnumSet.range(Cut.values()[0],
                         Cut.values()[Cut.firstVertexingCut - 1]);
                 allTriCutsButThisCut.remove(cut);
-                if (bits.containsAll(allTriCutsButThisCut)) {
+                if (bits.containsAll(allTriCutsButThisCut))
                     if (!bits.contains(cut)) {
-                        if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy) {
+                        if (uncV0.getMass() > plotsMinMass * beamEnergy && uncV0.getMass() < plotsMaxMass * beamEnergy)
                             cutVertexZ[cut.ordinal()][TRIDENT].fill(v0Vtx.z());
-                        }
                         cutVertexMass[cut.ordinal()][TRIDENT].fill(uncV0.getMass());
                         cutVertexZVsMass[cut.ordinal()][TRIDENT].fill(uncV0.getMass(), v0Vtx.z());
                     }
-                }
             }
 
-            if (bits.containsAll(EnumSet.range(Cut.values()[0], Cut.values()[Cut.firstVertexingCut - 1]))) {
+            if (bits.containsAll(EnumSet.range(Cut.values()[0], Cut.values()[Cut.firstVertexingCut - 1]))){
                 candidateList.add(uncV0);
             }
-            if (bits.equals(EnumSet.allOf(Cut.class))) {
+            if (bits.equals(EnumSet.allOf(Cut.class)))
                 vertCandidateList.add(uncV0);
-            }
         }
 
         nTriCand.fill(candidateList.size());
         nVtxCand.fill(vertCandidateList.size());
-
+//        System.out.println("Number of trident Candidates ="+ candidateList.size());
         if (!candidateList.isEmpty()) {
             // pick the best candidate...for now just pick a random one.
             ReconstructedParticle bestCandidate = candidateList.get((int) (Math.random() * candidateList.size()));
@@ -951,9 +929,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             // fill some stuff:
             ReconstructedParticle electron = bestCandidate.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = bestCandidate.getParticles().get(ReconParticleDriver.POSITRON);
-            if (electron.getCharge() != -1 || positron.getCharge() != 1) {
+            if (electron.getCharge() != -1 || positron.getCharge() != 1)
                 throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
-            }
 
             double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
             double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
@@ -1021,9 +998,8 @@ public class TridentMonitoring extends DataQualityMonitor {
             // fill some stuff:
             ReconstructedParticle electron = bestCandidate.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = bestCandidate.getParticles().get(ReconParticleDriver.POSITRON);
-            if (electron.getCharge() != -1 || positron.getCharge() != 1) {
+            if (electron.getCharge() != -1 || positron.getCharge() != 1)
                 throw new RuntimeException("vertex needs e+ and e- but is missing one or both");
-            }
 
             double tEle = TrackUtils.getTrackTime(electron.getTracks().get(0), hitToStrips, hitToRotated);
             double tPos = TrackUtils.getTrackTime(positron.getTracks().get(0), hitToStrips, hitToRotated);
@@ -1101,9 +1077,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     // TODO: Change from System.out to use logger instead.
     public void printDQMData() {
         System.out.println("TridendMonitoring::printDQMData");
-        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
             System.out.println(entry.getKey() + " = " + entry.getValue());
-        }
         System.out.println("*******************************");
 
         System.out.println("TridendMonitoring::Tridend Selection Summary: " + (isGBL ? "GBLTrack" : "SeedTrack"));
@@ -1127,7 +1102,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                     cut.name,
                     nPassCut[cut.ordinal()],
                     nPassCut[cut.ordinal()]
-                            / (cut.ordinal() == 0 ? nRecoV0 : nPassCut[cut.ordinal() == 0 ? 0 : (cut.ordinal() - 1)]),
+                    / (cut.ordinal() == 0 ? nRecoV0 : nPassCut[cut.ordinal() == 0 ? 0 : (cut.ordinal() - 1)]),
                     nPassCut[cut.ordinal()] / nRecoV0, nPassCut[cut.ordinal()] / nEvents);
         }
         System.out
@@ -1149,9 +1124,8 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)// TODO: do this in a smarter way...loop over the map
-        {
+
             LOGGER.info("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
-        }
     }
 
     IFitResult fitVertexPosition(IHistogram1D h1d, IFitter fitter, double[] init, String range) {
