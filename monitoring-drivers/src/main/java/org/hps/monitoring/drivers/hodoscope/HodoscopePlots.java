@@ -285,7 +285,7 @@ public class HodoscopePlots extends Driver {
         // Get RawTrackerHit collection from event.
         List<SimpleGenericObject> reconHits = event.get(SimpleGenericObject.class, hodoHitsCollectionName);
 
-        //System.out.println("Size of reconHitsi is " + reconHits.size());
+        //System.out.println("Size of reconHits is " + reconHits.size());
         int n_hits = reconHits.get(0).getNInt();
 
         // ======= Loop over hits, and fill corresponding histogram =======
