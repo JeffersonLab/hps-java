@@ -56,7 +56,7 @@ public class VTPCalibrationTrigger {
     /**
      * Get type of calibration trigger.
      * 
-     * @return Returns type of calibration trigger: cosmic (0), LED (1), hodoscope (2), pulser (3).
+     * @return Return type of calibration trigger: cosmic (0), LED (1), hodoscope (2), pulser (3).
     */
     public int getType() {
         return type;
