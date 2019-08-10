@@ -53,9 +53,9 @@ public class VTPMultiplicityTrigger {
     }
 
     /**
-     * Get cluster multiplicity trigger time in ns.
+     * Get cluster multiplicity trigger time in ns referenced from the beginning of the readout window.
      * 
-     * @return Return the cluster multiplicity trigger time as an <code>int</code>.
+     * @return Return the cluster multiplicity trigger time as a <code>long</code>.
      */
     public long getTime() {
         return (long)t * 4;

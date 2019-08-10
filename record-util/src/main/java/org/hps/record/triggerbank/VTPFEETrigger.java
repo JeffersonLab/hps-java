@@ -47,9 +47,9 @@ public class VTPFEETrigger {
     }
 
     /**
-     * Get FEE trigger time in ns.
+     * Get FEE trigger time in ns referenced from the beginning of the readout window.
      * 
-     * @return Return the FEE trigger time as an <code>int</code>.
+     * @return Return the FEE trigger time as a <code>long</code>.
      */
     public long getTime() {
         return (long)t * 4;
@@ -67,12 +67,12 @@ public class VTPFEETrigger {
     /**
      * Check if a region triggered system.
      * 
-     * @param bitIndex - index of a region.
+     * @param bitIndex - index of a region bit.
      * 
      * @return Returns <code>true</code> if the corresponding region triggered system, and
      * <code>false</code> otherwise.
      */
-    public boolean checkTrigger(int bitIndex) {
+    public boolean checkRegion(int bitIndex) {
         if(bitIndex > 6) throw new RuntimeException("Index " + bitIndex + " is out of range (0 : 6)");
         else return regionBits.get(bitIndex);
     }
@@ -102,7 +102,7 @@ public class VTPFEETrigger {
     }
 
     /**
-     * Get number of regions, which triggered system.
+     * Get number of regions which triggered system.
      */
     public int getNumberOfRegions() {
         return this.getIndicesOfRegions().length;

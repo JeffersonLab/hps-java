@@ -55,9 +55,9 @@ public class VTPSinglesTrigger {
     }
     
     /**
-     * Get singles trigger time in ns.
+     * Get singles trigger time in ns referenced from the beginning of the readout window.
      * 
-     * @return Return the singles trigger time as an <code>int</code>.
+     * @return Return the singles trigger time as a <code>long</code>.
      */
     public long getTime() {
         return (long)t * 4;
@@ -79,6 +79,19 @@ public class VTPSinglesTrigger {
     */
     public BitSet getPassBits() {
         return passBits;
+    }
+    
+    /**
+     * Check if a cut was passed.
+     * 
+     * @param bitIndex - index of a pass bit.
+     * 
+     * @return Returns <code>true</code> if the corresponding cut was passed, and
+     * <code>false</code> otherwise.
+     */
+    public boolean checkPass(int bitIndex) {
+        if(bitIndex > 8) throw new RuntimeException("Index " + bitIndex + " is out of range (0 : 8)");
+        else return passBits.get(bitIndex);
     }
     
     /**
@@ -147,7 +160,7 @@ public class VTPSinglesTrigger {
     /**
      * Get value of TOP_NBOT to indicate trigger occurred at TOP or bottom ECal Half.
      * 
-     * @return Return value of TOP_NBOT. 1 means top, 0 means bot.
+     * @return Return value of TOP_NBOT. 1 means occurred at top, 0 means occurred at bottom.
      */
     public int getTopNBot() {
         return tOrB;

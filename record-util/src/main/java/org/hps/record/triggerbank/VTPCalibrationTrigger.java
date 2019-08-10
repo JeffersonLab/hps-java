@@ -1,6 +1,5 @@
 package org.hps.record.triggerbank;
 
-import java.util.BitSet;
 import java.util.logging.Logger;
 
 /**
@@ -8,7 +7,7 @@ import java.util.logging.Logger;
  * HPS Calibration Trigger:
  * <ul>
  * <li>10bit [0 : 9] trigger time in 4 ns unit</li> 
- * <li>4bit [19: 22] calibration trigger type bits: cosmic (bit19), LED (bit20), hodoscope (bit21), pulser (bit22)</li> 
+ * <li>4bit [19: 22] calibration trigger type: cosmic (0), LED (1), hodoscope (2), pulser (3)</li> 
  * </ul>
  * 
  * @author Tongtong Cao <caot@jlab.org>
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
 public class VTPCalibrationTrigger {
     // calibration trigger's variables.
     private int t; // in 4 ns units
-    private BitSet typeBits = new BitSet(4);
+    private int type;
     
     /**
      * Initialize the logger.
@@ -36,7 +35,7 @@ public class VTPCalibrationTrigger {
     
     public final void decodeData(int word){
         t = word & 0x3FF;
-        typeBits = BitSet.valueOf(new long [] {word >> 19 & 0x0F});
+        type = word >> 19 & 0x0F;
         
         // Make sure that the input values are valid.
         if (t < 0) {
@@ -45,9 +44,9 @@ public class VTPCalibrationTrigger {
     }
     
     /**
-     * Get calibration trigger time in ns.
+     * Get calibration trigger time in ns referenced from the beginning of the readout window.
      * 
-     * @return Return the calibration trigger time as an <code>int</code>.
+     * @return Return the calibration trigger time as a <code>long</code>.
      */
     public long getTime() {
         return (long)t * 4;
@@ -55,39 +54,11 @@ public class VTPCalibrationTrigger {
     
     
     /**
-     * Get calibration trigger type bits.
+     * Get type of calibration trigger.
      * 
-     * @return Returns calibration trigger type bits.
+     * @return Returns type of calibration trigger: cosmic (0), LED (1), hodoscope (2), pulser (3).
     */
-    public BitSet getTypeBits() {
-        return typeBits;
-    }
-   
-    /**
-     * Indicates whether a cosmic trigger was registered.
-     */
-    public boolean isCosmicTrigger() {
-        return typeBits.get(0); 
-    }
-   
-    /**
-     * Indicates whether a LED trigger was registered.
-     */
-    public boolean isLEDTrigger() {
-        return typeBits.get(1); 
-    }
-   
-    /**
-     * Indicates whether a hodoscope trigger was registered.
-     */
-    public boolean isHodoscopeTrigger() {
-        return typeBits.get(2); 
-    }
-
-    /**
-     * Indicates whether a pulser trigger was registered.
-     */
-    public boolean isPulserTrigger() {
-        return typeBits.get(3); 
-    }
+    public int getType() {
+        return type;
+    }   
 }

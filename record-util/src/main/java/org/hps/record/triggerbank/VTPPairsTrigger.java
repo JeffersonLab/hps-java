@@ -51,9 +51,9 @@ public class VTPPairsTrigger {
     }
     
     /**
-     * Get pairs trigger time in ns.
+     * Get pairs trigger time in ns referenced from the beginning of the readout window.
      * 
-     * @return Return the pairs trigger time as an <code>int</code>.
+     * @return Return the pairs trigger time as a <code>long</code>.
      */
     public long getTime() {
         return (long)t * 4;
@@ -75,6 +75,19 @@ public class VTPPairsTrigger {
     */
     public BitSet getPassBits() {
         return passBits;
+    }
+    
+    /**
+     * Check if a cut was passed.
+     * 
+     * @param bitIndex - index of a pass bit.
+     * 
+     * @return Returns <code>true</code> if the corresponding cut was passed, and
+     * <code>false</code> otherwise.
+     */
+    public boolean checkPass(int bitIndex) {
+        if(bitIndex > 3) throw new RuntimeException("Index " + bitIndex + " is out of range (0 : 3)");
+        else return passBits.get(bitIndex);
     }
     
     /**
