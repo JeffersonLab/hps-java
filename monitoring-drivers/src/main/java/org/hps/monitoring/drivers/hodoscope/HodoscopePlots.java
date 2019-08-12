@@ -1,10 +1,12 @@
 package org.hps.monitoring.drivers.hodoscope;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeConditions;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
+import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -17,8 +19,10 @@ import hep.aida.ref.rootwriter.RootFileStore;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -38,11 +42,19 @@ public class HodoscopePlots extends Driver {
     // To import database conditions
     private HodoscopeConditions hodoConditions = null;
 
+    HodoUtils utils = new HodoUtils();
+
     // Plotting
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Hodo Monitoring");
+    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Raw FADC");
+    private IPlotterFactory plotFacthitEnergies = analysisFactory.createPlotterFactory("Hit Energies");
+    private IPlotterFactory plotFactTileEnergies = analysisFactory.createPlotterFactory("Tile Energies");
     private IHistogramFactory histogramFactory = null;
+
+    private IIdentifierHelper helper = null;
+    private static final Logger LOGGER = Logger.getLogger(HodoscopePlots.class.getCanonicalName());
+    private HodoscopeChannelCollection hodoChannels = null;
 
     private static final int n_PMT_ch = 16;
 
@@ -51,9 +63,15 @@ public class HodoscopePlots extends Driver {
     // === Maps channel name to the energy of theat channel
     private static Map<String, Double> m_hit_Energies = new HashMap<String, Double>();
 
+    // === Maps Hoto tile ID to the energy
+    private static Map<HodoUtils.HodoTileIdentifier, Double> m_tile_Energies = new HashMap<HodoUtils.HodoTileIdentifier, Double>();
+
     private static Map<String, IHistogram1D> fADC_Spectrum_Top = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> fADC_Spectrum_Bot = new HashMap<String, IHistogram1D>();
 
+    private static Map<String, IHistogram1D> tileEnergy = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> tileEnergy2 = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> tileEnergy3 = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> hitEnergy = new HashMap<String, IHistogram1D>();
 
     private static Map<String, IHistogram1D> matchedHitEnergy = new HashMap<String, IHistogram1D>();
@@ -62,7 +80,9 @@ public class HodoscopePlots extends Driver {
     private static Map<String, int[]> occupancyLayerMap = new HashMap<String, int[]>();
 
     private static Map<String, IHistogram2D> clust_polots = new HashMap<String, IHistogram2D>();
-    
+
+    private Subdetector subDetector;
+    private static final String subdetectorName = "Hodoscope";
     private static final String SUBDETECTOR_NAME = "Tracker"; // CHANGE THIS to whatever the hodoscope is
     private String triggerBankCollectionName = "TriggerBank";
     private String ecalReadoutCollectionName = "EcalReadoutHits";
@@ -75,6 +95,7 @@ public class HodoscopePlots extends Driver {
     private String hodoHitsCollectionName = "HodoGenericHits";
     private String hodoClustersCollectionName = "HodoGenericClusters";
 
+    private String ecalClusterName = "EcalClusters";
     private String ecalClusterCorrName = "EcalClustersCorr";
 
     private int eventCount = 0;
@@ -88,6 +109,7 @@ public class HodoscopePlots extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
+        utils = new HodoUtils();
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
 
         tree = AIDA.defaultInstance().tree();
@@ -101,11 +123,20 @@ public class HodoscopePlots extends Driver {
         plotters.put("Bot FADC Spectra", plotterFactory.create("Bot FADC Spectra"));
         plotters.get("Bot FADC Spectra").createRegions(4, 4);
 
-        plotters.put("Hit Energies", plotterFactory.create("Hit Energies"));
+        plotters.put("Hit Energies", plotFacthitEnergies.create("Hit Energies"));
         plotters.get("Hit Energies").createRegions(8, 4);
 
-        plotters.put("Matched Hit Energies", plotterFactory.create("Matched Hit Energies"));
+        plotters.put("Matched Hit Energies", plotFacthitEnergies.create("Matched Hit Energies"));
         plotters.get("Matched Hit Energies").createRegions(8, 4);
+
+        plotters.put("Raw Tile Energies", plotFactTileEnergies.create("Raw Tile Energies"));
+        plotters.get("Raw Tile Energies").createRegions(5, 4);
+
+        plotters.put("Tile Energies: Level1", plotFactTileEnergies.create("Tile Energies: Level1"));
+        plotters.get("Tile Energies: Level1").createRegions(5, 4);
+
+        plotters.put("Tile Energies: Level2", plotFactTileEnergies.create("Tile Energies: Level2"));
+        plotters.get("Tile Energies: Level2").createRegions(5, 4);
 
         for (int ich = 0; ich < n_PMT_ch; ich++) {
             fADC_Spectrum_Top.put(String.format("Top fADC %d", ich), histogramFactory.createHistogram1D(String.format("Top fADC %d", ich), 33, -0.5, 32.5));
@@ -146,6 +177,20 @@ public class HodoscopePlots extends Driver {
                         y = 1;
                     }
 
+                    String histNameEtile = this.tileEnergyHistName(ix, y, ilayer);
+                    tileEnergy.put(histNameEtile, histogramFactory.createHistogram1D(histNameEtile, 100, -100, 3500.));
+                    tileEnergy2.put(histNameEtile, histogramFactory.createHistogram1D(histNameEtile, 100, -100, 3500.));
+                    tileEnergy3.put(histNameEtile, histogramFactory.createHistogram1D(histNameEtile, 100, -100, 3500.));
+
+                    int ind_y = -1 * y + 2 - ilayer;
+                    int ind_tile_x = 4 - ix;
+
+                    int tile_hist_coord = 4 * ind_tile_x + ind_y;
+
+                    plotters.get("Raw Tile Energies").region(tile_hist_coord).plot(tileEnergy.get(histNameEtile));
+                    plotters.get("Tile Energies: Level1").region(tile_hist_coord).plot(tileEnergy2.get(histNameEtile));
+                    plotters.get("Tile Energies: Level2").region(tile_hist_coord).plot(tileEnergy3.get(histNameEtile));
+
                     if (ix != 0 && ix != 4) {
 
                         String histname = this.hitEnergyHistName(ix, y, ilayer, -1);
@@ -154,8 +199,6 @@ public class HodoscopePlots extends Driver {
                         System.out.println("== histname is " + histname);
 
                         int ind_x = 1 + (6 - 2 * ix);
-                        int ind_y = -1 * y + 2 - ilayer;
-
                         int hist_coord = 4 * ind_x + ind_y;
 
                         plotters.get("Hit Energies").region(hist_coord).plot(hitEnergy.get(histname));
@@ -178,7 +221,6 @@ public class HodoscopePlots extends Driver {
                             ind_x = 7;
                         }
 
-                        int ind_y = -1 * y + 2 - ilayer;
                         int hist_coord = 4 * ind_x + ind_y;
 
                         plotters.get("Hit Energies").region(hist_coord).plot(hitEnergy.get(histname));
@@ -189,12 +231,12 @@ public class HodoscopePlots extends Driver {
             }
         }
 
-        plotters.put("ECal plots", plotterFactory.create("ECal plots") );
+        plotters.put("ECal plots", plotterFactory.create("ECal plots"));
         plotters.get("ECal plots").createRegions(2, 2);
-        
-        clust_polots.put("Ecal Energy VS X", histogramFactory.createHistogram2D("Cluster E vs X", 200, -300., 390.,  200, 0.1,5.) ) ;
-        plotters.get("ECal plots").region(0).plot(clust_polots.get("Ecal Energy VS X") );
-        
+
+        clust_polots.put("Ecal Energy VS X", histogramFactory.createHistogram2D("Cluster E vs X", 200, -300., 390., 200, 0.1, 5.));
+        plotters.get("ECal plots").region(0).plot(clust_polots.get("Ecal Energy VS X"));
+
         plotters.put("Tile Occupancy", plotterFactory.create("Tile Occupancy"));
         plotters.get("Tile Occupancy").createRegions(2, 2); // One plot each for L1/L2/Top/Bottom
 
@@ -241,6 +283,13 @@ public class HodoscopePlots extends Driver {
         if (resetPeriod > 0 && eventCount > resetPeriod) { // reset occupancy numbers after resetPeriod events
             eventCount = 0;
             resetPlots();
+        }
+
+        boolean has_cl = event.hasCollection(Cluster.class, ecalClusterName);
+
+        List<Cluster> clusters = null;
+        if (has_cl) {
+            clusters = event.get(Cluster.class, ecalClusterName);
         }
 
         // Get all of the collections you need //
@@ -301,12 +350,76 @@ public class HodoscopePlots extends Driver {
             String histname = hitEnergyHistName(ix, iy, layer, hole);
 
             //System.out.println(hit_time);
-            if (hit_time > 32 && hit_time < 80.) {
+            if (hit_time > utils.hodo_t_min && hit_time < utils.hodo_t_max) {
                 hitEnergy.get(histname).fill(Energy);
 
                 m_hit_Energies.put(hodoConditions.getChannels().findChannel(ix, iy, layer, hole).getName(), Energy);
 
+                String tileHistName = this.tileEnergyHistName(ix, iy, layer);
+
+                double EnergyTile = Energy;
+                if (ix != 0 && ix != 4) {
+                    EnergyTile = 1.25 * Energy / 2.;
+                }
+
+                //HodoUtils.HodoTileIdentifier tile_id = utils.new HodoTileIdentifier(ix, iy, layer);
+                HodoUtils.HodoTileIdentifier tile_id = utils.new HodoTileIdentifier(ix, iy, layer);
+
+                if (m_tile_Energies.get(tile_id) == null) {
+                    m_tile_Energies.put(tile_id, EnergyTile);
+                } else {
+                    double Etmp = m_tile_Energies.get(tile_id);
+                    m_tile_Energies.put(tile_id, EnergyTile + Etmp);
+                }
+
             }
+        }
+
+        for (Map.Entry<HodoUtils.HodoTileIdentifier, Double> cur_tile : m_tile_Energies.entrySet()) {
+
+            HodoUtils.HodoTileIdentifier cur_tile_id = cur_tile.getKey();
+            String tileHistName = tileEnergyHistName(cur_tile_id.ix, cur_tile_id.iy, cur_tile_id.ilayer);
+
+            tileEnergy.get(tileHistName).fill(cur_tile.getValue());
+            
+            if( cur_tile_id.iy > 0 ){
+                if( cur_tile_id.ilayer == 0 ){
+                    occupancyLayerPlots.get("L1 Top Occupancy").fill(cur_tile_id.ix);
+                }else {
+                    occupancyLayerPlots.get("L2 Top Occupancy").fill(cur_tile_id.ix);
+                }
+            }else {
+                if (cur_tile_id.ilayer == 0) {
+                    occupancyLayerPlots.get("L1 Bottom Occupancy").fill(cur_tile_id.ix);
+                } else {
+                    occupancyLayerPlots.get("L2 Bottom Occupancy").fill(cur_tile_id.ix);
+                }
+            }
+
+            if (utils.GoodTileHit(cur_tile_id, m_tile_Energies)) {
+                tileEnergy2.get(tileHistName).fill(cur_tile.getValue());
+
+                boolean hasRightCluster = false;
+                if (has_cl) {
+
+                    // =====  ====== ====== Now loop over clusters, if there is a matching cluster, then fill the tileE histogram
+                    for (Cluster cur_clust : clusters) {
+
+                        double cl_x = cur_clust.getPosition()[0];
+                        double cl_E = cur_clust.getEnergy();
+
+                        if (utils.hasRightClust(cur_tile_id, cl_x, cl_E)) {
+                            hasRightCluster = true;
+                        }
+                    }
+
+                }
+
+                if (hasRightCluster) {
+                    tileEnergy3.get(tileHistName).fill(cur_tile.getValue());
+                }
+            }
+
         }
 
         // Now Loop over hits is finished, let's look into some matched tile distrivutions
@@ -353,25 +466,23 @@ public class HodoscopePlots extends Driver {
         }
 
         // ==== Now check if there are clusters =====
-        if (!event.hasCollection(Cluster.class, ecalClusterCorrName)) {
+        if (!event.hasCollection(Cluster.class, ecalClusterName)) {
             return;
         }
 
-        List<Cluster> clusters = event.get(Cluster.class, ecalClusterCorrName);
-
         int n_cl = clusters.size();
-        
-        for( Cluster cur_clust: clusters ){
-        
+
+        for (Cluster cur_clust : clusters) {
+
             double cl_x = cur_clust.getPosition()[0];
             double cl_E = cur_clust.getEnergy();
-            
+
             clust_polots.get("Ecal Energy VS X").fill(cl_x, cl_E);
-        
+
         }
-        
-        
+
         m_hit_Energies.clear();
+        m_tile_Energies.clear();
 
         //  loop through the tile hits 
         /// get the layer/top/bottom and the tile number 
@@ -427,6 +538,14 @@ public class HodoscopePlots extends Driver {
 
         return histname;
     }
+
+    private String tileEnergyHistName(int ix, int y, int layer) {
+
+        String histname = String.format(("E_tile: ix = %d, y=%d, L%d"), ix, y, layer);
+
+        return histname;
+    }
+
 }
 
 class hodoID {
