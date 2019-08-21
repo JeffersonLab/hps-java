@@ -91,12 +91,14 @@
         </driver>      -->
         <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.L01UnbiasedResidualsFromL26">  
             <matchFullTracks>false</matchFullTracks>
-            <fullTrackCollectionName>s234_c5_e167</fullTrackCollectionName>        
+            <fullTrackCollectionName>s234_c5_e167</fullTrackCollectionName>     
+            <onlyElectrons>true</onlyElectrons>   
         </driver>   
         <!--        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
         </driver>-->
 
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+            <maxTrackChisq4hits> 100. </maxTrackChisq4hits>
             <maxTrackChisq5hits> 100. </maxTrackChisq5hits>
             <maxTrackChisq6hits> 100. </maxTrackChisq6hits>
             <inputCollectionName>L2to6Tracks</inputCollectionName>
