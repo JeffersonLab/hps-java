@@ -81,6 +81,8 @@ public class HodoscopePlots extends Driver {
 
     private static Map<String, IHistogram2D> clust_polots = new HashMap<String, IHistogram2D>();
 
+    private static IHistogram1D hECalCoordtoIndex = null;
+
     private Subdetector subDetector;
     private static final String subdetectorName = "Hodoscope";
     private static final String SUBDETECTOR_NAME = "Tracker"; // CHANGE THIS to whatever the hodoscope is
@@ -116,6 +118,8 @@ public class HodoscopePlots extends Driver {
         tree.cd("/");// aida.tree().cd("/");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
         // Histogram maps
+
+        hECalCoordtoIndex = histogramFactory.createHistogram1D("h_ECalCoord2Index", "", utils.cl_x_edges);
 
         plotters.put("Top FADC Spectra", plotterFactory.create("Top FADC Spectra"));
         plotters.get("Top FADC Spectra").createRegions(4, 4);
@@ -194,7 +198,7 @@ public class HodoscopePlots extends Driver {
                     if (ix != 0 && ix != 4) {
 
                         String histname = this.hitEnergyHistName(ix, y, ilayer, -1);
-                        hitEnergy.put(histname, histogramFactory.createHistogram1D(histname, 200, -100, 3500.));
+                        hitEnergy.put(histname, histogramFactory.createHistogram1D(histname, 200, -100, 2000.));
 
                         System.out.println("== histname is " + histname);
 
@@ -353,6 +357,8 @@ public class HodoscopePlots extends Driver {
             if (hit_time > utils.hodo_t_min && hit_time < utils.hodo_t_max) {
                 hitEnergy.get(histname).fill(Energy);
 
+                //int index = hitEnergy.get(histname).coordToIndex(Energy);
+                //System.out.println("Energy = " + Energy + "     index = " + index);
                 m_hit_Energies.put(hodoConditions.getChannels().findChannel(ix, iy, layer, hole).getName(), Energy);
 
                 String tileHistName = this.tileEnergyHistName(ix, iy, layer);
@@ -381,14 +387,14 @@ public class HodoscopePlots extends Driver {
             String tileHistName = tileEnergyHistName(cur_tile_id.ix, cur_tile_id.iy, cur_tile_id.ilayer);
 
             tileEnergy.get(tileHistName).fill(cur_tile.getValue());
-            
-            if( cur_tile_id.iy > 0 ){
-                if( cur_tile_id.ilayer == 0 ){
+
+            if (cur_tile_id.iy > 0) {
+                if (cur_tile_id.ilayer == 0) {
                     occupancyLayerPlots.get("L1 Top Occupancy").fill(cur_tile_id.ix);
-                }else {
+                } else {
                     occupancyLayerPlots.get("L2 Top Occupancy").fill(cur_tile_id.ix);
                 }
-            }else {
+            } else {
                 if (cur_tile_id.ilayer == 0) {
                     occupancyLayerPlots.get("L1 Bottom Occupancy").fill(cur_tile_id.ix);
                 } else {
@@ -408,7 +414,10 @@ public class HodoscopePlots extends Driver {
                         double cl_x = cur_clust.getPosition()[0];
                         double cl_E = cur_clust.getEnergy();
 
-                        if (utils.hasRightClust(cur_tile_id, cl_x, cl_E)) {
+                        int cl_x_index = hECalCoordtoIndex.coordToIndex(cl_x) + 1;
+
+                        //if (utils.hasRightClust(cur_tile_id, cl_x, cl_E)) {
+                        if (utils.hasRightClust(cur_tile_id, cl_x_index, cl_E)) {
                             hasRightCluster = true;
                         }
                     }
