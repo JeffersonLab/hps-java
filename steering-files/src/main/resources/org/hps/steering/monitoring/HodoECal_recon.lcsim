@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-  <execute>
+    <execute>
     
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal"/>
@@ -10,16 +10,21 @@
         <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
 
-	<driver name="HodoRunningPedestal"/>
+        <driver name="HodoRunningPedestal"/>
         <driver name="HodoRawConverter"/>
 
-	<!-- Monitoring -->
-	<driver name="HodoMonitoring"/>
+        <!-- Monitoring -->
+        <driver name="HodoMonitoring"/>
 
     </execute>    
     <drivers>            
         <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
-        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
+            <useRunningPedestal>true</useRunningPedestal>
+            <tETAllChannels>12</tETAllChannels>
+            <logLevel>CONFIG</logLevel>
+        </driver>
+        
         <driver name="HodoMonitoring" type="org.hps.monitoring.drivers.hodoscope.HodoscopePlots"/>
 
         <!-- Ecal reconstruction drivers -->

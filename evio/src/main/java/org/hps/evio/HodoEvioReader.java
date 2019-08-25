@@ -222,7 +222,7 @@ public class HodoEvioReader extends EvioReader {
     private ArrayList<Long> daqToGeometryId(int crate, short slot, short channel) {
 
         // ====================== Rafo =======================
-        // Unlike to the ECal case, wehre each detector element is readout with a single channel
+        // Unlike to the ECal case, where each detector element is readout with a single channel
         // here for the hodoscope, there are detector elements (tiles) that are readout with two different channels
         // 
         // The code below, previously was assigning the hole value to 0, 
