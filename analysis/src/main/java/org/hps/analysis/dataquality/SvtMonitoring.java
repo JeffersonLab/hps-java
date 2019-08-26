@@ -201,7 +201,7 @@ public class SvtMonitoring extends DataQualityMonitor {
                 HpsSiSensor sensor = ((HpsSiSensor) rth.getDetectorElement());
                 //this is a clever way to get the parameters we want from the generic object
                 double t0 = ShapeFitParameters.getT0(pars);
-                double amp = ShapeFitParameters.getAmp(pars) / DopedSilicon.ENERGY_EHPAIR;
+                double amp = ShapeFitParameters.getAmp(pars) ;
                 double chiProb = ShapeFitParameters.getChiProb(pars);
                 int channel = rth.getIdentifierFieldValue("strip");
                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "nFitsPerHit_", sensor, true).fill(rthtofit.allFrom(rth).size());
