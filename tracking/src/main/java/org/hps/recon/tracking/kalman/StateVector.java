@@ -8,9 +8,9 @@ class StateVector {
     Vec a; // Helix parameters at this site, relevant only in the local site coordinates
     Vec X0; // Pivot point of this site; reference point for these helix parameters, in
             // local site coordinates
-    RotMatrix Rot; // Rotation from the global coordinates to the local site coordinates aligned
+    RotMatrix Rot; // Rotation from the global coordinates to the local field coordinates aligned
                    // with B field on z axis
-    Vec origin; // Origin of the local site coordinates in the global system.
+    Vec origin; // Origin of the local field coordinates in the global system.
     SquareMatrix C; // Helix covariance matrix at this site
     double mPred; // Filtered or smoothed predicted measurement at site kLow
     double r; // Predicted, filtered, or smoothed residual at site kLow
@@ -449,8 +449,7 @@ class StateVector {
         return new Vec(5, aP);
     }
 
-    // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the
-    // origin.
+    // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
     public Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
 
         boolean verbose = false; // !!!!!!!!!!
@@ -713,14 +712,14 @@ class StateVector {
         return new Vec(drho, phi0, K, dz, tanl);
     }
 
-    // To transform a space point from global to local coordinates, first subtract
+    // To transform a space point from global to local field coordinates, first subtract
     // <origin> and then rotate by <Rot>.
     Vec toLocal(Vec xGlobal) {
         Vec xLocal = Rot.rotate(xGlobal.dif(origin));
         return xLocal;
     }
 
-    // To transform a space point from local to global coordinates, first rotate by
+    // To transform a space point from local field coordinates to global coordinates, first rotate by
     // the inverse of <Rot> and then add the <origin>.
     Vec toGlobal(Vec xLocal) {
         Vec xGlobal = Rot.inverseRotate(xLocal).sum(origin);

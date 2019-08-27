@@ -50,7 +50,7 @@ class SeedTrack {
                     yP, a[0], a[1], a[2], a[3], a[4]);
             System.out.format("  seed track hits:");
             for (int j = 0; j < hits.size(); j++) {
-                System.out.format(" %d %10.5f", hits.get(j).module.Layer,hits.get(j).hit.v);
+                System.out.format(" %d %10.5f", hits.get(j).module.Layer, hits.get(j).hit.v);
             }
             System.out.format("\n");
             Vec pInt = planeIntersection(p0);
@@ -60,35 +60,36 @@ class SeedTrack {
             System.out.format("Seed track %s fit unsuccessful.\n", s);
         }
     }
+
     // Older interface
     SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
             double yOrigin, // New origin along beam to use for the fit
             ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
             boolean verbose // Set true for lots of debug printout
     ) {
-       ArrayList<KalHit> theHits = new ArrayList<KalHit>(hitList.size());
-       for (int i=0; i<hitList.size(); i++) {
-           SiModule thisSi = data.get(hitList.get(i)[0]);
-           KalHit tmpHit = new KalHit(thisSi,thisSi.hits.get(hitList.get(i)[1]));
-           theHits.add(tmpHit);
-       }
-       SeedTracker(theHits, yOrigin, verbose);
+        ArrayList<KalHit> theHits = new ArrayList<KalHit>(hitList.size());
+        for (int i = 0; i < hitList.size(); i++) {
+            SiModule thisSi = data.get(hitList.get(i)[0]);
+            KalHit tmpHit = new KalHit(thisSi, thisSi.hits.get(hitList.get(i)[1]));
+            theHits.add(tmpHit);
+        }
+        SeedTracker(theHits, yOrigin, verbose);
     }
 
     // Newer interface
     SeedTrack(ArrayList<KalHit> hitList, double yOrigin, boolean verbose) {
         SeedTracker(hitList, yOrigin, verbose);
     }
-    
+
     private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, boolean verbose) {
- 
+
         minDistXZ = 0.25;
         p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
         this.verbose = verbose;
         this.yOrigin = yOrigin;
         hits = new ArrayList<KalHit>(hitList.size());
         for (KalHit hit : hitList) {
-            KalHit tmpHit = new KalHit(hit.module,hit.hit);
+            KalHit tmpHit = new KalHit(hit.module, hit.hit);
             hits.add(tmpHit);
         }
 
@@ -150,11 +151,11 @@ class SeedTrack {
             pnt = thisSi.toGlobal(pnt);
             if (verbose) {
                 if (thisSi.isStereo) {
-                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
-                            m.v, thisSi.stereo);
+                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n",
+                            thisSi.Layer, thisSi.detector, N, m.v, thisSi.stereo);
                 } else {
-                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
-                            m.v, thisSi.stereo);
+                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f, stereo=%10.7f\n",
+                            thisSi.Layer, thisSi.detector, N, m.v, thisSi.stereo);
                 }
                 pnt.print("point global");
                 t[N] = thisSi.stereo;

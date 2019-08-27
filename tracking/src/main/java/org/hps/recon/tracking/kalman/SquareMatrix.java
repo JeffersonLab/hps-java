@@ -78,7 +78,7 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         return Mt;
     }
 
-    SquareMatrix similarity(SquareMatrix F) { // Similarity transform by matrix F
+    SquareMatrix similarity(SquareMatrix F) { // F-transpose * M * F
         SquareMatrix Mp = new SquareMatrix(N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
