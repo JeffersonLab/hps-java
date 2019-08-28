@@ -39,9 +39,9 @@ public class StripStraightTrackDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     private int _numberOfEventsWritten = 0;
-    private boolean _selectTop;
-    private boolean _selectBottom;
-    private boolean _selectFiducial;
+    private boolean _selectTop = true;
+    private boolean _selectBottom = true;
+    private boolean _selectFiducial = true;
     private int _nMaxEcalClusters = 1;
     private double _minClusterEnergy = 4.5;
     private double[] H02Wire = {0., 0., -(672.71 - 583.44) * 25.4};
@@ -57,7 +57,7 @@ public class StripStraightTrackDriver extends Driver {
 
     protected void process(EventHeader event) {
 
-        boolean skipEvent = false;
+        boolean skipEvent = true;
         List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
         aida.histogram1D("number of clusters", 10, 0., 10.).fill(clusters.size());
         int nTopClusters = 0;
@@ -262,4 +262,17 @@ public class StripStraightTrackDriver extends Driver {
     protected void endOfData() {
         System.out.println("Wrote " + _numberOfEventsWritten + " events");
     }
+
+    public void setSelectFiducial(boolean b) {
+        _selectFiducial = b;
+    }
+
+    public void setSelectTop(boolean b) {
+        _selectTop = b;
+    }
+
+    public void setSelectBottom(boolean b) {
+        _selectBottom = b;
+    }
+
 }
