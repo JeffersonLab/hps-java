@@ -37,37 +37,45 @@ public class TrackAnalysis2019 extends Driver {
                 continue;
             }
             Track t = rp.getTracks().get(0);
+            int nHitsOnTrack = t.getTrackerHits().size();
             int pdgId = rp.getParticleIDUsed().getPDG();
             Hep3Vector pmom = rp.getMomentum();
             double thetaY = asin(pmom.y() / pmom.magnitude());
             double z0 = t.getTrackStates().get(0).getZ0();
             String torb = isTopTrack(t) ? "top " : "bottom ";
-            aida.histogram1D(torb + pdgId + " track momentum", 100, 0., 5.).fill(rp.getMomentum().magnitude());
-            aida.histogram1D(torb + pdgId + " track momentum", 100, 0., 5.).fill(rp.getMomentum().magnitude());
+            aida.histogram1D(torb + pdgId + " track nHits", 10, 0., 10.).fill(nHitsOnTrack);
+
+            aida.histogram1D(torb + pdgId + " track momentum", 100, 0., 7.).fill(rp.getMomentum().magnitude());
             aida.cloud1D(torb + pdgId + "|thetaY|").fill(abs(thetaY));
             aida.histogram1D(torb + pdgId + "z0", 100, -2., 2.).fill(z0);
             aida.cloud2D(torb + pdgId + "|thetaY| vs z0").fill(abs(thetaY), z0);
             aida.profile1D(torb + pdgId + "|thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
+
+            aida.histogram1D(torb + pdgId + " " + nHitsOnTrack + " hit track momentum", 100, 0., 7.).fill(rp.getMomentum().magnitude());
+            aida.cloud1D(torb + pdgId + " " + nHitsOnTrack + " hit |thetaY|").fill(abs(thetaY));
+            aida.histogram1D(torb + pdgId + " " + nHitsOnTrack + " hit z0", 100, -2., 2.).fill(z0);
+            aida.cloud2D(torb + pdgId + " " + nHitsOnTrack + " hit |thetaY| vs z0").fill(abs(thetaY), z0);
+            aida.profile1D(torb + pdgId + " " + nHitsOnTrack + " hit |thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
         }
 
-        List<ReconstructedParticle> otherElectrons = event.get(ReconstructedParticle.class, "OtherElectrons");
-        for (ReconstructedParticle rp : otherElectrons) {
-
-            if (!TrackType.isGBL(rp.getType())) {
-                continue;
-            }
-            Track t = rp.getTracks().get(0);
-            
-            Hep3Vector pmom = rp.getMomentum();
-            double thetaY = asin(pmom.y() / pmom.magnitude());
-            double z0 = t.getTrackStates().get(0).getZ0();
-            String torb = isTopTrack(t) ? "top " : "bottom ";
-            aida.histogram1D(torb+"OtherElectron track momentum", 100, 0., 5.).fill(rp.getMomentum().magnitude());
-            aida.cloud1D("OtherElectron " + torb + "|thetaY|").fill(abs(thetaY));
-            aida.histogram1D("OtherElectron " + torb + "z0", 100, -2., 2.).fill(z0);
-            aida.cloud2D("OtherElectron " + torb + "|thetaY| vs z0").fill(abs(thetaY), z0);
-            aida.profile1D("OtherElectron " + torb + "|thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
-        }
+//        List<ReconstructedParticle> otherElectrons = event.get(ReconstructedParticle.class, "OtherElectrons");
+//        for (ReconstructedParticle rp : otherElectrons) {
+//
+//            if (!TrackType.isGBL(rp.getType())) {
+//                continue;
+//            }
+//            Track t = rp.getTracks().get(0);
+//            
+//            Hep3Vector pmom = rp.getMomentum();
+//            double thetaY = asin(pmom.y() / pmom.magnitude());
+//            double z0 = t.getTrackStates().get(0).getZ0();
+//            String torb = isTopTrack(t) ? "top " : "bottom ";
+//            aida.histogram1D(torb+"OtherElectron track momentum", 100, 0., 5.).fill(rp.getMomentum().magnitude());
+//            aida.cloud1D("OtherElectron " + torb + "|thetaY|").fill(abs(thetaY));
+//            aida.histogram1D("OtherElectron " + torb + "z0", 100, -2., 2.).fill(z0);
+//            aida.cloud2D("OtherElectron " + torb + "|thetaY| vs z0").fill(abs(thetaY), z0);
+//            aida.profile1D("OtherElectron " + torb + "|thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
+//        }
     }
 
     private boolean isTopTrack(Track t) {
