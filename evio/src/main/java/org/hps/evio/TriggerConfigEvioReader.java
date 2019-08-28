@@ -9,6 +9,7 @@ import org.hps.record.daqconfig.EvioDAQParser;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
+import org.hps.record.daqconfig.EvioDAQParser2019;
 
 /*
  * Search for a configuration bank in EvioEvent, and, if found, create an instance of
@@ -25,6 +26,10 @@ import org.lcsim.event.EventHeader;
  * 
  *  
  * @author <baltzell@jlab.org>
+ * 
+ *  * <code>EvioDAQParser2019</code> is parser for 2019 trigger configuration banks.
+ *  
+ * @author Tongtong Cao <caot@jlab.org>
  */
 public class TriggerConfigEvioReader {
 
@@ -39,28 +44,54 @@ public class TriggerConfigEvioReader {
             }
             return;
         }
-        List<EvioDAQParser> trigconf = new ArrayList<EvioDAQParser>();
-        for (BaseStructure bank : evioEvent.getChildrenList()) {
-            if (bank.getChildCount() <= 0)
-                continue;
-            int crate = bank.getHeader().getTag();
-            for (BaseStructure subBank : bank.getChildrenList()) {
-                if (subBank.getHeader().getTag() == EvioDAQParser.BANK_TAG) {
-                    if (subBank.getStringData() == null) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-                                "JEVIO can't parse DAQ Config bank.  Event Number "
-                                        + evioEvent.getEventNumber());
-                        return;
+        else if (lcsimEvent.getRunNumber() >= 4043 && lcsimEvent.getRunNumber() < 9000) {
+            List<EvioDAQParser> trigconf = new ArrayList<EvioDAQParser>();
+            for (BaseStructure bank : evioEvent.getChildrenList()) {
+                if (bank.getChildCount() <= 0)
+                    continue;
+                int crate = bank.getHeader().getTag();
+                for (BaseStructure subBank : bank.getChildrenList()) {
+                    if (subBank.getHeader().getTag() == EvioDAQParser.BANK_TAG) {
+                        if (subBank.getStringData() == null) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+                                    "JEVIO can't parse DAQ Config bank.  Event Number "
+                                            + evioEvent.getEventNumber());
+                            return;
+                        }
+                        if (trigconf.size() == 0)
+                            trigconf.add(new EvioDAQParser());
+                        trigconf.get(0).parse(crate,lcsimEvent.getRunNumber(),subBank.getStringData());
                     }
-                    if (trigconf.size() == 0)
-                        trigconf.add(new EvioDAQParser());
-                    trigconf.get(0).parse(crate,lcsimEvent.getRunNumber(),subBank.getStringData());
                 }
             }
+            if (trigconf.size() > 0) {
+                lcsimEvent.put("TriggerConfig",trigconf,EvioDAQParser.class,0);
+            }
         }
-        if (trigconf.size() > 0) {
-            lcsimEvent.put("TriggerConfig",trigconf,EvioDAQParser.class,0);
-        };
+        else {
+            List<EvioDAQParser2019> trigconf = new ArrayList<EvioDAQParser2019>();
+            for (BaseStructure bank : evioEvent.getChildrenList()) {
+                if (bank.getChildCount() <= 0)
+                    continue;
+                int crate = bank.getHeader().getTag();
+                for (BaseStructure subBank : bank.getChildrenList()) {
+                    if (subBank.getHeader().getTag() == EvioDAQParser.BANK_TAG) {
+                        if (subBank.getStringData() == null) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+                                    "JEVIO can't parse DAQ Config bank.  Event Number "
+                                            + evioEvent.getEventNumber());
+                            return;
+                        }
+                        if (trigconf.size() == 0)
+                            trigconf.add(new EvioDAQParser2019());
+                        trigconf.get(0).parse(crate,lcsimEvent.getRunNumber(),subBank.getStringData());
+                    }
+                }
+            }
+            if (trigconf.size() > 0) {
+                lcsimEvent.put("TriggerConfig",trigconf,EvioDAQParser2019.class,0);
+            }
+        }
     }
 
 }

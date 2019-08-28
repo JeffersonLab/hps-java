@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
+import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -30,7 +31,7 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 
 /**
- * DQM driver for the monte carlo for reconstructed track quantities plots
+ * DQM driver for reconstructed track quantities plots
  * things like occupancy, t0, amplitude, chi^2 (from APV25 sampling fit); each
  * on a per/sensor basis saves to DQM database: <occupancy>
  *
@@ -67,6 +68,9 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     boolean makeExtraPlots = false;
 
+    private double minChargeCut = 600.0;
+    private double clTime=40; //abs value (ns)
+
     public void setRawTrackerHitCollectionName(String inputCollection) {
         this.rawTrackerHitCollectionName = inputCollection;
     }
@@ -101,10 +105,10 @@ public class SvtMonitoring extends DataQualityMonitor {
             int i = sensor.getLayerNumber();
             double maxHTHX = 150.0;
             double maxHTHY = 50.0;
-            if (i < 4) {
+            if (i < 5) {
                 maxHTHX = 10;
                 maxHTHY = 15;
-            } else if (i < 8) {
+            } else if (i < 9) {
                 maxHTHX = 50;
                 maxHTHY = 30;
             }
@@ -126,8 +130,9 @@ public class SvtMonitoring extends DataQualityMonitor {
             IHistogram1D chiProbPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "chiProb_", sensor, 50, 0, 1.0, true);
             IHistogram1D t0ClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "t0Cluster_", sensor, 200, -100., 100., true);
             IHistogram2D t0TrigTimePlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "t0ClusterTrigTime_", sensor, 200, -100., 100., 6, 0, 24, true);
-            IHistogram2D clusterPositionPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "clusterPositionPlot_", sensor, 100, -maxHTHX, maxHTHX, 100, -maxHTHY, maxHTHY, true);
-            IHistogram1D dedxClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "electrons_", sensor, 50, 0., 10., true);
+            IHistogram2D clusterPositionPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "clusterPositionPlot_", sensor, 100, -maxHTHX, maxHTHX, 100, -maxHTHY, maxHTHY, true);           
+            IHistogram1D dedxClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + "/" + "charge_", sensor, 50, 0., 2500., true);
+            IHistogram2D dedxVsYClusterPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + "/" + "chargeVsY_", sensor, 100, 0.0, maxHTHY, 100, minChargeCut, 2500., true);
             occupancyPlot.reset();
         }
 
@@ -196,7 +201,7 @@ public class SvtMonitoring extends DataQualityMonitor {
                 HpsSiSensor sensor = ((HpsSiSensor) rth.getDetectorElement());
                 //this is a clever way to get the parameters we want from the generic object
                 double t0 = ShapeFitParameters.getT0(pars);
-                double amp = ShapeFitParameters.getAmp(pars);
+                double amp = ShapeFitParameters.getAmp(pars) ;
                 double chiProb = ShapeFitParameters.getChiProb(pars);
                 int channel = rth.getIdentifierFieldValue("strip");
                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "nFitsPerHit_", sensor, true).fill(rthtofit.allFrom(rth).size());
@@ -207,11 +212,11 @@ public class SvtMonitoring extends DataQualityMonitor {
                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "chiProb_", sensor, true).fill(chiProb);
                 if (makeExtraPlots)
                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "ampChanHit_", sensor, true).fill(channel, amp);
-                if (amp > 1000.0 && makeExtraPlots) {
+                if (amp > minChargeCut && makeExtraPlots) {
                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0ChanBigHit_", sensor, true).fill(channel, t0);
                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "chiprobChanBigHit_", sensor, true).fill(channel, chiProb);
                 }
-                if (amp > 1000.0)
+                if (amp > minChargeCut)
                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0BigHitTrigTime_", sensor, true).fill(t0, event.getTimeStamp() % 24);
             }
             ++eventCountFit;
@@ -223,12 +228,14 @@ public class SvtMonitoring extends DataQualityMonitor {
             for (TrackerHit cluster : siClusters) {
                 HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement();
                 double t0 = cluster.getTime();
-                double dedx = cluster.getdEdx() * 1e6;
+                double dedx = cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR;
 //                LOGGER.info("dedx = "+dedx);
                 PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "clusterPositionPlot_", sensor, true).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "t0Cluster_", sensor, true).fill(t0);
                 PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "t0ClusterTrigTime_", sensor, true).fill(t0, event.getTimeStamp() % 24);
-                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "electrons_", sensor, true).fill(dedx);
+                PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + "/" + "charge_", sensor, true).fill(dedx);
+                if (dedx > minChargeCut && Math.abs(t0)<clTime)
+                    PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + "/" + "chargeVsY_", sensor, true).fill(Math.abs(cluster.getPosition()[1]), dedx);
             }
         }
     }

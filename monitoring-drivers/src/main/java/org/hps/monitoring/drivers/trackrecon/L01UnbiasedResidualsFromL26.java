@@ -73,13 +73,14 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
     //Bfield
     protected static double bfield;
     FieldMap bFieldMap = null;
-
+    private int nTotTracks = 0;
     private String outputPlots = null;
 //    IPlotter plotterTop;
     IPlotter plotterParsTop;
     IPlotter plotterBot;
     IPlotter plotterParsBot;
     IPlotter plotterResid;
+    IPlotter plotterHTHResid;
 
     IHistogram1D nTracks26Top;
     IHistogram1D nTracks26Bot;
@@ -99,6 +100,15 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
     IHistogram1D d0BotL26;
     IHistogram1D omegaBotL26;
     IHistogram1D chisqBotL26;
+
+    IHistogram1D residualXHTH0Top;
+    IHistogram1D residualXHTH1Top;
+    IHistogram1D residualYHTH0Top;
+    IHistogram1D residualYHTH1Top;
+    IHistogram1D residualXHTH0Bot;
+    IHistogram1D residualXHTH1Bot;
+    IHistogram1D residualYHTH0Bot;
+    IHistogram1D residualYHTH1Bot;
 
     Map<String, IHistogram1D> residualY = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> errorY = new HashMap<String, IHistogram1D>();
@@ -128,10 +138,20 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
     double maxRes = 0.5;
     double minRes = -maxRes;
     double maxYerror = 0.1;
+    double minResX = -10;
+    double maxResX = 10;
+    double minResY = -1;
+    double maxResY = 1;
+    
+    boolean onlyElectrons=false;
 
     public L01UnbiasedResidualsFromL26() {
     }
 
+    public void setOnlyElectrons(boolean onlyElectrons){
+        this.onlyElectrons=onlyElectrons;
+    }
+    
     public void setMatchFullTracks(boolean match) {
         this.matchFullTracks = match;
     }
@@ -255,7 +275,7 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
             double width = getSensorLength(sensor);
             double maxV = width / 2;
             double minV = -maxV;
-            residualY.put(sensorName, histogramFactory.createHistogram1D("Residual U " + sensorName, nBins, minRes, maxRes));
+            residualY.put(sensorName, histogramFactory.createHistogram1D("Residual U (extrap-hit)" + sensorName, nBins, minRes, maxRes));
             errorY.put(sensorName, histogramFactory.createHistogram1D("Error U " + sensorName, nBins, 0, maxYerror));
             pullY.put(sensorName, histogramFactory.createHistogram1D("U Pulls " + sensorName, nBins, minPull, maxPull));
 //            plot(plotterResid, residualY.get(sensorName), null, regionCnt);
@@ -266,6 +286,25 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
 
         plotterResid.show();
 
+        plotterHTHResid = pfac.create("L01 HTH Residuals");
+        plotterHTHResid.createRegions(2, 4);
+        residualXHTH0Top = histogramFactory.createHistogram1D("Residual X L0 Top (extrap-hit)", nBins, minResX, maxResX);
+        residualXHTH1Top = histogramFactory.createHistogram1D("Residual X L1 Top (extrap-hit)", nBins, minResX, maxResX);
+        residualYHTH0Top = histogramFactory.createHistogram1D("Residual Y L0 Top (extrap-hit)", nBins, minResY, maxResY);
+        residualYHTH1Top = histogramFactory.createHistogram1D("Residual Y L1 Top (extrap-hit)", nBins, minResY, maxResY);
+        residualXHTH0Bot = histogramFactory.createHistogram1D("Residual X L0 Bot (extrap-hit)", nBins, minResX, maxResX);
+        residualXHTH1Bot = histogramFactory.createHistogram1D("Residual X L1 Bot (extrap-hit)", nBins, minResX, maxResX);
+        residualYHTH0Bot = histogramFactory.createHistogram1D("Residual Y L0 Bot (extrap-hit)", nBins, minResY, maxResY);
+        residualYHTH1Bot = histogramFactory.createHistogram1D("Residual Y L1 Bot (extrap-hit)", nBins, minResY, maxResY);
+        plotterHTHResid.region(0).plot(residualXHTH0Top);
+        plotterHTHResid.region(1).plot(residualXHTH1Top);
+        plotterHTHResid.region(2).plot(residualXHTH0Bot);
+        plotterHTHResid.region(3).plot(residualXHTH1Bot);
+        plotterHTHResid.region(4).plot(residualYHTH0Top);
+        plotterHTHResid.region(5).plot(residualYHTH1Top);
+        plotterHTHResid.region(6).plot(residualYHTH0Bot);
+        plotterHTHResid.region(7).plot(residualYHTH1Bot);
+        plotterHTHResid.show();
     }
 
     @Override
@@ -273,7 +312,8 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
         aida.tree().cd("/");
         if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName))
             return;
-
+        if (!event.hasCollection(HelicalTrackHit.class, rotatedTrackHitCollectionName))
+            return;
         if (!event.hasCollection(Track.class, l2to6CollectionName))
             return;
 
@@ -282,6 +322,8 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
                 return;
         //Grab all the clusters in the event
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, stripHitOutputCollectionName);
+        //get rotated helicaltrackhits
+        List<HelicalTrackHit> rotHTH = event.get(HelicalTrackHit.class, rotatedTrackHitCollectionName);
 
         List<Track> l2to6tracks = event.get(Track.class, l2to6CollectionName);
         List<Track> fulltracks = new ArrayList<Track>();
@@ -293,9 +335,23 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
 
         nTracks26Top.fill(l2to6tracksTop.size());
         nTracks26Bot.fill(l2to6tracksBot.size());
+        double xAtL0AxTop = getSensorX(true, 1, true, false);
+        double xAtL0StTop = getSensorX(true, 1, false, false);
+        double xAtL1AxTop = getSensorX(true, 2, true, false);
+        double xAtL1StTop = getSensorX(true, 2, false, false);
+        double xAtL0AxBot = getSensorX(false, 1, true, false);
+        double xAtL0StBot = getSensorX(false, 1, false, false);
+        double xAtL1AxBot = getSensorX(false, 2, true, false);
+        double xAtL1StBot = getSensorX(false, 2, false, false);
 
+        double avtXL0Top = (xAtL0AxBot + xAtL0StBot) / 2.0;
+        double avtXL1Top = (xAtL1AxBot + xAtL1StBot) / 2.0;
+        double avtXL0Bot = (xAtL0AxBot + xAtL0StBot) / 2.0;
+        double avtXL1Bot = (xAtL1AxBot + xAtL1StBot) / 2.0;
         Track matchedTrack = null;
         for (Track trk26 : l2to6tracks) {
+            if(onlyElectrons&&trk26.getCharge()<0) //remember, charge in tracks is opposite the real charge
+                continue;
             TrackState ts26 = trk26.getTrackStates().get(0);
 //            if (matchFullTracks) {
 //                matchedTrack = checkFullTrack(fulltracks, trk03, trk46);
@@ -328,7 +384,7 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
             int[] unusedLayers = getUnusedSvtLayer(trk26.getTrackerHits());
             //Get all track states for this track                        
             List<TrackState> TStates = trk26.getTrackStates();
-            System.out.println("Number of track states is = " + TStates.size());
+//            System.out.println("Number of track states is = " + TStates.size());
 
             TrackState tState0 = getTrackState(trk26, 1);
             if (tState0 == null) {
@@ -336,8 +392,7 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
                 continue;
             }
 
-            System.out.println("Found Both Track States!!!");
-
+//            System.out.println("Found Both Track States!!!");
             //Grab covariance matrix at track states
             double[] covAtIP = TStates.get(0).getCovMatrix();
             SymmetricMatrix LocCovAtIP = new SymmetricMatrix(5, covAtIP, true);
@@ -357,6 +412,8 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
 
             if (axialSensorPair1 == null || stereoSensorPair1 == null)
                 continue;
+
+            nTotTracks++;
 
             //Set axial and stereo sensors of the missing layer
             HpsSiSensor axialSensor0 = axialSensorPair0.getFirst();
@@ -433,6 +490,7 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
                         residualStereo1 = residual;
                 }
             }
+
             //Fill histograms for residuals and pulls
             residualY.get(sensorAxialName0).fill(residualAxial0);
 //            pullY.get(sensorAxialName0).fill(residualAxial0 / yErrorAxial0);
@@ -442,6 +500,68 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
 //            pullY.get(sensorAxialName1).fill(residualAxial1 / yErrorAxial1);
             residualY.get(sensorStereoName1).fill(residualStereo1);
 //            pullY.get(sensorStereoName1).fill(residualStereo1 / yErrorStereo1);
+
+            double residualHTHZ0 = 9999;
+            double residualHTHY0 = 9999;
+            double residualHTHZ1 = 9999;
+            double residualHTHY1 = 9999;
+//            extrapolateHelixToXPlane();
+            double xAtL0 = 9999;
+            double xAtL1 = 9999;
+            for (HelicalTrackHit hth : rotHTH) {
+                int layer = hth.Layer();
+                if (layer > 3)
+                    continue;
+                if (tState0.getTanLambda() * hth.getPosition()[2] < 0)
+                    continue;
+                if (tState0.getTanLambda() > 0) {
+                    xAtL0 = avtXL0Top;
+                    xAtL1 = avtXL1Top;
+                } else {
+                    xAtL0 = avtXL0Bot;
+                    xAtL1 = avtXL1Bot;
+                }
+
+                if (layer == 1) {
+                    Hep3Vector trPos = TrackUtils.extrapolateHelixToXPlane(tState0, xAtL0);
+//                    System.out.println("axial L0 Extrapolation = "+axialExtrapPosSensor0.toString());
+                    double resZ = getResidualHTHZ(hth, trPos);
+                    double resY = getResidualHTHY(hth, trPos);
+                    if (Math.abs(resZ) < Math.abs(residualHTHZ0)) {
+                        residualHTHZ0 = resZ;
+                        residualHTHY0 = resY;
+                    }
+                }
+                if (layer == 3) {
+                    Hep3Vector trPos = TrackUtils.extrapolateHelixToXPlane(tState0, xAtL1);
+//                    System.out.println("axial L0 Extrapolation = "+axialExtrapPosSensor0.toString());
+                    double resZ = getResidualHTHZ(hth, trPos);
+                    double resY = getResidualHTHY(hth, trPos);
+                    if (Math.abs(resZ) < Math.abs(residualHTHZ1)) {
+                        residualHTHZ1 = resZ;
+                        residualHTHY1 = resY;
+                    }
+                }
+            }
+//            boolean isTop = false;
+//            if (tState0.getTanLambda() > 0)
+//                isTop = true;
+//            if (residualHTHZ0 == 9999)
+//                System.out.println("Didn't find a hit in L0???  " + isTop + "; tracks thus far = " + nTotTracks);
+//            if (residualHTHZ1 == 9999)
+//                System.out.println("Didn't find a hit in L1???  " + isTop + "; tracks thus far = " + nTotTracks);
+
+            if (tState0.getTanLambda() > 0) {
+                residualXHTH0Top.fill(residualHTHY0);
+                residualYHTH0Top.fill(residualHTHZ0);
+                residualXHTH1Top.fill(residualHTHY1);
+                residualYHTH1Top.fill(residualHTHZ1);
+            } else {
+                residualXHTH0Bot.fill(residualHTHY0);
+                residualYHTH0Bot.fill(residualHTHZ0);
+                residualXHTH1Bot.fill(residualHTHY1);
+                residualYHTH1Bot.fill(residualHTHZ1);
+            }
 
         }
     }
@@ -494,19 +614,19 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
     private TrackState getTrackState(Track track, int unusedLay) {
         int layer = -1;
         boolean isTop = track.getTrackStates().get(0).getTanLambda() > 0;
-        System.out.println("Getting track state for layer =  " + unusedLay);
+//        System.out.println("Getting track state for layer =  " + unusedLay);
         //If unused layer is L1, then get trackstate at IP
-        if (unusedLay == 1) {
-            System.out.println("Returning TS at 0");
+        if (unusedLay == 1)
+//            System.out.println("Returning TS at 0");
             return track.getTrackStates().get(0);
-        } else
+        else
             layer = unusedLay - 1;
         HpsSiSensor sensorHole = getSensor(track, layer, isTop, true);
-        System.out.println("sensorHole = " + sensorHole.getName());
+//        System.out.println("sensorHole = " + sensorHole.getName());
         HpsSiSensor sensorSlot = getSensor(track, layer, isTop, false);
-        System.out.println("sensorSlot = " + sensorSlot.getName());
+//        System.out.println("sensorSlot = " + sensorSlot.getName());
         TrackState tState = TrackStateUtils.getTrackStateAtSensor(track, sensorHole.getMillepedeId());
-        System.out.println("Returning TS at millipede layer = " + layer);
+//        System.out.println("Returning TS at millipede layer = " + layer);
         if (tState == null)
             tState = TrackStateUtils.getTrackStateAtSensor(track, sensorSlot.getMillepedeId());
         return tState;
@@ -516,11 +636,11 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
     private HpsSiSensor getSensor(Track track, int layer, boolean isAxial, boolean isHole) {
         double tanLambda = track.getTrackStates().get(0).getTanLambda();
         int outerLayer = 4;
-        System.out.println("getSensor:: layer = " + layer + "; isAxial = " + isAxial);
+//        System.out.println("getSensor:: layer = " + layer + "; isAxial = " + isAxial);
         if (sensors.size() > 36)
             outerLayer = 5;
         for (HpsSiSensor sensor : sensors) {
-            System.out.println(sensor.getName());
+//            System.out.println(sensor.getName());
             int senselayer = (sensor.getLayerNumber() + 1) / 2;
             if (senselayer != layer)
                 continue;
@@ -539,6 +659,32 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
         return null;
     }
 
+    private double getSensorX(boolean isTop, int layer, boolean isAxial, boolean isHole) {
+        double x = -9999;
+        int outerLayer = 4;
+//        System.out.println("getSensor:: layer = " + layer + "; isAxial = " + isAxial);
+        if (sensors.size() > 36)
+            outerLayer = 5;
+        for (HpsSiSensor sensor : sensors) {
+            //           System.out.println(sensor.getName());
+            int senselayer = (sensor.getLayerNumber() + 1) / 2;
+            if (senselayer != layer)
+                continue;
+            if ((isTop && !sensor.isTopLayer()) || (!isTop && sensor.isTopLayer()))
+                continue;
+            if ((isAxial && !sensor.isAxial()) || (!isAxial && sensor.isAxial()))
+                continue;
+            if (layer < outerLayer && layer > 0)
+                return sensor.getGeometry().getPosition().z();
+            else {
+                if ((!sensor.getSide().matches("ELECTRON") && isHole) || (sensor.getSide().matches("ELECTRON") && !isHole))
+                    continue;
+                return sensor.getGeometry().getPosition().z();
+            }
+        }
+        return x;
+    }
+
     //Checks to see if track is within acceptance of both axial and stereo sensors at a given layer
     //Also returns channel number of the intersection
     private Pair<HpsSiSensor, Pair<Integer, Hep3Vector>> isWithinSensorAcceptance(Track track, TrackState tState, int layer, boolean axial, Hep3Vector p, FieldMap fieldMap) {
@@ -547,10 +693,10 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
         HpsSiSensor axialSensorSlot = getSensor(track, layer, true, false);
         HpsSiSensor stereoSensorHole = getSensor(track, layer, false, true);
         HpsSiSensor stereoSensorSlot = getSensor(track, layer, false, false);
-        System.out.println(axialSensorHole.getName());
-        System.out.println(axialSensorSlot.getName());
-        System.out.println(stereoSensorHole.getName());
-        System.out.println(stereoSensorSlot.getName());
+//        System.out.println(axialSensorHole.getName());
+//        System.out.println(axialSensorSlot.getName());
+//        System.out.println(stereoSensorHole.getName());
+//        System.out.println(stereoSensorSlot.getName());
         HelicalTrackFit htf = TrackUtils.getHTF(tState);
 
         Hep3Vector axialTrackHolePos = TrackStateUtils.getLocationAtSensor(htf, axialSensorHole, bfield);
@@ -597,7 +743,7 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
     protected double getSensorLength(HpsSiSensor sensor) {
 
         double length = 0;
-        System.out.println(sensor.getName());
+//        System.out.println(sensor.getName());
         // Get the faces normal to the sensor
         final List<Polygon3D> faces = ((Box) sensor.getGeometry().getLogicalVolume().getSolid())
                 .getFacesNormalTo(new BasicHep3Vector(0, 0, 1));
@@ -614,7 +760,7 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
 
     //Converts position into sensor frame
     private Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor) {
-        System.out.println(sensor.getName());
+//        System.out.println(sensor.getName());
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
         if (electrodes == null) {
             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
@@ -659,9 +805,9 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
         if (unusedLay != 1) {
             boolean isTop = sensor.isTopLayer();
             boolean isHole = sensor.getSide().matches("ELECTRON");
-            System.out.println(sensor.getName());
+//            System.out.println(sensor.getName());
             HpsSiSensor prevSensor = getSensor(track, unusedLay - 1, isTop, isHole);
-            System.out.println(prevSensor);
+//            System.out.println(prevSensor);
             hitPos = prevSensor.getGeometry().getPosition();
         }
 
@@ -749,11 +895,19 @@ public class L01UnbiasedResidualsFromL26 extends Driver {
         for (int layer = 0; layer < svtLayer.length; layer++)
             if (svtLayer[layer] == 0) {
                 int ulayer = layer + 1;
-                System.out.println("unused layer = " + ulayer);
+//                System.out.println("unused layer = " + ulayer);
                 unusedLayer[cnt] = ulayer;
                 cnt++;
             }
         return unusedLayer;
+    }
+
+    private double getResidualHTHZ(HelicalTrackHit hth, Hep3Vector extrPos) {
+        return extrPos.z() - hth.getPosition()[2];
+    }
+
+    private double getResidualHTHY(HelicalTrackHit hth, Hep3Vector extrPos) {
+        return extrPos.y() - hth.getPosition()[1];
     }
 
 }
