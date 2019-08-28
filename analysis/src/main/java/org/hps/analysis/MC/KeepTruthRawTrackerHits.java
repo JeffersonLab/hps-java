@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 //import java.util.Set;
 
+
 //import org.apache.commons.math3.util.Pair;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
@@ -56,12 +58,12 @@ public class KeepTruthRawTrackerHits extends Driver {
     }
     
     protected void process(EventHeader event) {
-        List<SiTrackerHitStrip1D> striphits = event.get(SiTrackerHitStrip1D.class, stripHitInputCollectionName);
+        List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
         List<SimTrackerHit> simHits = event.get(SimTrackerHit.class, simHitCollectionName);
         List<SiTrackerHitStrip1D> truthStripHits = new ArrayList<SiTrackerHitStrip1D>();
         RelationalTable rawToTruth = getRawToTruthTable(event,rawHitRelationsCollectionName);
         //Loop over all 1D strip hits
-        for(SiTrackerHitStrip1D hit:striphits){
+        for(TrackerHit hit:striphits){
             boolean keepHit = false;
             List<RawTrackerHit> rawhits = hit.getRawHits();
             //Loop over raw hits on strip hits
@@ -79,7 +81,7 @@ public class KeepTruthRawTrackerHits extends Driver {
                     break;
             }
             if(keepHit){
-                truthStripHits.add(hit);
+                truthStripHits.add(new SiTrackerHitStrip1D(hit));
             }
         }
         event.put(stripHitOutputCollectionName, truthStripHits, SiTrackerHitStrip1D.class, 0);

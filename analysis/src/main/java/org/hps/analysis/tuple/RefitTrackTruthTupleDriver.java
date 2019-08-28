@@ -184,21 +184,28 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         List<LCRelation> badMCParticleRelation = event.get(LCRelation.class,badMCParticleRelationsColName);
         MCParticle badEle = null;
         MCParticle badPos = null;
+        System.out.println("Bad MC Relation Size " + badMCParticleRelation.size());
         for(LCRelation rel : badMCParticleRelation){
+            System.out.println("V0 Mass " + uncV0.getMass() + " " + ((Track) rel.getFrom()).getChi2() + " " + electron.getTracks().get(0).getChi2() + " " + positron.getTracks().get(0).getChi2());
             if(((Track) rel.getFrom()).equals(electron.getTracks().get(0))){
                 badEle = (MCParticle) rel.getTo();
+                System.out.println("Bad Electron Set");
             }
             else if(((Track) rel.getFrom()).equals(positron.getTracks().get(0))){
                 badPos = (MCParticle) rel.getTo();
+                System.out.println("Bad Positron Set");
             }
             else{
+                System.out.println("No Bad Particle");
                 continue;
             }
         }
         if(badEle != null){
+            System.out.println("Bad Electron " + badEle.getEnergy());
             fillMCParticleVariables("otherEle", badEle);
         }
         if(badPos != null){
+            System.out.println("Bad Positron " + badPos.getEnergy());
             fillMCParticleVariables("otherPos", badPos);
         }
 

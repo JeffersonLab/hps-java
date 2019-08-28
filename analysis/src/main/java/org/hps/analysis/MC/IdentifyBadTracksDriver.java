@@ -62,6 +62,11 @@ public class IdentifyBadTracksDriver extends Driver{
     private double MAXNSIGMAPOSITIONMATCH=15.0;
     private boolean disablePID = false;
     protected double beamEnergy = 1.056;
+    
+    /** Disable setting the PID of an Ecal cluster. */
+    public void setDisablePID(boolean disablePID) {
+        this.disablePID = disablePID;
+    }
 
     public void detectorChanged(Detector detector){
         
@@ -92,7 +97,8 @@ public class IdentifyBadTracksDriver extends Driver{
         List<LCRelation> trackBadToBadReconParticleRelations = new ArrayList<LCRelation>();
         List<ReconstructedParticle> otherReconParticles = new ArrayList<ReconstructedParticle>();
         List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
-        
+        //System.out.println("");
+        //System.out.println("New Event!");
         //Loop over all tracks
         for(Track track:allTracks){
             //Match the track to a MC truth particle
@@ -108,6 +114,8 @@ public class IdentifyBadTracksDriver extends Driver{
             if((truthMatch.getPurity() == 1.0)){
                 continue;
             }
+            System.out.println("");
+            System.out.println("New Bad Track! " + track.getChi2() + " " + truthMatch.getPurity());
             //Identify MCParticle responsible for bad hit
             MCParticle badPart = SelectBadMCParticle(truthMatch,track);
             Track badTrk = SelectBadTrack(truthMatch,track);
@@ -143,15 +151,25 @@ public class IdentifyBadTracksDriver extends Driver{
     MCParticle SelectBadMCParticle(MCFullDetectorTruth truthMatch, Track trk){
         MCParticle badP = null;
         List<TrackerHit> hits = trk.getTrackerHits();
-        for(TrackerHit hit : hits){
-            int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+        //for(TrackerHit hit : hits){
+        for(int layer = 1; layer < 13; layer++){
+            //int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+            if (truthMatch.getHitList(layer) == null || truthMatch.getHitMCParticleList(layer) == null){
+                System.out.println("Truth Match layer " + layer + " is null");
+                continue;
+            }
+            System.out.println(truthMatch.getHitList(layer) + " Layer " + layer + " " + truthMatch.getHitMCParticleList(layer).size());
             if(truthMatch.getHitList(layer))
                 continue;
             Set<MCParticle> badPList = truthMatch.getHitMCParticleList(layer);
-            if(badPList ==  null)
+            System.out.println(" Bad List size " + badPList.size());
+            if(badPList ==  null){
+                System.out.println(truthMatch.getMCParticle() + "  Layer " + layer + " Bad List is Null");
                 continue;
+            }
             double maxP = 0.0;
             for(MCParticle part : badPList){
+                System.out.println(truthMatch.getMCParticle() + "Layer " + layer + "  " + part.getPDGID() + "  " + part.getEnergy());
                 double p = part.getMomentum().magnitude();
                 if(p > maxP){
                     badP = part;
@@ -159,9 +177,11 @@ public class IdentifyBadTracksDriver extends Driver{
                 }
             }
             if(badP != null){
+                System.out.println("Output " + truthMatch.getMCParticle() + "Layer " + layer + "  " + badP.getPDGID() + "  " + badP.getEnergy());
                 return badP;
             }
         }
+        System.out.println("Bad P is Null");
         return badP;
     }
     
