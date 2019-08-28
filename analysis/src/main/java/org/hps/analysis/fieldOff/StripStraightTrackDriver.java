@@ -43,7 +43,7 @@ public class StripStraightTrackDriver extends Driver {
     private boolean _selectBottom = true;
     private boolean _selectFiducial = true;
     private int _nMaxEcalClusters = 1;
-    private double _minClusterEnergy = 4.5;
+    private double _minClusterEnergy = 3.0;
     private double[] H02Wire = {0., 0., -(672.71 - 583.44) * 25.4};
 
     String[] topLayerNames = {"module_L3t_halfmodule_axial_sensor0",
@@ -273,6 +273,10 @@ public class StripStraightTrackDriver extends Driver {
 
     public void setSelectBottom(boolean b) {
         _selectBottom = b;
+    }
+
+    public void setMinClusterEnergy(double d) {
+        _minClusterEnergy = d;
     }
 
 }
