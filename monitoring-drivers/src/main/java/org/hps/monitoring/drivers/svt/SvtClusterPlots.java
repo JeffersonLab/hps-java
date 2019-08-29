@@ -299,12 +299,12 @@ public class SvtClusterPlots extends Driver {
         plotters.get("SVT-trigger timing top-bottom").createRegions(1, 2);
 
         hitTimeTrigTimePlots.put("Top",
-                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -15, 15));
+                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -12, 12));
         plotters.get("SVT-trigger timing top-bottom")
                 .region(0)
                 .plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
-                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -15, 15));
+                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -12, 12));
         plotters.get("SVT-trigger timing top-bottom")
                 .region(1)
                 .plot(hitTimeTrigTimePlots.get("Bottom"),
