@@ -11,7 +11,7 @@ public class TwoPointLine {
 
     public TwoPointLine(double x1, double y1, double x2, double y2) {
         _slope = (y2 - y1) / (x2 - x1);
-        _intercept = _slope * x1 + y1;
+        _intercept = -_slope * x1 + y1;
     }
 
     public double slope() {

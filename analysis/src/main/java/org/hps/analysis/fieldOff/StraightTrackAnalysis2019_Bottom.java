@@ -52,7 +52,7 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
                     isBottomCluster = true;
                     aida.histogram2D("Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                     // calculate some slopes and intercepts...
-                    aida.cloud1D("Cluster z").fill(cluster.getPosition()[2]);
+                    aida.histogram1D("Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
                     lineSlope = cluster.getPosition()[1] / (cluster.getPosition()[2] - H02Wire[2]);
                 }
             }
@@ -99,6 +99,7 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
             "module_L7b_halfmodule_axial_hole_sensor0"};
         // lets accumulate the hits in the wire-cluster track window
         Map<String, List<TrackerHit>> hitsInWindow = new HashMap();
+        Map<String, Double> singleHitInWindowResidual = new HashMap();
         List<String> layerNamesList = Arrays.asList(layerNames);
         boolean goodEvent = true;
         int nMaxHits = 10;
@@ -127,23 +128,28 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
 //            System.out.println("module " + moduleName);
             if (moduleName.contains("axial") && moduleName.contains("b_")) {
                 String layer = moduleName.substring(7, 10);
-                double predicted = lineSlope * (stripClusterPos[2] - H02Wire[2]);
-                aida.cloud1D(layer + " measured").fill(stripClusterPos[1]);
-                aida.cloud1D(layer + " predicted").fill(predicted);
-                double dPos = stripClusterPos[1] - predicted;
-                aida.cloud1D(layer + " measured - predicted").fill(stripClusterPos[1] - predicted);
+                int layerInt = Integer.parseInt(moduleName.substring(8, 9));
+                if (layerInt > 2) {
+                    double predicted = lineSlope * (stripClusterPos[2] - H02Wire[2]);
+                    aida.histogram1D(layer + " measured", 50, -50., 0.).fill(stripClusterPos[1]);
+                    aida.histogram1D(layer + " predicted", 50, -50., 0.).fill(predicted);
+                    double dPos = stripClusterPos[1] - predicted;
+                    aida.histogram1D(layer + " measured - predicted", 50, -10., 40.).fill(stripClusterPos[1] - predicted);
 
-                if (hm.get(moduleName) < nMaxHits) {
-                    aida.cloud1D(layer + " < " + nMaxHits + " hits hit measured").fill(stripClusterPos[1]);
-                    aida.cloud1D(layer + " < " + nMaxHits + " hits hit predicted").fill(predicted);
-                    aida.cloud1D(layer + " < " + nMaxHits + " hits hit measured - predicted").fill(stripClusterPos[1] - predicted);
+                    if (hm.get(moduleName) < nMaxHits) {
+                        aida.histogram1D(layer + " < " + nMaxHits + " hits hit measured", 50, -50., 0.).fill(stripClusterPos[1]);
+                        aida.histogram1D(layer + " < " + nMaxHits + " hits hit predicted", 50, -50., 0.).fill(predicted);
+                        aida.histogram1D(layer + " < " + nMaxHits + " hits hit measured - predicted", 50, -10., 40.).fill(stripClusterPos[1] - predicted);
 //                    aida.cloud1D(layer + " " + hm.get(moduleName) + " hit measured").fill(stripClusterPos[1]);
 //                    aida.cloud1D(layer + " " + hm.get(moduleName) + " hit predicted").fill(predicted);
 //                    aida.cloud1D(layer + " " + hm.get(moduleName) + " hit measured - predicted").fill(stripClusterPos[1] - predicted);
-                }
-                // if hit is within the prediction window (+/- dPosMax) store it...
-                if (layerNamesList.contains(moduleName) && abs(dPos)<dPosMax) {
-                    hitsInWindow.get(moduleName).add(hit);
+                    }
+                    // if hit is within the prediction window (+/- dPosMax) store it...
+                    if (layerNamesList.contains(moduleName) && abs(dPos) < dPosMax) {
+                        aida.histogram1D(layer + " hit in windows measured - predicted", 100, -5., 5.).fill(stripClusterPos[1] - predicted);
+                        hitsInWindow.get(moduleName).add(hit);
+                        singleHitInWindowResidual.put(moduleName, dPos);
+                    }
                 }
             }
         }
@@ -151,26 +157,33 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
         // require one and only one hit in each of the windows
         boolean oneHitInEachLayer = true;
         for (String s : layerNames) {
-            if(hitsInWindow.get(s).size()!=1) oneHitInEachLayer = false;
+            if (hitsInWindow.get(s).size() != 1) {
+                oneHitInEachLayer = false;
+            }
+            aida.histogram1D("Layer " + s + " single hit in window measured - predicted", 100, -5., 5.).fill(singleHitInWindowResidual.get(s));
             aida.histogram1D("Number of hits in track window in layer " + s, 5, 0., 5.).fill(hitsInWindow.get(s).size());
         }
-        
+
         //lets calculate and compare the slope for hits in 3-4 with 6-7
         // field-off tracks don't hit layer 1&2
         // bottom layer 5 axial is dead
-        if(oneHitInEachLayer)
-        {
+        if (oneHitInEachLayer) {
             double[] hit3 = hitsInWindow.get(layerNames[0]).get(0).getPosition();
             double[] hit4 = hitsInWindow.get(layerNames[1]).get(0).getPosition();
             double[] hit6 = hitsInWindow.get(layerNames[2]).get(0).getPosition();
             double[] hit7 = hitsInWindow.get(layerNames[3]).get(0).getPosition();
-            TwoPointLine tpl34 = new TwoPointLine(hit3[2],hit3[1],hit4[2],hit4[1]);
-            TwoPointLine tpl67 = new TwoPointLine(hit6[2],hit6[1],hit7[2],hit7[1]);
+            TwoPointLine tpl34 = new TwoPointLine(hit3[2], hit3[1], hit4[2], hit4[1]);
+            TwoPointLine tpl67 = new TwoPointLine(hit6[2], hit6[1], hit7[2], hit7[1]);
             aida.histogram1D("slope34", 100, -0.03, 0.03).fill(tpl34.slope());
             aida.histogram1D("slope67", 100, -0.03, 0.03).fill(tpl67.slope());
-            aida.histogram1D("zIntercept34", 100, -5000., -2000.).fill(tpl34.xAxisIntercept());
-            aida.histogram1D("zIntercept67", 100, -5000., -2000.).fill(tpl67.xAxisIntercept());
-            aida.histogram1D("slope67 - slope34", 100, -0.005, 0.005).fill(tpl67.slope()-tpl34.slope());
+            aida.histogram1D("zIntercept34", 100, -4000., -1000.).fill(tpl34.xAxisIntercept());
+            aida.histogram1D("zIntercept67", 100, -4000., -1000.).fill(tpl67.xAxisIntercept());
+            aida.histogram1D("slope67 - slope34", 100, -0.005, 0.005).fill(tpl67.slope() - tpl34.slope());
+            // compare y value at z=400
+            double zPos = 400.;
+            double y34at400 = tpl34.predict(zPos);
+            double y67at400 = tpl67.predict(zPos);
+            aida.histogram1D("y67at400 - y34at400",100, -2., 2.).fill(y67at400 - y34at400);
         }
 
         aida.histogram1D(
