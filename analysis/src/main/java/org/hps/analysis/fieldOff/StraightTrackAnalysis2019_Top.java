@@ -100,6 +100,7 @@ public class StraightTrackAnalysis2019_Top extends Driver {
         // lets accumulate the hits in the wire-cluster track window
         Map<String, List<TrackerHit>> hitsInWindow = new HashMap();
         Map<String, Double> singleHitInWindowResidual = new HashMap();
+        Map<String, Integer> singleHitInWindowClusterSize = new HashMap();
         List<String> layerNamesList = Arrays.asList(layerNames);
         boolean goodEvent = true;
         int nMaxHits = 10;
@@ -150,6 +151,7 @@ public class StraightTrackAnalysis2019_Top extends Driver {
                         aida.histogram1D(layer + " hit in windows measured - predicted", 100, -5., 5.).fill(stripClusterPos[1] - predicted);
                         hitsInWindow.get(moduleName).add(hit);
                         singleHitInWindowResidual.put(moduleName, dPos);
+                        singleHitInWindowClusterSize.put(moduleName, rthList.size());
                     }
                 }
             }
@@ -157,9 +159,17 @@ public class StraightTrackAnalysis2019_Top extends Driver {
         // lets check how many hits we have in each layer window
         // require one and only one hit in each of the windows
         boolean oneHitInEachLayer = true;
+        boolean allDoubleHits = true;
+        boolean allSingleHits = true;
         for (String s : layerNames) {
             if (hitsInWindow.get(s).size() != 1) {
                 oneHitInEachLayer = false;
+            }
+            if (singleHitInWindowClusterSize.get(s) != 2) {
+                allDoubleHits = false;
+            }
+            if (singleHitInWindowClusterSize.get(s) != 1) {
+                allSingleHits = false;
             }
             aida.histogram1D("Layer " + s + " single hit in window measured - predicted", 100, -5., 5.).fill(singleHitInWindowResidual.get(s));
             aida.histogram1D("Number of hits in track window in layer " + s, 5, 0., 5.).fill(hitsInWindow.get(s).size());
@@ -184,7 +194,17 @@ public class StraightTrackAnalysis2019_Top extends Driver {
             double zPos = 400.;
             double y34at400 = tpl34.predict(zPos);
             double y56at400 = tpl56.predict(zPos);
-            aida.histogram1D("y67at400 - y34at400",100, -2., 2.).fill(y56at400 - y34at400);            
+            aida.histogram1D("y56at400 - y34at400", 100, -2., 2.).fill(y56at400 - y34at400);
+
+            if (allSingleHits) {
+                aida.histogram1D("slope56 - slope34 All Single Hits", 100, -0.005, 0.005).fill(tpl56.slope() - tpl34.slope());
+                aida.histogram1D("y56at400 - y34at400 All Single Hits", 100, -2., 2.).fill(y56at400 - y34at400);
+            }
+
+            if (allDoubleHits) {
+                aida.histogram1D("slope56 - slope34 All Double Hits", 100, -0.005, 0.005).fill(tpl56.slope() - tpl34.slope());
+                aida.histogram1D("y56at400 - y34at400 All Double Hits", 100, -2., 2.).fill(y56at400 - y34at400);
+            }
         }
 
         aida.histogram1D(
