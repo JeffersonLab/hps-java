@@ -3,6 +3,7 @@ package org.hps.analysis.fieldOff;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,7 +205,51 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
                 aida.histogram1D("slope67 - slope34 All Double Hits", 100, -0.005, 0.005).fill(tpl67.slope() - tpl34.slope());
                 aida.histogram1D("y67at400 - y34at400 All Double Hits", 100, -2., 2.).fill(y67at400 - y34at400);
             }
-        }
+
+            //let's try to get any stereo hits associated with these axial hits...
+            // it's complicated, so hang on...
+            List<TrackerHit> helicalTrackHits = event.get(TrackerHit.class, "HelicalTrackHits");
+            //loop over all of the 3D Helical track hits and get the strip hits which constitute it...
+            //create a map relating the two strips
+            Map<TrackerHit, TrackerHit> axialToStereoMap = new HashMap<>();
+            // for track fitting wil also want to know the sensor
+            //create a map keyed on strip which can provide the sensor
+            Map<TrackerHit, String> stripToSensorMap = new HashMap<>();
+            for (TrackerHit hth : helicalTrackHits) {
+                Collection<TrackerHit> htsList = hitToStrips.allFrom(hth);
+                TrackerHit[] htsArray = htsList.toArray(new TrackerHit[2]);
+                // could be smarter and try to identify the axial strip, but this is quicker...
+                axialToStereoMap.put(htsArray[0], htsArray[1]);
+                axialToStereoMap.put(htsArray[1], htsArray[0]);
+                stripToSensorMap.put(htsArray[0], ((RawTrackerHit) htsArray[0].getRawHits().get(0)).getDetectorElement().getName());
+                stripToSensorMap.put(htsArray[1], ((RawTrackerHit) htsArray[1].getRawHits().get(0)).getDetectorElement().getName());
+            }
+            //OK should now have a map that contains all of the axial strips which have a stereo strip paired with it
+            // should also have a map of sensor names keyed on strip hit
+            List<TrackerHit> hitsToFit = new ArrayList<>();
+            Map<TrackerHit, String> stripSensorMap = new HashMap<>();
+            for (int i = 0; i < 4; ++i) {
+                // since we know we only have one hit in the tracking window...
+                TrackerHit axialTrackerHit = hitsInWindow.get(layerNames[i]).get(0);
+                // now get its partner (if it has one...
+                if (axialToStereoMap.containsKey(axialTrackerHit)) {
+                    TrackerHit stereoTrackerHit = axialToStereoMap.get(axialTrackerHit);
+                    hitsToFit.add(stereoTrackerHit);
+                    stripSensorMap.put(stereoTrackerHit, stripToSensorMap.get(stereoTrackerHit));
+                }
+                // recall that in the bottom, stereo comes before axial, so this puts the hits in ascending z order...
+                hitsToFit.add(axialTrackerHit);
+                stripSensorMap.put(axialTrackerHit, stripToSensorMap.get(axialTrackerHit));
+            }
+            // should now have (at most) eight 1D strip hits to fit...
+            // note that at the moment if I don't have all eight hits I will have null for the axial sensor
+            //TODO fix this.
+            System.out.println("found " + hitsToFit.size() + " hits to fit");
+            for (TrackerHit hit : hitsToFit) {
+                System.out.println(stripSensorMap.get(hit));
+            }
+            // now to fit these hits...
+        } // end of oneHitInEachLayer
 
         aida.histogram1D(
                 "good cluster energy ", 100, 0., 6.).fill(c.getEnergy());
