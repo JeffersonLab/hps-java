@@ -69,7 +69,7 @@ public class KalTrack {
             }
             interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
             interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
-            intercepts.put(site, site.h(site.aS, phiS));
+            intercepts.put(site, site.h(site.aS, site.m, phiS));
             lyrMap.put(site.m.Layer, site);
         }
     }
@@ -137,9 +137,10 @@ public class KalTrack {
         double c2 = 0.;
         for (MeasurementSite S : SiteList) {
             double phiS = S.aS.planeIntersect(S.m.p);
-            if (Double.isNaN(phiS))
+            if (Double.isNaN(phiS)) {
                 phiS = 0.;
-            double vpred = S.h(S.aS, phiS);
+            }
+            double vpred = S.h(S.aS, S.m, phiS);
             for (Measurement hit : S.m.hits) {
                 for (KalTrack tkr : hit.tracks) {
                     if (tkr.equals(this)) {

@@ -6,13 +6,12 @@ class StateVector {
     int kUp; // Last site index for which information is used in this state vector
     int kLow; // Index of the site for the present pivot (lower index on a in the formalism)
     Vec a; // Helix parameters at this site, relevant only in the local site coordinates
-    Vec X0; // Pivot point of this site; reference point for these helix parameters, in
-            // local site coordinates
+    Vec X0; // Pivot point of this site; reference point for these helix parameters, in local site coordinates
     RotMatrix Rot; // Rotation from the global coordinates to the local field coordinates aligned
                    // with B field on z axis
     Vec origin; // Origin of the local field coordinates in the global system.
     SquareMatrix C; // Helix covariance matrix at this site
-    double mPred; // Filtered or smoothed predicted measurement at site kLow
+    double mPred; // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r; // Predicted, filtered, or smoothed residual at site kLow
     double R; // Covariance of residual
     boolean verbose;
@@ -113,31 +112,30 @@ class StateVector {
         System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
     }
 
-    // Create a predicted state vector by propagating a given helix to a measurement
-    // site
-    StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec origin, double XL, double deltaE) {
+    // Create a predicted state vector by propagating a given helix to a measurement site
+    StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec originPrime, double XL, double deltaE) {
         // newSite = index of the new site
-        // pivot = pivot point of the new site in the local coordinates of this state vector
-        // B and t = magnitude and direction of the magnetic field at the pivot point,
-        // in global coordinates
+        // pivot = pivot point of the new site in the local coordinates of this state vector (i.e. coordinates of the old site)
+        // B and t = magnitude and direction of the magnetic field at the pivot point, in global coordinates
         // XL = thickness of the scattering material
         // deltaE = energy loss in the scattering material
-        // point (makes drho and dz zero)
-        //verbose = true;
-        StateVector aPrime = new StateVector(newSite, B, t, origin, verbose);
+        // originPrime = origin of the detector coordinates at the new site in global coordinates
+
+        // This constructs a new blank state vector with pivot and helix parameters undefined as yet
+        StateVector aPrime = new StateVector(newSite, B, t, originPrime, verbose);
         aPrime.kUp = kUp;
+        aPrime.X0 = pivot; // pivot before helix rotation, in coordinate system of the previous site
 
         double E = a.v[2] * Math.sqrt(1.0 + a.v[4] * a.v[4]);
         double deltaEoE = deltaE / E;
 
-        // Transform helix in old coordinate system to new pivot point lying on the next
-        // detector plane
+        // Transform helix in old coordinate system to new pivot point lying on the next detector plane
         if (deltaE == 0.) {
             aPrime.a = this.pivotTransform(pivot);
         } else {
             aPrime.a = this.pivotTransform(pivot, deltaEoE);
         }
-        if (verbose) {
+        if (verbose) { // drho and dz are indeed always zero here
             aPrime.a.print("StateVector predict: pivot transformed helix; should have zero drho and dz");
             a.print("old helix");
             pivot.print("new pivot");
@@ -153,9 +151,10 @@ class StateVector {
         }
 
         // Transform to the coordinate system of the field at the new site
-        // Locate the new pivot on the helix at phi=0 (so drho and dz are zero)
-        aPrime.X0 = pivot; // old pivot before helix rotation
-        aPrime.X0 = aPrime.toLocal(this.toGlobal(aPrime.atPhi(0.))); // new pivot after helix rotation
+        // First, transform the pivot point to the new system
+        aPrime.X0 = aPrime.toLocal(this.toGlobal(aPrime.X0));
+
+        // Calculate the matrix for the net rotation from the old site coordinates to the new site coordinates
         RotMatrix Rt = aPrime.Rot.multiply(this.Rot.invert());
         SquareMatrix fRot = new SquareMatrix(5);
         if (verbose) {
@@ -164,7 +163,12 @@ class StateVector {
             Rt.print("rotation from old local frame to new local frame");
             aPrime.a.print("StateVector:predict helix before rotation");
         }
-        aPrime.a = StateVector.rotateHelix(aPrime.a, Rt, fRot); // Derivative matrix fRot gets filled in here
+
+        // Rotate the helix parameters here. 
+        // dz and drho will remain unchanged at zero
+        // phi0 and tanl(lambda) change, as does kappa (1/pt). However, |p| should be unchanged by the rotation.
+        // This call to rotateHelix also calculates the derivative matrix fRot
+        aPrime.a = StateVector.rotateHelix(aPrime.a, Rt, fRot);
         if (verbose) {
             aPrime.a.print("StateVector:predict helix after rotation");
             fRot.print("fRot from StateVector:predict");
@@ -173,18 +177,29 @@ class StateVector {
 
         // Test the derivatives
         /*
-         * if (verbose) { double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
-         * StateVector aPda = copy(); for (int i = 0; i < 5; i++) aPda.a.v[i] = a.v[i] *
-         * (1.0 + daRel[i]); Vec da = aPda.a.dif(a); StateVector aPrimeNew = copy();
-         * aPrimeNew.a = aPda.pivotTransform(pivot); RotMatrix RtTmp =
-         * Rot.invert().multiply(aPrime.Rot); SquareMatrix fRotTmp = new
-         * SquareMatrix(5); aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp); for
-         * (int i = 0; i < 5; i++) { double deltaExact = aPrimeNew.a.v[i] -
-         * aPrime.a.v[i]; double delta = 0.; for (int j = 0; j < 5; j++) { delta +=
-         * F.M[i][j] * da.v[j]; } System.out.
-         * format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i,
-         * deltaExact, delta); } }
-         */
+        if (verbose) {
+            double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
+            StateVector aPda = copy();
+            for (int i = 0; i < 5; i++) {
+                aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
+            }
+            Vec da = aPda.a.dif(a);
+            StateVector aPrimeNew = copy();
+            aPrimeNew.a = aPda.pivotTransform(pivot);
+            RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
+            SquareMatrix fRotTmp = new SquareMatrix(5);
+            aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp);
+            for (int i = 0; i < 5; i++) {
+                double deltaExact = aPrimeNew.a.v[i] - aPrime.a.v[i];
+                double delta = 0.;
+                for (int j = 0; j < 5; j++) {
+                    delta += F.M[i][j] * da.v[j];
+                }
+                System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact,
+                        delta);
+            }
+        }
+        */
 
         aPrime.kLow = newSite;
         aPrime.kUp = kUp;
@@ -207,8 +222,7 @@ class StateVector {
             Ctot = this.C.sum(this.getQ(sigmaMS));
         }
 
-        // Now propagate the multiple scattering matrix and covariance matrix to the new
-        // site
+        // Now propagate the multiple scattering matrix and covariance matrix to the new site
         aPrime.C = Ctot.similarity(F);
 
         // Temporary test of fine stepping the pivot transform (for uniform field)
@@ -241,12 +255,14 @@ class StateVector {
         }
         aPrime.a.print("transformed helix");
         aPrime.C.print("transformed covariance");
-        */    
+        */
         return aPrime;
     }
 
     // Create a filtered state vector from a predicted state vector
     StateVector filter(Vec H, double V) {
+        // H = prediction matrix (5-vector)
+        // V = hit variance (1/sigma^2)
 
         StateVector aPrime = copy();
         aPrime.kUp = kLow;
@@ -270,13 +286,15 @@ class StateVector {
         aPrime.C = (U.dif(K.product(H))).multiply(C);
 
         if (verbose) {
-            aPrime.C.print("filtered covariance in StateVector.filter");
+            aPrime.C.print("filtered covariance (gain-matrix formalism) in StateVector.filter");
             // Alternative calculation of filtered covariance (sanity check that it gives
             // the same result):
             SquareMatrix D = C.invert().sum(H.scale(1.0 / V).product(H));
             SquareMatrix Calt = D.invert();
-            Calt.print("alternate filtered covariance in StateVector.filter");
+            Calt.print("alternate (weighted-means formalism) filtered covariance in StateVector.filter");
             aPrime.C.multiply(D).print("unit matrix??");
+            a.print("predicted helix parameters");
+            aPrime.a.print("filtered helix parameters (gain matrix formalism)");
         }
         //double R = (1 - H.dot(K))*V;
         //System.out.format("StateVector.filter: R=%10.8f\n", R);
@@ -704,6 +722,7 @@ class StateVector {
     }
 
     // Transform from momentum at helix starting point back to the helix parameters
+    // drho and dz are not modified
     static Vec pTOa(Vec p, double drho, double dz, double Q) {
         double phi0 = Math.atan2(-p.v[0], p.v[1]);
         double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
@@ -726,23 +745,18 @@ class StateVector {
         return xGlobal;
     }
 
-    // Transformation of helix parameters from one B-field frame to another, by
-    // rotation R
-    // Warning: the pivot point has to be transformed too! Here we assume that the
-    // new pivot point
-    // will be on the helix at phi=0, so drho and dz will always be returned as
-    // zero.
+    // Transformation of helix parameters from one B-field frame to another, by rotation R
+    // Warning: the pivot point has to be transformed too! Here we assume that the new pivot point
+    // will be on the helix at phi=0, so drho and dz will always be returned as zero.
     static Vec rotateHelix(Vec a, RotMatrix R, SquareMatrix fRot) {
-        // The rotation is easily applied to the momentum vector, so first we transform
-        // from helix parameters
+        // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
-        // The values for fRot, the corresponding derivative matrix, are also calculated
-        // and returned.
+        // The values for fRot, the corresponding derivative matrix, are also calculated and returned.
 
         boolean verbose = false;
 
-        Vec phlx = aTOp(a);
-        Vec p_prime = R.rotate(phlx);
+        Vec phlx = aTOp(a); // Momentum at point closest to helix
+        Vec p_prime = R.rotate(phlx); // Momentum in new coordinate system
         if (verbose) {
             a.print("input helix, in rotateHelix");
             R.print("in rotateHelix");
@@ -801,11 +815,13 @@ class StateVector {
          * dap.print("actual difference in helix parameters");
          * dap2.print("diff in helix params from derivatives"); }
          */
-        // The parameters drho and dz, being distances between two points, do not change
-        // with the rotation.
-        // Is this really true? It's not necessarily the same point on the helix, is it,
-        // since the helix has changed
-        // orientation discretely.
+        // The parameters drho and dz are assumed not to change in the rotation. This will be correct
+        // if the rotation is about the pivot point, and the pivot is on the helix, in which case
+        // dz and drho are both zero. That is not necessarily valid if dz and drho are not zero. If the
+        // rotation were only about the z axis it would be, but any other sort of rotation will mix dz and drho.
+        //if (Math.abs(a.v[0]) > 0.001 || Math.abs(a.v[3]) > 0.001) {
+        //    System.out.format("StateVector.rotateHelix: warning, dz=%10.5f and drho=%10.5f are not zero.\n",a.v[3],a.v[0]);
+        //}
         Vec aNew = pTOa(p_prime, a.v[0], a.v[3], Q);
         if (verbose) {
             aNew.print("rotated helix in rotateHelix");

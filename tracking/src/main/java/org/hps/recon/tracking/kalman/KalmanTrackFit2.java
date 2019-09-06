@@ -115,7 +115,7 @@ public class KalmanTrackFit2 {
                     double phiF = aF.planeIntersect(m.p);
                     if (Double.isNaN(phiF))
                         phiF = 0.;
-                    double vPred = site.h(aF, phiF);
+                    double vPred = site.h(aF, site.m, phiF);
                     System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt,
                             m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                     for (Measurement hit : m.hits) {
@@ -215,10 +215,10 @@ public class KalmanTrackFit2 {
                     double phiF = aF.planeIntersect(m.p);
                     if (Double.isNaN(phiF))
                         phiF = 0.;
-                    double vPred = site.h(aF, phiF);
+                    double vPred = site.h(aF, site.m, phiF);
                     double phiP = site.aP.planeIntersect(m.p);
                     if (Double.isNaN(phiP)) phiP = 0.;
-                    double vPredP = site.h(site.aP, phiP);
+                    double vPredP = site.h(site.aP, site.m, phiP);
                     System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; vPredP=%10.6f Hits: ", cnt,
                             m.Layer, m.stereo, site.hitID, site.chi2inc, vPred, vPredP);
                     for (Measurement hit : m.hits) {
@@ -266,7 +266,7 @@ public class KalmanTrackFit2 {
                     double phiS = site.aS.planeIntersect(site.m.p);
                     if (Double.isNaN(phiS))
                         phiS = 0.;
-                    double vpred = site.h(site.aS, phiS);
+                    double vpred = site.h(site.aS, site.m, phiS);
                     System.out.format("   %d Lyr %d stereo=%9.6f Hit %d chi2inc=%10.6f r1=%10.8f err=%10.8f vPred=%10.6f; Hits: ", cnt,
                             site.m.Layer, site.m.stereo, site.hitID, site.chi2inc, site.aS.r, Math.sqrt(site.aS.R), vpred);
                     for (Measurement hit : site.m.hits) {

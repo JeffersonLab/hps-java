@@ -281,7 +281,7 @@ public class KalmanPatRecHPS {
                             double phiF = aF.planeIntersect(m.p);
                             if (Double.isNaN(phiF))
                                 phiF = 0.;
-                            double vPred = site.h(aF, phiF);
+                            double vPred = site.h(aF, site.m, phiF);
                             int cnt = 2 * m.Layer;
                             if (m.isStereo)
                                 cnt++;
@@ -447,7 +447,7 @@ public class KalmanPatRecHPS {
                                 double phiF = aF.planeIntersect(m.p);
                                 if (Double.isNaN(phiF))
                                     phiF = 0.;
-                                double vPred = site.h(aF, phiF);
+                                double vPred = site.h(aF, site.m, phiF);
                                 System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                                 for (Measurement hit : m.hits) {
                                     System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());
@@ -510,7 +510,7 @@ public class KalmanPatRecHPS {
                                 double phiS = aS.planeIntersect(m.p);
                                 if (Double.isNaN(phiS))
                                     phiS = 0.;
-                                double vPred = site.h(aS, phiS);
+                                double vPred = site.h(aS, site.m, phiS);
                                 System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo, site.hitID, site.chi2inc, vPred);
                                 for (Measurement hit : m.hits) {
                                     System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());

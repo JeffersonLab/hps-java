@@ -17,12 +17,9 @@ public class SiModule {
                       // the strips)
     double[] yExtent; // Plus and minus limits on the detector active area in the y direction
                       // (perpendicular to the strips)
-    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field
-                 // coordinates)
-    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates
-                    // (transpose of R)
-                    // The local coordinate system is u, v, t where t is more-or-less the beam
-                    // direction (y-global)
+    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
+    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
+                    // The local coordinate system is u, v, t where t is more-or-less the beam direction (y-global)
                     // and v is the measurement direction.
     double stereo; // Stereo angle of the detectors in radians
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
