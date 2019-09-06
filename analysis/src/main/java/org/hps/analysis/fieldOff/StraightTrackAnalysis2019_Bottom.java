@@ -36,6 +36,8 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
 //    private double[] H02Wire = {0., 0., -(672.71 - 551.64) * 25.4};
     private double[] H02Wire = {0., 0., -(672.71 - 583.44) * 25.4};
 
+    private boolean _debug = true;
+
     protected void process(EventHeader event) {
 
         // lets start with bottom clusters above threshold...
@@ -121,13 +123,13 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
             return;
         }
 
-//        System.out.println(hm);
+//        if(_debug) System.out.println(hm);
         for (TrackerHit hit : stripClusters) {
             double[] stripClusterPos = hit.getPosition();
-//            System.out.println("strip cluster position " + Arrays.toString(stripClusterPos));
+//            if(_debug) System.out.println("strip cluster position " + Arrays.toString(stripClusterPos));
             List rthList = hit.getRawHits();
             String moduleName = ((RawTrackerHit) rthList.get(0)).getDetectorElement().getName();
-//            System.out.println("module " + moduleName);
+//            if(_debug) System.out.println("module " + moduleName);
             if (moduleName.contains("axial") && moduleName.contains("b_")) {
                 String layer = moduleName.substring(7, 10);
                 int layerInt = Integer.parseInt(moduleName.substring(8, 9));
@@ -236,17 +238,20 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
                     TrackerHit stereoTrackerHit = axialToStereoMap.get(axialTrackerHit);
                     hitsToFit.add(stereoTrackerHit);
                     stripSensorMap.put(stereoTrackerHit, stripToSensorMap.get(stereoTrackerHit));
+                    // recall that in the bottom, stereo comes before axial, so this puts the hits in ascending z order...
+                    hitsToFit.add(axialTrackerHit);
+                    stripSensorMap.put(axialTrackerHit, stripToSensorMap.get(axialTrackerHit));
+                } else {
+                    hitsToFit.add(axialTrackerHit);
+                    stripSensorMap.put(axialTrackerHit, layerNames[i]);
                 }
-                // recall that in the bottom, stereo comes before axial, so this puts the hits in ascending z order...
-                hitsToFit.add(axialTrackerHit);
-                stripSensorMap.put(axialTrackerHit, stripToSensorMap.get(axialTrackerHit));
             }
             // should now have (at most) eight 1D strip hits to fit...
-            // note that at the moment if I don't have all eight hits I will have null for the axial sensor
-            //TODO fix this.
-            System.out.println("found " + hitsToFit.size() + " hits to fit");
-            for (TrackerHit hit : hitsToFit) {
-                System.out.println(stripSensorMap.get(hit));
+            if (_debug) {
+                System.out.println("found " + hitsToFit.size() + " hits to fit");
+                for (TrackerHit hit : hitsToFit) {
+                    System.out.println(stripSensorMap.get(hit));
+                }
             }
             // now to fit these hits...
         } // end of oneHitInEachLayer
