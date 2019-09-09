@@ -238,7 +238,6 @@ public class MakeGblTracks {
             if (temp == null){
                 temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
                 if(temp == null){
-                    System.out.println("Temp is Null!");
                     return null;
                 }
             }
