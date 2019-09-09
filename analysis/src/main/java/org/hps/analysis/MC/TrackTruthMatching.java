@@ -69,6 +69,7 @@ public class TrackTruthMatching {
             for(RawTrackerHit rawhit : rawhits){
                 //System.out.println("New Raw Hit " + rawhit.getLayerNumber());
                 Set<SimTrackerHit> simhits = rawtomc.allFrom(rawhit);
+                System.out.println("SimHit Size " + simhits.size());
                 int layer = rawhit.getLayerNumber();
                 for (SimTrackerHit simhit : simhits){
                     //System.out.println("New Sim Hit");
@@ -76,6 +77,7 @@ public class TrackTruthMatching {
                         simhitsontrack.add(simhit);
                         MCParticle simhitpart = simhit.getMCParticle();
                         int simlay = simhit.getLayer();
+                        System.out.println("SimHit Layer " + simlay);
                         if(simlay % 2 == 1)
                             mcPartList1.add(simhitpart);
                         if(simlay % 2 == 0)
@@ -96,6 +98,9 @@ public class TrackTruthMatching {
                         //System.out.println("Is hit? " + mapGoodHitList.get(simhitpart).get(simlay));
                         //System.out.println("Nhits " + mcmap.get(simhitpart));
                     }
+                    else{
+                        System.out.println("SIM HIT IS NULL!!!!!!!!");
+                    }
                 }
                 /*if(mcPartList.size() > 1){
                     for(MCParticle p : mapGoodHitList.keySet()){
@@ -110,6 +115,7 @@ public class TrackTruthMatching {
                 //System.out.println("MC hits per layer " + _nMCHitsPerLayer.get(layer));
                 //System.out.println("MC hit list " + _hitMCPartList.get(layer));
             }
+            System.out.println("Tracker Hit Layer " + trackhitlayer + " MCParticle List1 Size " + mcPartList1.size()+ " MCParticle List2 Size " + mcPartList2.size());
             _nMCHitsPerLayer.put(trackhitlayer,mcPartList1.size());
             _nMCHitsPerLayer.put(trackhitlayer + 1,mcPartList2.size());
             _hitMCPartList.put(trackhitlayer,mcPartList1);

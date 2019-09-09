@@ -93,6 +93,14 @@ public class TruthGBLRefitterDriver extends Driver {
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
+    
+    public void setKinkDataCollectionName(String kinkDataCollectionName) {
+        this.kinkDataCollectionName = kinkDataCollectionName;
+    }
+    
+    public void setKinkDataRelationsName(String kinkDataRelationsName) {
+        this.kinkDataRelationsName = kinkDataRelationsName;
+    }
 
     @Override
     protected void detectorChanged(Detector detector) {
