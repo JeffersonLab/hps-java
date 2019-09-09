@@ -30,7 +30,7 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 
 /**
- * The is adapted from the main HPS implementation of ReconParticleDriver, but for ReconParticleDriverForTruthTracks
+ * The is adapted from the main HPS implementation of ReconParticleDriver, but for ReconParticleDriverForTrackRefit
  * Method generates V0 candidates and does vertex fits for a custom set of tracks
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>

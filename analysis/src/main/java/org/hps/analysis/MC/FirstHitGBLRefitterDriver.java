@@ -36,8 +36,8 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL, but only the truth hits of interest. Does not require GBL collections to
- * be present in the event. This is adapted from the nominal GBLRefitterDriver.
+ * A Driver which refits tracks using GBL, but only refit tracks with different L1 hits from TrackRefitWithFirstLayerHits. 
+ * This is adapted from the nominal GBLRefitterDriver.
  * 
  * @author Matt Solt
  */
@@ -45,16 +45,15 @@ public class FirstHitGBLRefitterDriver extends Driver {
 
     private String inputCollectionName = "Tracks_refit";
     private String outputCollectionName = "GBLTracks_refit";
-    private String trackCollectionName = "GBLTracks";
     private String trackRelationCollectionName = "RefitToGBLTrackRelations";
     private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
-    private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
+    //private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String kinkDataCollectionName = "GBLKinkData_refit";
     private String kinkDataRelationsName = "GBLKinkDataRelations_refit";
     private String trackToMCParticleRelationsName = "TrackTruthToMCParticleRelations";
-    private String trackToTrackRefitRelationsName = "TrackToRefitTrackRelations";
-    private String refitTrackToTrackRelationsName = "TrackToTrackRefitRelations";
+    private String trackToTrackRefitRelationsName = "GBLTrackToGBLTrackRefitRelations";
+    private String refitTrackToTrackRelationsName = "GBLTrackToTrackRefitRelations";
     
 
     private double bfield;
@@ -90,9 +89,9 @@ public class FirstHitGBLRefitterDriver extends Driver {
         this.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
     }
 
-    public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
+    /*public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
         this.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
-    }
+    }*/
     
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
@@ -104,6 +103,14 @@ public class FirstHitGBLRefitterDriver extends Driver {
     
     public void setKinkDataRelationsName(String kinkDataRelationsName) {
         this.kinkDataRelationsName = kinkDataRelationsName;
+    }
+    
+    public void setTrackToTrackRefitRelationsName(String trackToTrackRefitRelationsName) {
+        this.trackToTrackRefitRelationsName = trackToTrackRefitRelationsName;
+    }
+    
+    public void setRefitTrackToTrackRelationsName(String refitTrackToTrackRelationsName) {
+        this.refitTrackToTrackRelationsName = refitTrackToTrackRelationsName;
     }
 
     @Override
@@ -130,10 +137,9 @@ public class FirstHitGBLRefitterDriver extends Driver {
 
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
-        List<Track> tracksOriginal = event.get(Track.class, trackCollectionName);
         List<LCRelation> refitTrackToTrackRelations = event.get(LCRelation.class, refitTrackToTrackRelationsName);
         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
-        RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
+        //RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
@@ -252,7 +258,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
         for (TrackerHit hit : track.getTrackerHits()) {
             hits.addAll(hitToStrips.allFrom(hit));
         }
-
         return hits;
     }
 }

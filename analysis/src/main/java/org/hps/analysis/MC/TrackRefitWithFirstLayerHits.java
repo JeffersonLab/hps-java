@@ -17,7 +17,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
-//import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
@@ -41,18 +40,18 @@ import org.lcsim.util.Driver;
 /**
  *
  * @author mrsolt
- * This driver keeps all truth hits that correspond to a track's 1D strip hits
+ * This driver selects all 3D hits in the first layer of the track (L1 or L2),
+ * and refits on all 3D hits in that layer. This seed track can be fed to "FirstHitGBLRefitterDriver"
+ * to do a GBL Refit.
  */
 public class TrackRefitWithFirstLayerHits extends Driver {
 
     //Collection Names
-    //private String V0CollectionName = "UnconstrainedV0Candidates";
     private String trackCollectionName = "GBLTracks";
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
     private String helicalTrackHitRefitCollectionName = "HelicalTrackHits_refit";
     private String trackToFirstLayHitsRelationCollectionName = "TrackToFirstLayerHitsRelations";
-    private String trackToTrackRefitListRelationCollectionName = "TrackToTrackRefitRelations";
-    //private String v0ToV0RefitListRelationCollectionName = "V0ToV0RefitRelations";
+    private String trackToTrackRefitListRelationCollectionName = "GBLTrackToTrackRefitRelations";
     private String helicalTrackHitToStripHitRelationsCollectionName = "HelicalTrackHitRelations";
     private String helicalTrackHitRefitToStripHitRelationsCollectionName = "HelicalTrackHitRelations_refit";
     private String refitTracksCollectionName = "Tracks_refit";
@@ -83,33 +82,60 @@ public class TrackRefitWithFirstLayerHits extends Driver {
         this.trackToFirstLayHitsRelationCollectionName = trackToFirstLayHitsRelationCollectionName;
     }
     
+    public void setHelicalTrackHitRefitCollectionName(String helicalTrackHitRefitCollectionName) {
+        this.helicalTrackHitRefitCollectionName = helicalTrackHitRefitCollectionName;
+    }
+    
+    public void setTrackToTrackRefitListRelationCollectionName(String trackToTrackRefitListRelationCollectionName) {
+        this.trackToTrackRefitListRelationCollectionName = trackToTrackRefitListRelationCollectionName;
+    }
+    
+    public void setHelicalTrackHitToStripHitRelationsCollectionName(String helicalTrackHitToStripHitRelationsCollectionName) {
+        this.helicalTrackHitToStripHitRelationsCollectionName = helicalTrackHitToStripHitRelationsCollectionName;
+    }
+    
+    public void setHelicalTrackHitRefitToStripHitRelationsCollectionName(String helicalTrackHitRefitToStripHitRelationsCollectionName) {
+        this.helicalTrackHitRefitToStripHitRelationsCollectionName = helicalTrackHitRefitToStripHitRelationsCollectionName;
+    }
+    
+    public void setRefitTracksCollectionName(String refitTracksCollectionName) {
+        this.refitTracksCollectionName = refitTracksCollectionName;
+    }
+    
     protected void process(EventHeader event) {
-        //List<ReconstructedParticle> uncV0s = event.get(ReconstructedParticle.class, V0CollectionName);
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         List<TrackerHit> hits = event.get(TrackerHit.class,helicalTrackHitCollectionName);
         List<LCRelation> helicalTrackHitToStripHitRelations = event.get(LCRelation.class,helicalTrackHitToStripHitRelationsCollectionName);
         List<LCRelation> trackToFirstLayHitsRelationList = new ArrayList<LCRelation>();
         List<Track> refitTracks = new ArrayList<Track>();
         List<LCRelation> trackToTrackRefitList = new ArrayList<LCRelation>();
-        //List<LCRelation> v0ToV0RefitList = new ArrayList<LCRelation>();
         List<LCRelation> hthToStripHitRefitList = new ArrayList<LCRelation>();
         List<HelicalTrackHit> helicalTrackHits_refit = new ArrayList<HelicalTrackHit>();
         
+        //Loop over all the GBL Tracks in the event
         for(Track track:tracks){
+            //Get Layer of the first hit on track (either L1 or L2)
             int firstLayHit = (((HpsSiSensor) ((RawTrackerHit) track.getTrackerHits().get(0).getRawHits().get(0)).getDetectorElement()).getLayerNumber() + 1) / 2;
             List<TrackerHit> newHits = new ArrayList<TrackerHit>();
+            //Loop over all helical track hits in the event
             for(TrackerHit hit:hits){
                 int layer = (((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber() + 1) / 2;
+                //Check to see if the layer is the same as the first hit on track
                 if(layer != firstLayHit)
                     continue;
+                //Check to see if hits are both top or bottom
                 if(hit.getPosition()[1]*track.getTrackStates().get(0).getTanLambda() < 0)
                     continue;
                 boolean sameHit = checkSameHit(hit,track.getTrackerHits().get(0));
+                //Check to see if the 3D hit is already on track
                 if(sameHit)
                     continue;
+                //If the hit passes these requirements, add it to the list of hits to be refit
                 newHits.add(hit);
                 trackToFirstLayHitsRelationList.add(new BaseLCRelation(track, hit));
             }
+            //Loop over the list of new hits for each track
+            //For each new hit, output a seed track to be refit
             for(TrackerHit hit:newHits){
                 Pair<Track,Pair<List<LCRelation>,List<HelicalTrackHit>>> newtrackPair = fitNewTrack(track,hit,helicalTrackHitToStripHitRelations); //track with new hits
                 Track newtrack = newtrackPair.getFirstElement();
@@ -126,34 +152,21 @@ public class TrackRefitWithFirstLayerHits extends Driver {
         event.put(helicalTrackHitRefitCollectionName, helicalTrackHits_refit, HelicalTrackHit.class, 0);
         event.put(helicalTrackHitRefitToStripHitRelationsCollectionName, hthToStripHitRefitList, LCRelation.class, 0);
         addRotatedHitsToEvent(event, helicalTrackHits_refit); 
-        
-        /*for(ReconstructedParticle v0:uncV0s){
-            List<Track> v0Tracks = v0.getTracks();
-            for(Track track:v0Tracks){
-                for(LCRelation rel:trackToTrackRefitList){
-                    List<Track> newTracks = new ArrayList<Track>();
-                    if(rel.getFrom().equals(track)){
-                        Track newTrack = (Track) rel.getTo();
-                        newTracks.add(newTrack);
-                    }
-                }
-            }
-            ReconstructedParticle newV0 = null; //V0 with new tracks;
-            v0ToV0RefitList.add(new BaseLCRelation(v0,newV0));
-        }
-        event.put(v0ToV0RefitListRelationCollectionName, v0ToV0RefitList, LCRelation.class, 0);*/
     }
 
+    //Checks to see if two 3D hits are the same
     private boolean checkSameHit(TrackerHit hit, TrackerHit trackerHit) {
         List<RawTrackerHit> rawhits = hit.getRawHits();
         List<RawTrackerHit> rawtrackerhits = trackerHit.getRawHits();
+        
+        //If the rawhits are different array sizes, they can't be the same hit
         if(rawhits.size() != rawtrackerhits.size())
             return false;
         
-        //return rawhits.get(0).equals(rawtrackerhits.get(0));
         boolean[] isSameRawHit = new boolean[rawhits.size()];
         boolean[] isSameRawTrackerHit = new boolean[rawtrackerhits.size()];
         
+        //Initialize boolean arrays
         for(int i = 0; i < rawhits.size(); i++){
             isSameRawHit[i] = false;
         }
@@ -174,6 +187,8 @@ public class TrackRefitWithFirstLayerHits extends Driver {
             }
             i++;
         }
+        
+        //If any of the raw hits are not the same, this is not the same 3D hit
         for(int j = 0; j < isSameRawHit.length; j++){
             if(!isSameRawHit[j])
                 return false;
@@ -186,6 +201,7 @@ public class TrackRefitWithFirstLayerHits extends Driver {
     }
     
     private Pair<Track,Pair<List<LCRelation>,List<HelicalTrackHit>>> fitNewTrack(Track track, TrackerHit hitL1, List<LCRelation> helicalTrackHitToStripHitRelations){
+        //List all the standard seed tracking strategies, only use one for now. That's probably sufficient
         String[] strategyResources = new String[4];
         strategyResources[0] = "/org/hps/recon/tracking/strategies/HPS_s345_c2_e16.xml";
         strategyResources[1] = "/org/hps/recon/tracking/strategies/HPS_s456_c3_e21.xml";
@@ -202,6 +218,7 @@ public class TrackRefitWithFirstLayerHits extends Driver {
         TrackerHit hit2 = null;
         HelicalTrackHit hth = null;
         
+        //Build the HelicalTrackStrip for the first layer refit
         for(LCRelation rel:helicalTrackHitToStripHitRelations){
             if(((TrackerHit) rel.getFrom()).equals(hitL1)){
                 HelicalTrackStrip strip = makeDigiStrip(new SiTrackerHitStrip1D((TrackerHit) rel.getTo()));
@@ -217,6 +234,7 @@ public class TrackRefitWithFirstLayerHits extends Driver {
             }
         }
         
+        //Build the HelicalTrackHit for the first layer refit
         if(strip1 != null && strip2 != null){
             HelicalTrackCross trackCross = new HelicalTrackCross(strip1,strip2);
             hth = (HelicalTrackHit) trackCross;
@@ -225,6 +243,7 @@ public class TrackRefitWithFirstLayerHits extends Driver {
         
         List<TrackerHit> hits = track.getTrackerHits();
         
+        //Build the HelicalTrackStrips for the remaining layers
         for(TrackerHit hit:hits){
             if(hit.equals(hits.get(0))){
                 hthToStripHitRefitList.add(new BaseLCRelation(hth,hit1));
@@ -247,6 +266,7 @@ public class TrackRefitWithFirstLayerHits extends Driver {
                     }
                 }
             }
+            //Build the HelicalTrackHit for the remaining layers
             if(strip1 != null && strip2 != null){
                 HelicalTrackCross trackCross = new HelicalTrackCross(strip1,strip2);
                 hth = (HelicalTrackHit) trackCross;
@@ -290,6 +310,7 @@ public class TrackRefitWithFirstLayerHits extends Driver {
         return new Pair<>((Track) trk,new Pair<>(hthToStripHitRefitList,helicalHits));
     }
     
+    //Adapted from the standard reconstruction code
     private HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
 
         SiTrackerHitStrip1D local = h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
@@ -318,11 +339,11 @@ public class TrackRefitWithFirstLayerHits extends Driver {
         return strip;
     }
     
+    //Adapted from the standard reconstruction code
     private void addRotatedHitsToEvent(EventHeader event, List<HelicalTrackHit> helicalHits) {
 
         List<HelicalTrackHit> rotatedhits = new ArrayList<HelicalTrackHit>();
         List<LCRelation> hthrelations = new ArrayList<LCRelation>();
-        List<LCRelation> mcrelations = new ArrayList<LCRelation>();
         List<HelicalTrackCross> stereohits = new ArrayList<HelicalTrackCross>();
         for(HelicalTrackHit hit:helicalHits){
             stereohits.add((HelicalTrackCross) hit);

@@ -32,8 +32,8 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver used to create reconstructed particles and matching clusters and tracks.
- * This is adapted from the nominal ReconParticleDriver for the purpose of building tracks
- * with vertices that have truth hits and bad tracks.
+ * This is adapted from the nominal ReconParticleDriver for the purpose of building vertices
+ * from tracks that are refit with different hits .
  *
  * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
  * @author Mathew Graham <mgraham@slac.stanford.edu>

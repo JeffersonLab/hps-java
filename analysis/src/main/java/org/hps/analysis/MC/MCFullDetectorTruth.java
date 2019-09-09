@@ -32,11 +32,8 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.swim.Trajectory;
 
 /**
- * This is the tuple template driver
- * Use this to add your code and variables to make a tuple
- * Run the GeneralTupleDriver to output info into a text file
- * Change the steering file to include this driver
- * Run "makeTree.py" on text file to create a root tuple
+ * This is the driver that takes a TrackTruthMatching object
+ * and computes the full truth information
  *
  * @author mrsolt on Aug 31, 2017
  */
