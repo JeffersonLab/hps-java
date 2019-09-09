@@ -134,7 +134,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
         List<LCRelation> refitTrackToTrackRelations = event.get(LCRelation.class, refitTrackToTrackRelationsName);
         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
         RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
-        System.out.println("Hit To Rotated Size " + hitToRotated.size());
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
@@ -146,17 +145,14 @@ public class FirstHitGBLRefitterDriver extends Driver {
         List<LCRelation> trackToTrackRefitRelations = new ArrayList<LCRelation>();
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
-        System.out.println("Pass0 " + tracks.size());
         for (Track track : tracks) {
-            System.out.println("Pass1 " + getStripHits(track, hitToStrips).size());
-            if (getStripHits(track, hitToStrips).size() == 0){
+            if (getStripHits(track, hitToStrips).size() == 0)
                 continue;
-            }
-            System.out.println("Pass2");
+
             Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), getStripHits(track, hitToStrips), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
             if (newTrack == null)
                 continue;
-            System.out.println("Pass3");
+
             Track gblTrk = newTrack.getFirst();
 
             refittedTracks.add(gblTrk);
@@ -237,7 +233,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
         for (LCRelation relation : hitrelations)
             if (relation != null && relation.getFrom() != null && relation.getTo() != null){
                 hitToStrips.add(relation.getFrom(), relation.getTo());
-                //System.out.println("HTH Relations " + relation.getFrom() + " " + relation.getTo());
             }
         return hitToStrips;
     }
@@ -248,7 +243,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
         for (LCRelation relation : rotaterelations)
             if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                 hitToRotated.add(relation.getFrom(), relation.getTo());
-                //System.out.println("HTRotated Relations " + relation.getFrom() + " " + relation.getTo());
             }
         return hitToRotated;
     }
@@ -256,7 +250,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
         for (TrackerHit hit : track.getTrackerHits()) {
-            System.out.println("Track Utils: " + hit + " " + hitToStrips.from(hit));
             hits.addAll(hitToStrips.allFrom(hit));
         }
 
