@@ -66,6 +66,11 @@ public class StripStraightTrackDriver extends Driver {
         Cluster topCluster = null;
         Cluster bottomCluster = null;
         for (Cluster cluster : clusters) {
+            aida.histogram2D("Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+            aida.histogram1D("Cal cluster energy ", 100, 0., 6.).fill(cluster.getEnergy());
+            if (cluster.getEnergy() > 3) {
+                aida.histogram2D("Cal cluster x vs y, E>3.GeV", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+            }
             if (cluster.getPosition()[1] > 0.) {
                 ++nTopClusters;
                 topCluster = cluster;

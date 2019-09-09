@@ -294,11 +294,7 @@ public class DetectorBuilder {
             Hep3Vector nprime = CoordinateTransformations.transformVectorToDetector(plane.normal());
             if (debug) {
                 System.out.println(" origin: " + oprime);
-            }
-            if (debug) {
                 System.out.println(" normal: " + nprime);
-            }
-            if (debug) {
                 System.out.println(" Plane is: " + plane.getMeasuredDimension() + " x " + plane.getUnmeasuredDimension());
             }
             HpsSiSensor sensor = (HpsSiSensor) plane.getSensor();
@@ -310,25 +306,20 @@ public class DetectorBuilder {
             // by default, the HPS unmeasDir points along -x, so invert here...
             // what!?
 //            unmeasDir = VecOp.neg(unmeasDir);
-            if (debug) {
-                System.out.println("unmeasured coordinate:   " + unmeasDir);
-            }
             Hep3Vector measDir = CoordinateTransformations.transformVectorToDetector(plane.getMeasuredCoordinate());
-            //measDir points either up or down depending on orientation of the sensor. I want it always to pint up, along y.
+            //measDir points either up or down depending on orientation of the sensor. I want it always to point up, along y.
             // so let's check something here...
             if (measDir.y() < 0.) {
                 measDir = VecOp.neg(measDir);
             }
             Hep3Vector tst = VecOp.cross(unmeasDir, measDir);
-            // if pointing along the z axis, OK. if not, invert measDir...
+            // if pointing along the z axis, OK. if not, invert unmeasDir...
             if (tst.z() < 0.) {
                 unmeasDir = VecOp.neg(unmeasDir);
             }
             if (debug) {
                 System.out.println("measured coordinate:    " + measDir);
-            }
-
-            if (debug) {
+                System.out.println("unmeasured coordinate:   " + unmeasDir);
                 System.out.println("thickness: " + plane.getThickness() + " in X0: " + plane.getThicknessInRL());
             }
             SiTrackerModule module = (SiTrackerModule) plane.getSensor().getGeometry().getDetectorElement().getParent();
