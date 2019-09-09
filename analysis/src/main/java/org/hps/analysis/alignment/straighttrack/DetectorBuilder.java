@@ -73,7 +73,6 @@ public class DetectorBuilder {
 
     boolean _debug = false;
 
-    // TODO make this work for 2019 detector with L0
     String[] bottomSlotNames = {
         "module_L1b_halfmodule_stereo_sensor0",
         "module_L1b_halfmodule_axial_sensor0",
@@ -229,6 +228,7 @@ public class DetectorBuilder {
                 double zmax = bounds[1];
                 System.out.println("zmin " + zmin + " zmax " + zmax);
                 DetectorPlane dp = new DetectorPlane(id++, prodrot, origin.v(), SIGS);
+                dp.setUVWR(uDir, vDir, normal, origin);
                 planes.add(dp);
                 planeMap.put(plane.getName(), dp);
             }
@@ -268,6 +268,10 @@ public class DetectorBuilder {
 
     public List<DetectorPlane> getTracker(String trackerName) {
         return trackerMap.get(trackerName);
+    }
+    
+    public String[] getTrackerSensorNames(String trackerName){
+        return sensorNameMap.get(trackerName);
     }
 
     public void drawDetector() {

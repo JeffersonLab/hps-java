@@ -1,6 +1,7 @@
 package org.hps.analysis.alignment.straighttrack;
 
 import Jama.Matrix;
+import hep.physics.vec.Hep3Vector;
 import java.util.Arrays;
 
 /**
@@ -15,6 +16,11 @@ public class DetectorPlane {
     private double[] _r0 = new double[3]; //detector origin in global coordinates (mm)
     private double[] _sigs = new double[2]; //detector resolutions in v and w (mm)
     private Offset _offset; // possible offsets in position and rotation
+
+    private Hep3Vector _u; // measured direction (~y)
+    private Hep3Vector _v; // unmeasured direction (~x)
+    private Hep3Vector _w; // normal to the plane (~z)
+    private Hep3Vector _r; // point on the plane
 
     public DetectorPlane(int id, Matrix m, double[] pos, double[] s) {
         this(id, m, pos, s, null);
@@ -107,8 +113,31 @@ public class DetectorPlane {
 //        System.out.println("new position " + Arrays.toString(_r0));
     }
 
+    public void setUVWR(Hep3Vector u, Hep3Vector v, Hep3Vector w, Hep3Vector V0) {
+        _u = u;
+        _v = v;
+        _w = w;
+        _r = V0;
+    }
+
+    public Hep3Vector u() {
+        return _u;
+    }
+
+    public Hep3Vector v() {
+        return _v;
+    }
+
+    public Hep3Vector normal() {
+        return _w;
+    }
+
+    public Hep3Vector origin() {
+        return _r;
+    }
+
     public String toString() {
-        StringBuffer sb = new StringBuffer("DetectorPlane "+_id+" : ");
+        StringBuffer sb = new StringBuffer("DetectorPlane " + _id + " : ");
         sb.append("rot : " + Arrays.toString(_rotMat.getRowPackedCopy()));
         sb.append(" r0  : " + Arrays.toString(_r0));
         sb.append(" sigs: " + Arrays.toString(_sigs));
