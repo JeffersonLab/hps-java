@@ -1,5 +1,6 @@
 package org.hps.analysis.alignment.straighttrack;
 
+import Jama.Matrix;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
+import org.lcsim.math.chisq.ChisqProb;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -40,8 +42,9 @@ public class StraightTrackAlignmentDriver extends Driver {
     double _minClusterEnergy = 3.0;
 
     private AIDA aida = AIDA.defaultInstance();
-
-    private double[] H02Wire = {0., 0., -(672.71 - 583.44) * 25.4};
+    // z from blueprints
+    // x from fit (was -63? in 2016)
+    private double[] H02Wire = {-68.0, 0., -(672.71 - 583.44) * 25.4};
 
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
@@ -62,17 +65,20 @@ public class StraightTrackAlignmentDriver extends Driver {
         }
         for (Cluster cluster : clusters) {
             if (cluster.getEnergy() > _minClusterEnergy && TriggerModule.inFiducialRegion(cluster)) {
-                aida.histogram2D("Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
-                // calculate some slopes and intercepts...
-                aida.histogram1D("Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
-                aida.histogram1D("Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
                 c = cluster;
+                String topOrBottom = c.getPosition()[1] > 0 ? "top " : "bottom ";
+                aida.histogram2D("Cal fiducial Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+                // calculate some slopes and intercepts...
+                aida.histogram1D(topOrBottom + "Fiducial Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
+                aida.histogram1D(topOrBottom + "Fiducial Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+
             }
         }
         if (c != null) {
             //OK, we have a good, high-energy cluster in the fiducial part of the calorimeter...
             Point3D P0 = new Point3D(H02Wire[0], H02Wire[1], H02Wire[2]);
             double[] cPos = c.getPosition();
+            String topOrBottom = cPos[1] > 0 ? "top " : "bottom ";
             Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
             //let's get some SVT strip clusters...
             setupSensors(event);
@@ -85,7 +91,7 @@ public class StraightTrackAlignmentDriver extends Driver {
             }
             List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
             int nStripHits = stripClusters.size();
-            aida.histogram1D("number of strip clusters", 100, 0., 200.).fill(nStripHits);
+            aida.histogram1D(topOrBottom + "number of strip clusters", 100, 0., 200.).fill(nStripHits);
             // lets partition the strip clusters into each module
             Map<String, List<SiTrackerHitStrip1D>> hitsPerModuleMap = new HashMap<>();
             for (TrackerHit hit : stripClusters) {
@@ -102,6 +108,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 //                System.out.println(s + " has " + hitsPerModuleMap.get(s).size() + " strip hit clusters");
 //            }
             Map<String, SiTrackerHitStrip1D> hitsToFit = new LinkedHashMap<>();
+            Map<String, DetectorPlane> detectorPlanesInFit = new LinkedHashMap<>();
             String trackingDetectorName = cPos[1] > 0 ? "topHole" : "bottomHole"; // work on slot later
             List<DetectorPlane> td = _db.getTracker(trackingDetectorName);
             String[] trackerSensorNames = _db.getTrackerSensorNames(trackingDetectorName);
@@ -131,13 +138,83 @@ public class StraightTrackAlignmentDriver extends Driver {
                     // are we within a reasonable distance?
                     if (abs(d) < maxDist) {
                         hitsToFit.put(moduleName, closest);
+                        detectorPlanesInFit.put(moduleName, dp);
                         aida.histogram1D(moduleName + " distance to hit", 100, -maxDist, maxDist).fill(d);
                     }
                 }
 //                System.out.println(dp.id() + " " + trackerSensorNames[dp.id()-1]);
 //                System.out.println(dp);
             }
+            // we now have a list of hits to fit.
+            List<Hit> hits = new ArrayList<Hit>();
+            List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
+            //for now, assign an error based on the size of the strip cluster
+            double[] fixedDu = {0., .012, .006};
+            for (String s : hitsToFit.keySet()) {
+                SiTrackerHitStrip1D stripHit = hitsToFit.get(s);
+//                System.out.println(s + " has a hit at " + stripHit.getPositionAsVector());
+                int size = stripHit.getRawHits().size();
+                double du;
+                if (size < 3) {
+                    du = fixedDu[size];
+                } else {
+                    du = .04;
+                }
+                double[] pos = stripHit.getPosition();
+                Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
+                hits.add(h);
+                planes.add(detectorPlanesInFit.get(s));
+            }
+            aida.histogram1D(topOrBottom + "number of hits to fit", 20, 0., 20.).fill(hits.size());
+            // require at least 6 hits for fit
+            if (hits.size() > 5) {
+                double[] A0 = {0., 0., -2267.}; // initial guess for (x,y,z) of track 
+                // TODO get estimate for x of beam on wire. Was x=-63 in 2016
+                double[] B0 = {0., 0., 1.}; // initial guess for the track direction
+                // fit the track!
+                TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+                // Note that track position parameters x & y are reported at the input z.
+                double[] pars = fit.pars();
+                double[] cov = fit.cov();
+
+                aida.histogram1D(topOrBottom + "x at z=-2267", 100, -100., 0.).fill(pars[0]);
+                aida.histogram1D(topOrBottom + "y at z=-2267", 100, -20., 20.).fill(pars[1]);
+                aida.histogram1D(topOrBottom + "dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
+                aida.histogram1D(topOrBottom + "dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
+                aida.histogram1D(topOrBottom + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
+                double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
+                aida.histogram1D(topOrBottom + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
+            }
         }
+    }
+
+    /**
+     * Given a DetectorPlane and a global position, return a hit in local
+     * coordinates
+     *
+     * @param p
+     * @param pos
+     * @return
+     */
+    public Hit makeHit(DetectorPlane p, double[] pos, double du) {
+        Matrix R = p.rot();
+        double[] r0 = p.r0();
+        Matrix diff = new Matrix(3, 1);
+        for (int i = 0; i < 3; ++i) {
+            diff.set(i, 0, pos[i] - r0[i]);
+        }
+//        diff.print(6, 4);
+//        System.out.println("pos " + Arrays.toString(pos));
+//        System.out.println("r0  " + Arrays.toString(r0));
+        Matrix local = R.times(diff);
+//        local.print(6, 4);
+        double[] u = new double[2];  // 2dim for u and v measurement 
+        double[] wt = new double[3]; // lower diag cov matrix
+        double[] sigs = p.sigs();
+        u[0] = local.get(0, 0);
+        wt[0] = 1 / (du * du); //(sigs[0] * sigs[0]);
+
+        return new Hit(u, wt);
     }
 
     private void setupSensors(EventHeader event) {
