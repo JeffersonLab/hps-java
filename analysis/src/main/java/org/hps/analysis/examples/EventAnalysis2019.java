@@ -67,19 +67,20 @@ public class EventAnalysis2019 extends Driver {
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
         for (ReconstructedParticle rp : rpList) {
             int pdgId = rp.getParticleIDUsed().getPDG();
-            if (abs(pdgId) == 11) {
+            if (pdgId == 11) {
                 String trackType = TrackType.isGBL(rp.getType()) ? "GBL " : "MatchedTrack ";
 //            if (!TrackType.isGBL(rp.getType())) {
 //                continue;
 //            }
                 Track t = rp.getTracks().get(0);
+                int nHits = t.getTrackerHits().size();
                 String id = pdgId == 11 ? "electron" : "positron";
                 Hep3Vector pmom = rp.getMomentum();
                 double thetaY = atan2(pmom.y(), pmom.z());//asin(pmom.y() / pmom.magnitude());
                 double z0 = t.getTrackStates().get(0).getZ0();
                 String torb = isTopTrack(t) ? " top " : "bottom ";
                 aida.histogram1D(trackType + torb + id + " track momentum", 100, 0., 10.).fill(rp.getMomentum().magnitude());
-                aida.histogram1D(trackType + torb + id + " track momentum", 100, 0., 10.).fill(rp.getMomentum().magnitude());
+                
                 aida.cloud1D(trackType + torb + id + " |thetaY|").fill(abs(thetaY));
                 aida.histogram1D(trackType + torb + id + " z0", 100, -2., 2.).fill(z0);
                 aida.cloud2D(trackType + torb + id + " |thetaY| vs z0").fill(abs(thetaY), z0);
@@ -98,6 +99,8 @@ public class EventAnalysis2019 extends Driver {
                     aida.histogram2D(id + " cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cPos[0], cPos[1]);
                     aida.histogram1D(trackType + torb + id + " cluster energy", 100, 0., 10.).fill(c.getEnergy());
                     aida.histogram1D(trackType + torb + id + " cluster energy over track momentum EoverP", 100, 0., 2.).fill(c.getEnergy() / rp.getMomentum().magnitude());
+                    aida.histogram1D(trackType + torb + id + " track momentum with cluster", 100, 0., 10.).fill(rp.getMomentum().magnitude());
+                    aida.histogram1D(trackType + torb + id + " track momentum with cluster "+nHits+" hits", 100, 0., 10.).fill(rp.getMomentum().magnitude());
                 }
             }
             if (pdgId == 22) {
