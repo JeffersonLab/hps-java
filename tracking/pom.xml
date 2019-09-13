@@ -24,6 +24,9 @@
             <exclude>**/TrackReconWithPlotsTest.java</exclude>
             <exclude>**/CircleFitTest.java</exclude>
             <exclude>**/TwoPointRadiusCircleFitterTest.java</exclude>
+            <exclude>**/ComparisonTest.java</exclude>
+            <exclude>**/TruthResidualTest.java</exclude>
+            <exclude>**/ReconGBLoutputTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>
