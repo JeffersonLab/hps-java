@@ -157,7 +157,7 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>        
         <driver name="HitEfficiency" type="org.hps.svt.SVTHitLevelPlots">
-            <cleanTridents>false</cleanTridents>
+            <cleanFEE>true</cleanFEE>
             <outputFileName>${outputFile}.txt</outputFileName>
         </driver>	
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">

@@ -2,9 +2,9 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2016-Pass2" />
-    <generator name="lcsim" version="1.0" file="/data/HPS/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2/compact.xml" checksum="1200726097" />
+    <generator name="lcsim" version="1.0" file="/afs/slac.stanford.edu/u/ey/ngraf/git/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2/compact.xml" checksum="2355829838" />
     <author name="NONE" />
-    <comment>HPS detector for 2016 Physics Run with 2.3GeV field Uses SVT mechanical survey, SVT opening angle corrections plus millepede internal alignment. Uses new corrected fieldmap. Described in 2018 Collaboration Meeting at SLAC.</comment>
+    <comment>HPS detector for 2016 Physics Run with correctly unfolded 2.3GeV field Uses SVT mechanical survey, SVT opening angle corrections plus millepede internal alignment. Global +1 mm shift in y Correction on top and bottom Layers 1-3 opening angle Millepede internal alignment (iterations: 3-4-5TB tu + 2TB tu + 3-4TB tu + 3-4TB rw +1-6TB tu + 3-4TB tu+rw) Corresponds to version #31</comment>
   </header>
   <iddict>
     <idspec name="TrackerHitsFieldDef" length="46">
@@ -185,7 +185,7 @@
       <rotation name="support_plate_bottom_L46_rotation" x="3.094476993563374E-5" y="-7.645252288032373E-5" z="3.1115061896334066" unit="radian" />
       <position name="support_plate_top_L46_position" x="0.11147865078915586" y="-354.59545233578973" z="65.60524917663835" unit="mm" />
       <rotation name="support_plate_top_L46_rotation" x="3.1415587079322944" y="-7.269497515093535E-5" z="0.030213707871632037" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_position" x="-46.543632150289056" y="237.20858114830617" z="-24.15584838055206" unit="mm" />
+      <position name="module_L1b_halfmodule_axial_position" x="-46.53337453225082" y="236.85625353297337" z="-24.167811903071442" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_rotation" x="-1.5736870290028013" y="-0.029096111131968184" z="1.570577410003384" unit="radian" />
       <position name="module_L1b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -197,7 +197,7 @@
       <rotation name="module_L1b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L1b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_position" x="-47.05330758467686" y="245.98503993376096" z="-20.284334155962114" unit="mm" />
+      <position name="module_L1b_halfmodule_stereo_position" x="-47.048907044503636" y="245.86046201551156" z="-20.289664412131273" unit="mm" />
       <rotation name="module_L1b_halfmodule_stereo_rotation" x="1.571618408627726" y="0.030932822296751282" z="1.670897438082969" unit="radian" />
       <position name="module_L1b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L1b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -209,7 +209,7 @@
       <rotation name="module_L1b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L1b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_position" x="-47.927257107989774" y="261.5264889210227" z="24.128372983425127" unit="mm" />
+      <position name="module_L1t_halfmodule_axial_position" x="-47.92957689929365" y="261.601844069271" z="24.128126573646778" unit="mm" />
       <rotation name="module_L1t_halfmodule_axial_rotation" x="1.571491829690675" y="0.030774753330984728" z="1.5707030530789514" unit="radian" />
       <position name="module_L1t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L1t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -221,7 +221,7 @@
       <rotation name="module_L1t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L1t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L1t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_position" x="-47.81400489577557" y="252.73370448958198" z="20.26457511459463" unit="mm" />
+      <position name="module_L1t_halfmodule_stereo_position" x="-47.80360208099344" y="252.42188347423095" z="20.275640470940974" unit="mm" />
       <rotation name="module_L1t_halfmodule_stereo_rotation" x="-1.5701201013207544" y="-0.02985744410135021" z="1.6708035992171055" unit="radian" />
       <position name="module_L1t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L1t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -281,8 +281,8 @@
       <rotation name="module_L2t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L2t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L2t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3b_halfmodule_axial_position" x="-40.59160449182906" y="36.747463863764054" z="-27.102917772514385" unit="mm" />
-      <rotation name="module_L3b_halfmodule_axial_rotation" x="-1.567930876873551" y="-0.028354925493865504" z="1.5707485290264738" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_position" x="-40.598717272787255" y="36.99432756306275" z="-27.09619640925738" unit="mm" />
+      <rotation name="module_L3b_halfmodule_axial_rotation" x="-1.5678298603712049" y="-0.02787892052466595" z="1.5707407131653923" unit="radian" />
       <position name="module_L3b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -293,8 +293,8 @@
       <rotation name="module_L3b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3b_halfmodule_stereo_position" x="-41.051184140270834" y="46.161217946284495" z="-23.259398671435974" unit="mm" />
-      <rotation name="module_L3b_halfmodule_stereo_rotation" x="1.5772884828449736" y="0.022456880740978107" z="1.6706654614463512" unit="radian" />
+      <position name="module_L3b_halfmodule_stereo_position" x="-41.04565908165404" y="45.833941826943715" z="-23.270997176674996" unit="mm" />
+      <rotation name="module_L3b_halfmodule_stereo_rotation" x="1.575922806296763" y="0.02947492172446445" z="1.6709889585918367" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -305,8 +305,8 @@
       <rotation name="module_L3b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3t_halfmodule_axial_position" x="-41.93779730041112" y="61.49485364151717" z="27.167089021502168" unit="mm" />
-      <rotation name="module_L3t_halfmodule_axial_rotation" x="1.5734636502871755" y="0.030828880867749164" z="1.570918229556715" unit="radian" />
+      <position name="module_L3t_halfmodule_axial_position" x="-41.93973328845478" y="61.548666054564144" z="27.162710426105942" unit="mm" />
+      <rotation name="module_L3t_halfmodule_axial_rotation" x="1.5734636502871755" y="0.03082888086774933" z="1.570999229556715" unit="radian" />
       <position name="module_L3t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -317,8 +317,8 @@
       <rotation name="module_L3t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3t_halfmodule_stereo_position" x="-41.862183334588956" y="52.51445937613514" z="23.308281884488157" unit="mm" />
-      <rotation name="module_L3t_halfmodule_stereo_rotation" x="-1.5677955410246092" y="-0.029114064880883275" z="1.6704772713389022" unit="radian" />
+      <position name="module_L3t_halfmodule_stereo_position" x="-41.86433349610466" y="52.58254862409582" z="23.302840149164172" unit="mm" />
+      <rotation name="module_L3t_halfmodule_stereo_rotation" x="-1.5677955410246092" y="-0.029114064880883275" z="1.6703732713389023" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -329,64 +329,64 @@
       <rotation name="module_L3t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_axial_hole_position" x="-55.19258416573118" y="-162.85326415672137" z="-26.68460133708974" unit="mm" />
-      <rotation name="module_L4b_halfmodule_axial_hole_rotation" x="-1.5813794945940916" y="-0.03828597869092459" z="1.5707751114065114" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_hole_position" x="-55.18445064197106" y="-163.11663037405148" z="-26.691041047161633" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_hole_rotation" x="-1.5686288961869364" y="-0.03009026360400942" z="1.5704854786514393" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_axial_slot_position" x="45.612939975037946" y="-159.78058669068588" z="-26.678509227161133" unit="mm" />
-      <rotation name="module_L4b_halfmodule_axial_slot_rotation" x="-1.570193114868034" y="-0.026249362415223125" z="-1.5710085042199577" unit="radian" />
+      <position name="module_L4b_halfmodule_axial_slot_position" x="45.621505719649804" y="-160.06515208945822" z="-26.68586134329075" unit="mm" />
+      <rotation name="module_L4b_halfmodule_axial_slot_rotation" x="-1.5701922218260902" y="-0.030456362320514088" z="-1.5711075295369168" unit="radian" />
       <position name="module_L4b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_stereo_hole_position" x="-55.41569094470233" y="-155.82467161531977" z="-29.20002292345647" unit="mm" />
-      <rotation name="module_L4b_halfmodule_stereo_hole_rotation" x="1.5640645906798487" y="0.027761564428605515" z="1.619546146099423" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_hole_position" x="-55.42070603983497" y="-155.66274402826284" z="-29.193199246132746" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_hole_rotation" x="1.5730758382002614" y="0.029047966673090696" z="1.6198647814657876" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_stereo_slot_position" x="45.4551891523185" y="-152.53656163092282" z="-24.159035607933962" unit="mm" />
-      <rotation name="module_L4b_halfmodule_stereo_slot_rotation" x="1.57202465983539" y="0.029600051116596908" z="-1.520087627020157" unit="radian" />
+      <position name="module_L4b_halfmodule_stereo_slot_position" x="45.457710371345044" y="-152.61193598007404" z="-24.163046626946404" unit="mm" />
+      <rotation name="module_L4b_halfmodule_stereo_slot_rotation" x="1.5720656338438532" y="0.03040701247974053" z="-1.520088397839531" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_axial_hole_position" x="-56.79365196910229" y="-139.91099435191921" z="26.650206216207117" unit="mm" />
-      <rotation name="module_L4t_halfmodule_axial_hole_rotation" x="1.5560637519230218" y="0.021132968397188152" z="1.570832769290084" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_hole_position" x="-56.79871530010406" y="-139.74007499446574" z="26.64526503576287" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_hole_rotation" x="1.5711554044823286" y="0.03108188104825323" z="1.5711398086318116" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_axial_slot_position" x="44.09696053753331" y="-137.20283637586047" z="26.66899287854762" unit="mm" />
-      <rotation name="module_L4t_halfmodule_axial_slot_rotation" x="1.5698852994698227" y="0.030544284820477878" z="-1.5705443427014405" unit="radian" />
+      <position name="module_L4t_halfmodule_axial_slot_position" x="44.078485310320225" y="-136.597947836158" z="26.646623939904558" unit="mm" />
+      <rotation name="module_L4t_halfmodule_axial_slot_rotation" x="1.5698852994698225" y="0.03054428482047799" z="-1.5706873427014403" unit="radian" />
       <position name="module_L4t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_stereo_hole_position" x="-56.5183431460495" y="-146.83725364467347" z="29.157752589844492" unit="mm" />
-      <rotation name="module_L4t_halfmodule_stereo_hole_rotation" x="-1.5797084793073564" y="-0.025800617217750628" z="1.6205686921194025" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_hole_position" x="-56.508079131539425" y="-147.1549429617136" z="29.167951572324313" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_hole_rotation" x="-1.5704295366748466" y="-0.031106279723980234" z="1.620444656209409" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_stereo_slot_position" x="44.25079283077924" y="-144.31967280831836" z="24.17160380867831" unit="mm" />
-      <rotation name="module_L4t_halfmodule_stereo_slot_rotation" x="-1.57214881821343" y="-0.03035340481369554" z="-1.5207934578328435" unit="radian" />
+      <position name="module_L4t_halfmodule_stereo_slot_position" x="44.24122415385725" y="-144.03135864861582" z="24.155709115790987" unit="mm" />
+      <rotation name="module_L4t_halfmodule_stereo_slot_rotation" x="-1.57214881821343" y="-0.03035340481369565" z="-1.5205104578328437" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
@@ -457,7 +457,7 @@
       <rotation name="module_L5t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L5t_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L5t_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_axial_hole_position" x="-43.1207717877306" y="-563.3018050533018" z="-32.66201240858779" unit="mm" />
+      <position name="module_L6b_halfmodule_axial_hole_position" x="-43.13123338072422" y="-562.9318804600149" z="-32.653416370106925" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_hole_rotation" x="-1.5693853090871424" y="-0.028270147351465963" z="1.5706497774419736" unit="radian" />
       <position name="module_L6b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -465,7 +465,7 @@
       <rotation name="module_L6b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_axial_slot_position" x="57.749135583102316" y="-559.6767453171503" z="-32.65574709234739" unit="mm" />
+      <position name="module_L6b_halfmodule_axial_slot_position" x="57.76013229116816" y="-560.0325668191555" z="-32.66036218319893" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_slot_rotation" x="-1.570498679411062" y="-0.03089434524134711" z="-1.5708767630823415" unit="radian" />
       <position name="module_L6b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -473,7 +473,7 @@
       <rotation name="module_L6b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6b_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_stereo_hole_position" x="-43.22677927824443" y="-555.0277764476864" z="-35.13659398583829" unit="mm" />
+      <position name="module_L6b_halfmodule_stereo_hole_position" x="-43.21434959953779" y="-555.4385043186531" z="-35.144333162952236" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_hole_rotation" x="1.5727251547573415" y="0.02921846036531302" z="1.6206534631530751" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -481,7 +481,7 @@
       <rotation name="module_L6b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6b_halfmodule_stereo_slot_position" x="57.51394105880136" y="-551.7765508884544" z="-30.118816594864946" unit="mm" />
+      <position name="module_L6b_halfmodule_stereo_slot_position" x="57.5347558519456" y="-552.4423755211246" z="-30.136026845906322" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_slot_rotation" x="1.5701713405346094" y="0.029993371498529528" z="-1.5209522474311048" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -489,7 +489,7 @@
       <rotation name="module_L6b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6b_halfmodule_stereo_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6b_halfmodule_stereo_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_axial_hole_position" x="-44.621071174028685" y="-538.2803353127098" z="32.69659568078871" unit="mm" />
+      <position name="module_L6t_halfmodule_axial_hole_position" x="-44.582781713141216" y="-539.5467390191423" z="32.7297781993024" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_hole_rotation" x="1.5713321071263529" y="0.030229266015029416" z="1.5709559555513357" unit="radian" />
       <position name="module_L6t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -497,7 +497,7 @@
       <rotation name="module_L6t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_axial_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_axial_slot_position" x="56.163238328293865" y="-536.9654634005988" z="32.72655458906278" unit="mm" />
+      <position name="module_L6t_halfmodule_axial_slot_position" x="56.15082313496655" y="-536.5433681133533" z="32.714776001893085" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_slot_rotation" x="1.5718495978504357" y="0.02940588510486731" z="-1.5707232102338478" unit="radian" />
       <position name="module_L6t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -505,7 +505,7 @@
       <rotation name="module_L6t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_axial_slot_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6t_halfmodule_axial_slot_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_stereo_hole_position" x="-44.25237779060414" y="-546.400907322894" z="35.189858257642996" unit="mm" />
+      <position name="module_L6t_halfmodule_stereo_hole_position" x="-44.234601190184264" y="-546.9517681832463" z="35.20233301898404" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_hole_rotation" x="-1.570577018085707" y="-0.031152570497038158" z="1.6201278501297307" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -513,7 +513,7 @@
       <rotation name="module_L6t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_hole_lamination_position" x="0.0" y="0.0" z="-0.16" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_hole_lamination_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L6t_halfmodule_stereo_slot_position" x="56.41124650735692" y="-544.5832808587853" z="30.235459881662667" unit="mm" />
+      <position name="module_L6t_halfmodule_stereo_slot_position" x="56.39135231690058" y="-543.9177783479863" z="30.215496135638663" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_slot_rotation" x="-1.5707497579581748" y="-0.028407466325801767" z="-1.5214984187127094" unit="radian" />
       <position name="module_L6t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.024999999999999994" unit="mm" />
       <rotation name="module_L6t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -545,889 +545,889 @@
       <rotation name="ECalScoring_ElectronGap_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
       <position name="ECalScoring_BeamRight_layer2_module0_position" x="-216.31099999999998" y="-121.3" z="1338.001" unit="mm" />
       <rotation name="ECalScoring_BeamRight_layer2_module0_rotation" x="0.0" y="0.0" z="-4.7123889803850005" unit="radian" />
-      <position name="crystal1-1_pos_pos_bot" x="50.052304484827026" y="-27.67473927539554" z="1473.1626281236922" unit="mm" />
+      <position name="crystal1-1_pos_pos_bot" x="50.052304484827026" y="-30.07473927539554" z="1473.1626281236922" unit="mm" />
       <rotation name="crystal1-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-1_pos_neg_bot" x="35.00282593403595" y="-27.67473927539554" z="1473.1626281236922" unit="mm" />
+      <position name="crystal1-1_pos_neg_bot" x="35.00282593403595" y="-30.07473927539554" z="1473.1626281236922" unit="mm" />
       <rotation name="crystal1-1_rot_neg_bot" x="-0.0084372997827221" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-1_pos_pos_top" x="50.052304484827026" y="27.67473927539554" z="1473.1626281236922" unit="mm" />
+      <position name="crystal1-1_pos_pos_top" x="50.052304484827026" y="29.974739275395542" z="1473.1626281236922" unit="mm" />
       <rotation name="crystal1-1_rot_pos_top" x="0.0084372997827221" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-1_pos_neg_top" x="35.00282593403595" y="27.67473927539554" z="1473.1626281236922" unit="mm" />
+      <position name="crystal1-1_pos_neg_top" x="35.00282593403595" y="29.974739275395542" z="1473.1626281236922" unit="mm" />
       <rotation name="crystal1-1_rot_neg_top" x="0.0084372997827221" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal2-1_pos_pos_bot" x="64.90537808737002" y="-27.67473927539554" z="1473.2520480856124" unit="mm" />
+      <position name="crystal2-1_pos_pos_bot" x="64.90537808737002" y="-30.07473927539554" z="1473.2520480856124" unit="mm" />
       <rotation name="crystal2-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-1_pos_pos_top" x="64.90537808737002" y="27.67473927539554" z="1473.2520480856124" unit="mm" />
+      <position name="crystal2-1_pos_pos_top" x="64.90537808737002" y="29.974739275395542" z="1473.2520480856124" unit="mm" />
       <rotation name="crystal2-1_rot_pos_top" x="0.0084372997827221" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal3-1_pos_pos_bot" x="79.76545207982957" y="-27.67473927539554" z="1473.3186477918262" unit="mm" />
+      <position name="crystal3-1_pos_pos_bot" x="79.76545207982957" y="-30.07473927539554" z="1473.3186477918262" unit="mm" />
       <rotation name="crystal3-1_rot_pos_bot" x="-0.0084372997827221" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-1_pos_pos_top" x="79.76545207982957" y="27.67473927539554" z="1473.3186477918262" unit="mm" />
+      <position name="crystal3-1_pos_pos_top" x="79.76545207982957" y="29.974739275395542" z="1473.3186477918262" unit="mm" />
       <rotation name="crystal3-1_rot_pos_top" x="0.0084372997827221" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal4-1_pos_pos_bot" x="94.63593952741049" y="-27.67473927539554" z="1473.3624082783765" unit="mm" />
+      <position name="crystal4-1_pos_pos_bot" x="94.63593952741049" y="-30.07473927539554" z="1473.3624082783765" unit="mm" />
       <rotation name="crystal4-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-1_pos_pos_top" x="94.63593952741049" y="27.67473927539554" z="1473.3624082783765" unit="mm" />
+      <position name="crystal4-1_pos_pos_top" x="94.63593952741049" y="29.974739275395542" z="1473.3624082783765" unit="mm" />
       <rotation name="crystal4-1_rot_pos_top" x="0.0084372997827221" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal5-1_pos_pos_bot" x="109.52026676464209" y="-27.67473927539554" z="1473.3833170846683" unit="mm" />
+      <position name="crystal5-1_pos_pos_bot" x="109.52026676464209" y="-30.07473927539554" z="1473.3833170846683" unit="mm" />
       <rotation name="crystal5-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-1_pos_pos_top" x="109.52026676464209" y="27.67473927539554" z="1473.3833170846683" unit="mm" />
+      <position name="crystal5-1_pos_pos_top" x="109.52026676464209" y="29.974739275395542" z="1473.3833170846683" unit="mm" />
       <rotation name="crystal5-1_rot_pos_top" x="0.0084372997827221" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal6-1_pos_pos_bot" x="124.42187898494643" y="-27.67473927539554" z="1473.381368257016" unit="mm" />
+      <position name="crystal6-1_pos_pos_bot" x="124.42187898494643" y="-30.07473927539554" z="1473.381368257016" unit="mm" />
       <rotation name="crystal6-1_rot_pos_bot" x="-0.0084372997827221" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-1_pos_pos_top" x="124.42187898494643" y="27.67473927539554" z="1473.381368257016" unit="mm" />
+      <position name="crystal6-1_pos_pos_top" x="124.42187898494643" y="29.974739275395542" z="1473.381368257016" unit="mm" />
       <rotation name="crystal6-1_rot_pos_top" x="0.0084372997827221" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal7-1_pos_pos_bot" x="139.34424589677138" y="-27.67473927539554" z="1473.3565623503396" unit="mm" />
+      <position name="crystal7-1_pos_pos_bot" x="139.34424589677138" y="-30.07473927539554" z="1473.3565623503396" unit="mm" />
       <rotation name="crystal7-1_rot_pos_bot" x="-0.0084372997827221" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-1_pos_pos_top" x="139.34424589677138" y="27.67473927539554" z="1473.3565623503396" unit="mm" />
+      <position name="crystal7-1_pos_pos_top" x="139.34424589677138" y="29.974739275395542" z="1473.3565623503396" unit="mm" />
       <rotation name="crystal7-1_rot_pos_top" x="0.0084372997827221" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal8-1_pos_pos_bot" x="154.29086746600376" y="-27.67473927539554" z="1473.3089064280052" unit="mm" />
+      <position name="crystal8-1_pos_pos_bot" x="154.29086746600376" y="-30.07473927539554" z="1473.3089064280052" unit="mm" />
       <rotation name="crystal8-1_rot_pos_bot" x="-0.0084372997827221" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-1_pos_pos_top" x="154.29086746600376" y="27.67473927539554" z="1473.3089064280052" unit="mm" />
+      <position name="crystal8-1_pos_pos_top" x="154.29086746600376" y="29.974739275395542" z="1473.3089064280052" unit="mm" />
       <rotation name="crystal8-1_rot_pos_top" x="0.0084372997827221" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal9-1_pos_pos_bot" x="169.2652797649435" y="-27.67473927539554" z="1473.2384140598156" unit="mm" />
+      <position name="crystal9-1_pos_pos_bot" x="169.2652797649435" y="-30.07473927539554" z="1473.2384140598156" unit="mm" />
       <rotation name="crystal9-1_rot_pos_bot" x="-0.0084372997827221" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-1_pos_pos_top" x="169.2652797649435" y="27.67473927539554" z="1473.2384140598156" unit="mm" />
+      <position name="crystal9-1_pos_pos_top" x="169.2652797649435" y="29.974739275395542" z="1473.2384140598156" unit="mm" />
       <rotation name="crystal9-1_rot_pos_top" x="0.0084372997827221" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal10-1_pos_pos_bot" x="184.27106094882524" y="-27.67473927539554" z="1473.1451053181452" unit="mm" />
+      <position name="crystal10-1_pos_pos_bot" x="184.27106094882524" y="-30.07473927539554" z="1473.1451053181452" unit="mm" />
       <rotation name="crystal10-1_rot_pos_bot" x="-0.0084372997827221" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-1_pos_pos_top" x="184.27106094882524" y="27.67473927539554" z="1473.1451053181452" unit="mm" />
+      <position name="crystal10-1_pos_pos_top" x="184.27106094882524" y="29.974739275395542" z="1473.1451053181452" unit="mm" />
       <rotation name="crystal10-1_rot_pos_top" x="0.0084372997827221" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal11-1_pos_pos_bot" x="199.3118373817202" y="-27.67473927539554" z="1473.0290067722244" unit="mm" />
+      <position name="crystal11-1_pos_pos_bot" x="199.3118373817202" y="-30.07473927539554" z="1473.0290067722244" unit="mm" />
       <rotation name="crystal11-1_rot_pos_bot" x="-0.0084372997827221" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-1_pos_neg_bot" x="-114.25670696285724" y="-27.67473927539554" z="1473.0290067722244" unit="mm" />
+      <position name="crystal11-1_pos_neg_bot" x="-114.25670696285724" y="-30.07473927539554" z="1473.0290067722244" unit="mm" />
       <rotation name="crystal11-1_rot_neg_bot" x="-0.0084372997827221" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-1_pos_pos_top" x="199.3118373817202" y="27.67473927539554" z="1473.0290067722244" unit="mm" />
+      <position name="crystal11-1_pos_pos_top" x="199.3118373817202" y="29.974739275395542" z="1473.0290067722244" unit="mm" />
       <rotation name="crystal11-1_rot_pos_top" x="0.0084372997827221" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-1_pos_neg_top" x="-114.25670696285724" y="27.67473927539554" z="1473.0290067722244" unit="mm" />
+      <position name="crystal11-1_pos_neg_top" x="-114.25670696285724" y="29.974739275395542" z="1473.0290067722244" unit="mm" />
       <rotation name="crystal11-1_rot_neg_top" x="0.0084372997827221" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal12-1_pos_pos_bot" x="214.3912899346583" y="-27.67473927539554" z="1472.8901514805746" unit="mm" />
+      <position name="crystal12-1_pos_pos_bot" x="214.3912899346583" y="-30.07473927539554" z="1472.8901514805746" unit="mm" />
       <rotation name="crystal12-1_rot_pos_bot" x="-0.0084372997827221" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-1_pos_neg_bot" x="-129.33615951579532" y="-27.67473927539554" z="1472.8901514805746" unit="mm" />
+      <position name="crystal12-1_pos_neg_bot" x="-129.33615951579532" y="-30.07473927539554" z="1472.8901514805746" unit="mm" />
       <rotation name="crystal12-1_rot_neg_bot" x="-0.0084372997827221" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-1_pos_pos_top" x="214.3912899346583" y="27.67473927539554" z="1472.8901514805746" unit="mm" />
+      <position name="crystal12-1_pos_pos_top" x="214.3912899346583" y="29.974739275395542" z="1472.8901514805746" unit="mm" />
       <rotation name="crystal12-1_rot_pos_top" x="0.0084372997827221" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-1_pos_neg_top" x="-129.33615951579532" y="27.67473927539554" z="1472.8901514805746" unit="mm" />
+      <position name="crystal12-1_pos_neg_top" x="-129.33615951579532" y="29.974739275395542" z="1472.8901514805746" unit="mm" />
       <rotation name="crystal12-1_rot_neg_top" x="0.0084372997827221" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal13-1_pos_pos_bot" x="229.51316047997716" y="-27.67473927539554" z="1472.7285789815953" unit="mm" />
+      <position name="crystal13-1_pos_pos_bot" x="229.51316047997716" y="-30.07473927539554" z="1472.7285789815953" unit="mm" />
       <rotation name="crystal13-1_rot_pos_bot" x="-0.0084372997827221" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-1_pos_neg_bot" x="-144.4580300611142" y="-27.67473927539554" z="1472.7285789815953" unit="mm" />
+      <position name="crystal13-1_pos_neg_bot" x="-144.4580300611142" y="-30.07473927539554" z="1472.7285789815953" unit="mm" />
       <rotation name="crystal13-1_rot_neg_bot" x="-0.0084372997827221" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-1_pos_pos_top" x="229.51316047997716" y="27.67473927539554" z="1472.7285789815953" unit="mm" />
+      <position name="crystal13-1_pos_pos_top" x="229.51316047997716" y="29.974739275395542" z="1472.7285789815953" unit="mm" />
       <rotation name="crystal13-1_rot_pos_top" x="0.0084372997827221" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-1_pos_neg_top" x="-144.4580300611142" y="27.67473927539554" z="1472.7285789815953" unit="mm" />
+      <position name="crystal13-1_pos_neg_top" x="-144.4580300611142" y="29.974739275395542" z="1472.7285789815953" unit="mm" />
       <rotation name="crystal13-1_rot_neg_top" x="0.0084372997827221" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal14-1_pos_pos_bot" x="244.68125860725365" y="-27.67473927539554" z="1472.5443352823047" unit="mm" />
+      <position name="crystal14-1_pos_pos_bot" x="244.68125860725365" y="-30.07473927539554" z="1472.5443352823047" unit="mm" />
       <rotation name="crystal14-1_rot_pos_bot" x="-0.0084372997827221" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-1_pos_neg_bot" x="-159.62612818839068" y="-27.67473927539554" z="1472.5443352823047" unit="mm" />
+      <position name="crystal14-1_pos_neg_bot" x="-159.62612818839068" y="-30.07473927539554" z="1472.5443352823047" unit="mm" />
       <rotation name="crystal14-1_rot_neg_bot" x="-0.0084372997827221" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-1_pos_pos_top" x="244.68125860725365" y="27.67473927539554" z="1472.5443352823047" unit="mm" />
+      <position name="crystal14-1_pos_pos_top" x="244.68125860725365" y="29.974739275395542" z="1472.5443352823047" unit="mm" />
       <rotation name="crystal14-1_rot_pos_top" x="0.0084372997827221" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-1_pos_neg_top" x="-159.62612818839068" y="27.67473927539554" z="1472.5443352823047" unit="mm" />
+      <position name="crystal14-1_pos_neg_top" x="-159.62612818839068" y="29.974739275395542" z="1472.5443352823047" unit="mm" />
       <rotation name="crystal14-1_rot_neg_top" x="0.0084372997827221" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal15-1_pos_pos_bot" x="259.8994685877143" y="-27.67473927539554" z="1472.3374728452397" unit="mm" />
+      <position name="crystal15-1_pos_pos_bot" x="259.8994685877143" y="-30.07473927539554" z="1472.3374728452397" unit="mm" />
       <rotation name="crystal15-1_rot_pos_bot" x="-0.0084372997827221" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-1_pos_neg_bot" x="-174.84433816885132" y="-27.67473927539554" z="1472.3374728452397" unit="mm" />
+      <position name="crystal15-1_pos_neg_bot" x="-174.84433816885132" y="-30.07473927539554" z="1472.3374728452397" unit="mm" />
       <rotation name="crystal15-1_rot_neg_bot" x="-0.0084372997827221" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-1_pos_pos_top" x="259.8994685877143" y="27.67473927539554" z="1472.3374728452397" unit="mm" />
+      <position name="crystal15-1_pos_pos_top" x="259.8994685877143" y="29.974739275395542" z="1472.3374728452397" unit="mm" />
       <rotation name="crystal15-1_rot_pos_top" x="0.0084372997827221" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-1_pos_neg_top" x="-174.84433816885132" y="27.67473927539554" z="1472.3374728452397" unit="mm" />
+      <position name="crystal15-1_pos_neg_top" x="-174.84433816885132" y="29.974739275395542" z="1472.3374728452397" unit="mm" />
       <rotation name="crystal15-1_rot_neg_top" x="0.0084372997827221" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal16-1_pos_pos_bot" x="275.17175661577164" y="-27.67473927539554" z="1472.108050573519" unit="mm" />
+      <position name="crystal16-1_pos_pos_bot" x="275.17175661577164" y="-30.07473927539554" z="1472.108050573519" unit="mm" />
       <rotation name="crystal16-1_rot_pos_bot" x="-0.0084372997827221" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-1_pos_neg_bot" x="-190.11662619690867" y="-27.67473927539554" z="1472.108050573519" unit="mm" />
+      <position name="crystal16-1_pos_neg_bot" x="-190.11662619690867" y="-30.07473927539554" z="1472.108050573519" unit="mm" />
       <rotation name="crystal16-1_rot_neg_bot" x="-0.0084372997827221" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-1_pos_pos_top" x="275.17175661577164" y="27.67473927539554" z="1472.108050573519" unit="mm" />
+      <position name="crystal16-1_pos_pos_top" x="275.17175661577164" y="29.974739275395542" z="1472.108050573519" unit="mm" />
       <rotation name="crystal16-1_rot_pos_top" x="0.0084372997827221" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-1_pos_neg_top" x="-190.11662619690867" y="27.67473927539554" z="1472.108050573519" unit="mm" />
+      <position name="crystal16-1_pos_neg_top" x="-190.11662619690867" y="29.974739275395542" z="1472.108050573519" unit="mm" />
       <rotation name="crystal16-1_rot_neg_top" x="0.0084372997827221" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal17-1_pos_pos_bot" x="290.5021783583187" y="-27.67473927539554" z="1471.8561337940675" unit="mm" />
+      <position name="crystal17-1_pos_pos_bot" x="290.5021783583187" y="-30.07473927539554" z="1471.8561337940675" unit="mm" />
       <rotation name="crystal17-1_rot_pos_bot" x="-0.0084372997827221" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-1_pos_neg_bot" x="-205.44704793945573" y="-27.67473927539554" z="1471.8561337940675" unit="mm" />
+      <position name="crystal17-1_pos_neg_bot" x="-205.44704793945573" y="-30.07473927539554" z="1471.8561337940675" unit="mm" />
       <rotation name="crystal17-1_rot_neg_bot" x="-0.0084372997827221" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-1_pos_pos_top" x="290.5021783583187" y="27.67473927539554" z="1471.8561337940675" unit="mm" />
+      <position name="crystal17-1_pos_pos_top" x="290.5021783583187" y="29.974739275395542" z="1471.8561337940675" unit="mm" />
       <rotation name="crystal17-1_rot_pos_top" x="0.0084372997827221" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-1_pos_neg_top" x="-205.44704793945573" y="27.67473927539554" z="1471.8561337940675" unit="mm" />
+      <position name="crystal17-1_pos_neg_top" x="-205.44704793945573" y="29.974739275395542" z="1471.8561337940675" unit="mm" />
       <rotation name="crystal17-1_rot_neg_top" x="0.0084372997827221" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal18-1_pos_pos_bot" x="305.89488684464817" y="-27.67473927539554" z="1471.581794239018" unit="mm" />
+      <position name="crystal18-1_pos_pos_bot" x="305.89488684464817" y="-30.07473927539554" z="1471.581794239018" unit="mm" />
       <rotation name="crystal18-1_rot_pos_bot" x="-0.0084372997827221" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-1_pos_neg_bot" x="-220.8397564257852" y="-27.67473927539554" z="1471.581794239018" unit="mm" />
+      <position name="crystal18-1_pos_neg_bot" x="-220.8397564257852" y="-30.07473927539554" z="1471.581794239018" unit="mm" />
       <rotation name="crystal18-1_rot_neg_bot" x="-0.0084372997827221" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-1_pos_pos_top" x="305.89488684464817" y="27.67473927539554" z="1471.581794239018" unit="mm" />
+      <position name="crystal18-1_pos_pos_top" x="305.89488684464817" y="29.974739275395542" z="1471.581794239018" unit="mm" />
       <rotation name="crystal18-1_rot_pos_top" x="0.0084372997827221" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-1_pos_neg_top" x="-220.8397564257852" y="27.67473927539554" z="1471.581794239018" unit="mm" />
+      <position name="crystal18-1_pos_neg_top" x="-220.8397564257852" y="29.974739275395542" z="1471.581794239018" unit="mm" />
       <rotation name="crystal18-1_rot_neg_top" x="0.0084372997827221" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal19-1_pos_pos_bot" x="321.35414073238366" y="-27.67473927539554" z="1471.2851100252847" unit="mm" />
+      <position name="crystal19-1_pos_pos_bot" x="321.35414073238366" y="-30.07473927539554" z="1471.2851100252847" unit="mm" />
       <rotation name="crystal19-1_rot_pos_bot" x="-0.0084372997827221" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-1_pos_neg_bot" x="-236.29901031352068" y="-27.67473927539554" z="1471.2851100252847" unit="mm" />
+      <position name="crystal19-1_pos_neg_bot" x="-236.29901031352068" y="-30.07473927539554" z="1471.2851100252847" unit="mm" />
       <rotation name="crystal19-1_rot_neg_bot" x="-0.0084372997827221" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-1_pos_pos_top" x="321.35414073238366" y="27.67473927539554" z="1471.2851100252847" unit="mm" />
+      <position name="crystal19-1_pos_pos_top" x="321.35414073238366" y="29.974739275395542" z="1471.2851100252847" unit="mm" />
       <rotation name="crystal19-1_rot_pos_top" x="0.0084372997827221" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-1_pos_neg_top" x="-236.29901031352068" y="27.67473927539554" z="1471.2851100252847" unit="mm" />
+      <position name="crystal19-1_pos_neg_top" x="-236.29901031352068" y="29.974739275395542" z="1471.2851100252847" unit="mm" />
       <rotation name="crystal19-1_rot_neg_top" x="0.0084372997827221" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal20-1_pos_pos_bot" x="336.88431298763794" y="-27.67473927539554" z="1470.9661656323178" unit="mm" />
+      <position name="crystal20-1_pos_pos_bot" x="336.88431298763794" y="-30.07473927539554" z="1470.9661656323178" unit="mm" />
       <rotation name="crystal20-1_rot_pos_bot" x="-0.0084372997827221" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-1_pos_neg_bot" x="-251.82918256877497" y="-27.67473927539554" z="1470.9661656323178" unit="mm" />
+      <position name="crystal20-1_pos_neg_bot" x="-251.82918256877497" y="-30.07473927539554" z="1470.9661656323178" unit="mm" />
       <rotation name="crystal20-1_rot_neg_bot" x="-0.0084372997827221" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-1_pos_pos_top" x="336.88431298763794" y="27.67473927539554" z="1470.9661656323178" unit="mm" />
+      <position name="crystal20-1_pos_pos_top" x="336.88431298763794" y="29.974739275395542" z="1470.9661656323178" unit="mm" />
       <rotation name="crystal20-1_rot_pos_top" x="0.0084372997827221" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-1_pos_neg_top" x="-251.82918256877497" y="27.67473927539554" z="1470.9661656323178" unit="mm" />
+      <position name="crystal20-1_pos_neg_top" x="-251.82918256877497" y="29.974739275395542" z="1470.9661656323178" unit="mm" />
       <rotation name="crystal20-1_rot_neg_top" x="0.0084372997827221" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal21-1_pos_pos_bot" x="352.4899000207918" y="-27.67473927539554" z="1470.625051878052" unit="mm" />
+      <position name="crystal21-1_pos_pos_bot" x="352.4899000207918" y="-30.07473927539554" z="1470.625051878052" unit="mm" />
       <rotation name="crystal21-1_rot_pos_bot" x="-0.0084372997827221" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-1_pos_neg_bot" x="-267.43476960192885" y="-27.67473927539554" z="1470.625051878052" unit="mm" />
+      <position name="crystal21-1_pos_neg_bot" x="-267.43476960192885" y="-30.07473927539554" z="1470.625051878052" unit="mm" />
       <rotation name="crystal21-1_rot_neg_bot" x="-0.0084372997827221" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-1_pos_pos_top" x="352.4899000207918" y="27.67473927539554" z="1470.625051878052" unit="mm" />
+      <position name="crystal21-1_pos_pos_top" x="352.4899000207918" y="29.974739275395542" z="1470.625051878052" unit="mm" />
       <rotation name="crystal21-1_rot_pos_top" x="0.0084372997827221" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-1_pos_neg_top" x="-267.43476960192885" y="27.67473927539554" z="1470.625051878052" unit="mm" />
+      <position name="crystal21-1_pos_neg_top" x="-267.43476960192885" y="29.974739275395542" z="1470.625051878052" unit="mm" />
       <rotation name="crystal21-1_rot_neg_top" x="0.0084372997827221" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal22-1_pos_pos_bot" x="368.17553132284974" y="-27.67473927539554" z="1470.2618658930442" unit="mm" />
+      <position name="crystal22-1_pos_pos_bot" x="368.17553132284974" y="-30.07473927539554" z="1470.2618658930442" unit="mm" />
       <rotation name="crystal22-1_rot_pos_bot" x="-0.0084372997827221" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-1_pos_neg_bot" x="-283.12040090398676" y="-27.67473927539554" z="1470.2618658930442" unit="mm" />
+      <position name="crystal22-1_pos_neg_bot" x="-283.12040090398676" y="-30.07473927539554" z="1470.2618658930442" unit="mm" />
       <rotation name="crystal22-1_rot_neg_bot" x="-0.0084372997827221" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-1_pos_pos_top" x="368.17553132284974" y="27.67473927539554" z="1470.2618658930442" unit="mm" />
+      <position name="crystal22-1_pos_pos_top" x="368.17553132284974" y="29.974739275395542" z="1470.2618658930442" unit="mm" />
       <rotation name="crystal22-1_rot_pos_top" x="0.0084372997827221" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-1_pos_neg_top" x="-283.12040090398676" y="27.67473927539554" z="1470.2618658930442" unit="mm" />
+      <position name="crystal22-1_pos_neg_top" x="-283.12040090398676" y="29.974739275395542" z="1470.2618658930442" unit="mm" />
       <rotation name="crystal22-1_rot_neg_top" x="0.0084372997827221" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal23-1_pos_pos_bot" x="383.9459796513255" y="-27.67473927539554" z="1469.8767110928152" unit="mm" />
+      <position name="crystal23-1_pos_pos_bot" x="383.9459796513255" y="-30.07473927539554" z="1469.8767110928152" unit="mm" />
       <rotation name="crystal23-1_rot_pos_bot" x="-0.0084372997827221" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-1_pos_neg_bot" x="-298.89084923246253" y="-27.67473927539554" z="1469.8767110928152" unit="mm" />
+      <position name="crystal23-1_pos_neg_bot" x="-298.89084923246253" y="-30.07473927539554" z="1469.8767110928152" unit="mm" />
       <rotation name="crystal23-1_rot_neg_bot" x="-0.0084372997827221" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-1_pos_pos_top" x="383.9459796513255" y="27.67473927539554" z="1469.8767110928152" unit="mm" />
+      <position name="crystal23-1_pos_pos_top" x="383.9459796513255" y="29.974739275395542" z="1469.8767110928152" unit="mm" />
       <rotation name="crystal23-1_rot_pos_top" x="0.0084372997827221" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-1_pos_neg_top" x="-298.89084923246253" y="27.67473927539554" z="1469.8767110928152" unit="mm" />
+      <position name="crystal23-1_pos_neg_top" x="-298.89084923246253" y="29.974739275395542" z="1469.8767110928152" unit="mm" />
       <rotation name="crystal23-1_rot_neg_top" x="0.0084372997827221" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal1-2_pos_pos_bot" x="50.052304484827026" y="-42.677812877938536" z="1473.2520480856124" unit="mm" />
+      <position name="crystal1-2_pos_pos_bot" x="50.052304484827026" y="-45.077812877938534" z="1473.2520480856124" unit="mm" />
       <rotation name="crystal1-2_rot_pos_bot" x="-0.0253118993481663" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-2_pos_neg_bot" x="35.00282593403595" y="-42.677812877938536" z="1473.2520480856124" unit="mm" />
+      <position name="crystal1-2_pos_neg_bot" x="35.00282593403595" y="-45.077812877938534" z="1473.2520480856124" unit="mm" />
       <rotation name="crystal1-2_rot_neg_bot" x="-0.0253118993481663" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-2_pos_pos_top" x="50.052304484827026" y="42.677812877938536" z="1473.2520480856124" unit="mm" />
+      <position name="crystal1-2_pos_pos_top" x="50.052304484827026" y="44.97781287793853" z="1473.2520480856124" unit="mm" />
       <rotation name="crystal1-2_rot_pos_top" x="0.0253118993481663" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-2_pos_neg_top" x="35.00282593403595" y="42.677812877938536" z="1473.2520480856124" unit="mm" />
+      <position name="crystal1-2_pos_neg_top" x="35.00282593403595" y="44.97781287793853" z="1473.2520480856124" unit="mm" />
       <rotation name="crystal1-2_rot_neg_top" x="0.0253118993481663" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal2-2_pos_pos_bot" x="64.90537808737002" y="-42.677812877938536" z="1473.3414680475323" unit="mm" />
+      <position name="crystal2-2_pos_pos_bot" x="64.90537808737002" y="-45.077812877938534" z="1473.3414680475323" unit="mm" />
       <rotation name="crystal2-2_rot_pos_bot" x="-0.0253118993481663" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-2_pos_neg_bot" x="20.14975233149295" y="-42.677812877938536" z="1473.3414680475323" unit="mm" />
+      <position name="crystal2-2_pos_neg_bot" x="20.14975233149295" y="-45.077812877938534" z="1473.3414680475323" unit="mm" />
       <rotation name="crystal2-2_rot_neg_bot" x="-0.0253118993481663" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-2_pos_pos_top" x="64.90537808737002" y="42.677812877938536" z="1473.3414680475323" unit="mm" />
+      <position name="crystal2-2_pos_pos_top" x="64.90537808737002" y="44.97781287793853" z="1473.3414680475323" unit="mm" />
       <rotation name="crystal2-2_rot_pos_top" x="0.0253118993481663" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-2_pos_neg_top" x="20.14975233149295" y="42.677812877938536" z="1473.3414680475323" unit="mm" />
+      <position name="crystal2-2_pos_neg_top" x="20.14975233149295" y="44.97781287793853" z="1473.3414680475323" unit="mm" />
       <rotation name="crystal2-2_rot_neg_top" x="0.0253118993481663" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal3-2_pos_pos_bot" x="79.76545207982957" y="-42.677812877938536" z="1473.4080677537463" unit="mm" />
+      <position name="crystal3-2_pos_pos_bot" x="79.76545207982957" y="-45.077812877938534" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal3-2_rot_pos_bot" x="-0.0253118993481663" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-2_pos_neg_bot" x="5.289678339033401" y="-42.677812877938536" z="1473.4080677537463" unit="mm" />
+      <position name="crystal3-2_pos_neg_bot" x="5.289678339033401" y="-45.077812877938534" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal3-2_rot_neg_bot" x="-0.0253118993481663" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-2_pos_pos_top" x="79.76545207982957" y="42.677812877938536" z="1473.4080677537463" unit="mm" />
+      <position name="crystal3-2_pos_pos_top" x="79.76545207982957" y="44.97781287793853" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal3-2_rot_pos_top" x="0.0253118993481663" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-2_pos_neg_top" x="5.289678339033401" y="42.677812877938536" z="1473.4080677537463" unit="mm" />
+      <position name="crystal3-2_pos_neg_top" x="5.289678339033401" y="44.97781287793853" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal3-2_rot_neg_top" x="0.0253118993481663" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal4-2_pos_pos_bot" x="94.63593952741049" y="-42.677812877938536" z="1473.4518282402964" unit="mm" />
+      <position name="crystal4-2_pos_pos_bot" x="94.63593952741049" y="-45.077812877938534" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal4-2_rot_pos_bot" x="-0.0253118993481663" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-2_pos_neg_bot" x="-9.580809108547513" y="-42.677812877938536" z="1473.4518282402964" unit="mm" />
+      <position name="crystal4-2_pos_neg_bot" x="-9.580809108547513" y="-45.077812877938534" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal4-2_rot_neg_bot" x="-0.0253118993481663" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-2_pos_pos_top" x="94.63593952741049" y="42.677812877938536" z="1473.4518282402964" unit="mm" />
+      <position name="crystal4-2_pos_pos_top" x="94.63593952741049" y="44.97781287793853" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal4-2_rot_pos_top" x="0.0253118993481663" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-2_pos_neg_top" x="-9.580809108547513" y="42.677812877938536" z="1473.4518282402964" unit="mm" />
+      <position name="crystal4-2_pos_neg_top" x="-9.580809108547513" y="44.97781287793853" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal4-2_rot_neg_top" x="0.0253118993481663" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal5-2_pos_pos_bot" x="109.52026676464209" y="-42.677812877938536" z="1473.4727370465882" unit="mm" />
+      <position name="crystal5-2_pos_pos_bot" x="109.52026676464209" y="-45.077812877938534" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal5-2_rot_pos_bot" x="-0.0253118993481663" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-2_pos_neg_bot" x="-24.465136345779115" y="-42.677812877938536" z="1473.4727370465882" unit="mm" />
+      <position name="crystal5-2_pos_neg_bot" x="-24.465136345779115" y="-45.077812877938534" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal5-2_rot_neg_bot" x="-0.0253118993481663" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-2_pos_pos_top" x="109.52026676464209" y="42.677812877938536" z="1473.4727370465882" unit="mm" />
+      <position name="crystal5-2_pos_pos_top" x="109.52026676464209" y="44.97781287793853" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal5-2_rot_pos_top" x="0.0253118993481663" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-2_pos_neg_top" x="-24.465136345779115" y="42.677812877938536" z="1473.4727370465882" unit="mm" />
+      <position name="crystal5-2_pos_neg_top" x="-24.465136345779115" y="44.97781287793853" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal5-2_rot_neg_top" x="0.0253118993481663" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal6-2_pos_pos_bot" x="124.42187898494643" y="-42.677812877938536" z="1473.4707882189361" unit="mm" />
+      <position name="crystal6-2_pos_pos_bot" x="124.42187898494643" y="-45.077812877938534" z="1473.4707882189361" unit="mm" />
       <rotation name="crystal6-2_rot_pos_bot" x="-0.0253118993481663" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-2_pos_neg_bot" x="-39.36674856608346" y="-42.677812877938536" z="1473.4707882189361" unit="mm" />
+      <position name="crystal6-2_pos_neg_bot" x="-39.36674856608346" y="-45.077812877938534" z="1473.4707882189361" unit="mm" />
       <rotation name="crystal6-2_rot_neg_bot" x="-0.0253118993481663" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-2_pos_pos_top" x="124.42187898494643" y="42.677812877938536" z="1473.4707882189361" unit="mm" />
+      <position name="crystal6-2_pos_pos_top" x="124.42187898494643" y="44.97781287793853" z="1473.4707882189361" unit="mm" />
       <rotation name="crystal6-2_rot_pos_top" x="0.0253118993481663" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-2_pos_neg_top" x="-39.36674856608346" y="42.677812877938536" z="1473.4707882189361" unit="mm" />
+      <position name="crystal6-2_pos_neg_top" x="-39.36674856608346" y="44.97781287793853" z="1473.4707882189361" unit="mm" />
       <rotation name="crystal6-2_rot_neg_top" x="0.0253118993481663" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal7-2_pos_pos_bot" x="139.34424589677138" y="-42.677812877938536" z="1473.4459823122595" unit="mm" />
+      <position name="crystal7-2_pos_pos_bot" x="139.34424589677138" y="-45.077812877938534" z="1473.4459823122595" unit="mm" />
       <rotation name="crystal7-2_rot_pos_bot" x="-0.0253118993481663" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-2_pos_neg_bot" x="-54.28911547790841" y="-42.677812877938536" z="1473.4459823122595" unit="mm" />
+      <position name="crystal7-2_pos_neg_bot" x="-54.28911547790841" y="-45.077812877938534" z="1473.4459823122595" unit="mm" />
       <rotation name="crystal7-2_rot_neg_bot" x="-0.0253118993481663" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-2_pos_pos_top" x="139.34424589677138" y="42.677812877938536" z="1473.4459823122595" unit="mm" />
+      <position name="crystal7-2_pos_pos_top" x="139.34424589677138" y="44.97781287793853" z="1473.4459823122595" unit="mm" />
       <rotation name="crystal7-2_rot_pos_top" x="0.0253118993481663" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-2_pos_neg_top" x="-54.28911547790841" y="42.677812877938536" z="1473.4459823122595" unit="mm" />
+      <position name="crystal7-2_pos_neg_top" x="-54.28911547790841" y="44.97781287793853" z="1473.4459823122595" unit="mm" />
       <rotation name="crystal7-2_rot_neg_top" x="0.0253118993481663" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal8-2_pos_pos_bot" x="154.29086746600376" y="-42.677812877938536" z="1473.3983263899254" unit="mm" />
+      <position name="crystal8-2_pos_pos_bot" x="154.29086746600376" y="-45.077812877938534" z="1473.3983263899254" unit="mm" />
       <rotation name="crystal8-2_rot_pos_bot" x="-0.0253118993481663" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-2_pos_neg_bot" x="-69.23573704714077" y="-42.677812877938536" z="1473.3983263899254" unit="mm" />
+      <position name="crystal8-2_pos_neg_bot" x="-69.23573704714077" y="-45.077812877938534" z="1473.3983263899254" unit="mm" />
       <rotation name="crystal8-2_rot_neg_bot" x="-0.0253118993481663" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-2_pos_pos_top" x="154.29086746600376" y="42.677812877938536" z="1473.3983263899254" unit="mm" />
+      <position name="crystal8-2_pos_pos_top" x="154.29086746600376" y="44.97781287793853" z="1473.3983263899254" unit="mm" />
       <rotation name="crystal8-2_rot_pos_top" x="0.0253118993481663" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-2_pos_neg_top" x="-69.23573704714077" y="42.677812877938536" z="1473.3983263899254" unit="mm" />
+      <position name="crystal8-2_pos_neg_top" x="-69.23573704714077" y="44.97781287793853" z="1473.3983263899254" unit="mm" />
       <rotation name="crystal8-2_rot_neg_top" x="0.0253118993481663" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal9-2_pos_pos_bot" x="169.2652797649435" y="-42.677812877938536" z="1473.3278340217357" unit="mm" />
+      <position name="crystal9-2_pos_pos_bot" x="169.2652797649435" y="-45.077812877938534" z="1473.3278340217357" unit="mm" />
       <rotation name="crystal9-2_rot_pos_bot" x="-0.0253118993481663" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-2_pos_neg_bot" x="-84.21014934608053" y="-42.677812877938536" z="1473.3278340217357" unit="mm" />
+      <position name="crystal9-2_pos_neg_bot" x="-84.21014934608053" y="-45.077812877938534" z="1473.3278340217357" unit="mm" />
       <rotation name="crystal9-2_rot_neg_bot" x="-0.0253118993481663" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-2_pos_pos_top" x="169.2652797649435" y="42.677812877938536" z="1473.3278340217357" unit="mm" />
+      <position name="crystal9-2_pos_pos_top" x="169.2652797649435" y="44.97781287793853" z="1473.3278340217357" unit="mm" />
       <rotation name="crystal9-2_rot_pos_top" x="0.0253118993481663" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-2_pos_neg_top" x="-84.21014934608053" y="42.677812877938536" z="1473.3278340217357" unit="mm" />
+      <position name="crystal9-2_pos_neg_top" x="-84.21014934608053" y="44.97781287793853" z="1473.3278340217357" unit="mm" />
       <rotation name="crystal9-2_rot_neg_top" x="0.0253118993481663" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal10-2_pos_pos_bot" x="184.27106094882524" y="-42.677812877938536" z="1473.2345252800653" unit="mm" />
+      <position name="crystal10-2_pos_pos_bot" x="184.27106094882524" y="-45.077812877938534" z="1473.2345252800653" unit="mm" />
       <rotation name="crystal10-2_rot_pos_bot" x="-0.0253118993481663" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-2_pos_neg_bot" x="-99.21593052996226" y="-42.677812877938536" z="1473.2345252800653" unit="mm" />
+      <position name="crystal10-2_pos_neg_bot" x="-99.21593052996226" y="-45.077812877938534" z="1473.2345252800653" unit="mm" />
       <rotation name="crystal10-2_rot_neg_bot" x="-0.0253118993481663" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-2_pos_pos_top" x="184.27106094882524" y="42.677812877938536" z="1473.2345252800653" unit="mm" />
+      <position name="crystal10-2_pos_pos_top" x="184.27106094882524" y="44.97781287793853" z="1473.2345252800653" unit="mm" />
       <rotation name="crystal10-2_rot_pos_top" x="0.0253118993481663" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-2_pos_neg_top" x="-99.21593052996226" y="42.677812877938536" z="1473.2345252800653" unit="mm" />
+      <position name="crystal10-2_pos_neg_top" x="-99.21593052996226" y="44.97781287793853" z="1473.2345252800653" unit="mm" />
       <rotation name="crystal10-2_rot_neg_top" x="0.0253118993481663" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal11-2_pos_pos_bot" x="199.3118373817202" y="-42.677812877938536" z="1473.1184267341444" unit="mm" />
+      <position name="crystal11-2_pos_pos_bot" x="199.3118373817202" y="-45.077812877938534" z="1473.1184267341444" unit="mm" />
       <rotation name="crystal11-2_rot_pos_bot" x="-0.0253118993481663" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-2_pos_neg_bot" x="-114.25670696285724" y="-42.677812877938536" z="1473.1184267341444" unit="mm" />
+      <position name="crystal11-2_pos_neg_bot" x="-114.25670696285724" y="-45.077812877938534" z="1473.1184267341444" unit="mm" />
       <rotation name="crystal11-2_rot_neg_bot" x="-0.0253118993481663" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-2_pos_pos_top" x="199.3118373817202" y="42.677812877938536" z="1473.1184267341444" unit="mm" />
+      <position name="crystal11-2_pos_pos_top" x="199.3118373817202" y="44.97781287793853" z="1473.1184267341444" unit="mm" />
       <rotation name="crystal11-2_rot_pos_top" x="0.0253118993481663" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-2_pos_neg_top" x="-114.25670696285724" y="42.677812877938536" z="1473.1184267341444" unit="mm" />
+      <position name="crystal11-2_pos_neg_top" x="-114.25670696285724" y="44.97781287793853" z="1473.1184267341444" unit="mm" />
       <rotation name="crystal11-2_rot_neg_top" x="0.0253118993481663" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal12-2_pos_pos_bot" x="214.3912899346583" y="-42.677812877938536" z="1472.9795714424947" unit="mm" />
+      <position name="crystal12-2_pos_pos_bot" x="214.3912899346583" y="-45.077812877938534" z="1472.9795714424947" unit="mm" />
       <rotation name="crystal12-2_rot_pos_bot" x="-0.0253118993481663" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-2_pos_neg_bot" x="-129.33615951579532" y="-42.677812877938536" z="1472.9795714424947" unit="mm" />
+      <position name="crystal12-2_pos_neg_bot" x="-129.33615951579532" y="-45.077812877938534" z="1472.9795714424947" unit="mm" />
       <rotation name="crystal12-2_rot_neg_bot" x="-0.0253118993481663" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-2_pos_pos_top" x="214.3912899346583" y="42.677812877938536" z="1472.9795714424947" unit="mm" />
+      <position name="crystal12-2_pos_pos_top" x="214.3912899346583" y="44.97781287793853" z="1472.9795714424947" unit="mm" />
       <rotation name="crystal12-2_rot_pos_top" x="0.0253118993481663" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-2_pos_neg_top" x="-129.33615951579532" y="42.677812877938536" z="1472.9795714424947" unit="mm" />
+      <position name="crystal12-2_pos_neg_top" x="-129.33615951579532" y="44.97781287793853" z="1472.9795714424947" unit="mm" />
       <rotation name="crystal12-2_rot_neg_top" x="0.0253118993481663" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal13-2_pos_pos_bot" x="229.51316047997716" y="-42.677812877938536" z="1472.8179989435152" unit="mm" />
+      <position name="crystal13-2_pos_pos_bot" x="229.51316047997716" y="-45.077812877938534" z="1472.8179989435152" unit="mm" />
       <rotation name="crystal13-2_rot_pos_bot" x="-0.0253118993481663" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-2_pos_neg_bot" x="-144.4580300611142" y="-42.677812877938536" z="1472.8179989435152" unit="mm" />
+      <position name="crystal13-2_pos_neg_bot" x="-144.4580300611142" y="-45.077812877938534" z="1472.8179989435152" unit="mm" />
       <rotation name="crystal13-2_rot_neg_bot" x="-0.0253118993481663" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-2_pos_pos_top" x="229.51316047997716" y="42.677812877938536" z="1472.8179989435152" unit="mm" />
+      <position name="crystal13-2_pos_pos_top" x="229.51316047997716" y="44.97781287793853" z="1472.8179989435152" unit="mm" />
       <rotation name="crystal13-2_rot_pos_top" x="0.0253118993481663" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-2_pos_neg_top" x="-144.4580300611142" y="42.677812877938536" z="1472.8179989435152" unit="mm" />
+      <position name="crystal13-2_pos_neg_top" x="-144.4580300611142" y="44.97781287793853" z="1472.8179989435152" unit="mm" />
       <rotation name="crystal13-2_rot_neg_top" x="0.0253118993481663" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal14-2_pos_pos_bot" x="244.68125860725365" y="-42.677812877938536" z="1472.6337552442246" unit="mm" />
+      <position name="crystal14-2_pos_pos_bot" x="244.68125860725365" y="-45.077812877938534" z="1472.6337552442246" unit="mm" />
       <rotation name="crystal14-2_rot_pos_bot" x="-0.0253118993481663" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-2_pos_neg_bot" x="-159.62612818839068" y="-42.677812877938536" z="1472.6337552442246" unit="mm" />
+      <position name="crystal14-2_pos_neg_bot" x="-159.62612818839068" y="-45.077812877938534" z="1472.6337552442246" unit="mm" />
       <rotation name="crystal14-2_rot_neg_bot" x="-0.0253118993481663" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-2_pos_pos_top" x="244.68125860725365" y="42.677812877938536" z="1472.6337552442246" unit="mm" />
+      <position name="crystal14-2_pos_pos_top" x="244.68125860725365" y="44.97781287793853" z="1472.6337552442246" unit="mm" />
       <rotation name="crystal14-2_rot_pos_top" x="0.0253118993481663" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-2_pos_neg_top" x="-159.62612818839068" y="42.677812877938536" z="1472.6337552442246" unit="mm" />
+      <position name="crystal14-2_pos_neg_top" x="-159.62612818839068" y="44.97781287793853" z="1472.6337552442246" unit="mm" />
       <rotation name="crystal14-2_rot_neg_top" x="0.0253118993481663" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal15-2_pos_pos_bot" x="259.8994685877143" y="-42.677812877938536" z="1472.42689280716" unit="mm" />
+      <position name="crystal15-2_pos_pos_bot" x="259.8994685877143" y="-45.077812877938534" z="1472.42689280716" unit="mm" />
       <rotation name="crystal15-2_rot_pos_bot" x="-0.0253118993481663" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-2_pos_neg_bot" x="-174.84433816885132" y="-42.677812877938536" z="1472.42689280716" unit="mm" />
+      <position name="crystal15-2_pos_neg_bot" x="-174.84433816885132" y="-45.077812877938534" z="1472.42689280716" unit="mm" />
       <rotation name="crystal15-2_rot_neg_bot" x="-0.0253118993481663" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-2_pos_pos_top" x="259.8994685877143" y="42.677812877938536" z="1472.42689280716" unit="mm" />
+      <position name="crystal15-2_pos_pos_top" x="259.8994685877143" y="44.97781287793853" z="1472.42689280716" unit="mm" />
       <rotation name="crystal15-2_rot_pos_top" x="0.0253118993481663" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-2_pos_neg_top" x="-174.84433816885132" y="42.677812877938536" z="1472.42689280716" unit="mm" />
+      <position name="crystal15-2_pos_neg_top" x="-174.84433816885132" y="44.97781287793853" z="1472.42689280716" unit="mm" />
       <rotation name="crystal15-2_rot_neg_top" x="0.0253118993481663" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal16-2_pos_pos_bot" x="275.17175661577164" y="-42.677812877938536" z="1472.1974705354392" unit="mm" />
+      <position name="crystal16-2_pos_pos_bot" x="275.17175661577164" y="-45.077812877938534" z="1472.1974705354392" unit="mm" />
       <rotation name="crystal16-2_rot_pos_bot" x="-0.0253118993481663" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-2_pos_neg_bot" x="-190.11662619690867" y="-42.677812877938536" z="1472.1974705354392" unit="mm" />
+      <position name="crystal16-2_pos_neg_bot" x="-190.11662619690867" y="-45.077812877938534" z="1472.1974705354392" unit="mm" />
       <rotation name="crystal16-2_rot_neg_bot" x="-0.0253118993481663" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-2_pos_pos_top" x="275.17175661577164" y="42.677812877938536" z="1472.1974705354392" unit="mm" />
+      <position name="crystal16-2_pos_pos_top" x="275.17175661577164" y="44.97781287793853" z="1472.1974705354392" unit="mm" />
       <rotation name="crystal16-2_rot_pos_top" x="0.0253118993481663" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-2_pos_neg_top" x="-190.11662619690867" y="42.677812877938536" z="1472.1974705354392" unit="mm" />
+      <position name="crystal16-2_pos_neg_top" x="-190.11662619690867" y="44.97781287793853" z="1472.1974705354392" unit="mm" />
       <rotation name="crystal16-2_rot_neg_top" x="0.0253118993481663" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal17-2_pos_pos_bot" x="290.5021783583187" y="-42.677812877938536" z="1471.9455537559877" unit="mm" />
+      <position name="crystal17-2_pos_pos_bot" x="290.5021783583187" y="-45.077812877938534" z="1471.9455537559877" unit="mm" />
       <rotation name="crystal17-2_rot_pos_bot" x="-0.0253118993481663" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-2_pos_neg_bot" x="-205.44704793945573" y="-42.677812877938536" z="1471.9455537559877" unit="mm" />
+      <position name="crystal17-2_pos_neg_bot" x="-205.44704793945573" y="-45.077812877938534" z="1471.9455537559877" unit="mm" />
       <rotation name="crystal17-2_rot_neg_bot" x="-0.0253118993481663" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-2_pos_pos_top" x="290.5021783583187" y="42.677812877938536" z="1471.9455537559877" unit="mm" />
+      <position name="crystal17-2_pos_pos_top" x="290.5021783583187" y="44.97781287793853" z="1471.9455537559877" unit="mm" />
       <rotation name="crystal17-2_rot_pos_top" x="0.0253118993481663" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-2_pos_neg_top" x="-205.44704793945573" y="42.677812877938536" z="1471.9455537559877" unit="mm" />
+      <position name="crystal17-2_pos_neg_top" x="-205.44704793945573" y="44.97781287793853" z="1471.9455537559877" unit="mm" />
       <rotation name="crystal17-2_rot_neg_top" x="0.0253118993481663" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal18-2_pos_pos_bot" x="305.89488684464817" y="-42.677812877938536" z="1471.6712142009383" unit="mm" />
+      <position name="crystal18-2_pos_pos_bot" x="305.89488684464817" y="-45.077812877938534" z="1471.6712142009383" unit="mm" />
       <rotation name="crystal18-2_rot_pos_bot" x="-0.0253118993481663" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-2_pos_neg_bot" x="-220.8397564257852" y="-42.677812877938536" z="1471.6712142009383" unit="mm" />
+      <position name="crystal18-2_pos_neg_bot" x="-220.8397564257852" y="-45.077812877938534" z="1471.6712142009383" unit="mm" />
       <rotation name="crystal18-2_rot_neg_bot" x="-0.0253118993481663" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-2_pos_pos_top" x="305.89488684464817" y="42.677812877938536" z="1471.6712142009383" unit="mm" />
+      <position name="crystal18-2_pos_pos_top" x="305.89488684464817" y="44.97781287793853" z="1471.6712142009383" unit="mm" />
       <rotation name="crystal18-2_rot_pos_top" x="0.0253118993481663" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-2_pos_neg_top" x="-220.8397564257852" y="42.677812877938536" z="1471.6712142009383" unit="mm" />
+      <position name="crystal18-2_pos_neg_top" x="-220.8397564257852" y="44.97781287793853" z="1471.6712142009383" unit="mm" />
       <rotation name="crystal18-2_rot_neg_top" x="0.0253118993481663" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal19-2_pos_pos_bot" x="321.35414073238366" y="-42.677812877938536" z="1471.3745299872046" unit="mm" />
+      <position name="crystal19-2_pos_pos_bot" x="321.35414073238366" y="-45.077812877938534" z="1471.3745299872046" unit="mm" />
       <rotation name="crystal19-2_rot_pos_bot" x="-0.0253118993481663" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-2_pos_neg_bot" x="-236.29901031352068" y="-42.677812877938536" z="1471.3745299872046" unit="mm" />
+      <position name="crystal19-2_pos_neg_bot" x="-236.29901031352068" y="-45.077812877938534" z="1471.3745299872046" unit="mm" />
       <rotation name="crystal19-2_rot_neg_bot" x="-0.0253118993481663" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-2_pos_pos_top" x="321.35414073238366" y="42.677812877938536" z="1471.3745299872046" unit="mm" />
+      <position name="crystal19-2_pos_pos_top" x="321.35414073238366" y="44.97781287793853" z="1471.3745299872046" unit="mm" />
       <rotation name="crystal19-2_rot_pos_top" x="0.0253118993481663" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-2_pos_neg_top" x="-236.29901031352068" y="42.677812877938536" z="1471.3745299872046" unit="mm" />
+      <position name="crystal19-2_pos_neg_top" x="-236.29901031352068" y="44.97781287793853" z="1471.3745299872046" unit="mm" />
       <rotation name="crystal19-2_rot_neg_top" x="0.0253118993481663" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal20-2_pos_pos_bot" x="336.88431298763794" y="-42.677812877938536" z="1471.055585594238" unit="mm" />
+      <position name="crystal20-2_pos_pos_bot" x="336.88431298763794" y="-45.077812877938534" z="1471.055585594238" unit="mm" />
       <rotation name="crystal20-2_rot_pos_bot" x="-0.0253118993481663" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-2_pos_neg_bot" x="-251.82918256877497" y="-42.677812877938536" z="1471.055585594238" unit="mm" />
+      <position name="crystal20-2_pos_neg_bot" x="-251.82918256877497" y="-45.077812877938534" z="1471.055585594238" unit="mm" />
       <rotation name="crystal20-2_rot_neg_bot" x="-0.0253118993481663" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-2_pos_pos_top" x="336.88431298763794" y="42.677812877938536" z="1471.055585594238" unit="mm" />
+      <position name="crystal20-2_pos_pos_top" x="336.88431298763794" y="44.97781287793853" z="1471.055585594238" unit="mm" />
       <rotation name="crystal20-2_rot_pos_top" x="0.0253118993481663" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-2_pos_neg_top" x="-251.82918256877497" y="42.677812877938536" z="1471.055585594238" unit="mm" />
+      <position name="crystal20-2_pos_neg_top" x="-251.82918256877497" y="44.97781287793853" z="1471.055585594238" unit="mm" />
       <rotation name="crystal20-2_rot_neg_top" x="0.0253118993481663" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal21-2_pos_pos_bot" x="352.4899000207918" y="-42.677812877938536" z="1470.7144718399722" unit="mm" />
+      <position name="crystal21-2_pos_pos_bot" x="352.4899000207918" y="-45.077812877938534" z="1470.7144718399722" unit="mm" />
       <rotation name="crystal21-2_rot_pos_bot" x="-0.0253118993481663" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-2_pos_neg_bot" x="-267.43476960192885" y="-42.677812877938536" z="1470.7144718399722" unit="mm" />
+      <position name="crystal21-2_pos_neg_bot" x="-267.43476960192885" y="-45.077812877938534" z="1470.7144718399722" unit="mm" />
       <rotation name="crystal21-2_rot_neg_bot" x="-0.0253118993481663" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-2_pos_pos_top" x="352.4899000207918" y="42.677812877938536" z="1470.7144718399722" unit="mm" />
+      <position name="crystal21-2_pos_pos_top" x="352.4899000207918" y="44.97781287793853" z="1470.7144718399722" unit="mm" />
       <rotation name="crystal21-2_rot_pos_top" x="0.0253118993481663" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-2_pos_neg_top" x="-267.43476960192885" y="42.677812877938536" z="1470.7144718399722" unit="mm" />
+      <position name="crystal21-2_pos_neg_top" x="-267.43476960192885" y="44.97781287793853" z="1470.7144718399722" unit="mm" />
       <rotation name="crystal21-2_rot_neg_top" x="0.0253118993481663" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal22-2_pos_pos_bot" x="368.17553132284974" y="-42.677812877938536" z="1470.351285854964" unit="mm" />
+      <position name="crystal22-2_pos_pos_bot" x="368.17553132284974" y="-45.077812877938534" z="1470.351285854964" unit="mm" />
       <rotation name="crystal22-2_rot_pos_bot" x="-0.0253118993481663" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-2_pos_neg_bot" x="-283.12040090398676" y="-42.677812877938536" z="1470.351285854964" unit="mm" />
+      <position name="crystal22-2_pos_neg_bot" x="-283.12040090398676" y="-45.077812877938534" z="1470.351285854964" unit="mm" />
       <rotation name="crystal22-2_rot_neg_bot" x="-0.0253118993481663" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-2_pos_pos_top" x="368.17553132284974" y="42.677812877938536" z="1470.351285854964" unit="mm" />
+      <position name="crystal22-2_pos_pos_top" x="368.17553132284974" y="44.97781287793853" z="1470.351285854964" unit="mm" />
       <rotation name="crystal22-2_rot_pos_top" x="0.0253118993481663" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-2_pos_neg_top" x="-283.12040090398676" y="42.677812877938536" z="1470.351285854964" unit="mm" />
+      <position name="crystal22-2_pos_neg_top" x="-283.12040090398676" y="44.97781287793853" z="1470.351285854964" unit="mm" />
       <rotation name="crystal22-2_rot_neg_top" x="0.0253118993481663" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal23-2_pos_pos_bot" x="383.9459796513255" y="-42.677812877938536" z="1469.9661310547353" unit="mm" />
+      <position name="crystal23-2_pos_pos_bot" x="383.9459796513255" y="-45.077812877938534" z="1469.9661310547353" unit="mm" />
       <rotation name="crystal23-2_rot_pos_bot" x="-0.0253118993481663" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-2_pos_neg_bot" x="-298.89084923246253" y="-42.677812877938536" z="1469.9661310547353" unit="mm" />
+      <position name="crystal23-2_pos_neg_bot" x="-298.89084923246253" y="-45.077812877938534" z="1469.9661310547353" unit="mm" />
       <rotation name="crystal23-2_rot_neg_bot" x="-0.0253118993481663" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-2_pos_pos_top" x="383.9459796513255" y="42.677812877938536" z="1469.9661310547353" unit="mm" />
+      <position name="crystal23-2_pos_pos_top" x="383.9459796513255" y="44.97781287793853" z="1469.9661310547353" unit="mm" />
       <rotation name="crystal23-2_rot_pos_top" x="0.0253118993481663" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-2_pos_neg_top" x="-298.89084923246253" y="42.677812877938536" z="1469.9661310547353" unit="mm" />
+      <position name="crystal23-2_pos_neg_top" x="-298.89084923246253" y="44.97781287793853" z="1469.9661310547353" unit="mm" />
       <rotation name="crystal23-2_rot_neg_top" x="0.0253118993481663" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal1-3_pos_pos_bot" x="50.052304484827026" y="-57.68788687039808" z="1473.3186477918262" unit="mm" />
+      <position name="crystal1-3_pos_pos_bot" x="50.052304484827026" y="-60.08788687039808" z="1473.3186477918262" unit="mm" />
       <rotation name="crystal1-3_rot_pos_bot" x="-0.042186498913610496" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-3_pos_neg_bot" x="35.00282593403595" y="-57.68788687039808" z="1473.3186477918262" unit="mm" />
+      <position name="crystal1-3_pos_neg_bot" x="35.00282593403595" y="-60.08788687039808" z="1473.3186477918262" unit="mm" />
       <rotation name="crystal1-3_rot_neg_bot" x="-0.042186498913610496" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-3_pos_pos_top" x="50.052304484827026" y="57.68788687039808" z="1473.3186477918262" unit="mm" />
+      <position name="crystal1-3_pos_pos_top" x="50.052304484827026" y="59.987886870398086" z="1473.3186477918262" unit="mm" />
       <rotation name="crystal1-3_rot_pos_top" x="0.042186498913610496" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-3_pos_neg_top" x="35.00282593403595" y="57.68788687039808" z="1473.3186477918262" unit="mm" />
+      <position name="crystal1-3_pos_neg_top" x="35.00282593403595" y="59.987886870398086" z="1473.3186477918262" unit="mm" />
       <rotation name="crystal1-3_rot_neg_top" x="0.042186498913610496" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal2-3_pos_pos_bot" x="64.90537808737002" y="-57.68788687039808" z="1473.4080677537463" unit="mm" />
+      <position name="crystal2-3_pos_pos_bot" x="64.90537808737002" y="-60.08788687039808" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal2-3_rot_pos_bot" x="-0.042186498913610496" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-3_pos_neg_bot" x="20.14975233149295" y="-57.68788687039808" z="1473.4080677537463" unit="mm" />
+      <position name="crystal2-3_pos_neg_bot" x="20.14975233149295" y="-60.08788687039808" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal2-3_rot_neg_bot" x="-0.042186498913610496" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-3_pos_pos_top" x="64.90537808737002" y="57.68788687039808" z="1473.4080677537463" unit="mm" />
+      <position name="crystal2-3_pos_pos_top" x="64.90537808737002" y="59.987886870398086" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal2-3_rot_pos_top" x="0.042186498913610496" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-3_pos_neg_top" x="20.14975233149295" y="57.68788687039808" z="1473.4080677537463" unit="mm" />
+      <position name="crystal2-3_pos_neg_top" x="20.14975233149295" y="59.987886870398086" z="1473.4080677537463" unit="mm" />
       <rotation name="crystal2-3_rot_neg_top" x="0.042186498913610496" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal3-3_pos_pos_bot" x="79.76545207982957" y="-57.68788687039808" z="1473.47466745996" unit="mm" />
+      <position name="crystal3-3_pos_pos_bot" x="79.76545207982957" y="-60.08788687039808" z="1473.47466745996" unit="mm" />
       <rotation name="crystal3-3_rot_pos_bot" x="-0.042186498913610496" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-3_pos_neg_bot" x="5.289678339033401" y="-57.68788687039808" z="1473.47466745996" unit="mm" />
+      <position name="crystal3-3_pos_neg_bot" x="5.289678339033401" y="-60.08788687039808" z="1473.47466745996" unit="mm" />
       <rotation name="crystal3-3_rot_neg_bot" x="-0.042186498913610496" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-3_pos_pos_top" x="79.76545207982957" y="57.68788687039808" z="1473.47466745996" unit="mm" />
+      <position name="crystal3-3_pos_pos_top" x="79.76545207982957" y="59.987886870398086" z="1473.47466745996" unit="mm" />
       <rotation name="crystal3-3_rot_pos_top" x="0.042186498913610496" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-3_pos_neg_top" x="5.289678339033401" y="57.68788687039808" z="1473.47466745996" unit="mm" />
+      <position name="crystal3-3_pos_neg_top" x="5.289678339033401" y="59.987886870398086" z="1473.47466745996" unit="mm" />
       <rotation name="crystal3-3_rot_neg_top" x="0.042186498913610496" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal4-3_pos_pos_bot" x="94.63593952741049" y="-57.68788687039808" z="1473.5184279465104" unit="mm" />
+      <position name="crystal4-3_pos_pos_bot" x="94.63593952741049" y="-60.08788687039808" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal4-3_rot_pos_bot" x="-0.042186498913610496" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-3_pos_neg_bot" x="-9.580809108547513" y="-57.68788687039808" z="1473.5184279465104" unit="mm" />
+      <position name="crystal4-3_pos_neg_bot" x="-9.580809108547513" y="-60.08788687039808" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal4-3_rot_neg_bot" x="-0.042186498913610496" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-3_pos_pos_top" x="94.63593952741049" y="57.68788687039808" z="1473.5184279465104" unit="mm" />
+      <position name="crystal4-3_pos_pos_top" x="94.63593952741049" y="59.987886870398086" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal4-3_rot_pos_top" x="0.042186498913610496" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-3_pos_neg_top" x="-9.580809108547513" y="57.68788687039808" z="1473.5184279465104" unit="mm" />
+      <position name="crystal4-3_pos_neg_top" x="-9.580809108547513" y="59.987886870398086" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal4-3_rot_neg_top" x="0.042186498913610496" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal5-3_pos_pos_bot" x="109.52026676464209" y="-57.68788687039808" z="1473.5393367528022" unit="mm" />
+      <position name="crystal5-3_pos_pos_bot" x="109.52026676464209" y="-60.08788687039808" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal5-3_rot_pos_bot" x="-0.042186498913610496" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-3_pos_neg_bot" x="-24.465136345779115" y="-57.68788687039808" z="1473.5393367528022" unit="mm" />
+      <position name="crystal5-3_pos_neg_bot" x="-24.465136345779115" y="-60.08788687039808" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal5-3_rot_neg_bot" x="-0.042186498913610496" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-3_pos_pos_top" x="109.52026676464209" y="57.68788687039808" z="1473.5393367528022" unit="mm" />
+      <position name="crystal5-3_pos_pos_top" x="109.52026676464209" y="59.987886870398086" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal5-3_rot_pos_top" x="0.042186498913610496" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-3_pos_neg_top" x="-24.465136345779115" y="57.68788687039808" z="1473.5393367528022" unit="mm" />
+      <position name="crystal5-3_pos_neg_top" x="-24.465136345779115" y="59.987886870398086" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal5-3_rot_neg_top" x="0.042186498913610496" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal6-3_pos_pos_bot" x="124.42187898494643" y="-57.68788687039808" z="1473.53738792515" unit="mm" />
+      <position name="crystal6-3_pos_pos_bot" x="124.42187898494643" y="-60.08788687039808" z="1473.53738792515" unit="mm" />
       <rotation name="crystal6-3_rot_pos_bot" x="-0.042186498913610496" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-3_pos_neg_bot" x="-39.36674856608346" y="-57.68788687039808" z="1473.53738792515" unit="mm" />
+      <position name="crystal6-3_pos_neg_bot" x="-39.36674856608346" y="-60.08788687039808" z="1473.53738792515" unit="mm" />
       <rotation name="crystal6-3_rot_neg_bot" x="-0.042186498913610496" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-3_pos_pos_top" x="124.42187898494643" y="57.68788687039808" z="1473.53738792515" unit="mm" />
+      <position name="crystal6-3_pos_pos_top" x="124.42187898494643" y="59.987886870398086" z="1473.53738792515" unit="mm" />
       <rotation name="crystal6-3_rot_pos_top" x="0.042186498913610496" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-3_pos_neg_top" x="-39.36674856608346" y="57.68788687039808" z="1473.53738792515" unit="mm" />
+      <position name="crystal6-3_pos_neg_top" x="-39.36674856608346" y="59.987886870398086" z="1473.53738792515" unit="mm" />
       <rotation name="crystal6-3_rot_neg_top" x="0.042186498913610496" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal7-3_pos_pos_bot" x="139.34424589677138" y="-57.68788687039808" z="1473.5125820184735" unit="mm" />
+      <position name="crystal7-3_pos_pos_bot" x="139.34424589677138" y="-60.08788687039808" z="1473.5125820184735" unit="mm" />
       <rotation name="crystal7-3_rot_pos_bot" x="-0.042186498913610496" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-3_pos_neg_bot" x="-54.28911547790841" y="-57.68788687039808" z="1473.5125820184735" unit="mm" />
+      <position name="crystal7-3_pos_neg_bot" x="-54.28911547790841" y="-60.08788687039808" z="1473.5125820184735" unit="mm" />
       <rotation name="crystal7-3_rot_neg_bot" x="-0.042186498913610496" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-3_pos_pos_top" x="139.34424589677138" y="57.68788687039808" z="1473.5125820184735" unit="mm" />
+      <position name="crystal7-3_pos_pos_top" x="139.34424589677138" y="59.987886870398086" z="1473.5125820184735" unit="mm" />
       <rotation name="crystal7-3_rot_pos_top" x="0.042186498913610496" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-3_pos_neg_top" x="-54.28911547790841" y="57.68788687039808" z="1473.5125820184735" unit="mm" />
+      <position name="crystal7-3_pos_neg_top" x="-54.28911547790841" y="59.987886870398086" z="1473.5125820184735" unit="mm" />
       <rotation name="crystal7-3_rot_neg_top" x="0.042186498913610496" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal8-3_pos_pos_bot" x="154.29086746600376" y="-57.68788687039808" z="1473.4649260961392" unit="mm" />
+      <position name="crystal8-3_pos_pos_bot" x="154.29086746600376" y="-60.08788687039808" z="1473.4649260961392" unit="mm" />
       <rotation name="crystal8-3_rot_pos_bot" x="-0.042186498913610496" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-3_pos_neg_bot" x="-69.23573704714077" y="-57.68788687039808" z="1473.4649260961392" unit="mm" />
+      <position name="crystal8-3_pos_neg_bot" x="-69.23573704714077" y="-60.08788687039808" z="1473.4649260961392" unit="mm" />
       <rotation name="crystal8-3_rot_neg_bot" x="-0.042186498913610496" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-3_pos_pos_top" x="154.29086746600376" y="57.68788687039808" z="1473.4649260961392" unit="mm" />
+      <position name="crystal8-3_pos_pos_top" x="154.29086746600376" y="59.987886870398086" z="1473.4649260961392" unit="mm" />
       <rotation name="crystal8-3_rot_pos_top" x="0.042186498913610496" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-3_pos_neg_top" x="-69.23573704714077" y="57.68788687039808" z="1473.4649260961392" unit="mm" />
+      <position name="crystal8-3_pos_neg_top" x="-69.23573704714077" y="59.987886870398086" z="1473.4649260961392" unit="mm" />
       <rotation name="crystal8-3_rot_neg_top" x="0.042186498913610496" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal9-3_pos_pos_bot" x="169.2652797649435" y="-57.68788687039808" z="1473.3944337279495" unit="mm" />
+      <position name="crystal9-3_pos_pos_bot" x="169.2652797649435" y="-60.08788687039808" z="1473.3944337279495" unit="mm" />
       <rotation name="crystal9-3_rot_pos_bot" x="-0.042186498913610496" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-3_pos_neg_bot" x="-84.21014934608053" y="-57.68788687039808" z="1473.3944337279495" unit="mm" />
+      <position name="crystal9-3_pos_neg_bot" x="-84.21014934608053" y="-60.08788687039808" z="1473.3944337279495" unit="mm" />
       <rotation name="crystal9-3_rot_neg_bot" x="-0.042186498913610496" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-3_pos_pos_top" x="169.2652797649435" y="57.68788687039808" z="1473.3944337279495" unit="mm" />
+      <position name="crystal9-3_pos_pos_top" x="169.2652797649435" y="59.987886870398086" z="1473.3944337279495" unit="mm" />
       <rotation name="crystal9-3_rot_pos_top" x="0.042186498913610496" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-3_pos_neg_top" x="-84.21014934608053" y="57.68788687039808" z="1473.3944337279495" unit="mm" />
+      <position name="crystal9-3_pos_neg_top" x="-84.21014934608053" y="59.987886870398086" z="1473.3944337279495" unit="mm" />
       <rotation name="crystal9-3_rot_neg_top" x="0.042186498913610496" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal10-3_pos_pos_bot" x="184.27106094882524" y="-57.68788687039808" z="1473.301124986279" unit="mm" />
+      <position name="crystal10-3_pos_pos_bot" x="184.27106094882524" y="-60.08788687039808" z="1473.301124986279" unit="mm" />
       <rotation name="crystal10-3_rot_pos_bot" x="-0.042186498913610496" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-3_pos_neg_bot" x="-99.21593052996226" y="-57.68788687039808" z="1473.301124986279" unit="mm" />
+      <position name="crystal10-3_pos_neg_bot" x="-99.21593052996226" y="-60.08788687039808" z="1473.301124986279" unit="mm" />
       <rotation name="crystal10-3_rot_neg_bot" x="-0.042186498913610496" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-3_pos_pos_top" x="184.27106094882524" y="57.68788687039808" z="1473.301124986279" unit="mm" />
+      <position name="crystal10-3_pos_pos_top" x="184.27106094882524" y="59.987886870398086" z="1473.301124986279" unit="mm" />
       <rotation name="crystal10-3_rot_pos_top" x="0.042186498913610496" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-3_pos_neg_top" x="-99.21593052996226" y="57.68788687039808" z="1473.301124986279" unit="mm" />
+      <position name="crystal10-3_pos_neg_top" x="-99.21593052996226" y="59.987886870398086" z="1473.301124986279" unit="mm" />
       <rotation name="crystal10-3_rot_neg_top" x="0.042186498913610496" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal11-3_pos_pos_bot" x="199.3118373817202" y="-57.68788687039808" z="1473.1850264403583" unit="mm" />
+      <position name="crystal11-3_pos_pos_bot" x="199.3118373817202" y="-60.08788687039808" z="1473.1850264403583" unit="mm" />
       <rotation name="crystal11-3_rot_pos_bot" x="-0.042186498913610496" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-3_pos_neg_bot" x="-114.25670696285724" y="-57.68788687039808" z="1473.1850264403583" unit="mm" />
+      <position name="crystal11-3_pos_neg_bot" x="-114.25670696285724" y="-60.08788687039808" z="1473.1850264403583" unit="mm" />
       <rotation name="crystal11-3_rot_neg_bot" x="-0.042186498913610496" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-3_pos_pos_top" x="199.3118373817202" y="57.68788687039808" z="1473.1850264403583" unit="mm" />
+      <position name="crystal11-3_pos_pos_top" x="199.3118373817202" y="59.987886870398086" z="1473.1850264403583" unit="mm" />
       <rotation name="crystal11-3_rot_pos_top" x="0.042186498913610496" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-3_pos_neg_top" x="-114.25670696285724" y="57.68788687039808" z="1473.1850264403583" unit="mm" />
+      <position name="crystal11-3_pos_neg_top" x="-114.25670696285724" y="59.987886870398086" z="1473.1850264403583" unit="mm" />
       <rotation name="crystal11-3_rot_neg_top" x="0.042186498913610496" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal12-3_pos_pos_bot" x="214.3912899346583" y="-57.68788687039808" z="1473.0461711487085" unit="mm" />
+      <position name="crystal12-3_pos_pos_bot" x="214.3912899346583" y="-60.08788687039808" z="1473.0461711487085" unit="mm" />
       <rotation name="crystal12-3_rot_pos_bot" x="-0.042186498913610496" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-3_pos_neg_bot" x="-129.33615951579532" y="-57.68788687039808" z="1473.0461711487085" unit="mm" />
+      <position name="crystal12-3_pos_neg_bot" x="-129.33615951579532" y="-60.08788687039808" z="1473.0461711487085" unit="mm" />
       <rotation name="crystal12-3_rot_neg_bot" x="-0.042186498913610496" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-3_pos_pos_top" x="214.3912899346583" y="57.68788687039808" z="1473.0461711487085" unit="mm" />
+      <position name="crystal12-3_pos_pos_top" x="214.3912899346583" y="59.987886870398086" z="1473.0461711487085" unit="mm" />
       <rotation name="crystal12-3_rot_pos_top" x="0.042186498913610496" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-3_pos_neg_top" x="-129.33615951579532" y="57.68788687039808" z="1473.0461711487085" unit="mm" />
+      <position name="crystal12-3_pos_neg_top" x="-129.33615951579532" y="59.987886870398086" z="1473.0461711487085" unit="mm" />
       <rotation name="crystal12-3_rot_neg_top" x="0.042186498913610496" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal13-3_pos_pos_bot" x="229.51316047997716" y="-57.68788687039808" z="1472.8845986497292" unit="mm" />
+      <position name="crystal13-3_pos_pos_bot" x="229.51316047997716" y="-60.08788687039808" z="1472.8845986497292" unit="mm" />
       <rotation name="crystal13-3_rot_pos_bot" x="-0.042186498913610496" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-3_pos_neg_bot" x="-144.4580300611142" y="-57.68788687039808" z="1472.8845986497292" unit="mm" />
+      <position name="crystal13-3_pos_neg_bot" x="-144.4580300611142" y="-60.08788687039808" z="1472.8845986497292" unit="mm" />
       <rotation name="crystal13-3_rot_neg_bot" x="-0.042186498913610496" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-3_pos_pos_top" x="229.51316047997716" y="57.68788687039808" z="1472.8845986497292" unit="mm" />
+      <position name="crystal13-3_pos_pos_top" x="229.51316047997716" y="59.987886870398086" z="1472.8845986497292" unit="mm" />
       <rotation name="crystal13-3_rot_pos_top" x="0.042186498913610496" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-3_pos_neg_top" x="-144.4580300611142" y="57.68788687039808" z="1472.8845986497292" unit="mm" />
+      <position name="crystal13-3_pos_neg_top" x="-144.4580300611142" y="59.987886870398086" z="1472.8845986497292" unit="mm" />
       <rotation name="crystal13-3_rot_neg_top" x="0.042186498913610496" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal14-3_pos_pos_bot" x="244.68125860725365" y="-57.68788687039808" z="1472.7003549504386" unit="mm" />
+      <position name="crystal14-3_pos_pos_bot" x="244.68125860725365" y="-60.08788687039808" z="1472.7003549504386" unit="mm" />
       <rotation name="crystal14-3_rot_pos_bot" x="-0.042186498913610496" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-3_pos_neg_bot" x="-159.62612818839068" y="-57.68788687039808" z="1472.7003549504386" unit="mm" />
+      <position name="crystal14-3_pos_neg_bot" x="-159.62612818839068" y="-60.08788687039808" z="1472.7003549504386" unit="mm" />
       <rotation name="crystal14-3_rot_neg_bot" x="-0.042186498913610496" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-3_pos_pos_top" x="244.68125860725365" y="57.68788687039808" z="1472.7003549504386" unit="mm" />
+      <position name="crystal14-3_pos_pos_top" x="244.68125860725365" y="59.987886870398086" z="1472.7003549504386" unit="mm" />
       <rotation name="crystal14-3_rot_pos_top" x="0.042186498913610496" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-3_pos_neg_top" x="-159.62612818839068" y="57.68788687039808" z="1472.7003549504386" unit="mm" />
+      <position name="crystal14-3_pos_neg_top" x="-159.62612818839068" y="59.987886870398086" z="1472.7003549504386" unit="mm" />
       <rotation name="crystal14-3_rot_neg_top" x="0.042186498913610496" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal15-3_pos_pos_bot" x="259.8994685877143" y="-57.68788687039808" z="1472.4934925133737" unit="mm" />
+      <position name="crystal15-3_pos_pos_bot" x="259.8994685877143" y="-60.08788687039808" z="1472.4934925133737" unit="mm" />
       <rotation name="crystal15-3_rot_pos_bot" x="-0.042186498913610496" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-3_pos_neg_bot" x="-174.84433816885132" y="-57.68788687039808" z="1472.4934925133737" unit="mm" />
+      <position name="crystal15-3_pos_neg_bot" x="-174.84433816885132" y="-60.08788687039808" z="1472.4934925133737" unit="mm" />
       <rotation name="crystal15-3_rot_neg_bot" x="-0.042186498913610496" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-3_pos_pos_top" x="259.8994685877143" y="57.68788687039808" z="1472.4934925133737" unit="mm" />
+      <position name="crystal15-3_pos_pos_top" x="259.8994685877143" y="59.987886870398086" z="1472.4934925133737" unit="mm" />
       <rotation name="crystal15-3_rot_pos_top" x="0.042186498913610496" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-3_pos_neg_top" x="-174.84433816885132" y="57.68788687039808" z="1472.4934925133737" unit="mm" />
+      <position name="crystal15-3_pos_neg_top" x="-174.84433816885132" y="59.987886870398086" z="1472.4934925133737" unit="mm" />
       <rotation name="crystal15-3_rot_neg_top" x="0.042186498913610496" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal16-3_pos_pos_bot" x="275.17175661577164" y="-57.68788687039808" z="1472.264070241653" unit="mm" />
+      <position name="crystal16-3_pos_pos_bot" x="275.17175661577164" y="-60.08788687039808" z="1472.264070241653" unit="mm" />
       <rotation name="crystal16-3_rot_pos_bot" x="-0.042186498913610496" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-3_pos_neg_bot" x="-190.11662619690867" y="-57.68788687039808" z="1472.264070241653" unit="mm" />
+      <position name="crystal16-3_pos_neg_bot" x="-190.11662619690867" y="-60.08788687039808" z="1472.264070241653" unit="mm" />
       <rotation name="crystal16-3_rot_neg_bot" x="-0.042186498913610496" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-3_pos_pos_top" x="275.17175661577164" y="57.68788687039808" z="1472.264070241653" unit="mm" />
+      <position name="crystal16-3_pos_pos_top" x="275.17175661577164" y="59.987886870398086" z="1472.264070241653" unit="mm" />
       <rotation name="crystal16-3_rot_pos_top" x="0.042186498913610496" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-3_pos_neg_top" x="-190.11662619690867" y="57.68788687039808" z="1472.264070241653" unit="mm" />
+      <position name="crystal16-3_pos_neg_top" x="-190.11662619690867" y="59.987886870398086" z="1472.264070241653" unit="mm" />
       <rotation name="crystal16-3_rot_neg_top" x="0.042186498913610496" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal17-3_pos_pos_bot" x="290.5021783583187" y="-57.68788687039808" z="1472.0121534622015" unit="mm" />
+      <position name="crystal17-3_pos_pos_bot" x="290.5021783583187" y="-60.08788687039808" z="1472.0121534622015" unit="mm" />
       <rotation name="crystal17-3_rot_pos_bot" x="-0.042186498913610496" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-3_pos_neg_bot" x="-205.44704793945573" y="-57.68788687039808" z="1472.0121534622015" unit="mm" />
+      <position name="crystal17-3_pos_neg_bot" x="-205.44704793945573" y="-60.08788687039808" z="1472.0121534622015" unit="mm" />
       <rotation name="crystal17-3_rot_neg_bot" x="-0.042186498913610496" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-3_pos_pos_top" x="290.5021783583187" y="57.68788687039808" z="1472.0121534622015" unit="mm" />
+      <position name="crystal17-3_pos_pos_top" x="290.5021783583187" y="59.987886870398086" z="1472.0121534622015" unit="mm" />
       <rotation name="crystal17-3_rot_pos_top" x="0.042186498913610496" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-3_pos_neg_top" x="-205.44704793945573" y="57.68788687039808" z="1472.0121534622015" unit="mm" />
+      <position name="crystal17-3_pos_neg_top" x="-205.44704793945573" y="59.987886870398086" z="1472.0121534622015" unit="mm" />
       <rotation name="crystal17-3_rot_neg_top" x="0.042186498913610496" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal18-3_pos_pos_bot" x="305.89488684464817" y="-57.68788687039808" z="1471.737813907152" unit="mm" />
+      <position name="crystal18-3_pos_pos_bot" x="305.89488684464817" y="-60.08788687039808" z="1471.737813907152" unit="mm" />
       <rotation name="crystal18-3_rot_pos_bot" x="-0.042186498913610496" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-3_pos_neg_bot" x="-220.8397564257852" y="-57.68788687039808" z="1471.737813907152" unit="mm" />
+      <position name="crystal18-3_pos_neg_bot" x="-220.8397564257852" y="-60.08788687039808" z="1471.737813907152" unit="mm" />
       <rotation name="crystal18-3_rot_neg_bot" x="-0.042186498913610496" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-3_pos_pos_top" x="305.89488684464817" y="57.68788687039808" z="1471.737813907152" unit="mm" />
+      <position name="crystal18-3_pos_pos_top" x="305.89488684464817" y="59.987886870398086" z="1471.737813907152" unit="mm" />
       <rotation name="crystal18-3_rot_pos_top" x="0.042186498913610496" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-3_pos_neg_top" x="-220.8397564257852" y="57.68788687039808" z="1471.737813907152" unit="mm" />
+      <position name="crystal18-3_pos_neg_top" x="-220.8397564257852" y="59.987886870398086" z="1471.737813907152" unit="mm" />
       <rotation name="crystal18-3_rot_neg_top" x="0.042186498913610496" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal19-3_pos_pos_bot" x="321.35414073238366" y="-57.68788687039808" z="1471.4411296934186" unit="mm" />
+      <position name="crystal19-3_pos_pos_bot" x="321.35414073238366" y="-60.08788687039808" z="1471.4411296934186" unit="mm" />
       <rotation name="crystal19-3_rot_pos_bot" x="-0.042186498913610496" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-3_pos_neg_bot" x="-236.29901031352068" y="-57.68788687039808" z="1471.4411296934186" unit="mm" />
+      <position name="crystal19-3_pos_neg_bot" x="-236.29901031352068" y="-60.08788687039808" z="1471.4411296934186" unit="mm" />
       <rotation name="crystal19-3_rot_neg_bot" x="-0.042186498913610496" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-3_pos_pos_top" x="321.35414073238366" y="57.68788687039808" z="1471.4411296934186" unit="mm" />
+      <position name="crystal19-3_pos_pos_top" x="321.35414073238366" y="59.987886870398086" z="1471.4411296934186" unit="mm" />
       <rotation name="crystal19-3_rot_pos_top" x="0.042186498913610496" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-3_pos_neg_top" x="-236.29901031352068" y="57.68788687039808" z="1471.4411296934186" unit="mm" />
+      <position name="crystal19-3_pos_neg_top" x="-236.29901031352068" y="59.987886870398086" z="1471.4411296934186" unit="mm" />
       <rotation name="crystal19-3_rot_neg_top" x="0.042186498913610496" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal20-3_pos_pos_bot" x="336.88431298763794" y="-57.68788687039808" z="1471.1221853004517" unit="mm" />
+      <position name="crystal20-3_pos_pos_bot" x="336.88431298763794" y="-60.08788687039808" z="1471.1221853004517" unit="mm" />
       <rotation name="crystal20-3_rot_pos_bot" x="-0.042186498913610496" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-3_pos_neg_bot" x="-251.82918256877497" y="-57.68788687039808" z="1471.1221853004517" unit="mm" />
+      <position name="crystal20-3_pos_neg_bot" x="-251.82918256877497" y="-60.08788687039808" z="1471.1221853004517" unit="mm" />
       <rotation name="crystal20-3_rot_neg_bot" x="-0.042186498913610496" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-3_pos_pos_top" x="336.88431298763794" y="57.68788687039808" z="1471.1221853004517" unit="mm" />
+      <position name="crystal20-3_pos_pos_top" x="336.88431298763794" y="59.987886870398086" z="1471.1221853004517" unit="mm" />
       <rotation name="crystal20-3_rot_pos_top" x="0.042186498913610496" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-3_pos_neg_top" x="-251.82918256877497" y="57.68788687039808" z="1471.1221853004517" unit="mm" />
+      <position name="crystal20-3_pos_neg_top" x="-251.82918256877497" y="59.987886870398086" z="1471.1221853004517" unit="mm" />
       <rotation name="crystal20-3_rot_neg_top" x="0.042186498913610496" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal21-3_pos_pos_bot" x="352.4899000207918" y="-57.68788687039808" z="1470.781071546186" unit="mm" />
+      <position name="crystal21-3_pos_pos_bot" x="352.4899000207918" y="-60.08788687039808" z="1470.781071546186" unit="mm" />
       <rotation name="crystal21-3_rot_pos_bot" x="-0.042186498913610496" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-3_pos_neg_bot" x="-267.43476960192885" y="-57.68788687039808" z="1470.781071546186" unit="mm" />
+      <position name="crystal21-3_pos_neg_bot" x="-267.43476960192885" y="-60.08788687039808" z="1470.781071546186" unit="mm" />
       <rotation name="crystal21-3_rot_neg_bot" x="-0.042186498913610496" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-3_pos_pos_top" x="352.4899000207918" y="57.68788687039808" z="1470.781071546186" unit="mm" />
+      <position name="crystal21-3_pos_pos_top" x="352.4899000207918" y="59.987886870398086" z="1470.781071546186" unit="mm" />
       <rotation name="crystal21-3_rot_pos_top" x="0.042186498913610496" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-3_pos_neg_top" x="-267.43476960192885" y="57.68788687039808" z="1470.781071546186" unit="mm" />
+      <position name="crystal21-3_pos_neg_top" x="-267.43476960192885" y="59.987886870398086" z="1470.781071546186" unit="mm" />
       <rotation name="crystal21-3_rot_neg_top" x="0.042186498913610496" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal22-3_pos_pos_bot" x="368.17553132284974" y="-57.68788687039808" z="1470.417885561178" unit="mm" />
+      <position name="crystal22-3_pos_pos_bot" x="368.17553132284974" y="-60.08788687039808" z="1470.417885561178" unit="mm" />
       <rotation name="crystal22-3_rot_pos_bot" x="-0.042186498913610496" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-3_pos_neg_bot" x="-283.12040090398676" y="-57.68788687039808" z="1470.417885561178" unit="mm" />
+      <position name="crystal22-3_pos_neg_bot" x="-283.12040090398676" y="-60.08788687039808" z="1470.417885561178" unit="mm" />
       <rotation name="crystal22-3_rot_neg_bot" x="-0.042186498913610496" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-3_pos_pos_top" x="368.17553132284974" y="57.68788687039808" z="1470.417885561178" unit="mm" />
+      <position name="crystal22-3_pos_pos_top" x="368.17553132284974" y="59.987886870398086" z="1470.417885561178" unit="mm" />
       <rotation name="crystal22-3_rot_pos_top" x="0.042186498913610496" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-3_pos_neg_top" x="-283.12040090398676" y="57.68788687039808" z="1470.417885561178" unit="mm" />
+      <position name="crystal22-3_pos_neg_top" x="-283.12040090398676" y="59.987886870398086" z="1470.417885561178" unit="mm" />
       <rotation name="crystal22-3_rot_neg_top" x="0.042186498913610496" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal23-3_pos_pos_bot" x="383.9459796513255" y="-57.68788687039808" z="1470.032730760949" unit="mm" />
+      <position name="crystal23-3_pos_pos_bot" x="383.9459796513255" y="-60.08788687039808" z="1470.032730760949" unit="mm" />
       <rotation name="crystal23-3_rot_pos_bot" x="-0.042186498913610496" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-3_pos_neg_bot" x="-298.89084923246253" y="-57.68788687039808" z="1470.032730760949" unit="mm" />
+      <position name="crystal23-3_pos_neg_bot" x="-298.89084923246253" y="-60.08788687039808" z="1470.032730760949" unit="mm" />
       <rotation name="crystal23-3_rot_neg_bot" x="-0.042186498913610496" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-3_pos_pos_top" x="383.9459796513255" y="57.68788687039808" z="1470.032730760949" unit="mm" />
+      <position name="crystal23-3_pos_pos_top" x="383.9459796513255" y="59.987886870398086" z="1470.032730760949" unit="mm" />
       <rotation name="crystal23-3_rot_pos_top" x="0.042186498913610496" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-3_pos_neg_top" x="-298.89084923246253" y="57.68788687039808" z="1470.032730760949" unit="mm" />
+      <position name="crystal23-3_pos_neg_top" x="-298.89084923246253" y="59.987886870398086" z="1470.032730760949" unit="mm" />
       <rotation name="crystal23-3_rot_neg_top" x="0.042186498913610496" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal1-4_pos_pos_bot" x="50.052304484827026" y="-72.70837431797901" z="1473.3624082783765" unit="mm" />
+      <position name="crystal1-4_pos_pos_bot" x="50.052304484827026" y="-75.108374317979" z="1473.3624082783765" unit="mm" />
       <rotation name="crystal1-4_rot_pos_bot" x="-0.0590610984790547" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-4_pos_neg_bot" x="35.00282593403595" y="-72.70837431797901" z="1473.3624082783765" unit="mm" />
+      <position name="crystal1-4_pos_neg_bot" x="35.00282593403595" y="-75.108374317979" z="1473.3624082783765" unit="mm" />
       <rotation name="crystal1-4_rot_neg_bot" x="-0.0590610984790547" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-4_pos_pos_top" x="50.052304484827026" y="72.70837431797901" z="1473.3624082783765" unit="mm" />
+      <position name="crystal1-4_pos_pos_top" x="50.052304484827026" y="75.008374317979" z="1473.3624082783765" unit="mm" />
       <rotation name="crystal1-4_rot_pos_top" x="0.0590610984790547" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-4_pos_neg_top" x="35.00282593403595" y="72.70837431797901" z="1473.3624082783765" unit="mm" />
+      <position name="crystal1-4_pos_neg_top" x="35.00282593403595" y="75.008374317979" z="1473.3624082783765" unit="mm" />
       <rotation name="crystal1-4_rot_neg_top" x="0.0590610984790547" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal2-4_pos_pos_bot" x="64.90537808737002" y="-72.70837431797901" z="1473.4518282402964" unit="mm" />
+      <position name="crystal2-4_pos_pos_bot" x="64.90537808737002" y="-75.108374317979" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal2-4_rot_pos_bot" x="-0.0590610984790547" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-4_pos_neg_bot" x="20.14975233149295" y="-72.70837431797901" z="1473.4518282402964" unit="mm" />
+      <position name="crystal2-4_pos_neg_bot" x="20.14975233149295" y="-75.108374317979" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal2-4_rot_neg_bot" x="-0.0590610984790547" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-4_pos_pos_top" x="64.90537808737002" y="72.70837431797901" z="1473.4518282402964" unit="mm" />
+      <position name="crystal2-4_pos_pos_top" x="64.90537808737002" y="75.008374317979" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal2-4_rot_pos_top" x="0.0590610984790547" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-4_pos_neg_top" x="20.14975233149295" y="72.70837431797901" z="1473.4518282402964" unit="mm" />
+      <position name="crystal2-4_pos_neg_top" x="20.14975233149295" y="75.008374317979" z="1473.4518282402964" unit="mm" />
       <rotation name="crystal2-4_rot_neg_top" x="0.0590610984790547" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal3-4_pos_pos_bot" x="79.76545207982957" y="-72.70837431797901" z="1473.5184279465104" unit="mm" />
+      <position name="crystal3-4_pos_pos_bot" x="79.76545207982957" y="-75.108374317979" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal3-4_rot_pos_bot" x="-0.0590610984790547" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-4_pos_neg_bot" x="5.289678339033401" y="-72.70837431797901" z="1473.5184279465104" unit="mm" />
+      <position name="crystal3-4_pos_neg_bot" x="5.289678339033401" y="-75.108374317979" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal3-4_rot_neg_bot" x="-0.0590610984790547" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-4_pos_pos_top" x="79.76545207982957" y="72.70837431797901" z="1473.5184279465104" unit="mm" />
+      <position name="crystal3-4_pos_pos_top" x="79.76545207982957" y="75.008374317979" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal3-4_rot_pos_top" x="0.0590610984790547" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-4_pos_neg_top" x="5.289678339033401" y="72.70837431797901" z="1473.5184279465104" unit="mm" />
+      <position name="crystal3-4_pos_neg_top" x="5.289678339033401" y="75.008374317979" z="1473.5184279465104" unit="mm" />
       <rotation name="crystal3-4_rot_neg_top" x="0.0590610984790547" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal4-4_pos_pos_bot" x="94.63593952741049" y="-72.70837431797901" z="1473.5621884330608" unit="mm" />
+      <position name="crystal4-4_pos_pos_bot" x="94.63593952741049" y="-75.108374317979" z="1473.5621884330608" unit="mm" />
       <rotation name="crystal4-4_rot_pos_bot" x="-0.0590610984790547" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-4_pos_neg_bot" x="-9.580809108547513" y="-72.70837431797901" z="1473.5621884330608" unit="mm" />
+      <position name="crystal4-4_pos_neg_bot" x="-9.580809108547513" y="-75.108374317979" z="1473.5621884330608" unit="mm" />
       <rotation name="crystal4-4_rot_neg_bot" x="-0.0590610984790547" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-4_pos_pos_top" x="94.63593952741049" y="72.70837431797901" z="1473.5621884330608" unit="mm" />
+      <position name="crystal4-4_pos_pos_top" x="94.63593952741049" y="75.008374317979" z="1473.5621884330608" unit="mm" />
       <rotation name="crystal4-4_rot_pos_top" x="0.0590610984790547" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-4_pos_neg_top" x="-9.580809108547513" y="72.70837431797901" z="1473.5621884330608" unit="mm" />
+      <position name="crystal4-4_pos_neg_top" x="-9.580809108547513" y="75.008374317979" z="1473.5621884330608" unit="mm" />
       <rotation name="crystal4-4_rot_neg_top" x="0.0590610984790547" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal5-4_pos_pos_bot" x="109.52026676464209" y="-72.70837431797901" z="1473.5830972393524" unit="mm" />
+      <position name="crystal5-4_pos_pos_bot" x="109.52026676464209" y="-75.108374317979" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal5-4_rot_pos_bot" x="-0.0590610984790547" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-4_pos_neg_bot" x="-24.465136345779115" y="-72.70837431797901" z="1473.5830972393524" unit="mm" />
+      <position name="crystal5-4_pos_neg_bot" x="-24.465136345779115" y="-75.108374317979" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal5-4_rot_neg_bot" x="-0.0590610984790547" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-4_pos_pos_top" x="109.52026676464209" y="72.70837431797901" z="1473.5830972393524" unit="mm" />
+      <position name="crystal5-4_pos_pos_top" x="109.52026676464209" y="75.008374317979" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal5-4_rot_pos_top" x="0.0590610984790547" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-4_pos_neg_top" x="-24.465136345779115" y="72.70837431797901" z="1473.5830972393524" unit="mm" />
+      <position name="crystal5-4_pos_neg_top" x="-24.465136345779115" y="75.008374317979" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal5-4_rot_neg_top" x="0.0590610984790547" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal6-4_pos_pos_bot" x="124.42187898494643" y="-72.70837431797901" z="1473.5811484117003" unit="mm" />
+      <position name="crystal6-4_pos_pos_bot" x="124.42187898494643" y="-75.108374317979" z="1473.5811484117003" unit="mm" />
       <rotation name="crystal6-4_rot_pos_bot" x="-0.0590610984790547" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-4_pos_neg_bot" x="-39.36674856608346" y="-72.70837431797901" z="1473.5811484117003" unit="mm" />
+      <position name="crystal6-4_pos_neg_bot" x="-39.36674856608346" y="-75.108374317979" z="1473.5811484117003" unit="mm" />
       <rotation name="crystal6-4_rot_neg_bot" x="-0.0590610984790547" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-4_pos_pos_top" x="124.42187898494643" y="72.70837431797901" z="1473.5811484117003" unit="mm" />
+      <position name="crystal6-4_pos_pos_top" x="124.42187898494643" y="75.008374317979" z="1473.5811484117003" unit="mm" />
       <rotation name="crystal6-4_rot_pos_top" x="0.0590610984790547" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-4_pos_neg_top" x="-39.36674856608346" y="72.70837431797901" z="1473.5811484117003" unit="mm" />
+      <position name="crystal6-4_pos_neg_top" x="-39.36674856608346" y="75.008374317979" z="1473.5811484117003" unit="mm" />
       <rotation name="crystal6-4_rot_neg_top" x="0.0590610984790547" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal7-4_pos_pos_bot" x="139.34424589677138" y="-72.70837431797901" z="1473.5563425050236" unit="mm" />
+      <position name="crystal7-4_pos_pos_bot" x="139.34424589677138" y="-75.108374317979" z="1473.5563425050236" unit="mm" />
       <rotation name="crystal7-4_rot_pos_bot" x="-0.0590610984790547" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-4_pos_neg_bot" x="-54.28911547790841" y="-72.70837431797901" z="1473.5563425050236" unit="mm" />
+      <position name="crystal7-4_pos_neg_bot" x="-54.28911547790841" y="-75.108374317979" z="1473.5563425050236" unit="mm" />
       <rotation name="crystal7-4_rot_neg_bot" x="-0.0590610984790547" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-4_pos_pos_top" x="139.34424589677138" y="72.70837431797901" z="1473.5563425050236" unit="mm" />
+      <position name="crystal7-4_pos_pos_top" x="139.34424589677138" y="75.008374317979" z="1473.5563425050236" unit="mm" />
       <rotation name="crystal7-4_rot_pos_top" x="0.0590610984790547" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-4_pos_neg_top" x="-54.28911547790841" y="72.70837431797901" z="1473.5563425050236" unit="mm" />
+      <position name="crystal7-4_pos_neg_top" x="-54.28911547790841" y="75.008374317979" z="1473.5563425050236" unit="mm" />
       <rotation name="crystal7-4_rot_neg_top" x="0.0590610984790547" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal8-4_pos_pos_bot" x="154.29086746600376" y="-72.70837431797901" z="1473.5086865826895" unit="mm" />
+      <position name="crystal8-4_pos_pos_bot" x="154.29086746600376" y="-75.108374317979" z="1473.5086865826895" unit="mm" />
       <rotation name="crystal8-4_rot_pos_bot" x="-0.0590610984790547" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-4_pos_neg_bot" x="-69.23573704714077" y="-72.70837431797901" z="1473.5086865826895" unit="mm" />
+      <position name="crystal8-4_pos_neg_bot" x="-69.23573704714077" y="-75.108374317979" z="1473.5086865826895" unit="mm" />
       <rotation name="crystal8-4_rot_neg_bot" x="-0.0590610984790547" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-4_pos_pos_top" x="154.29086746600376" y="72.70837431797901" z="1473.5086865826895" unit="mm" />
+      <position name="crystal8-4_pos_pos_top" x="154.29086746600376" y="75.008374317979" z="1473.5086865826895" unit="mm" />
       <rotation name="crystal8-4_rot_pos_top" x="0.0590610984790547" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-4_pos_neg_top" x="-69.23573704714077" y="72.70837431797901" z="1473.5086865826895" unit="mm" />
+      <position name="crystal8-4_pos_neg_top" x="-69.23573704714077" y="75.008374317979" z="1473.5086865826895" unit="mm" />
       <rotation name="crystal8-4_rot_neg_top" x="0.0590610984790547" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal9-4_pos_pos_bot" x="169.2652797649435" y="-72.70837431797901" z="1473.4381942144998" unit="mm" />
+      <position name="crystal9-4_pos_pos_bot" x="169.2652797649435" y="-75.108374317979" z="1473.4381942144998" unit="mm" />
       <rotation name="crystal9-4_rot_pos_bot" x="-0.0590610984790547" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-4_pos_neg_bot" x="-84.21014934608053" y="-72.70837431797901" z="1473.4381942144998" unit="mm" />
+      <position name="crystal9-4_pos_neg_bot" x="-84.21014934608053" y="-75.108374317979" z="1473.4381942144998" unit="mm" />
       <rotation name="crystal9-4_rot_neg_bot" x="-0.0590610984790547" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-4_pos_pos_top" x="169.2652797649435" y="72.70837431797901" z="1473.4381942144998" unit="mm" />
+      <position name="crystal9-4_pos_pos_top" x="169.2652797649435" y="75.008374317979" z="1473.4381942144998" unit="mm" />
       <rotation name="crystal9-4_rot_pos_top" x="0.0590610984790547" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-4_pos_neg_top" x="-84.21014934608053" y="72.70837431797901" z="1473.4381942144998" unit="mm" />
+      <position name="crystal9-4_pos_neg_top" x="-84.21014934608053" y="75.008374317979" z="1473.4381942144998" unit="mm" />
       <rotation name="crystal9-4_rot_neg_top" x="0.0590610984790547" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal10-4_pos_pos_bot" x="184.27106094882524" y="-72.70837431797901" z="1473.3448854728294" unit="mm" />
+      <position name="crystal10-4_pos_pos_bot" x="184.27106094882524" y="-75.108374317979" z="1473.3448854728294" unit="mm" />
       <rotation name="crystal10-4_rot_pos_bot" x="-0.0590610984790547" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-4_pos_neg_bot" x="-99.21593052996226" y="-72.70837431797901" z="1473.3448854728294" unit="mm" />
+      <position name="crystal10-4_pos_neg_bot" x="-99.21593052996226" y="-75.108374317979" z="1473.3448854728294" unit="mm" />
       <rotation name="crystal10-4_rot_neg_bot" x="-0.0590610984790547" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-4_pos_pos_top" x="184.27106094882524" y="72.70837431797901" z="1473.3448854728294" unit="mm" />
+      <position name="crystal10-4_pos_pos_top" x="184.27106094882524" y="75.008374317979" z="1473.3448854728294" unit="mm" />
       <rotation name="crystal10-4_rot_pos_top" x="0.0590610984790547" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-4_pos_neg_top" x="-99.21593052996226" y="72.70837431797901" z="1473.3448854728294" unit="mm" />
+      <position name="crystal10-4_pos_neg_top" x="-99.21593052996226" y="75.008374317979" z="1473.3448854728294" unit="mm" />
       <rotation name="crystal10-4_rot_neg_top" x="0.0590610984790547" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal11-4_pos_pos_bot" x="199.3118373817202" y="-72.70837431797901" z="1473.2287869269085" unit="mm" />
+      <position name="crystal11-4_pos_pos_bot" x="199.3118373817202" y="-75.108374317979" z="1473.2287869269085" unit="mm" />
       <rotation name="crystal11-4_rot_pos_bot" x="-0.0590610984790547" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-4_pos_neg_bot" x="-114.25670696285724" y="-72.70837431797901" z="1473.2287869269085" unit="mm" />
+      <position name="crystal11-4_pos_neg_bot" x="-114.25670696285724" y="-75.108374317979" z="1473.2287869269085" unit="mm" />
       <rotation name="crystal11-4_rot_neg_bot" x="-0.0590610984790547" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-4_pos_pos_top" x="199.3118373817202" y="72.70837431797901" z="1473.2287869269085" unit="mm" />
+      <position name="crystal11-4_pos_pos_top" x="199.3118373817202" y="75.008374317979" z="1473.2287869269085" unit="mm" />
       <rotation name="crystal11-4_rot_pos_top" x="0.0590610984790547" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-4_pos_neg_top" x="-114.25670696285724" y="72.70837431797901" z="1473.2287869269085" unit="mm" />
+      <position name="crystal11-4_pos_neg_top" x="-114.25670696285724" y="75.008374317979" z="1473.2287869269085" unit="mm" />
       <rotation name="crystal11-4_rot_neg_top" x="0.0590610984790547" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal12-4_pos_pos_bot" x="214.3912899346583" y="-72.70837431797901" z="1473.0899316352588" unit="mm" />
+      <position name="crystal12-4_pos_pos_bot" x="214.3912899346583" y="-75.108374317979" z="1473.0899316352588" unit="mm" />
       <rotation name="crystal12-4_rot_pos_bot" x="-0.0590610984790547" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-4_pos_neg_bot" x="-129.33615951579532" y="-72.70837431797901" z="1473.0899316352588" unit="mm" />
+      <position name="crystal12-4_pos_neg_bot" x="-129.33615951579532" y="-75.108374317979" z="1473.0899316352588" unit="mm" />
       <rotation name="crystal12-4_rot_neg_bot" x="-0.0590610984790547" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-4_pos_pos_top" x="214.3912899346583" y="72.70837431797901" z="1473.0899316352588" unit="mm" />
+      <position name="crystal12-4_pos_pos_top" x="214.3912899346583" y="75.008374317979" z="1473.0899316352588" unit="mm" />
       <rotation name="crystal12-4_rot_pos_top" x="0.0590610984790547" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-4_pos_neg_top" x="-129.33615951579532" y="72.70837431797901" z="1473.0899316352588" unit="mm" />
+      <position name="crystal12-4_pos_neg_top" x="-129.33615951579532" y="75.008374317979" z="1473.0899316352588" unit="mm" />
       <rotation name="crystal12-4_rot_neg_top" x="0.0590610984790547" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal13-4_pos_pos_bot" x="229.51316047997716" y="-72.70837431797901" z="1472.9283591362796" unit="mm" />
+      <position name="crystal13-4_pos_pos_bot" x="229.51316047997716" y="-75.108374317979" z="1472.9283591362796" unit="mm" />
       <rotation name="crystal13-4_rot_pos_bot" x="-0.0590610984790547" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-4_pos_neg_bot" x="-144.4580300611142" y="-72.70837431797901" z="1472.9283591362796" unit="mm" />
+      <position name="crystal13-4_pos_neg_bot" x="-144.4580300611142" y="-75.108374317979" z="1472.9283591362796" unit="mm" />
       <rotation name="crystal13-4_rot_neg_bot" x="-0.0590610984790547" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-4_pos_pos_top" x="229.51316047997716" y="72.70837431797901" z="1472.9283591362796" unit="mm" />
+      <position name="crystal13-4_pos_pos_top" x="229.51316047997716" y="75.008374317979" z="1472.9283591362796" unit="mm" />
       <rotation name="crystal13-4_rot_pos_top" x="0.0590610984790547" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-4_pos_neg_top" x="-144.4580300611142" y="72.70837431797901" z="1472.9283591362796" unit="mm" />
+      <position name="crystal13-4_pos_neg_top" x="-144.4580300611142" y="75.008374317979" z="1472.9283591362796" unit="mm" />
       <rotation name="crystal13-4_rot_neg_top" x="0.0590610984790547" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal14-4_pos_pos_bot" x="244.68125860725365" y="-72.70837431797901" z="1472.744115436989" unit="mm" />
+      <position name="crystal14-4_pos_pos_bot" x="244.68125860725365" y="-75.108374317979" z="1472.744115436989" unit="mm" />
       <rotation name="crystal14-4_rot_pos_bot" x="-0.0590610984790547" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-4_pos_neg_bot" x="-159.62612818839068" y="-72.70837431797901" z="1472.744115436989" unit="mm" />
+      <position name="crystal14-4_pos_neg_bot" x="-159.62612818839068" y="-75.108374317979" z="1472.744115436989" unit="mm" />
       <rotation name="crystal14-4_rot_neg_bot" x="-0.0590610984790547" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-4_pos_pos_top" x="244.68125860725365" y="72.70837431797901" z="1472.744115436989" unit="mm" />
+      <position name="crystal14-4_pos_pos_top" x="244.68125860725365" y="75.008374317979" z="1472.744115436989" unit="mm" />
       <rotation name="crystal14-4_rot_pos_top" x="0.0590610984790547" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-4_pos_neg_top" x="-159.62612818839068" y="72.70837431797901" z="1472.744115436989" unit="mm" />
+      <position name="crystal14-4_pos_neg_top" x="-159.62612818839068" y="75.008374317979" z="1472.744115436989" unit="mm" />
       <rotation name="crystal14-4_rot_neg_top" x="0.0590610984790547" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal15-4_pos_pos_bot" x="259.8994685877143" y="-72.70837431797901" z="1472.537252999924" unit="mm" />
+      <position name="crystal15-4_pos_pos_bot" x="259.8994685877143" y="-75.108374317979" z="1472.537252999924" unit="mm" />
       <rotation name="crystal15-4_rot_pos_bot" x="-0.0590610984790547" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-4_pos_neg_bot" x="-174.84433816885132" y="-72.70837431797901" z="1472.537252999924" unit="mm" />
+      <position name="crystal15-4_pos_neg_bot" x="-174.84433816885132" y="-75.108374317979" z="1472.537252999924" unit="mm" />
       <rotation name="crystal15-4_rot_neg_bot" x="-0.0590610984790547" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-4_pos_pos_top" x="259.8994685877143" y="72.70837431797901" z="1472.537252999924" unit="mm" />
+      <position name="crystal15-4_pos_pos_top" x="259.8994685877143" y="75.008374317979" z="1472.537252999924" unit="mm" />
       <rotation name="crystal15-4_rot_pos_top" x="0.0590610984790547" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-4_pos_neg_top" x="-174.84433816885132" y="72.70837431797901" z="1472.537252999924" unit="mm" />
+      <position name="crystal15-4_pos_neg_top" x="-174.84433816885132" y="75.008374317979" z="1472.537252999924" unit="mm" />
       <rotation name="crystal15-4_rot_neg_top" x="0.0590610984790547" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal16-4_pos_pos_bot" x="275.17175661577164" y="-72.70837431797901" z="1472.3078307282033" unit="mm" />
+      <position name="crystal16-4_pos_pos_bot" x="275.17175661577164" y="-75.108374317979" z="1472.3078307282033" unit="mm" />
       <rotation name="crystal16-4_rot_pos_bot" x="-0.0590610984790547" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-4_pos_neg_bot" x="-190.11662619690867" y="-72.70837431797901" z="1472.3078307282033" unit="mm" />
+      <position name="crystal16-4_pos_neg_bot" x="-190.11662619690867" y="-75.108374317979" z="1472.3078307282033" unit="mm" />
       <rotation name="crystal16-4_rot_neg_bot" x="-0.0590610984790547" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-4_pos_pos_top" x="275.17175661577164" y="72.70837431797901" z="1472.3078307282033" unit="mm" />
+      <position name="crystal16-4_pos_pos_top" x="275.17175661577164" y="75.008374317979" z="1472.3078307282033" unit="mm" />
       <rotation name="crystal16-4_rot_pos_top" x="0.0590610984790547" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-4_pos_neg_top" x="-190.11662619690867" y="72.70837431797901" z="1472.3078307282033" unit="mm" />
+      <position name="crystal16-4_pos_neg_top" x="-190.11662619690867" y="75.008374317979" z="1472.3078307282033" unit="mm" />
       <rotation name="crystal16-4_rot_neg_top" x="0.0590610984790547" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal17-4_pos_pos_bot" x="290.5021783583187" y="-72.70837431797901" z="1472.0559139487518" unit="mm" />
+      <position name="crystal17-4_pos_pos_bot" x="290.5021783583187" y="-75.108374317979" z="1472.0559139487518" unit="mm" />
       <rotation name="crystal17-4_rot_pos_bot" x="-0.0590610984790547" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-4_pos_neg_bot" x="-205.44704793945573" y="-72.70837431797901" z="1472.0559139487518" unit="mm" />
+      <position name="crystal17-4_pos_neg_bot" x="-205.44704793945573" y="-75.108374317979" z="1472.0559139487518" unit="mm" />
       <rotation name="crystal17-4_rot_neg_bot" x="-0.0590610984790547" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-4_pos_pos_top" x="290.5021783583187" y="72.70837431797901" z="1472.0559139487518" unit="mm" />
+      <position name="crystal17-4_pos_pos_top" x="290.5021783583187" y="75.008374317979" z="1472.0559139487518" unit="mm" />
       <rotation name="crystal17-4_rot_pos_top" x="0.0590610984790547" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-4_pos_neg_top" x="-205.44704793945573" y="72.70837431797901" z="1472.0559139487518" unit="mm" />
+      <position name="crystal17-4_pos_neg_top" x="-205.44704793945573" y="75.008374317979" z="1472.0559139487518" unit="mm" />
       <rotation name="crystal17-4_rot_neg_top" x="0.0590610984790547" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal18-4_pos_pos_bot" x="305.89488684464817" y="-72.70837431797901" z="1471.7815743937024" unit="mm" />
+      <position name="crystal18-4_pos_pos_bot" x="305.89488684464817" y="-75.108374317979" z="1471.7815743937024" unit="mm" />
       <rotation name="crystal18-4_rot_pos_bot" x="-0.0590610984790547" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-4_pos_neg_bot" x="-220.8397564257852" y="-72.70837431797901" z="1471.7815743937024" unit="mm" />
+      <position name="crystal18-4_pos_neg_bot" x="-220.8397564257852" y="-75.108374317979" z="1471.7815743937024" unit="mm" />
       <rotation name="crystal18-4_rot_neg_bot" x="-0.0590610984790547" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-4_pos_pos_top" x="305.89488684464817" y="72.70837431797901" z="1471.7815743937024" unit="mm" />
+      <position name="crystal18-4_pos_pos_top" x="305.89488684464817" y="75.008374317979" z="1471.7815743937024" unit="mm" />
       <rotation name="crystal18-4_rot_pos_top" x="0.0590610984790547" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-4_pos_neg_top" x="-220.8397564257852" y="72.70837431797901" z="1471.7815743937024" unit="mm" />
+      <position name="crystal18-4_pos_neg_top" x="-220.8397564257852" y="75.008374317979" z="1471.7815743937024" unit="mm" />
       <rotation name="crystal18-4_rot_neg_top" x="0.0590610984790547" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal19-4_pos_pos_bot" x="321.35414073238366" y="-72.70837431797901" z="1471.4848901799687" unit="mm" />
+      <position name="crystal19-4_pos_pos_bot" x="321.35414073238366" y="-75.108374317979" z="1471.4848901799687" unit="mm" />
       <rotation name="crystal19-4_rot_pos_bot" x="-0.0590610984790547" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-4_pos_neg_bot" x="-236.29901031352068" y="-72.70837431797901" z="1471.4848901799687" unit="mm" />
+      <position name="crystal19-4_pos_neg_bot" x="-236.29901031352068" y="-75.108374317979" z="1471.4848901799687" unit="mm" />
       <rotation name="crystal19-4_rot_neg_bot" x="-0.0590610984790547" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-4_pos_pos_top" x="321.35414073238366" y="72.70837431797901" z="1471.4848901799687" unit="mm" />
+      <position name="crystal19-4_pos_pos_top" x="321.35414073238366" y="75.008374317979" z="1471.4848901799687" unit="mm" />
       <rotation name="crystal19-4_rot_pos_top" x="0.0590610984790547" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-4_pos_neg_top" x="-236.29901031352068" y="72.70837431797901" z="1471.4848901799687" unit="mm" />
+      <position name="crystal19-4_pos_neg_top" x="-236.29901031352068" y="75.008374317979" z="1471.4848901799687" unit="mm" />
       <rotation name="crystal19-4_rot_neg_top" x="0.0590610984790547" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal20-4_pos_pos_bot" x="336.88431298763794" y="-72.70837431797901" z="1471.165945787002" unit="mm" />
+      <position name="crystal20-4_pos_pos_bot" x="336.88431298763794" y="-75.108374317979" z="1471.165945787002" unit="mm" />
       <rotation name="crystal20-4_rot_pos_bot" x="-0.0590610984790547" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-4_pos_neg_bot" x="-251.82918256877497" y="-72.70837431797901" z="1471.165945787002" unit="mm" />
+      <position name="crystal20-4_pos_neg_bot" x="-251.82918256877497" y="-75.108374317979" z="1471.165945787002" unit="mm" />
       <rotation name="crystal20-4_rot_neg_bot" x="-0.0590610984790547" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-4_pos_pos_top" x="336.88431298763794" y="72.70837431797901" z="1471.165945787002" unit="mm" />
+      <position name="crystal20-4_pos_pos_top" x="336.88431298763794" y="75.008374317979" z="1471.165945787002" unit="mm" />
       <rotation name="crystal20-4_rot_pos_top" x="0.0590610984790547" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-4_pos_neg_top" x="-251.82918256877497" y="72.70837431797901" z="1471.165945787002" unit="mm" />
+      <position name="crystal20-4_pos_neg_top" x="-251.82918256877497" y="75.008374317979" z="1471.165945787002" unit="mm" />
       <rotation name="crystal20-4_rot_neg_top" x="0.0590610984790547" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal21-4_pos_pos_bot" x="352.4899000207918" y="-72.70837431797901" z="1470.8248320327364" unit="mm" />
+      <position name="crystal21-4_pos_pos_bot" x="352.4899000207918" y="-75.108374317979" z="1470.8248320327364" unit="mm" />
       <rotation name="crystal21-4_rot_pos_bot" x="-0.0590610984790547" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-4_pos_neg_bot" x="-267.43476960192885" y="-72.70837431797901" z="1470.8248320327364" unit="mm" />
+      <position name="crystal21-4_pos_neg_bot" x="-267.43476960192885" y="-75.108374317979" z="1470.8248320327364" unit="mm" />
       <rotation name="crystal21-4_rot_neg_bot" x="-0.0590610984790547" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-4_pos_pos_top" x="352.4899000207918" y="72.70837431797901" z="1470.8248320327364" unit="mm" />
+      <position name="crystal21-4_pos_pos_top" x="352.4899000207918" y="75.008374317979" z="1470.8248320327364" unit="mm" />
       <rotation name="crystal21-4_rot_pos_top" x="0.0590610984790547" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-4_pos_neg_top" x="-267.43476960192885" y="72.70837431797901" z="1470.8248320327364" unit="mm" />
+      <position name="crystal21-4_pos_neg_top" x="-267.43476960192885" y="75.008374317979" z="1470.8248320327364" unit="mm" />
       <rotation name="crystal21-4_rot_neg_top" x="0.0590610984790547" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal22-4_pos_pos_bot" x="368.17553132284974" y="-72.70837431797901" z="1470.4616460477282" unit="mm" />
+      <position name="crystal22-4_pos_pos_bot" x="368.17553132284974" y="-75.108374317979" z="1470.4616460477282" unit="mm" />
       <rotation name="crystal22-4_rot_pos_bot" x="-0.0590610984790547" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-4_pos_neg_bot" x="-283.12040090398676" y="-72.70837431797901" z="1470.4616460477282" unit="mm" />
+      <position name="crystal22-4_pos_neg_bot" x="-283.12040090398676" y="-75.108374317979" z="1470.4616460477282" unit="mm" />
       <rotation name="crystal22-4_rot_neg_bot" x="-0.0590610984790547" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-4_pos_pos_top" x="368.17553132284974" y="72.70837431797901" z="1470.4616460477282" unit="mm" />
+      <position name="crystal22-4_pos_pos_top" x="368.17553132284974" y="75.008374317979" z="1470.4616460477282" unit="mm" />
       <rotation name="crystal22-4_rot_pos_top" x="0.0590610984790547" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-4_pos_neg_top" x="-283.12040090398676" y="72.70837431797901" z="1470.4616460477282" unit="mm" />
+      <position name="crystal22-4_pos_neg_top" x="-283.12040090398676" y="75.008374317979" z="1470.4616460477282" unit="mm" />
       <rotation name="crystal22-4_rot_neg_top" x="0.0590610984790547" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal23-4_pos_pos_bot" x="383.9459796513255" y="-72.70837431797901" z="1470.0764912474995" unit="mm" />
+      <position name="crystal23-4_pos_pos_bot" x="383.9459796513255" y="-75.108374317979" z="1470.0764912474995" unit="mm" />
       <rotation name="crystal23-4_rot_pos_bot" x="-0.0590610984790547" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-4_pos_neg_bot" x="-298.89084923246253" y="-72.70837431797901" z="1470.0764912474995" unit="mm" />
+      <position name="crystal23-4_pos_neg_bot" x="-298.89084923246253" y="-75.108374317979" z="1470.0764912474995" unit="mm" />
       <rotation name="crystal23-4_rot_neg_bot" x="-0.0590610984790547" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-4_pos_pos_top" x="383.9459796513255" y="72.70837431797901" z="1470.0764912474995" unit="mm" />
+      <position name="crystal23-4_pos_pos_top" x="383.9459796513255" y="75.008374317979" z="1470.0764912474995" unit="mm" />
       <rotation name="crystal23-4_rot_pos_top" x="0.0590610984790547" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-4_pos_neg_top" x="-298.89084923246253" y="72.70837431797901" z="1470.0764912474995" unit="mm" />
+      <position name="crystal23-4_pos_neg_top" x="-298.89084923246253" y="75.008374317979" z="1470.0764912474995" unit="mm" />
       <rotation name="crystal23-4_rot_neg_top" x="0.0590610984790547" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal1-5_pos_pos_bot" x="50.052304484827026" y="-87.7427015552106" z="1473.3833170846683" unit="mm" />
+      <position name="crystal1-5_pos_pos_bot" x="50.052304484827026" y="-90.1427015552106" z="1473.3833170846683" unit="mm" />
       <rotation name="crystal1-5_rot_pos_bot" x="-0.0759356980444989" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-5_pos_neg_bot" x="35.00282593403595" y="-87.7427015552106" z="1473.3833170846683" unit="mm" />
+      <position name="crystal1-5_pos_neg_bot" x="35.00282593403595" y="-90.1427015552106" z="1473.3833170846683" unit="mm" />
       <rotation name="crystal1-5_rot_neg_bot" x="-0.0759356980444989" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-5_pos_pos_top" x="50.052304484827026" y="87.7427015552106" z="1473.3833170846683" unit="mm" />
+      <position name="crystal1-5_pos_pos_top" x="50.052304484827026" y="90.0427015552106" z="1473.3833170846683" unit="mm" />
       <rotation name="crystal1-5_rot_pos_top" x="0.0759356980444989" y="-0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal1-5_pos_neg_top" x="35.00282593403595" y="87.7427015552106" z="1473.3833170846683" unit="mm" />
+      <position name="crystal1-5_pos_neg_top" x="35.00282593403595" y="90.0427015552106" z="1473.3833170846683" unit="mm" />
       <rotation name="crystal1-5_rot_neg_top" x="0.0759356980444989" y="0.0084372997827221" z="0.0" unit="radian" />
-      <position name="crystal2-5_pos_pos_bot" x="64.90537808737002" y="-87.7427015552106" z="1473.4727370465882" unit="mm" />
+      <position name="crystal2-5_pos_pos_bot" x="64.90537808737002" y="-90.1427015552106" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal2-5_rot_pos_bot" x="-0.0759356980444989" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-5_pos_neg_bot" x="20.14975233149295" y="-87.7427015552106" z="1473.4727370465882" unit="mm" />
+      <position name="crystal2-5_pos_neg_bot" x="20.14975233149295" y="-90.1427015552106" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal2-5_rot_neg_bot" x="-0.0759356980444989" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-5_pos_pos_top" x="64.90537808737002" y="87.7427015552106" z="1473.4727370465882" unit="mm" />
+      <position name="crystal2-5_pos_pos_top" x="64.90537808737002" y="90.0427015552106" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal2-5_rot_pos_top" x="0.0759356980444989" y="-0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal2-5_pos_neg_top" x="20.14975233149295" y="87.7427015552106" z="1473.4727370465882" unit="mm" />
+      <position name="crystal2-5_pos_neg_top" x="20.14975233149295" y="90.0427015552106" z="1473.4727370465882" unit="mm" />
       <rotation name="crystal2-5_rot_neg_top" x="0.0759356980444989" y="0.0253118993481663" z="0.0" unit="radian" />
-      <position name="crystal3-5_pos_pos_bot" x="79.76545207982957" y="-87.7427015552106" z="1473.5393367528022" unit="mm" />
+      <position name="crystal3-5_pos_pos_bot" x="79.76545207982957" y="-90.1427015552106" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal3-5_rot_pos_bot" x="-0.0759356980444989" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-5_pos_neg_bot" x="5.289678339033401" y="-87.7427015552106" z="1473.5393367528022" unit="mm" />
+      <position name="crystal3-5_pos_neg_bot" x="5.289678339033401" y="-90.1427015552106" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal3-5_rot_neg_bot" x="-0.0759356980444989" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-5_pos_pos_top" x="79.76545207982957" y="87.7427015552106" z="1473.5393367528022" unit="mm" />
+      <position name="crystal3-5_pos_pos_top" x="79.76545207982957" y="90.0427015552106" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal3-5_rot_pos_top" x="0.0759356980444989" y="-0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal3-5_pos_neg_top" x="5.289678339033401" y="87.7427015552106" z="1473.5393367528022" unit="mm" />
+      <position name="crystal3-5_pos_neg_top" x="5.289678339033401" y="90.0427015552106" z="1473.5393367528022" unit="mm" />
       <rotation name="crystal3-5_rot_neg_top" x="0.0759356980444989" y="0.042186498913610496" z="0.0" unit="radian" />
-      <position name="crystal4-5_pos_pos_bot" x="94.63593952741049" y="-87.7427015552106" z="1473.5830972393524" unit="mm" />
+      <position name="crystal4-5_pos_pos_bot" x="94.63593952741049" y="-90.1427015552106" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal4-5_rot_pos_bot" x="-0.0759356980444989" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-5_pos_neg_bot" x="-9.580809108547513" y="-87.7427015552106" z="1473.5830972393524" unit="mm" />
+      <position name="crystal4-5_pos_neg_bot" x="-9.580809108547513" y="-90.1427015552106" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal4-5_rot_neg_bot" x="-0.0759356980444989" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-5_pos_pos_top" x="94.63593952741049" y="87.7427015552106" z="1473.5830972393524" unit="mm" />
+      <position name="crystal4-5_pos_pos_top" x="94.63593952741049" y="90.0427015552106" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal4-5_rot_pos_top" x="0.0759356980444989" y="-0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal4-5_pos_neg_top" x="-9.580809108547513" y="87.7427015552106" z="1473.5830972393524" unit="mm" />
+      <position name="crystal4-5_pos_neg_top" x="-9.580809108547513" y="90.0427015552106" z="1473.5830972393524" unit="mm" />
       <rotation name="crystal4-5_rot_neg_top" x="0.0759356980444989" y="0.0590610984790547" z="0.0" unit="radian" />
-      <position name="crystal5-5_pos_pos_bot" x="109.52026676464209" y="-87.7427015552106" z="1473.6040060456442" unit="mm" />
+      <position name="crystal5-5_pos_pos_bot" x="109.52026676464209" y="-90.1427015552106" z="1473.6040060456442" unit="mm" />
       <rotation name="crystal5-5_rot_pos_bot" x="-0.0759356980444989" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-5_pos_neg_bot" x="-24.465136345779115" y="-87.7427015552106" z="1473.6040060456442" unit="mm" />
+      <position name="crystal5-5_pos_neg_bot" x="-24.465136345779115" y="-90.1427015552106" z="1473.6040060456442" unit="mm" />
       <rotation name="crystal5-5_rot_neg_bot" x="-0.0759356980444989" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-5_pos_pos_top" x="109.52026676464209" y="87.7427015552106" z="1473.6040060456442" unit="mm" />
+      <position name="crystal5-5_pos_pos_top" x="109.52026676464209" y="90.0427015552106" z="1473.6040060456442" unit="mm" />
       <rotation name="crystal5-5_rot_pos_top" x="0.0759356980444989" y="-0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal5-5_pos_neg_top" x="-24.465136345779115" y="87.7427015552106" z="1473.6040060456442" unit="mm" />
+      <position name="crystal5-5_pos_neg_top" x="-24.465136345779115" y="90.0427015552106" z="1473.6040060456442" unit="mm" />
       <rotation name="crystal5-5_rot_neg_top" x="0.0759356980444989" y="0.0759356980444989" z="0.0" unit="radian" />
-      <position name="crystal6-5_pos_pos_bot" x="124.42187898494643" y="-87.7427015552106" z="1473.602057217992" unit="mm" />
+      <position name="crystal6-5_pos_pos_bot" x="124.42187898494643" y="-90.1427015552106" z="1473.602057217992" unit="mm" />
       <rotation name="crystal6-5_rot_pos_bot" x="-0.0759356980444989" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-5_pos_neg_bot" x="-39.36674856608346" y="-87.7427015552106" z="1473.602057217992" unit="mm" />
+      <position name="crystal6-5_pos_neg_bot" x="-39.36674856608346" y="-90.1427015552106" z="1473.602057217992" unit="mm" />
       <rotation name="crystal6-5_rot_neg_bot" x="-0.0759356980444989" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-5_pos_pos_top" x="124.42187898494643" y="87.7427015552106" z="1473.602057217992" unit="mm" />
+      <position name="crystal6-5_pos_pos_top" x="124.42187898494643" y="90.0427015552106" z="1473.602057217992" unit="mm" />
       <rotation name="crystal6-5_rot_pos_top" x="0.0759356980444989" y="-0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal6-5_pos_neg_top" x="-39.36674856608346" y="87.7427015552106" z="1473.602057217992" unit="mm" />
+      <position name="crystal6-5_pos_neg_top" x="-39.36674856608346" y="90.0427015552106" z="1473.602057217992" unit="mm" />
       <rotation name="crystal6-5_rot_neg_top" x="0.0759356980444989" y="0.0928102976099431" z="0.0" unit="radian" />
-      <position name="crystal7-5_pos_pos_bot" x="139.34424589677138" y="-87.7427015552106" z="1473.5772513113154" unit="mm" />
+      <position name="crystal7-5_pos_pos_bot" x="139.34424589677138" y="-90.1427015552106" z="1473.5772513113154" unit="mm" />
       <rotation name="crystal7-5_rot_pos_bot" x="-0.0759356980444989" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-5_pos_neg_bot" x="-54.28911547790841" y="-87.7427015552106" z="1473.5772513113154" unit="mm" />
+      <position name="crystal7-5_pos_neg_bot" x="-54.28911547790841" y="-90.1427015552106" z="1473.5772513113154" unit="mm" />
       <rotation name="crystal7-5_rot_neg_bot" x="-0.0759356980444989" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-5_pos_pos_top" x="139.34424589677138" y="87.7427015552106" z="1473.5772513113154" unit="mm" />
+      <position name="crystal7-5_pos_pos_top" x="139.34424589677138" y="90.0427015552106" z="1473.5772513113154" unit="mm" />
       <rotation name="crystal7-5_rot_pos_top" x="0.0759356980444989" y="-0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal7-5_pos_neg_top" x="-54.28911547790841" y="87.7427015552106" z="1473.5772513113154" unit="mm" />
+      <position name="crystal7-5_pos_neg_top" x="-54.28911547790841" y="90.0427015552106" z="1473.5772513113154" unit="mm" />
       <rotation name="crystal7-5_rot_neg_top" x="0.0759356980444989" y="0.10968489717538729" z="0.0" unit="radian" />
-      <position name="crystal8-5_pos_pos_bot" x="154.29086746600376" y="-87.7427015552106" z="1473.5295953889813" unit="mm" />
+      <position name="crystal8-5_pos_pos_bot" x="154.29086746600376" y="-90.1427015552106" z="1473.5295953889813" unit="mm" />
       <rotation name="crystal8-5_rot_pos_bot" x="-0.0759356980444989" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-5_pos_neg_bot" x="-69.23573704714077" y="-87.7427015552106" z="1473.5295953889813" unit="mm" />
+      <position name="crystal8-5_pos_neg_bot" x="-69.23573704714077" y="-90.1427015552106" z="1473.5295953889813" unit="mm" />
       <rotation name="crystal8-5_rot_neg_bot" x="-0.0759356980444989" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-5_pos_pos_top" x="154.29086746600376" y="87.7427015552106" z="1473.5295953889813" unit="mm" />
+      <position name="crystal8-5_pos_pos_top" x="154.29086746600376" y="90.0427015552106" z="1473.5295953889813" unit="mm" />
       <rotation name="crystal8-5_rot_pos_top" x="0.0759356980444989" y="-0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal8-5_pos_neg_top" x="-69.23573704714077" y="87.7427015552106" z="1473.5295953889813" unit="mm" />
+      <position name="crystal8-5_pos_neg_top" x="-69.23573704714077" y="90.0427015552106" z="1473.5295953889813" unit="mm" />
       <rotation name="crystal8-5_rot_neg_top" x="0.0759356980444989" y="0.1265594967408315" z="0.0" unit="radian" />
-      <position name="crystal9-5_pos_pos_bot" x="169.2652797649435" y="-87.7427015552106" z="1473.4591030207916" unit="mm" />
+      <position name="crystal9-5_pos_pos_bot" x="169.2652797649435" y="-90.1427015552106" z="1473.4591030207916" unit="mm" />
       <rotation name="crystal9-5_rot_pos_bot" x="-0.0759356980444989" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-5_pos_neg_bot" x="-84.21014934608053" y="-87.7427015552106" z="1473.4591030207916" unit="mm" />
+      <position name="crystal9-5_pos_neg_bot" x="-84.21014934608053" y="-90.1427015552106" z="1473.4591030207916" unit="mm" />
       <rotation name="crystal9-5_rot_neg_bot" x="-0.0759356980444989" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-5_pos_pos_top" x="169.2652797649435" y="87.7427015552106" z="1473.4591030207916" unit="mm" />
+      <position name="crystal9-5_pos_pos_top" x="169.2652797649435" y="90.0427015552106" z="1473.4591030207916" unit="mm" />
       <rotation name="crystal9-5_rot_pos_top" x="0.0759356980444989" y="-0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal9-5_pos_neg_top" x="-84.21014934608053" y="87.7427015552106" z="1473.4591030207916" unit="mm" />
+      <position name="crystal9-5_pos_neg_top" x="-84.21014934608053" y="90.0427015552106" z="1473.4591030207916" unit="mm" />
       <rotation name="crystal9-5_rot_neg_top" x="0.0759356980444989" y="0.14343409630627568" z="0.0" unit="radian" />
-      <position name="crystal10-5_pos_pos_bot" x="184.27106094882524" y="-87.7427015552106" z="1473.3657942791212" unit="mm" />
+      <position name="crystal10-5_pos_pos_bot" x="184.27106094882524" y="-90.1427015552106" z="1473.3657942791212" unit="mm" />
       <rotation name="crystal10-5_rot_pos_bot" x="-0.0759356980444989" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-5_pos_neg_bot" x="-99.21593052996226" y="-87.7427015552106" z="1473.3657942791212" unit="mm" />
+      <position name="crystal10-5_pos_neg_bot" x="-99.21593052996226" y="-90.1427015552106" z="1473.3657942791212" unit="mm" />
       <rotation name="crystal10-5_rot_neg_bot" x="-0.0759356980444989" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-5_pos_pos_top" x="184.27106094882524" y="87.7427015552106" z="1473.3657942791212" unit="mm" />
+      <position name="crystal10-5_pos_pos_top" x="184.27106094882524" y="90.0427015552106" z="1473.3657942791212" unit="mm" />
       <rotation name="crystal10-5_rot_pos_top" x="0.0759356980444989" y="-0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal10-5_pos_neg_top" x="-99.21593052996226" y="87.7427015552106" z="1473.3657942791212" unit="mm" />
+      <position name="crystal10-5_pos_neg_top" x="-99.21593052996226" y="90.0427015552106" z="1473.3657942791212" unit="mm" />
       <rotation name="crystal10-5_rot_neg_top" x="0.0759356980444989" y="0.1603086958717199" z="0.0" unit="radian" />
-      <position name="crystal11-5_pos_pos_bot" x="199.3118373817202" y="-87.7427015552106" z="1473.2496957332003" unit="mm" />
+      <position name="crystal11-5_pos_pos_bot" x="199.3118373817202" y="-90.1427015552106" z="1473.2496957332003" unit="mm" />
       <rotation name="crystal11-5_rot_pos_bot" x="-0.0759356980444989" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-5_pos_neg_bot" x="-114.25670696285724" y="-87.7427015552106" z="1473.2496957332003" unit="mm" />
+      <position name="crystal11-5_pos_neg_bot" x="-114.25670696285724" y="-90.1427015552106" z="1473.2496957332003" unit="mm" />
       <rotation name="crystal11-5_rot_neg_bot" x="-0.0759356980444989" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-5_pos_pos_top" x="199.3118373817202" y="87.7427015552106" z="1473.2496957332003" unit="mm" />
+      <position name="crystal11-5_pos_pos_top" x="199.3118373817202" y="90.0427015552106" z="1473.2496957332003" unit="mm" />
       <rotation name="crystal11-5_rot_pos_top" x="0.0759356980444989" y="-0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal11-5_pos_neg_top" x="-114.25670696285724" y="87.7427015552106" z="1473.2496957332003" unit="mm" />
+      <position name="crystal11-5_pos_neg_top" x="-114.25670696285724" y="90.0427015552106" z="1473.2496957332003" unit="mm" />
       <rotation name="crystal11-5_rot_neg_top" x="0.0759356980444989" y="0.1771832954371641" z="0.0" unit="radian" />
-      <position name="crystal12-5_pos_pos_bot" x="214.3912899346583" y="-87.7427015552106" z="1473.1108404415506" unit="mm" />
+      <position name="crystal12-5_pos_pos_bot" x="214.3912899346583" y="-90.1427015552106" z="1473.1108404415506" unit="mm" />
       <rotation name="crystal12-5_rot_pos_bot" x="-0.0759356980444989" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-5_pos_neg_bot" x="-129.33615951579532" y="-87.7427015552106" z="1473.1108404415506" unit="mm" />
+      <position name="crystal12-5_pos_neg_bot" x="-129.33615951579532" y="-90.1427015552106" z="1473.1108404415506" unit="mm" />
       <rotation name="crystal12-5_rot_neg_bot" x="-0.0759356980444989" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-5_pos_pos_top" x="214.3912899346583" y="87.7427015552106" z="1473.1108404415506" unit="mm" />
+      <position name="crystal12-5_pos_pos_top" x="214.3912899346583" y="90.0427015552106" z="1473.1108404415506" unit="mm" />
       <rotation name="crystal12-5_rot_pos_top" x="0.0759356980444989" y="-0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal12-5_pos_neg_top" x="-129.33615951579532" y="87.7427015552106" z="1473.1108404415506" unit="mm" />
+      <position name="crystal12-5_pos_neg_top" x="-129.33615951579532" y="90.0427015552106" z="1473.1108404415506" unit="mm" />
       <rotation name="crystal12-5_rot_neg_top" x="0.0759356980444989" y="0.19405789500260828" z="0.0" unit="radian" />
-      <position name="crystal13-5_pos_pos_bot" x="229.51316047997716" y="-87.7427015552106" z="1472.9492679425712" unit="mm" />
+      <position name="crystal13-5_pos_pos_bot" x="229.51316047997716" y="-90.1427015552106" z="1472.9492679425712" unit="mm" />
       <rotation name="crystal13-5_rot_pos_bot" x="-0.0759356980444989" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-5_pos_neg_bot" x="-144.4580300611142" y="-87.7427015552106" z="1472.9492679425712" unit="mm" />
+      <position name="crystal13-5_pos_neg_bot" x="-144.4580300611142" y="-90.1427015552106" z="1472.9492679425712" unit="mm" />
       <rotation name="crystal13-5_rot_neg_bot" x="-0.0759356980444989" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-5_pos_pos_top" x="229.51316047997716" y="87.7427015552106" z="1472.9492679425712" unit="mm" />
+      <position name="crystal13-5_pos_pos_top" x="229.51316047997716" y="90.0427015552106" z="1472.9492679425712" unit="mm" />
       <rotation name="crystal13-5_rot_pos_top" x="0.0759356980444989" y="-0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal13-5_pos_neg_top" x="-144.4580300611142" y="87.7427015552106" z="1472.9492679425712" unit="mm" />
+      <position name="crystal13-5_pos_neg_top" x="-144.4580300611142" y="90.0427015552106" z="1472.9492679425712" unit="mm" />
       <rotation name="crystal13-5_rot_neg_top" x="0.0759356980444989" y="0.2109324945680525" z="0.0" unit="radian" />
-      <position name="crystal14-5_pos_pos_bot" x="244.68125860725365" y="-87.7427015552106" z="1472.7650242432805" unit="mm" />
+      <position name="crystal14-5_pos_pos_bot" x="244.68125860725365" y="-90.1427015552106" z="1472.7650242432805" unit="mm" />
       <rotation name="crystal14-5_rot_pos_bot" x="-0.0759356980444989" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-5_pos_neg_bot" x="-159.62612818839068" y="-87.7427015552106" z="1472.7650242432805" unit="mm" />
+      <position name="crystal14-5_pos_neg_bot" x="-159.62612818839068" y="-90.1427015552106" z="1472.7650242432805" unit="mm" />
       <rotation name="crystal14-5_rot_neg_bot" x="-0.0759356980444989" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-5_pos_pos_top" x="244.68125860725365" y="87.7427015552106" z="1472.7650242432805" unit="mm" />
+      <position name="crystal14-5_pos_pos_top" x="244.68125860725365" y="90.0427015552106" z="1472.7650242432805" unit="mm" />
       <rotation name="crystal14-5_rot_pos_top" x="0.0759356980444989" y="-0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal14-5_pos_neg_top" x="-159.62612818839068" y="87.7427015552106" z="1472.7650242432805" unit="mm" />
+      <position name="crystal14-5_pos_neg_top" x="-159.62612818839068" y="90.0427015552106" z="1472.7650242432805" unit="mm" />
       <rotation name="crystal14-5_rot_neg_top" x="0.0759356980444989" y="0.22780709413349667" z="0.0" unit="radian" />
-      <position name="crystal15-5_pos_pos_bot" x="259.8994685877143" y="-87.7427015552106" z="1472.5581618062158" unit="mm" />
+      <position name="crystal15-5_pos_pos_bot" x="259.8994685877143" y="-90.1427015552106" z="1472.5581618062158" unit="mm" />
       <rotation name="crystal15-5_rot_pos_bot" x="-0.0759356980444989" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-5_pos_neg_bot" x="-174.84433816885132" y="-87.7427015552106" z="1472.5581618062158" unit="mm" />
+      <position name="crystal15-5_pos_neg_bot" x="-174.84433816885132" y="-90.1427015552106" z="1472.5581618062158" unit="mm" />
       <rotation name="crystal15-5_rot_neg_bot" x="-0.0759356980444989" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-5_pos_pos_top" x="259.8994685877143" y="87.7427015552106" z="1472.5581618062158" unit="mm" />
+      <position name="crystal15-5_pos_pos_top" x="259.8994685877143" y="90.0427015552106" z="1472.5581618062158" unit="mm" />
       <rotation name="crystal15-5_rot_pos_top" x="0.0759356980444989" y="-0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal15-5_pos_neg_top" x="-174.84433816885132" y="87.7427015552106" z="1472.5581618062158" unit="mm" />
+      <position name="crystal15-5_pos_neg_top" x="-174.84433816885132" y="90.0427015552106" z="1472.5581618062158" unit="mm" />
       <rotation name="crystal15-5_rot_neg_top" x="0.0759356980444989" y="0.24468169369894088" z="0.0" unit="radian" />
-      <position name="crystal16-5_pos_pos_bot" x="275.17175661577164" y="-87.7427015552106" z="1472.328739534495" unit="mm" />
+      <position name="crystal16-5_pos_pos_bot" x="275.17175661577164" y="-90.1427015552106" z="1472.328739534495" unit="mm" />
       <rotation name="crystal16-5_rot_pos_bot" x="-0.0759356980444989" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-5_pos_neg_bot" x="-190.11662619690867" y="-87.7427015552106" z="1472.328739534495" unit="mm" />
+      <position name="crystal16-5_pos_neg_bot" x="-190.11662619690867" y="-90.1427015552106" z="1472.328739534495" unit="mm" />
       <rotation name="crystal16-5_rot_neg_bot" x="-0.0759356980444989" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-5_pos_pos_top" x="275.17175661577164" y="87.7427015552106" z="1472.328739534495" unit="mm" />
+      <position name="crystal16-5_pos_pos_top" x="275.17175661577164" y="90.0427015552106" z="1472.328739534495" unit="mm" />
       <rotation name="crystal16-5_rot_pos_top" x="0.0759356980444989" y="-0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal16-5_pos_neg_top" x="-190.11662619690867" y="87.7427015552106" z="1472.328739534495" unit="mm" />
+      <position name="crystal16-5_pos_neg_top" x="-190.11662619690867" y="90.0427015552106" z="1472.328739534495" unit="mm" />
       <rotation name="crystal16-5_rot_neg_top" x="0.0759356980444989" y="0.26155629326438506" z="0.0" unit="radian" />
-      <position name="crystal17-5_pos_pos_bot" x="290.5021783583187" y="-87.7427015552106" z="1472.0768227550436" unit="mm" />
+      <position name="crystal17-5_pos_pos_bot" x="290.5021783583187" y="-90.1427015552106" z="1472.0768227550436" unit="mm" />
       <rotation name="crystal17-5_rot_pos_bot" x="-0.0759356980444989" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-5_pos_neg_bot" x="-205.44704793945573" y="-87.7427015552106" z="1472.0768227550436" unit="mm" />
+      <position name="crystal17-5_pos_neg_bot" x="-205.44704793945573" y="-90.1427015552106" z="1472.0768227550436" unit="mm" />
       <rotation name="crystal17-5_rot_neg_bot" x="-0.0759356980444989" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-5_pos_pos_top" x="290.5021783583187" y="87.7427015552106" z="1472.0768227550436" unit="mm" />
+      <position name="crystal17-5_pos_pos_top" x="290.5021783583187" y="90.0427015552106" z="1472.0768227550436" unit="mm" />
       <rotation name="crystal17-5_rot_pos_top" x="0.0759356980444989" y="-0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal17-5_pos_neg_top" x="-205.44704793945573" y="87.7427015552106" z="1472.0768227550436" unit="mm" />
+      <position name="crystal17-5_pos_neg_top" x="-205.44704793945573" y="90.0427015552106" z="1472.0768227550436" unit="mm" />
       <rotation name="crystal17-5_rot_neg_top" x="0.0759356980444989" y="0.2784308928298293" z="0.0" unit="radian" />
-      <position name="crystal18-5_pos_pos_bot" x="305.89488684464817" y="-87.7427015552106" z="1471.8024831999942" unit="mm" />
+      <position name="crystal18-5_pos_pos_bot" x="305.89488684464817" y="-90.1427015552106" z="1471.8024831999942" unit="mm" />
       <rotation name="crystal18-5_rot_pos_bot" x="-0.0759356980444989" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-5_pos_neg_bot" x="-220.8397564257852" y="-87.7427015552106" z="1471.8024831999942" unit="mm" />
+      <position name="crystal18-5_pos_neg_bot" x="-220.8397564257852" y="-90.1427015552106" z="1471.8024831999942" unit="mm" />
       <rotation name="crystal18-5_rot_neg_bot" x="-0.0759356980444989" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-5_pos_pos_top" x="305.89488684464817" y="87.7427015552106" z="1471.8024831999942" unit="mm" />
+      <position name="crystal18-5_pos_pos_top" x="305.89488684464817" y="90.0427015552106" z="1471.8024831999942" unit="mm" />
       <rotation name="crystal18-5_rot_pos_top" x="0.0759356980444989" y="-0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal18-5_pos_neg_top" x="-220.8397564257852" y="87.7427015552106" z="1471.8024831999942" unit="mm" />
+      <position name="crystal18-5_pos_neg_top" x="-220.8397564257852" y="90.0427015552106" z="1471.8024831999942" unit="mm" />
       <rotation name="crystal18-5_rot_neg_top" x="0.0759356980444989" y="0.2953054923952735" z="0.0" unit="radian" />
-      <position name="crystal19-5_pos_pos_bot" x="321.35414073238366" y="-87.7427015552106" z="1471.5057989862605" unit="mm" />
+      <position name="crystal19-5_pos_pos_bot" x="321.35414073238366" y="-90.1427015552106" z="1471.5057989862605" unit="mm" />
       <rotation name="crystal19-5_rot_pos_bot" x="-0.0759356980444989" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-5_pos_neg_bot" x="-236.29901031352068" y="-87.7427015552106" z="1471.5057989862605" unit="mm" />
+      <position name="crystal19-5_pos_neg_bot" x="-236.29901031352068" y="-90.1427015552106" z="1471.5057989862605" unit="mm" />
       <rotation name="crystal19-5_rot_neg_bot" x="-0.0759356980444989" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-5_pos_pos_top" x="321.35414073238366" y="87.7427015552106" z="1471.5057989862605" unit="mm" />
+      <position name="crystal19-5_pos_pos_top" x="321.35414073238366" y="90.0427015552106" z="1471.5057989862605" unit="mm" />
       <rotation name="crystal19-5_rot_pos_top" x="0.0759356980444989" y="-0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal19-5_pos_neg_top" x="-236.29901031352068" y="87.7427015552106" z="1471.5057989862605" unit="mm" />
+      <position name="crystal19-5_pos_neg_top" x="-236.29901031352068" y="90.0427015552106" z="1471.5057989862605" unit="mm" />
       <rotation name="crystal19-5_rot_neg_top" x="0.0759356980444989" y="0.31218009196071766" z="0.0" unit="radian" />
-      <position name="crystal20-5_pos_pos_bot" x="336.88431298763794" y="-87.7427015552106" z="1471.186854593294" unit="mm" />
+      <position name="crystal20-5_pos_pos_bot" x="336.88431298763794" y="-90.1427015552106" z="1471.186854593294" unit="mm" />
       <rotation name="crystal20-5_rot_pos_bot" x="-0.0759356980444989" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-5_pos_neg_bot" x="-251.82918256877497" y="-87.7427015552106" z="1471.186854593294" unit="mm" />
+      <position name="crystal20-5_pos_neg_bot" x="-251.82918256877497" y="-90.1427015552106" z="1471.186854593294" unit="mm" />
       <rotation name="crystal20-5_rot_neg_bot" x="-0.0759356980444989" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-5_pos_pos_top" x="336.88431298763794" y="87.7427015552106" z="1471.186854593294" unit="mm" />
+      <position name="crystal20-5_pos_pos_top" x="336.88431298763794" y="90.0427015552106" z="1471.186854593294" unit="mm" />
       <rotation name="crystal20-5_rot_pos_top" x="0.0759356980444989" y="-0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal20-5_pos_neg_top" x="-251.82918256877497" y="87.7427015552106" z="1471.186854593294" unit="mm" />
+      <position name="crystal20-5_pos_neg_top" x="-251.82918256877497" y="90.0427015552106" z="1471.186854593294" unit="mm" />
       <rotation name="crystal20-5_rot_neg_top" x="0.0759356980444989" y="0.3290546915261619" z="0.0" unit="radian" />
-      <position name="crystal21-5_pos_pos_bot" x="352.4899000207918" y="-87.7427015552106" z="1470.8457408390282" unit="mm" />
+      <position name="crystal21-5_pos_pos_bot" x="352.4899000207918" y="-90.1427015552106" z="1470.8457408390282" unit="mm" />
       <rotation name="crystal21-5_rot_pos_bot" x="-0.0759356980444989" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-5_pos_neg_bot" x="-267.43476960192885" y="-87.7427015552106" z="1470.8457408390282" unit="mm" />
+      <position name="crystal21-5_pos_neg_bot" x="-267.43476960192885" y="-90.1427015552106" z="1470.8457408390282" unit="mm" />
       <rotation name="crystal21-5_rot_neg_bot" x="-0.0759356980444989" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-5_pos_pos_top" x="352.4899000207918" y="87.7427015552106" z="1470.8457408390282" unit="mm" />
+      <position name="crystal21-5_pos_pos_top" x="352.4899000207918" y="90.0427015552106" z="1470.8457408390282" unit="mm" />
       <rotation name="crystal21-5_rot_pos_top" x="0.0759356980444989" y="-0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal21-5_pos_neg_top" x="-267.43476960192885" y="87.7427015552106" z="1470.8457408390282" unit="mm" />
+      <position name="crystal21-5_pos_neg_top" x="-267.43476960192885" y="90.0427015552106" z="1470.8457408390282" unit="mm" />
       <rotation name="crystal21-5_rot_neg_top" x="0.0759356980444989" y="0.3459292910916061" z="0.0" unit="radian" />
-      <position name="crystal22-5_pos_pos_bot" x="368.17553132284974" y="-87.7427015552106" z="1470.48255485402" unit="mm" />
+      <position name="crystal22-5_pos_pos_bot" x="368.17553132284974" y="-90.1427015552106" z="1470.48255485402" unit="mm" />
       <rotation name="crystal22-5_rot_pos_bot" x="-0.0759356980444989" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-5_pos_neg_bot" x="-283.12040090398676" y="-87.7427015552106" z="1470.48255485402" unit="mm" />
+      <position name="crystal22-5_pos_neg_bot" x="-283.12040090398676" y="-90.1427015552106" z="1470.48255485402" unit="mm" />
       <rotation name="crystal22-5_rot_neg_bot" x="-0.0759356980444989" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-5_pos_pos_top" x="368.17553132284974" y="87.7427015552106" z="1470.48255485402" unit="mm" />
+      <position name="crystal22-5_pos_pos_top" x="368.17553132284974" y="90.0427015552106" z="1470.48255485402" unit="mm" />
       <rotation name="crystal22-5_rot_pos_top" x="0.0759356980444989" y="-0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal22-5_pos_neg_top" x="-283.12040090398676" y="87.7427015552106" z="1470.48255485402" unit="mm" />
+      <position name="crystal22-5_pos_neg_top" x="-283.12040090398676" y="90.0427015552106" z="1470.48255485402" unit="mm" />
       <rotation name="crystal22-5_rot_neg_top" x="0.0759356980444989" y="0.36280389065705027" z="0.0" unit="radian" />
-      <position name="crystal23-5_pos_pos_bot" x="383.9459796513255" y="-87.7427015552106" z="1470.0974000537913" unit="mm" />
+      <position name="crystal23-5_pos_pos_bot" x="383.9459796513255" y="-90.1427015552106" z="1470.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_pos_bot" x="-0.0759356980444989" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-5_pos_neg_bot" x="-298.89084923246253" y="-87.7427015552106" z="1470.0974000537913" unit="mm" />
+      <position name="crystal23-5_pos_neg_bot" x="-298.89084923246253" y="-90.1427015552106" z="1470.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_neg_bot" x="-0.0759356980444989" y="0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-5_pos_pos_top" x="383.9459796513255" y="87.7427015552106" z="1470.0974000537913" unit="mm" />
+      <position name="crystal23-5_pos_pos_top" x="383.9459796513255" y="90.0427015552106" z="1470.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_pos_top" x="0.0759356980444989" y="-0.3796784902224945" z="0.0" unit="radian" />
-      <position name="crystal23-5_pos_neg_top" x="-298.89084923246253" y="87.7427015552106" z="1470.0974000537913" unit="mm" />
+      <position name="crystal23-5_pos_neg_top" x="-298.89084923246253" y="90.0427015552106" z="1470.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_neg_top" x="0.0759356980444989" y="0.3796784902224945" z="0.0" unit="radian" />
       <constant name="svt_chamber_box_z" value="609.6" />
       <constant name="svt_chamber_flare1_z" value="1285.621" />
@@ -8326,7 +8326,7 @@
     </setup>
   </gdml>
   <fields>
-    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/209acm2_5kg_corrected_unfolded_scaled_1.04545.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
+    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/209acm2_5kg_corrected_unfolded_scaled_1.04545_v4.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
   </fields>
 </lcdd>
 

@@ -53,7 +53,7 @@ public class ReconTestSkeleton extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
 
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
         loop.add(new MainTrackingDriver());
@@ -135,7 +135,6 @@ public class ReconTestSkeleton extends TestCase {
             add(mtc);
 
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
-            add(new org.hps.recon.tracking.gbl.GBLOutputDriver());
             add(new org.hps.recon.tracking.TrackDataDriver());
 
             add(new ReadoutCleanupDriver());

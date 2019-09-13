@@ -72,7 +72,11 @@ public class HeadBankData extends AbstractIntData {
 
     @Override
     protected final void decodeData() { //doesn't actually do anything since there is no decoding done on the ints
-        if (this.bank.length != BANK_SIZE) {
+        /* 
+         * Changed this error check to just make sure there is enough data to decode.
+         * For 2019 data, an extra word was added to this bank but this shouldn't cause problems.  --JM 
+         */
+        if (this.bank.length < BANK_SIZE) {
             throw new RuntimeException("Invalid Data Length:  " + bank.length);
         }
     }

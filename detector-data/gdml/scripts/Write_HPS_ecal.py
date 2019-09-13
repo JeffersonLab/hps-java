@@ -69,7 +69,7 @@ if __name__ == "__main__":
     parser.add_argument('-u','--user',help='User name for the database',default="clasuser")
     parser.add_argument('-p','--passwd',help='Password for connecting to the database',default="")
     parser.add_argument('-d','--debug',action="count",help='Increase debug level by one.')
-    parser.add_argument('-z','--extraz',type=float,help='Amount to add to the Z-location of ECAL')
+    parser.add_argument('-z','--extraz',type=float,help='Amount by which to shift ECAL in z direction')
     args = parser.parse_args(sys.argv[1:])
 
 #
@@ -93,15 +93,16 @@ Standard_Table_Name="hps_ecal"
 # From Stepan: Drawings of Vacuum has the box length = 63.93" and it sticks out upstream by 12" == 51.93" = 1319 mm
 #
 # Box_Start_z = 51.93 * 25.4;  # Location of the FRONT of the box, in the root system. Determined by the exit flange of magnet.
-Box_Start_z = 1318.0  # Value from Holly was 1316, but this causes a 2mm overlap with Sho's SVT vacuum box.
-
+Box_Start_z = 1318.0 + 50.0  # Value from Holly was 1316, but this causes a 2mm overlap with Sho's SVT vacuum box.
+#
+#  50 mm extra to make space for the hodoscope flange.
+#
 x_location_crystal_front = 21.38 # From CAD drawing 2012/01/31
 # Location at front of crystals. The entire array of crystals is centered on the photon line at entrance point.
 ## OLD VALUE = 20.77
 
-if args.extraz:
+if __name__ == "__main__" and args.extraz:
     Box_Start_z += args.extraz
-
 
 
 z_crystal_added = 23. # From the CAD drawing, the crystals are moved back from origin by 23mm. CAD drawings 2012/01/31
@@ -111,7 +112,7 @@ z_crystal_added = 23. # From the CAD drawing, the crystals are moved back from o
 #
 StainlessSteel='StainlessSteel'
 Aluminum='G4_Al'
-Copper='Cu'
+Copper='G4_Cu'
 
 z_location_crystal_front = Box_Start_z + 55. + z_crystal_added # Location of the FRONT of the row 1 crystals, from TARGET.
 # The additional space fits the vacuum front flange and space for the light fibers.
@@ -561,7 +562,7 @@ def calculate_ecal_geometry(g_en,origin=[0,0,0],mother="ECAL",style=1):
 
                     g_en.add(geom=Geometry(
                                          name="ECAL_" + str(n),
-                                         mother="ECAL",
+                                         mother=mother,
                                          description="ECAL Crystal (" + str(inx) + "," + str(iny) + ")",
                                          pos=[crys_pos_x+origin[0], crys_pos_y+origin[1], crys_pos_z+origin[2]],
                                          pos_units="mm",
@@ -587,206 +588,41 @@ def calculate_ecal_geometry(g_en,origin=[0,0,0],mother="ECAL",style=1):
 
                 count += 1
 
-def calculate_ecal_box_geometry(g_en,origin=[0,0,0],mother="ECAL",style=0):
-    """This calculates a box to go around the entire ECAL. It is obsolete and not compatible with the newer calculate_ecal_crystalbox_geometry """
-#
-# Sides
-#
-    etol = 0.001 # Shim, to prevent overlaps.
+def calculate_ecal_vacuum_geometry_minimal(g_en,origin=[0,0,0],mother="ECAL",style=1):
+    """Transcribed from GDML. This creates the detailed vacuum system for the ECAL, with flanges."""
+    ecal_vac_material=Aluminum
 
-    pos=[(Box_Half_width_back+Box_Half_width_front)/2+Plate_side_thickness,0,-Box_Half_depth + Plate_depth]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
+    # front_x = 0.0
+    # front_z = 10.0
+    back_x  = -147.505
+    # back_z  = 440.0
+    chamber_x = -140.828
+    # chamber_z = 225.0
+    # honeycomb_x = -210.0
+    # honeycomb_z = 190.0
+    # ecal_flange_x = 21.17
+    # ecal_flange_z = 1318
 
-    g_en.add(Geometry(
-                      name='ECAL_box_side_right',
-                      mother=mother,
-                      description='Right side box plate',
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col= "CCCCFF",
-                      g4type="Parallelepiped",
-                      dimensions=[Plate_side_thickness/2,Box_height/2-etol,Plate_depth-etol,0,
-                                  math.atan((Box_Half_width_back-Box_Half_width_front)/(2*Plate_depth)),0],
-                      dims_units= ["mm","mm","mm","rad","rad","rad"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-
-    pos=[-(Box_Half_width_back + Box_Half_width_front)/2-Plate_side_thickness,0,-Box_Half_depth + Plate_depth]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
+    fl_visible=1
+    fl_style=style
 
     g_en.add(Geometry(
-                      name="ECAL_box_side_left",
+                      name="front_flange",
+                      description="The Front Flange",
                       mother=mother,
-                      description="left side box plate",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
+                      pos=[origin[0],origin[1],origin[2]-215.],
+                      pos_units=["mm","mm","mm"],
                       rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Parallelepiped",
-                      dimensions=[Plate_side_thickness/2,Box_height/2-etol,Plate_depth-etol,0,
-                                  -math.atan((Box_Half_width_back-Box_Half_width_front)/(2*Plate_depth)),0],
-                      dims_units=["mm","mm","mm","rad","rad","rad"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-
-    pos=[Box_Half_width_back+Plate_side_thickness/2,0,Plate_depth-Plate_side_thickness/2]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_side_right_back",
-                      mother=mother,
-                      description="Right side box plate back",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
+                      rot_units=["deg","deg","deg"],
                       g4type="Box",
-                      dimensions=[Plate_side_thickness/2,Box_height/2,Box_Half_depth-Plate_depth-Plate_side_thickness/2],
+                      dimensions=[768.35/2.,457.2/2.,20./2.],
                       dims_units=["mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
+                      col="ccccdd",
+                      material=Aluminum,
+                      style=fl_style,
+                      visible=fl_visible
                       ))
 
-    pos=[-Box_Half_width_back-Plate_side_thickness/2,0,Plate_depth-Plate_side_thickness/2]
-    mpos=[ x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_side_left_back",
-                      mother=mother,
-                      description="Left side box plate back",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Box",
-                      dimensions=[Plate_side_thickness/2,Box_height/2,Box_Half_depth-Plate_depth-Plate_side_thickness/2],
-                      dims_units=["mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-
-    pos=[0,Vacuum_gap_y/2+Vacuum_plate_thickness/2. +10 + Box_height/4,Box_Half_depth-Plate_side_thickness/2]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_back_top",
-                      mother=mother,
-                      description="Back top side plate",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Box",
-                      dimensions=[Box_Half_width_back,Box_height/4-Vacuum_gap_y/2-Vacuum_plate_thickness/2.-10,Plate_side_thickness/2],
-                      dims_units=["mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-
-    pos=[0, -(Vacuum_gap_y/2+Vacuum_plate_thickness/2. +10 + Box_height/4),Box_Half_depth-Plate_side_thickness/2]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_back_bot",
-                      mother=mother,
-                      description="Back bottom side plate",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Box",
-                      dimensions=[Box_Half_width_back,Box_height/4-Vacuum_gap_y/2-Vacuum_plate_thickness/2.-10,Plate_side_thickness/2],
-                      dims_units=["mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-# #
-# # Create the box top & bottom of box
-# #
-    pos=[0,Box_height/2-Plate_side_thickness/2,-Box_Half_depth + Plate_depth+ Front_flange_half_thickness]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_top",
-                      mother=mother,
-                      description="Top box plate, front",
-                      pos = mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Trd",
-                      dimensions=[Box_Half_width_front,Box_Half_width_back,Plate_side_thickness/2,Plate_side_thickness/2-etol,Plate_depth- Front_flange_half_thickness],
-                      dims_units=["mm","mm","mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-#
-    pos=[0, -(Box_height/2-Plate_side_thickness/2),-Box_Half_depth + Plate_depth+ Front_flange_half_thickness]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_bot",
-                      mother=mother,
-                      description="Bottom box plate, front",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Trd",
-                      dimensions=[Box_Half_width_front,Box_Half_width_back,Plate_side_thickness/2,Plate_side_thickness/2-etol,Plate_depth- Front_flange_half_thickness],
-                      dims_units=["mm","mm","mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-
-    pos=[0,Box_height/2-Plate_side_thickness/2,Plate_depth-Plate_side_thickness/2]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_top_back",
-                      mother=mother,
-                      description="Top vacuum box plate, backside",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Box",
-                      dimensions=[Box_Half_width_back,Plate_side_thickness/2,Box_Half_depth - Plate_depth-Plate_side_thickness/2],
-                      dims_units=["mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
-
-    pos=[0, -(Box_height/2-Plate_side_thickness/2),Plate_depth-Plate_side_thickness/2]
-    mpos=[x+y for (x,y) in zip(origin,pos)]
-
-    g_en.add(Geometry(
-                      name="ECAL_box_bot_back",
-                      mother=mother,
-                      description="Bottom vacuum box plate, backside",
-                      pos=mpos,
-                      pos_units =["mm","mm","mm"],
-                      rot=[0,0,0],
-                      rot_units =["deg","deg","deg"],
-                      col="CCCCFF",
-                      g4type="Box",
-                      dimensions=[Box_Half_width_back,Plate_side_thickness/2,Box_Half_depth - Plate_depth- Plate_side_thickness/2],
-                      dims_units=["mm","mm","mm"],
-                      material=Box_plate_material,
-                      style=style
-                      ))
 
 def calculate_ecal_vacuum_geometry(g_en,origin=[0,0,0],mother="ECAL",style=1):
     """Transcribed from GDML. This creates the detailed vacuum system for the ECAL, with flanges."""
@@ -1494,13 +1330,6 @@ def calculate_ecal_vacuum_geometry(g_en,origin=[0,0,0],mother="ECAL",style=1):
             material='AlHoneycomb',
             style=style)
         g_en.add(geo)
-
-
-
-#                       col="ff0000",
-#                       material=Aluminum,
-#                       style=1,
-#                       visible=1
 
 
 ###############Crystal Box encasing ECal Crystals###############################
@@ -2312,12 +2141,12 @@ def calculate_ecal_crystalbox_geometry(g_en,mother="ECAL",origin=[0,0,0]):
           pos_units=['cm', 'cm', 'cm'],
           rot=[0.0, 0.0, 0.0],
           rot_units=['deg', 'deg', 'deg'],
-          col='bbbbcc',
+          col='FF0000',
           g4type='Operation: layer_5b4 + ppd_5',
           dimensions=[0.0],
           dims_units=['cm'],
           material=Aluminum)
-    g_en.add(geo)
+#    g_en.add(geo)
 
     geo = Geometry(
           name='layer_5B_right',
@@ -2327,12 +2156,12 @@ def calculate_ecal_crystalbox_geometry(g_en,mother="ECAL",origin=[0,0,0]):
           pos_units=['cm', 'cm', 'cm'],
           rot=[0.0, 0.0, 0.0],
           rot_units=['deg', 'deg', 'deg'],
-          col='bbbbcc',
+          col='FF0000',
           g4type='Operation: layer_5b4 + ppd_5',
           dimensions=[0.0],
           dims_units=['cm'],
           material=Aluminum)
-    g_en.add(geo)
+#    g_en.add(geo)
 
     geo = Geometry(
           name='steel_bar',
@@ -2350,6 +2179,159 @@ def calculate_ecal_crystalbox_geometry(g_en,mother="ECAL",origin=[0,0,0]):
           style=1)
 
     g_en.add(geo)
+
+
+def calculate_ecal_coolingsys_geometry_minimal(g_en,mother="ECAL",origin=[0,0,0]):
+
+    copper_color='cc9900'
+    copper_material=Copper
+    geo = Geometry(
+          name='cu_Tpipe_inner_left',
+          mother=mother,
+          description='Copper pipe in electron hole, top inner left',
+          pos=[origin[0]/10. -0.5,origin[1]/10. +2.7, origin[2]/10. +z_location_crystalbox_offset/10.],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, -0.956, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='Tube',
+          dimensions=[cu_pipe_ir, cu_pipe_or, 10.05, 0.0, 360.0],
+          dims_units=['cm', 'cm', 'cm', 'deg', 'deg'],
+          material=StainlessSteel,
+          style=1)
+    g_en.add(geo)
+
+def dummy(g_en,mother,origin):
+    geo = Geometry(
+          name='cu_Tpipe_inner_right',
+          mother=mother,
+          description='Copper pipe in electron hole, top inner right',
+          pos=[origin[0]/10. -11.3, origin[1]/10. +2.7, origin[2]/10. +z_location_crystalbox_offset/10.],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 9.68, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='Tube',
+          dimensions=[cu_pipe_ir, cu_pipe_or, 10.05, 0.0, 360.0],
+          dims_units=['cm', 'cm', 'cm', 'deg', 'deg'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+    geo = Geometry(
+          name='cu_Bpipe_inner_left',
+          mother=mother,
+          description='Copper pipe in electron hole, bottom inner left',
+          pos=[origin[0]/10. -0.5, origin[1]/10. -2.7, origin[2]/10. +z_location_crystalbox_offset/10.],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, -0.956, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='Tube',
+          dimensions=[cu_pipe_ir, cu_pipe_or, 10.05, 0.0, 360.0],
+          dims_units=['cm', 'cm', 'cm', 'deg', 'deg'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+    geo = Geometry(
+          name='cu_Bpipe_inner_right',
+          mother=mother,
+          description='Copper pipe in electron hole, bottom inner right',
+          pos=[origin[0]/10. -11.3, origin[1]/10. -2.7, origin[2]/10. +z_location_crystalbox_offset/10.],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 9.68, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='Tube',
+          dimensions=[cu_pipe_ir, cu_pipe_or, 10.05, 0.0, 360.0],
+          dims_units=['cm', 'cm', 'cm', 'deg', 'deg'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+    geo = Geometry(
+          name='cu_Tpipe_outer_right1',
+          mother=mother,
+          description='Copper pipe in electron hole, top outer right1',
+          pos=[origin[0]/10. -13.0, origin[1]/10. +1.4, origin[2]/10.-5.0],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 10.0, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='EllipticalTube',
+          dimensions=[0.5, 0.1, 10.0],
+          dims_units=['cm', 'cm', 'cm'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+    geo = Geometry(
+          name='cu_Tpipe_outer_right2',
+          mother=mother,
+          description='Copper pipe in electron hole, top outer right2',
+          pos=[origin[0]/10. -30.0,origin[1]/10. + 1.4, origin[2]/10. -5.0],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 0.0, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='EllipticalTube',
+          dimensions=[0.5, 0.1, 10.0],
+          dims_units=['cm', 'cm', 'cm'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+    geo = Geometry(
+          name='cu_Tpipe_outer_right3',
+          mother=mother,
+          description='Copper pipe in electron hole, top outer right3',
+          pos=[origin[0]/10. -37.0, origin[1]/10. +1.5, origin[2]/10. -17.2],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 90.0, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='Tube',
+          dimensions=[cu_pipe_ir, cu_pipe_or, 4.0, 0.0, 360.0],
+          dims_units=['cm', 'cm', 'cm', 'deg', 'deg'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+    geo = Geometry(
+          name='cu_Bpipe_outer_right',
+          mother=mother,
+          description='Copper pipe in electron hole, bottom outer right',
+          pos=[origin[0]/10. -37.0, origin[1]/10. -1.5, origin[2]/10. -17.2],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 90.0, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='Tube',
+          dimensions=[cu_pipe_ir, cu_pipe_or, 4.0, 0.0, 360.0],
+          dims_units=['cm', 'cm', 'cm', 'deg', 'deg'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+
+    geo = Geometry(
+          name='cu_Bpipe_outer_right1',
+          mother=mother,
+          description='Copper pipe in electron hole, bottom outer right1',
+          pos=[origin[0]/10. -13.0, origin[1]/10. -1.4, origin[2]/10. -5.0],
+          pos_units=['cm', 'cm', 'cm'],
+          rot=[0.0, 10.0, 0.0],
+          rot_units=['deg', 'deg', 'deg'],
+          col=copper_color,
+          g4type='EllipticalTube',
+          dimensions=[0.5, 0.1, 10.0],
+          dims_units=['cm', 'cm', 'cm'],
+          material=copper_material,
+          style=1)
+    g_en.add(geo)
+
+
 
 
 ##################Copper Pipes###################################################
@@ -2729,7 +2711,7 @@ if __name__ == "__main__":
 #
 #################################################################################################
 
-    Detector = "ecal_vacuum"
+    Detector = "ecal_vacuum_flange_complete_v3"
 
     Variation= "original"
 
@@ -2746,10 +2728,11 @@ if __name__ == "__main__":
 #    Set_Global_Parameters()
     #calculate_ecal_mother_geometry(geo_en,mother="world_volume")
     #origin=[x_location_crystal_front,0,z_location]
-    origin=[21.17,0,z_location]
+#    origin=[21.17,0,z_location]   $ OLD valueself.
+    origin=[21.42,0,z_location]  # To correspond to v1 GDML version.
 
     if not args.nocrystals:
-        calculate_ecal_geometry(geo_en,mother="world_volume")
+        calculate_ecal_geometry(geo_en,origin=origin,mother="world_volume")
     calculate_ecal_vacuum_geometry(geo_en,origin=origin,mother="world_volume")
     calculate_ecal_crystalbox_geometry(geo_en,origin=origin,mother="world_volume")
     calculate_ecal_coolingsys_geometry(geo_en,origin=origin,mother="world_volume")
@@ -2775,7 +2758,7 @@ if __name__ == "__main__":
         rr.Build_volumes(geo_en)
         if args.gdml:
             rr._geom.Export(Detector+".gdml")
-            post_process_gdml_file(Detector+"ecal.gdml")
+            post_process_gdml_file(Detector+".gdml")
         if args.show:
             topvol = rr.Draw("ogl")
             print("Type return to end program.")
