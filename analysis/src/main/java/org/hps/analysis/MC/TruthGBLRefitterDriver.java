@@ -1,4 +1,6 @@
-package org.hps.recon.tracking.gbl;
+package org.hps.analysis.MC;
+
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,29 +11,36 @@ import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.record.StandardCuts;
+import org.hps.recon.tracking.gbl.GBLKinkData;
+import org.hps.recon.tracking.gbl.MakeGblTracks;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.FieldMap;
+import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * A Driver which refits tracks using GBL. Does not require GBL collections to
- * be present in the event.
+ * A Driver which refits tracks using GBL, but only the truth hits of interest. Does not require GBL collections to
+ * be present in the event. This is adapted from the nominal GBLRefitterDriver.
+ * 
+ * @author Matt Solt
  */
-public class GBLRefitterDriver extends Driver {
+public class TruthGBLRefitterDriver extends Driver {
 
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
@@ -39,29 +48,20 @@ public class GBLRefitterDriver extends Driver {
     private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
     private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
+    private String kinkDataCollectionName = "GBLKinkData_truth";
+    private String kinkDataRelationsName = "GBLKinkDataRelations_truth";
+    private String trackToMCParticleRelationsName = "TrackTruthToMCParticleRelations";
+    
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
-    private boolean storeTrackStates = false;
-    private StandardCuts cuts = new StandardCuts();
+    private boolean storeTrackStates = true;
 
-    private MilleBinary mille;
-    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
-    private boolean writeMilleBinary = false;
-    private double writeMilleChi2Cut = 20;
-
-    public void setWriteMilleChi2Cut(int input) {
-        writeMilleChi2Cut = input;
-    }
-
-    public void setMilleBinaryFileName(String filename) {
-        milleBinaryFileName = filename;
-    }
-
-    public void setWriteMilleBinary(boolean writeMillepedeFile) {
-        writeMilleBinary = writeMillepedeFile;
-    }
-
+    private List<HpsSiSensor> sensors = null;
+    FieldMap bFieldMap = null;
+    private static final String SUBDETECTOR_NAME = "Tracker";
+    protected static Subdetector trackerSubdet;
+    
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
     }
@@ -81,7 +81,7 @@ public class GBLRefitterDriver extends Driver {
     public void setTrackRelationCollectionName(String trackRelationCollectionName) {
         this.trackRelationCollectionName = trackRelationCollectionName;
     }
-
+    
     public void setHelicalTrackHitRelationsCollectionName(String helicalTrackHitRelationsCollectionName) {
         this.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
     }
@@ -89,39 +89,17 @@ public class GBLRefitterDriver extends Driver {
     public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
         this.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
     }
-
+    
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
-
-    public void setMaxTrackChisq(int nhits, double input) {
-        cuts.setMaxTrackChisq(nhits, input);
+    
+    public void setKinkDataCollectionName(String kinkDataCollectionName) {
+        this.kinkDataCollectionName = kinkDataCollectionName;
     }
-
-    public void setMaxTrackChisq5hits(double input) {
-        cuts.setMaxTrackChisq(5, input);
-    }
-
-    public void setMaxTrackChisq6hits(double input) {
-        cuts.setMaxTrackChisq(6, input);
-    }
-
-    public void setMaxTrackChisqProb(double input) {
-        cuts.changeChisqTrackProb(input);
-    }
-
-    @Override
-    protected void startOfData() {
-        if (writeMilleBinary) {
-            mille = new MilleBinary(milleBinaryFileName);
-        }
-    }
-
-    @Override
-    protected void endOfData() {
-        if (writeMilleBinary) {
-            mille.close();
-        }
+    
+    public void setKinkDataRelationsName(String kinkDataRelationsName) {
+        this.kinkDataRelationsName = kinkDataRelationsName;
     }
 
     @Override
@@ -129,50 +107,54 @@ public class GBLRefitterDriver extends Driver {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+        
+        bFieldMap = detector.getFieldMap();
+        
+        // Get the HpsSiSensor objects from the tracker detector element
+        sensors = detector.getSubdetector(SUBDETECTOR_NAME)
+                          .getDetectorElement().findDescendants(HpsSiSensor.class);
+        
+        trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
     }
 
     @Override
     protected void process(EventHeader event) {
-        if (!event.hasCollection(Track.class, inputCollectionName))
+        if (!event.hasCollection(Track.class, inputCollectionName)){
+            System.out.println("System has no input collection");
             return;
+        }
 
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
-        //       System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
-        //RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        //RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
+        RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
+        RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
+        
+        List<LCRelation> trackToMCParticleRelations = new ArrayList<LCRelation>();
 
         Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            List<TrackerHit> temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
-            if (temp.size() == 0)
-                //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
+            if (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0){
                 continue;
-
-            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
-            Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
+            }
+            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            if (writeMilleBinary) {
-                if (gblTrk.getChi2() < writeMilleChi2Cut)
-                    newTrackTraj.getSecond().get_traj().milleOut(mille);
-            }
 
-            //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
-            if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
-                continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
             inputToRefitted.put(track, gblTrk);
+            MCFullDetectorTruth truthMatch = new MCFullDetectorTruth(event, track, bFieldMap, sensors, trackerSubdet);
+            if(truthMatch != null){
+                MCParticle p = truthMatch.getMCParticle();
+                trackToMCParticleRelations.add(new BaseLCRelation(gblTrk,p));
+            }
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
@@ -181,8 +163,9 @@ public class GBLRefitterDriver extends Driver {
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, refittedTracks, Track.class, flag);
         event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
-        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
-        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
+        event.put(kinkDataCollectionName, kinkDataCollection, GBLKinkData.class, 0);
+        event.put(kinkDataRelationsName, kinkDataRelations, LCRelation.class, 0);
+        event.put(trackToMCParticleRelationsName, trackToMCParticleRelations, LCRelation.class, 0);
     }
 
     private void setupSensors(EventHeader event) {
@@ -224,5 +207,25 @@ public class GBLRefitterDriver extends Driver {
             if (hit.getDetectorElement() == null)
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
         }
+    }
+    
+    //These functions are adapted from the same ones in TrackUtils, but without the "cache"
+    static RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
+        RelationalTable hitToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> hitrelations = event.get(LCRelation.class, HelicalTrackHitRelationsCollectionName);
+        for (LCRelation relation : hitrelations)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                hitToStrips.add(relation.getFrom(), relation.getTo());
+        return hitToStrips;
+    }
+
+    static RelationalTable getHitToRotatedTable(EventHeader event, String RotatedHelicalTrackHitRelationsCollectionName) {
+        RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
+        for (LCRelation relation : rotaterelations)
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                hitToRotated.add(relation.getFrom(), relation.getTo());
+            }
+        return hitToRotated;
     }
 }

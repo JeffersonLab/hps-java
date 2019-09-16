@@ -96,6 +96,9 @@ public class TrackTruthMatching {
                         //System.out.println("Is hit? " + mapGoodHitList.get(simhitpart).get(simlay));
                         //System.out.println("Nhits " + mcmap.get(simhitpart));
                     }
+                    else{
+                        System.out.println("SIM HIT IS NULL!!!!!!!!");
+                    }
                 }
                 /*if(mcPartList.size() > 1){
                     for(MCParticle p : mapGoodHitList.keySet()){

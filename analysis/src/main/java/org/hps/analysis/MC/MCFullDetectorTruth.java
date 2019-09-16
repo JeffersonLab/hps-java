@@ -6,6 +6,7 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +19,12 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.IDDecoder;
@@ -29,11 +32,8 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.swim.Trajectory;
 
 /**
- * This is the tuple template driver
- * Use this to add your code and variables to make a tuple
- * Run the GeneralTupleDriver to output info into a text file
- * Change the steering file to include this driver
- * Run "makeTree.py" on text file to create a root tuple
+ * This is the driver that takes a TrackTruthMatching object
+ * and computes the full truth information
  *
  * @author mrsolt on Aug 31, 2017
  */
@@ -41,6 +41,8 @@ import org.lcsim.util.swim.Trajectory;
 public class MCFullDetectorTruth{
 
     private TrackTruthMatching _pTruth =  null;
+    private List<SimTrackerHit> _truthActHits = null;
+    private Map<Integer,Set<Track>> _sharedTrk = new HashMap<Integer,Set<Track>>();
     private Map<Integer,Hep3Vector> _actHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Hep3Vector> _inactHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Hep3Vector> _actHitP = new HashMap<Integer,Hep3Vector>();
@@ -59,6 +61,7 @@ public class MCFullDetectorTruth{
     private String trackerHitsCollectionName = "TrackerHits";
     private String inactiveTrackerHitsCollectionName = "TrackerHits_Inactive";
     private String ecalHitsCollectionName = "EcalHits";
+    private String trackCollectionName = "GBLTracks";
     private final String mcParticleCollectionName = "MCParticle";
     private String detectorFrameHitRelationsCollectionName = "HelicalTrackHitRelations";
     private String trackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
@@ -73,6 +76,8 @@ public class MCFullDetectorTruth{
     
         List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, trackerHitsCollectionName);
         List<SimTrackerHit> trackerHits_Inactive = null;
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
+        
         if(event.hasCollection(SimTrackerHit.class , inactiveTrackerHitsCollectionName)){
             trackerHits_Inactive = event.get(SimTrackerHit.class, inactiveTrackerHitsCollectionName);
         }
@@ -93,10 +98,43 @@ public class MCFullDetectorTruth{
         if(truthp == null)
             return;
         
-        List<SimTrackerHit> truthActHits = trackerHitMap.get(truthp);
+        List<TrackerHit> trk_hits = trk.getTrackerHits();
+        for(Track track : tracks){
+            if(track.equals(trk))
+                continue;
+            boolean sharedHit = false;
+            List<TrackerHit> hits = track.getTrackerHits();
+            int sharedLay = 9999;
+            for(TrackerHit hit : hits){
+                for(TrackerHit trk_hit : trk_hits){
+                    int lay = ((RawTrackerHit) trk_hit.getRawHits().get(0)).getLayerNumber();
+                    if(!_sharedTrk.containsKey(lay)){
+                        _sharedTrk.put(lay,new HashSet<Track>());
+                    }
+                    if(hit.equals(trk_hit)){
+                        sharedHit = true;
+                        sharedLay = lay;
+                        break;
+                    }
+                }
+                if(sharedHit)
+                    break;
+            }
+            if(sharedHit){
+                if(_sharedTrk.containsKey(sharedLay)){
+                    _sharedTrk.get(sharedLay).add(track);
+                }
+                else{
+                    _sharedTrk.put(sharedLay,new HashSet<Track>());
+                }
+            }
+        }
+        
+        //List<SimTrackerHit> truthActHits = trackerHitMap.get(truthp);
+        _truthActHits = trackerHitMap.get(truthp);
         List<SimTrackerHit> truthInActHits = trackerInHitMap.get(truthp);
         
-        ComputeSVTVars(truthp, truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
+        ComputeSVTVars(truthp, _truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
         
         List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, ecalHitsCollectionName);
         Map<MCParticle, List<SimCalorimeterHit>> calHitMap = BuildCalHitMap(calHits);
@@ -401,7 +439,12 @@ public class MCFullDetectorTruth{
                     return -1;
                 }
             }
-            return sensor.getLayerNumber();
+            if(sensor != null){
+                return sensor.getLayerNumber();
+            }
+            else{
+                return -1;
+            }
         }
     }
     
@@ -642,6 +685,12 @@ public class MCFullDetectorTruth{
         return _pTruth.isTop();
     }
 
+    //Returns list of all Tracks associated with a tracker hit
+    //on a layer
+    public Set<Track> getHitTrackList(int layer) {
+        return _sharedTrk.get(layer);
+    }
+    
     //Returns the number of MCParticles that contribute to the
     //tracker hit at a layer
     public int getNumberOfMCParticles(int layer) {
@@ -654,6 +703,10 @@ public class MCFullDetectorTruth{
         return _pTruth.getHitMCParticleList(layer);
     }
 
+    //Returns all active hits associated with MC particle
+    public List<SimTrackerHit> getActiveHitListMCParticle(){
+        return _truthActHits;
+    }
     
     //Returns a boolean of which hits of MCParticle contribute
     //to the track

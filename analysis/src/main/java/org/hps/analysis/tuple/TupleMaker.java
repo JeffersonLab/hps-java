@@ -956,7 +956,11 @@ public abstract class TupleMaker extends Driver {
         
     }
 
-    protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso) {
+    //Overload this method to get custom kinks to GBL track relation
+    protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso){
+        return fillParticleVariables(event, particle, prefix, doTrkExtrap, doRaw, doIso, "");
+    }
+    protected TrackState fillParticleVariables(EventHeader event, ReconstructedParticle particle, String prefix, boolean doTrkExtrap, boolean doRaw, boolean doIso, String KinkToGBLRelations) {
         TrackState trackState = null;
         if (particle == null)
             return trackState;
@@ -1003,6 +1007,9 @@ public abstract class TupleMaker extends Driver {
                 CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(track.getTrackerHits()
                         .get(0).getPosition())));
         GenericObject kinks = GBLKinkData.getKinkData(event, track);
+        if(KinkToGBLRelations != ""){
+            RefitTrackTruthTupleDriver.getKinkData(event, track, KinkToGBLRelations);
+        }
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
@@ -1127,7 +1134,6 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(prefix + "PhiKink6/D", kinks != null ? GBLKinkData.getPhiKink(kinks, 6) : 0);
 
         tupleMap.put(prefix + "MatchChisq/D", particle.getGoodnessOfPID());
-
 
         if (!particle.getClusters().isEmpty()) {
             fillParticleVariablesClusters(prefix, particle, event);
