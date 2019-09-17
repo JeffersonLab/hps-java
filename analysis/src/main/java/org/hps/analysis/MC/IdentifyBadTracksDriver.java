@@ -30,7 +30,10 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver to skim selected events from LCIO files based on 
- * track picking up the wrong hit
+ * track picking up the wrong hit.
+ * It outputs the bad track, the MCParticle associated with the bad hit,
+ * the truth hits associated with the truth match, and the track of the 
+ * other particle associated with the bad hit (if any)
  * This driver can only be run on MC readout with full truth.
  *
  * @author Matt Solt
@@ -97,8 +100,6 @@ public class IdentifyBadTracksDriver extends Driver{
         List<LCRelation> trackBadToBadReconParticleRelations = new ArrayList<LCRelation>();
         List<ReconstructedParticle> otherReconParticles = new ArrayList<ReconstructedParticle>();
         List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
-        //System.out.println("");
-        //System.out.println("New Event!");
         //Loop over all tracks
         for(Track track:allTracks){
             //Match the track to a MC truth particle
@@ -153,11 +154,8 @@ public class IdentifyBadTracksDriver extends Driver{
         List<TrackerHit> hits = trk.getTrackerHits();
         //for(TrackerHit hit : hits){
         for(int layer = 1; layer < 13; layer++){
-            //int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
-            if (truthMatch.getHitList(layer) == null || truthMatch.getHitMCParticleList(layer) == null){
-                System.out.println("Truth Match layer " + layer + " is null");
+            if (truthMatch.getHitList(layer) == null || truthMatch.getHitMCParticleList(layer) == null)
                 continue;
-            }
             System.out.println(truthMatch.getHitList(layer) + " Layer " + layer + " " + truthMatch.getHitMCParticleList(layer).size());
             if(truthMatch.getHitList(layer))
                 continue;
@@ -169,19 +167,15 @@ public class IdentifyBadTracksDriver extends Driver{
             }
             double maxP = 0.0;
             for(MCParticle part : badPList){
-                System.out.println(truthMatch.getMCParticle() + "Layer " + layer + "  " + part.getPDGID() + "  " + part.getEnergy());
                 double p = part.getMomentum().magnitude();
                 if(p > maxP){
                     badP = part;
                     break;
                 }
             }
-            if(badP != null){
-                System.out.println("Output " + truthMatch.getMCParticle() + "Layer " + layer + "  " + badP.getPDGID() + "  " + badP.getEnergy());
+            if(badP != null)
                 return badP;
-            }
         }
-        System.out.println("Bad P is Null");
         return badP;
     }
     
@@ -209,11 +203,9 @@ public class IdentifyBadTracksDriver extends Driver{
                 }
             }
             if(badTrk != null){
-                //System.out.println("Trk selected " + Math.abs(TrackUtils.getHTF(badTrk.getTrackStates().get(0)).p(bFieldMap.getField(new BasicHep3Vector(0, 0, 500)).y())));
                 return badTrk;
             }
         }
-        //System.out.println("Trk selected " + badTrk);
         return badTrk;
     }
     

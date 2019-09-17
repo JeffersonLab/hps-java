@@ -19,6 +19,9 @@ import org.lcsim.event.TrackerHit;
  *
  * @author Matt Solt
  * based off of "TrackAnalysis" Driver
+ * This class matches a track to an MCParticle as well as info about each truth hit
+ * The MC Particle with the most hits on a track wins.
+ * First tie breaker is the innermost hits, second tie breaker is highest energy particle.
  */
 public class TrackTruthMatching {
 
@@ -53,25 +56,16 @@ public class TrackTruthMatching {
         _nhits = trk.getTrackerHits().size()*2;
         _isTop = trk.getTrackStates().get(0).getTanLambda() > 0;
 
-        //System.out.println("");
-        //System.out.println("");
-        //System.out.println("");
-        //System.out.println("");
-        //System.out.println("New Particle");
-        
         for (TrackerHit hit : trk.getTrackerHits()) {
             //  get the set of MCParticles associated with this hit and update the hit count for each MCParticle
-            //System.out.println("New TrackerHit " + hit.getPosition()[0]);
             List<RawTrackerHit> rawhits = hit.getRawHits();
             int trackhitlayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
             Set<MCParticle> mcPartList1 = new HashSet<MCParticle>();
             Set<MCParticle> mcPartList2 = new HashSet<MCParticle>();
             for(RawTrackerHit rawhit : rawhits){
-                //System.out.println("New Raw Hit " + rawhit.getLayerNumber());
+                //Get all the SimTrackerHits associated with the raw hits
                 Set<SimTrackerHit> simhits = rawtomc.allFrom(rawhit);
-                int layer = rawhit.getLayerNumber();
                 for (SimTrackerHit simhit : simhits){
-                    //System.out.println("New Sim Hit");
                     if (simhit != null && simhit.getMCParticle() != null){
                         simhitsontrack.add(simhit);
                         MCParticle simhitpart = simhit.getMCParticle();
@@ -80,7 +74,6 @@ public class TrackTruthMatching {
                             mcPartList1.add(simhitpart);
                         if(simlay % 2 == 0)
                             mcPartList2.add(simhitpart);
-                        //System.out.println("Sim Hits " + simhit.getLayer() + " " + simhit.getMCParticle());
                         if(mapGoodHitList.get(simhitpart) == null){
                             Map<Integer,Boolean> dummy = new HashMap<Integer,Boolean>();
                             dummy.put(simlay, true);
@@ -93,25 +86,11 @@ public class TrackTruthMatching {
                         if(mapGoodHitList.get(simhitpart).get(simlay) == false)
                             mcmap.put(simhitpart,mcmap.get(simhitpart) + 1);
                         mapGoodHitList.get(simhitpart).put(simlay,true);
-                        //System.out.println("Is hit? " + mapGoodHitList.get(simhitpart).get(simlay));
-                        //System.out.println("Nhits " + mcmap.get(simhitpart));
                     }
                     else{
                         System.out.println("SIM HIT IS NULL!!!!!!!!");
                     }
                 }
-                /*if(mcPartList.size() > 1){
-                    for(MCParticle p : mapGoodHitList.keySet()){
-                        for(int i = 0; i < 12; i++){
-                            System.out.println("HitList " + p + "  " + mapGoodHitList.get(p).get(i+1));
-                        }
-                        System.out.println("mcmap " + mcmap.get(p));
-                    }
-                }*/
-                //_nMCHitsPerLayer.put(layer,mcPartList.size());
-                //_hitMCPartList.put(layer,mcPartList);
-                //System.out.println("MC hits per layer " + _nMCHitsPerLayer.get(layer));
-                //System.out.println("MC hit list " + _hitMCPartList.get(layer));
             }
             _nMCHitsPerLayer.put(trackhitlayer,mcPartList1.size());
             _nMCHitsPerLayer.put(trackhitlayer + 1,mcPartList2.size());
@@ -121,6 +100,7 @@ public class TrackTruthMatching {
             trackerlayerhitlist.add(trackhitlayer + 1);
         }
         
+        //Create good hit map list
         for (TrackerHit hit : trk.getTrackerHits()){
             List<RawTrackerHit> rawhits = hit.getRawHits();
             for(RawTrackerHit rawhit : rawhits){
@@ -138,10 +118,8 @@ public class TrackTruthMatching {
         
         boolean has2 = false;
         for(int i = 0; i < 12; i++){
-            //System.out.println(_nMCHitsPerLayer[i]);
             if(_nMCHitsPerLayer.get(i+1) == null) continue;
             if(_nMCHitsPerLayer.get(i+1) > 1){
-                //System.out.println("Hits per layer = " + _nMCHitsPerLayer.get(i+1));
                 has2 = true;
                 break;
             }
@@ -149,22 +127,22 @@ public class TrackTruthMatching {
         
         has2 = false;
         
+        //Choose a list of the best MC Particles
+        //If more than one, choose the one with the innermost hits
         for (MCParticle mcp : mcmap.keySet()) {
             if(has2){
-                System.out.println("Loop " + mcp + "  MCmap " + mcmap.get(mcp));
                 if(mapGoodHitList.get(mcp) != null){
                     for(int i = 0; i < mapGoodHitList.get(mcp).size(); i++){
                         System.out.println(mapGoodHitList.get(mcp).get(i+1));
                     }
                 }
             }
-            //int count = mcmap.get(mcp);
-            //if (count > nbest) {
             if (mcmap.get(mcp) == _ngoodhits) {
                 mcbestlist.put(mcp, mapGoodHitList.get(mcp));
             }
         }
         
+        //If there is more than 1 best MC, chose the one with the higher energy
         if(mcbestlist.size() > 1)
             mcbest = ChooseBest(mcbestlist,trackerlayerhitlist);
         else if(mcbestlist.size() == 1){
@@ -172,24 +150,6 @@ public class TrackTruthMatching {
             plist.addAll(mcbestlist.keySet());
             mcbest = plist.get(0);
         }
-        
-        //System.out.println("MCbest " + mcbest + "  nbest " + _ngoodhits);
-        
-        //for(SimTrackerHit msimhit : mcbest)
-       /* for (TrackerHit hit : trk.getTrackerHits()) {
-            //  get the set of MCParticles associated with this hit and update the hit count for each MCParticle
-            System.out.println("New TrackerHit " + hit.getPosition()[0]);
-            List<RawTrackerHit> rawhits = hit.getRawHits();
-            Set<MCParticle> mcPartList = new HashSet<MCParticle>();
-            for(RawTrackerHit rawhit : rawhits){
-                System.out.println("New Raw Hit " + rawhit.getLayerNumber());
-                Set<SimTrackerHit> simhits = (Set<SimTrackerHit>) rawtomc.allFrom(rawhit);
-                int layer = rawhit.getLayerNumber();
-                for (SimTrackerHit simhit : simhits){
-                
-                }
-            }
-        }*/
 
         if (_ngoodhits > 0)
             _mcp = mcbest;
@@ -200,7 +160,6 @@ public class TrackTruthMatching {
         
         
         for(SimTrackerHit hit : allsimhits){
-            //System.out.println("Layer1 " + hit.getLayer());
             if(hit.getMCParticle().equals(mcbest))
                 mcbesthits.add(hit);
         }
@@ -216,42 +175,9 @@ public class TrackTruthMatching {
             if(!hastrackerhit)
                 _hitListNotMatched.add(besthit);
         }
-        
-        
-        /*if(mcbestlist.size() > 1){
-            System.out.println("More than 1 match!!!");
-            System.out.println("MCbest " + mcbest + "  nbest " + _ngoodhits);
-        }*/
-        
-        /*if(_hitListNotMatched.size() > 1000){
-            System.out.println("");
-            System.out.println("");
-            System.out.println("");
-            System.out.println("");
-            for(MCParticle p : mapGoodHitList.keySet()){
-                System.out.println("Nhits " + mcmap.get(p) + " " + p + " Ntrackhits " + _nhits);
-                for(int i = 0; i < 12; i++){
-                    int layer = i + 1;
-                    if(mapGoodHitList.get(p).get(layer) != null)
-                        System.out.println("MC hit on layer " + layer + " " + mapGoodHitList.get(p).get(layer) + " " + p);
-                }
-            }
-        
-            for(int i = 0; i < 12; i++){
-                int layer = i + 1;
-                if(_nMCHitsPerLayer.get(layer) != null){
-                    System.out.println("Hits per layer " + layer + " " + _nMCHitsPerLayer.get(layer));
-                    System.out.println(_hitMCPartList.get(layer));
-                }
-            }
-        
-            for(SimTrackerHit hit : _hitListNotMatched){
-                System.out.println("Missing hit " + hit + " layer " + hit.getLayer());
-            }
-            System.out.println("MCbest " + mcbest + "  nbest " + _ngoodhits);
-        }*/
     }
     
+    //Get the maximum integer in the collection
     private int GetMax(Collection<Integer> ilist){
         int imax = 0;
         for(Integer i : ilist){
@@ -278,23 +204,6 @@ public class TrackTruthMatching {
             }
             
         }
-        /*Map<MCParticle,List<Integer>> falselist = new HashMap<MCParticle,List<Integer>>();
-        for(Map.Entry<MCParticle,Map<Integer,Boolean>> map : pmap.entrySet()){
-            MCParticle p = map.getKey();
-            Map<Integer,Boolean> hitlist = map.getValue();
-            List<Integer> nohit = new ArrayList<Integer>();
-            for(Integer layer : trackerlayerhitlist){
-                if(!hitlist.get(layer))
-                    nohit.add(layer);
-            }
-            falselist.put(p,nohit);
-        }
-        Map<MCParticle,Boolean> killP = new HashMap<MCParticle,Boolean>();
-        for(Entry<MCParticle, List<Integer>> list : falselist.entrySet()){
-            MCParticle p = list.getKey();
-            List<Integer> nohit = list.getValue();
-            killP.put(p,false);
-        }*/
         return Pbest;
     }
     
