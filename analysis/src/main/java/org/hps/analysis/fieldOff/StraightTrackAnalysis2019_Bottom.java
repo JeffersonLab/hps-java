@@ -167,13 +167,15 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
             if (hitsInWindow.get(s).size() != 1) {
                 oneHitInEachLayer = false;
             }
-            if (singleHitInWindowClusterSize.get(s) != 2) {
-                allDoubleHits = false;
+            if (oneHitInEachLayer) {
+                if (singleHitInWindowClusterSize.get(s) != 2) {
+                    allDoubleHits = false;
+                }
+                if (singleHitInWindowClusterSize.get(s) != 1) {
+                    allSingleHits = false;
+                }
+                aida.histogram1D("Layer " + s + " single hit in window measured - predicted", 100, -5., 5.).fill(singleHitInWindowResidual.get(s));
             }
-            if (singleHitInWindowClusterSize.get(s) != 1) {
-                allSingleHits = false;
-            }
-            aida.histogram1D("Layer " + s + " single hit in window measured - predicted", 100, -5., 5.).fill(singleHitInWindowResidual.get(s));
             aida.histogram1D("Number of hits in track window in layer " + s, 5, 0., 5.).fill(hitsInWindow.get(s).size());
         }
 
