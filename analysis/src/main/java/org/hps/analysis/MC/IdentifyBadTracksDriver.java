@@ -115,8 +115,6 @@ public class IdentifyBadTracksDriver extends Driver{
             if((truthMatch.getPurity() == 1.0)){
                 continue;
             }
-            System.out.println("");
-            System.out.println("New Bad Track! " + track.getChi2() + " " + truthMatch.getPurity());
             //Identify MCParticle responsible for bad hit
             MCParticle badPart = SelectBadMCParticle(truthMatch,track);
             Track badTrk = SelectBadTrack(truthMatch,track);
@@ -156,15 +154,11 @@ public class IdentifyBadTracksDriver extends Driver{
         for(int layer = 1; layer < 13; layer++){
             if (truthMatch.getHitList(layer) == null || truthMatch.getHitMCParticleList(layer) == null)
                 continue;
-            System.out.println(truthMatch.getHitList(layer) + " Layer " + layer + " " + truthMatch.getHitMCParticleList(layer).size());
             if(truthMatch.getHitList(layer))
                 continue;
             Set<MCParticle> badPList = truthMatch.getHitMCParticleList(layer);
-            System.out.println(" Bad List size " + badPList.size());
-            if(badPList ==  null){
-                System.out.println(truthMatch.getMCParticle() + "  Layer " + layer + " Bad List is Null");
+            if(badPList ==  null)
                 continue;
-            }
             double maxP = 0.0;
             for(MCParticle part : badPList){
                 double p = part.getMomentum().magnitude();

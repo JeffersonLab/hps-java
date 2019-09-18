@@ -1,12 +1,8 @@
 package org.hps.analysis.MC;
 
 import java.util.ArrayList;
-//import java.util.HashSet;
 import java.util.List;
-//import java.util.Set;
 
-
-//import org.apache.commons.math3.util.Pair;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
@@ -48,11 +44,9 @@ public class KeepTruthRawTrackerHits extends Driver {
     public static RelationalTable getRawToTruthTable(EventHeader event,String RawHitRelationsCollectionName) {
         RelationalTable hitToTruth = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> hitrelations = event.get(LCRelation.class, RawHitRelationsCollectionName);
-        //List<LCRelation> hitrelations_truth = new ArrayList<LCRelation>();
         for (LCRelation relation : hitrelations)
             if (relation != null && relation.getFrom() != null && relation.getTo() != null){
                 hitToTruth.add(relation.getFrom(), relation.getTo());
-                //hitrelations_truth.add(relation);
             }
         return hitToTruth;
     }
