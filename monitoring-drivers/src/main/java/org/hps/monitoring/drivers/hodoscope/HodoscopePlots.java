@@ -3,6 +3,8 @@ package org.hps.monitoring.drivers.hodoscope;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.hps.recon.ecal.HodoUtils.HodoTileIdentifier;
+import org.hps.recon.ecal.HodoUtils;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeConditions;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
