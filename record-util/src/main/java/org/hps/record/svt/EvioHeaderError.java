@@ -57,7 +57,7 @@ public class EvioHeaderError {
             "The header had an overflow error.");
     
     public static final EvioHeaderError SKIP_COUNT = new EvioHeaderError(ErrorType.SkipCount,
-            "The header had a skipCount.");
+            "The header had a skip count.");
     
     private final String debugString;
     
