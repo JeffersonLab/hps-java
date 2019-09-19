@@ -3,7 +3,6 @@ package org.hps.record.svt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.hps.record.svt.EvioHeaderError.ErrorType;
 
@@ -13,21 +12,18 @@ import org.hps.record.svt.EvioHeaderError.ErrorType;
  * Changes to original class:
  * <ul>
  * <li>Allow class to be instantiated so methods can be called non-statically.</li>
- * <li>Change primary public methods to be non-static.</li>
- * <li>Instead of directly generating exceptions, which uses an enormous amount of memory generating the tracebacks, 
+ * <li>Change primary public method to be non-static.</li>
+ * <li>Instead of directly generating exceptions, which uses an enormous amount of memory generating tracebacks, 
  *     use a more lightweight class to represent the errors.</li>
  * <li>Where possible, use static instances of error checking classes so they don't need to be continually recreated.</li>
  * <li>Make generation of large debug strings optional. Errors are reported generically without debug strings when this is turned off.</li>
- * <li>Removed hard-coding of default log level; this should be set in a prop file instead.</li>
- * <li>Removed almost all debugging messages; caller can print returned errors to the log, if necessary.</li>
+ * <li>Remove all log messages so the class runs silently; caller can print returned errors to the log, if necessary.</li>
  * </ul>
  * 
  * @author jeremym
  */
 public class SvtEventHeaderCheckerNew {
-    
-    private static Logger LOGGER = Logger.getLogger(SvtEventHeaderChecker.class.getPackage().getName());
-    
+        
     private static String getHeaderDebugString(SvtHeaderDataInfo headerDataInfo) {
         return headerDataInfo.toString();
     }
@@ -62,11 +58,11 @@ public class SvtEventHeaderCheckerNew {
 
     public List<EvioHeaderError> getHeaderErrors(List<SvtHeaderDataInfo> headers) {
 
-        int[] bufferAddresses = new int[6];
+        int[] firstBufferAddresses = new int[6];
         int[] firstFrameCounts = new int[6];
         boolean firstHeader = true;
         int[] multisampleHeader;
-        int[] bufAddresses;
+        int[] bufferAddresses;
         int[] frameCounts;
         int[] readError;
         int count;
@@ -87,7 +83,7 @@ public class SvtEventHeaderCheckerNew {
                         .getErrorBitFromMultisampleHeader(SvtEvioUtils.getMultisampleTailWord(multisampleHeader));
 
                 // get buffer addresses
-                bufAddresses = SvtEvioUtils.getApvBufferAddresses(multisampleHeader);
+                bufferAddresses = SvtEvioUtils.getApvBufferAddresses(multisampleHeader);
 
                 // get frame counts
                 frameCounts = SvtEvioUtils.getApvFrameCount(multisampleHeader);
@@ -95,7 +91,7 @@ public class SvtEventHeaderCheckerNew {
                 // check if there was any read errors
                 readError = SvtEvioUtils.getApvReadErrors(multisampleHeader);
 
-                if (bufAddresses.length != 6) {
+                if (bufferAddresses.length != 6) {
                     errors.add(EvioHeaderError.APV_BUFFER_ADDRESS_COUNT);
                 }
 
@@ -114,7 +110,7 @@ public class SvtEventHeaderCheckerNew {
                                 EvioHeaderError.MULTISAMPLE_ERROR_BIT.getMessage(),
                                 getMultisampleDebugString(headerDataInfo,
                                         SvtEvioUtils.getMultisampleTailWord(multisampleHeader))
-                                        + getDebugString(bufAddresses, frameCounts, readError)));
+                                        + getDebugString(bufferAddresses, frameCounts, readError)));
                     } else {
                         errors.add(EvioHeaderError.MULTISAMPLE_ERROR_BIT);
                     }
@@ -122,20 +118,20 @@ public class SvtEventHeaderCheckerNew {
 
                 // Get a reference for comparison
                 if (firstHeader) {
-                    System.arraycopy(bufAddresses, 0, bufferAddresses, 0, bufAddresses.length);
+                    System.arraycopy(bufferAddresses, 0, firstBufferAddresses, 0, bufferAddresses.length);
                     System.arraycopy(frameCounts, 0, firstFrameCounts, 0, frameCounts.length);
                     firstHeader = false;
                 } else {
 
                     // Check that apv buffer addresses match
-                    if (!Arrays.equals(bufferAddresses, bufAddresses)) {
+                    if (!Arrays.equals(firstBufferAddresses, bufferAddresses)) {
                         if (this.generateDebugStrings) {
                             errors.add(new EvioHeaderError(ErrorType.ApvBufferAddress,
                                     EvioHeaderError.APV_BUFFER_ADDRESS_MISMATCH.getMessage(),
                                     getMultisampleDebugString(headerDataInfo,
                                             SvtEvioUtils.getMultisampleTailWord(multisampleHeader))
-                                            + getDebugString(bufAddresses, frameCounts, readError) + " compared to "
-                                            + getDebugString(bufferAddresses, firstFrameCounts, readError)));
+                                            + getDebugString(bufferAddresses, frameCounts, readError) + " compared to "
+                                            + getDebugString(firstBufferAddresses, firstFrameCounts, readError)));
                         } else {
                             errors.add(EvioHeaderError.APV_BUFFER_ADDRESS_MISMATCH);
                         }
@@ -149,8 +145,8 @@ public class SvtEventHeaderCheckerNew {
                                     EvioHeaderError.APV_FRAME_COUNT_MISMATCH.getMessage(),
                                     getMultisampleDebugString(headerDataInfo,
                                             SvtEvioUtils.getMultisampleTailWord(multisampleHeader))
-                                            + getDebugString(bufAddresses, frameCounts, readError) + " compared to "
-                                            + getDebugString(bufferAddresses, firstFrameCounts, readError)));
+                                            + getDebugString(bufferAddresses, frameCounts, readError) + " compared to "
+                                            + getDebugString(firstBufferAddresses, firstFrameCounts, readError)));
                         } else {
                             errors.add(EvioHeaderError.APV_FRAME_COUNT_MISMATCH);
                         }
@@ -161,13 +157,13 @@ public class SvtEventHeaderCheckerNew {
                 // remember to take into account the 2-bit rollover (duh!)
                 count = -1;
                 for (int iFrame = 0; iFrame < frameCounts.length; ++iFrame) {
-                    if (checkApvFrameCount(frameCounts, count, iFrame)) {
+                    if (isApvFrameCountGood(frameCounts, count, iFrame)) {
                         if (this.generateDebugStrings) {
                             errors.add(new EvioHeaderError(ErrorType.ApvFrameCount,
                                     EvioHeaderError.APV_FRAME_COUNT.getMessage(),
                                     getMultisampleDebugString(headerDataInfo,
                                             SvtEvioUtils.getMultisampleTailWord(multisampleHeader))
-                                            + getDebugString(bufAddresses, frameCounts, readError)));
+                                            + getDebugString(bufferAddresses, frameCounts, readError)));
                         } else {
                             // FIXME: Is this error type specific enough here?
                             errors.add(EvioHeaderError.APV_FRAME_COUNT);
@@ -183,7 +179,7 @@ public class SvtEventHeaderCheckerNew {
                                     new EvioHeaderError(ErrorType.ApvRead, EvioHeaderError.APV_READ_ERRORS.getMessage(),
                                             getMultisampleDebugString(headerDataInfo,
                                                     SvtEvioUtils.getMultisampleTailWord(multisampleHeader))
-                                                    + getDebugString(bufAddresses, frameCounts, readError)));                        
+                                                    + getDebugString(bufferAddresses, frameCounts, readError)));                        
                         } else {
                             errors.add(EvioHeaderError.APV_READ_ERRORS);
                         }
@@ -206,7 +202,7 @@ public class SvtEventHeaderCheckerNew {
      * @param iFrame
      * @return
      */
-    private static boolean checkApvFrameCount(int[] frameCounts, int count, int iFrame) {
+    private static boolean isApvFrameCountGood(int[] frameCounts, int count, int iFrame) {
         return frameCounts[iFrame] > 15 || (count < 15 && frameCounts[iFrame] < count)
                 || (count == 15 && frameCounts[iFrame] != 0);
     }
