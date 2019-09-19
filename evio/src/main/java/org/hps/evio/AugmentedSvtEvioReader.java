@@ -3,6 +3,7 @@ package org.hps.evio;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.record.svt.EvioHeaderError;
 import org.hps.record.svt.SvtEventHeaderCheckerNew;
@@ -14,14 +15,27 @@ import org.lcsim.event.EventHeader;
  * This is essentially the same as {@link SvtEvioReader} except that it 
  * performs error checking of the SVT EVIO event headers.
  * 
+ * Package logging should be set to FINE to print out any SVT EVIO header
+ * errors that are found during data processing.
+ * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class AugmentedSvtEvioReader extends SvtEvioReader {
 
     /**
-     * Whether header exceptions should be thrown during processing
+     * Use a class logger so header error printing can be separated from package messages.
      */
-    private final boolean throwHeaderExceptions; 
+    private static Logger LOGGER = Logger.getLogger(AugmentedSvtEvioReader.class.getCanonicalName());
+    
+    /**
+     * Whether header exceptions should be thrown during processing; off by default.
+     */
+    private boolean throwHeaderExceptions = false; 
+    
+    /**
+     * Add SVT headers to event; off by default.
+     */
+    private boolean addHeadersToEvent = false;
     
     /**
      * Class for checking SVT event headers for various errors.
@@ -29,20 +43,26 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
     private final SvtEventHeaderCheckerNew headerCheck = new SvtEventHeaderCheckerNew();
 
     /**
-     * Constructor, which turns off throwing of header exceptions.
+     * Default constructor.
      */
     public AugmentedSvtEvioReader() {
         super();
-        this.throwHeaderExceptions = false;
     }
     
     /**
-     * Constructor, which allows setting whether header exceptions should be thrown.
-     * @param throwHeaderExceptions True if header exceptions should be thrown during processing
+     * Set whether to throw exceptions or not
+     * @param throwHeaderExceptions True to throw exceptions
      */
-    public AugmentedSvtEvioReader(boolean throwHeaderExceptions) {
-        super();
+    void setThrowHeaderExceptions(boolean throwHeaderExceptions) {
         this.throwHeaderExceptions = throwHeaderExceptions;
+    }
+    
+    /**
+     * Set whether to write header data to the event
+     * @param addHeadersToEvent True to add headers to the output event
+     */
+    void setAddHeadersToEvent(boolean addHeadersToEvent) {
+        this.addHeadersToEvent = addHeadersToEvent;
     }
 
     /**
@@ -52,7 +72,7 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
      */
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
-        // Note that the superclass method being overridden is not called because it doesn't do anything.
+        // Note that the superclass method being overridden is not called, because it doesn't do anything.
         
         LOGGER.info("Processing " + headers.size() + " SVT headers for run " + lcsimEvent.getRunNumber() + " and event " + lcsimEvent.getEventNumber());
         
@@ -93,17 +113,14 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
             SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
         }
 
-        // Add SVT header data to the event
-        //this.addSvtHeadersToEventEventCollection(headers, lcsimEvent);
+        // Optionally add SVT header data to the event
+        if (this.addHeadersToEvent) {
+            this.addSvtHeadersToEventEventCollection(headers, lcsimEvent);
+        }
     }
     
-    // Commented out for now as it is never activated. Does it actually even work anymore? --JM
-    /*
-    protected void addSvtHeadersToEventEventCollection(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
-        // Turn on 64-bit cell ID.
-        int flag = LCIOUtil.bitSet(0, 31, true);
-        // Add the collection of raw hits to the LCSim event
-        lcsimEvent.put(SVT_HEADER_COLLECTION_NAME, headers, SvtHeaderDataInfo.class, flag);
-    } 
-    */       
+    private void addSvtHeadersToEventEventCollection(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
+        // Add the collection of headers to the LCSim event
+        lcsimEvent.put(SVT_HEADER_COLLECTION_NAME, headers, SvtHeaderDataInfo.class, 0);
+    }  
 }
