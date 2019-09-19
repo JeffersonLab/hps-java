@@ -30,7 +30,7 @@ public class SvtEvioExceptions {
          * @param error The header error that occurred
          */
         public SvtEvioHeaderException(EvioHeaderError error) {
-            super(error.getType() + ": " + error.getMessage() + '\n' + error.getDebugString());
+            super(error.getType().name() + ": " + error.getMessage() + '\n' + error.getDebugString());
         }
 
         public SvtEvioHeaderException(SvtEvioHeaderException e) {
