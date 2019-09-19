@@ -4,13 +4,14 @@
 package org.hps.evio;
 
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
 
-import org.hps.record.svt.SvtEventHeaderChecker;
+import org.hps.record.svt.EvioHeaderError;
+import org.hps.record.svt.SvtEventHeaderCheckerNew;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.lcsim.event.EventHeader;
-import org.lcsim.lcio.LCIOUtil;
-
 
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -18,49 +19,56 @@ import org.lcsim.lcio.LCIOUtil;
  */
 public class AugmentedSvtEvioReader extends SvtEvioReader {
 
-    private final static boolean throwHeaderExceptions = false; 
+    /**
+     * Whether header exceptions should be thrown during processing
+     */
+    private final boolean throwHeaderExceptions; 
     
     /**
-     * 
+     * Class for checking SVT event headers for various errors.
+     */
+    private final SvtEventHeaderCheckerNew headerCheck = new SvtEventHeaderCheckerNew();
+
+    /**
+     * Constructor, which turns off throwing of header exceptions.
      */
     public AugmentedSvtEvioReader() {
         super();
+        this.throwHeaderExceptions = false;
     }
-
     
-    
-    
+    /**
+     * Constructor, which allows setting whether header exceptions should be thrown.
+     * @param throwHeaderExceptions True if header exceptions should be thrown during processing
+     */
+    public AugmentedSvtEvioReader(boolean throwHeaderExceptions) {
+        super();
+        this.throwHeaderExceptions = throwHeaderExceptions;
+    }
+                  
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
 
-
-        LOGGER.finest("Process " + headers.size() + " SVT headers for run " + lcsimEvent.getRunNumber() + " and event " + lcsimEvent.getEventNumber());
+        LOGGER.info("Processing " + headers.size() + " SVT headers for run " + lcsimEvent.getRunNumber() + " and event " + lcsimEvent.getEventNumber());
         
-        // Check that the SVT header data is valid
-        // Catch the exceptions locally, add stuff to the event, then throw it again
-        // and handle it outside
-        
-        // if we want we can control the behavior here depending on if we want the run to stop
-        
-        List<SvtEvioHeaderException> exceptions = SvtEventHeaderChecker.checkSvtHeaders(headers);
+        // Get a list of any SVT header errors.
+        List<EvioHeaderError> errors = headerCheck.getHeaderErrors(headers);
 
-        if( !exceptions.isEmpty() ) {
+        if( !errors.isEmpty() ) {
 
-            LOGGER.finest("Found " + exceptions.size() + " " + SvtEvioHeaderException.class.getSimpleName() + " exceptions");
-            
-            // print some debug info 
-            
-            List<String> exceptionNames = SvtEventHeaderChecker.getSvtEvioHeaderExceptionNames(exceptions);
-            String names = "";
-            for(String str : exceptionNames) names += str + " ";
-            
-            LOGGER.info("Caught " + exceptions.size() + " SvtEvioHeaderExceptions for event " + lcsimEvent.getEventNumber() + " of " + exceptionNames.size() + " types: " + names);
-            
-            //LOGGER.fine("List all of them.\n");
-            //int i = 0;
-            //for(SvtEvioHeaderException e : exceptions ) {
-            //    LOGGER.fine("Exception " + (i++) + " for event " + lcsimEvent.getEventNumber() + ":\n" + e.getMessage());
-            //}
+            final int nerrors = errors.size();
+                                                                        
+            Set<String> errorNames = EvioHeaderError.getUniqueNames(errors);
+            LOGGER.warning("Found " + nerrors + " SVT header errors for event " + lcsimEvent.getEventNumber()
+                    + " with types: " + errorNames.toString());
+ 
+            // Print all errors to the log if logging level is fine or more.
+            if (LOGGER.getLevel().intValue() < Level.INFO.intValue()) {
+                LOGGER.fine("Printing all SVT header errors ..." + '\n');
+                for (EvioHeaderError error : errors) {
+                    LOGGER.fine(error.toString());
+                }
+            }
 
             // add event flag
             SvtEventFlagger.voidAddHeaderCheckResultToMetaData(false, lcsimEvent);
@@ -70,34 +78,27 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
 
             // then throw the first exception again to be caught in the event builder if we want to
             if(throwHeaderExceptions)
-                throw new SvtEvioHeaderException(exceptions.get(0));
+                throw new SvtEvioHeaderException(errors.get(0));
             
         } else { 
             
-            LOGGER.finest("No " + SvtEvioHeaderException.class.getSimpleName() + " exceptions found for this event");
+            LOGGER.info("No SVT header errors found for this event.");
             
             // add skimming flag - the header is OK since I would never get here otherwise
             SvtEventFlagger.voidAddHeaderCheckResultToMetaData(true, lcsimEvent);
-            
-            
-            
         }
 
         // Add SVT header data to the event
         //this.addSvtHeadersToEventEventCollection(headers, lcsimEvent);
-
     }
     
-    
+    // Commented out for now as it is never activated. Does it actually even work anymore? --JM
+    /*
     protected void addSvtHeadersToEventEventCollection(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) {
         // Turn on 64-bit cell ID.
         int flag = LCIOUtil.bitSet(0, 31, true);
         // Add the collection of raw hits to the LCSim event
         lcsimEvent.put(SVT_HEADER_COLLECTION_NAME, headers, SvtHeaderDataInfo.class, flag);
-
-    }
-        
-    
-
-
+    } 
+    */       
 }
