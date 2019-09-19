@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.evio;
 
 import java.util.List;
@@ -14,8 +11,10 @@ import org.hps.record.svt.SvtHeaderDataInfo;
 import org.lcsim.event.EventHeader;
 
 /**
+ * This is essentially the same as {@link SvtEvioReader} except that it 
+ * performs error checking of the SVT EVIO event headers.
+ * 
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class AugmentedSvtEvioReader extends SvtEvioReader {
 
@@ -45,10 +44,16 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
         super();
         this.throwHeaderExceptions = throwHeaderExceptions;
     }
-                  
+
+    /**
+     * Process SVT headers, handling any errors if they occur.
+     * @param headers The list of SVT headers
+     * @param lcsimEvent The full lcsim event
+     */
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent) throws SvtEvioHeaderException {
-
+        // Note that the superclass method being overridden is not called because it doesn't do anything.
+        
         LOGGER.info("Processing " + headers.size() + " SVT headers for run " + lcsimEvent.getRunNumber() + " and event " + lcsimEvent.getEventNumber());
         
         // Get a list of any SVT header errors.
@@ -59,7 +64,7 @@ public class AugmentedSvtEvioReader extends SvtEvioReader {
             final int nerrors = errors.size();
                                                                         
             Set<String> errorNames = EvioHeaderError.getUniqueNames(errors);
-            LOGGER.warning("Found " + nerrors + " SVT header errors for event " + lcsimEvent.getEventNumber()
+            LOGGER.warning("Found " + nerrors + " SVT header errors in event " + lcsimEvent.getEventNumber()
                     + " with types: " + errorNames.toString());
  
             // Print all errors to the log if logging level is fine or more.

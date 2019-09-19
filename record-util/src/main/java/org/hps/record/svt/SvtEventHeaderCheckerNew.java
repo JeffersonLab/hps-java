@@ -14,7 +14,7 @@ import org.hps.record.svt.EvioHeaderError.ErrorType;
  * <ul>
  * <li>Allow class to be instantiated so methods can be called non-statically.</li>
  * <li>Change primary public methods to be non-static.</li>
- * <li>Instead of directly generating exceptions, which uses an enormous amount of memory, 
+ * <li>Instead of directly generating exceptions, which uses an enormous amount of memory generating the tracebacks, 
  *     use a more lightweight class to represent the errors.</li>
  * <li>Where possible, use static instances of error checking classes so they don't need to be continually recreated.</li>
  * <li>Make generation of large debug strings optional. Errors are reported generically without debug strings when this is turned off.</li>
@@ -61,8 +61,6 @@ public class SvtEventHeaderCheckerNew {
     }
 
     public List<EvioHeaderError> getHeaderErrors(List<SvtHeaderDataInfo> headers) {
-
-        LOGGER.info("Checking " + headers.size() + " SVT headers for errors ...");
 
         int[] bufferAddresses = new int[6];
         int[] firstFrameCounts = new int[6];
@@ -164,7 +162,6 @@ public class SvtEventHeaderCheckerNew {
                 count = -1;
                 for (int iFrame = 0; iFrame < frameCounts.length; ++iFrame) {
                     if (checkApvFrameCount(frameCounts, count, iFrame)) {
-
                         if (this.generateDebugStrings) {
                             errors.add(new EvioHeaderError(ErrorType.ApvFrameCount,
                                     EvioHeaderError.APV_FRAME_COUNT.getMessage(),
@@ -180,9 +177,6 @@ public class SvtEventHeaderCheckerNew {
                 }
 
                 for (int iReadError = 0; iReadError < readError.length; ++iReadError) {
-                    //LOGGER.finest("read error " + iReadError + "  " + readError[iReadError] + " ( "
-                    //        + Integer.toHexString(readError[iReadError]) + " )");
-
                     if (readError[iReadError] != 1) {// active low
                         if (this.generateDebugStrings) {
                             errors.add(
@@ -205,6 +199,13 @@ public class SvtEventHeaderCheckerNew {
         return errors;
     }
 
+    /**
+     * Return true if APV frame count has error.
+     * @param frameCounts
+     * @param count
+     * @param iFrame
+     * @return
+     */
     private static boolean checkApvFrameCount(int[] frameCounts, int count, int iFrame) {
         return frameCounts[iFrame] > 15 || (count < 15 && frameCounts[iFrame] < count)
                 || (count == 15 && frameCounts[iFrame] != 0);
@@ -213,12 +214,7 @@ public class SvtEventHeaderCheckerNew {
     private void addSvtHeaderDataErrors(SvtHeaderDataInfo header, List<EvioHeaderError> errors)  {
         
         int tail = header.getTail();
-        //LOGGER.finest("checkSvtHeaderData tail " + tail + "( " + Integer.toHexString(tail) + " ) " +
-        //                                         " errorbit   " +  Integer.toHexString(SvtEvioUtils.getSvtTailSyncErrorBit(tail)) +
-        //                                         " OFerrorbit " +  Integer.toHexString(SvtEvioUtils.getSvtTailOFErrorBit(tail)) + 
-        //                                         " checkSvtHeaderData skipcount  " +  Integer.toHexString(SvtEvioUtils.getSvtTailMultisampleSkipCount(tail)));
-               
-        // FIXME: Should this really be else/if or can these all occur separately?
+
         if( SvtEvioUtils.getSvtTailSyncErrorBit(tail) != 0) {
             if (this.generateDebugStrings) {
                 errors.add(new EvioHeaderError(ErrorType.Sync, EvioHeaderError.SYNC.getMessage(), 
@@ -226,7 +222,6 @@ public class SvtEventHeaderCheckerNew {
             } else {
                 errors.add(EvioHeaderError.SYNC);
             }
-
         } else if(SvtEvioUtils.getSvtTailOFErrorBit(tail) != 0) {
             if (this.generateDebugStrings) {
                 errors.add(new EvioHeaderError(ErrorType.Overflow, EvioHeaderError.OVERFLOW.getMessage(), 

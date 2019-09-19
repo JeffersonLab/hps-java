@@ -7,8 +7,10 @@ import java.util.Set;
 /**
  * Represents information about errors found in SVT EVIO headers.
  * 
+ * Replaces direct usage of {@link SvtEvioExceptions.SvtEvioHeaderException} when
+ * checking event header information using {@link SvtEventHeaderCheckerNew}.
+ * 
  * @author jeremym
- *
  */
 public class EvioHeaderError {
    
@@ -49,13 +51,13 @@ public class EvioHeaderError {
             "A multisample header error bit was set.");
     
     public static final EvioHeaderError SYNC = new EvioHeaderError(ErrorType.Sync,
-            "This header had a sync error.");
+            "The header had a sync error.");
     
     public static final EvioHeaderError OVERFLOW = new EvioHeaderError(ErrorType.Overflow,
-            "This header had an overflow error.");
+            "The header had an overflow error.");
     
     public static final EvioHeaderError SKIP_COUNT = new EvioHeaderError(ErrorType.SkipCount,
-            "This header had a skipCount.");
+            "The header had a skipCount.");
     
     private final String debugString;
     
@@ -63,6 +65,11 @@ public class EvioHeaderError {
     
     private final String message;
     
+    /**
+     * Get a list of unique error names from a list.
+     * @param errors The list of errors
+     * @return The set of unique error names
+     */
     public static Set<String> getUniqueNames(List<EvioHeaderError> errors) {
         Set<String> uniqueErrorNames = new HashSet<String>();
         for (EvioHeaderError error : errors) {
@@ -71,26 +78,49 @@ public class EvioHeaderError {
         return uniqueErrorNames;
     }
     
+    /**
+     * Create with type and message and blank debug string.
+     * @param errorType The type of header error
+     * @param message The specific error message
+     */
     public EvioHeaderError(ErrorType errorType, String message) {
         this.errorType = errorType;
         this.message = message;
         this.debugString = "";
     }
     
+    /**
+     * Create with type and message and a populated debug string.
+     * @param errorType The type of header error
+     * @param message The specific error message
+     * @param debugString The detailed debug string 
+     */
     public EvioHeaderError(ErrorType errorType, String message, String debugString) {
         this.errorType = errorType;
         this.message = message;
         this.debugString = debugString;
     }    
     
+    /**
+     * Get the detailed debug string 
+     * @return The detailed debug string
+     */
     String getDebugString() {
         return debugString;
     }    
     
+    /**
+     * Get the error message
+     * @return The error message
+     */
     String getMessage() {
         return message;
     }
     
+    /**
+     * Get the type of the error
+     * @return The type of the error
+     */
     ErrorType getType() {
         return errorType;
     }        
