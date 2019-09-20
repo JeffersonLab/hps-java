@@ -210,6 +210,7 @@ public class FeeSvtAlignment2019Driver extends Driver {
                     if (debug) {
                         aida.cloud1D("track data time").fill(trackDataTime);
                     }
+                    analyzeHitlayers(rp);
                     if (isTopTrack(t)) {
                         if (nHits == 5) {
                             aida.histogram1D("Fee top 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
@@ -238,14 +239,14 @@ public class FeeSvtAlignment2019Driver extends Driver {
                             aida.cloud1D("Top rp x0").fill(TrackUtils.getX0(t));
                             aida.cloud1D("Top rp y0").fill(TrackUtils.getY0(t));
                             aida.cloud1D("Top rp z0").fill(TrackUtils.getZ0(t));
-                            double[] strips = stripClusterSizes(t);
-                            // let's cut real hard here, require 2-strip clusters in all four first layers
+//                            double[] strips = stripClusterSizes(t);
+//                            // let's cut real hard here, require 2-strip clusters in all four first layers
                             boolean keepit = true;
-                            for (double d : strips) {
-                                if (d != 2) {
-                                    keepit = false;
-                                }
-                            }
+//                            for (double d : strips) {
+//                                if (d != 2) {
+//                                    keepit = false;
+//                                }
+//                            }
                             if (keepit) {
                                 _topBTracks.add(toBilliorTrack(t));
                                 aida.profile1D("Fee tight top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
@@ -253,7 +254,6 @@ public class FeeSvtAlignment2019Driver extends Driver {
                             }
                         }
                     } else {
-                        analyzeHitlayers(rp);
                         if (nHits == 5) {
                             aida.histogram1D("Fee bottom 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                         } else if (nHits >= 6) {
@@ -373,7 +373,7 @@ public class FeeSvtAlignment2019Driver extends Driver {
             List rthList = hit.getRawHits();
             int layerNumber = ((RawTrackerHit) rthList.get(0)).getLayerNumber();
 //            System.out.println(" hit in layer " + layerNumber);
-            aida.histogram2D(topOrBottom + " "+nHits+"-hit Track hit layer number vs track momentum", 14, 0.5, 14.5, 50, 3.4, 5.4).fill(layerNumber, p);
+            aida.histogram2D(topOrBottom + " " + nHits + "-hit Track hit layer number vs track momentum", 14, 0.5, 14.5, 50, 3.4, 5.4).fill(layerNumber, p);
         }
     }
 
