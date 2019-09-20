@@ -214,7 +214,7 @@ public class FeeSvtAlignment2019Driver extends Driver {
                         if (nHits == 5) {
                             aida.histogram1D("Fee top 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                         } else if (nHits == 6) {
-                        
+
                             _topElectrons.add(rp);
                             aida.histogram1D("Fee top 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                             if (nClusters == 1) {
@@ -253,35 +253,36 @@ public class FeeSvtAlignment2019Driver extends Driver {
                             }
                         }
                     } else {
-
+                        analyzeHitlayers(rp);
                         if (nHits == 5) {
                             aida.histogram1D("Fee bottom 5-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                        } else if (nHits == 6) {
-                            aida.histogram1D("Fee bottom 6-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                        } else if (nHits == 7) {
+                        } else if (nHits >= 6) {
+
                             _bottomElectrons.add(rp);
-                            aida.histogram1D("Fee bottom 7-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                            aida.histogram1D("Fee bottom " + nHits + "-hit track momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
                             if (nClusters == 1) {
-                                aida.histogram1D("Fee bottom 7-hit track single cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                                aida.histogram1D("Fee bottom 7-hit track single cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                                aida.histogram1D("Fee bottom " + nHits + "-hit track single cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                aida.histogram1D("Fee bottom " + nHits + "-hit track single cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
                                 if (isFiducial) {
-                                    aida.histogram2D("Fee 7-hit track single fiducial cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
-                                    aida.histogram1D("Fee bottom 7-hit track single fiducial cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
-                                    aida.histogram1D("Fee bottom 7-hit track single fiducial cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
+                                    aida.histogram2D("Fee " + nHits + "-hit track single fiducial cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                                    aida.histogram1D("Fee bottom " + nHits + "-hit track single fiducial cluster momentum", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(p);
+                                    aida.histogram1D("Fee bottom " + nHits + "-hit track single fiducial cluster energy", 100, 0.5 * _beamEnergy, 1.5 * _beamEnergy).fill(c.getEnergy());
                                 }
-                                aida.histogram2D("Fee 7-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+                                aida.histogram2D("Fee " + nHits + "-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
                             }
-                            aida.histogram1D("Fee bottom 7-hit track d0", 100, -2.0, 2.0).fill(d0);
-                            aida.profile1D("Fee bottom 7-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
-                            aida.histogram2D("Fee bottom 7-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
-                            aida.histogram1D("Fee bottom 7-hit track z0", 100, -0.8, 0.2).fill(z0);
-                            aida.profile1D("Fee bottom 7-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
-                            aida.histogram2D("Fee bottom 7-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
-                            aida.cloud1D("Bottom Track theta").fill(theta);
-                            aida.cloud2D("Bottom Track theta vs p").fill(theta, p);
-                            aida.cloud1D("Bottom rp x0").fill(TrackUtils.getX0(t));
-                            aida.cloud1D("Bottom rp y0").fill(TrackUtils.getY0(t));
-                            aida.cloud1D("Bottom rp z0").fill(TrackUtils.getZ0(t));
+                            aida.histogram1D("Fee bottom " + nHits + "-hit track d0", 100, -2.0, 2.0).fill(d0);
+                            aida.profile1D("Fee bottom " + nHits + "-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
+                            aida.histogram2D("Fee bottom " + nHits + "-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                            aida.histogram1D("Fee bottom " + nHits + "-hit track z0", 100, -0.8, 0.2).fill(z0);
+                            aida.histogram1D("Fee bottom " + nHits + "-hit track thetaY", 100, -0.06, 0.).fill(thetaY);
+                            aida.profile1D("Fee bottom " + nHits + "-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
+                            aida.profile1D("Fee bottom " + nHits + "-hit track thetaY vs z0 profile zoom", 10, -0.035, -0.024).fill(thetaY, z0);
+                            aida.histogram2D("Fee bottom " + nHits + "-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.8, 0.8).fill(thetaY, z0);
+                            aida.cloud1D("Bottom " + nHits + "-hit Track theta").fill(theta);
+                            aida.cloud2D("Bottom " + nHits + "-hit Track theta vs p").fill(theta, p);
+                            aida.cloud1D("Bottom " + nHits + "-hit rp x0").fill(TrackUtils.getX0(t));
+                            aida.cloud1D("Bottom " + nHits + "-hitrp y0").fill(TrackUtils.getY0(t));
+                            aida.cloud1D("Bottom " + nHits + "-hitrp z0").fill(TrackUtils.getZ0(t));
                             double[] strips = stripClusterSizes(t);
                             // let's cut real hard here, require 2-strip clusters in all four first layers
                             // Let's not (at least for now) because the slim layers only have one strip per hit...
@@ -293,13 +294,22 @@ public class FeeSvtAlignment2019Driver extends Driver {
 //                            }
                             if (keepit) {
                                 _bottomBTracks.add(toBilliorTrack(t));
-                                aida.profile1D("Fee tight bottom 7-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
-                                aida.histogram2D("Fee tight bottom 7-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
+                                aida.profile1D("Fee tight bottom " + nHits + "-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
+                                aida.histogram2D("Fee tight bottom " + nHits + "-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
                             }
                         }
+//                        List<TrackerHit> hits = t.getTrackerHits();
+//                        for (TrackerHit h : hits) {
+//                            RawTrackerHit rth = (RawTrackerHit) h;
+//                            if (sensor.isTopLayer()) {
+//                                n[0] += 1;
+//                            } else {
+//                                n[1] += 1;
+//                            }
+//                        }
                     }
                     if (_alignit) {
-                        if (nHits == 7) {
+                        if (nHits >= 6) {
                             alignit(rp);
                         }
                     }
@@ -350,6 +360,20 @@ public class FeeSvtAlignment2019Driver extends Driver {
             aida.histogram1D("tight bottom vertex z position", 200, -50., 50.).fill(vtx.getPosition().z());
             _bottomBTracks.remove(1);
             _bottomBTracks.remove(0);
+        }
+    }
+
+    private void analyzeHitlayers(ReconstructedParticle rp) {
+        Track t = rp.getTracks().get(0);
+        String topOrBottom = isTopTrack(t) ? " top " : " bottom ";
+        double p = rp.getMomentum().magnitude();
+        int nHits = t.getTrackerHits().size();
+//        System.out.println("Track has " + nHits + " hits");
+        for (TrackerHit hit : TrackUtils.getStripHits(t, hitToStrips, hitToRotated)) {
+            List rthList = hit.getRawHits();
+            int layerNumber = ((RawTrackerHit) rthList.get(0)).getLayerNumber();
+//            System.out.println(" hit in layer " + layerNumber);
+            aida.histogram2D(topOrBottom + " "+nHits+"-hit Track hit layer number vs track momentum", 14, 0.5, 14.5, 50, 3.4, 5.4).fill(layerNumber, p);
         }
     }
 

@@ -36,7 +36,7 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
 //    private double[] H02Wire = {0., 0., -(672.71 - 551.64) * 25.4};
     private double[] H02Wire = {0., 0., -(672.71 - 583.44) * 25.4};
 
-    private boolean _debug = true;
+    private boolean _debug = false;
 
     protected void process(EventHeader event) {
 
@@ -193,7 +193,7 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
             aida.histogram1D("slope67", 100, -0.03, 0.03).fill(tpl67.slope());
             aida.histogram1D("zIntercept34", 100, -4000., -1000.).fill(tpl34.xAxisIntercept());
             aida.histogram1D("zIntercept67", 100, -4000., -1000.).fill(tpl67.xAxisIntercept());
-            aida.histogram1D("slope67 - slope34", 100, -0.005, 0.005).fill(tpl67.slope() - tpl34.slope());
+            aida.histogram1D("slope67 - slope34", 200, -0.01, 0.01).fill(tpl67.slope() - tpl34.slope());
             // compare y value at z=400
             double zPos = 400.;
             double y34at400 = tpl34.predict(zPos);
@@ -201,12 +201,12 @@ public class StraightTrackAnalysis2019_Bottom extends Driver {
             aida.histogram1D("y67at400 - y34at400", 100, -2., 2.).fill(y67at400 - y34at400);
 
             if (allSingleHits) {
-                aida.histogram1D("slope67 - slope34 All Single Hits", 100, -0.005, 0.005).fill(tpl67.slope() - tpl34.slope());
+                aida.histogram1D("slope67 - slope34 All Single Hits", 200, -0.01, 0.01).fill(tpl67.slope() - tpl34.slope());
                 aida.histogram1D("y67at400 - y34at400 All Single Hits", 100, -2., 2.).fill(y67at400 - y34at400);
             }
 
             if (allDoubleHits) {
-                aida.histogram1D("slope67 - slope34 All Double Hits", 100, -0.005, 0.005).fill(tpl67.slope() - tpl34.slope());
+                aida.histogram1D("slope67 - slope34 All Double Hits", 200, -0.01, 0.01).fill(tpl67.slope() - tpl34.slope());
                 aida.histogram1D("y67at400 - y34at400 All Double Hits", 100, -2., 2.).fill(y67at400 - y34at400);
             }
 
