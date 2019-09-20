@@ -188,7 +188,6 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected List< int[] > extractMultiSamples(int sampleCount, int[] data) {
         
-
         List<int[]> sampleList = new ArrayList<int[]>();
         // Loop through all of the samples and make hits
         for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
@@ -208,6 +207,9 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
 
         // Process the headers
         this.processSvtHeaders(headers, lcsimEvent);
+        
+        // Clear header data list after processing. This was a big memory leak! --JM
+        headers.clear();
         
         return true; 
     }
