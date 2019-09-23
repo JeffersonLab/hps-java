@@ -156,7 +156,7 @@
             <beamPositionZ> -3.9 </beamPositionZ>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <isMC>true</isMC>      
-            <debug>true</debug>
+            <debug>false</debug>
         </driver>         
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
