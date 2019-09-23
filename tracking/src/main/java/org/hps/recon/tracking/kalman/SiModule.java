@@ -26,8 +26,7 @@ public class SiModule {
     org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
-    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness,
-            org.lcsim.geometry.FieldMap Bfield) {
+    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0
         this(Layer, p, stereo != 0.0, stereo, width, height, thickness, Bfield, 0);
@@ -73,8 +72,8 @@ public class SiModule {
         p.X().print("origin of Si layer coordinates in the global system");
         Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
-        System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(),
-                tBf.v[0], tBf.v[1], tBf.v[2]);
+        System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1],
+                tBf.v[2]);
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();
@@ -90,8 +89,7 @@ public class SiModule {
     }
 
     public void addMeasurement(Measurement m) {
-        if (hits.size() == 0)
-            hits.add(m);
+        if (hits.size() == 0) hits.add(m);
         else {
             boolean added = false;
             for (int i = hits.size() - 1; i >= 0; i--) { // Keep the measurements ordered by coordinate value
@@ -101,8 +99,7 @@ public class SiModule {
                     break;
                 }
             }
-            if (!added)
-                hits.add(m);
+            if (!added) hits.add(m);
         }
     }
 

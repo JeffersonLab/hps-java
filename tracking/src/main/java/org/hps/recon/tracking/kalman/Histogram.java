@@ -27,9 +27,7 @@ class Histogram { // Very light interface into Gnuplot to make histograms while 
         sumX2 = 0.;
         nEntry = 0;
         counts = new ArrayList<Integer>(nBins);
-        for (int i = 0; i < nBins; ++i) {
-            counts.add(i, 0);
-        }
+        for (int i = 0; i < nBins; ++i) { counts.add(i, 0); }
     }
 
     String Title() {
@@ -124,15 +122,11 @@ class Histogram { // Very light interface into Gnuplot to make histograms while 
         pW.format("set nokey\n");
         if (choice == "errors") {
             pW.format("plot '-' with xyerrorbars \n");
-            for (int i = 0; i < N; i++) {
-                pW.format("%8.3e %8.3e %8.3e %8.3e\n", X.get(i), Y.get(i), Ex.get(i), Ey.get(i));
-            }
+            for (int i = 0; i < N; i++) { pW.format("%8.3e %8.3e %8.3e %8.3e\n", X.get(i), Y.get(i), Ex.get(i), Ey.get(i)); }
             pW.format("e\n");
         } else {
             pW.format("plot '-' with boxes\n");
-            for (int i = 0; i < N; i++) {
-                pW.format("%8.3e %8.3e\n", X.get(i), Y.get(i));
-            }
+            for (int i = 0; i < N; i++) { pW.format("%8.3e %8.3e\n", X.get(i), Y.get(i)); }
             pW.format("e\n");
         }
         pW.close();

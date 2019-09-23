@@ -13,68 +13,40 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
     SquareMatrix(int N, double[][] m) {
         M = new double[N][N];
         this.N = N;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                M[i][j] = m[i][j];
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { M[i][j] = m[i][j]; } }
     }
 
     SquareMatrix(int N, double v) { // Create a diagonal matrix proportional to the unit matrix
         this.N = N;
         M = new double[N][N];
-        for (int i = 0; i < N; i++) {
-            M[i][i] = v;
-        }
+        for (int i = 0; i < N; i++) { M[i][i] = v; }
     }
 
     void scale(double f) { // Multiply all matrix elements by a scalar
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                M[i][j] *= f;
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { M[i][j] *= f; } }
     }
 
     SquareMatrix multiply(SquareMatrix M2) { // Standard matrix multiplication
         SquareMatrix Mp = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                for (int k = 0; k < N; k++) {
-                    Mp.M[i][j] += M[i][k] * M2.M[k][j];
-                }
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { for (int k = 0; k < N; k++) { Mp.M[i][j] += M[i][k] * M2.M[k][j]; } } }
         return Mp;
     }
 
     SquareMatrix sum(SquareMatrix m2) { // Add two matrices
         SquareMatrix Ms = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                Ms.M[i][j] = m2.M[i][j] + M[i][j];
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { Ms.M[i][j] = m2.M[i][j] + M[i][j]; } }
         return Ms;
     }
 
     SquareMatrix dif(SquareMatrix m2) { // Subtract two matrices
         SquareMatrix Ms = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                Ms.M[i][j] = M[i][j] - m2.M[i][j];
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { Ms.M[i][j] = M[i][j] - m2.M[i][j]; } }
         return Ms;
     }
 
     SquareMatrix transpose() {
         SquareMatrix Mt = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                Mt.M[i][j] = M[j][i];
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { Mt.M[i][j] = M[j][i]; } }
         return Mt;
     }
 
@@ -82,11 +54,7 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         SquareMatrix Mp = new SquareMatrix(N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                for (int m = 0; m < N; m++) {
-                    for (int n = 0; n < N; n++) {
-                        Mp.M[i][j] += F.M[i][m] * M[m][n] * F.M[j][n];
-                    }
-                }
+                for (int m = 0; m < N; m++) { for (int n = 0; n < N; n++) { Mp.M[i][j] += F.M[i][m] * M[m][n] * F.M[j][n]; } }
             }
         }
         return Mp;
@@ -100,11 +68,7 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         SquareMatrix Mp = new SquareMatrix(N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                for (int m = 0; m < N; m++) {
-                    for (int n = 0; n < N; n++) {
-                        Mp.M[i][j] += R.M[i][m] * M[m][n] * R.M[j][n];
-                    }
-                }
+                for (int m = 0; m < N; m++) { for (int n = 0; n < N; n++) { Mp.M[i][j] += R.M[i][m] * M[m][n] * R.M[j][n]; } }
             }
         }
         return Mp;
@@ -118,11 +82,7 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         SquareMatrix Mp = new SquareMatrix(N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                for (int m = 0; m < N; m++) {
-                    for (int n = 0; n < N; n++) {
-                        Mp.M[i][j] += R.M[m][i] * M[m][n] * R.M[n][j];
-                    }
-                }
+                for (int m = 0; m < N; m++) { for (int n = 0; n < N; n++) { Mp.M[i][j] += R.M[m][i] * M[m][n] * R.M[n][j]; } }
             }
         }
         return Mp;
@@ -131,20 +91,14 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
     void print(String s) {
         System.out.format("Printout of matrix %s  %d\n", s, N);
         for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                System.out.format("  %12.4e", M[i][j]);
-            }
+            for (int j = 0; j < N; j++) { System.out.format("  %12.4e", M[i][j]); }
             System.out.format("\n");
         }
     }
 
     SquareMatrix copy() {
         SquareMatrix Mc = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                Mc.M[i][j] = M[i][j];
-            }
-        }
+        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { Mc.M[i][j] = M[i][j]; } }
         Mc.N = N;
         return Mc;
     }
@@ -189,16 +143,12 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
             }
             double pivinv = 1.0 / Minv.M[icol][icol];
             Minv.M[icol][icol] = 1.0;
-            for (int l = 0; l < N; l++) {
-                Minv.M[icol][l] *= pivinv;
-            }
+            for (int l = 0; l < N; l++) { Minv.M[icol][l] *= pivinv; }
             for (int ll = 0; ll < N; ll++) {
                 if (ll != icol) {
                     double dum = Minv.M[ll][icol];
                     Minv.M[ll][icol] = 0.0;
-                    for (int l = 0; l < N; l++) {
-                        Minv.M[ll][l] -= Minv.M[icol][l] * dum;
-                    }
+                    for (int l = 0; l < N; l++) { Minv.M[ll][l] -= Minv.M[icol][l] * dum; }
                 }
             }
         }

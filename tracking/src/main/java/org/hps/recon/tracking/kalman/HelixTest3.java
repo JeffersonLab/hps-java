@@ -1,6 +1,5 @@
 package org.hps.recon.tracking.kalman;
 
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,7 +17,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
     // z is the B field direction, downward in lab coordinates
     // y is the beam direction
     // x is y cross z
-    
+
     Random rnd;
 
     public HelixTest3(String path) {
@@ -37,17 +36,15 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         boolean rungeKutta = true; // Set true to generate the helix by Runge Kutta integration instead of a
                                    // piecewise helix
         boolean verbose = nTrials < 2;
-        
+
         // Seed the random number generator
         long rndSeed = -3263009337738135404L;
         rnd = new Random();
         rnd.setSeed(rndSeed);
 
         Histogram hGaus = new Histogram(100, -4., 0.08, "Normal Distribution 1", "x", "y");
-        for (int i=0; i<1000000; i++) {
-            hGaus.entry(rnd.nextGaussian());
-        }
-        
+        for (int i = 0; i < 1000000; i++) { hGaus.entry(rnd.nextGaussian()); }
+
         // Read in the magnetic field map
         String mapType = "binary";
         String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
@@ -59,16 +56,13 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             return;
         }
         if (mapType != "binary") {
-            fM.writeBinaryFile(
-                    "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v2.bin");
+            fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v2.bin");
         }
 
         // Tracking instrument description
 
         double thickness = 0.3; // Silicon thickness in mm
-        if (perfect) {
-            thickness = 0.0000000000001;
-        }
+        if (perfect) { thickness = 0.0000000000001; }
         ArrayList<SiModule> SiModules = new ArrayList<SiModule>();
         Plane plnInt;
         SiModule newModule;
@@ -155,7 +149,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471));
         newModule = new SiModule(11, plnInt, true, -0.049863, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
-        
+
         plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105));
         newModule = new SiModule(12, plnInt, false, 0.000107, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
@@ -173,15 +167,13 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         int[] lyr = new int[SiModules.size()];
         for (int i = 0; i < SiModules.size(); i++) {
             SiModule si = SiModules.get(i);
-            if (si.Layer >= 0) {
-                location[si.Layer] = si.p.X().v[1];
-            }
+            if (si.Layer >= 0) { location[si.Layer] = si.p.X().v[1]; }
             lyr[i] = si.Layer;
             xdet[i] = si.p.X().v[0];
             ydet[i] = si.p.X().v[1];
             zdet[i] = si.p.X().v[2];
-            System.out.format("Si Module %d, Layer=%d, Detector=%d, location=%8.2f, x=%8.2f, y=%8.2f, z=%8.2f\n", i,
-                    si.Layer, si.detector, si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
+            System.out.format("Si Module %d, Layer=%d, Detector=%d, location=%8.2f, x=%8.2f, y=%8.2f, z=%8.2f\n", i, si.Layer, si.detector,
+                    si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
         double resolution = 0.006; // SSD point resolution, in mm
 
@@ -197,8 +189,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         }
         double Phi = 91. * Math.PI / 180.;
         double Theta = 88. * Math.PI / 180.;
-        Vec initialDirection = new Vec(Math.cos(Phi) * Math.sin(Theta), Math.sin(Phi) * Math.sin(Theta),
-                Math.cos(Theta));
+        Vec initialDirection = new Vec(Math.cos(Phi) * Math.sin(Theta), Math.sin(Phi) * Math.sin(Theta), Math.cos(Theta));
         initialDirection.print("initial particle direction");
         double drho;
         double drhoSigma = 0.3; // 0.2 0.3
@@ -296,24 +287,20 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             printWriter2.format("set ylabel 'Y'\n");
         }
         Histogram hScat = new Histogram(100, 0., 0.0001, "Scattering Angle", "radians", "events");
-        Histogram hScatProj = new Histogram(100, -0.5, 0.01, "Projected Scattering Angle","degrees","Si planes");
+        Histogram hScatProj = new Histogram(100, -0.5, 0.01, "Projected Scattering Angle", "degrees", "Si planes");
         Histogram hnHit = new Histogram(15, 0., 1., "Number of hits on helix", "hits", "events");
         Histogram hps1 = new Histogram(100, -1., 0.02, "phi of scatter, non-stereo layer", "radians", "track");
-        Histogram hsp1theta = new Histogram(100, -3.0e-3, 6.e-5, "projected scattering angle, non-stereo layer",
-                "pi radians", "track");
+        Histogram hsp1theta = new Histogram(100, -3.0e-3, 6.e-5, "projected scattering angle, non-stereo layer", "pi radians", "track");
         Histogram hps2 = new Histogram(100, -1., 0.02, "phi of scatter, stereo layer", "radians", "track");
-        Histogram hsp2theta = new Histogram(100, -3.0e-3, 6.e-5, "projected scattering angle, stereo layer",
-                "pi radians", "track");
+        Histogram hsp2theta = new Histogram(100, -3.0e-3, 6.e-5, "projected scattering angle, stereo layer", "pi radians", "track");
         Histogram hchi2G = new Histogram(80, 0., 2.0, "Helix guess chi^2", "chi^2", "tracks");
         Histogram hChi2 = new Histogram(80, 0., 1.0, "Helix fit chi^2 after smoothing", "chi^2", "tracks");
-        Histogram hChi2Alt = new Histogram(80, 0., 3.0, "Fit chi^2 after smoothing from MC true locations", "chi^2",
-                "tracks");
-        Histogram hChi2p = new Histogram(80, 0., 1.0, "Fit chi^2 using only hit errors", "chi^2",
-                "tracks");
-        Histogram hReducedErr = new Histogram(100, 0., .0002,"Reduced error in Layer 4","mm","tracks");
+        Histogram hChi2Alt = new Histogram(80, 0., 3.0, "Fit chi^2 after smoothing from MC true locations", "chi^2", "tracks");
+        Histogram hChi2p = new Histogram(80, 0., 1.0, "Fit chi^2 using only hit errors", "chi^2", "tracks");
+        Histogram hReducedErr = new Histogram(100, 0., .0002, "Reduced error in Layer 4", "mm", "tracks");
         Histogram hChi2f = new Histogram(80, 0., 1.0, "Helix fit chi^2 after filtering", "chi^2", "tracks");
-        Histogram hXscat = new Histogram(100, -1., 0.02, "X scattering angles","degrees","Si planes");
-        Histogram hZscat = new Histogram(100, -0.5, 0.01, "Z scattering angles","degrees","Si planes");
+        Histogram hXscat = new Histogram(100, -1., 0.02, "X scattering angles", "degrees", "Si planes");
+        Histogram hZscat = new Histogram(100, -0.5, 0.01, "Z scattering angles", "degrees", "Si planes");
         Histogram hChi2HelixS = new Histogram(80, 0., 0.4, "smoothed chi^2 of helix parameters", "chi^2", "tracks");
         Histogram hChi2Helix = new Histogram(80, 0., 0.4, "filtered chi^2 of helix parameters", "chi^2", "tracks");
         Histogram hChi2Guess = new Histogram(80, 0., 2.0, "chi^2 of guess helix parameters", "chi^2", "tracks");
@@ -352,28 +339,24 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram[] hResidX = new Histogram[nLayers];
         Histogram[] hResidZ = new Histogram[nLayers];
         for (int i = 0; i < nLayers; i++) {
-            hResidS0[i] = new Histogram(100, -10., 0.2, String.format("Smoothed fit residual for plane %d", i),
-                    "sigmas", "hits");
-            hResidS2[i] = new Histogram(100, -0.02, 0.0004, String.format("Smoothed fit residual for plane %d", i), "mm",
-                    "hits");
-            hResidS4[i] = new Histogram(100, -0.1, 0.002, String.format("Smoothed true residual for plane %d", i), "mm",
-                    "hits");
-            hResidX[i] = new Histogram(100, -0.8, 0.016, String.format("True residual in global X for plane %d",i), "mm", "hits");
-            hResidZ[i] = new Histogram(100, -0.1, 0.002, String.format("True residual in global Z for plane %d",i), "mm", "hits");
+            hResidS0[i] = new Histogram(100, -10., 0.2, String.format("Smoothed fit residual for plane %d", i), "sigmas", "hits");
+            hResidS2[i] = new Histogram(100, -0.02, 0.0004, String.format("Smoothed fit residual for plane %d", i), "mm", "hits");
+            hResidS4[i] = new Histogram(100, -0.1, 0.002, String.format("Smoothed true residual for plane %d", i), "mm", "hits");
+            hResidX[i] = new Histogram(100, -0.8, 0.016, String.format("True residual in global X for plane %d", i), "mm", "hits");
+            hResidZ[i] = new Histogram(100, -0.1, 0.002, String.format("True residual in global Z for plane %d", i), "mm", "hits");
         }
 
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
-        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(),
-                ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
+                ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
         // Extrapolate the helix from the origin to the first detector layer
         SiModule si1 = SiModules.get(0);
         double phi1 = TkInitial.planeIntersect(si1.p);
         if (Double.isNaN(phi1)) {
-            if (verbose)
-                System.out.format("Oops! No intersection found with initial plane");
+            if (verbose) System.out.format("Oops! No intersection found with initial plane");
             return;
         }
         Vec p1 = new Vec(3);
@@ -388,21 +371,15 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         Helix TkEnd = helixBegin;
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
             Helix Tk = helixBegin.copy();
-            if (verbose) {
-                Tk.print("copied initial helix");
-            }
+            if (verbose) { Tk.print("copied initial helix"); }
 
             // Populate the Si detector planes with hits from the helix scattered at each
             // plane
             HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-            if (verbose) {
-                printWriter2.format("$helix << EOD\n");
-            }
+            if (verbose) { printWriter2.format("$helix << EOD\n"); }
             for (int icm = 0; icm < SiModules.size(); icm++) {
                 SiModule thisSi = SiModules.get(icm);
-                if (thisSi.Layer < 0) {
-                    continue;
-                }
+                if (thisSi.Layer < 0) { continue; }
                 thisSi.reset();
                 int pln = thisSi.Layer;
                 int det = thisSi.detector;
@@ -412,13 +389,10 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 }
                 double phiInt = Tk.planeIntersect(thisSi.p);
                 if (Double.isNaN(phiInt)) {
-                    if (verbose)
-                        System.out.format("Plane %d, no intersection found", pln);
+                    if (verbose) System.out.format("Plane %d, no intersection found", pln);
                     break;
                 }
-                if (verbose) {
-                    System.out.format("Plane %d, phiInt1= %12.10f\n", pln, phiInt);
-                }
+                if (verbose) { System.out.format("Plane %d, phiInt1= %12.10f\n", pln, phiInt); }
                 Vec rscat = new Vec(3);
                 Vec pInt = new Vec(3);
                 if (rungeKutta) {
@@ -429,8 +403,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 }
                 if (verbose) {
                     double check = (rscat.dif(thisSi.p.X()).dot(thisSi.p.T()));
-                    System.out.format("Dot product of vector in plane with plane direction=%12.8e, should be zero\n",
-                            check);
+                    System.out.format("Dot product of vector in plane with plane direction=%12.8e, should be zero\n", check);
                     Tk.atPhi(phiInt).print("local intersection point of helix");
                     Vec xIntGlob = Tk.atPhiGlobal(phiInt);
                     xIntGlob.print("global intersection point of helix");
@@ -443,8 +416,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     // rscat.v[2]);
                     if (rungeKutta) {
                         double errX = rscat.dif(xIntGlob).mag();
-                        System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d\n",
-                                errX, pln);
+                        System.out.format("Runge-Kutta difference from Helix extrapolation is %12.5e mm for plane %d\n", errX, pln);
                         rscat.print("Runge-Kutta intersection point");
                         pInt.print("Runge-Kutta momentum at intersection point");
                     }
@@ -466,10 +438,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 // }
                 if (rDet.v[0] > thisSi.xExtent[1] || rDet.v[0] < thisSi.xExtent[0] || rDet.v[1] > thisSi.yExtent[1]
                         || rDet.v[1] < thisSi.yExtent[0]) {
-                    if (verbose) {
-                        System.out.format("     Intersection point is outside of the detector %d in layer %d\n", det,
-                                pln);
-                    }
+                    if (verbose) { System.out.format("     Intersection point is outside of the detector %d in layer %d\n", det, pln); }
                     continue;
                 }
                 // if (thisSi.Layer == 7 || thisSi.Layer == 8) continue; // !!!!!!!!!!!!
@@ -486,9 +455,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 double smear = resolution * gran[0];
                 double m1 = rDet.v[1] + smear;
                 hRes.entry(smear);
-                if (verbose) {
-                    System.out.format("       Measurement 1= %10.7f,  Truth=%10.7f\n", m1, rDet.v[1]);
-                }
+                if (verbose) { System.out.format("       Measurement 1= %10.7f,  Truth=%10.7f\n", m1, rDet.v[1]); }
                 Measurement thisM1 = new Measurement(m1, resolution, rscat, rDet.v[1]);
                 thisSi.addMeasurement(thisM1);
 
@@ -516,14 +483,14 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     Vec t2 = Tk.getMomGlobal(0.).unitVec();
                     double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
                     double scattAngProj = Math.atan2(t1.v[0], t1.v[1]) - Math.atan2(t2.v[0], t2.v[1]);
-                    hScatProj.entry(scattAngProj*180./Math.PI);
+                    hScatProj.entry(scattAngProj * 180. / Math.PI);
                     hScat.entry(scattAng);
                     if (verbose) {
                         Tk.print("scattered from the first layer of the detector plane");
                         Vec p2 = Tk.getMomGlobal(0.);
                         p2.print("momentum after scatter");
-                        System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n",
-                                thickness, scattAng, p2.mag());
+                        System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng,
+                                p2.mag());
                     }
                     Vec t2Loc = Rtmp.rotate(t2);
 
@@ -537,13 +504,10 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     }
                 } else {
                     TkEnd = Tk;
-                    if (verbose) {
-                        TkEnd.print("TkEnd");
-                    }
+                    if (verbose) { TkEnd.print("TkEnd"); }
                 }
             }
-            if (verbose)
-                printWriter2.format("EOD\n");
+            if (verbose) printWriter2.format("EOD\n");
 
             if (verbose) {
                 printWriter2.format("$pnts << EOD\n");
@@ -564,10 +528,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             }
 
             int nHits = 0;
-            for (SiModule siM : SiModules) {
-                if (siM.hits.size() > 0)
-                    nHits++;
-            }
+            for (SiModule siM : SiModules) { if (siM.hits.size() > 0) nHits++; }
             hnHit.entry(nHits);
 
             // Create a seed track from the first 3 or 4 layers
@@ -577,10 +538,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             ArrayList<int[]> hitList = new ArrayList<int[]>(nAxial + nStereo);
             for (int i = SiModules.size() - 1; i >= 0; i--) {
                 SiModule si = SiModules.get(i);
-                if (si.Layer > startLayer)
-                    continue;
-                if (si.hits.isEmpty())
-                    continue;
+                if (si.Layer > startLayer) continue;
+                if (si.hits.isEmpty()) continue;
                 if (nA < nAxial) {
                     if (!si.isStereo) {
                         int[] ht = new int[2];
@@ -591,8 +550,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                         frstLyr = si.Layer;
                     }
                 } else {
-                    if (nS >= nStereo)
-                        break;
+                    if (nS >= nStereo) break;
                 }
                 if (nS < nStereo) {
                     if (si.isStereo) {
@@ -604,8 +562,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                         frstLyr = si.Layer;
                     }
                 } else {
-                    if (nA >= nStereo)
-                        break;
+                    if (nA >= nStereo) break;
                 }
             }
             if (nS < nStereo || nA < nAxial) {
@@ -644,25 +601,23 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             // initialHelixGuess.v[2] - K,
             // initialHelixGuess.v[3] - dz, initialHelixGuess.v[4] - tanl);
             double[] gErr = new double[5];
-            for (int i = 0; i < 5; i++) {
-                gErr[i] = gErrVec.v[i] / GuessErrors.v[i];
-            }
+            for (int i = 0; i < 5; i++) { gErr[i] = gErrVec.v[i] / GuessErrors.v[i]; }
             if (verbose) {
                 // helixMCtrue.print("MC true helix at this layer");
                 // pivotSaved[frstLyr].print("old pivot");
                 // pivotOnAxis.print("new pivot");
                 // Bpiv.print("field at old pivot");
                 System.out.format("Comparing linear helix fit with true at layer %d, alpha=%10.5f\n", frstLyr, alpha);
-                System.out.format("Guess drho=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n",
-                        initialHelixGuess.v[0], helixTrueTrans.v[0], GuessErrors.v[0], gErr[0]);
-                System.out.format("Guess phi0=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n",
-                        initialHelixGuess.v[1], helixTrueTrans.v[1], GuessErrors.v[1], gErr[1]);
-                System.out.format("Guess K=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n",
-                        initialHelixGuess.v[2], helixTrueTrans.v[2], GuessErrors.v[2], gErr[2]);
-                System.out.format("Guess dz=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n",
-                        initialHelixGuess.v[3], helixTrueTrans.v[3], GuessErrors.v[3], gErr[3]);
-                System.out.format("Guess tanl=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n",
-                        initialHelixGuess.v[4], helixTrueTrans.v[4], GuessErrors.v[4], gErr[4]);
+                System.out.format("Guess drho=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[0],
+                        helixTrueTrans.v[0], GuessErrors.v[0], gErr[0]);
+                System.out.format("Guess phi0=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[1],
+                        helixTrueTrans.v[1], GuessErrors.v[1], gErr[1]);
+                System.out.format("Guess K=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[2],
+                        helixTrueTrans.v[2], GuessErrors.v[2], gErr[2]);
+                System.out.format("Guess dz=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[3],
+                        helixTrueTrans.v[3], GuessErrors.v[3], gErr[3]);
+                System.out.format("Guess tanl=%12.5e, true=%12.5e, uncertainty=%12.5e, sigmas=%12.5e\n", initialHelixGuess.v[4],
+                        helixTrueTrans.v[4], GuessErrors.v[4], gErr[4]);
             }
             hEdrhoG.entry(gErr[0]);
             hEphi0G.entry(gErr[1]);
@@ -726,19 +681,14 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
 
             initialCovariance.scale(1000.); // Blow up the errors on the initial guess
 
-            if (verbose) {
-                initialCovariance.print("initial covariance guess");
-            }
+            if (verbose) { initialCovariance.print("initial covariance guess"); }
             // Run the Kalman fit
-            KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration,
-                    new Vec(0., location[frstLyr], 0.), initialHelixGuess, initialCovariance, fM, verbose);
-            if (!kF.success) {
-                continue;
-            }
+            KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
+                    initialHelixGuess, initialCovariance, fM, verbose);
+            if (!kF.success) { continue; }
             KalTrack KalmanTrack = kF.tkr;
             KalmanTrack.originHelix();
-            if (verbose)
-                KalmanTrack.print("KalmanTrack");
+            if (verbose) KalmanTrack.print("KalmanTrack");
 
             double chi2s = 0.;
             ArrayList<MeasurementSite> sites = kF.sites;
@@ -747,19 +697,15 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     SiModule siM = site.m;
                     if (site.m.Layer >= 0) {
                         if (site.filtered) {
-                            if (siM.isStereo)
-                                hResid0.entry(site.aF.r / Math.sqrt(site.aF.R));
-                            else
-                                hResid1.entry(site.aF.r / Math.sqrt(site.aF.R));
+                            if (siM.isStereo) hResid0.entry(site.aF.r / Math.sqrt(site.aF.R));
+                            else hResid1.entry(site.aF.r / Math.sqrt(site.aF.R));
                         }
                         if (site.smoothed) {
-                            if (site.m.Layer == 4) hReducedErr.entry(Math.sqrt(site.aS.R)); 
+                            if (site.m.Layer == 4) hReducedErr.entry(Math.sqrt(site.aS.R));
                             chi2s += Math.pow(site.aS.mPred - site.m.hits.get(site.hitID).vTrue, 2) / site.aS.R;
                             hResidS0[siM.Layer].entry(site.aS.r / Math.sqrt(site.aS.R));
                             hResidS2[siM.Layer].entry(site.aS.r);
-                            if (site.hitID >= 0) {
-                                hResidS4[siM.Layer].entry(site.m.hits.get(site.hitID).vTrue - site.aS.mPred);
-                            }
+                            if (site.hitID >= 0) { hResidS4[siM.Layer].entry(site.m.hits.get(site.hitID).vTrue - site.aS.mPred); }
                         }
                     }
                 }
@@ -768,12 +714,10 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 Vec loc = KalmanTrack.interceptVects.get(site);
                 SiModule siM = site.m;
                 if (siM.Layer < 0) continue;
-                if (site.hitID<0) {
-                    System.out.format("Missing hit ID on site with layer=%d", siM.Layer);
-                }
+                if (site.hitID < 0) { System.out.format("Missing hit ID on site with layer=%d", siM.Layer); }
                 Vec locMC = site.m.hits.get(site.hitID).rGlobal;
-                hResidX[siM.Layer].entry(loc.v[0]-locMC.v[0]);
-                hResidZ[siM.Layer].entry(loc.v[2]-locMC.v[2]);
+                hResidX[siM.Layer].entry(loc.v[0] - locMC.v[0]);
+                hResidZ[siM.Layer].entry(loc.v[2] - locMC.v[2]);
             }
             hChi2Alt.entry(chi2s);
             hChi2.entry(kF.chi2s);
@@ -782,13 +726,13 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             hChi2p.entry(chi2prm);
 
             if (verbose) {
-                System.out.format("HelixTest3: initial-site=%d, final-site=%d, # sites=%d, chi^2s=%10.4f chi^2true=%10.4f chi^2_prm=%10.4f\n", kF.initialSite,
-                        kF.finalSite, kF.sites.size(), kF.chi2s, chi2s, chi2prm);
+                System.out.format("HelixTest3: initial-site=%d, final-site=%d, # sites=%d, chi^2s=%10.4f chi^2true=%10.4f chi^2_prm=%10.4f\n",
+                        kF.initialSite, kF.finalSite, kF.sites.size(), kF.chi2s, chi2s, chi2prm);
             }
             if (kF.sites.size() > 0) {
                 for (MeasurementSite site : kF.sites) {
-                    hXscat.entry(site.scatX()*180./Math.PI);
-                    hZscat.entry(site.scatZ()*180./Math.PI);
+                    hXscat.entry(site.scatX() * 180. / Math.PI);
+                    hZscat.entry(site.scatZ() * 180. / Math.PI);
                 }
                 if (kF.sites.get(kF.initialSite).aS != null && kF.sites.get(kF.finalSite).aS != null) {
                     if (verbose) {
@@ -813,18 +757,13 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     Vec aFe = new Vec(5);
                     SquareMatrix aFC = kF.fittedStateBegin().covariancePivotTransform(aF);
                     aFC = aFC.similarity(fRot);
-                    for (int i = 0; i < 5; i++) {
-                        aFe.v[i] = Math.sqrt(Math.max(0., aFC.M[i][i]));
-                    }
-                    if (verbose) {
-                        aFe.print("error estimates on the smoothed helix parameters");
-                    }
+                    for (int i = 0; i < 5; i++) { aFe.v[i] = Math.sqrt(Math.max(0., aFC.M[i][i])); }
+                    if (verbose) { aFe.print("error estimates on the smoothed helix parameters"); }
                     Vec trueErr = aF.dif(helixBegin.p);
                     if (verbose) {
                         for (int i = 0; i < 5; i++) {
                             double diff = (trueErr.v[i]) / aFe.v[i];
-                            System.out.format("     Helix parameter %d after smoothing, error = %10.5f sigma\n", i,
-                                    diff);
+                            System.out.format("     Helix parameter %d after smoothing, error = %10.5f sigma\n", i, diff);
                         }
                     }
                     hEdrhoS.entry(trueErr.v[0] / aFe.v[0]);
@@ -850,9 +789,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     SquareMatrix eFc = kF.fittedStateEnd().covariancePivotTransform(eF);
                     // eFc = eFc.similarity(fRot);
                     Vec eFe = new Vec(5);
-                    for (int i = 0; i < 5; i++) {
-                        eFe.v[i] = Math.sqrt(Math.max(0., eFc.M[i][i]));
-                    }
+                    for (int i = 0; i < 5; i++) { eFe.v[i] = Math.sqrt(Math.max(0., eFc.M[i][i])); }
                     Vec fH = TkEnd.p;
                     trueErr = eF.dif(fH);
                     if (verbose) {
@@ -870,17 +807,13 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     hEtanl.entry(trueErr.v[4] / eFe.v[4]);
                     trueErr = eF.dif(fH);
                     helixChi2 = trueErr.dot(trueErr.leftMultiply(eFc.invert()));
-                    if (verbose) {
-                        System.out.format("Full chi^2 of the filtered helix parameters = %12.4e\n", helixChi2);
-                    }
+                    if (verbose) { System.out.format("Full chi^2 of the filtered helix parameters = %12.4e\n", helixChi2); }
                     hChi2Helix.entry(helixChi2);
 
                     // Study the fitted helix extrapolated back to the origin
                     double[] hP = KalmanTrack.originHelixParms();
                     double[] hErr = new double[5];
-                    for (int i = 0; i < 5; ++i) {
-                        hErr[i] = (hP[i] - TkInitial.p.v[i]);
-                    }
+                    for (int i = 0; i < 5; ++i) { hErr[i] = (hP[i] - TkInitial.p.v[i]); }
                     hEdrhoO.entry(hErr[0] / KalmanTrack.helixErr(0));
                     hEphi0O.entry(hErr[1] / KalmanTrack.helixErr(1));
                     hEkO.entry(hErr[2] / KalmanTrack.helixErr(2));
@@ -900,24 +833,19 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                     SquareMatrix oCov = new SquareMatrix(5, KalmanTrack.originCovariance());
                     SquareMatrix corr = new SquareMatrix(5);
                     for (int i = 0; i < 5; ++i) {
-                        for (int j = 0; j < 5; ++j) {
-                            corr.M[i][j] = oCov.M[i][j] / KalmanTrack.helixErr(i) / KalmanTrack.helixErr(j);
-                        }
+                        for (int j = 0; j < 5; ++j) { corr.M[i][j] = oCov.M[i][j] / KalmanTrack.helixErr(i) / KalmanTrack.helixErr(j); }
                     }
                     double oHelixChi2 = oHerr.dot(oHerr.leftMultiply(oCov.invert()));
                     hChi2Origin.entry(oHelixChi2);
                     if (verbose) {
                         helixOrigin.print("MC True particle origin");
-                        System.out.format("Fitted particle origin=%10.6f %10.6f %10.6f\n", originPnt[0], originPnt[1],
-                                originPnt[2]);
+                        System.out.format("Fitted particle origin=%10.6f %10.6f %10.6f\n", originPnt[0], originPnt[1], originPnt[2]);
                         momentum.print("MC True particle initial momentum");
-                        System.out.format("Fitted particle momentum=%10.6f %10.6f %10.6f\n", originMom[0], originMom[1],
-                                originMom[2]);
+                        System.out.format("Fitted particle momentum=%10.6f %10.6f %10.6f\n", originMom[0], originMom[1], originMom[2]);
                         // new SquareMatrix(3, pCov).print("momentum covariance");
                         System.out.format("Vertex and momentum errors in x,y,z\n");
                         for (int i = 0; i < 3; ++i) {
-                            System.out.format("%d pnt: %10.5f %10.5f %8.3f    ", i, originPnt[i], helixOrigin.v[i],
-                                    xErr[i]);
+                            System.out.format("%d pnt: %10.5f %10.5f %8.3f    ", i, originPnt[i], helixOrigin.v[i], xErr[i]);
                             System.out.format("mom: %10.5f %10.5f %8.3f\n", originMom[i], momentum.v[i], pErr[i]);
                         }
                         System.out.format("Helix parameter errors.  Full Chi^2 = %12.5e\n", oHelixChi2);
@@ -936,8 +864,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         timestamp = Instant.now();
         System.out.format("Ending time = %s\n", timestamp.toString());
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
-        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(),
-                ldt.getHour(), ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+        System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
+                ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
         hGaus.plot(path + "Gaussian.gp", true, " ", " ");
         hReducedErr.plot(path + "ReducedErr.gp", true, " ", " ");
@@ -995,9 +923,9 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             hResidZ[i].plot(path + String.format("residZ_%d.gp", i), true, " ", " ");
         }
     }
-/*
+    /*
     double[] gausRan() { // Return two gaussian random numbers
-
+    
         double x1, x2, w;
         double[] gran = new double[2];
         do {
@@ -1010,8 +938,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         w = Math.sqrt((-2.0 * Math.log(w)) / w);
         gran[0] = x1 * w;
         gran[1] = x2 * w;
-
+    
         return gran;
     }
-*/
+    */
 }

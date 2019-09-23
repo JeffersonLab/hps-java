@@ -60,8 +60,7 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
         A.M[4][2] = A.M[2][4];
         A.M[4][3] = A.M[3][4];
 
-        if (verbose)
-            A.print("of the LinearHelixFit");
+        if (verbose) A.print("of the LinearHelixFit");
 
         // Do the calculation
         C = A.invert();
@@ -87,11 +86,14 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
         System.out.format("LinearHelixFit2: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.v[2], a.v[3], a.v[4]);
         System.out.format("LinearHelixFit2:     line a=%10.7f   b=%10.7f\n", a.v[0], a.v[1]);
         C.print("LinearHelixFit2 covariance");
-        System.out.format("LinearHelixFit2: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n", chi2);
+        System.out.format(
+                "LinearHelixFit2: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n",
+                chi2);
         for (int i = 0; i < N; i++) {
             double xpred = evaluateParabola(y[i]);
             double zpred = evaluateLine(y[i]);
-            System.out.format("        %d   %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f\n", i, x[i], xpred, y[i], z[i], zpred, v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
+            System.out.format("        %d   %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f\n", i, x[i], xpred, y[i], z[i],
+                    zpred, v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
         }
     }
 

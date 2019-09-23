@@ -36,14 +36,17 @@ public class KalTrack {
     KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
-        this.SiteList = SiteList;
+        // Make a new list of sites in case somebody modifies the one referred to on input
+        this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
+        for (MeasurementSite site : SiteList) { this.SiteList.add(site); }
+        Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
         this.nHits = nHits;
         this.chi2 = chi2;
         ID = tkID;
         helixAtOrigin = null;
         propagated = false;
         originCov = new SquareMatrix(5);
-        MeasurementSite site0 = SiteList.get(0);
+        MeasurementSite site0 = this.SiteList.get(0);
         Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), site0.m.Bfield);
         Bmag = B.mag();
         tB = B.unitVec(Bmag);
@@ -62,11 +65,9 @@ public class KalTrack {
         interceptMomVects = new HashMap<MeasurementSite, Vec>();
         lyrMap = new HashMap<Integer, MeasurementSite>();
         // Fill the maps
-        for (MeasurementSite site : SiteList) {
+        for (MeasurementSite site : this.SiteList) {
             double phiS = site.aS.planeIntersect(site.m.p);
-            if (Double.isNaN(phiS)) {
-                phiS = 0.;
-            }
+            if (Double.isNaN(phiS)) { phiS = 0.; }
             interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
             interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
             intercepts.put(site, site.h(site.aS, site.m, phiS));
@@ -76,87 +77,60 @@ public class KalTrack {
 
     // Find the change in smoothed helix angle in XY between one layer and the next
     public double scatX(int layer) {
-        if (!lyrMap.containsKey(layer)) {
-            return -999.;
-        }
+        if (!lyrMap.containsKey(layer)) { return -999.; }
         int lyrNxt = layer + 1;
-        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) {
-            lyrNxt++;
-        }
-        if (lyrNxt > 12) {
-            return -999.;
-        }
+        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
+        if (lyrNxt > 12) { return -999.; }
 
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
         double phiS1 = s1.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS1)) {
-            return -999.;
-        }
+        if (Double.isNaN(phiS1)) { return -999.; }
         Vec p1 = s1.aS.getMom(phiS1);
         double t1 = Math.atan2(p1.v[0], p1.v[1]);
         double phiS2 = s2.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS2)) {
-            return -999.;
-        }        
+        if (Double.isNaN(phiS2)) { return -999.; }
         Vec p2 = s2.aS.getMom(phiS2);
         double t2 = Math.atan2(p2.v[0], p2.v[1]);
         return t1 - t2;
     }
-    
+
     // Find the change in smoothed helix angle in ZY between one layer and the next
     public double scatZ(int layer) {
-        if (!lyrMap.containsKey(layer)) {
-            return -999.;
-        }
+        if (!lyrMap.containsKey(layer)) { return -999.; }
         int lyrNxt = layer + 1;
-        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) {
-            lyrNxt++;
-        }
-        if (lyrNxt > 12) {
-            return -999.;
-        }
+        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
+        if (lyrNxt > 12) { return -999.; }
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
         double phiS1 = s1.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS1)) {
-            return -999.;
-        }
+        if (Double.isNaN(phiS1)) { return -999.; }
         Vec p1 = s1.aS.Rot.inverseRotate(s1.aS.getMom(phiS1));
         double t1 = Math.atan2(p1.v[2], p1.v[1]);
         double phiS2 = s2.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS2)) {
-            return -999.;
-        }       
+        if (Double.isNaN(phiS2)) { return -999.; }
         Vec p2 = s2.aS.Rot.inverseRotate(s2.aS.getMom(phiS2));
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
-    
+
     public double chi2prime() { // Alternative calculation of the fit chi^2, considering only residuals divided by the hit sigma
         double c2 = 0.;
         for (MeasurementSite S : SiteList) {
             double phiS = S.aS.planeIntersect(S.m.p);
-            if (Double.isNaN(phiS)) {
-                phiS = 0.;
-            }
+            if (Double.isNaN(phiS)) { phiS = 0.; }
             double vpred = S.h(S.aS, S.m, phiS);
             for (Measurement hit : S.m.hits) {
-                for (KalTrack tkr : hit.tracks) {
-                    if (tkr.equals(this)) {
-                        c2 += Math.pow((vpred-hit.v)/hit.sigma, 2);
-                    }                   
-                }
+                for (KalTrack tkr : hit.tracks) { if (tkr.equals(this)) { c2 += Math.pow((vpred - hit.v) / hit.sigma, 2); } }
             }
         }
         return c2;
     }
-    
+
     public void print(String s) {
         System.out.format("\n KalTrack %s: ID=%d, %d hits, chi^2=%10.5f\n", s, ID, nHits, chi2);
         if (propagated) {
-            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0],
-                    tB.v[1], tB.v[2]);
+            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             helixAtOrigin.print("helix for a pivot at the origin");
             originCov.print("covariance of helix parameters for a pivot at the origin");
             originPoint.print("point on the helix closest to the origin");
@@ -170,13 +144,9 @@ public class KalTrack {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
             int hitID = site.hitID;
-            if (hitID < 0) {
-                continue;
-            }
+            if (hitID < 0) { continue; }
             int idx = 2 * m.Layer;
-            if (m.isStereo) {
-                idx++;
-            }
+            if (m.isStereo) { idx++; }
             System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  \n", idx, m.Layer, m.stereo,
                     site.chi2inc, site.scatX(), site.scatZ(), hitID);
         }
@@ -211,7 +181,7 @@ public class KalTrack {
         pW.format("$hits << EOD\n");
         for (MeasurementSite site : SiteList) {
             if (site.hitID >= 0) {
-                Vec rDet = new Vec(0., site.m.hits.get(site.hitID).v,0.);
+                Vec rDet = new Vec(0., site.m.hits.get(site.hitID).v, 0.);
                 Vec rGlob = site.m.toGlobal(rDet);
                 pW.format(" %10.5f  %10.6f\n", rGlob.v[1], rGlob.v[2]);
             }
@@ -222,9 +192,9 @@ public class KalTrack {
             Vec rHelix = site.aS.toGlobal(site.aS.atPhi(0.));
             pW.format(" %10.5f  %10.6f\n", rHelix.v[1], rHelix.v[2]);
         }
-        pW.format("EOD\n");  
+        pW.format("EOD\n");
         pW.format("plot $hits with points ps 2, $trks with lines lw 2\n");
-        
+
         pW.format("set xtics font 'Verdana,12'\n");
         pW.format("set ytics font 'Verdana,12'\n");
         pW.format("set title 'Track Residuals' font 'Verdana,12'\n");
@@ -236,26 +206,20 @@ public class KalTrack {
         for (MeasurementSite site : SiteList) {
             if (site.m.Layer < 0) continue;
             double phiS = site.aS.planeIntersect(site.m.p);
-            if (Double.isNaN(phiS)) {
-                continue;
-            }
+            if (Double.isNaN(phiS)) { continue; }
             Vec rHelixG = site.aS.toGlobal(site.aS.atPhi(phiS));
             Vec rHelixL = site.m.toLocal(rHelixG);
-            double residual =  site.m.hits.get(site.hitID).v - rHelixL.v[1];
+            double residual = site.m.hits.get(site.hitID).v - rHelixL.v[1];
             pW.format(" %10.5f  %10.6f    #  %10.6f\n", rHelixG.v[1], residual, site.aS.r);
         }
-        pW.format("EOD\n");  
+        pW.format("EOD\n");
         pW.format("plot $resids with points pt 6 ps 2\n");
         pW.close();
     }
-    
-    
-    
+
     // Runge Kutta propagation of the helix to the origin
     public void originHelix() {
-        if (propagated) {
-            return;
-        }
+        if (propagated) { return; }
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -309,9 +273,7 @@ public class KalTrack {
     }
 
     public double[] originX() {
-        if (!propagated) {
-            originHelix();
-        }
+        if (!propagated) { originHelix(); }
         return originPoint.v.clone();
     }
 
@@ -324,16 +286,12 @@ public class KalTrack {
     }
 
     public double[] originP() {
-        if (!propagated) {
-            originHelix();
-        }
+        if (!propagated) { originHelix(); }
         return originMomentum.v.clone();
     }
 
     public double[][] originCovariance() {
-        if (!propagated) {
-            originHelix();
-        }
+        if (!propagated) { originHelix(); }
         return originCov.M.clone();
     }
 
@@ -355,8 +313,7 @@ public class KalTrack {
         return Rot.rotate(xIn).v.clone();
     }
 
-    // Figure out which measurement site on this track points to a given detector
-    // module
+    // Figure out which measurement site on this track points to a given detector module
     public int whichSite(SiModule module) {
         int Layer = module.Layer;
         int idx;
@@ -372,21 +329,19 @@ public class KalTrack {
             } else {
                 idx = 0;
             }
-            if (SiteList.get(idx).m == module)
-                return idx;
+            if (SiteList.get(idx).m == module) return idx;
         } while (idx != idm);
         return -1;
     }
 
     public void sortSites(boolean ascending) {
-        if (ascending)
-            Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
-        else
-            Collections.sort(SiteList, MeasurementSite.SiteComparatorDn);
+        if (ascending) Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
+        else Collections.sort(SiteList, MeasurementSite.SiteComparatorDn);
     }
 
     // re-fit the track using its existing hits
     public boolean fit(int nIterations, boolean verbose) {
+        double chi2s = 0.;
         for (int iteration = 0; iteration < nIterations; iteration++) {
             if (verbose) {
                 System.out.format("KalTrack.fit: starting filtering for iteration %d\n", iteration);
@@ -394,13 +349,19 @@ public class KalTrack {
             }
             StateVector sH = SiteList.get(0).aS;
             sH.C.scale(10000.); // Blow up the initial covariance matrix to avoid double counting measurements
+            SiModule prevMod = null;
             double chi2f = 0.;
             for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps
                 MeasurementSite currentSite = SiteList.get(idx);
                 currentSite.predicted = false;
                 currentSite.filtered = false;
                 currentSite.smoothed = false;
-                if (currentSite.makePrediction(sH, currentSite.hitID, false, false) < 0) {
+                currentSite.chi2inc = 0.;
+                currentSite.aP = null;
+                currentSite.aF = null;
+                currentSite.aS = null;
+
+                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, false, false, false, verbose) < 0) {
                     System.out.format("KalTrack.fit: In iteration %d failed to make prediction!!\n", iteration);
                     return false;
                 }
@@ -412,11 +373,10 @@ public class KalTrack {
                 // if (verbose) currentSite.print("iterating filtering");
                 chi2f += currentSite.chi2inc;
                 sH = currentSite.aF;
+                prevMod = currentSite.m;
             }
-            if (verbose)
-                System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f);
-
-            double chi2s = 0.;
+            if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f); }
+            chi2s = 0.;
             MeasurementSite nextSite = null;
             for (int idx = SiteList.size() - 1; idx >= 0; idx--) {
                 MeasurementSite currentSite = SiteList.get(idx);
@@ -433,30 +393,10 @@ public class KalTrack {
                 // }
                 nextSite = currentSite;
             }
-            if (verbose) {
-                System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
-            }
+            if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s); }
         }
+        this.chi2 = chi2s;
         return true;
-    }
-
-    // Transform helix parameters from one pivot to another
-    Vec pivotTransform(Vec pivot, Vec a, Vec X0, double alpha) {
-        double xC = X0.v[0] + (a.v[0] + alpha / a.v[2]) * Math.cos(a.v[1]); // Center of the helix circle
-        double yC = X0.v[1] + (a.v[0] + alpha / a.v[2]) * Math.sin(a.v[1]);
-
-        double[] aP = new double[5];
-        aP[2] = a.v[2];
-        aP[4] = a.v[4];
-        if (a.v[2] > 0) {
-            aP[1] = Math.atan2(yC - pivot.v[1], xC - pivot.v[0]);
-        } else {
-            aP[1] = Math.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
-        }
-        aP[0] = (xC - pivot.v[0]) * Math.cos(aP[1]) + (yC - pivot.v[1]) * Math.sin(aP[1]) - alpha / a.v[2];
-        aP[3] = X0.v[2] - pivot.v[2] + a.v[3] - (alpha / a.v[2]) * (aP[1] - a.v[1]) * a.v[4];
-
-        return new Vec(5, aP);
     }
 
     // Derivative matrix for propagating the covariance of the helix parameters to a
@@ -507,4 +447,28 @@ public class KalTrack {
             }
         }
     };
+
+    @Override
+    public boolean equals(Object other) { // Consider two tracks to be equal if they have the same hits
+        if (this == other) return true;
+        if (!(other instanceof KalTrack)) return false;
+        KalTrack o = (KalTrack) other;
+
+        if (this.nHits != o.nHits) return false;
+        if (this.SiteList.size() != o.SiteList.size()) return false;
+
+        for (int i = 0; i < SiteList.size(); ++i) {
+            MeasurementSite s1 = this.SiteList.get(i);
+            MeasurementSite s2 = o.SiteList.get(i);
+            if (s1.m.Layer != s2.m.Layer) return false;
+            if (s1.m.detector != s2.m.detector) return false;
+            if (s1.hitID != s2.hitID) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return nHits + 100 * ID;
+    }
 }

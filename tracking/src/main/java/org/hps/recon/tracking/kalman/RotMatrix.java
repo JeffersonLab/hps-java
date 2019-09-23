@@ -78,13 +78,9 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 double K2 = 0.;
-                for (int n = 0; n < 3; n++) {
-                    K2 += K[i][n] * K[n][j];
-                }
-                if (i == j)
-                    M[i][j] = 1.0;
-                else
-                    M[i][j] = 0.0;
+                for (int n = 0; n < 3; n++) { K2 += K[i][n] * K[n][j]; }
+                if (i == j) M[i][j] = 1.0;
+                else M[i][j] = 0.0;
                 M[i][j] += st * K[i][j] + (1 - ct) * K2;
             }
         }
@@ -92,11 +88,7 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
 
     RotMatrix copy() {
         RotMatrix Rnew = new RotMatrix();
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                Rnew.M[i][j] = M[i][j];
-            }
-        }
+        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { Rnew.M[i][j] = M[i][j]; } }
         return Rnew;
     }
 
@@ -112,44 +104,28 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
 
     RotMatrix multiply(RotMatrix R2) { // Multiply one rotation matrix by another
         RotMatrix R3 = new RotMatrix();
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < 3; k++) {
-                    R3.M[i][j] += M[i][k] * R2.M[k][j];
-                }
-            }
-        }
+        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { for (int k = 0; k < 3; k++) { R3.M[i][j] += M[i][k] * R2.M[k][j]; } } }
         return R3;
     }
 
     void print(String s) {
         System.out.format("The 3 by 3 rotation matrix %s:\n", s);
         for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.format("  %10.8f", M[i][j]);
-            }
+            for (int j = 0; j < 3; j++) { System.out.format("  %10.8f", M[i][j]); }
             System.out.format("\n");
         }
     }
 
     Vec rotate(Vec V) { // Use the matrix to rotate a 3-D vector
         Vec Vp = new Vec(0., 0., 0.);
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                Vp.v[i] += M[i][j] * V.v[j];
-            }
-        }
+        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { Vp.v[i] += M[i][j] * V.v[j]; } }
         return Vp;
     }
 
     Vec inverseRotate(Vec V) { // Use the matrix to rotate a 3-D vector in the opposite sense, using the
                                // inverse (i.e. transpose) of the rotation matrix
         Vec Vp = new Vec(0., 0., 0.);
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                Vp.v[i] += M[j][i] * V.v[j];
-            }
-        }
+        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { Vp.v[i] += M[j][i] * V.v[j]; } }
         return Vp;
     }
 

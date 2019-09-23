@@ -20,7 +20,6 @@ import org.lcsim.geometry.field.FieldOverlay;
 //     z map =  y Kalman
 
 public class FieldMap extends FieldOverlay {
-    private String FileName;
     private int nX, nY, nZ;
     private double[][][] bX, bY, bZ;
     private double[] X, Y, Z;
@@ -29,7 +28,6 @@ public class FieldMap extends FieldOverlay {
 
     public FieldMap(String FileName, String type, double xOffset, double yOffset, double zOffset) throws IOException {
         // The offsets are in HPS coordinates and come from HPSDipoleFieldMap3D
-        this.FileName = FileName;
 
         if (type == "binary") { // This is far faster than scanning the text file (and the file is ~1/3 the
                                 // size)!
@@ -58,8 +56,8 @@ public class FieldMap extends FieldOverlay {
                         bY[ix][iy][iz] = dis.readFloat();
                         bZ[ix][iy][iz] = dis.readFloat();
                         if (nEcho < 10) {
-                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix],
-                                    Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
+                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz],
+                                    bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
                             nEcho++;
                         }
                     }
@@ -77,7 +75,6 @@ public class FieldMap extends FieldOverlay {
                     nY = scan.nextInt();
                     nZ = scan.nextInt();
                     System.out.format("FieldMap.java, scanning text-format data: nX=%d, nY=%d, nZ=%d\n", nX, nY, nZ);
-                    String s = scan.nextLine();
                 } else {
                     if (scan.findInLine("End of Header") != null) {
                         System.out.format("FieldMap.java: end of header found in the field map file\n");
@@ -105,14 +102,13 @@ public class FieldMap extends FieldOverlay {
                         bY[ix][iy][iz] = scan.nextDouble();
                         bZ[ix][iy][iz] = scan.nextDouble();
                         if (!scan.hasNextLine()) {
-                            System.out.format("FieldMap.java: stopped reading the text field map at i=%d, j=%d, k=%d\n",
-                                    ix, iy, iz);
+                            System.out.format("FieldMap.java: stopped reading the text field map at i=%d, j=%d, k=%d\n", ix, iy, iz);
                             break;
                         }
                         scan.nextLine();
                         if (nEcho < 10) {
-                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix],
-                                    Y[iy], Z[iz], bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
+                            System.out.format("x=%12.4e, y=%12.4e, z=%12.4e, Bx=%12.4e, By=%12.4e, Bz=%12.4e\n", X[ix], Y[iy], Z[iz],
+                                    bX[ix][iy][iz], bY[ix][iy][iz], bZ[ix][iy][iz]);
                             nEcho++;
                         }
                     }
@@ -140,8 +136,7 @@ public class FieldMap extends FieldOverlay {
         }
         if (iX > nX - 2) {
             iX = nX - 2;
-            if (rMag.v[0] > X[nX - 1])
-                rMag.v[0] = X[nX - 1];
+            if (rMag.v[0] > X[nX - 1]) rMag.v[0] = X[nX - 1];
         }
         int iY = (int) Math.floor((rMag.v[1] - Y[0]) / dY);
         if (iY < 0) {
@@ -150,18 +145,15 @@ public class FieldMap extends FieldOverlay {
         }
         if (iY > nY - 2) {
             iY = nY - 2;
-            if (rMag.v[1] > Y[nY - 1])
-                rMag.v[1] = Y[nY - 1];
+            if (rMag.v[1] > Y[nY - 1]) rMag.v[1] = Y[nY - 1];
         }
         int iZ = (int) Math.floor((rMag.v[2] - Z[0]) / dZ);
         if (iZ < 0) {
             iZ = 0;
             rMag.v[2] = Z[0];
-            if (rMag.v[2] > Z[nZ - 1])
-                rMag.v[2] = Z[nZ - 1];
+            if (rMag.v[2] > Z[nZ - 1]) rMag.v[2] = Z[nZ - 1];
         }
-        if (iZ > nZ - 2)
-            iZ = nZ - 2;
+        if (iZ > nZ - 2) iZ = nZ - 2;
 
         // r.print("r");
         // rHPS.print("rHPS");

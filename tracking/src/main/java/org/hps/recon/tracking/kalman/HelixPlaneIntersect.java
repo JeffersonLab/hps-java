@@ -36,7 +36,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         if (r.dot(P0) < 0.) {
             //System.out.format("HelixPlaneIntersect:rkIntersect: need to propagate backwards.\n");
             Q = -Qin;
-            P0 = P0in.scale(-1.0);  // Propagate the particle backwards in time
+            P0 = P0in.scale(-1.0); // Propagate the particle backwards in time
             backwards = true;
         }
         double dPerp = r.dot(P.T());
@@ -127,9 +127,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         this.a = a;
         this.X0 = pivot;
         this.p = p;
-        if (Double.isNaN(phi0) || p.T().v[1] == 1.0) {
-            return phi0;
-        }
+        if (Double.isNaN(phi0) || p.T().v[1] == 1.0) return phi0;
 
         double dphi = 0.3;
         double accuracy = 0.0000001;
@@ -162,10 +160,8 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
             // X0.print("internal pivot");
             return xGuess;
         }
-        if (fl == 0.)
-            return x1;
-        if (fh == 0.)
-            return x2;
+        if (fl == 0.) return x1;
+        if (fh == 0.) return x2;
         if (fl < 0.0) {
             xl = x1;
             xh = x2;
@@ -183,15 +179,13 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
                 dxold = dx;
                 dx = 0.5 * (xh - xl); // Use bisection if the Newton-Raphson method is going bonkers
                 rts = xl + dx;
-                if (xl == rts)
-                    return rts;
+                if (xl == rts) return rts;
             } else {
                 dxold = dx;
                 dx = f / df; // Newton-Raphson method
                 temp = rts;
                 rts -= dx;
-                if (temp == rts)
-                    return rts;
+                if (temp == rts) return rts;
             }
             if (Math.abs(dx) < xacc) {
                 // System.out.format("ZeroFind.rtSafe: solution converged in %d iterations.\n",

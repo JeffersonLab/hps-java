@@ -21,10 +21,8 @@ public class KalmanTrackFit {
     }
 
     private int increment(int dir, int i) {
-        if (dir > 0)
-            return i + 1;
-        else
-            return i - 1;
+        if (dir > 0) return i + 1;
+        else return i - 1;
     }
 
     public KalmanTrackFit(ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
@@ -69,7 +67,8 @@ public class KalmanTrackFit {
         StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, verbose);
 
         if (verbose) {
-            System.out.format("KalmanTrackFit: begin Kalman fit, start=%d, direction=%d, number iterations=%d\n", start, direction, nIterations);
+            System.out.format("KalmanTrackFit: begin Kalman fit, start=%d, direction=%d, number iterations=%d\n", start, direction,
+                    nIterations);
             sI.print("initial state for KalmanTrackFit");
         }
 
@@ -104,16 +103,14 @@ public class KalmanTrackFit {
             }
             ;
 
-            if (verbose)
-                newSite.print("initial filtering");
+            if (verbose) newSite.print("initial filtering");
             chi2f += newSite.chi2inc;
 
             sites.add(newSite);
 
             prevSite = thisSite;
         }
-        if (verbose)
-            System.out.format("KalmanTrackFit: Fit chi^2 after initial filtering = %12.4e\n", chi2f);
+        if (verbose) System.out.format("KalmanTrackFit: Fit chi^2 after initial filtering = %12.4e\n", chi2f);
 
         // Go back through the filtered sites in the reverse order to do the smoothing
         chi2s = 0.;
@@ -128,19 +125,16 @@ public class KalmanTrackFit {
             }
             chi2s += currentSite.chi2inc;
 
-            if (verbose)
-                currentSite.print("initial smoothing");
+            if (verbose) currentSite.print("initial smoothing");
             nextSite = currentSite;
         }
-        if (verbose)
-            System.out.format("KalmanTrackFit: Fit chi^2 after initial smoothing = %12.4e\n", chi2s);
+        if (verbose) System.out.format("KalmanTrackFit: Fit chi^2 after initial smoothing = %12.4e\n", chi2s);
 
         // Filter the remaining sites, if any
         if (start != 0 && start != data.size() - 1) {
             prevSite = 0;
             for (int idx = start - direction; stopCondition(-direction, idx, data.size()); idx = increment(-direction, idx)) {
-                if (verbose)
-                    System.out.format("KalmanTrackFit: filtering remaining sites, measurements %d\n", idx);
+                if (verbose) System.out.format("KalmanTrackFit: filtering remaining sites, measurements %d\n", idx);
                 SiModule m = data.get(idx);
                 thisSite++;
                 MeasurementSite newSite = new MeasurementSite(idx, m, mxResid, mxResid);
@@ -156,15 +150,12 @@ public class KalmanTrackFit {
                     break;
                 }
 
-                if (verbose) {
-                    newSite.print("filtering remainding sites");
-                }
+                if (verbose) { newSite.print("filtering remainding sites"); }
                 chi2f += newSite.chi2inc;
 
                 sites.add(0, newSite);
             }
-            if (verbose)
-                System.out.format("KalmanTrackfit: Fit chi^2 after completing the filtering = %12.5e\n", chi2f);
+            if (verbose) System.out.format("KalmanTrackfit: Fit chi^2 after completing the filtering = %12.5e\n", chi2f);
         }
 
         // Iterate the fit if requested
@@ -202,13 +193,11 @@ public class KalmanTrackFit {
                 }
                 ;
 
-                if (verbose)
-                    currentSite.print("iterating filtering");
+                if (verbose) currentSite.print("iterating filtering");
                 chi2f += currentSite.chi2inc;
                 sH = currentSite.aF;
             }
-            if (verbose)
-                System.out.format("KalmanTrackFit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f);
+            if (verbose) System.out.format("KalmanTrackFit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f);
             if (success) {
                 chi2s = 0.;
                 nextSite = null;
@@ -223,14 +212,10 @@ public class KalmanTrackFit {
                     }
                     chi2s += currentSite.chi2inc;
 
-                    if (verbose) {
-                        currentSite.print("iterating smoothing");
-                    }
+                    if (verbose) { currentSite.print("iterating smoothing"); }
                     nextSite = currentSite;
                 }
-                if (verbose) {
-                    System.out.format("KalmanTrackFit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
-                }
+                if (verbose) { System.out.format("KalmanTrackFit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s); }
             }
         }
 

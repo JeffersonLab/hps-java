@@ -20,14 +20,12 @@ class Measurement { // Holds a single silicon-strip measurement (single-sided), 
 
     void print(String s) {
         System.out.format("Measurement %s: Measurement value=%10.6f+-%10.6f;  MC truth=%10.6f\n", s, v, sigma, vTrue);
-        rGlobal.print("global location from MC truth");
+        if (rGlobal != null) { rGlobal.print("global location from MC truth"); }
         if (tracks.size() == 0) {
             System.out.format("  This hit is not on any track.\n");
         } else {
             System.out.format("  List of tracks: ");
-            for (KalTrack tk : tracks) {
-                System.out.format(" %d ", tk.ID);
-            }
+            for (KalTrack tk : tracks) { System.out.format(" %d ", tk.ID); }
             System.out.format("\n");
         }
     }

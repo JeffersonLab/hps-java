@@ -24,8 +24,7 @@ class StateVector {
     // Constructor for the initial state vector used to start the Kalman filter.
     StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin, boolean verbose) {
         // Here tB is the B field direction, while B is the magnitude
-        if (verbose)
-            System.out.format("StateVector: constructing an initial state vector\n");
+        if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
         this.verbose = verbose;
         a = helixParams.copy();
         X0 = pivot.copy();
@@ -33,8 +32,7 @@ class StateVector {
         this.B = B;
         c = 2.99793e8; // Speed of light in m/s
         alpha = 1.0e12 / (c * B); // Convert from pt in GeV to curvature in mm
-        if (verbose)
-            System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
+        if (verbose) System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
         kLow = site;
         kUp = kLow;
         C = Cov.copy();
@@ -77,8 +75,7 @@ class StateVector {
         q.kUp = kUp;
         q.a = a.copy();
         q.C = C.copy();
-        if (F != null)
-            q.F = F.copy();
+        if (F != null) q.F = F.copy();
         q.X0 = X0.copy();
         q.origin = origin.copy();
         q.mPred = mPred;
@@ -98,17 +95,15 @@ class StateVector {
         a.print("helix parameters");
         helixErrors().print("helix parameter errors");
         C.print("for the helix covariance");
-        if (F != null)
-            F.print("for the propagator");
+        if (F != null) F.print("for the propagator");
         double sigmas;
         if (R > 0.) {
             sigmas = r / Math.sqrt(R);
         } else {
             sigmas = 0.;
         }
-        System.out.format(
-                "Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n",
-                mPred, r, R, sigmas);
+        System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r, R,
+                sigmas);
         System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
     }
 
@@ -145,9 +140,7 @@ class StateVector {
         F = this.makeF(aPrime.a); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
             double factor = 1.0 - deltaEoE;
-            for (int i = 0; i < 5; i++) {
-                F.M[i][2] *= factor;
-            }
+            for (int i = 0; i < 5; i++) { F.M[i][2] *= factor; }
         }
 
         // Transform to the coordinate system of the field at the new site
@@ -209,16 +202,11 @@ class StateVector {
         SquareMatrix Ctot;
         if (XL == 0.) {
             Ctot = this.C;
-            if (verbose) {
-                System.out.format("StateVector.predict: XL=%9.6f\n", XL);
-            }
+            if (verbose) { System.out.format("StateVector.predict: XL=%9.6f\n", XL); }
         } else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
             double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
-            if (verbose) {
-                System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL,
-                        sigmaMS);
-            }
+            if (verbose) { System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS); }
             Ctot = this.C.sum(this.getQ(sigmaMS));
         }
 
@@ -302,11 +290,8 @@ class StateVector {
         return aPrime;
     }
 
-    // Create a state vector by removing a hit from an existing state vector
-    // **** Note---not sure that this is working correctly; not currently used *****
-    StateVector inverseFilter(Vec H, double V) {
-
-        StateVector aPrime = copy();
+    // Modify the state vector by removing the hit information
+    void inverseFilter(Vec H, double V) {
 
         double denom = -V + H.dot(H.leftMultiply(C));
         Vec Kstar = H.leftMultiply(C).scale(1.0 / denom); // Kalman gain matrix
@@ -316,19 +301,16 @@ class StateVector {
             H.print("matrix H in StateVector.inverseFilter");
         }
 
-        aPrime.a = a.sum(Kstar.scale(r));
+        a = a.sum(Kstar.scale(r));
         SquareMatrix U = new SquareMatrix(5, 1.0);
-        aPrime.C = (U.dif(Kstar.product(H))).multiply(C);
-
-        return aPrime;
+        C = (U.dif(Kstar.product(H))).multiply(C);
     }
 
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
         if (verbose) {
-            System.out.format(
-                    "StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n",
-                    kLow, kUp, snS.kLow, snS.kUp, snP.kLow, snP.kUp);
+            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp,
+                    snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         }
         StateVector sS = this.copy();
 
@@ -403,14 +385,12 @@ class StateVector {
         // aPrime are the helix parameters for a pivot at the global origin, assumed
         // already to be calculated by pivotTransform()
         SquareMatrix tC = covariancePivotTransform(aPrime);
-        return new Vec(Math.sqrt(tC.M[0][0]), Math.sqrt(tC.M[1][1]), Math.sqrt(tC.M[2][2]), Math.sqrt(tC.M[3][3]),
-                Math.sqrt(tC.M[4][4]));
+        return new Vec(Math.sqrt(tC.M[0][0]), Math.sqrt(tC.M[1][1]), Math.sqrt(tC.M[2][2]), Math.sqrt(tC.M[3][3]), Math.sqrt(tC.M[4][4]));
     }
 
     // Return errors on the helix parameters at the present pivot point
     Vec helixErrors() {
-        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]),
-                Math.sqrt(C.M[4][4]));
+        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]), Math.sqrt(C.M[4][4]));
     }
 
     // Transform the helix covariance to new pivot point (specified in local
@@ -503,8 +483,8 @@ class StateVector {
         Vec helixAtIntersect = pTOa(pInt, 0., 0., Q);
         Vec helixAtOrigin = pivotTransform(new Vec(0., 0., 0.), helixAtIntersect, Xplane, alpha, 0.);
         if (verbose) {
-            System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q,
-                    origin.v[0], origin.v[1], origin.v[2]);
+            System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1],
+                    origin.v[2]);
             System.out.format("    At origin B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             System.out.format("    alpha=%10.6f,  alpha at origin=%10.6f\n", alpha, alphaOrigin);
             Rot.invert().print("from local system at layer 1 to global");
@@ -548,15 +528,11 @@ class StateVector {
             transHelix.print("helixStepper final helix at origin");
             C.print("original covariance");
             System.out.println("    Errors: ");
-            for (int i = 0; i < 5; ++i) {
-                System.out.format(" %10.7f", Math.sqrt(C.M[i][i]));
-            }
+            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", Math.sqrt(C.M[i][i])); }
             System.out.println("\n");
             newCovariance.print("transformed covariance");
             System.out.println("    Errors: ");
-            for (int i = 0; i < 5; ++i) {
-                System.out.format(" %10.7f", Math.sqrt(newCovariance.M[i][i]));
-            }
+            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", Math.sqrt(newCovariance.M[i][i])); }
             System.out.println("\n");
         }
 
@@ -591,8 +567,8 @@ class StateVector {
         SquareMatrix Cov = Covariance;
         Vec yhat = new Vec(0., 1., 0.);
         if (verbose) {
-            System.out.format("Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n",
-                    nSteps, B, RM.M[2][0], RM.M[2][1], RM.M[2][2]);
+            System.out.format("Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", nSteps, B, RM.M[2][0],
+                    RM.M[2][1], RM.M[2][2]);
             this.origin.print("old origin");
             this.X0.print("old pivot");
             this.a.print("old helix");
@@ -656,8 +632,8 @@ class StateVector {
             Pivot.v[1] = 0.;
             Pivot.v[2] = 0.;
             if (verbose) {
-                System.out.format("  helixStepper after step %d, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", step,
-                        Bmag, tB.v[0], tB.v[1], tB.v[2]);
+                System.out.format("  helixStepper after step %d, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", step, Bmag, tB.v[0], tB.v[1],
+                        tB.v[2]);
                 RMnew.print("new rotation to field frame");
                 deltaRM.print("rotation to field system");
                 Origin.print("intermediate origin in global system");
@@ -677,11 +653,7 @@ class StateVector {
             finalHelix.print("final helix");
             Cov.print("transformed covariance");
         }
-        for (int i = 0; i < 5; ++i) {
-            for (int j = 0; j < 5; ++j) {
-                Covariance.M[i][j] = Cov.M[i][j];
-            }
-        }
+        for (int i = 0; i < 5; ++i) { for (int j = 0; j < 5; ++j) { Covariance.M[i][j] = Cov.M[i][j]; } }
         return finalHelix;
     }
 
@@ -702,8 +674,7 @@ class StateVector {
         f[1][2] = (alpha / (a.v[2] * a.v[2])) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
         f[2][2] = 1.0;
         f[3][0] = (alpha / a.v[2]) * a.v[4] * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[3][1] = (alpha / a.v[2]) * a.v[4]
-                * (1.0 - (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        f[3][1] = (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4]
                 * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         f[3][3] = 1.0;
@@ -774,11 +745,7 @@ class StateVector {
         dpda.M[2][2] = 1. / Math.abs(a.v[2]);
 
         SquareMatrix dprimedp = new SquareMatrix(3);
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                dprimedp.M[i][j] = R.M[i][j];
-            }
-        }
+        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { dprimedp.M[i][j] = R.M[i][j]; } }
 
         double Q = Math.signum(a.v[2]);
         SquareMatrix dadp = new SquareMatrix(3);
@@ -823,9 +790,7 @@ class StateVector {
         //    System.out.format("StateVector.rotateHelix: warning, dz=%10.5f and drho=%10.5f are not zero.\n",a.v[3],a.v[0]);
         //}
         Vec aNew = pTOa(p_prime, a.v[0], a.v[3], Q);
-        if (verbose) {
-            aNew.print("rotated helix in rotateHelix");
-        }
+        if (verbose) { aNew.print("rotated helix in rotateHelix"); }
         return aNew;
     }
 

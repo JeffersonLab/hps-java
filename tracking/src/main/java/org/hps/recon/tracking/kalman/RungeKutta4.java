@@ -38,9 +38,7 @@ public class RungeKutta4 {
             Vec r3 = new Vec(r[0] + h * k3[0], r[1] + h * k3[1], r[2] + h * k3[2]);
             double[] p3 = { r[3] + h * k3[3], r[4] + h * k3[4], r[5] + h * k3[5] };
             k4 = f(r3, p3);
-            for (int i = 0; i < 6; i++) {
-                r[i] = r[i] + h * (k1[i] / 6. + k2[i] / 3. + k3[i] / 3. + k4[i] / 6.);
-            }
+            for (int i = 0; i < 6; i++) { r[i] = r[i] + h * (k1[i] / 6. + k2[i] / 3. + k3[i] / 3. + k4[i] / 6.); }
         }
         return r;
     }

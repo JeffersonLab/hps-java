@@ -37,21 +37,17 @@ class SeedTrack {
 
     void print(String s) {
         if (success) {
-            System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho,
-                    phi0, K, dz, tanl);
-            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending,
-                    Nnonbending);
+            System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
+            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
             hParm.print("helix parameters rotated into magnetic field frame");
             System.out.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
             double yP = 0.;
             double[] pivot = { 0., yP, 0. };
             double[] a = this.pivotTransform(pivot);
-            System.out.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n",
-                    yP, a[0], a[1], a[2], a[3], a[4]);
+            System.out.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", yP, a[0], a[1], a[2],
+                    a[3], a[4]);
             System.out.format("  seed track hits:");
-            for (int j = 0; j < hits.size(); j++) {
-                System.out.format(" %d %10.5f", hits.get(j).module.Layer, hits.get(j).hit.v);
-            }
+            for (int j = 0; j < hits.size(); j++) { System.out.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v); }
             System.out.format("\n");
             Vec pInt = planeIntersection(p0);
             System.out.format("  Distance from origin in X,Z at y=0 is %10.5f\n", pInt.mag());
@@ -104,9 +100,7 @@ class SeedTrack {
         double[] mTrue = null;
         if (verbose) {
             System.out.format("Entering SeedTrack, yOrigin=%10.7f\n", yOrigin);
-            for (KalHit hit : hitList) {
-                hit.print(" in SeedTrack ");
-            }
+            for (KalHit hit : hitList) { hit.print(" in SeedTrack "); }
             xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
             zMC = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
             t = new double[hitList.size()]; // Stereo angle
@@ -132,9 +126,7 @@ class SeedTrack {
         double sF = 1.0 / ((double) Npnt);
         Bvec = Bvec.scale(sF);
         Bavg = Bvec.mag();
-        if (verbose) {
-            System.out.format("*** SeedTrack: Npnt=%d, Bavg=%10.5e\n", Npnt, Bavg);
-        }
+        if (verbose) { System.out.format("*** SeedTrack: Npnt=%d, Bavg=%10.5e\n", Npnt, Bavg); }
         double c = 2.99793e8; // Speed of light in m/s
         alpha = 1000.0 * 1.0e9 / (c * Bavg); // Convert from pt in GeV to curvature in mm
 
@@ -151,11 +143,11 @@ class SeedTrack {
             pnt = thisSi.toGlobal(pnt);
             if (verbose) {
                 if (thisSi.isStereo) {
-                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n",
-                            thisSi.Layer, thisSi.detector, N, m.v, thisSi.stereo);
+                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
+                            m.v, thisSi.stereo);
                 } else {
-                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f, stereo=%10.7f\n",
-                            thisSi.Layer, thisSi.detector, N, m.v, thisSi.stereo);
+                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
+                            m.v, thisSi.stereo);
                 }
                 pnt.print("point global");
                 t[N] = thisSi.stereo;
@@ -190,23 +182,17 @@ class SeedTrack {
             return;
         }
         if (verbose) {
-            System.out.format(
-                    "SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, R2[0..2] theta\n");
+            System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, R2[0..2] theta\n");
             for (int i = 0; i < N; i++) {
-                double vcheck = R2[i][0] * (xMC[i] - delta[i][0]) + R2[i][2] * (zMC[i] - delta[i][2])
-                        + R2[i][1] * (yMC[i] - delta[i][1]);
-                System.out.format(
-                        "%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f %10.7f %10.7f %10.7f %8.5f\n",
-                        i, y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], R2[i][0], R2[i][1], R2[i][2],
-                        t[i]);
+                double vcheck = R2[i][0] * (xMC[i] - delta[i][0]) + R2[i][2] * (zMC[i] - delta[i][2]) + R2[i][1] * (yMC[i] - delta[i][1]);
+                System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f %10.7f %10.7f %10.7f %8.5f\n", i,
+                        y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], R2[i][0], R2[i][1], R2[i][2], t[i]);
             }
         }
 
         // Here we do the 5-parameter linear fit:
         LinearHelixFit fit = new LinearHelixFit(N, y, v, s, delta, R2, verbose);
-        if (verbose) {
-            fit.print(N, xMC, y, zMC, v, s);
-        }
+        if (verbose) { fit.print(N, xMC, y, zMC, v, s); }
         chi2 = fit.chiSquared();
 
         // Now, derive the helix parameters and covariance from the two fits
@@ -237,8 +223,7 @@ class SeedTrack {
         // coefficients to helix parameters
         D.M[0][2] = 1.0 / Math.cos(phi0) + temp * dphi0da;
         D.M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / Math.cos(phi0) + temp * dphi0db;
-        D.M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / Math.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2])
-                + temp * dphi0dc;
+        D.M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / Math.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
         D.M[1][2] = dphi0da;
         D.M[1][3] = dphi0db;
         D.M[1][4] = dphi0dc;
@@ -248,9 +233,7 @@ class SeedTrack {
         D.M[4][1] = Math.cos(phi0);
         Csol = fit.covariance();
         C = Csol.similarity(D); // Covariance of helix parameters
-        if (verbose) {
-            D.print("line/parabola to helix derivatives");
-        }
+        if (verbose) { D.print("line/parabola to helix derivatives"); }
 
         // Note that the non-bending plane is assumed to be y,z (B field in z
         // direction), and the track is assumed to start out more-or-less
@@ -276,9 +259,7 @@ class SeedTrack {
             }
         } else {
             hParm = new Vec(drho, phi0, K, dz, tanl);
-            if (verbose) {
-                hParm.print("Seedtrack, rotated helix");
-            }
+            if (verbose) { hParm.print("Seedtrack, rotated helix"); }
         }
 
         success = true;
@@ -309,13 +290,12 @@ class SeedTrack {
     }
 
     Vec solutionErrors() { // Return errors on the polynomial coefficients (for testing)
-        return new Vec(Math.sqrt(Csol.M[0][0]), Math.sqrt(Csol.M[1][1]), Math.sqrt(Csol.M[2][2]),
-                Math.sqrt(Csol.M[3][3]), Math.sqrt(Csol.M[4][4]));
+        return new Vec(Math.sqrt(Csol.M[0][0]), Math.sqrt(Csol.M[1][1]), Math.sqrt(Csol.M[2][2]), Math.sqrt(Csol.M[3][3]),
+                Math.sqrt(Csol.M[4][4]));
     }
 
     Vec errors() { // Return errors on the helix parameters
-        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]),
-                Math.sqrt(C.M[4][4]));
+        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]), Math.sqrt(C.M[4][4]));
     }
 
     private double[] parabolaToCircle(double sgn, Vec coef) { // Utility to convert from parabola coefficients to circle
@@ -326,17 +306,13 @@ class SeedTrack {
         xc = coef.v[0] - sgn * R * (1.0 - 0.5 * coef.v[1] * coef.v[1]);
         double[] r = new double[3];
         r[1] = Math.atan2(yc, xc);
-        if (R < 0.) {
-            r[1] += Math.PI;
-        }
-        if (r[1] > Math.PI)
-            r[1] -= 2.0 * Math.PI;
+        if (R < 0.) { r[1] += Math.PI; }
+        if (r[1] > Math.PI) r[1] -= 2.0 * Math.PI;
         r[2] = alpha / R;
         r[0] = xc / Math.cos(r[1]) - R;
         if (verbose) {
-            System.out.format(
-                    "parabolaToCircle:     R=%10.6f, xc=%10.6f, yc=%10.6f, drho=%10.7f, phi0=%10.7f, K=%10.7f\n", R, xc,
-                    yc, r[0], r[1], r[2]);
+            System.out.format("parabolaToCircle:     R=%10.6f, xc=%10.6f, yc=%10.6f, drho=%10.7f, phi0=%10.7f, K=%10.7f\n", R, xc, yc, r[0],
+                    r[1], r[2]);
             coef.print("parabola coefficients");
             double phi02 = Math.atan(-coef.v[1] / (2.0 * coef.v[0] * coef.v[2] + (1.0 - coef.v[1] * coef.v[1])));
             System.out.format("phi02 = %10.7f\n", phi02);
@@ -374,8 +350,7 @@ class SeedTrack {
         double phi0 = Math.atan2(-p.v[0], p.v[1]);
         double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
         double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
-        if (phi0 > Math.PI)
-            phi0 = phi0 - 2.0 * Math.PI;
+        if (phi0 > Math.PI) phi0 = phi0 - 2.0 * Math.PI;
         if (verbose) {
             System.out.format("SeedTrack pTOa: Q=%5.1f phi0=%10.7f K=%10.6f tanl=%10.7f\n", Q, phi0, K, tanl);
             p.print("input momentum vector in SeedTrack.pTOa");
