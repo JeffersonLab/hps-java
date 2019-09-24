@@ -79,8 +79,19 @@ public class SvtClusterPlots extends Driver {
 
     private boolean dropSmallHitEvents = true;
 
+    private boolean cutOutLowChargeClusters = false;
+    private double clusterChargeCut = 400;
+
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
+    }
+
+    public void setClusterChargeCut(double clusterCharge) {
+        this.clusterChargeCut = clusterCharge;
+    }
+
+    public void setCutOutLowChargeClusters(boolean cutOutLowChargeClusters) {
+        this.cutOutLowChargeClusters = cutOutLowChargeClusters;
     }
 
     public void setSaveRootFile(boolean saveRootFile) {
@@ -288,12 +299,12 @@ public class SvtClusterPlots extends Driver {
         plotters.get("SVT-trigger timing top-bottom").createRegions(1, 2);
 
         hitTimeTrigTimePlots.put("Top",
-                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -15, 15));
+                histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -12, 12));
         plotters.get("SVT-trigger timing top-bottom")
                 .region(0)
                 .plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
-                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -15, 15));
+                histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -12, 12));
         plotters.get("SVT-trigger timing top-bottom")
                 .region(1)
                 .plot(hitTimeTrigTimePlots.get("Bottom"),
@@ -354,10 +365,13 @@ public class SvtClusterPlots extends Driver {
             clusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
 
             clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(absClY);
+
             if (cluster.getRawHits().size() == 1)
                 singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
-
+            if (cutOutLowChargeClusters)
+                if (cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR < clusterChargeCut)
+                    continue;
             clusterTimePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getTime());
             if (sensor.isTopLayer()) {
                 hitTimeTrigTimePlots1D[(int) ((event.getTimeStamp() / 4) % 6)][TOP].fill(cluster.getTime());

@@ -71,6 +71,22 @@ public class FinalStateParticlePlots extends Driver {
     double ecalXRange = 500;
     double ecalYRange = 100;
 
+    double pMax = 7.0;
+    double pi0EsumCut = 3.0;//GeV
+    double pi0EdifCut = 2.0;//GeV
+
+    public void setPMax(double pmax) {
+        this.pMax = pmax;
+    }
+
+    public void setPi0EsumCut(double cut) {
+        this.pi0EsumCut = cut;
+    }
+
+    public void setPi0EdifCut(double cut) {
+        this.pi0EdifCut = cut;
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         // System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
@@ -97,7 +113,7 @@ public class FinalStateParticlePlots extends Driver {
         nEle = aida.histogram1D("Number of Electrons per event", 5, 0, 5);
         elePx = aida.histogram1D("Electron Px (GeV)", 50, -0.2, 0.2);
         elePy = aida.histogram1D("Electron Py (GeV)", 50, -0.2, 0.2);
-        elePz = aida.histogram1D("Electron Pz (GeV)", 50, 0.0, 5.0);
+        elePz = aida.histogram1D("Electron Pz (GeV)", 50, 0.0, pMax);
         eleProjXYEcalMatch = aida.histogram2D("Electron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         eleProjXYEcalNoMatch = aida.histogram2D("Electron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         plot(plotterEle, nEle, null, 0);
@@ -110,7 +126,7 @@ public class FinalStateParticlePlots extends Driver {
         nPos = aida.histogram1D("Number of Positrons per event", 5, 0, 5);
         posPx = aida.histogram1D("Positron Px (GeV)", 50, -0.2, 0.2);
         posPy = aida.histogram1D("Positron Py (GeV)", 50, -0.2, 0.2);
-        posPz = aida.histogram1D("Positron Pz (GeV)", 50, 0.0, 5.0);
+        posPz = aida.histogram1D("Positron Pz (GeV)", 50, 0.0, pMax);
         posProjXYEcalMatch = aida.histogram2D("Positron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         posProjXYEcalNoMatch = aida.histogram2D("Positron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         plot(plotterPos, nPos, null, 0);
@@ -121,10 +137,10 @@ public class FinalStateParticlePlots extends Driver {
         plot(plotterPos, posProjXYEcalNoMatch, null, 5);
 
         nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
-        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, 5.0);
+        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
         photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
-        pi0Ene = aida.histogram1D("pi0 Energy (GeV)", 50, 0.0, 5.0);
-        pi0Diff = aida.histogram1D("pi0 E-Diff (GeV)", 50, 0, 2.5);
+        pi0Ene = aida.histogram1D("pi0 Energy (GeV)", 50, pi0EsumCut, pMax);
+        pi0Diff = aida.histogram1D("pi0 E-Diff (GeV)", 50, 0, pi0EdifCut);
         pi0Mass = aida.histogram1D("pi0 Mass (GeV)", 50, 0.0, 0.3);
 
         plot(plotterPhot, nPhot, null, 0);
@@ -208,6 +224,10 @@ public class FinalStateParticlePlots extends Driver {
                 double pi0ene = clu1.getEnergy() + clu2.getEnergy();
                 double pi0diff = Math.abs(clu1.getEnergy() - clu2.getEnergy());
                 double pi0mass = getClusterPairMass(clu1, clu2);
+                if (pi0diff > pi0EdifCut)
+                    continue;
+                if (pi0ene < pi0EsumCut)
+                    continue;
                 if (clu1.getPosition()[1] * clu2.getPosition()[1] < 0) {//top bottom
                     pi0Ene.fill(pi0ene);
                     pi0Diff.fill(pi0diff);

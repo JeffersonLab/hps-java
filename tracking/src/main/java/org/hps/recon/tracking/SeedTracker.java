@@ -172,7 +172,17 @@ public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracke
                 SeedStrategy strategy = seed.getSeedStrategy();
                 boolean success = false;
                 for (int iterFit = 0; iterFit < _iterativeConfirmedFits; ++iterFit) {
-                    success = _helixfitter.FitCandidate(seed, strategy);
+                    try {
+                        success = _helixfitter.FitCandidate(seed, strategy);
+                    } catch (Exception e) {
+                        System.out.printf("ERROR -- Exception in SeedTracker:: \n");
+                        if (e.getMessage().equals("NaN in track direction")) {
+                            System.out.printf("Known error - Nan in tack direction ... carry on, nothing to see.\n");
+                            e.printStackTrace();
+                        } else {
+                            throw (e); // Re-throw.
+                        }
+                    }
                 }
                 if (!success) {
                     seedsToRemove.add(seed);

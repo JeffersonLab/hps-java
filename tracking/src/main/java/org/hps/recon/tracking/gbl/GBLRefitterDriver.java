@@ -79,6 +79,10 @@ public class GBLRefitterDriver extends Driver {
         cuts.setMaxTrackChisq(nhits, input);
     }
 
+    public void setMaxTrackChisq4hits(double input) {
+        cuts.setMaxTrackChisq(4, input);
+    }
+
     public void setMaxTrackChisq5hits(double input) {
         cuts.setMaxTrackChisq(5, input);
     }
@@ -93,16 +97,14 @@ public class GBLRefitterDriver extends Driver {
 
     @Override
     protected void startOfData() {
-        if (writeMilleBinary) {
+        if (writeMilleBinary)
             mille = new MilleBinary(milleBinaryFileName);
-        }
     }
 
     @Override
     protected void endOfData() {
-        if (writeMilleBinary) {
+        if (writeMilleBinary)
             mille.close();
-        }
     }
 
     @Override
@@ -137,14 +139,17 @@ public class GBLRefitterDriver extends Driver {
                 continue;
 
             Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+            if (newTrackTraj == null) {
+                System.out.println("GBLRefitterDriver::process() -- Aborted refit of track -- null pointer for newTrackTraj returned from MakeGblTracks.refitTrackWithTraj .");
+                continue;
+            }
             Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
-            if (writeMilleBinary) {
+            if (writeMilleBinary)
                 if (gblTrk.getChi2() < writeMilleChi2Cut)
                     newTrackTraj.getSecond().get_traj().milleOut(mille);
-            }
 
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
             if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))

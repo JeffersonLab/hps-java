@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.hps.monitoring.subsys.StatusCode;
 import org.hps.monitoring.subsys.Subsystem;
@@ -50,10 +51,9 @@ import org.lcsim.util.aida.AIDA;
  */
 public class SensorOccupancyPlotsDriver extends Driver {
 
-    // TODO: Add documentation
-    // static {
-    // hep.aida.jfree.AnalysisFactory.register();
-    // }
+    // Logger
+    private static Logger LOGGER = Logger.getLogger(SensorOccupancyPlotsDriver.class.getCanonicalName());
+    
     // Plotting
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
@@ -108,8 +108,12 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private boolean enableClusterTimeCuts = true;
     private double clusterTimeCutMax = 4.0;
     private double clusterTimeCutMin = -4.0;
-
+       
     private boolean saveRootFile = true;
+    
+    // Max Y range for occupancy plots.
+    private double occupancyYRange1 = 0.03;
+    private double occupancyYRange2 = 0.003;
 
     public SensorOccupancyPlotsDriver() {
         maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
@@ -202,6 +206,14 @@ public class SensorOccupancyPlotsDriver extends Driver {
         this.saveRootFile = saveRootFile;
     }
 
+    public void setOccupancyYRange1(double occupancyYRange1) {
+        this.occupancyYRange1 = occupancyYRange1;
+    }
+    
+    public void setOccupancyYRange2(double occupancyYRange2) {
+        this.occupancyYRange2 = occupancyYRange2;
+    }
+    
     /**
      * Get the global strip position of a physical channel number for a given
      * sensor.
@@ -355,7 +367,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
         // }
         // tree = analysisFactory.createTreeFactory().create();
         tree = AIDA.defaultInstance().tree();
-        tree.cd("/");// aida.tree().cd("/");
+        tree.cd("/");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         plotters.put("Occupancy: L0-L3", plotterFactory.create("Occupancy: L0-L3"));
@@ -441,8 +453,18 @@ public class SensorOccupancyPlotsDriver extends Driver {
             }
         }
 
-        for (IPlotter plotter : plotters.values())
-            plotter.show();
+        IPlotter plotter = plotters.get("Occupancy: L0-L3");
+        for (int i = 0; i < plotter.numberOfRegions(); i++) {
+            plotter.region(i).setYLimits(occupancyYRange1);
+        }
+
+        plotter = plotters.get("Occupancy: L4-L6");
+        for (int i = 0; i < plotter.numberOfRegions(); i++) {
+            plotter.region(i).setYLimits(occupancyYRange2);
+        }
+                
+        for (IPlotter plotterShow : plotters.values())
+            plotterShow.show();
     }
 
     private boolean passTriggerFilter(List<GenericObject> triggerBanks) {
@@ -477,7 +499,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
         if (runNumber == -1)
             runNumber = event.getRunNumber();
         if (enableTriggerFilter && event.hasCollection(GenericObject.class, triggerBankCollectionName)) {
-            System.out.println("SensorOccupancyPlotsDriver::  Filtering Event");
+            LOGGER.info("Filtering Event");
             // Get the list of trigger banks from the event
             List<GenericObject> triggerBanks = event.get(GenericObject.class, triggerBankCollectionName);
 
@@ -488,7 +510,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName)) {
-            System.out.println("No SVT RawTrackerHits in this event???");
+            LOGGER.warning("No SVT RawTrackerHits in this event.");
             return;
         }
         // Get RawTrackerHit collection from event.
@@ -516,35 +538,34 @@ public class SensorOccupancyPlotsDriver extends Driver {
             // to 0.
             int maxAmplitude = 0;
             int maxSamplePositionFound = -1;
-            for (int sampleN = 0; sampleN < 6; sampleN++) {
+            for (int sampleN = 0; sampleN < 6; sampleN++)
                 if (adcValues[sampleN] > maxAmplitude) {
                     maxAmplitude = adcValues[sampleN];
                     maxSamplePositionFound = sampleN;
                 }
-                if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
-                    occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))[rawHit
-                            .getIdentifierFieldValue("strip")]++; //                System.out.println("Filling occupancy");
+            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
+                occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))[rawHit
+                        .getIdentifierFieldValue("strip")]++; //                System.out.println("Filling occupancy");
 
-                if (enableMaxSamplePlots)
-                    maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName())).fill(
-                            maxSamplePositionFound);
-            }
+            if (enableMaxSamplePlots)
+                maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName())).fill(
+                        maxSamplePositionFound);
+        }
 
-            // Fill the strip cluster counts if available
-            if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
-                List<SiTrackerHitStrip1D> stripHits1D = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
-                for (SiTrackerHitStrip1D h : stripHits1D) {
-                    SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
-                    Hep3Vector pos_global = global.getPositionAsVector();
-                    if (enableClusterTimeCuts) {
-                        if (h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin)
-                            clusterPositionPlotCounts.get(
-                                    SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName())).fill(
-                                    pos_global.y());
-                    } else
-                        clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName()))
-                                .fill(pos_global.y());
-                }
+        // Fill the strip cluster counts if available
+        if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
+            List<SiTrackerHitStrip1D> stripHits1D = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
+            for (SiTrackerHitStrip1D h : stripHits1D) {
+                SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+                Hep3Vector pos_global = global.getPositionAsVector();
+                if (enableClusterTimeCuts) {
+                    if (h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin)
+                        clusterPositionPlotCounts.get(
+                                SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName())).fill(
+                                pos_global.y());
+                } else
+                    clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName()))
+                            .fill(pos_global.y());
             }
         }
 
@@ -654,8 +675,9 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
             boolean isSensorOK = isOccupancyOK(apvOccupancy);
             if (!isSensorOK) {
-                System.out.format("%s: %f %f %f %f %f\n", SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), apvOccupancy[0], apvOccupancy[1],
-                        apvOccupancy[2], apvOccupancy[3], apvOccupancy[4]);
+                LOGGER.info(String.format("%s: %f %f %f %f %f\n",
+                        SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), apvOccupancy[0], apvOccupancy[1],
+                        apvOccupancy[2], apvOccupancy[3], apvOccupancy[4]));
                 isSystemOK = false;
                 if (oldStatus != StatusCode.ALARM)
                     occupancyStatus.setStatus(StatusCode.ALARM, "Sensor " + SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " occupancy abnormal.");
@@ -685,11 +707,11 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 highestApv = i;
             }
         if (highestApv != 0 && highestApv != 4) {
-            System.out.println("peak occupancy not at edge");
+            LOGGER.warning("peak occupancy not at edge");
             return false;
         }
         if (peakOccupancy > maxPeakOccupancy || peakOccupancy < minPeakOccupancy) {
-            System.out.println("peak occupancy out of range");
+            LOGGER.warning("peak occupancy out of range");
             return false;
         }
         if (highestApv == 0)
@@ -697,7 +719,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy)
                     continue; // skip through the tail end of the sensor
                 if (0.9 * apvOccupancy[i] > apvOccupancy[i - 1]) {
-                    System.out.println("occupancy not monotonic");
+                    LOGGER.warning("occupancy not monotonic");
                     return false;
                 }
             }
@@ -706,7 +728,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                 if (apvOccupancy[i] < 0.1 * peakOccupancy || apvOccupancy[i] < minPeakOccupancy)
                     continue; // skip through the tail end of the sensor
                 if (0.9 * apvOccupancy[i] > apvOccupancy[i + 1]) {
-                    System.out.println("occupancy not monotonic");
+                    LOGGER.warning("occupancy not monotonic");
                     return false;
                 }
             }
