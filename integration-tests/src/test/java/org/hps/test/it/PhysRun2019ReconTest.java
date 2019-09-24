@@ -28,7 +28,7 @@ public class PhysRun2019ReconTest extends TestCase {
     static final String testFileName = "hps_010104.00000_1000events.evio";
     static final String detectorName = "HPS-PhysicsRun2019-v1-4pt5";
     static final String steeringFileName = "/org/hps/steering/recon/PhysicsRun2019FullRecon.lcsim";
-    private final int nEvents = 5;
+    private final int nEvents = 1000;
     private String aidaOutputFile = "target/test-output/PhysRun2019ReconTest/PhysRun2019ReconTest";
 
     public void testIt() throws Exception {
@@ -38,7 +38,7 @@ public class PhysRun2019ReconTest extends TestCase {
         File outputFile = new TestOutputFile(PhysRun2019ReconTest.class, "PhysRun2019ReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             detectorName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
-            evioInputFile.getPath(), "-e", "100"};
+            evioInputFile.getPath(), "-e", "1"};
         System.out.println("Running PhysRun2019ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();

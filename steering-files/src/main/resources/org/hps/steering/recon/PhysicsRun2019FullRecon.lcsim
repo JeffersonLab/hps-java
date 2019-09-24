@@ -48,17 +48,17 @@
         <!--  DQM   -->
               
         <!-- Following are optional Analysis Drivers  -->
-        <!--
         <driver name="EcalMonitoring"/>  
         <driver name="EcalMonitoringCorr"/>  
         <driver name="SVTMonitoring"/>
         <driver name="TrackingMonitoring"/>  
+        <driver name="TrackingMonitoringMatched"/>        
         <driver name="TrackingResiduals"/>
         <driver name="FinalStateMonitoring"/>          
+        <!--
         <driver name="V0Monitoring"/>          
         <driver name="TridentMonitoring"/>           
         <driver name="MuonCandidateMonitoring"/>    
-        <driver name="TrackingMonitoringMatched"/>
         -->      
              
         <driver name="LCIOWriter"/>
@@ -74,8 +74,7 @@
         </driver> 
         
         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
-                  <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>  
-            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
         </driver>
         
         <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
@@ -279,21 +278,24 @@
         <!-- Create Reconstructed Particles by pairing up tracks and clusters when possible -->
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <trackCollectionNames>GBLTracks</trackCollectionNames>          
+            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>          
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
-            <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
-            <beamPositionX> -0.224 </beamPositionX>
+            <beamPositionX> 0.0 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
-            <beamPositionY> -0.08 </beamPositionY>
+            <beamPositionY> 0.0 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -4.3 </beamPositionZ>
+            <beamPositionZ> -7.8 </beamPositionZ>
             <maxElectronP> 7.0 </maxElectronP>
             <maxVertexP> 7.0 </maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
+            <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
+            <applyClusterCorrections>false</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <debug>false</debug>
         </driver>  
         

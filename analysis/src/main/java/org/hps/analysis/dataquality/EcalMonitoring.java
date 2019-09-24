@@ -103,7 +103,7 @@ public class EcalMonitoring extends DataQualityMonitor {
             hitEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/" + calibratedHitCollectionName
                     + " Hit Energy", 100, -0.1, beamEnergy * maxFactor);
             fiducialHitCountPlot = aida.histogram1D(plotHitsDir + triggerType + "/" + calibratedHitCollectionName
-                    + " Hit Count with Fiducial Cut", 10, -0.5, 9.5);
+                    + " Hit Count with Fiducial Cut", 40, -0.5, 39.5);
             fiducialEnergyPlot = aida.histogram1D(plotHitsDir + triggerType + "/" + calibratedHitCollectionName
                     + " Hit Energy with Fiducial Cut", 100, -0.1, beamEnergy * maxFactor);
         }
@@ -111,7 +111,7 @@ public class EcalMonitoring extends DataQualityMonitor {
         clusterCountPlot = aida.histogram1D(plotClustersDir + triggerType + "/" + clusterCollectionName
                 + " Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(plotClustersDir + triggerType + "/" + clusterCollectionName
-                + " Cluster Size", 10, -0.5, 9.5);
+                + " Cluster Size", 20, -0.5, 19.5);
         clusterEnergyPlot = aida.histogram1D(plotClustersDir + triggerType + "/" + clusterCollectionName
                 + " Cluster Energy", 100, -0.1, beamEnergy * maxFactor);
         clusterTimes = aida.histogram1D(plotClustersDir + triggerType + "/" + clusterCollectionName
@@ -140,11 +140,11 @@ public class EcalMonitoring extends DataQualityMonitor {
                 + " Pair Time Difference", 100, -20.0, 20.0);
 
         fiducialClusterCountPlot = aida.histogram1D(plotClustersDir + triggerType + "/" + plotFidCutDir
-                + clusterCollectionName + " Cluster Count with Fiducal Cut", 10, -0.5, 9.5);
+                + clusterCollectionName + " Cluster Count with Fiducial Cut", 10, -0.5, 9.5);
         fiducialClusterSizePlot = aida.histogram1D(plotClustersDir + triggerType + "/" + plotFidCutDir
-                + clusterCollectionName + " Cluster Size with Fiducal Cut", 10, -0.5, 9.5);
+                + clusterCollectionName + " Cluster Size with Fiducial Cut", 20, -0.5, 19.5);
         fiducialClusterEnergyPlot = aida.histogram1D(plotClustersDir + triggerType + "/" + plotFidCutDir
-                + clusterCollectionName + " Cluster Energy with Fiducal Cut", 100, -0.1, beamEnergy * maxFactor);
+                + clusterCollectionName + " Cluster Energy with Fiducial Cut", 100, -0.1, beamEnergy * maxFactor);
         fiducialenergyVsY = aida.histogram2D(plotClustersDir + triggerType + "/" + plotFidCutDir
                 + clusterCollectionName + " Energy vs Y with Fiducial Cuts", 50, 0, beamEnergy * maxFactor, 50, 45.0,
                 85.0);

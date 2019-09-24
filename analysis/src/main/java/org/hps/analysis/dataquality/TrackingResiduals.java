@@ -41,7 +41,7 @@ public class TrackingResiduals extends DataQualityMonitor {
     String[] trackingQuantNames = {};
     private final int nmodules = 7;
     private final int nsensors = 20;
-    private final String posresDir = "PostionResiduals/";
+    private final String posresDir = "PositionResiduals/";
     private final String uresDir = "UResiduals/";
     private final String timeresDir = "TimeResiduals/";
     private Map<String, Double> xposTopMeanResidMap;
@@ -414,7 +414,7 @@ public class TrackingResiduals extends DataQualityMonitor {
         else
             switch (layer) {
                 case 1:
-                    return 0.005;
+                    return 0.5;
                 case 2:
                     return 0.5;
                 case 3:
