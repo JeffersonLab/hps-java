@@ -9,6 +9,7 @@
         
         <!-- SVT Readout Drivers -->
         <driver name="SVTReadoutDriver" />
+        <driver name="InactiveTrackerHitsOutputDriver"/>
         
         <!-- Readout Simulation Drivers -->
         <driver name="EcalDigitizationDriver"/>
@@ -65,6 +66,15 @@
         <driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
             <collectionName>TrackerHits</collectionName>
             
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="InactiveTrackerHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
+            <collectionName>TrackerHits_Inactive</collectionName>
+           
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
