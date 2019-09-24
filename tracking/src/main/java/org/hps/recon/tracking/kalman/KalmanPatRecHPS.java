@@ -669,7 +669,7 @@ public class KalmanPatRecHPS {
 
                 newSite = new MeasurementSite(lyr, m, mxResid[trial], mxResidShare);
                 int rF;
-                if (lyr == lyrBegin) { // For first layer use the initializer state vector
+                if (prevSite == null) { // For first layer use the initializer state vector
                     rF = newSite.makePrediction(sI, null, hitno, tmpTrack.nTaken <= mxShared, true, imod < moduleList.get(lyr).size() - 1,
                             verbose);
                     if (rF > 0) {
@@ -701,7 +701,7 @@ public class KalmanPatRecHPS {
                 if (rF == 1 && hitno < 0) {
                     KalHit htNew = new KalHit(m, m.hits.get(newSite.hitID));
                     tmpTrack.hits.add(htNew);
-                    htNew.print("new");
+                    if (verbose) htNew.print("new");
                 }
                 if (!newSite.filter()) {
                     if (verbose)

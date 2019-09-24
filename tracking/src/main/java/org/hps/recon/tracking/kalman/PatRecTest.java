@@ -18,7 +18,7 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1; // The number of test events to generate for fitting
+        int nTrials = 1000; // The number of test events to generate for fitting
         boolean perfect = false;
 
         boolean rungeKutta = true; // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
@@ -425,7 +425,7 @@ public class PatRecTest {
                 printWriter2.close();
             }
 
-            System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
+            if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, verbose);
             if (verbose) {
                 for (KalTrack tkr : patRec.TkrList) {

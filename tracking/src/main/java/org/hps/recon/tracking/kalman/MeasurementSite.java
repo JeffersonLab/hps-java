@@ -439,7 +439,7 @@ class MeasurementSite {
             double residual = hit.v - mPred;
             double var = hit.sigma * hit.sigma - H.dot(H.leftMultiply(a.C));
             if (var < 0.) {
-                System.out.format("MeasurementSite:addHit, variance=%10.6f less than zero!\n", var);
+                if (verbose) System.out.format("MeasurementSite:addHit, variance=%10.6f less than zero!\n", var);
                 var = -var;
             }
             this.chi2inc = (residual * residual) / var;
@@ -452,9 +452,9 @@ class MeasurementSite {
     boolean smooth(MeasurementSite nS) {
         // nS is the next site in the filtering chain (i.e. the previous site that was smoothed)
 
-        if (smoothed || !filtered) {
+        if (!filtered) {
             System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");
-            // this.print("in the wrong state for smoothing");
+            return false;
         }
 
         this.aS = this.aF.smooth(nS.aS, nS.aP);
@@ -477,7 +477,7 @@ class MeasurementSite {
 
         this.aS.R = V - this.H.dot(this.H.leftMultiply(this.aS.C));
         if (this.aS.R < 0) {
-            System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", this.aS.R);
+            if (verbose) System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", this.aS.R);
             //aS.print("the smoothed state");
             //nS.print("the next site in the chain");
         }
