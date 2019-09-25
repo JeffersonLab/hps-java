@@ -37,6 +37,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class StraightTrackAlignmentDriver extends Driver {
 
+    private int _numberOfEventsWritten = 0;
     boolean _debug = true;
     DetectorBuilder _db;
     double _minClusterEnergy = 3.5;
@@ -56,6 +57,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     }
 
     protected void process(EventHeader event) {
+        boolean skipEvent = true;
         // Will use calorimeter clusters to define the road in which we search for hits.
         List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
         aida.histogram1D("number of clusters", 10, 0., 10.).fill(clusters.size());
@@ -173,8 +175,8 @@ public class StraightTrackAlignmentDriver extends Driver {
                     planes.add(detectorPlanesInFit.get(s));
                 }
                 aida.histogram1D(topOrBottom + fid + " number of hits to fit", 20, 0., 20.).fill(hits.size());
-                // require at least 6 hits for fit
-                if (hits.size() > 5) {
+                // require at least 8 hits for fit
+                if (hits.size() > 7) {
                     double[] A0 = {0., 0., -2267.}; // initial guess for (x,y,z) of track 
                     // TODO get estimate for x of beam on wire. Was x=-63 in 2016
                     double[] B0 = {0., 0., 1.}; // initial guess for the track direction
@@ -193,9 +195,28 @@ public class StraightTrackAlignmentDriver extends Driver {
                     aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
                     aida.histogram2D("Final Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
                     aida.histogram1D("Final Cluster energy", 100, 0., 7.).fill(c.getEnergy());
+
+                    // let's apply a few cuts here to enable us to skim events...
+                    // beam spot x at wire is -63
+                    if (abs(pars[0] - 63) < 20) {
+                        // beam spot y at wire is 0
+                        if (abs(pars[1]) < 15) {
+                            // keep this event
+                            skipEvent = false;
+                        }
+                    }
                 }
             } // end of loop over clusters with energy greater that min cluster energy
         } // end of loop over clusters
+        if (skipEvent) {
+            throw new Driver.NextEventException();
+        } else {
+            _numberOfEventsWritten++;
+        }
+    }
+
+    protected void endOfData() {
+        System.out.println("Wrote " + _numberOfEventsWritten + " events");
     }
 
     /**
