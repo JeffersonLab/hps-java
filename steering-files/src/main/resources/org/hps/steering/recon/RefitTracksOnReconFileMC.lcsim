@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for pass 1 reconstruction of 
-             the 2016 Engineering Run data. 
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
-      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
+      @Steering file used to refit tracks and re-run the recon on a recon file
+      @author <a href="mailto:mrsolt1@slac.stanford.edu">Matt Solt</a>
     -->
     <execute>
 
-        <!--RF driver-->
-        <driver name="RfFitter"/>
- 
-        <!-- Ecal reconstruction drivers -->        
-        <!--<driver name="EcalRunningPedestal"/>-->
-        <driver name="EcalRawConverter" />
-        <driver name="HitTimeSmear"/>
-        <driver name="ReconClusterer" />
-        <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
+        <!--Remove collection before re-rerunning the reconstruction-->
+        <driver name="RemoveCollections"/>
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
@@ -61,34 +52,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
-        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
-
-        <!-- Ecal reconstruction drivers -->
-        <!--<driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
-            <logLevel>CONFIG</logLevel>
-        </driver>-->
-
-        <!--<driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
-        </driver>-->
-
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
-            <ecalCollectionName>EcalCalHits</ecalCollectionName>
-            <fixShapeParameter>true</fixShapeParameter>
-            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
-        </driver>
-
-        <driver name="HitTimeSmear" type="org.hps.recon.ecal.cluster.HitTMCSmearDriver">
-        </driver>
-
-        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
-            <logLevel>WARNING</logLevel>
-            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-        </driver>
-        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
-            <inputCollectionName>EcalClusters</inputCollectionName>
-            <outputCollectionName>EcalClustersCorr</outputCollectionName>
-        </driver>
-        
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
@@ -98,7 +61,7 @@
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>true</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 
-            <tsCorrectionScale>164.5</tsCorrectionScale>    
+            <tsCorrectionScale>171</tsCorrectionScale>    
             <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
             <correctTimeOffset>true</correctTimeOffset>   
             <!--per sensor shift...set false becasue it's not in readout sim-->       
@@ -112,6 +75,9 @@
             <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
             <correctChanT0>true</correctChanT0>          
             <debug>false</debug>
+        </driver>
+        <driver name="RemoveCollections" type="org.hps.util.RemoveCollections">
+            <collectionNames>UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices UnconstrainedMollerCandidates UnconstrainedMollerVertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices UnconstrainedVcCandidates UnconstrainedVcVertices FinalStateParticles GBLKinkData GBLKinkDataRelations GBLTracks HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations MatchedTracks MatchedToGBLTrackRelations OtherElectrons RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
@@ -157,15 +123,12 @@
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
+            <maxElectronP> 2.15 </maxElectronP>
             <trackClusterTimeOffset>43</trackClusterTimeOffset>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-            <maxElectronP> 2.15 </maxElectronP>
-            <maxVertexP> 2.8 </maxVertexP>
-            <maxVertexClusterDt>5.0</maxVertexClusterDt>
-            <maxMatchDt>10</maxMatchDt>
-            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <disablePID>True</disablePID>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
@@ -176,4 +139,4 @@
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>             
     </drivers>
-</lcsim>
+</lcsim> 

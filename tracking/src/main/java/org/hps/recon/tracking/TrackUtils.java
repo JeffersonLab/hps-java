@@ -1311,10 +1311,11 @@ public class TrackUtils {
 
     private static Pair<EventHeader, RelationalTable> hitToStripsCache = null;
 
-    public static RelationalTable getHitToStripsTable(EventHeader event) {
+    public static RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
         if (hitToStripsCache == null || hitToStripsCache.getFirst() != event) {
             RelationalTable hitToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+            //List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+            List<LCRelation> hitrelations = event.get(LCRelation.class, HelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : hitrelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                     hitToStrips.add(relation.getFrom(), relation.getTo());
@@ -1322,10 +1323,14 @@ public class TrackUtils {
         }
         return hitToStripsCache.getSecond();
     }
+    
+    public static RelationalTable getHitToStripsTable(EventHeader event) {
+        return getHitToStripsTable(event,"HelicalTrackHitRelations");
+    }
 
     private static Pair<EventHeader, RelationalTable> hitToRotatedCache = null;
 
-    public static RelationalTable getHitToRotatedTable(EventHeader event) {
+    public static RelationalTable getHitToRotatedTable(EventHeader event, String RotatedHelicalTrackHitRelationsCollectionName) {
         //        if (hitToRotatedCache != null)
         //            System.out.println("getHitToRotatedTable:  Already have a hitToRotatedCache");
         //        if (hitToRotatedCache != null && hitToRotatedCache.getFirst() == event)
@@ -1334,7 +1339,8 @@ public class TrackUtils {
         if (hitToRotatedCache == null || hitToRotatedCache.getFirst() != event) {
             //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+            //List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+            List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : rotaterelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                     //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
@@ -1343,6 +1349,10 @@ public class TrackUtils {
         }
         //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
         return hitToRotatedCache.getSecond();
+    }
+    
+    public static RelationalTable getHitToRotatedTable(EventHeader event) {
+        return getHitToRotatedTable(event, "RotatedHelicalTrackHitRelations");
     }
 
     public static double getTrackTime(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {

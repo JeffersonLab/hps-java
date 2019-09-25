@@ -1,4 +1,4 @@
-package org.hps.recon.particle;
+package org.hps.analysis.MC;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.BasicHepLorentzVector;
@@ -12,13 +12,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.particle.SimpleParticleID;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
-import org.hps.record.StandardCuts;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -33,24 +32,24 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver used to create reconstructed particles and matching clusters and tracks.
+ * This is adapted from the nominal ReconParticleDriver for the purpose of building tracks
+ * with vertices that have truth hits and bad tracks.
  *
  * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
  * @author Mathew Graham <mgraham@slac.stanford.edu>
+ * @author Matt Solt <mrsolt@slac.stanford.edu>
  */
-public abstract class ReconParticleDriver extends Driver {
+public abstract class ReconParticleDriverForTruthTracks extends Driver {
 
     /**
      * Utility used to determine if a track and cluster are matched
      */
-    TrackClusterMatcher matcher;
+    TrackClusterMatcher matcher = new TrackClusterMatcher();
 
-    private String clusterParamFileName = null;
     String[] trackCollectionNames = {"GBLTracks"};
 
     public static final int ELECTRON = 0;
     public static final int POSITRON = 1;
-    public static final int MOLLER_TOP = 0;
-    public static final int MOLLER_BOT = 1;
 
     // normalized cluster-track distance required for qualifying as a match:
     private double MAXNSIGMAPOSITIONMATCH=15.0;
@@ -59,7 +58,6 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
-    protected StandardCuts cuts = new StandardCuts();
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
 
@@ -86,6 +84,11 @@ public abstract class ReconParticleDriver extends Driver {
     protected boolean debug = false;
 
     /**
+     * Indicates whether this is Monte Carlo or data
+     */
+    public boolean isMonteCarlo = false;
+
+    /**
      * The simple name of the class used for debug print statements.
      */
     private final String simpleName = getClass().getSimpleName();
@@ -94,39 +97,61 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Stores reconstructed electron particles.
      */
-    private List<ReconstructedParticle> electrons;
+    private List<ReconstructedParticle> electronsAll;
+    private List<ReconstructedParticle> electronsBad;
+    private List<ReconstructedParticle> electronsTruth;
     /**
      * Stores reconstructed positron particles.
      */
-    private List<ReconstructedParticle> positrons;
+    private List<ReconstructedParticle> positronsAll;
+    private List<ReconstructedParticle> positronsBad;
+    private List<ReconstructedParticle> positronsTruth;
     /**
      * Stores particles reconstructed from an event.
      */
-    protected List<ReconstructedParticle> finalStateParticles;
+    protected List<ReconstructedParticle> finalStateParticlesAll;
+    protected List<ReconstructedParticle> finalStateParticlesBad;
+    protected List<ReconstructedParticle> finalStateParticlesTruth;
+    
+    protected String collectionNameAll = "GBLTracks";
+    protected String collectionNameBad = "GBLTracks_bad";
+    protected String collectionNameTruth = "GBLTracks_truth";
     /**
      * Stores reconstructed V0 candidate particles generated without constraints.
      */
     protected List<ReconstructedParticle> unconstrainedV0Candidates;
+    protected List<ReconstructedParticle> unconstrainedV0CandidatesBad;
+    protected List<ReconstructedParticle> unconstrainedV0CandidatesTruth;
     /**
      * Stores reconstructed V0 candidate particles generated with beam spot constraints.
      */
     protected List<ReconstructedParticle> beamConV0Candidates;
+    protected List<ReconstructedParticle> beamConV0CandidatesBad;
+    protected List<ReconstructedParticle> beamConV0CandidatesTruth;
     /**
      * Stores reconstructed V0 candidate particles generated with target constraints.
      */
     protected List<ReconstructedParticle> targetConV0Candidates;
+    protected List<ReconstructedParticle> targetConV0CandidatesBad;
+    protected List<ReconstructedParticle> targetConV0CandidatesTruth;
     /**
      * Stores reconstructed V0 candidate vertices generated without constraints.
      */
     protected List<Vertex> unconstrainedV0Vertices;
+    protected List<Vertex> unconstrainedV0VerticesBad;
+    protected List<Vertex> unconstrainedV0VerticesTruth;
     /**
      * Stores reconstructed V0 candidate vertices generated with beam spot constraints.
      */
     protected List<Vertex> beamConV0Vertices;
+    protected List<Vertex> beamConV0VerticesBad;
+    protected List<Vertex> beamConV0VerticesTruth;
     /**
      * Stores reconstructed V0 candidate vertices generated with target constraints.
      */
     protected List<Vertex> targetConV0Vertices;
+    protected List<Vertex> targetConV0VerticesBad;
+    protected List<Vertex> targetConV0VerticesTruth;
 
     // LCIO Collection Names
     /**
@@ -136,36 +161,49 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for tracks.
      */
-    private String trackCollectionName = "GBLTracks";
+    private String trackCollectionName = "MatchedTracks";
     /**
      * LCIO collection name for reconstructed particles.
      */
     private String finalStateParticlesColName = "FinalStateParticles";
-    private String OtherElectronsColName = "OtherElectrons";
     /**
      * LCIO collection name for V0 candidate particles generated without constraints.
      */
     protected String unconstrainedV0CandidatesColName = null;
+    protected String unconstrainedV0CandidatesColBadName = "UnconstrainedV0Candidates_bad";
+    protected String unconstrainedV0CandidatesColTruthName = "UnconstrainedV0Candidates_truth";
     /**
      * LCIO collection name for V0 candidate particles generated with beam spot constraints.
      */
     protected String beamConV0CandidatesColName = null;
+    protected String beamConV0CandidatesColBadName = "BeamspotConstrainedV0Candidates_bad";
+    protected String beamConV0CandidatesColTruthName = "BeamspotConstrainedV0Candidates_truth";
     /**
      * LCIO collection name for V0 candidate particles generated with target constraints.
      */
     protected String targetConV0CandidatesColName = null;
+    protected String targetConV0CandidatesColBadName = "TargetConstrainedV0Candidates_bad";
+    protected String targetConV0CandidatesColTruthName = "TargetConstrainedV0Candidates_truth";;
     /**
      * LCIO collection name for V0 candidate vertices generated without constraints.
      */
     protected String unconstrainedV0VerticesColName = null;
+    protected String unconstrainedV0VerticesColBadName = "UnconstrainedV0Vertices_bad";
+    protected String unconstrainedV0VerticesColTruthName = "UnconstrainedV0Vertices_truth";
     /**
      * LCIO collection name for V0 candidate vertices generated with beam spot constraints.
      */
     protected String beamConV0VerticesColName = null;
+    protected String beamConV0VerticesColBadName = "BeamspotConstrainedV0Vertices_bad";
+    protected String beamConV0VerticesColTruthName = "BeamspotConstrainedV0Vertices_truth";
     /**
      * LCIO collection name for V0 candidate vertices generated with target constraints.
      */
     protected String targetConV0VerticesColName = null;
+    protected String targetConV0VerticesColBadName = "TargetConstrainedV0Vertices_bad";
+    protected String targetConV0VerticesColTruthName = "TargetConstrainedV0Vertices_truth";
+    
+    
 
     // Beam size variables.
     // The beamsize array is in the tracking frame
@@ -174,6 +212,7 @@ public abstract class ReconParticleDriver extends Driver {
                                                          // production running
     // Beam position variables.
     // The beamPosition array is in the tracking frame
+    /* TODO get the beam position from the conditions db */
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
     protected double beamEnergy = 1.056;
@@ -296,10 +335,6 @@ public abstract class ReconParticleDriver extends Driver {
     public void setTargetConV0CandidatesColName(String targetConV0CandidatesColName) {
         this.targetConV0CandidatesColName = targetConV0CandidatesColName;
     }
-    
-    public void setOtherElectronsColName(String input) {
-        OtherElectronsColName = input;
-    }
 
     /**
      * Sets the name of the LCIO collection for target constrained V0 candidate vertices.
@@ -359,32 +394,13 @@ public abstract class ReconParticleDriver extends Driver {
     public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
     }
-    
-    public void setClusterParamFileName(String input) {
-        clusterParamFileName = input;
-    }
 
     /**
      * Updates the magnetic field parameters to match the appropriate values for the current detector settings.
      */
     @Override
     protected void detectorChanged(Detector detector) {
-
-        BeamEnergyCollection beamEnergyCollection = 
-                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
-        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-
-        if (clusterParamFileName == null) {
-            if (beamEnergy > 2)
-                setClusterParamFileName("ClusterParameterization2016.dat");
-            else
-                setClusterParamFileName("ClusterParameterization2015.dat");
-        }
-
-        matcher = new TrackClusterMatcher(clusterParamFileName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
-        matcher.setBeamEnergy(beamEnergy); 
-        matcher.setBFieldMap(detector.getFieldMap());
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
@@ -394,32 +410,12 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
-        
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
-        else
-            cuts.changeBeamEnergy(beamEnergy);
+        matcher.setBFieldMap(detector.getFieldMap());
+        BeamEnergyCollection beamEnergyCollection = 
+                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
+        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        matcher.setBeamEnergy(beamEnergy); 
     }
-    
-    public void setMaxMatchChisq(double input) {
-        cuts.setMaxMatchChisq(input);
-    }
-    
-    
-    public void setMaxElectronP(double input) {
-        cuts.setMaxElectronP(input);
-    }
-    
-    public void setMaxMatchDt(double input) {
-        cuts.setMaxMatchDt(input);
-    }
-    
-    public void setTrackClusterTimeOffset(double input) {
-        cuts.setTrackClusterTimeOffset(input);
-    }
-    
-    protected abstract List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles);
-
     /**
      * Generates reconstructed V0 candidate particles and vertices from sets of positrons and electrons. Implementing
      * methods should place the reconstructed vertices and candidate particles into the appropriate class variable lists
@@ -429,7 +425,7 @@ public abstract class ReconParticleDriver extends Driver {
      * @param electrons - The list of electrons.
      * @param positrons - The list of positrons.
      */
-    protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
+    protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons,  List<ReconstructedParticle> uncV0Candidates, List<Vertex> uncV0Vertices, List<ReconstructedParticle> bscV0Candidates, List<Vertex> bscV0Vertices, List<ReconstructedParticle> targV0Candidates, List<Vertex> targV0Vertices);
     
 
     /**
@@ -442,7 +438,7 @@ public abstract class ReconParticleDriver extends Driver {
      *         generated from the argument data.
      */
     protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters,
-            List<List<Track>> trackCollections) {
+            List<Track> tracks) {
 
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
@@ -459,122 +455,103 @@ public abstract class ReconParticleDriver extends Driver {
         // tracks and use a probability (to be coded later) to determine what
         // the best match is.
         // TODO: At some point, pull this out to it's own method
-        for (List<Track> tracks : trackCollections) {
 
-            for (Track track : tracks) {
+        for (Track track : tracks) {
 
-                // Create a reconstructed particle to represent the track.
-                ReconstructedParticle particle = new BaseReconstructedParticle();
+            // Create a reconstructed particle to represent the track.
+            ReconstructedParticle particle = new BaseReconstructedParticle();
 
-                // Store the track in the particle.
-                particle.addTrack(track);
+            // Store the track in the particle.
+            particle.addTrack(track);
 
-                // Set the type of the particle. This is used to identify
-                // the tracking strategy used in finding the track associated with
-                // this particle.
-                ((BaseReconstructedParticle) particle).setType(track.getType());
+            // Set the type of the particle. This is used to identify
+            // the tracking strategy used in finding the track associated with
+            // this particle.
+            ((BaseReconstructedParticle) particle).setType(track.getType());
 
-                // Derive the charge of the particle from the track.
-                int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega());
-                ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
+            // Derive the charge of the particle from the track.
+            int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega());
+            ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
 
-                // initialize PID quality to a junk value:
-                ((BaseReconstructedParticle) particle).setGoodnessOfPid(9999);
+            // initialize PID quality to a junk value:
+            ((BaseReconstructedParticle) particle).setGoodnessOfPid(9999);
 
-                // Extrapolate the particle ID from the track. Positively
-                // charged particles are assumed to be positrons and those
-                // with negative charges are assumed to be electrons.
-                if (particle.getCharge() > 0) {
-                    ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
-                } else if (particle.getCharge() < 0) {
-                    ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
-                }
-
-                // normalized distance of the closest match:
-                double smallestNSigma = Double.MAX_VALUE;
-
-                // try to find a matching cluster:
-                Cluster matchedCluster = null;
-                for (Cluster cluster : clusters) {
-                    double clusTime = ClusterUtilities.getSeedHitTime(cluster);
-                    double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
-                    
-                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()){
-                        if (debug) {
-                            System.out.println("Failed cluster-track deltaT!");
-                            System.out.println(clusTime + "  " + trkT + "  " + cuts.getTrackClusterTimeOffset() + ">" + cuts.getMaxMatchDt());
-                        }
-                        continue;
-                    }
-                    
-                    //if the option to use corrected cluster positions is selected, then
-                    //create a copy of the current cluster, and apply corrections to it
-                    //before calculating nsigma.  Default is don't use corrections.  
-                    Cluster originalCluster = cluster;
-                    if(useCorrectedClusterPositionsForMatching){
-                        cluster = new BaseCluster(cluster);
-                        double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
-                    }
-                    
-                    // normalized distance between this cluster and track:
-                    final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
-                    if (enableTrackClusterMatchPlots) {
-                        if (TrackUtils.getTrackStateAtECal(track) != null)
-                            matcher.isMatch(cluster, track);
-                    }
-
-                    // ignore if matching quality doesn't make the cut:
-                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH){
-                        if (debug) {
-                            System.out.println("Failed cluster-track NSigma Cut!");
-                            System.out.println("match NSigma = "+thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH );
-                        }
-                        continue;
-                    }
-                        
-
-                    // ignore if we already found a cluster that's a better match:
-                    if (thisNSigma > smallestNSigma) {
-                        if (debug) {
-                            System.out.println("Already found a better match than this!");
-                            System.out.println("match NSigma = "+thisNSigma + "; smallest NSigma =  " + smallestNSigma );
-                        }
-                        continue;
-                    }
-                    // we found a new best cluster candidate for this track:
-                    smallestNSigma = thisNSigma;
-                    matchedCluster = originalCluster;
-
-                    // prefer using GBL tracks to correct (later) the clusters, for some consistency:
-                    if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
-                        clusterToTrack.put(matchedCluster, track);
-                    }
-                }
-
-                // If a cluster was found that matches the track...
-                if (matchedCluster != null) {
-
-                    // add cluster to the particle:
-                    particle.addCluster(matchedCluster);
-
-                    // use pid quality to store track-cluster matching quality:
-                    ((BaseReconstructedParticle) particle).setGoodnessOfPid(smallestNSigma);
-
-                    // propogate pid to the cluster:
-                    final int pid = particle.getParticleIDUsed().getPDG();
-                    if (Math.abs(pid) == 11) {
-                        if (!disablePID)
-                            ((BaseCluster) matchedCluster).setParticleId(pid);
-                    }
-
-                    // unmatched clusters will (later) be used to create photon particles:
-                    unmatchedClusters.remove(matchedCluster);
-                }
-
-                // Add the particle to the list of reconstructed particles.
-                particles.add(particle);
+            // Extrapolate the particle ID from the track. Positively
+            // charged particles are assumed to be positrons and those
+            // with negative charges are assumed to be electrons.
+            if (particle.getCharge() > 0) {
+                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+            } else if (particle.getCharge() < 0) {
+                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
             }
+
+            // normalized distance of the closest match:
+            double smallestNSigma = Double.MAX_VALUE;
+
+            // try to find a matching cluster:
+            Cluster matchedCluster = null;
+            for (Cluster cluster : clusters) {
+                double clusTime = ClusterUtilities.getSeedHitTime(cluster);
+                double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+
+                    
+                //if the option to use corrected cluster positions is selected, then
+                //create a copy of the current cluster, and apply corrections to it
+                //before calculating nsigma.  Default is don't use corrections.  
+                Cluster originalCluster = cluster;
+                if(useCorrectedClusterPositionsForMatching){
+                    cluster = new BaseCluster(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
+                    ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
+                }
+                    
+                // normalized distance between this cluster and track:
+                final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
+                if (enableTrackClusterMatchPlots) {
+                    if (TrackUtils.getTrackStateAtECal(track) != null)
+                        matcher.isMatch(cluster, track);
+                }
+
+                // ignore if matching quality doesn't make the cut:
+                if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
+                    continue;
+
+                // ignore if we already found a cluster that's a better match:
+                if (thisNSigma > smallestNSigma)
+                    continue;
+
+                // we found a new best cluster candidate for this track:
+                smallestNSigma = thisNSigma;
+                matchedCluster = originalCluster;
+
+                // prefer using GBL tracks to correct (later) the clusters, for some consistency:
+                if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
+                    clusterToTrack.put(matchedCluster, track);
+                }
+            }
+
+            // If a cluster was found that matches the track...
+            if (matchedCluster != null) {
+
+                // add cluster to the particle:
+                particle.addCluster(matchedCluster);
+
+                // use pid quality to store track-cluster matching quality:
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(smallestNSigma);
+
+                // propogate pid to the cluster:
+                final int pid = particle.getParticleIDUsed().getPDG();
+                if (Math.abs(pid) == 11) {
+                    if (!disablePID)
+                        ((BaseCluster) matchedCluster).setParticleId(pid);
+                }
+
+                // unmatched clusters will (later) be used to create photon particles:
+                unmatchedClusters.remove(matchedCluster);
+            }
+
+            // Add the particle to the list of reconstructed particles.
+            particles.add(particle);
         }
 
         // Iterate over the remaining unmatched clusters.
@@ -690,73 +667,88 @@ public abstract class ReconParticleDriver extends Driver {
         // collection and add it to the list of collections. This is
         // needed in order to create final state particles from the the
         // Ecal clusters in the event.
-        List<List<Track>> trackCollections = new ArrayList<List<Track>>();
-        if (trackCollectionNames != null) {
-            for (String collectionName : trackCollectionNames) {
-                if (event.hasCollection(Track.class, collectionName)) {
-                         // VERBOSE :: Output the number of clusters in the event.
-                    printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
-                    trackCollections.add(event.get(Track.class, collectionName));
-                }
-            }
-        } else {
-            if (event.hasCollection(Track.class)) {
-                trackCollections = event.get(Track.class);
-            } else {
-                trackCollections.add(new ArrayList<Track>(0));
-            }
-        }
+        //List<List<Track>> trackCollections = new ArrayList<List<Track>>();
+        List<Track> trackCollectionsAll = event.get(Track.class, collectionNameAll);
+        List<Track> trackCollectionsBad = event.get(Track.class, collectionNameBad);
+        List<Track> trackCollectionsTruth = event.get(Track.class, collectionNameTruth);
         
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         hitToStrips = TrackUtils.getHitToStripsTable(event);
 
         // Instantiate new lists to store reconstructed particles and
         // V0 candidate particles and vertices.
-        finalStateParticles = new ArrayList<ReconstructedParticle>();
-        electrons = new ArrayList<ReconstructedParticle>();
-        positrons = new ArrayList<ReconstructedParticle>();
+        finalStateParticlesAll = new ArrayList<ReconstructedParticle>();
+        finalStateParticlesBad = new ArrayList<ReconstructedParticle>();
+        finalStateParticlesTruth = new ArrayList<ReconstructedParticle>();
+        electronsAll = new ArrayList<ReconstructedParticle>();
+        electronsBad = new ArrayList<ReconstructedParticle>();
+        electronsTruth = new ArrayList<ReconstructedParticle>();
+        positronsAll = new ArrayList<ReconstructedParticle>();
+        positronsBad = new ArrayList<ReconstructedParticle>();
+        positronsTruth = new ArrayList<ReconstructedParticle>();
         unconstrainedV0Candidates = new ArrayList<ReconstructedParticle>();
+        unconstrainedV0CandidatesBad = new ArrayList<ReconstructedParticle>();
+        unconstrainedV0CandidatesTruth = new ArrayList<ReconstructedParticle>();
         beamConV0Candidates = new ArrayList<ReconstructedParticle>();
+        beamConV0CandidatesBad = new ArrayList<ReconstructedParticle>();
+        beamConV0CandidatesTruth = new ArrayList<ReconstructedParticle>();
         targetConV0Candidates = new ArrayList<ReconstructedParticle>();
+        targetConV0CandidatesBad = new ArrayList<ReconstructedParticle>();
+        targetConV0CandidatesTruth = new ArrayList<ReconstructedParticle>();
         unconstrainedV0Vertices = new ArrayList<Vertex>();
+        unconstrainedV0VerticesBad = new ArrayList<Vertex>();
+        unconstrainedV0VerticesTruth = new ArrayList<Vertex>();
         beamConV0Vertices = new ArrayList<Vertex>();
+        beamConV0VerticesBad = new ArrayList<Vertex>();
+        beamConV0VerticesTruth = new ArrayList<Vertex>();
         targetConV0Vertices = new ArrayList<Vertex>();
+        targetConV0VerticesBad = new ArrayList<Vertex>();
+        targetConV0VerticesTruth = new ArrayList<Vertex>();
 
         // Loop through all of the track collections present in the event and
         // create final state particles.
-        finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
+        finalStateParticlesAll.addAll(makeReconstructedParticles(clusters, trackCollectionsAll));
+        finalStateParticlesBad.addAll(makeReconstructedParticles(clusters, trackCollectionsBad));
+        finalStateParticlesTruth.addAll(makeReconstructedParticles(clusters, trackCollectionsTruth));
 
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.
-        for (ReconstructedParticle finalStateParticle : finalStateParticles) {
+        for (ReconstructedParticle finalStateParticle : finalStateParticlesAll) {
             // If the charge is positive, assume an electron.
             if (finalStateParticle.getCharge() > 0) {
-                positrons.add(finalStateParticle);
+                positronsAll.add(finalStateParticle);
             } // Otherwise, assume the particle is a positron.
             else if (finalStateParticle.getCharge() < 0) {
-                electrons.add(finalStateParticle);
+                electronsAll.add(finalStateParticle);
+            }
+        }
+        
+        for (ReconstructedParticle finalStateParticle : finalStateParticlesBad) {
+            // If the charge is positive, assume an electron.
+            if (finalStateParticle.getCharge() > 0) {
+                positronsBad.add(finalStateParticle);
+            } // Otherwise, assume the particle is a positron.
+            else if (finalStateParticle.getCharge() < 0) {
+                electronsBad.add(finalStateParticle);
+            }
+        }
+        
+        for (ReconstructedParticle finalStateParticle : finalStateParticlesTruth) {
+            // If the charge is positive, assume an electron.
+            if (finalStateParticle.getCharge() > 0) {
+                positronsTruth.add(finalStateParticle);
+            } // Otherwise, assume the particle is a positron.
+            else if (finalStateParticle.getCharge() < 0) {
+                electronsTruth.add(finalStateParticle);
             }
         }
 
-        // VERBOSE :: Output the number of reconstructed positrons
-        // and electrons.
-        printDebug("Number of Electrons: " + electrons.size());
-        printDebug("Number of Positrons: " + positrons.size());
-
         // Form V0 candidate particles and vertices from the electron
         // and positron reconstructed particles.
-        findVertices(electrons, positrons);
-        
-        List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
-        // VERBOSE :: Output the number of reconstructed particles.
-        printDebug("Final State Particles :: " + goodFinalStateParticles.size());
-        // Add the final state ReconstructedParticles to the event
-        event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
-        for (ReconstructedParticle ele : goodFinalStateParticles) {
-            if (electrons.contains(ele))
-                electrons.remove(ele);
-        }
-        event.put(OtherElectronsColName, electrons, ReconstructedParticle.class, 0);
+        findVertices(electronsAll, positronsBad, unconstrainedV0CandidatesBad, unconstrainedV0VerticesBad, beamConV0CandidatesBad, beamConV0VerticesBad, targetConV0CandidatesBad, targetConV0VerticesBad);
+        findVertices(electronsBad, positronsAll,  unconstrainedV0CandidatesBad, unconstrainedV0VerticesBad, beamConV0CandidatesBad, beamConV0VerticesBad, targetConV0CandidatesBad, targetConV0VerticesBad);
+        findVertices(electronsAll, positronsTruth, unconstrainedV0CandidatesTruth, unconstrainedV0VerticesTruth, beamConV0CandidatesTruth, beamConV0VerticesTruth, targetConV0CandidatesTruth, targetConV0VerticesTruth);
+        findVertices(electronsTruth, positronsAll, unconstrainedV0CandidatesTruth, unconstrainedV0VerticesTruth, beamConV0CandidatesTruth, beamConV0VerticesTruth, targetConV0CandidatesTruth, targetConV0VerticesTruth);
 
         // Store the V0 candidate particles and vertices for each type
         // of constraint in the appropriate collection in the event,
@@ -765,25 +757,78 @@ public abstract class ReconParticleDriver extends Driver {
             printDebug("Unconstrained V0 Candidates: " + unconstrainedV0Candidates.size());
             event.put(unconstrainedV0CandidatesColName, unconstrainedV0Candidates, ReconstructedParticle.class, 0);
         }
+        if (unconstrainedV0CandidatesColBadName != null) {
+            printDebug("Unconstrained V0 Bad Candidates: " + unconstrainedV0CandidatesBad.size());
+            event.put(unconstrainedV0CandidatesColBadName, unconstrainedV0CandidatesBad, ReconstructedParticle.class, 0);
+        }
+        if (unconstrainedV0CandidatesColTruthName != null) {
+            printDebug("Unconstrained V0 Truth Candidates: " + unconstrainedV0CandidatesTruth.size());
+            event.put(unconstrainedV0CandidatesColTruthName, unconstrainedV0CandidatesTruth, ReconstructedParticle.class, 0);
+        }
+        
         if (beamConV0CandidatesColName != null) {
             printDebug("Beam-Constrained V0 Candidates: " + beamConV0Candidates.size());
             event.put(beamConV0CandidatesColName, beamConV0Candidates, ReconstructedParticle.class, 0);
         }
+        if (beamConV0CandidatesColBadName != null) {
+            printDebug("Beam-Constrained V0 Bad Candidates: " + beamConV0CandidatesBad.size());
+            event.put(beamConV0CandidatesColBadName, beamConV0CandidatesBad, ReconstructedParticle.class, 0);
+        }
+        if (beamConV0CandidatesColTruthName != null) {
+            printDebug("Beam-Constrained V0 Truth Candidates: " + beamConV0CandidatesTruth.size());
+            event.put(beamConV0CandidatesColTruthName, beamConV0CandidatesTruth, ReconstructedParticle.class, 0);
+        }
+        
         if (targetConV0CandidatesColName != null) {
             printDebug("Target-Constrained V0 Candidates: " + targetConV0Candidates.size());
             event.put(targetConV0CandidatesColName, targetConV0Candidates, ReconstructedParticle.class, 0);
         }
+        if (targetConV0CandidatesColBadName != null) {
+            printDebug("Target-Constrained V0 Bad Candidates: " + targetConV0CandidatesBad.size());
+            event.put(targetConV0CandidatesColBadName, targetConV0CandidatesBad, ReconstructedParticle.class, 0);
+        }
+        if (targetConV0CandidatesColTruthName != null) {
+            printDebug("Target-Constrained V0 Truth Candidates: " + targetConV0CandidatesTruth.size());
+            event.put(targetConV0CandidatesColTruthName, targetConV0CandidatesTruth, ReconstructedParticle.class, 0);
+        }
+        
         if (unconstrainedV0VerticesColName != null) {
             printDebug("Unconstrained V0 Vertices: " + unconstrainedV0Vertices.size());
             event.put(unconstrainedV0VerticesColName, unconstrainedV0Vertices, Vertex.class, 0);
         }
+        if (unconstrainedV0VerticesColBadName != null) {
+            printDebug("Unconstrained V0 Bad Vertices: " + unconstrainedV0VerticesBad.size());
+            event.put(unconstrainedV0VerticesColBadName, unconstrainedV0VerticesBad, Vertex.class, 0);
+        }
+        if (unconstrainedV0VerticesColTruthName != null) {
+            printDebug("Unconstrained V0 Truth Vertices: " + unconstrainedV0VerticesTruth.size());
+            event.put(unconstrainedV0VerticesColTruthName, unconstrainedV0VerticesTruth, Vertex.class, 0);
+        }
+        
         if (beamConV0VerticesColName != null) {
             printDebug("Beam-Constrained V0 Vertices: " + beamConV0Vertices.size());
             event.put(beamConV0VerticesColName, beamConV0Vertices, Vertex.class, 0);
         }
+        if (beamConV0VerticesColBadName != null) {
+            printDebug("Beam-Constrained V0 Bad Vertices: " + beamConV0VerticesBad.size());
+            event.put(beamConV0VerticesColBadName, beamConV0VerticesBad, Vertex.class, 0);
+        }
+        if (beamConV0VerticesColTruthName != null) {
+            printDebug("Beam-Constrained V0 Truth Vertices: " + beamConV0VerticesTruth.size());
+            event.put(beamConV0VerticesColTruthName, beamConV0VerticesTruth, Vertex.class, 0);
+        }
+        
         if (targetConV0VerticesColName != null) {
             printDebug("Target-Constrained V0 Vertices: " + targetConV0Vertices.size());
             event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
+        }
+        if (targetConV0VerticesColBadName != null) {
+            printDebug("Target-Constrained V0 Bad Vertices: " + targetConV0VerticesBad.size());
+            event.put(targetConV0VerticesColBadName, targetConV0VerticesBad, Vertex.class, 0);
+        }
+        if (targetConV0VerticesColTruthName != null) {
+            printDebug("Target-Constrained V0 Truth Vertices: " + targetConV0VerticesTruth.size());
+            event.put(targetConV0VerticesColTruthName, targetConV0VerticesTruth, Vertex.class, 0);
         }
     }
 

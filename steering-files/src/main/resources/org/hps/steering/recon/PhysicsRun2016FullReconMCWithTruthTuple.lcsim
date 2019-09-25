@@ -5,6 +5,7 @@
              the 2016 Engineering Run data. 
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
+      @author <a href="mailto:mrsolt@slac.stanford.edu">Matt Solt</a>
     -->
     <execute>
 
@@ -57,7 +58,8 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
-        <driver name="LCIOWriter"/>            
+        <driver name="LCIOWriter"/>
+        <driver name="FullTruthTuple"/>            
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
@@ -158,18 +160,24 @@
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
             <trackClusterTimeOffset>43</trackClusterTimeOffset>
-            <isMC>true</isMC>
-            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
-            <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxElectronP> 2.15 </maxElectronP>
             <maxVertexP> 2.8 </maxVertexP>
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <isMC>true</isMC>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <minVertexChisqProb> 0.0 </minVertexChisqProb>
+            <trackClusterTimeOffset>43</trackClusterTimeOffset>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="FullTruthTuple" type="org.hps.analysis.tuple.TridentFullTupleDriver">
+            <nEcalHit>3</nEcalHit>
+            <tupleFile>${outputFile}_fulltruth.txt</tupleFile>
+            <cutTuple>false</cutTuple>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
