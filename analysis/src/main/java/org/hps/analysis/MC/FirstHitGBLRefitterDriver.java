@@ -47,7 +47,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
     private String outputCollectionName = "GBLTracks_refit";
     private String trackRelationCollectionName = "RefitToGBLTrackRelations";
     private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
-    //private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String kinkDataCollectionName = "GBLKinkData_refit";
     private String kinkDataRelationsName = "GBLKinkDataRelations_refit";
@@ -88,10 +87,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
     public void setHelicalTrackHitRelationsCollectionName(String helicalTrackHitRelationsCollectionName) {
         this.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
     }
-
-    /*public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
-        this.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
-    }*/
     
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
@@ -139,7 +134,6 @@ public class FirstHitGBLRefitterDriver extends Driver {
         List<Track> tracks = event.get(Track.class, inputCollectionName);
         List<LCRelation> refitTrackToTrackRelations = event.get(LCRelation.class, refitTrackToTrackRelationsName);
         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
-        //RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();

@@ -214,9 +214,9 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             if (temp != null){
                 ReconstructedParticle electronTruth = temp.getParticles().get(ReconParticleDriver.ELECTRON);
                 ReconstructedParticle positronTruth = temp.getParticles().get(ReconParticleDriver.POSITRON);
-            
-                fillParticleVariables(event, electronTruth, "eleTruth");
-                fillParticleVariables(event, positronTruth, "posTruth");
+                
+                fillParticleVariables(event, electronTruth, "eleTruth", true, true, true, "GBLKinkDataRelations_truth");
+                fillParticleVariables(event, positronTruth, "posTruth", true, true, true, "GBLKinkDataRelations_truth");
                 fillVertexVariables("Truthunc", temp, false);
             }
             if (unc2bscTruth != null) {

@@ -24,7 +24,6 @@
             <kinkDataCollectionName>GBLKinkData_refit</kinkDataCollectionName>
             <kinkDataRelationsName>GBLKinkDataRelations_refit</kinkDataRelationsName>
             <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_refit</helicalTrackHitRelationsCollectionName>
-            <rotatedHelicalTrackHitRelationsCollectionName>RotatedHelicalTrackHitRelations_refit</rotatedHelicalTrackHitRelationsCollectionName>
         </driver>
         <driver name="TrackDataDriverTruthTracks" type="org.hps.analysis.MC.TrackDataDriverWithTruth">
             <trackCollectionName>GBLTracks_refit</trackCollectionName>

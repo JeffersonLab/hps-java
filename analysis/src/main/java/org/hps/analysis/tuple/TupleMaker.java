@@ -1008,7 +1008,9 @@ public abstract class TupleMaker extends Driver {
                         .get(0).getPosition())));
         GenericObject kinks = GBLKinkData.getKinkData(event, track);
         if(KinkToGBLRelations != ""){
-            RefitTrackTruthTupleDriver.getKinkData(event, track, KinkToGBLRelations);
+            GenericObject truthkinks = RefitTrackTruthTupleDriver.getKinkData(event, track, KinkToGBLRelations);
+            if(truthkinks != null)
+                kinks = truthkinks;
         }
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
