@@ -198,7 +198,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 
                     // let's apply a few cuts here to enable us to skim events...
                     // beam spot x at wire is -63
-                    if (abs(pars[0] - 63) < 20) {
+                    if (abs(pars[0] + 63) < 20) {
                         // beam spot y at wire is 0
                         if (abs(pars[1]) < 15) {
                             // keep this event
