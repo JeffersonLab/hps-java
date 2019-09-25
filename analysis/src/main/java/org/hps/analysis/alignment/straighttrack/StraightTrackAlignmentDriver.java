@@ -39,7 +39,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     boolean _debug = true;
     DetectorBuilder _db;
-    double _minClusterEnergy = 3.0;
+    double _minClusterEnergy = 3.5;
 
     private AIDA aida = AIDA.defaultInstance();
     // z from blueprints
@@ -59,133 +59,143 @@ public class StraightTrackAlignmentDriver extends Driver {
         // Will use calorimeter clusters to define the road in which we search for hits.
         List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
         aida.histogram1D("number of clusters", 10, 0., 10.).fill(clusters.size());
-        Cluster c = null;
-        if (clusters.size() != 1) {
-            return;
-        }
-        for (Cluster cluster : clusters) {
-            if (cluster.getEnergy() > _minClusterEnergy && TriggerModule.inFiducialRegion(cluster)) {
-                c = cluster;
-                String topOrBottom = c.getPosition()[1] > 0 ? "top " : "bottom ";
-                aida.histogram2D("Cal fiducial Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
-                // calculate some slopes and intercepts...
-                aida.histogram1D(topOrBottom + "Fiducial Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
-                aida.histogram1D(topOrBottom + "Fiducial Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+//        Cluster c = null;
+//        for (Cluster cluster : clusters) {
+//            aida.histogram1D("All Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+//        }
+//        if (clusters.size() != 1) {
+//            return;
+//        }
 
-            }
-        }
-        if (c != null) {
-            //OK, we have a good, high-energy cluster in the fiducial part of the calorimeter...
-            Point3D P0 = new Point3D(H02Wire[0], H02Wire[1], H02Wire[2]);
-            double[] cPos = c.getPosition();
-            String topOrBottom = cPos[1] > 0 ? "top " : "bottom ";
-            Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
-            //let's get some SVT strip clusters...
-            setupSensors(event);
-            // Get the list of fitted hits from the event
-            List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
-            // Map the fitted hits to their corresponding raw hits
-            Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
-            for (LCRelation fittedHit : fittedHits) {
-                fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
-            }
-            List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
-            int nStripHits = stripClusters.size();
-            aida.histogram1D(topOrBottom + "number of strip clusters", 100, 0., 200.).fill(nStripHits);
-            // lets partition the strip clusters into each module
-            Map<String, List<SiTrackerHitStrip1D>> hitsPerModuleMap = new HashMap<>();
-            for (TrackerHit hit : stripClusters) {
-                List rthList = hit.getRawHits();
-                String moduleName = ((RawTrackerHit) rthList.get(0)).getDetectorElement().getName();
-                if (!hitsPerModuleMap.containsKey(moduleName)) {
-                    hitsPerModuleMap.put(moduleName, new ArrayList<SiTrackerHitStrip1D>());
-                    hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
-                } else {
-                    hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
+        for (Cluster cluster : clusters) {
+            aida.histogram1D("All Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+            if (cluster.getEnergy() > _minClusterEnergy) {
+                boolean isFiducial = TriggerModule.inFiducialRegion(cluster);
+                String fid = isFiducial ? "fiducial" : "";
+                Cluster c = cluster;
+                String topOrBottom = c.getPosition()[1] > 0 ? "top " : "bottom ";
+                aida.histogram2D("Cal " + fid + " Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+                // calculate some slopes and intercepts...
+                aida.histogram1D(topOrBottom + fid + "Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
+                aida.histogram1D(topOrBottom + fid + "Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+
+//            }
+//        }
+//        if (c != null) {
+                //OK, we have a good, high-energy cluster in the fiducial part of the calorimeter...
+                Point3D P0 = new Point3D(H02Wire[0], H02Wire[1], H02Wire[2]);
+                double[] cPos = c.getPosition();
+                //String topOrBottom = cPos[1] > 0 ? "top " : "bottom ";
+                Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
+                //let's get some SVT strip clusters...
+                setupSensors(event);
+                // Get the list of fitted hits from the event
+                List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
+                // Map the fitted hits to their corresponding raw hits
+                Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+                for (LCRelation fittedHit : fittedHits) {
+                    fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
                 }
-            }
+                List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
+                int nStripHits = stripClusters.size();
+                aida.histogram1D(topOrBottom + fid + "number of strip clusters", 100, 0., 200.).fill(nStripHits);
+                // lets partition the strip clusters into each module
+                Map<String, List<SiTrackerHitStrip1D>> hitsPerModuleMap = new HashMap<>();
+                for (TrackerHit hit : stripClusters) {
+                    List rthList = hit.getRawHits();
+                    String moduleName = ((RawTrackerHit) rthList.get(0)).getDetectorElement().getName();
+                    if (!hitsPerModuleMap.containsKey(moduleName)) {
+                        hitsPerModuleMap.put(moduleName, new ArrayList<SiTrackerHitStrip1D>());
+                        hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
+                    } else {
+                        hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
+                    }
+                }
 //            for (String s : hitsPerModuleMap.keySet()) {
 //                System.out.println(s + " has " + hitsPerModuleMap.get(s).size() + " strip hit clusters");
 //            }
-            Map<String, SiTrackerHitStrip1D> hitsToFit = new LinkedHashMap<>();
-            Map<String, DetectorPlane> detectorPlanesInFit = new LinkedHashMap<>();
-            String trackingDetectorName = cPos[1] > 0 ? "topHole" : "bottomHole"; // work on slot later
-            List<DetectorPlane> td = _db.getTracker(trackingDetectorName);
-            String[] trackerSensorNames = _db.getTrackerSensorNames(trackingDetectorName);
-            double maxDist = 5.;
-            for (DetectorPlane dp : td) {
-                String moduleName = trackerSensorNames[dp.id() - 1];
+                Map<String, SiTrackerHitStrip1D> hitsToFit = new LinkedHashMap<>();
+                Map<String, DetectorPlane> detectorPlanesInFit = new LinkedHashMap<>();
+                String trackingDetectorName = cPos[1] > 0 ? "topHole" : "bottomHole"; // work on slot later
+                List<DetectorPlane> td = _db.getTracker(trackingDetectorName);
+                String[] trackerSensorNames = _db.getTrackerSensorNames(trackingDetectorName);
+                double maxDist = 5.;
+                for (DetectorPlane dp : td) {
+                    String moduleName = trackerSensorNames[dp.id() - 1];
 //                System.out.println(moduleName);
-                if (hitsPerModuleMap.containsKey(moduleName)) {
+                    if (hitsPerModuleMap.containsKey(moduleName)) {
 //                    System.out.println(moduleName + " has " + hitsPerModuleMap.get(moduleName).size() + " strip hit clusters");
 
-                    // get the best hit in this layer associated with this cluster                     
-                    SiTrackerHitStrip1D closest = null;
-                    double d = 9999.;
-                    for (SiTrackerHitStrip1D stripHit : hitsPerModuleMap.get(moduleName)) {
-                        // calculate the intercept of the straight track with this sensor...
-                        Hep3Vector intercept = StraightTrackUtils.linePlaneIntersect(P0, P1, dp.origin(), dp.normal());
-                        // calculate the distance between this point and the strip
-                        LineSegment3D stripLine = stripHit.getHitSegment();
-                        double dist = stripLine.distanceTo(new Point3D(intercept));
+                        // get the best hit in this layer associated with this cluster                     
+                        SiTrackerHitStrip1D closest = null;
+                        double d = 9999.;
+                        for (SiTrackerHitStrip1D stripHit : hitsPerModuleMap.get(moduleName)) {
+                            // calculate the intercept of the straight track with this sensor...
+                            Hep3Vector intercept = StraightTrackUtils.linePlaneIntersect(P0, P1, dp.origin(), dp.normal());
+                            // calculate the distance between this point and the strip
+                            LineSegment3D stripLine = stripHit.getHitSegment();
+                            double dist = stripLine.distanceTo(new Point3D(intercept));
 //                        double d2 = VecOp.cross(stripLine.getDirection(),VecOp.sub(intercept,stripLine.getStartPoint())).magnitude();
 //                        System.out.println("dist "+dist+" d2 "+d2);
-                        if (abs(dist) < d) {
-                            d = dist;
-                            closest = stripHit;
+                            if (abs(dist) < d) {
+                                d = dist;
+                                closest = stripHit;
+                            }
+                        }
+                        // are we within a reasonable distance?
+                        if (abs(d) < maxDist) {
+                            hitsToFit.put(moduleName, closest);
+                            detectorPlanesInFit.put(moduleName, dp);
+                            aida.histogram1D(moduleName + fid + " distance to hit", 100, -maxDist, maxDist).fill(d);
                         }
                     }
-                    // are we within a reasonable distance?
-                    if (abs(d) < maxDist) {
-                        hitsToFit.put(moduleName, closest);
-                        detectorPlanesInFit.put(moduleName, dp);
-                        aida.histogram1D(moduleName + " distance to hit", 100, -maxDist, maxDist).fill(d);
-                    }
-                }
 //                System.out.println(dp.id() + " " + trackerSensorNames[dp.id()-1]);
 //                System.out.println(dp);
-            }
-            // we now have a list of hits to fit.
-            List<Hit> hits = new ArrayList<Hit>();
-            List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
-            //for now, assign an error based on the size of the strip cluster
-            double[] fixedDu = {0., .012, .006};
-            for (String s : hitsToFit.keySet()) {
-                SiTrackerHitStrip1D stripHit = hitsToFit.get(s);
-//                System.out.println(s + " has a hit at " + stripHit.getPositionAsVector());
-                int size = stripHit.getRawHits().size();
-                double du;
-                if (size < 3) {
-                    du = fixedDu[size];
-                } else {
-                    du = .04;
                 }
-                double[] pos = stripHit.getPosition();
-                Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
-                hits.add(h);
-                planes.add(detectorPlanesInFit.get(s));
-            }
-            aida.histogram1D(topOrBottom + "number of hits to fit", 20, 0., 20.).fill(hits.size());
-            // require at least 6 hits for fit
-            if (hits.size() > 5) {
-                double[] A0 = {0., 0., -2267.}; // initial guess for (x,y,z) of track 
-                // TODO get estimate for x of beam on wire. Was x=-63 in 2016
-                double[] B0 = {0., 0., 1.}; // initial guess for the track direction
-                // fit the track!
-                TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
-                // Note that track position parameters x & y are reported at the input z.
-                double[] pars = fit.pars();
-                double[] cov = fit.cov();
+                // we now have a list of hits to fit.
+                List<Hit> hits = new ArrayList<Hit>();
+                List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
+                //for now, assign an error based on the size of the strip cluster
+                double[] fixedDu = {0., .012, .006};
+                for (String s : hitsToFit.keySet()) {
+                    SiTrackerHitStrip1D stripHit = hitsToFit.get(s);
+//                System.out.println(s + " has a hit at " + stripHit.getPositionAsVector());
+                    int size = stripHit.getRawHits().size();
+                    double du;
+                    if (size < 3) {
+                        du = fixedDu[size];
+                    } else {
+                        du = .04;
+                    }
+                    double[] pos = stripHit.getPosition();
+                    Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
+                    hits.add(h);
+                    planes.add(detectorPlanesInFit.get(s));
+                }
+                aida.histogram1D(topOrBottom + fid + " number of hits to fit", 20, 0., 20.).fill(hits.size());
+                // require at least 6 hits for fit
+                if (hits.size() > 5) {
+                    double[] A0 = {0., 0., -2267.}; // initial guess for (x,y,z) of track 
+                    // TODO get estimate for x of beam on wire. Was x=-63 in 2016
+                    double[] B0 = {0., 0., 1.}; // initial guess for the track direction
+                    // fit the track!
+                    TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+                    // Note that track position parameters x & y are reported at the input z.
+                    double[] pars = fit.pars();
+                    double[] cov = fit.cov();
 
-                aida.histogram1D(topOrBottom + "x at z=-2267", 100, -100., 0.).fill(pars[0]);
-                aida.histogram1D(topOrBottom + "y at z=-2267", 100, -20., 20.).fill(pars[1]);
-                aida.histogram1D(topOrBottom + "dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
-                aida.histogram1D(topOrBottom + "dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
-                aida.histogram1D(topOrBottom + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
-                double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
-                aida.histogram1D(topOrBottom + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
-            }
-        }
+                    aida.histogram1D(topOrBottom + fid + " x at z=-2267", 100, -100., 0.).fill(pars[0]);
+                    aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(pars[1]);
+                    aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
+                    aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
+                    aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
+                    double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
+                    aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
+                    aida.histogram2D("Final Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+                    aida.histogram1D("Final Cluster energy", 100, 0., 7.).fill(c.getEnergy());
+                }
+            } // end of loop over clusters with energy greater that min cluster energy
+        } // end of loop over clusters
     }
 
     /**
