@@ -231,7 +231,6 @@
             <clusterTimeCut>40.0</clusterTimeCut>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
             <maxDt>20.0</maxDt>
-            <vThin>7.0</vThin>
             <saveAxialHits>false</saveAxialHits>
         </driver>     
         <driver name="TrackReconSeed567Conf4Extd123" type="org.hps.recon.tracking.TrackerReconDriver">
