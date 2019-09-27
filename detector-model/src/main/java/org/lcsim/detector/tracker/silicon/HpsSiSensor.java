@@ -55,10 +55,10 @@ public class HpsSiSensor extends SiSensor {
     protected boolean isAxial = false;
     protected boolean isStereo = false;
 
-    private final double readoutStripCapacitanceIntercept = 0;
-    private final double readoutStripCapacitanceSlope = 0.16; // pf/mm
-    private final double senseStripCapacitanceIntercept = 0;
-    private final double senseStripCapacitanceSlope = 0.16; // pf/mm
+    protected final double readoutStripCapacitanceIntercept = 0;
+    protected final double readoutStripCapacitanceSlope = 0.16; // pf/mm
+    protected final double senseStripCapacitanceIntercept = 0;
+    protected final double senseStripCapacitanceSlope = 0.16; // pf/mm
 
     /*
      * Adding separate strip capacitance for long detectors following
@@ -482,11 +482,7 @@ public class HpsSiSensor extends SiSensor {
         return buffer.toString();
     }
 
-    /**
-     * Setup the geometry and electrical characteristics of an {@link HpsSiSensor}
-     */
-    @Override
-    public void initialize() {
+    protected Transform3D getElectrodesTransform() { 
 
         // Get the solid corresponding to the sensor volume
         final Box sensorSolid = (Box) this.getGeometry().getLogicalVolume().getSolid();
@@ -507,6 +503,17 @@ public class HpsSiSensor extends SiSensor {
         // Align the strips with the edge of the sensor.
         final IRotation3D electrodesRotation = new RotationPassiveXYZ(0, 0, 0);
         final Transform3D electrodesTransform = new Transform3D(electrodesPosition, electrodesRotation);
+        
+        return electrodesTransform; 
+    }
+    
+    /**
+     * Setup the geometry and electrical characteristics of an {@link HpsSiSensor}
+     */
+    @Override
+    public void initialize() {
+
+        Transform3D electrodesTransform = this.getElectrodesTransform();
 
         // Set the number of readout and sense electrodes.
         final SiStrips readoutElectrodes = new SiStrips(ChargeCarrier.HOLE, getReadoutStripPitch(), this,

@@ -193,8 +193,36 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
     @Override
     protected void processSvtHeaders(List<SvtHeaderDataInfo> headers, EventHeader lcsimEvent)
             throws SvtEvioHeaderException {
-        // TODO Auto-generated method stub
+        // Not used ...
+    }
 
+    @Override
+    protected List< int[] > extractMultiSamples(int sampleCount, int[] data) {
+        
+        List<int[]> sampleList = new ArrayList<int[]>();
+        // Loop through all of the samples and make hits
+        for (int samplesN = 0; samplesN < sampleCount; samplesN += 4) {
+            int[] samples = new int[4];
+            System.arraycopy(data, this.getDataHeaderLength() + samplesN, samples, 0, samples.length);
+            sampleList.add(samples);
+        }
+        return sampleList;
+    }  
+    
+    @Override
+    public boolean makeHits(EvioEvent event, EventHeader lcsimEvent) 
+        throws SvtEvioReaderException {
+        
+        // First extract the multisamples and headers
+        super.makeHits(event, lcsimEvent);
+
+        // Process the headers
+        this.processSvtHeaders(headers, lcsimEvent);
+        
+        // Clear header data list after processing. This was a big memory leak! --JM
+        headers.clear();
+        
+        return true; 
     }
 
 }
