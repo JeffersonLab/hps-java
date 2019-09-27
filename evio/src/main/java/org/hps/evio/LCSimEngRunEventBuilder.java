@@ -58,7 +58,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     /**
      * Writes event flags describing the SVT state.
      */
-    private final SvtEventFlagger svtEventFlagger;
+    protected SvtEventFlagger svtEventFlagger;
 
     /**
      * Reads trigger config.
@@ -190,13 +190,15 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final SvtEvioReaderException e) {
             LOGGER.log(Level.SEVERE, "Error making SVT hits for run " + lcsimEvent.getRunNumber() + " event " + lcsimEvent.getEventNumber() + ". Don't stop!", e);
         }
+        
         // Write the current EPICS data into this event.
         this.writeEpicsData(lcsimEvent);
 
         // Write scalers into the event, if they exist in the EVIO data.
         this.writeScalerData(evioEvent, lcsimEvent);
 
-        this.svtEventFlagger.writeFlags(lcsimEvent);
+        //
+        if (svtEventFlagger != null) this.svtEventFlagger.writeFlags(lcsimEvent);
 
         return lcsimEvent;
     }
