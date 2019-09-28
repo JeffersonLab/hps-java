@@ -218,8 +218,8 @@ public class KalTrack {
     }
 
     // Runge Kutta propagation of the helix to the origin
-    public void originHelix() {
-        if (propagated) { return; }
+    public boolean originHelix() {
+        if (propagated) { return true; }
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -231,8 +231,15 @@ public class KalTrack {
                 innerSite = site;
             }
         }
-        // This propagated helix will have its pivot at the origin but is in the origin
-        // B-field frame
+        if (innerSite == null) {
+            System.out.format("KalTrack.originHelix: event %d inner site not found.\n", eventNumber);
+            return false;
+        }
+        if (innerSite.aS == null) {
+            System.out.format("KalTrack.originHelix: event %d inner site is not smoothed.\n", eventNumber);
+            return false;
+        }
+        // This propagated helix will have its pivot at the origin but is in the origin B-field frame
         //Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
         //double ct = pMom.unitVec().dot(innerSite.m.p.T());
 
@@ -270,6 +277,7 @@ public class KalTrack {
         temp = new SquareMatrix(3, Cp);
         Cp = temp.inverseRotate(Rot).M;
         propagated = true;
+        return true;
     }
 
     public double[] originX() {
@@ -296,7 +304,8 @@ public class KalTrack {
     }
 
     public double[] originHelixParms() {
-        return helixAtOrigin.v.clone();
+        if (propagated) return helixAtOrigin.v.clone();
+        else return null;
     }
 
     public double helixErr(int i) {
@@ -362,16 +371,16 @@ public class KalTrack {
                 currentSite.aS = null;
 
                 if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, false, false, false, verbose) < 0) {
-                    System.out.format("KalTrack.fit: In iteration %d failed to make prediction!!\n", iteration);
+                    System.out.format("KalTrack.fit: event %d in iteration %d failed to make prediction!!\n", eventNumber, iteration);
                     return false;
                 }
                 if (!currentSite.filter()) {
-                    System.out.format("KalTrack.fit: in iteration %d failed to filter!!\n", iteration);
+                    System.out.format("KalTrack.fit: event %d in iteration %d failed to filter!!\n", eventNumber, iteration);
                     return false;
                 }
 
                 // if (verbose) currentSite.print("iterating filtering");
-                chi2f += currentSite.chi2inc;
+                chi2f += Math.max(currentSite.chi2inc,0.);
                 sH = currentSite.aF;
                 prevMod = currentSite.m;
             }
@@ -386,7 +395,7 @@ public class KalTrack {
                 } else {
                     currentSite.smooth(nextSite);
                 }
-                chi2s += currentSite.chi2inc;
+                chi2s += Math.max(currentSite.chi2inc,0.);
 
                 // if (verbose) {
                 // currentSite.print("iterating smoothing");

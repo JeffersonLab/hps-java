@@ -41,12 +41,12 @@ class Helix { // Create a simple helix oriented along the B field axis for testi
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         double Pmag = Pinit.mag();
         Vec tnew = R.rotate(Pinit.unitVec(Pmag));
-        tnew.print("Helix constructor tnew");
+        //tnew.print("Helix constructor tnew");
         double tanl = tnew.v[2] / Math.sqrt(1.0 - tnew.v[2] * tnew.v[2]);
         double pt = Pmag / Math.sqrt(1.0 + tanl * tanl);
         double K = Q / pt;
         double phi0 = Math.atan2(-tnew.v[0], tnew.v[1]);
-        System.out.format("    Helix constructor pt=%10.5f, tanl=%10.5f, phi0=%10.6f\n", pt, tanl, phi0);
+        //System.out.format("    Helix constructor pt=%10.5f, tanl=%10.5f, phi0=%10.6f\n", pt, tanl, phi0);
         p = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, so drho and dz are zero
     }
 

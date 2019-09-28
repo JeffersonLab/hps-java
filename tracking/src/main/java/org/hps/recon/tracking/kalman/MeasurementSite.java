@@ -456,6 +456,7 @@ class MeasurementSite {
             System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");
             return false;
         }
+        
 
         this.aS = this.aF.smooth(nS.aS, nS.aP);
         if (hitID < 0) { return true; }

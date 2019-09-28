@@ -72,8 +72,7 @@ public class SiModule {
         p.X().print("origin of Si layer coordinates in the global system");
         Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
-        System.out.format("       At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n", Bf.mag(), tBf.v[0], tBf.v[1],
-                tBf.v[2]);
+        System.out.format("      At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n",Bf.mag(),tBf.v[0],tBf.v[1],tBf.v[2]);
         R.print("from detector coordinates to global coordinates");
         System.out.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();

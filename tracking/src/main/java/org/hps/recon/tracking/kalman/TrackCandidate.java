@@ -42,7 +42,10 @@ public class TrackCandidate {
                 else resid = vPred - m.hits.get(site.hitID).v;
                 System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, resid=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo,
                         site.hitID, site.chi2inc, resid, vPred);
-                for (Measurement hit : m.hits) { System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size()); }
+                for (Measurement hit : m.hits) {
+                    if (hit.vTrue == 999.) System.out.format(" (v=%10.6f #tks=%d),", hit.v, hit.tracks.size());
+                    else System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());                   
+                }
                 System.out.format("\n");
             }
         }

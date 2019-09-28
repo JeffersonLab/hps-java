@@ -28,35 +28,39 @@ public class KalmanPatRecHPS {
     private ArrayList<ArrayList<KalHit>> lyrHits;
     private ArrayList<ArrayList<SiModule>> moduleList;
     private ArrayList<int[]> lyrList;
-    private int nTries; // Number of passes through this routine to find all tracks
-    private int nIterations; // Number of Kalman filter iterations per track
-    private double[] kMax; // Maximum curvature
-    private double[] tanlMax; // Maximum tan(lambda)
-    private double[] dRhoMax; // Maximum dRho at target plane in mm
-    private double[] chi2mx1; // Maximum chi**2/#hits
-    private double[] chi2mx2; // For a substandard track
-    private int[] minHits1; // Minimum number of hits for a track
-    private int[] minHits2; // For a substandard track
-    private double[] mxChi2Inc; // Maximum increment to the chi^2 for a hit during smoothing
-    private double[] mxResid; // Maximum residual, in units of detector resolution, for picking up a hit
-    private int minUnique; // Minimum number of unique hits on a seed
-    private double mxResidShare; // Maximum residual for a hit to be shared
+
+    private static final int nTries = 2;  // Number of iterations through the entire pattern recognition
+    private int nIterations; 
+    private double[] kMax; 
+    private double[] tanlMax; 
+    private double[] dRhoMax; 
+    private double[] chi2mx1; 
+    private double[] chi2mx2; 
+    private int[] minHits1; 
+    private int[] minHits2; 
+    private double[] mxChi2Inc; 
+    private double[] mxResid; 
+    private int minUnique; 
+    private double mxResidShare; 
     private double mxChi2double;
-    private int mxShared; // Maximum number of shared hits
+    private int mxShared; 
     private boolean verbose;
     private int nModules;
+    private int minStereo;
+    private int minAxial;
 
-    public KalmanPatRecHPS(ArrayList<SiModule> data, boolean verbose) {
+    public KalmanPatRecHPS(ArrayList<SiModule> data, int eventNumber, boolean verbose) {
 
         this.verbose = verbose;
         TkrList = new ArrayList<KalTrack>();
         int tkID = 0;
         nModules = data.size();
 
-        // Make a list of hits for each tracker layer, 0 through 12
+        // Make a list of hits for each tracker layer, 0 through 13
         // This is needed because one layer can have multiple SiModules
         // Also make a list of Si modules with hits in each layer
-        int numLayers = 13;
+        int numLayers = 14;
+        int firstLayer = 2; // (2 for pre-2019 data)
         lyrHits = new ArrayList<ArrayList<KalHit>>(numLayers);
         moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
         for (int lyr = 0; lyr < numLayers; lyr++) {
@@ -73,55 +77,75 @@ public class KalmanPatRecHPS {
             if (thisSi.hits.size() > 0) { moduleList.get(thisSi.Layer).add(thisSi); }
         }
 
-        lyrList = new ArrayList<int[]>(6); // Array of seed strategies
+        lyrList = new ArrayList<int[]>(13); // Array of seed strategies
         // Each list should contain 3 stereo layers and 2 non-stereo layers
-        int[] list0 = { 5, 6, 7, 8, 9 };
-        int[] list1 = { 3, 4, 5, 6, 7 };
-        int[] list2 = { 4, 5, 7, 8, 9 };
-        int[] list3 = { 4, 5, 6, 7, 9 };
-        int[] list4 = { 2, 5, 7, 8, 9 };
-        int[] list5 = { 3, 4, 5, 8, 9 };
+        int[] list0 = {6, 7, 8, 9, 10, 11};
+        int[] list1 = {4, 5, 6, 7, 8};
+        int[] list2 = {5, 6, 8, 9, 10};
+        int[] list3 = {5, 6, 7, 8, 10};
+        int[] list4 = { 3, 6, 8, 9, 10 };
+        int[] list5 = { 4, 5, 8, 9, 10 };
+        int[] list6 = { 4, 6, 7, 8, 9 };
+        int[] list7 = { 4, 6, 7, 9, 10 };
+        int[] list8 = { 2, 5, 8, 9, 12};
+        int[] list9 = { 8, 10, 11, 12, 13};
+        int[] list10 = {6, 9, 10, 11, 12};
+        int[] list11 = {6, 7, 9, 10, 12};
+        int[] list12 = {2, 3, 4, 5, 6};
         lyrList.add(list0);
         lyrList.add(list1);
         lyrList.add(list2);
         lyrList.add(list3);
         lyrList.add(list4);
         lyrList.add(list5);
+        lyrList.add(list6);
+        lyrList.add(list7);
+        lyrList.add(list8);
+        lyrList.add(list9);
+        lyrList.add(list10);
+        lyrList.add(list11);
+        lyrList.add(list12);
 
-        // Cut values:
-        nTries = 2;
-        nIterations = 2;
-        kMax = new double[2];
-        kMax[0] = 3.0;
-        kMax[1] = 6.0;
-        tanlMax = new double[2];
-        tanlMax[0] = 0.08;
+        kMax = new double[nTries];
+        tanlMax = new double[nTries];
+        dRhoMax = new double[nTries];
+        chi2mx1 = new double[nTries];
+        chi2mx2 = new double[nTries];
+        minHits1 = new int[nTries];
+        minHits2 = new int[nTries];
+        mxChi2Inc = new double[nTries];
+        mxResid = new double[nTries];
+        
+        // Cut and parameter values (length units are mm).
+        // The index is the iteration number.
+        // The second iteration generally will have looser cuts.
+
+        nIterations = 2;    // Number of Kalman filter iterations per track
+        kMax[0] = 3.0;      // Maximum curvature for seed
+        kMax[1] = 6.0;      
+        tanlMax[0] = 0.08;  // Maximum tan(lambda) for seed
         tanlMax[1] = 0.12;
-        dRhoMax = new double[2];
-        dRhoMax[0] = 15.;
+        dRhoMax[0] = 15.;   // Maximum dRho at target plane for seed
         dRhoMax[1] = 25.;
-        chi2mx1 = new double[2];
-        chi2mx1[0] = 8.0;
-        chi2mx1[1] = 16.0;
-        chi2mx2 = new double[2];
-        chi2mx2[0] = 100.0;
-        chi2mx2[1] = 250.;
-        minHits1 = new int[2];
-        minHits1[0] = 9;
-        minHits1[1] = 7;
-        minHits2 = new int[2];
-        minHits2[0] = 7;
-        minHits2[1] = 6;
-        mxChi2Inc = new double[2];
-        mxChi2Inc[0] = 10.;
+        chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
+        chi2mx1[1] = 16.0;  
+        chi2mx2[0] = 50.0;  // Maximum chi**2/#hits for a substandard track
+        chi2mx2[1] = 100.;
+        minHits1[0] = 9;    // Minimum number of hits for a good track
+        minHits1[1] = 6;
+        minHits2[0] = 6;    // Minimum number of hits for a substandard track
+        minHits2[1] = 5;    
+        mxChi2Inc[0] = 10.; // Maximum increment to the chi^2 for a hit during smoothing
         mxChi2Inc[1] = 20.;
-        mxResid = new double[2];
-        mxResid[0] = 50.;
-        mxResid[1] = 60.;
-        minUnique = 3;
-        mxResidShare = 6.;
+        mxResid[0] = 75.;   // Maximum residual, in units of detector resolution, for picking up a hit
+        mxResid[1] = 100.;
+        minUnique = 3;      // Minimum number of unused hits on a seed
+        mxResidShare = 6.;  // Maximum residual, in units of detector resolution, for a hit to be shared
         mxChi2double = 6.;
-        mxShared = 2;
+        minStereo = 3;      // Minimum number of stereo hits
+        minAxial = 2;       // Minimum number of axial hits
+        mxShared = 2;       // Maximum number of shared hits
+        
         Plane p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
 
         if (verbose) System.out.format("Entering KalmanPatRecHPS with %d modules, for %d trials.\n", nModules, nTries);
@@ -167,6 +191,7 @@ public class KalmanPatRecHPS {
                                         hitList.add(elm);
                                     }
                                     SeedTrack seed = new SeedTrack(data, yOrigin, hitList, false);
+                                    if (!seed.success) continue;
                                     // Cuts on the seed quality
                                     Vec hp = seed.helixParams();
                                     if (verbose) {
@@ -247,15 +272,17 @@ public class KalmanPatRecHPS {
 
                     // Now smooth back to the original point
                     smoothTrack(candidateTrack, false, trial, 0);
-                    if (verbose) { System.out.format("\nKalmanPatRecHPS: Smoothed chi2=%10.5f\n", candidateTrack.chi2s); }
+                    if (verbose) System.out.format("\nKalmanPatRecHPS: Smoothed chi2=%10.5f\n", candidateTrack.chi2s);
+                    double chi2s_save = candidateTrack.chi2s;
 
                     // Then filter toward the target
-                    candidateTrack = filterTrack(candidateTrack.sites.get(0).m.Layer - 1, 1, candidateTrack.sites.get(0).aS,
+                    candidateTrack = filterTrack(candidateTrack.sites.get(0).m.Layer - 1, firstLayer, candidateTrack.sites.get(0).aS,
                             candidateTrack.hits, trial);
                     if (!candidateTrack.filtered) continue;
+                    candidateTrack.chi2s = chi2s_save;  // Save smoothed chi^2 from previous fit, for later comparison
                     if (verbose) {
                         candidateTrack.print("after filtering inward", false);
-                        System.out.format("Hits after filtering to layer 1: ");
+                        System.out.format("Hits after filtering to layer 2: ");
                         for (int i = 0; i < numLayers; i++) {
                             int lHit = -1;
                             for (KalHit ht : candidateTrack.hits) { if (ht.module.Layer == i) { lHit = ht.module.hits.indexOf(ht.hit); } }
@@ -265,13 +292,17 @@ public class KalmanPatRecHPS {
                     }
                     // skip this one if it was already found before using a different seed. First, sort the hits.
                     Collections.sort(candidateTrack.hits, KalHit.HitComparator);
+                    boolean match = false;
                     for (TrackCandidate oldCandidate : candidateList) {
                         if (candidateTrack.equals(oldCandidate)) {
-                            if (verbose) { System.out.format("KalmanPatRecHPS: candidate track is redundant. Skip to next seed.\n"); }
-                            continue seedLoop;
+                            if (candidateTrack.chi2s >= 0.5*oldCandidate.chi2s && candidateTrack.chi2f >= 0.5*oldCandidate.chi2f) {
+                                if (verbose) System.out.format("KalmanPatRecHPS: candidate track is redundant. Skip to next seed.\n");
+                                continue seedLoop;
+                            }
+                            match=true;
                         }
                     }
-                    candidateList.add(candidateTrack); // Save the candidate in this list for later checking for duplicates
+                    if (!match) candidateList.add(candidateTrack); // Save the candidate in this list for later checking for duplicates
 
                     if (candidateTrack.hits.size() < minHits1[trial]) {
                         if (verbose) {
@@ -290,7 +321,7 @@ public class KalmanPatRecHPS {
                     // Iterate the fit, starting from the target and going to the SVT end
                     MeasurementSite startSite = candidateTrack.sites.get(candidateTrack.sites.size() - 1);
                     startSite.aF.C.scale(10000.);
-                    candidateTrack = filterTrack(1, numLayers - 1, startSite.aF, candidateTrack.hits, trial);
+                    candidateTrack = filterTrack(firstLayer, numLayers - 1, startSite.aF, candidateTrack.hits, trial);
                     if (!candidateTrack.filtered) {
                         if (verbose) { System.out.format("KalmanPatRecHPS: failed filtering of all layers. Try next seed.\n"); }
                         continue;
@@ -307,12 +338,12 @@ public class KalmanPatRecHPS {
                     }
 
                     int nStereo = 0;
-                    for (KalHit ht : candidateTrack.hits) { if (ht.isStereo()) nStereo++; }
-                    if (nStereo < 4) {
+                    for (KalHit ht : candidateTrack.hits) if (ht.isStereo()) nStereo++;
+                    if (nStereo < minStereo) {
                         if (verbose) { System.out.format("KalmanPatRecHPS: filtering has too few stereo hits. Skip to the next seed.\n"); }
                         continue;
                     }
-                    if (candidateTrack.nHits - nStereo < 2) {
+                    if (candidateTrack.nHits - nStereo < minAxial) {
                         if (verbose) { System.out.format("KalmanPatRecHPS: filtering has too few non-stereo hits. Skip to the next seed.\n"); }
                         continue;
                     }
@@ -320,7 +351,7 @@ public class KalmanPatRecHPS {
                     // Finally smooth back to the target
                     smoothTrack(candidateTrack, true, trial, 0);
 
-                    if (verbose) { candidateTrack.print("after smoothing", false); }
+                    if (verbose) candidateTrack.print("after smoothing", false);
 
                     if (verbose) {
                         Vec afF = candidateTrack.sites.get(candidateTrack.sites.size() - 1).aF.a;
@@ -337,7 +368,7 @@ public class KalmanPatRecHPS {
                     if (candidateTrack.smoothed) {
                         if (candidateTrack.nHits >= minHits1[trial] && candidateTrack.chi2s / (double) candidateTrack.nHits < chi2mx1[trial]) { // Good tracks
                             tkID++;
-                            KalTrack tkr = new KalTrack(1, tkID, candidateTrack.nHits, candidateTrack.sites, candidateTrack.chi2s);
+                            KalTrack tkr = new KalTrack(eventNumber, tkID, candidateTrack.nHits, candidateTrack.sites, candidateTrack.chi2s);
                             boolean redundant = false;
                             for (KalTrack oldTkr : TkrList) {
                                 if (tkr.equals(oldTkr)) {
@@ -354,7 +385,7 @@ public class KalmanPatRecHPS {
                                 }
                             }
                             if (redundant) {
-                                if (verbose) { System.out.format("KalmanPatRecHPS: throwing away redundant track %d\n", tkID); }
+                                if (verbose) System.out.format("KalmanPatRecHPS: throwing away redundant track %d\n", tkID);
                                 tkID--;
                             } else {
                                 for (MeasurementSite site : candidateTrack.sites) {
@@ -371,7 +402,7 @@ public class KalmanPatRecHPS {
                         } else if (candidateTrack.nHits >= minHits2[trial]
                                 && candidateTrack.chi2s / (double) candidateTrack.nHits < chi2mx2[trial]) { // Low quality tracks; don't kill hits
                                     tkID++;
-                                    KalTrack tkr = new KalTrack(1, tkID, candidateTrack.nHits, candidateTrack.sites, candidateTrack.chi2s);
+                                    KalTrack tkr = new KalTrack(eventNumber, tkID, candidateTrack.nHits, candidateTrack.sites, candidateTrack.chi2s);
                                     boolean redundant = false;
                                     for (KalTrack oldTkr : TkrList2) {
                                         if (tkr.equals(oldTkr)) {
@@ -512,17 +543,17 @@ public class KalmanPatRecHPS {
                 if (!m.isStereo) nNonStereo++;
                 else nStereo++;
             }
-            if (nStereo < 4) {
+            if (nStereo < minStereo) {
                 TkrList.remove(tkr);
                 continue;
-            } else if (nNonStereo < 2) {
+            } else if (nNonStereo < minAxial) {
                 TkrList.remove(tkr);
                 continue;
             } else if (nNonStereo + nStereo < minHits2[nTries - 1]) {
                 TkrList.remove(tkr);
                 continue;
             }
-            if (verbose) { System.out.format("KalmanPatRecHPS: Call the Kalman fit for track %d\n", tkr.ID); }
+            if (verbose) System.out.format("KalmanPatRecHPS: Call the Kalman fit for track %d\n", tkr.ID);
             tkr.fit(1, verbose);
         }
 
@@ -594,8 +625,13 @@ public class KalmanPatRecHPS {
                             System.out.format("KalmanPatRecHPS: adding hit %d with chi^2inc=%10.2f to layer %d\n", currentSite.hitID,
                                     currentSite.chi2inc, idxS);
                         }
-                        filteredTkr.chi2s += currentSite.chi2inc;
-                        currentSite.smooth(nextSite);
+                        filteredTkr.chi2s += Math.max(currentSite.chi2inc,0.);
+                        if (nextSite == null) {
+                            currentSite.aS = currentSite.aF.copy();
+                            currentSite.smoothed = true;
+                        } else {
+                            currentSite.smooth(nextSite);
+                        }
                     }
                 }
             }
@@ -713,7 +749,7 @@ public class KalmanPatRecHPS {
                 // if (verbose) {
                 // newSite.print("initial filtering");
                 // }
-                tmpTrack.chi2f += newSite.chi2inc;
+                tmpTrack.chi2f += Math.max(newSite.chi2inc,0.);
 
                 tmpTrack.sites.add(newSite);
                 prevSite = newSite;
