@@ -79,7 +79,7 @@ public class KalmanPatRecHPS {
 
         lyrList = new ArrayList<int[]>(13); // Array of seed strategies
         // Each list should contain 3 stereo layers and 2 non-stereo layers
-        int[] list0 = {6, 7, 8, 9, 10, 11};
+        int[] list0 = {6, 7, 8, 9, 10};
         int[] list1 = {4, 5, 6, 7, 8};
         int[] list2 = {5, 6, 8, 9, 10};
         int[] list3 = {5, 6, 7, 8, 10};
