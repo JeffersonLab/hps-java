@@ -27,4 +27,11 @@ public class ImpactPoint {
     public double[] r() {
         return _r;
     }
+
+    public String toString() {
+        StringBuffer sb = new StringBuffer("ImpactPoint: \n");
+        sb.append("Global: " + _r[0] + " " + _r[1] + " " + _r[2]+"\n");
+        sb.append("Local: " + _q[0] + " " + _q[1] + " " + _q[2]+"\n");
+        return sb.toString();
+    }
 }

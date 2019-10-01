@@ -48,7 +48,7 @@ public class FitTracks {
                 System.out.println("fit cov " + Arrays.toString(cov));
             }
 //            System.out.println(Arrays.toString(cov));
-            aida.cloud1D("fit chisq per ndf").fill(fit.chisq()/fit.ndf());
+            aida.cloud1D("fit chisq per ndf").fill(fit.chisq() / fit.ndf());
             aida.cloud1D("fit ndf ").fill(fit.ndf());
             double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
             aida.cloud1D("fit chisq prob ").fill(chisqProb);
@@ -75,7 +75,6 @@ public class FitTracks {
         double CHI0 = 0.;
         int NDF = -4;
         int NIT = 0;
-//        double wirez = -2337.1810;
         double[] PAR = new double[4];
         double[] COV = new double[10];
         List<ImpactPoint> rx = new ArrayList<ImpactPoint>();
@@ -122,9 +121,6 @@ public class FitTracks {
                 if (debug()) {
                     System.out.println("rot " + Arrays.toString(rot.getRowPackedCopy()));
                 }
-
-                Hit h = hits.get(i);
-
                 Matrix[] uvwg = new Matrix[3];
                 for (int j = 0; j < 3; ++j) {
 //                    if (debug()) {
@@ -148,6 +144,7 @@ public class FitTracks {
                 }
                 ImpactPoint ip = GET_IMPACT(A, B, rot, dp.r0(), uvwg[2], BUVW[2]);
 
+                Hit h = hits.get(i);
                 rx.add(ip);
                 int NM = 0;
                 double[] wt = h.wt();
@@ -337,7 +334,7 @@ public class FitTracks {
             System.out.println("NDF " + NDF);
             System.out.println("NIT " + NIT);
         }
-        return new TrackFit(PAR, COV, impactPoints, CHI, NDF, NIT);
+        return new TrackFit(PAR, COV, impactPoints, CHI, NDF, NIT, A0[2]);
     }
 
     static List<DetectorPlane> GENER_DET() {
@@ -410,7 +407,7 @@ public class FitTracks {
                 System.out.println("Combined rotation matrix is");
                 prodrot.print(10, 6);
             }
-            System.out.println("PRODROT "+Arrays.toString(PRODROT));
+            System.out.println("PRODROT " + Arrays.toString(PRODROT));
             rot.add(prodrot);
 //            if (debug()) {
 //                System.out.println("Translation vector is");

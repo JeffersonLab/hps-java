@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import static org.hps.analysis.alignment.straighttrack.FitTracks.debug;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.detector.DetectorElementStore;
@@ -76,6 +77,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 String fid = isFiducial ? "fiducial" : "";
                 Cluster c = cluster;
                 String topOrBottom = c.getPosition()[1] > 0 ? "top " : "bottom ";
+                boolean isTop = c.getPosition()[1] > 0;
                 aida.histogram2D("Cal " + fid + " Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                 // calculate some slopes and intercepts...
                 aida.histogram1D(topOrBottom + fid + "Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
@@ -176,12 +178,20 @@ public class StraightTrackAlignmentDriver extends Driver {
                 }
                 aida.histogram1D(topOrBottom + fid + " number of hits to fit", 20, 0., 20.).fill(hits.size());
                 // require at least 8 hits for fit
-                if (hits.size() > 7) {
+                int minHitsToFit = isTop ? 8 : 10;
+                if (hits.size() == minHitsToFit) {
                     double[] A0 = {0., 0., -2267.}; // initial guess for (x,y,z) of track 
                     // TODO get estimate for x of beam on wire. Was x=-63 in 2016
                     double[] B0 = {0., 0., 1.}; // initial guess for the track direction
                     // fit the track!
                     TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+                    // quick check of track predicted impact points...
+//                    List<double[]> impactPoints = fit.impactPoints();
+//                    for (double[] pos : impactPoints) {
+//                        System.out.println(Arrays.toString(pos));
+//                    }
+                    // calculate unbiased residuals here
+                    refitTrack(planes, hits, A0, B0, isTop);
                     // Note that track position parameters x & y are reported at the input z.
                     double[] pars = fit.pars();
                     double[] cov = fit.cov();
@@ -289,4 +299,90 @@ public class StraightTrackAlignmentDriver extends Driver {
         }
     }
 
+    /**
+     * Refit a track to obtain the unbiased hit residuals one plane at a time
+     *
+     * @param planes The planes used in the original fit
+     * @param hits The hits on the track
+     * @param A0 Initial guess for (x,y,z) of track
+     * @param B0 Initial guess for the track direction
+     * @param isTop true if track is in the top SVT
+     */
+    public void refitTrack(List<DetectorPlane> planes, List<Hit> hits, double[] A0, double[] B0, boolean isTop) {
+        String topOrBottom = isTop ? "top " : "bottom ";
+        String path = "Track Refit ";
+        aida.tree().mkdirs(path);
+        aida.tree().cd(path);
+        // refit this track dropping one different hit each time...
+        int nHitsOnTrack = planes.size();
+        // loop over all the hits
+        for (int i = 0; i < nHitsOnTrack; ++i) {
+            List<DetectorPlane> newPlanes = new ArrayList<>();
+            List<Hit> newHits = new ArrayList<>();
+            // remove each hit and refit track without this hit
+            for (int j = 0; j < nHitsOnTrack; ++j) {
+                if (j != i) {
+                    newPlanes.add(planes.get(j));
+                    newHits.add(hits.get(j));
+                }
+            }
+            // refit without the one hit
+            TrackFit fit = FitTracks.STR_LINFIT(newPlanes, newHits, A0, B0);
+            // get the predicted impact point for the missing hit...
+
+            // get the hit...
+            DetectorPlane missingPlane = planes.get(i);
+            Hit missingHit = hits.get(i);
+            // get the unbiased residual for the missing hit
+            double resid = unbiasedResidual(fit, missingPlane, missingHit, A0, B0);
+            aida.histogram1D(topOrBottom+"unbiased residual " + missingPlane.id(), 100, -1.0, 1.0).fill(resid);
+        }
+        aida.tree().cd("..");
+    }
+
+    /**
+     * Calculate the unbiased residual for a hit not included in the fit.
+     * Note that because our axial/stereo pairs move in concert it might be necessary to remove two hits from the fit...
+     * @param fit  The track fit excluding a hit
+     * @param dp   The DetectorPlane for the excluded hit
+     * @param h    The excluded hit
+     * @param A0   The TrackFit position
+     * @param B0   The TrackFit direction
+     * @return
+     */
+    public double unbiasedResidual(TrackFit fit, DetectorPlane dp, Hit h, double[] A0, double[] B0) {
+        double resid = 9999.;
+        Matrix rot = dp.rot();
+        Matrix[] uvwg = new Matrix[3];
+        double[][] UVW = {{1., 0., 0.}, {0., 1., 0.}, {0., 0., 1.}};
+        double[] BUVW = new double[3];
+        double[] PAR = fit.pars();
+        double[] A = {PAR[0], PAR[1], A0[2]};
+        double[] B = {PAR[2], PAR[3], B0[2]};
+        Matrix b = new Matrix(B, 1);
+        for (int j = 0; j < 3; ++j) {
+//                    if (debug()) {
+//                        System.out.println("  CALLING VMATR");
+//                    }
+            Matrix uvw = new Matrix(UVW[j], 3);
+            if (debug()) {
+                System.out.println("  UVW(" + (j + 1) + ") " + uvw.get(0, 0) + " " + uvw.get(1, 0) + " " + uvw.get(2, 0));
+            }
+            uvwg[j] = rot.transpose().times(uvw);
+            if (debug()) {
+                System.out.println("UVWG(" + (j + 1) + ") " + uvwg[j].get(0, 0) + " " + uvwg[j].get(1, 0) + " " + uvwg[j].get(2, 0) + " ");
+            }
+//                    System.out.println("j "+j);
+//                    System.out.println("b");
+//                    b.print(6,4);
+            BUVW[j] = b.times(uvwg[j]).get(0, 0);
+        }
+        if (debug()) {
+            System.out.println("   BUVW " + BUVW[0] + " " + BUVW[1] + " " + BUVW[2]);
+        }
+        ImpactPoint ip = FitTracks.GET_IMPACT(A, B, rot, dp.r0(), uvwg[2], BUVW[2]);
+//        System.out.println(ip);
+//        System.out.println(h);
+        return h.uvm()[0] - ip.q()[0];
+    }
 }
