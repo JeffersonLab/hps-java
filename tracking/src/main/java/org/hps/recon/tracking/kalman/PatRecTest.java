@@ -163,7 +163,7 @@ public class PatRecTest {
         Histogram hEdzS = new Histogram(100, -10., 0.2, "Smoothed helix parameter dz error", "sigmas", "track");
         Histogram hEdz = new Histogram(100, -1., 0.02, "dz error", "mm", "tracks");
         Histogram hEtanlS = new Histogram(100, -10., 0.2, "Smoothed helix parameter tanl error", "sigmas", "track");
-        Histogram hEtanl = new Histogram(100, -.02, 0.0004, "tanl error", " ", "tracks");
+        Histogram hEtanl = new Histogram(100, -.01, 0.0002, "tanl error", " ", "tracks");
         Histogram hChi2HelixS = new Histogram(80, 0., 0.4, "Smoothed chi^2 of helix parameters", "chi^2", "tracks");
         Histogram hXerr = new Histogram(100, -20., 0.4, "error on the vertex x coordinate", "sigmas", "tracks");
         Histogram hYerr = new Histogram(100, -20., 0.4, "error on the vertex y coordinate", "sigmas", "tracks");
@@ -540,7 +540,7 @@ public class PatRecTest {
                 hZerr.entry(zErr);
 
                 // Repeat comparison just after the first tracker plane 
-                if (tkr.SiteList.get(0).m.Layer == 1) {
+                if (tkr.SiteList.get(0).m.Layer == 2) {
                     StateVector S = tkr.SiteList.get(0).aS;
                     Vec helixAtLayer1 = S.pivotTransform(TkSaved[iBest].X0);
                     trueErr = helixAtLayer1.dif(TkSaved[iBest].p);
@@ -574,25 +574,25 @@ public class PatRecTest {
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
         hTkChi2.plot(path + "tkrChi2.gp", true, " ", " ");
-        hEdrhoS.plot(path + "drhoErrorS.gp", true, " ", " ");
-        hEphi0S.plot(path + "phi0ErrorS.gp", true, " ", " ");
-        hEkS.plot(path + "kErrorS.gp", true, " ", " ");
-        hEdzS.plot(path + "dzErrorS.gp", true, " ", " ");
-        hEtanlS.plot(path + "tanlErrorS.gp", true, " ", " ");
-        hEdrhoS1.plot(path + "drhoErrorS1.gp", true, " ", " ");
-        hEphi0S1.plot(path + "phi0ErrorS1.gp", true, " ", " ");
-        hEkS1.plot(path + "kErrorS1.gp", true, " ", " ");
-        hEdzS1.plot(path + "dzErrorS1.gp", true, " ", " ");
-        hEtanlS1.plot(path + "tanlErrorS1.gp", true, " ", " ");
-        hEdrho.plot(path + "drhoError.gp", true, " ", " ");
-        hEphi0.plot(path + "phi0Error.gp", true, " ", " ");
-        hEk.plot(path + "kError.gp", true, " ", " ");
-        hEdz.plot(path + "dzError.gp", true, " ", " ");
-        hEtanl.plot(path + "tanlError.gp", true, " ", " ");
+        hEdrhoS.plot(path + "drhoErrorS.gp", true, "gaus", " ");
+        hEphi0S.plot(path + "phi0ErrorS.gp", true, "gaus", " ");
+        hEkS.plot(path + "kErrorS.gp", true, "gaus", " ");
+        hEdzS.plot(path + "dzErrorS.gp", true, "gaus", " ");
+        hEtanlS.plot(path + "tanlErrorS.gp", true, "gaus", " ");
+        hEdrhoS1.plot(path + "drhoErrorS1.gp", true, "gaus", " ");
+        hEphi0S1.plot(path + "phi0ErrorS1.gp", true, "gaus", " ");
+        hEkS1.plot(path + "kErrorS1.gp", true, "gaus", " ");
+        hEdzS1.plot(path + "dzErrorS1.gp", true, "gaus", " ");
+        hEtanlS1.plot(path + "tanlErrorS1.gp", true, "gaus", " ");
+        hEdrho.plot(path + "drhoError.gp", true, "gaus", " ");
+        hEphi0.plot(path + "phi0Error.gp", true, "gaus", " ");
+        hEk.plot(path + "kError.gp", true, "gaus", " ");
+        hEdz.plot(path + "dzError.gp", true, "gaus", " ");
+        hEtanl.plot(path + "tanlError.gp", true, "gaus", " ");
         hChi2HelixS.plot(path + "chi2helixS.gp", true, " ", " ");
-        hXerr.plot(path + "xErr.gp", true, " ", " ");
-        hYerr.plot(path + "yErr.gp", true, " ", " ");
-        hZerr.plot(path + "zErr.gp", true, " ", " ");
+        hXerr.plot(path + "xErr.gp", true, "gaus", " ");
+        hYerr.plot(path + "yErr.gp", true, "gaus", " ");
+        hZerr.plot(path + "zErr.gp", true, "gaus", " ");
     }
 
 }
