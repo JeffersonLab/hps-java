@@ -2,8 +2,13 @@ package org.hps.analysis.alignment.straighttrack;
 
 import Jama.Matrix;
 import hep.physics.vec.Hep3Vector;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,20 +52,68 @@ public class StraightTrackAlignmentDriver extends Driver {
     // z from blueprints
     // x from fit (was -63? in 2016)
     private double[] H02Wire = {-68.0, 0., -(672.71 - 583.44) * 25.4};
+    // initial guess for (x,y,z) of track origin
+    // TODO get estimate for x of beam on wire. Was x=-63 in 2016
+    double[] A0 = {0., 0., -2267.};
+    // initial guess for the track direction
+    double[] B0 = {0., 0., 1.};
 
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
     Map<String, Hit> stripHitByModule = new TreeMap<String, Hit>();
 
+//    Writer topEventsWriter = null;
+//    Writer bottomEventsWriter = null;
+
+    // field-off data does not hit the first two layers
+    // top is missing last layer
+    List<String> topHoleSensorNamesToFit = Arrays.asList(
+            "module_L3t_halfmodule_axial_sensor0",
+            "module_L3t_halfmodule_stereo_sensor0",
+            "module_L4t_halfmodule_axial_sensor0",
+            "module_L4t_halfmodule_stereo_sensor0",
+            "module_L5t_halfmodule_axial_hole_sensor0",
+            "module_L5t_halfmodule_stereo_hole_sensor0",
+            "module_L6t_halfmodule_axial_hole_sensor0",
+            "module_L6t_halfmodule_stereo_hole_sensor0");
+
+    //runs 10099 and 10101 have all 10 good layers
+    List<String> bottomHoleSensorNamesToFit = Arrays.asList(
+            "module_L3b_halfmodule_stereo_sensor0",
+            "module_L3b_halfmodule_axial_sensor0",
+            "module_L4b_halfmodule_stereo_sensor0",
+            "module_L4b_halfmodule_axial_sensor0",
+            "module_L5b_halfmodule_stereo_hole_sensor0",
+            "module_L5b_halfmodule_axial_hole_sensor0",
+            "module_L6b_halfmodule_stereo_hole_sensor0",
+            "module_L6b_halfmodule_axial_hole_sensor0",
+            "module_L7b_halfmodule_stereo_hole_sensor0",
+            "module_L7b_halfmodule_axial_hole_sensor0");
+
+    // alignment stuff
+    boolean alignit = false;
+    List<List<Hit>> bottomEventsToAlign = new ArrayList<>();
+    List<DetectorPlane> bottomPlanes = new ArrayList<DetectorPlane>();
+    List<List<Hit>> topEventsToAlign = new ArrayList<>();
+    List<DetectorPlane> topPlanes = new ArrayList<DetectorPlane>();
+
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
         //_db.drawDetector();
+//        try {
+//
+//            topEventsWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("topEvents.txt")));
+//            bottomEventsWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("bottomEvents.txt")));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
         // Will use calorimeter clusters to define the road in which we search for hits.
-        List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
+        List<Cluster> clusters = event.get(Cluster.class,
+                "EcalClustersCorr");
         aida.histogram1D("number of clusters", 10, 0., 10.).fill(clusters.size());
 //        Cluster c = null;
 //        for (Cluster cluster : clusters) {
@@ -78,6 +131,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 Cluster c = cluster;
                 String topOrBottom = c.getPosition()[1] > 0 ? "top " : "bottom ";
                 boolean isTop = c.getPosition()[1] > 0;
+                List<String> sensorNames = isTop ? topHoleSensorNamesToFit : bottomHoleSensorNamesToFit;
                 aida.histogram2D("Cal " + fid + " Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                 // calculate some slopes and intercepts...
                 aida.histogram1D(topOrBottom + fid + "Cluster z", 10, 1443., 1445.).fill(cluster.getPosition()[2]);
@@ -89,18 +143,20 @@ public class StraightTrackAlignmentDriver extends Driver {
                 //OK, we have a good, high-energy cluster in the fiducial part of the calorimeter...
                 Point3D P0 = new Point3D(H02Wire[0], H02Wire[1], H02Wire[2]);
                 double[] cPos = c.getPosition();
-                //String topOrBottom = cPos[1] > 0 ? "top " : "bottom ";
                 Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
                 //let's get some SVT strip clusters...
                 setupSensors(event);
                 // Get the list of fitted hits from the event
-                List<LCRelation> fittedHits = event.get(LCRelation.class, "SVTFittedRawTrackerHits");
+                List<LCRelation> fittedHits = event.get(LCRelation.class,
+                        "SVTFittedRawTrackerHits");
                 // Map the fitted hits to their corresponding raw hits
                 Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
                 for (LCRelation fittedHit : fittedHits) {
                     fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+
                 }
-                List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");
+                List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class,
+                        "StripClusterer_SiTrackerHitStrip1D");
                 int nStripHits = stripClusters.size();
                 aida.histogram1D(topOrBottom + fid + "number of strip clusters", 100, 0., 200.).fill(nStripHits);
                 // lets partition the strip clusters into each module
@@ -108,11 +164,13 @@ public class StraightTrackAlignmentDriver extends Driver {
                 for (TrackerHit hit : stripClusters) {
                     List rthList = hit.getRawHits();
                     String moduleName = ((RawTrackerHit) rthList.get(0)).getDetectorElement().getName();
-                    if (!hitsPerModuleMap.containsKey(moduleName)) {
-                        hitsPerModuleMap.put(moduleName, new ArrayList<SiTrackerHitStrip1D>());
-                        hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
-                    } else {
-                        hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
+                    if (sensorNames.contains(moduleName)) {
+                        if (!hitsPerModuleMap.containsKey(moduleName)) {
+                            hitsPerModuleMap.put(moduleName, new ArrayList<SiTrackerHitStrip1D>());
+                            hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
+                        } else {
+                            hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
+                        }
                     }
                 }
 //            for (String s : hitsPerModuleMap.keySet()) {
@@ -160,6 +218,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 List<Hit> hits = new ArrayList<Hit>();
                 List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
                 //for now, assign an error based on the size of the strip cluster
+                // unbiased residual plots indicate a working resolution of ~40 to 60um
                 double[] fixedDu = {0., .012, .006};
                 for (String s : hitsToFit.keySet()) {
                     SiTrackerHitStrip1D stripHit = hitsToFit.get(s);
@@ -180,9 +239,6 @@ public class StraightTrackAlignmentDriver extends Driver {
                 // require at least 8 hits for fit
                 int minHitsToFit = isTop ? 8 : 10;
                 if (hits.size() == minHitsToFit) {
-                    double[] A0 = {0., 0., -2267.}; // initial guess for (x,y,z) of track 
-                    // TODO get estimate for x of beam on wire. Was x=-63 in 2016
-                    double[] B0 = {0., 0., 1.}; // initial guess for the track direction
                     // fit the track!
                     TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
                     // quick check of track predicted impact points...
@@ -213,11 +269,32 @@ public class StraightTrackAlignmentDriver extends Driver {
                         if (abs(pars[1]) < 15) {
                             // keep this event
                             skipEvent = false;
+                            // good clean event let's use it for alignment
+                            if (isTop) {
+                                topEventsToAlign.add(hits);
+                            } else {
+                                bottomEventsToAlign.add(hits);
+                            }
                         }
                     }
                 }
             } // end of loop over clusters with energy greater that min cluster energy
         } // end of loop over clusters
+
+        // let's try to align things here...
+        if (alignit) {
+            int nEventsToAlign = 1000;
+            if (bottomEventsToAlign.size() >= nEventsToAlign) {
+                alignit(bottomPlanes, bottomEventsToAlign, false);
+                // clear the list
+                bottomEventsToAlign.clear();
+            }
+            if (topEventsToAlign.size() >= nEventsToAlign) {
+                alignit(topPlanes, topEventsToAlign, true);
+                // clear the list
+                topEventsToAlign.clear();
+            }
+        }
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
@@ -227,6 +304,125 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     protected void endOfData() {
         System.out.println("Wrote " + _numberOfEventsWritten + " events");
+//        try {
+//            topEventsWriter.flush();
+//            topEventsWriter.close();
+//            bottomEventsWriter.flush();
+//            bottomEventsWriter.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+    }
+
+    /**
+     * Align the detector represented by the list of DetectorPlanes using the
+     * events in the list of list of Hits
+     *
+     * @param planes The Detector represented as a list of DetectorPlanes
+     * @param events The events represented as a list of Hits
+     */
+    public void alignit(List<DetectorPlane> planes, List<List<Hit>> events, boolean isTop) {
+        String path = isTop ? "top alignment" : "bottom alignment";
+        aida.tree().mkdirs(path);
+        aida.tree().cd(path);
+
+        // let's look at unbiased residuals before alignment...
+        aida.tree().mkdirs("before");
+        aida.tree().cd("before");
+        for (List<Hit> hits : events) {
+
+            refitTrack(planes, hits, A0, B0, isTop);
+        }
+        aida.tree().cd("..");
+
+        int NITER = 7;
+        int NN = planes.size();
+        // the following controls which variables for which planes are allowed to float...
+        // this should be set in the calling routine...
+        int[] nprs = new int[NN];
+        for (int i = 0; i < NN; ++i) {
+            DetectorPlane p = planes.get(i);
+            Offset o = p.offset();
+            System.out.println(" PLANE " + i + " OFFSETS: " + Arrays.toString(o.offsets()) + " TILTS: " + Arrays.toString(o.angles()));
+            int[] mask = o.mask();
+            int doit = 0;
+            for (int k = 0; k < 6; ++k) {
+                doit = doit + mask[k];
+            }
+            nprs[i] = doit;
+        }
+        // a map of the Alignment objects keyed by detector plane
+        Map<Integer, Alignment> alignmentMap = new HashMap<Integer, Alignment>();
+        double[] PAR = new double[6]; // local offsets and tilt angles
+        double[] COV = new double[21]; // covariance matrix
+
+        for (int ITER = 0; ITER < NITER; ++ITER) { // iterate the alignment
+            System.out.println("Iteration " + (ITER + 1));
+
+            int NTIME = events.size();
+            for (int i = 0; i < NTIME; ++i) { // loop over events
+                double[] parin = new double[4];  // generated track parameters
+                List<Hit> hits = events.get(i);
+                TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+                List<double[]> rx = fit.impactPoints();
+                //find alignment parameters
+                double[] B = new double[3];  // track direction at impact point.
+                B[0] = fit.pars()[2];  // dx/dz
+                B[1] = fit.pars()[3];  // dy/dz
+                B[2] = 1.;             // z
+                for (int j = 0; j < NN; ++j) { //loop over all the detector planes
+                    int NPR = nprs[j];
+                    if (NPR > 0) {  // found a detector plane which we want to align
+                        if (debug()) {
+                            System.out.println("J " + (j + 1) + " NPR " + NPR);
+                        }
+                        DetectorPlane p = planes.get(j);
+                        Offset o = p.offset();
+                        int[] mask = o.mask();
+                        Alignment a = null;
+                        if (alignmentMap.containsKey(j)) {
+                            a = alignmentMap.get(j);
+                        } else {
+                            //best guess for plane rotation and offset is ideal position
+                            //this will be updated with each iteration
+                            a = new Alignment(j, mask, p.rotArray(), p.r0());
+                            alignmentMap.put(j, a);
+                        }
+                        // need to calculate track impact point RR at this plane
+                        Hit hit = hits.get(j);
+                        double[] QM = hit.uvm();
+                        double[] W = hit.wt();
+                        double[] RX = rx.get(j);
+                        //System.out.println((i+1)+" "+(j+1)+" "+Arrays.toString(RX));
+                        a.accumulate(RX, B, QM, W);
+                        double[] ROT = new double[9];
+                        double[] R0 = new double[3];
+                        if (i == NTIME - 1) {
+                            a.solve(PAR, COV, ROT, R0);
+                            // this updates ROT and R0, which needs to be fed to the accumulator.
+//                            System.out.println("Iteration " + (ITER+1));
+//                            System.out.println("Update Plane "+j);
+//                            System.out.println("R0 " + Arrays.toString(R0));
+//                            System.out.println("ROT " + Arrays.toString(ROT));
+                            p.setUpdatedPosition(R0);
+                            p.setUpdatedRotation(ROT);
+                        }
+                    }
+                } //loop over planes
+            } // loop over events
+        }// loop over iterations  
+
+        // in principle we are now aligned...
+        // see if the unbiased residuals improve...
+        aida.tree().mkdirs("after");
+        aida.tree().cd("after");
+        for (List<Hit> hits : events) {
+            refitTrack(planes, hits, A0, B0, isTop);
+        }
+        aida.tree().cd("..");
+
+        aida.tree().cd("..");
     }
 
     /**
@@ -260,11 +456,17 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
-            rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+
+        if (event.hasCollection(RawTrackerHit.class,
+                "SVTRawTrackerHits")) {
+            rawTrackerHits = event.get(RawTrackerHit.class,
+                    "SVTRawTrackerHits");
+
         }
-        if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits")) {
-            rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
+        if (event.hasCollection(RawTrackerHit.class,
+                "RawTrackerHitMaker_RawTrackerHits")) {
+            rawTrackerHits = event.get(RawTrackerHit.class,
+                    "RawTrackerHitMaker_RawTrackerHits");
         }
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
@@ -335,19 +537,21 @@ public class StraightTrackAlignmentDriver extends Driver {
             Hit missingHit = hits.get(i);
             // get the unbiased residual for the missing hit
             double resid = unbiasedResidual(fit, missingPlane, missingHit, A0, B0);
-            aida.histogram1D(topOrBottom+"unbiased residual " + missingPlane.id(), 100, -1.0, 1.0).fill(resid);
+            aida.histogram1D(topOrBottom + "unbiased residual " + missingPlane.id(), 100, -1.0, 1.0).fill(resid);
         }
         aida.tree().cd("..");
     }
 
     /**
-     * Calculate the unbiased residual for a hit not included in the fit.
-     * Note that because our axial/stereo pairs move in concert it might be necessary to remove two hits from the fit...
-     * @param fit  The track fit excluding a hit
-     * @param dp   The DetectorPlane for the excluded hit
-     * @param h    The excluded hit
-     * @param A0   The TrackFit position
-     * @param B0   The TrackFit direction
+     * Calculate the unbiased residual for a hit not included in the fit. Note
+     * that because our axial/stereo pairs move in concert it might be necessary
+     * to remove two hits from the fit...
+     *
+     * @param fit The track fit excluding a hit
+     * @param dp The DetectorPlane for the excluded hit
+     * @param h The excluded hit
+     * @param A0 The TrackFit position
+     * @param B0 The TrackFit direction
      * @return
      */
     public double unbiasedResidual(TrackFit fit, DetectorPlane dp, Hit h, double[] A0, double[] B0) {
