@@ -48,5 +48,10 @@ public class Offset {
     public double[] offsets() {
         return _offsets;
     }
+    
+    public void setMask(int[] mask)
+    {
+        _mask = mask;
+    }
 
 }

@@ -22,7 +22,8 @@ public class StraightTrackAlignmentDriverTest extends TestCase {
         int nEvents = -1;
         LCSimLoop loop = new LCSimLoop();
         loop.add(new StraightTrackAlignmentDriver());
-        String fileName = "hps_010101.evio.00000_skimBottomReReco_FieldOff_9Events.slcio";
+        String fileName = "hps_010101.evio.00000_skim.slcio";
+//        String fileName = "hps_010101.evio.00000_skimBottomReReco_FieldOff_9Events.slcio";
 //        String fileName = "mu-_1.056GeV_slic-3.1.5_geant4-v9r6p1_QGSP_BERT_HPS-EngRun2015-Nominal-v1_fieldOff_++_reco.slcio";
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/fieldoff/" + fileName));
         loop.setLCIORecordSource(inputFile);

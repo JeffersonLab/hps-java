@@ -24,6 +24,7 @@ public class DetectorPlane {
 
     public DetectorPlane(int id, Matrix m, double[] pos, double[] s) {
         this(id, m, pos, s, null);
+        addOffset();
     }
 
     public DetectorPlane(int id, double[] rot, double[] pos, double[] s) {
@@ -31,6 +32,7 @@ public class DetectorPlane {
         System.arraycopy(rot, 0, _rot, 0, 9);
         System.arraycopy(pos, 0, _r0, 0, 9);
         System.arraycopy(s, 0, _sigs, 0, 2);
+        addOffset();
     }
 
     public DetectorPlane(int id, Matrix m, double[] pos, double[] s, Offset off) {
@@ -134,6 +136,21 @@ public class DetectorPlane {
 
     public Hep3Vector origin() {
         return _r;
+    }
+
+    private void addOffset() {
+        double[] a = new double[3];
+        int[] MASK = new int[6];
+        // arguments are:
+        // id
+        // rotation matrix local --> global
+        // detector origin in global coordinates (mm)
+        // smeared angles (tilts)
+        // smeared offsets
+        // whether to try to align this parameter
+        // 0-2 offset in location (x,y,z)
+        // 3-5 offset in orientation (tilt) rotations around (x,y,z)
+        _offset = new Offset(_id, _rotMat.getRowPackedCopy(), _r0, a, a, MASK);
     }
 
     public String toString() {
