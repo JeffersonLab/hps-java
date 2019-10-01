@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @brief Steering file that will be used to look for Pi0s in 2019 run 
+      @author <a href="mailto:mrsolt@slac.stanford.edu">Matt Solt</a>
+    -->
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <!-- Skip events with known bad conditions -->
+        <!--<driver name="EventFlagFilter"/>-->
+        <!--RF driver-->
+        <driver name="RfFitter"/>
+ 
+        <!-- Ecal reconstruction drivers -->        
+        <driver name="EcalRunningPedestal"/>
+        <driver name="EcalRawConverter" />
+        <driver name="EcalTimeCorrection"/>
+        <driver name="ReconClusterer" />
+        <!--<driver name="ClusterRFTimeCorrDriver"/>-->
+        <driver name="CopyCluster" />
+
+        <!--<driver name="HodoRunningPedestal"/>-->
+        <!--<driver name="HodoRawConverter"/>-->
+
+        <driver name="Pi0Driver"/>   
+        <driver name="LCIOWriter"/>
+        <driver name="AidaSaveDriver"/>            
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10</eventInterval>
+        </driver>
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
+        </driver>    
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>  
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+
+        <!-- Hodo reconstruction drivers -->
+
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
+           <useRunningPedestal>true</useRunningPedestal>
+           <tETAllChannels>8</tETAllChannels>
+           <logLevel>CONFIG</logLevel>
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="Pi0Driver" type="org.hps.monitoring.drivers.trackrecon.FinalStateParticlePlots"/>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>             
+    </drivers>
+</lcsim>

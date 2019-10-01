@@ -144,6 +144,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      * or the conditions database, depending on flag settings.
      */
     private double[] beamPositionToUse = new double[3];
+    private boolean requireClustersForV0=true;
 
     /**
      * Represents a type of constraint for vertex fitting.
@@ -277,17 +278,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     public void setStoreCovTrkMomList(boolean b){
         _storeCovTrkMomList=b;
     }
-    
-    /**
-     * Set whether to use a fixed vertex Z position.
-     * 
-     * By default, this is set to <code>true</code> in the Driver's class variable.   
-     * 
-     * @param useFixedVertexZPosition True to use a fixed vertex Z position; 
-     *                                False to use Z position from database (if enabled)
-     */
-    public void setUseFixedVertexZPosition(boolean useFixedVertexZPosition) {
-        this.useFixedVertexZPosition = useFixedVertexZPosition;
+    public void setRequireClustersForV0(boolean b){
+        this.requireClustersForV0=b;
     }
 
     /**
@@ -590,16 +582,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if (electron.getClusters() == null || positron.getClusters() == null) {
             return;
         }
-        if (electron.getClusters().isEmpty() || positron.getClusters().isEmpty()) {
+        if (requireClustersForV0&&(electron.getClusters().isEmpty() || positron.getClusters().isEmpty())) {
             return;
         }
-        double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
-        double posClusTime = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
+        if(requireClustersForV0){
+            double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+            double posClusTime = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
 
-        if (Math.abs(eleClusTime - posClusTime) > cuts.getMaxVertexClusterDt()) {
-            return;
+            if (Math.abs(eleClusTime - posClusTime) > cuts.getMaxVertexClusterDt()) {
+                return;
+            }
         }
-
         // Handle UNCONSTRAINED case, to make decisions whether we store the vertexes.
         // This is done here so that we either store all types, or none, but never a mix.
         BilliorVertex vtxFit = fitVertex(Constraint.UNCONSTRAINED, electron, positron);

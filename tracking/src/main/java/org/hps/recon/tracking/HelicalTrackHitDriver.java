@@ -93,6 +93,8 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private final String _axialmcrelname = "AxialTrackHitsMCRelations";
     private boolean rejectGhostHits = false;
     private boolean allowHoleSlotCombo = false;
+    private boolean checkThinSensor = false;
+    private double vThin = 7; //New limits of thin sensor
 
     /**
      * Default Ctor
@@ -104,6 +106,14 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         _colnames.add("StripClusterer_SiTrackerHitStrip1D");
     }
 
+    public void setCheckThinSensor(boolean checkThinSensor) {
+        this.checkThinSensor = checkThinSensor;
+    }
+    
+    public void setVThin(double vThin) {
+        this.vThin = vThin;
+    }
+    
     public void setAllowHoleSlotCombo(boolean input) {
         allowHoleSlotCombo = input;
     }
@@ -277,19 +287,17 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
                     if (_saveAxialHits)//                           
                     {
-                        if (((HpsSiSensor) h.getSensor()).isAxial()) {
-                            HelicalTrack2DHit haxial = makeDigiAxialHit(h);
-                            axialhits.add(haxial);
-                            if (hittomc != null) {
-                                List<RawTrackerHit> rl = haxial.getRawHits();
-                                for (RawTrackerHit rth : rl) {
-                                    for (Object simHit : hittomc.allFrom(rth)) {
-                                        haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
-                                    }
-                                }
-                            }
-                            axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+
+                        HelicalTrack2DHit haxial = makeDigiAxialHit(h);
+                        axialhits.add(haxial);
+                        if (hittomc != null) {
+                            List<RawTrackerHit> rl = haxial.getRawHits();
+                            for (RawTrackerHit rth : rl)
+                                for (Object simHit : hittomc.allFrom(rth))
+                                    haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
                         }
+                        axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+                        
                     }
                 }
             }
@@ -594,6 +602,33 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         double dEdx = h.getdEdx();
         double time = h.getTime();
         List<RawTrackerHit> rawhits = h.getRawHits();
+        
+        //Check to see if sensor is a thin sensor
+        //If it is, the strip center and vmin/vmax must be reset
+        boolean isThinSensor = thinSensorCheck(lyr,checkThinSensor);
+        boolean isStereo = checkStereo(de);
+        boolean isBeamRight = checkBeamRight(h);
+        if(isThinSensor){
+            vmin = -vThin;
+            vmax = vThin;
+            if(isBeamRight){
+                if(!isStereo){
+                    org = trans.transformed(new BasicHep3Vector(0., -5., 0.));
+                }
+                else{
+                    org = trans.transformed(new BasicHep3Vector(0., 5., 0.));
+                }
+            }
+            else{
+                if(!isStereo){
+                    org = trans.transformed(new BasicHep3Vector(0., 5., 0.));
+                }
+                else{
+                    org = trans.transformed(new BasicHep3Vector(0., -5., 0.));
+                }
+            }
+        }
+        
         HelicalTrackStrip strip = new HelicalTrackStrip(org, u, v, umeas, du, vmin, vmax, dEdx, time, rawhits, det, lyr, be);
 
         try {
@@ -611,6 +646,24 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         }
 
         return strip;
+    }
+    
+    private boolean thinSensorCheck(int layer, boolean check){
+        if(!check) return false;
+        if(layer < 5) return true;
+        else return false;
+    }
+    
+    private boolean checkStereo(IDetectorElement de){
+        if(de.getName().equals("module_L1t_halfmodule_stereo_sensor0")) return true;
+        else if(de.getName().equals("module_L2t_halfmodule_stereo_sensor0")) return true;
+        else if(de.getName().equals("module_L1b_halfmodule_stereo_sensor0"))return true;
+        else if(de.getName().equals("module_L2b_halfmodule_stereo_sensor0")) return true;
+        else return false;
+    }
+    
+    private boolean checkBeamRight(SiTrackerHitStrip1D h){
+        return h.getPositionAsVector().x() < 0;
     }
 
     private void addRotatedHitsToEvent(EventHeader event, List<HelicalTrackCross> stereohits, boolean isMC) {

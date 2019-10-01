@@ -184,6 +184,7 @@ public class MakeGblTracks {
         List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
         List<TrackerHit> sortedStripHits = TrackUtils.sortHits(stripHits);
         FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+        if(fit==null) return null;
         for (int i = 0; i < nIterations; i++) {
             Pair<Track, GBLKinkData> newTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
             helix = TrackUtils.getHTF(newTrack.getFirst());
