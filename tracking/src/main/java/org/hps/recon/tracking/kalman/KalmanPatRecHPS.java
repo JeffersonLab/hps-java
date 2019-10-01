@@ -254,12 +254,19 @@ public class KalmanPatRecHPS {
                         System.out.format("Hits after initial filtering= ");
                         for (int i = 0; i < numLayers; i++) {
                             int lHit = -1;
-                            for (KalHit ht : candidateTrack.hits) { if (ht.module.Layer == i) { lHit = ht.module.hits.indexOf(ht.hit); } }
+                            for (KalHit ht : candidateTrack.hits) {
+                                if (ht.module.Layer == i) lHit = ht.module.hits.indexOf(ht.hit);
+                            }
                             System.out.format("%2d ", lHit);
                         }
                         System.out.format("\n");
                     }
 
+                    if (candidateTrack.sites.size() < minHits2[trial]) {
+                        if (verbose) System.out.format("KalmanPatRecHPS: Initial filtering has too few sites, n=%d<%d. Skip to the next seed.\n",
+                                candidateTrack.sites.size(), minHits2[trial]);
+                        continue;                        
+                    }
                     if (candidateTrack.nHits < minHits2[trial]) {
                         if (verbose) System.out.format("KalmanPatRecHPS: Initial filtering has too few hits, n=%d<%d. Skip to the next seed.\n",
                                 candidateTrack.nHits, minHits2[trial]);
@@ -273,23 +280,34 @@ public class KalmanPatRecHPS {
                     // Now smooth back to the original point
                     smoothTrack(candidateTrack, false, trial, 0);
                     if (verbose) System.out.format("\nKalmanPatRecHPS: Smoothed chi2=%10.5f\n", candidateTrack.chi2s);
-                    double chi2s_save = candidateTrack.chi2s;
 
-                    // Then filter toward the target
-                    candidateTrack = filterTrack(candidateTrack.sites.get(0).m.Layer - 1, firstLayer, candidateTrack.sites.get(0).aS,
-                            candidateTrack.hits, trial);
-                    if (!candidateTrack.filtered) continue;
-                    candidateTrack.chi2s = chi2s_save;  // Save smoothed chi^2 from previous fit, for later comparison
-                    if (verbose) {
-                        candidateTrack.print("after filtering inward", false);
-                        System.out.format("Hits after filtering to layer 2: ");
-                        for (int i = 0; i < numLayers; i++) {
-                            int lHit = -1;
-                            for (KalHit ht : candidateTrack.hits) { if (ht.module.Layer == i) { lHit = ht.module.hits.indexOf(ht.hit); } }
-                            System.out.format("%2d ", lHit);
+                    // Then filter toward the target if there are any more untried layers there
+                    boolean inSuccess = false;
+                    TrackCandidate candidateTrackIn = null;
+                    if (candidateTrack.sites.get(0).m.Layer > firstLayer) {
+                        candidateTrackIn = filterTrack(candidateTrack.sites.get(0).m.Layer - 1, firstLayer, candidateTrack.sites.get(0).aS,
+                                candidateTrack.hits, trial);
+                        if (candidateTrackIn.filtered && candidateTrackIn.sites.size()>0) {
+                            candidateTrackIn.chi2s = candidateTrack.chi2s;  // Save smoothed chi^2 from previous fit, for later comparison
+                            if (verbose) {
+                                candidateTrack.print("after filtering inward", false);
+                                System.out.format("Hits after filtering to layer 2: ");
+                                for (int i = 0; i < numLayers; i++) {
+                                    int lHit = -1;
+                                    for (KalHit ht : candidateTrack.hits) { 
+                                        if (ht.module.Layer == i) lHit = ht.module.hits.indexOf(ht.hit);
+                                    }
+                                    System.out.format("%2d ", lHit);
+                                }
+                                System.out.format("\n");
+                            }
+                            inSuccess = true;
                         }
-                        System.out.format("\n");
                     }
+                    if (inSuccess) {
+                        candidateTrack = candidateTrackIn;
+                    }
+                    
                     // skip this one if it was already found before using a different seed. First, sort the hits.
                     Collections.sort(candidateTrack.hits, KalHit.HitComparator);
                     boolean match = false;
@@ -318,8 +336,10 @@ public class KalmanPatRecHPS {
                         continue;
                     }
 
-                    // Iterate the fit, starting from the target and going to the SVT end
-                    MeasurementSite startSite = candidateTrack.sites.get(candidateTrack.sites.size() - 1);
+                    // Iterate the fit, starting from near the target and going toward the calorimeter
+                    MeasurementSite startSite=null;
+                    if (inSuccess) startSite = candidateTrack.sites.get(candidateTrack.sites.size() - 1);
+                    else startSite = candidateTrack.sites.get(0);
                     startSite.aF.C.scale(10000.);
                     candidateTrack = filterTrack(firstLayer, numLayers - 1, startSite.aF, candidateTrack.hits, trial);
                     if (!candidateTrack.filtered) {
@@ -331,7 +351,9 @@ public class KalmanPatRecHPS {
                         System.out.format("Layer hits after final filtering: ");
                         for (int i = 0; i < numLayers; i++) {
                             int lHit = -1;
-                            for (KalHit ht : candidateTrack.hits) { if (ht.module.Layer == i) { lHit = ht.module.hits.indexOf(ht.hit); } }
+                            for (KalHit ht : candidateTrack.hits) { 
+                                if (ht.module.Layer == i) lHit = ht.module.hits.indexOf(ht.hit);
+                            }
                             System.out.format("%2d ", lHit);
                         }
                         System.out.format("\n");
@@ -746,9 +768,7 @@ public class KalmanPatRecHPS {
                     return tmpTrack;
                 }
 
-                // if (verbose) {
-                // newSite.print("initial filtering");
-                // }
+                // if (verbose) newSite.print("initial filtering");
                 tmpTrack.chi2f += Math.max(newSite.chi2inc,0.);
 
                 tmpTrack.sites.add(newSite);

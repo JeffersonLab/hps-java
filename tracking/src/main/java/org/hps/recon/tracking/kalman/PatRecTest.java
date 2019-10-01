@@ -18,9 +18,9 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1000;               // The number of test eventNumbers to generate for fitting
+        int nTrials = 10;              // The number of test eventNumbers to generate for fitting
         int mxPlot = 10;                // Maximum number of single event plots
-        int [] eventToPrint = {10,10};  // Range of events to print in detail and plot as an event display
+        int [] eventToPrint = {0,9};  // Range of events to print in detail and plot as an event display
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
@@ -183,7 +183,7 @@ public class PatRecTest {
         HelixPlaneIntersect hpi = new HelixPlaneIntersect();
         int nPlot = 0;
         for (int eventNumber = 0; eventNumber < nTrials; eventNumber++) {
-            System.out.format("Starting trial event %d\n", eventNumber);
+            if (Math.floorMod(eventNumber, 100)==0) System.out.format("Starting trial event %d\n", eventNumber);
             verbose = (eventNumber >= eventToPrint[0] && eventNumber <= eventToPrint[1]);
             
             Vec[] initialDirection = new Vec[nHelices];
