@@ -58,13 +58,19 @@ public class StraightTrackAlignmentDriver extends Driver {
     // initial guess for the track direction
     double[] B0 = {0., 0., 1.};
 
+    // DetectorPlanes at the 2H02 wire to provide a beam-spot constraint.
+    DetectorPlane xPlaneAtWire = null;
+    DetectorPlane yPlaneAtWire = null;
+    Hit beamAtWire = null;
+
+    boolean beamConstrain = true;
+
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
     Map<String, Hit> stripHitByModule = new TreeMap<String, Hit>();
 
 //    Writer topEventsWriter = null;
 //    Writer bottomEventsWriter = null;
-
     // field-off data does not hit the first two layers
     // top is missing last layer
     List<String> topHoleSensorNamesToFit = Arrays.asList(
@@ -91,14 +97,25 @@ public class StraightTrackAlignmentDriver extends Driver {
             "module_L7b_halfmodule_axial_hole_sensor0");
 
     // alignment stuff
-    boolean alignit = false;
+    boolean alignit = true;
+    int bottomIter;
+    int topIter;
     List<List<Hit>> bottomEventsToAlign = new ArrayList<>();
-    List<DetectorPlane> bottomPlanes = new ArrayList<DetectorPlane>();
+    List<DetectorPlane> bottomPlanes = null;//new ArrayList<DetectorPlane>();
     List<List<Hit>> topEventsToAlign = new ArrayList<>();
-    List<DetectorPlane> topPlanes = new ArrayList<DetectorPlane>();
+    List<DetectorPlane> topPlanes = null;//new ArrayList<DetectorPlane>();
 
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
+        // set up the DetectorPlanes at the 2H02 wire
+        double[] beamSpot = {-65., 0., -2267.};  // start with this...
+        double[] sigs = {0.050, 0.00}; // pick 50um for beam spot at wire
+        xPlaneAtWire = new DetectorPlane(15, Matrix.identity(3, 3), beamSpot, sigs);
+        yPlaneAtWire = new DetectorPlane(16, Matrix.identity(3, 3), beamSpot, sigs);
+        double[] u = {0., 0.};
+        double[] wt = {1./(sigs[0] * sigs[0]), 0., 0.};
+        beamAtWire = new Hit(u, wt);
+
         //_db.drawDetector();
 //        try {
 //
@@ -235,10 +252,17 @@ public class StraightTrackAlignmentDriver extends Driver {
                     hits.add(h);
                     planes.add(detectorPlanesInFit.get(s));
                 }
-                aida.histogram1D(topOrBottom + fid + " number of hits to fit", 20, 0., 20.).fill(hits.size());
                 // require at least 8 hits for fit
                 int minHitsToFit = isTop ? 8 : 10;
                 if (hits.size() == minHitsToFit) {
+
+                    if (beamConstrain) {
+                        planes.add(xPlaneAtWire);
+                        hits.add(beamAtWire);
+                        planes.add(yPlaneAtWire);
+                        hits.add(beamAtWire);
+                    }
+                    aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
                     TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
                     // quick check of track predicted impact points...
@@ -271,8 +295,16 @@ public class StraightTrackAlignmentDriver extends Driver {
                             skipEvent = false;
                             // good clean event let's use it for alignment
                             if (isTop) {
+                                if (topPlanes == null) {
+                                    topPlanes = new ArrayList<DetectorPlane>();
+                                    topPlanes.addAll(planes);
+                                }
                                 topEventsToAlign.add(hits);
                             } else {
+                                if (bottomPlanes == null) {
+                                    bottomPlanes = new ArrayList<DetectorPlane>();
+                                    bottomPlanes.addAll(planes);
+                                }
                                 bottomEventsToAlign.add(hits);
                             }
                         }
@@ -285,12 +317,39 @@ public class StraightTrackAlignmentDriver extends Driver {
         if (alignit) {
             int nEventsToAlign = 1000;
             if (bottomEventsToAlign.size() >= nEventsToAlign) {
-                alignit(bottomPlanes, bottomEventsToAlign, false);
+                // try floating some of the sensors...
+                // 0-2 are offsets in u,v,w, 3-5 are rotations about u,v,w
+                // start with just offets in u (y) in the outermost layers, viz, 0,1 & 8,9
+                int[] mask = {1, 0, 0, 0, 0, 0};
+
+                // Layer 3
+                bottomPlanes.get(0).offset().setMask(mask);
+                bottomPlanes.get(1).offset().setMask(mask);
+                // Layer 7
+                bottomPlanes.get(8).offset().setMask(mask);
+                bottomPlanes.get(9).offset().setMask(mask);
+
+                // if we are constraining the fit with the beamspot, can float all the layers but one.
+                // fix layer 5 (sensors 9&10) and see what happens...
+                if (beamConstrain) {
+                    //layer 4
+                    bottomPlanes.get(2).offset().setMask(mask);
+                    bottomPlanes.get(3).offset().setMask(mask);
+                    //layer 6
+                    bottomPlanes.get(6).offset().setMask(mask);
+                    bottomPlanes.get(7).offset().setMask(mask);
+                }
+
+                System.out.println("Aligning the bottom SVT");
+                alignit(bottomPlanes, bottomEventsToAlign, false, bottomIter);
+                bottomIter++;
                 // clear the list
                 bottomEventsToAlign.clear();
             }
             if (topEventsToAlign.size() >= nEventsToAlign) {
-                alignit(topPlanes, topEventsToAlign, true);
+                System.out.println("Aligning the top SVT");
+                alignit(topPlanes, topEventsToAlign, true, topIter);
+                topIter++;
                 // clear the list
                 topEventsToAlign.clear();
             }
@@ -322,16 +381,15 @@ public class StraightTrackAlignmentDriver extends Driver {
      * @param planes The Detector represented as a list of DetectorPlanes
      * @param events The events represented as a list of Hits
      */
-    public void alignit(List<DetectorPlane> planes, List<List<Hit>> events, boolean isTop) {
-        String path = isTop ? "top alignment" : "bottom alignment";
-        aida.tree().mkdirs(path);
-        aida.tree().cd(path);
+    public void alignit(List<DetectorPlane> planes, List<List<Hit>> events, boolean isTop, int iter) {
+        String path = isTop ? "top alignment " : "bottom alignment ";
+        aida.tree().mkdirs(path + iter);
+        aida.tree().cd(path + iter);
 
         // let's look at unbiased residuals before alignment...
         aida.tree().mkdirs("before");
         aida.tree().cd("before");
         for (List<Hit> hits : events) {
-
             refitTrack(planes, hits, A0, B0, isTop);
         }
         aida.tree().cd("..");
