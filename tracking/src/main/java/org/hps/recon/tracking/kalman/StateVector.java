@@ -653,7 +653,11 @@ class StateVector {
             finalHelix.print("final helix");
             Cov.print("transformed covariance");
         }
-        for (int i = 0; i < 5; ++i) { for (int j = 0; j < 5; ++j) { Covariance.M[i][j] = Cov.M[i][j]; } }
+        for (int i = 0; i < 5; ++i) { 
+            for (int j = 0; j < 5; ++j) { 
+                Covariance.M[i][j] = Cov.M[i][j]; 
+            } 
+        }
         return finalHelix;
     }
 
@@ -745,7 +749,11 @@ class StateVector {
         dpda.M[2][2] = 1. / Math.abs(a.v[2]);
 
         SquareMatrix dprimedp = new SquareMatrix(3);
-        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { dprimedp.M[i][j] = R.M[i][j]; } }
+        for (int i = 0; i < 3; i++) { 
+            for (int j = 0; j < 3; j++) { 
+                dprimedp.M[i][j] = R.M[i][j]; 
+            } 
+        }
 
         double Q = Math.signum(a.v[2]);
         SquareMatrix dadp = new SquareMatrix(3);

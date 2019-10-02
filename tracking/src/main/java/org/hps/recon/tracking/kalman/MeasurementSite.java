@@ -556,7 +556,11 @@ class MeasurementSite {
             }
         }
         RotMatrix Rt = m.Rinv.multiply(S.Rot.invert());
-        for (int i = 0; i < 5; i++) { for (int j = 0; j < 3; j++) { HH[i] += Rt.M[1][j] * DxDa[j][i]; } }
+        for (int i = 0; i < 5; i++) { 
+            for (int j = 0; j < 3; j++) { 
+                HH[i] += Rt.M[1][j] * DxDa[j][i]; 
+            } 
+        }
 
         // Testing the derivatives
         if (verbose) {

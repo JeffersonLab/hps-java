@@ -360,7 +360,9 @@ public class KalmanPatRecHPS {
                     }
 
                     int nStereo = 0;
-                    for (KalHit ht : candidateTrack.hits) if (ht.isStereo()) nStereo++;
+                    for (KalHit ht : candidateTrack.hits) {
+                        if (ht.isStereo()) nStereo++;
+                    }
                     if (nStereo < minStereo) {
                         if (verbose) { System.out.format("KalmanPatRecHPS: filtering has too few stereo hits. Skip to the next seed.\n"); }
                         continue;
@@ -441,8 +443,9 @@ public class KalmanPatRecHPS {
                                         }
                                     }
                                     if (redundant) {
-                                        if (verbose) { System.out.format("KalmanPatRecHPS: throwing away redundant substandard track %d\n",
-                                                tkID); }
+                                        if (verbose) { 
+                                            System.out.format("KalmanPatRecHPS: throwing away redundant substandard track %d\n",tkID); 
+                                        }
                                         tkID--;
                                     } else {
                                         if (verbose) {
@@ -464,7 +467,11 @@ public class KalmanPatRecHPS {
             // First sort them by quality
             if (TkrList2.size() > 0) {
                 Collections.sort(TkrList2, KalTrack.TkrComparator);
-                if (verbose) { for (KalTrack tkr : TkrList2) { tkr.print("sorted substandard tracks"); } }
+                if (verbose) { 
+                    for (KalTrack tkr : TkrList2) { 
+                        tkr.print("sorted substandard tracks"); 
+                    } 
+                }
                 for (KalTrack tkr : TkrList2) {
                     int nHits = 0;
                     int nStereo = 0;

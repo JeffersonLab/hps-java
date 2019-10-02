@@ -121,7 +121,9 @@ public class KalTrack {
             if (Double.isNaN(phiS)) { phiS = 0.; }
             double vpred = S.h(S.aS, S.m, phiS);
             for (Measurement hit : S.m.hits) {
-                for (KalTrack tkr : hit.tracks) { if (tkr.equals(this)) { c2 += Math.pow((vpred - hit.v) / hit.sigma, 2); } }
+                for (KalTrack tkr : hit.tracks) { 
+                    if (tkr.equals(this)) c2 += Math.pow((vpred - hit.v) / hit.sigma, 2);
+                }
             }
         }
         return c2;

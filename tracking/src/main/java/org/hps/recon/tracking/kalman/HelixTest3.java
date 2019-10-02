@@ -528,7 +528,9 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
             }
 
             int nHits = 0;
-            for (SiModule siM : SiModules) { if (siM.hits.size() > 0) nHits++; }
+            for (SiModule siM : SiModules) {
+                if (siM.hits.size() > 0) nHits++;           
+            }
             hnHit.entry(nHits);
 
             // Create a seed track from the first 3 or 4 layers

@@ -6,8 +6,9 @@ class Vec { // N-vector for the Kalman filter
 
     Vec(int N, double[] vin) {
         v = new double[N];
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < N; i++) {
             v[i] = vin[i];
+        }
         this.N = N;
     }
 
@@ -36,13 +37,17 @@ class Vec { // N-vector for the Kalman filter
 
     double mag() {
         double val = 0.;
-        for (int i = 0; i < N; i++) { val += v[i] * v[i]; }
+        for (int i = 0; i < N; i++) {
+            val += v[i] * v[i];
+        }
         return Math.sqrt(val);
     }
 
     void print(String s) {
         System.out.format("    Vector-%d %s: ", N, s);
-        for (int i = 0; i < N; i++) { System.out.format(" %11.7f", v[i]); }
+        for (int i = 0; i < N; i++) {
+            System.out.format(" %11.7f", v[i]);
+        }
         System.out.format("\n");
     }
 
@@ -80,20 +85,30 @@ class Vec { // N-vector for the Kalman filter
         // print("Vec5.leftMultiply");
         // G.print("Vec5.leftMultiply");
 
-        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { R[i] += G.M[i][j] * v[j]; } }
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                R[i] += G.M[i][j] * v[j];
+            }
+        }
 
         return new Vec(N, R);
     }
 
     SquareMatrix product(Vec v2) {
         SquareMatrix R = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) { for (int j = 0; j < N; j++) { R.M[i][j] = v[i] * v2.v[j]; } }
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                R.M[i][j] = v[i] * v2.v[j];
+            }
+        }
         return R;
     }
 
     double dot(Vec v2) {
         double R = 0.;
-        for (int i = 0; i < N; i++) { R += v2.v[i] * v[i]; }
+        for (int i = 0; i < N; i++) {
+            R += v2.v[i] * v[i];
+        }
         return R;
     }
 
@@ -113,7 +128,9 @@ class Vec { // N-vector for the Kalman filter
 
     Vec scale(double s) {
         double[] R = new double[N];
-        for (int i = 0; i < N; i++) { R[i] = v[i] * s; }
+        for (int i = 0; i < N; i++) {
+            R[i] = v[i] * s;
+        }
         return new Vec(N, R);
     }
 
