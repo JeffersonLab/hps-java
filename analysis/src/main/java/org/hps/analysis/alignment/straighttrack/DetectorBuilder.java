@@ -203,9 +203,7 @@ public class DetectorBuilder {
                 System.out.println("   normal: " + normal);
                 System.out.println("   uDir: " + uDir);
                 System.out.println("   vDir: " + vDir);
-                if (_debug) {
-                    System.out.println("   Apache commons angles: " + Arrays.toString(hpsAngles));
-                }
+                System.out.println("   Apache commons angles: " + Arrays.toString(hpsAngles));
                 Matrix[] mats = new Matrix[3];
                 double[][] RW = new double[3][9];
                 for (int j = 0; j < 3; ++j) {
@@ -269,8 +267,8 @@ public class DetectorBuilder {
     public List<DetectorPlane> getTracker(String trackerName) {
         return trackerMap.get(trackerName);
     }
-    
-    public String[] getTrackerSensorNames(String trackerName){
+
+    public String[] getTrackerSensorNames(String trackerName) {
         return sensorNameMap.get(trackerName);
     }
 

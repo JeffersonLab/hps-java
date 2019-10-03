@@ -2,6 +2,7 @@ package org.hps.analysis.alignment.straighttrack;
 
 import Jama.Matrix;
 import hep.physics.vec.Hep3Vector;
+import static java.lang.Math.PI;
 //import java.io.BufferedWriter;
 //import java.io.FileOutputStream;
 //import java.io.OutputStreamWriter;
@@ -14,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import static org.hps.analysis.alignment.straighttrack.FitTracks.GEN_ROTMAT;
 import static org.hps.analysis.alignment.straighttrack.FitTracks.debug;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.record.triggerbank.TriggerModule;
@@ -63,7 +65,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
-    boolean beamConstrain = true;
+    boolean beamConstrain = false;
 
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
@@ -111,9 +113,9 @@ public class StraightTrackAlignmentDriver extends Driver {
         double[] beamSpot = {-65., 0., -2267.};  // start with this...
         double[] sigs = {0.050, 0.00}; // pick 50um for beam spot at wire
         xPlaneAtWire = new DetectorPlane(15, Matrix.identity(3, 3), beamSpot, sigs);
-        yPlaneAtWire = new DetectorPlane(16, Matrix.identity(3, 3), beamSpot, sigs);
+        yPlaneAtWire = new DetectorPlane(16, GEN_ROTMAT(PI / 2., 2), beamSpot, sigs);
         double[] u = {0., 0.};
-        double[] wt = {1./(sigs[0] * sigs[0]), 0., 0.};
+        double[] wt = {1. / (sigs[0] * sigs[0]), 0., 0.};
         beamAtWire = new Hit(u, wt);
 
         //_db.drawDetector();
@@ -320,6 +322,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 // try floating some of the sensors...
                 // 0-2 are offsets in u,v,w, 3-5 are rotations about u,v,w
                 // start with just offets in u (y) in the outermost layers, viz, 0,1 & 8,9
+                // and rotations around w (i.e. stereo angle) maybe
                 int[] mask = {1, 0, 0, 0, 0, 0};
 
                 // Layer 3
