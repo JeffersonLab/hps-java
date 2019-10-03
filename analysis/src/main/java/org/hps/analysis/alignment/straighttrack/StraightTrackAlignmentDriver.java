@@ -393,6 +393,18 @@ public class StraightTrackAlignmentDriver extends Driver {
         aida.tree().mkdirs("before");
         aida.tree().cd("before");
         for (List<Hit> hits : events) {
+            // track fit 
+            TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+            double[] pars = fit.pars();
+            double[] cov = fit.cov();
+            aida.histogram1D(path + " x at z=-2267", 100, -100., 0.).fill(pars[0]);
+            aida.histogram1D(path + " y at z=-2267", 100, -20., 20.).fill(pars[1]);
+            aida.histogram1D(path + " dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
+            aida.histogram1D(path + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
+            aida.histogram1D(path + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
+            double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
+            aida.histogram1D(path + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
+            // unbiased residuals
             refitTrack(planes, hits, A0, B0, isTop);
         }
         aida.tree().cd("..");
@@ -479,6 +491,18 @@ public class StraightTrackAlignmentDriver extends Driver {
         aida.tree().mkdirs("after");
         aida.tree().cd("after");
         for (List<Hit> hits : events) {
+            // track fit 
+            TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+            double[] pars = fit.pars();
+            double[] cov = fit.cov();
+            aida.histogram1D(path + " x at z=-2267", 100, -100., 0.).fill(pars[0]);
+            aida.histogram1D(path + " y at z=-2267", 100, -20., 20.).fill(pars[1]);
+            aida.histogram1D(path + " dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
+            aida.histogram1D(path + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
+            aida.histogram1D(path + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
+            double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
+            aida.histogram1D(path + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
+            // unbiased residuals
             refitTrack(planes, hits, A0, B0, isTop);
         }
         aida.tree().cd("..");
