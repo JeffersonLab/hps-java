@@ -58,6 +58,7 @@
         <driver name="TridentMonitoring"/>           
         <driver name="MuonCandidateMonitoring"/>    
         <driver name="TrackingMonitoringMatched"/>
+        <driver name="TrackEfficiencyHodoECal"/>
                   
         <!--Singles0--> 
         <driver name="EcalMonitoringSingles0"/>  
@@ -429,8 +430,11 @@
         </driver>
 
         <driver name="TrackingMonitoringMatched" type="org.hps.analysis.dataquality.TrackingMonitoring">
-            <triggerType>all</triggerType>
-           
+            <triggerType>all</triggerType>           
+        </driver>   
+        
+            <driver name="TrackEfficiencyHodoECal" type="org.hps.analysis.dataquality.TrackEfficiencyHodoECal">
+            <triggerType>all</triggerType>           
         </driver>   
 
         <!-- singles0 triggers  -->
