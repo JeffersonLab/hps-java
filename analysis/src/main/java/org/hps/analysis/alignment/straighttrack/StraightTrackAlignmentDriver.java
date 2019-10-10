@@ -65,7 +65,8 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
-    boolean beamConstrain = false;
+    boolean beamConstrain = true;
+    int nEventsToAlign = 10000;
 
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
@@ -257,13 +258,6 @@ public class StraightTrackAlignmentDriver extends Driver {
                 // require at least 8 hits for fit
                 int minHitsToFit = isTop ? 8 : 10;
                 if (hits.size() == minHitsToFit) {
-
-                    if (beamConstrain) {
-                        planes.add(xPlaneAtWire);
-                        hits.add(beamAtWire);
-                        planes.add(yPlaneAtWire);
-                        hits.add(beamAtWire);
-                    }
                     aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
                     TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
@@ -288,6 +282,43 @@ public class StraightTrackAlignmentDriver extends Driver {
                     aida.histogram2D("Final Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
                     aida.histogram1D("Final Cluster energy", 100, 0., 7.).fill(c.getEnergy());
 
+                    // let's check the impact point at the calorimeter...
+                    double[] tAtEcal = fit.predict(cPos[2]);
+                    aida.histogram2D(fid + " Track at Ecal x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(tAtEcal[0], tAtEcal[1]);
+                    aida.histogram1D(topOrBottom + fid + " dx at ECal", 100, -20., 20.).fill(cPos[0] - tAtEcal[0]);
+                    aida.histogram1D(topOrBottom + fid + " dy at Ecal", 100, -10., 10.).fill(cPos[1] - tAtEcal[1]);
+                    if (beamConstrain) {
+                        aida.tree().mkdirs("beam-constrained");
+                        aida.tree().cd("beam-constrained");
+                        planes.add(xPlaneAtWire);
+                        hits.add(beamAtWire);
+                        planes.add(yPlaneAtWire);
+                        hits.add(beamAtWire);
+
+                        aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
+                        // fit the track!
+                        TrackFit fitbc = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+                        // calculate unbiased residuals here
+                        refitTrack(planes, hits, A0, B0, isTop);
+                        // Note that track position parameters x & y are reported at the input z.
+                        double[] parsbc = fitbc.pars();
+                        double[] covbc = fitbc.cov();
+
+                        aida.histogram1D(topOrBottom + fid + " x at z=-2267", 100, -100., 0.).fill(parsbc[0]);
+                        aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(parsbc[1]);
+                        aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(parsbc[2]);
+                        aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(parsbc[3]);
+                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fitbc.chisq() / fitbc.ndf());
+                        double chisqProbbc = ChisqProb.gammp(fitbc.ndf(), fitbc.chisq());
+                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProbbc);
+
+                        // let's check the impact point at the calorimeter...
+                        double[] tAtEcalbc = fitbc.predict(cPos[2]);
+                        aida.histogram2D(fid + " Track at Ecal x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(tAtEcalbc[0], tAtEcalbc[1]);
+                        aida.histogram1D(topOrBottom + fid + " dx at ECal", 100, -20., 20.).fill(cPos[0] - tAtEcalbc[0]);
+                        aida.histogram1D(topOrBottom + fid + " dy at Ecal", 100, -10., 10.).fill(cPos[1] - tAtEcalbc[1]);
+                        aida.tree().cd("..");
+                    }
                     // let's apply a few cuts here to enable us to skim events...
                     // beam spot x at wire is -63
                     if (abs(pars[0] + 63) < 20) {
@@ -317,14 +348,12 @@ public class StraightTrackAlignmentDriver extends Driver {
 
         // let's try to align things here...
         if (alignit) {
-            int nEventsToAlign = 1000;
+            // try floating some of the sensors...
+            // 0-2 are offsets in u,v,w, 3-5 are rotations about u,v,w
+            // start with just offets in u (y) 
+            int[] mask = {1, 0, 0, 0, 0, 0};
             if (bottomEventsToAlign.size() >= nEventsToAlign) {
-                // try floating some of the sensors...
-                // 0-2 are offsets in u,v,w, 3-5 are rotations about u,v,w
                 // start with just offets in u (y) in the outermost layers, viz, 0,1 & 8,9
-                // and rotations around w (i.e. stereo angle) maybe
-                int[] mask = {1, 0, 0, 0, 0, 0};
-
                 // Layer 3
                 bottomPlanes.get(0).offset().setMask(mask);
                 bottomPlanes.get(1).offset().setMask(mask);
@@ -333,7 +362,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 bottomPlanes.get(9).offset().setMask(mask);
 
                 // if we are constraining the fit with the beamspot, can float all the layers but one.
-                // fix layer 5 (sensors 9&10) and see what happens...
+                // fix layer 5 (sensors 9&10, indices 4&5) and see what happens...
                 if (beamConstrain) {
                     //layer 4
                     bottomPlanes.get(2).offset().setMask(mask);
@@ -350,6 +379,22 @@ public class StraightTrackAlignmentDriver extends Driver {
                 bottomEventsToAlign.clear();
             }
             if (topEventsToAlign.size() >= nEventsToAlign) {
+                // start with just offets in u (y) in the outermost layers, viz, 0,1 & 8,9
+                // Layer 3
+                topPlanes.get(0).offset().setMask(mask);
+                topPlanes.get(1).offset().setMask(mask);
+                // Layer 6
+                topPlanes.get(6).offset().setMask(mask);
+                topPlanes.get(7).offset().setMask(mask);
+
+                // if we are constraining the fit with the beamspot, can float all the layers but one.
+                // fix layer 5 (sensors 9&10, indices 4&5) and see what happens...
+                if (beamConstrain) {
+                    //layer 4
+                    topPlanes.get(2).offset().setMask(mask);
+                    topPlanes.get(3).offset().setMask(mask);
+                }
+
                 System.out.println("Aligning the top SVT");
                 alignit(topPlanes, topEventsToAlign, true, topIter);
                 topIter++;
@@ -504,6 +549,18 @@ public class StraightTrackAlignmentDriver extends Driver {
             aida.histogram1D(path + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
             // unbiased residuals
             refitTrack(planes, hits, A0, B0, isTop);
+            if (beamConstrain) {
+                // refit the track without the 2 beam constraints
+                TrackFit unconstrainedFit = FitTracks.STR_LINFIT(planes.subList(0, planes.size() - 3), hits.subList(0, hits.size() - 3), A0, B0);
+                pars = unconstrainedFit.pars();
+                aida.histogram1D(path + " unconstrained x at z=-2267", 100, -100., 0.).fill(pars[0]);
+                aida.histogram1D(path + " unconstrained y at z=-2267", 100, -20., 20.).fill(pars[1]);
+                aida.histogram1D(path + " unconstrained dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
+                aida.histogram1D(path + " unconstrained dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
+                aida.histogram1D(path + " unconstrained track fit chiSquared per ndf", 100, 0., 100.).fill(unconstrainedFit.chisq() / unconstrainedFit.ndf());
+                chisqProb = ChisqProb.gammp(unconstrainedFit.ndf(), unconstrainedFit.chisq());
+                aida.histogram1D(path + " unconstrained track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
+            }
         }
         aida.tree().cd("..");
 

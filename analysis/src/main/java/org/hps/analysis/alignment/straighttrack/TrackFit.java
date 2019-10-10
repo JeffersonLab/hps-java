@@ -58,6 +58,14 @@ public class TrackFit {
     public double zPosition() {
         return _z;
     }
+    
+    public double[] predict(double z)
+    {
+        double dz = z - _z;
+        double x = _par[0]+dz*_par[2];
+        double y = _par[1]+dz*_par[3];
+        return new double[]{x,y,z};
+    }
 
     public String toString() {
         StringBuffer sb = new StringBuffer("TrackFit:");
