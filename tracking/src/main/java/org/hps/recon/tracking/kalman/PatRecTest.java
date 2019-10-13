@@ -419,7 +419,7 @@ public class PatRecTest {
             }
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
-            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, eventNumber, verbose);
+            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, verbose);
             if (nPlot < mxPlot && (patRec.TkrList.size()<nHelices || (eventNumber >= eventToPrint[0] && eventNumber <= eventToPrint[1]))) {
                 nPlot++;
                 PrintWriter printWriter3 = null;

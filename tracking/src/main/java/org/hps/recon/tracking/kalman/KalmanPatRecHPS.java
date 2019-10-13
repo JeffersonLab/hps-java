@@ -49,7 +49,8 @@ public class KalmanPatRecHPS {
     private int minStereo;
     private int minAxial;
 
-    public KalmanPatRecHPS(ArrayList<SiModule> data, int eventNumber, boolean verbose) {
+    public KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, boolean verbose) {
+        // topBottom = 0 for the bottom tracker; 1 for the top tracker
 
         this.verbose = verbose;
         TkrList = new ArrayList<KalTrack>();
@@ -77,21 +78,22 @@ public class KalmanPatRecHPS {
             if (thisSi.hits.size() > 0) { moduleList.get(thisSi.Layer).add(thisSi); }
         }
 
+        final int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
         lyrList = new ArrayList<int[]>(13); // Array of seed strategies
-        // Each list should contain 3 stereo layers and 2 non-stereo layers
-        int[] list0 = {6, 7, 8, 9, 10};
-        int[] list1 = {4, 5, 6, 7, 8};
-        int[] list2 = {5, 6, 8, 9, 10};
-        int[] list3 = {5, 6, 7, 8, 10};
-        int[] list4 = { 3, 6, 8, 9, 10 };
-        int[] list5 = { 4, 5, 8, 9, 10 };
-        int[] list6 = { 4, 6, 7, 8, 9 };
-        int[] list7 = { 4, 6, 7, 9, 10 };
-        int[] list8 = { 2, 5, 8, 9, 12};
-        int[] list9 = { 8, 10, 11, 12, 13};
-        int[] list10 = {6, 9, 10, 11, 12};
-        int[] list11 = {6, 7, 9, 10, 12};
-        int[] list12 = {2, 3, 4, 5, 6};
+        // Each list should contain 3 stereo layers and 2 non-stereo layers. These lists are for the bottom tracker
+        final int[] list0 = {6, 7, 8, 9, 10};
+        final int[] list1 = {4, 5, 6, 7, 8};
+        final int[] list2 = {5, 6, 8, 9, 10};
+        final int[] list3 = {5, 6, 7, 8, 10};
+        final int[] list4 = { 3, 6, 8, 9, 10 };
+        final int[] list5 = { 4, 5, 8, 9, 10 };
+        final int[] list6 = { 4, 6, 7, 8, 9 };
+        final int[] list7 = { 4, 6, 7, 9, 10 };
+        final int[] list8 = { 2, 5, 8, 9, 12};
+        final int[] list9 = { 8, 10, 11, 12, 13};
+        final int[] list10 = {6, 9, 10, 11, 12};
+        final int[] list11 = {6, 7, 9, 10, 12};
+        final int[] list12 = {2, 3, 4, 5, 6};
         lyrList.add(list0);
         lyrList.add(list1);
         lyrList.add(list2);
@@ -105,6 +107,22 @@ public class KalmanPatRecHPS {
         lyrList.add(list10);
         lyrList.add(list11);
         lyrList.add(list12);
+        
+        // Swap axial/stereo in list entries for the top tracker
+        if (topBottom == 1) {
+            for (int[] list: lyrList) {
+                for (int i=0; i<5; ++i) {
+                    list[i] = Swap[list[i]];
+                }
+                for (int i=0; i<4; ++i) {
+                    if (list[i] > list[i+1]) {
+                        int tmp = list[i];
+                        list[i] = list[i+1];
+                        list[i+1] = tmp;
+                    }
+                }
+            }
+        }
 
         kMax = new double[nTries];
         tanlMax = new double[nTries];

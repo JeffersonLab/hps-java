@@ -45,11 +45,10 @@ public class RungeKutta4 {
 
     private double[] f(Vec x, double[] p) { // Return all the derivatives
         Vec B = KalmanInterface.getField(x, fM);
-        // B.print("magnetic field");
         double[] d = new double[6];
         double pmag = Math.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
         // System.out.format("P magnitude = %10.7f GeV\n", pmag);
-        d[0] = p[0] / pmag; // dx/ds (assuming the electron moves at the speed of light)
+        d[0] = p[0] / pmag; // dx/ds 
         d[1] = p[1] / pmag;
         d[2] = p[2] / pmag;
         d[3] = alpha * (d[1] * B.v[2] - d[2] * B.v[1]); // dp/ds
