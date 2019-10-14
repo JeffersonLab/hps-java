@@ -63,7 +63,7 @@ public class GenerateFieldOffStdhepEvents {
         double vhep[] = {xAtWire, 0., wireZ, 0.};
         double emass = 0.000511;
         double mass2 = emass * emass;
-        double eEnergy = 2.3;
+        double eEnergy = 4.556;
 
         // eCal dimensions
         // can't use ECal for straight-throughs!
