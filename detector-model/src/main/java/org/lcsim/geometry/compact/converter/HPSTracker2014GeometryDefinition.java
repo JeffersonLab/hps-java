@@ -2200,7 +2200,7 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
                 layerOffset = 7;
             }
             
-            l = 7 + (layer - 4) * 4;
+            l = layerOffset + (layer - 4) * 4;
             int s = -1;
             if (isTopLayer) {
                 s = 0;
