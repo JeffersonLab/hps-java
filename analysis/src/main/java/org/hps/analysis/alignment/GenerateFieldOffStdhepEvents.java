@@ -57,7 +57,10 @@ public class GenerateFieldOffStdhepEvents {
         int jmohep[] = {0, 0};
         int jdahep[] = {0, 0};
         double phep[] = new double[5];
-        double vhep[] = {-63., 0., -2338., 0.};
+        double wireZ = -2267.;
+        double xAtWire = -65.;
+//        double vhep[] = {-63., 0., -2338., 0.};
+        double vhep[] = {xAtWire, 0., wireZ, 0.};
         double emass = 0.000511;
         double mass2 = emass * emass;
         double eEnergy = 2.3;
@@ -90,12 +93,12 @@ public class GenerateFieldOffStdhepEvents {
         double yMax = 52.;
         double zSVTLayer1 = 889.;
 
-        double z = zSVTLayer1 + 2338; // ECal face + HARP wire location
+        double z = zSVTLayer1 - wireZ; // last SVT layer + HARP wire location
         double p = sqrt(eEnergy * eEnergy - mass2);
 
         Random ran = new Random();
-        StdhepWriter topEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z-2338_top.stdhep", "Generated Stdhep Events", "top", 250000);
-        StdhepWriter bottomEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z-2338_bottom.stdhep", "Generated Stdhep Events", "bottom", 250000);
+        StdhepWriter topEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z"+wireZ+"_top.stdhep", "Generated Stdhep Events", "top", 250000);
+        StdhepWriter bottomEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z"+wireZ+"_bottom.stdhep", "Generated Stdhep Events", "bottom", 250000);
 
         topEvents.setCompatibilityMode(false);
         bottomEvents.setCompatibilityMode(false);
