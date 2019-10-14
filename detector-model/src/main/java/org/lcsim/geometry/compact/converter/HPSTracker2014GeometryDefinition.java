@@ -2185,7 +2185,21 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
             // axial - slot: 9
             // stereo - hole: 8
             // axial - slot: 10
-
+            
+            int layerOffset = -1;
+            String detType = node.getAttributeValue("type");
+            if (detType.contains("2019")) {
+                layerOffset = 5;
+            }
+            else if (detType.contains("2016")) {
+                layerOffset = 7;
+            }
+            //Defaulting to 2016 in the case the year is not specified in the compact
+            else {
+                //System.out.printf("WARNING: %s getMillepedeLayer:: couldn't read tracker year from compact.xml. Default to 2016 tracker geo. ", getClass().getSimpleName());
+                layerOffset = 7;
+            }
+            
             l = 7 + (layer - 4) * 4;
             int s = -1;
             if (isTopLayer) {
