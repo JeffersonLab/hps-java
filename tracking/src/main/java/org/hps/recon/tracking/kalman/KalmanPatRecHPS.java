@@ -24,6 +24,8 @@ import java.util.Collections;
 public class KalmanPatRecHPS {
 
     public ArrayList<KalTrack> TkrList; // Final good tracks
+    public int topBottom;               // 0 for bottom tracker, 1 for top
+    
     private ArrayList<KalTrack> TkrList2; // Temporary storage of substandard tracks
     private ArrayList<ArrayList<KalHit>> lyrHits;
     private ArrayList<ArrayList<SiModule>> moduleList;
@@ -51,6 +53,7 @@ public class KalmanPatRecHPS {
 
     public KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, boolean verbose) {
         // topBottom = 0 for the bottom tracker; 1 for the top tracker
+        this.topBottom = topBottom;
 
         this.verbose = verbose;
         TkrList = new ArrayList<KalTrack>();
@@ -166,7 +169,22 @@ public class KalmanPatRecHPS {
         
         Plane p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
 
-        if (verbose) System.out.format("Entering KalmanPatRecHPS with %d modules, for %d trials.\n", nModules, nTries);
+        if (verbose) {
+            System.out.format("Entering KalmanPatRecHPS with %d modules, for %d trials.\n", nModules, nTries);
+            System.out.format("  KalmanPatRecHPS: list of the seed strategies to be applied:\n");
+            for (int[] list : lyrList) {
+                for (int lyr=0; lyr<list.length; ++lyr) {
+                    System.out.format(" %3d ", list[lyr]);
+                }
+                System.out.format("\n");
+            }
+            System.out.format("    Layer types: ");
+            for (SiModule module : data) {
+                if (module.isStereo) System.out.format(" %d=S ",module.Layer);
+                else System.out.format(" %d=A ",module.Layer);
+            }
+            System.out.format("\n");
+        }
 
         // Loop over seed strategies, each with 2 non-stereo layers and 3 stereo layers
         // For each strategy generate a seed track for every hit combination
@@ -178,8 +196,9 @@ public class KalmanPatRecHPS {
             TkrList2 = new ArrayList<KalTrack>();
             for (int[] list : lyrList) {
                 int nLyrs = list.length;
-
-                SiModule m0 = data.get(list[4]);
+                int originLyr = 2;
+                if (moduleList.get(list[originLyr]).size() == 0) continue;
+                SiModule m0 = moduleList.get(list[2]).get(0);
                 double yOrigin = m0.p.X().v[1];
                 Vec pivot = new Vec(0, yOrigin, 0.);
                 Vec Bfield = KalmanInterface.getField(pivot, m0.Bfield);
@@ -213,7 +232,7 @@ public class KalmanPatRecHPS {
                                     // Cuts on the seed quality
                                     Vec hp = seed.helixParams();
                                     if (verbose) {
-                                        System.out.format("Seed %d %d %d %d %d parameteters for cuts: K=%10.5f, tanl=%10.5f, dxz=%10.5f   ",
+                                        System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f, tanl=%10.5f, dxz=%10.5f   ",
                                                 idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], hp.v[4], seed.planeIntersection(p0).mag());
                                     }
                                     if (Math.abs(hp.v[2]) < kMax[trial]) {
@@ -601,7 +620,10 @@ public class KalmanPatRecHPS {
                 continue;
             }
             if (verbose) System.out.format("KalmanPatRecHPS: Call the Kalman fit for track %d\n", tkr.ID);
-            tkr.fit(1, verbose);
+            if (!tkr.fit(1, verbose)) {
+                TkrList.remove(tkr);
+                continue;
+            }
         }
 
         Collections.sort(TkrList, KalTrack.TkrComparator); // Sort tracks by quality

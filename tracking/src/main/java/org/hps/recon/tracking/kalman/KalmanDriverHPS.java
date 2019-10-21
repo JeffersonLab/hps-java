@@ -243,7 +243,7 @@ public class KalmanDriverHPS extends Driver {
             if (event.hasCollection(MCParticle.class, "MCParticle")) {
                 particles = event.get(MCParticle.class, "MCParticle"); 
             }
-                    
+            
                     
             boolean createSeed = false;
             KalmanTrackFit2 ktf2 = null;
@@ -461,8 +461,7 @@ public class KalmanDriverHPS extends Driver {
             // clearing for next track
             KI.clearInterface();
         }
-        if (verbose)
-            System.out.println("\n DONE event ");
+        if (verbose) System.out.println("\n DONE event ");
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputSeedTrackCollectionName, outputSeedTracks, Track.class, flag);

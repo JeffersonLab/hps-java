@@ -10,6 +10,14 @@ class Measurement { // Holds a single silicon-strip measurement (single-sided), 
     Vec rGlobal; // Global MC truth
     ArrayList<KalTrack> tracks; // Tracks that this hit lies on
 
+    Measurement(double value, double resolution) {
+        v = value;
+        sigma = resolution;
+        tracks = new ArrayList<KalTrack>();
+        vTrue = 0.;
+        rGlobal = null;
+    }
+    
     Measurement(double value, double resolution, Vec rGlobal, double vTrue) {
         v = value;
         sigma = resolution;
@@ -19,14 +27,14 @@ class Measurement { // Holds a single silicon-strip measurement (single-sided), 
     }
 
     void print(String s) {
-        System.out.format("Measurement %s: Measurement value=%10.6f+-%10.6f;  MC truth=%10.6f\n", s, v, sigma, vTrue);
-        if (rGlobal != null) { rGlobal.print("global location from MC truth"); }
+        System.out.format("Measurement %s: Measurement value=%10.5f+-%8.6f;  MC truth=%10.5f ", s, v, sigma, vTrue);
         if (tracks.size() == 0) {
-            System.out.format("  This hit is not on any track.\n");
+            System.out.format("  Not on any track.\n");
         } else {
-            System.out.format("  List of tracks: ");
+            System.out.format("  Tracks: ");
             for (KalTrack tk : tracks) { System.out.format(" %d ", tk.ID); }
             System.out.format("\n");
         }
+        if (rGlobal != null) { rGlobal.print("global location from MC truth"); }
     }
 }
