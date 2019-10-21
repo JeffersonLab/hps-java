@@ -606,7 +606,7 @@ public class KalmanInterface {
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
             }
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, true);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, verbose);
             outList.add(kPat);
         }
         return outList;
