@@ -450,7 +450,7 @@ class StateVector {
     // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
     public Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
 
-        boolean verbose = false; // !!!!!!!!!!
+        //boolean verbose = false; // !!!!!!!!!!
 
         Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), fM);
         double Bmag = B.mag();

@@ -38,6 +38,7 @@ public class KalmanPatRecDriver extends Driver {
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
     private String outputPlots = "KalmanTestPlots.root";
+    private int nPlotted;
 
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
@@ -73,10 +74,11 @@ public class KalmanPatRecDriver extends Driver {
     private void setupPlots() {
         if (aida == null) aida = AIDA.defaultInstance();
         aida.tree().cd("/");
+        nPlotted = 0;
 
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman Track Chi2", 50, 0., 400.);
-
+        aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
     }
 
     @Override
@@ -121,14 +123,18 @@ public class KalmanPatRecDriver extends Driver {
             }
             for (KalTrack kTk : kPat.TkrList) {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
-                
+                aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
+                aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
             }
         }
         
         String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
-        KI.plotKalmanEvent(path, event, kPatList);
+        if (nPlotted < 20) {
+            KI.plotKalmanEvent(path, event, kPatList);
+            nPlotted++;
+        }
         
         KI.clearInterface();
         if (verbose) System.out.format("\n KalmanPatRecDriver.process: Done with event %d\n", evtNumb);
