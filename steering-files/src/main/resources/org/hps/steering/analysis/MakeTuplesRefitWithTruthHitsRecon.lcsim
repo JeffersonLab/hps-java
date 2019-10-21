@@ -120,6 +120,7 @@
         </driver>
         <driver name="RefitTupleMaker" type="org.hps.analysis.tuple.RefitTrackTruthTupleDriver">
             <tupleFile>${outputFile}_truthrefit.txt</tupleFile>
+            <cutTuple>false</cutTuple>
         </driver>
     </drivers>
 </lcsim>
