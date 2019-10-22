@@ -11,6 +11,7 @@ import org.lcsim.util.Driver;
 public class StripMCSimTrackerHitEvents extends Driver {
 
     private int _numberOfEventsWritten = 0;
+    private int _numberOfSimTrackerHits;
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
@@ -18,7 +19,7 @@ public class StripMCSimTrackerHitEvents extends Driver {
         int nSimTrackerHits = event.get(SimTrackerHit.class, "TrackerHits").size();
         int nSimTrackerHitsEcal = event.get(SimTrackerHit.class, "TrackerHitsECal").size();
 
-        if (nSimTrackerHits == 12 && nSimTrackerHitsEcal == 1) {
+        if (nSimTrackerHits == _numberOfSimTrackerHits && nSimTrackerHitsEcal == 1) {
             skipEvent = false;
         }
 
@@ -31,5 +32,9 @@ public class StripMCSimTrackerHitEvents extends Driver {
 
     protected void endOfData() {
         System.out.println("Selected " + _numberOfEventsWritten + " events");
+    }
+
+    public void setNumberOfSimTrackerHits(int i) {
+        _numberOfSimTrackerHits = i;
     }
 }
