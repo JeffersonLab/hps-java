@@ -17,7 +17,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import static org.hps.analysis.alignment.straighttrack.FitTracks.GEN_ROTMAT;
 import static org.hps.analysis.alignment.straighttrack.FitTracks.debug;
-import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.analysis.alignment.straighttrack.vertex.StraightLineVertexFitter;
+import org.hps.analysis.alignment.straighttrack.vertex.Track;
+import org.hps.analysis.alignment.straighttrack.vertex.Vertex;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
@@ -29,7 +31,6 @@ import org.lcsim.detector.solids.Point3D;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.TrackerHit;
@@ -65,7 +66,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
-    boolean beamConstrain = true;
+    boolean beamConstrain = false;
     int nEventsToAlign = 10000;
 
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
@@ -100,13 +101,20 @@ public class StraightTrackAlignmentDriver extends Driver {
             "module_L7b_halfmodule_axial_hole_sensor0");
 
     // alignment stuff
-    boolean alignit = true;
+    boolean alignit = false;
     int bottomIter;
     int topIter;
     List<List<Hit>> bottomEventsToAlign = new ArrayList<>();
     List<DetectorPlane> bottomPlanes = null;//new ArrayList<DetectorPlane>();
     List<List<Hit>> topEventsToAlign = new ArrayList<>();
     List<DetectorPlane> topPlanes = null;//new ArrayList<DetectorPlane>();
+
+    // try some vertexing here...
+    List<Track> topTracks = new ArrayList<Track>();
+    List<Track> bottomTracks = new ArrayList<Track>();
+    List<Track> topAndBottomTracks = new ArrayList<Track>();
+
+    double maxChisq = 100.;
 
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
@@ -132,8 +140,12 @@ public class StraightTrackAlignmentDriver extends Driver {
     protected void process(EventHeader event) {
         boolean skipEvent = true;
         // Will use calorimeter clusters to define the road in which we search for hits.
-        List<Cluster> clusters = event.get(Cluster.class,
-                "EcalClustersCorr");
+        List<Cluster> clusters = null;
+        if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
+            clusters = event.get(Cluster.class, "EcalClustersCorr");
+        } else if (event.hasCollection(Cluster.class, "EcalClusters")) {
+            clusters = event.get(Cluster.class, "EcalClusters");
+        }
         aida.histogram1D("number of clusters", 10, 0., 10.).fill(clusters.size());
 //        Cluster c = null;
 //        for (Cluster cluster : clusters) {
@@ -166,15 +178,15 @@ public class StraightTrackAlignmentDriver extends Driver {
                 Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
                 //let's get some SVT strip clusters...
                 setupSensors(event);
-                // Get the list of fitted hits from the event
-                List<LCRelation> fittedHits = event.get(LCRelation.class,
-                        "SVTFittedRawTrackerHits");
-                // Map the fitted hits to their corresponding raw hits
-                Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
-                for (LCRelation fittedHit : fittedHits) {
-                    fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
-
-                }
+//                // Get the list of fitted hits from the event
+//                List<LCRelation> fittedHits = event.get(LCRelation.class,
+//                        "SVTFittedRawTrackerHits");
+//                // Map the fitted hits to their corresponding raw hits
+//                Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+//                for (LCRelation fittedHit : fittedHits) {
+//                    fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+//
+//                }
                 List<SiTrackerHitStrip1D> stripClusters = event.get(SiTrackerHitStrip1D.class,
                         "StripClusterer_SiTrackerHitStrip1D");
                 int nStripHits = stripClusters.size();
@@ -261,84 +273,94 @@ public class StraightTrackAlignmentDriver extends Driver {
                     aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
                     TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
-                    // quick check of track predicted impact points...
+                    if (fit.chisq() / fit.ndf() < maxChisq) {
+                        // quick check of track predicted impact points...
 //                    List<double[]> impactPoints = fit.impactPoints();
 //                    for (double[] pos : impactPoints) {
 //                        System.out.println(Arrays.toString(pos));
 //                    }
-                    // calculate unbiased residuals here
-                    refitTrack(planes, hits, A0, B0, isTop);
-                    // Note that track position parameters x & y are reported at the input z.
-                    double[] pars = fit.pars();
-                    double[] cov = fit.cov();
-
-                    aida.histogram1D(topOrBottom + fid + " x at z=-2267", 100, -100., 0.).fill(pars[0]);
-                    aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(pars[1]);
-                    aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
-                    aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
-                    aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
-                    double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
-                    aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
-                    aida.histogram2D("Final Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
-                    aida.histogram1D("Final Cluster energy", 100, 0., 7.).fill(c.getEnergy());
-
-                    // let's check the impact point at the calorimeter...
-                    double[] tAtEcal = fit.predict(cPos[2]);
-                    aida.histogram2D(fid + " Track at Ecal x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(tAtEcal[0], tAtEcal[1]);
-                    aida.histogram1D(topOrBottom + fid + " dx at ECal", 100, -20., 20.).fill(cPos[0] - tAtEcal[0]);
-                    aida.histogram1D(topOrBottom + fid + " dy at Ecal", 100, -10., 10.).fill(cPos[1] - tAtEcal[1]);
-                    if (beamConstrain) {
-                        aida.tree().mkdirs("beam-constrained");
-                        aida.tree().cd("beam-constrained");
-                        planes.add(xPlaneAtWire);
-                        hits.add(beamAtWire);
-                        planes.add(yPlaneAtWire);
-                        hits.add(beamAtWire);
-
-                        aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
-                        // fit the track!
-                        TrackFit fitbc = FitTracks.STR_LINFIT(planes, hits, A0, B0);
                         // calculate unbiased residuals here
                         refitTrack(planes, hits, A0, B0, isTop);
                         // Note that track position parameters x & y are reported at the input z.
-                        double[] parsbc = fitbc.pars();
-                        double[] covbc = fitbc.cov();
+                        double[] pars = fit.pars();
+                        double[] cov = fit.cov();
 
-                        aida.histogram1D(topOrBottom + fid + " x at z=-2267", 100, -100., 0.).fill(parsbc[0]);
-                        aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(parsbc[1]);
-                        aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(parsbc[2]);
-                        aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(parsbc[3]);
-                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fitbc.chisq() / fitbc.ndf());
-                        double chisqProbbc = ChisqProb.gammp(fitbc.ndf(), fitbc.chisq());
-                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProbbc);
+                        aida.histogram1D(topOrBottom + fid + " x at z=-2267", 100, -100., 0.).fill(pars[0]);
+                        aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(pars[1]);
+                        aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
+                        aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
+                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
+                        double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
+                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
+                        aida.histogram2D("Final Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+                        aida.histogram1D("Final Cluster energy", 100, 0., 7.).fill(c.getEnergy());
 
                         // let's check the impact point at the calorimeter...
-                        double[] tAtEcalbc = fitbc.predict(cPos[2]);
-                        aida.histogram2D(fid + " Track at Ecal x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(tAtEcalbc[0], tAtEcalbc[1]);
-                        aida.histogram1D(topOrBottom + fid + " dx at ECal", 100, -20., 20.).fill(cPos[0] - tAtEcalbc[0]);
-                        aida.histogram1D(topOrBottom + fid + " dy at Ecal", 100, -10., 10.).fill(cPos[1] - tAtEcalbc[1]);
-                        aida.tree().cd("..");
-                    }
-                    // let's apply a few cuts here to enable us to skim events...
-                    // beam spot x at wire is -63
-                    if (abs(pars[0] + 63) < 20) {
-                        // beam spot y at wire is 0
-                        if (abs(pars[1]) < 15) {
-                            // keep this event
-                            skipEvent = false;
-                            // good clean event let's use it for alignment
-                            if (isTop) {
-                                if (topPlanes == null) {
-                                    topPlanes = new ArrayList<DetectorPlane>();
-                                    topPlanes.addAll(planes);
+                        double[] tAtEcal = fit.predict(cPos[2]);
+                        aida.histogram2D(fid + " Track at Ecal x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(tAtEcal[0], tAtEcal[1]);
+                        aida.histogram1D(topOrBottom + fid + " dx at ECal", 100, -20., 20.).fill(cPos[0] - tAtEcal[0]);
+                        aida.histogram1D(topOrBottom + fid + " dy at Ecal", 100, -10., 10.).fill(cPos[1] - tAtEcal[1]);
+                        if (beamConstrain) {
+                            aida.tree().mkdirs("beam-constrained");
+                            aida.tree().cd("beam-constrained");
+                            planes.add(xPlaneAtWire);
+                            hits.add(beamAtWire);
+                            planes.add(yPlaneAtWire);
+                            hits.add(beamAtWire);
+
+                            aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
+                            // fit the track!
+                            TrackFit fitbc = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+                            // calculate unbiased residuals here
+                            refitTrack(planes, hits, A0, B0, isTop);
+                            // Note that track position parameters x & y are reported at the input z.
+                            double[] parsbc = fitbc.pars();
+                            double[] covbc = fitbc.cov();
+
+                            aida.histogram1D(topOrBottom + fid + " x at z=-2267", 100, -100., 0.).fill(parsbc[0]);
+                            aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(parsbc[1]);
+                            aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(parsbc[2]);
+                            aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(parsbc[3]);
+                            aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fitbc.chisq() / fitbc.ndf());
+                            double chisqProbbc = ChisqProb.gammp(fitbc.ndf(), fitbc.chisq());
+                            aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProbbc);
+
+                            // let's check the impact point at the calorimeter...
+                            double[] tAtEcalbc = fitbc.predict(cPos[2]);
+                            aida.histogram2D(fid + " Track at Ecal x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(tAtEcalbc[0], tAtEcalbc[1]);
+                            aida.histogram1D(topOrBottom + fid + " dx at ECal", 100, -20., 20.).fill(cPos[0] - tAtEcalbc[0]);
+                            aida.histogram1D(topOrBottom + fid + " dy at Ecal", 100, -10., 10.).fill(cPos[1] - tAtEcalbc[1]);
+                            aida.tree().cd("..");
+                        }
+                        // let's apply a few cuts here to enable us to skim events...
+                        // beam spot x at wire is -63
+                        if (abs(pars[0] + 63) < 20) {
+                            // beam spot y at wire is 0
+                            if (abs(pars[1]) < 15) {
+                                // keep this event
+                                skipEvent = false;
+                                // good clean event let's use it for alignment
+                                if (isTop) {
+                                    if (topPlanes == null) {
+                                        topPlanes = new ArrayList<DetectorPlane>();
+                                        topPlanes.addAll(planes);
+                                    }
+                                    if (alignit) {
+                                        topEventsToAlign.add(hits);
+                                    }
+                                    topTracks.add(new Track(fit));
+                                    topAndBottomTracks.add(new Track(fit));
+                                } else {
+                                    if (bottomPlanes == null) {
+                                        bottomPlanes = new ArrayList<DetectorPlane>();
+                                        bottomPlanes.addAll(planes);
+                                    }
+                                    if (alignit) {
+                                        bottomEventsToAlign.add(hits);
+                                    }
+                                    bottomTracks.add(new Track(fit));
+                                    topAndBottomTracks.add(new Track(fit));
                                 }
-                                topEventsToAlign.add(hits);
-                            } else {
-                                if (bottomPlanes == null) {
-                                    bottomPlanes = new ArrayList<DetectorPlane>();
-                                    bottomPlanes.addAll(planes);
-                                }
-                                bottomEventsToAlign.add(hits);
                             }
                         }
                     }
@@ -402,6 +424,20 @@ public class StraightTrackAlignmentDriver extends Driver {
                 topEventsToAlign.clear();
             }
         }
+        //let's try to vertex some tracks...
+        int nTracksToVertex = 200;
+        if (topTracks.size() >= nTracksToVertex) {
+            vertexEm(topTracks, "top");
+            topTracks.clear();
+        }
+        if (bottomTracks.size() >= nTracksToVertex) {
+            vertexEm(bottomTracks, "bottom");
+            bottomTracks.clear();
+        }
+        if (topAndBottomTracks.size() >= nTracksToVertex) {
+            vertexEm(topAndBottomTracks, "topAndBottom");
+            topAndBottomTracks.clear();
+        }
         if (skipEvent) {
             throw new Driver.NextEventException();
         } else {
@@ -420,6 +456,28 @@ public class StraightTrackAlignmentDriver extends Driver {
 //            e.printStackTrace();
 //        }
 
+    }
+
+    public void vertexEm(List<Track> tracks, String torb) {
+        aida.tree().mkdirs(torb + " vertex ");
+        aida.tree().cd(torb + " vertex ");
+
+        //first guess of vertex...
+        double[] v0 = {-65., 0., -2267.};
+        Vertex v = new Vertex();
+        StraightLineVertexFitter.fitPrimaryVertex(tracks, v0, v);
+
+        aida.cloud1D("vertex x").fill(v.x());
+        aida.cloud1D("vertex y").fill(v.y());
+        aida.cloud1D("vertex z").fill(v.z());
+        aida.cloud2D("vertex x vs y").fill(v.x(), v.y());
+        aida.cloud2D("vertex x vs z").fill(v.z(), v.x());
+        aida.cloud2D("vertex y vs z").fill(v.z(), v.y());
+
+        aida.cloud1D("vertex number of Tracks").fill(v.ntracks());
+        aida.cloud1D("vertex chisq per dof").fill(v.chisq() / v.ndf());
+
+        aida.tree().cd("..");
     }
 
     /**
