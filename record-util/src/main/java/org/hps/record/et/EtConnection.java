@@ -27,8 +27,11 @@ import org.jlab.coda.et.exception.EtWakeUpException;
  *
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
-public final class EtConnection {
-
+public class EtConnection {
+   
+    protected EtConnection() {        
+    }
+    
     /**
      * Create an EtConnection with full list of configuration parameters.
      *
@@ -103,32 +106,32 @@ public final class EtConnection {
     /**
      * The ET attachment.
      */
-    private final EtAttachment att;
+    protected EtAttachment att;
 
     /**
      * The chunk size.
      */
-    private final int chunkSize;
+    protected int chunkSize;
 
     /**
      * The ET station.
      */
-    private final EtStation stat;
+    protected EtStation stat;
 
     /**
      * The ET system object representing the connection to the server.
      */
-    private final EtSystem sys;
+    protected EtSystem sys;
 
     /**
      * The wait mode.
      */
-    private final Mode waitMode;
+    protected Mode waitMode;
 
     /**
      * The wait time.
      */
-    private final int waitTime;
+    protected int waitTime;
 
     /**
      * A class constructor for internal convenience.

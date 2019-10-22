@@ -32,6 +32,6 @@ target
 *.root
 *.slcio
 *.stdhep
-# POM 
-*.pom
 
+# name of ET mem map file
+ETBuffer

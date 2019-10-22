@@ -8,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.4-2019-SNAPSHOT</version>
+    <version>4.5-SNAPSHOT</version>
   </parent>
   <build>
     <plugins>
@@ -24,6 +24,9 @@
             <exclude>**/TrackReconWithPlotsTest.java</exclude>
             <exclude>**/CircleFitTest.java</exclude>
             <exclude>**/TwoPointRadiusCircleFitterTest.java</exclude>
+            <exclude>**/ComparisonTest.java</exclude>
+            <exclude>**/TruthResidualTest.java</exclude>
+            <exclude>**/ReconGBLoutputTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>

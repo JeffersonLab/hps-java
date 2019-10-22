@@ -8,7 +8,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>4.4-2019-SNAPSHOT</version>
+  <version>4.5-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
@@ -120,6 +120,7 @@
     <module>monitoring-util</module>
     <module>monitoring-drivers</module>
     <module>monitoring-app</module>
+    <module>online-recon</module>
     <module>plugin</module>
     <module>recon</module>
     <module>record-util</module>
@@ -256,6 +257,11 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
+        <artifactId>hps-online-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
         <artifactId>hps-steering-files</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -317,6 +323,9 @@
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>et</artifactId>
+<!--
+        <version>16.2</version> 
+-->
         <version>14.1</version>
       </dependency>
       <dependency>
@@ -337,7 +346,7 @@
       <dependency>
         <groupId>jfreechart-aida-experimental</groupId>
         <artifactId>jfreechart-aida-experimental</artifactId>
-        <version>1.9.1-SNAPSHOT</version>
+        <version>1.9.0</version>
         <exclusions>
           <exclusion>
             <groupId>jdom</groupId>
@@ -646,8 +655,8 @@
             <link>http://java.freehep.org/heprep/apidocs/</link>
             <link>http://www.jdom.org/docs/apidocs/</link>
             <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
-            <link>https://coda.jlab.org/wiki/Downloads/evio/evio-4.3-docs/javadoc/</link>
-            <link>https://coda.jlab.org/wiki/Downloads/et/et-14.0-docs/javadoc/</link>
+            <link>https://coda.jlab.org/drupal/content/evio-java-api-javadoc</link>
+            <link>https://coda.jlab.org/drupal/system/files/coda/et/et-16.1-docs/javadoc/</link>
           </links>
         </configuration>
       </plugin>

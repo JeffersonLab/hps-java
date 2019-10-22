@@ -36,6 +36,9 @@ public class GBLRefitterDriver extends Driver {
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
     private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
+    private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
+    private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
+    private String rawHitCollectionName = "SVTRawTrackerHits";
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
@@ -73,6 +76,22 @@ public class GBLRefitterDriver extends Driver {
 
     public void setOutputCollectionName(String outputCollectionName) {
         this.outputCollectionName = outputCollectionName;
+    }
+    
+    public void setTrackRelationCollectionName(String trackRelationCollectionName) {
+        this.trackRelationCollectionName = trackRelationCollectionName;
+    }
+
+    public void setHelicalTrackHitRelationsCollectionName(String helicalTrackHitRelationsCollectionName) {
+        this.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
+    }
+
+    public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
+        this.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
+    }
+
+    public void setRawHitCollectionName(String rawHitCollectionName) {
+        this.rawHitCollectionName = rawHitCollectionName;
     }
 
     public void setMaxTrackChisq(int nhits, double input) {
@@ -122,8 +141,10 @@ public class GBLRefitterDriver extends Driver {
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
         //       System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        //RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        //RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
@@ -171,8 +192,8 @@ public class GBLRefitterDriver extends Driver {
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits"))
-            rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        if (event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
+            rawTrackerHits = event.get(RawTrackerHit.class, rawHitCollectionName);
         if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
 
