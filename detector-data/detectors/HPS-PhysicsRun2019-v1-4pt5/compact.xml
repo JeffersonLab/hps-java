@@ -201,6 +201,7 @@
         <millepede_constant name="11102" value="0.0"/>
         <millepede_constant name="11103" value="0.0"/>
         <millepede_constant name="11104" value="0.0"/>
+        <!-- module_L3t_halfmodule_axial -->
         <millepede_constant name="11105" value="0.0"/>
         <millepede_constant name="11106" value="0.0"/>
         <millepede_constant name="11107" value="0.0"/>
@@ -344,6 +345,7 @@
         <millepede_constant name="21103" value="0.0"/>
         <millepede_constant name="21104" value="0.0"/>
         <millepede_constant name="21105" value="0.0"/>
+        <!-- module_L3b_halfmodule_axial -->
         <millepede_constant name="21106" value="0.0"/>
         <millepede_constant name="21107" value="0.0"/>
         <millepede_constant name="21108" value="0.0"/>
