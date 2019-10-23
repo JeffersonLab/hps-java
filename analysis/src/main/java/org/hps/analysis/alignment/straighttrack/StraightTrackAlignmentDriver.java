@@ -470,12 +470,12 @@ public class StraightTrackAlignmentDriver extends Driver {
         Vertex v = new Vertex();
         StraightLineVertexFitter.fitPrimaryVertex(tracks, v0, v);
 
-        aida.cloud1D("vertex x").fill(v.x());
-        aida.cloud1D("vertex y").fill(v.y());
-        aida.cloud1D("vertex z").fill(v.z());
-        aida.cloud2D("vertex x vs y").fill(v.x(), v.y());
-        aida.cloud2D("vertex x vs z").fill(v.z(), v.x());
-        aida.cloud2D("vertex y vs z").fill(v.z(), v.y());
+        aida.histogram1D("vertex x", 100, -90., -45.).fill(v.x());
+        aida.histogram1D("vertex y", 100, -3.5, 1.5).fill(v.y());
+        aida.histogram1D("vertex z", 200, -2500., -2100).fill(v.z());
+        aida.histogram2D("vertex x vs y", 100, -90., -45., 100, -3.5, 1.5).fill(v.x(), v.y());
+        aida.histogram2D("vertex x vs z", 200, -2500., -2100, 100, -90., -45.).fill(v.z(), v.x());
+        aida.histogram2D("vertex y vs z", 200, -2500., -2100, 100, -3.5, 1.5).fill(v.z(), v.y());
 
         aida.cloud1D("vertex number of Tracks").fill(v.ntracks());
         aida.cloud1D("vertex chisq per dof").fill(v.chisq() / v.ndf());
