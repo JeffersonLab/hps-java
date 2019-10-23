@@ -22,6 +22,7 @@ import org.lcsim.geometry.Detector;
     Simple driver for looking at di-muon candidates
     Requires top/bottom track-matched clusters
     ECal Cluster size<3 and energy<0.5 GeV
+    MG,  October 2019:: include pion/kaon mass hypotheses
 */
 public class MuonCandidateMonitoring extends DataQualityMonitor {
 
@@ -39,7 +40,79 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
 
     double ecalXRange = 500;
     double ecalYRange = 100;
+    
+    private double v0PSumMinCut, v0PSumMaxCut, maxDiffCut;
 
+    private double minP;
+    private double maxP;
+    private double maxClSize = 3;
+    private double maxClEnergy = 0.5;
+
+
+    private IHistogram1D massMu, massPi, massK, pPlus, pMinus, pTot, timeDiff;
+
+    private IHistogram2D xyAtEcalPlus, xyAtEcalMinus, pPlusVsPMinus, tPlusVsTMinus;
+
+    private IHistogram2D dxyNearestClusterPlus, dxyNearestClusterMinus;
+
+    private IHistogram2D clusterXY;
+
+    private IHistogram2D sumPxPy;
+
+    private IHistogram1D clSizePlus, clSizeMinus;
+    private IHistogram1D clEnergyPlus, clEnergyMinus;
+    
+    @Override
+    protected void detectorChanged(Detector detector) {
+        super.detectorChanged(detector);
+        /*tab*///feeMomentumCut = 0.75*beamEnergy; //GeV
+        beamEnergy = 4.5;
+        v0PSumMinCut = 0.2 * beamEnergy;
+        v0PSumMaxCut = 1.25 * beamEnergy;
+        minP = .1 * beamEnergy;
+        maxP = .85 * beamEnergy;
+        maxDiffCut = .8 * beamEnergy;
+
+        LOGGER.info("Setting up the plotter");
+        aida.tree().cd("/");
+
+        String trkType = "SeedTrack/";
+        if (isGBL)
+            trkType = "GBLTrack/";
+        double minMass = 0.2;
+        double maxMass = .1 * beamEnergy;
+        /*  V0 Quantities   */
+ /*  Mass, vertex, chi^2 of fit */
+ /*  unconstrained */
+        massMu = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Muon Invariant Mass (GeV)", 100, minMass, maxMass);
+        massPi = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Pion Invariant Mass (GeV)", 100, minMass, maxMass);
+        massK = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Kaon Invariant Mass (GeV)", 100, minMass, maxMass);
+        pPlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P h+", 100, 0, 1.2 * beamEnergy);
+        pMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P h-", 100, 0, 1.2 * beamEnergy);
+
+        timeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Time Difference", 100, -10, 10);
+
+        tPlusVsTMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "t+ versus t-", 100, -10, 10, 100, -10, 10);
+
+        pPlusVsPMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P h+ vs P h-", 100, 0, 1.2 * beamEnergy, 100, 0, 1.2 * beamEnergy);
+
+        pTot = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P tot", 100, 0, 1.2 * beamEnergy);
+
+        xyAtEcalMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "XY at Ecal (h-)", 100, -ecalXRange, ecalXRange, 100, -ecalYRange, ecalYRange);
+        xyAtEcalPlus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "XY at Ecal (h+)", 100, -ecalXRange, ecalXRange, 100, -ecalYRange, ecalYRange);
+
+        clusterXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster XY", 100, -ecalXRange, ecalXRange, 85, -ecalYRange, ecalYRange);
+
+        dxyNearestClusterPlus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "dXY from nearest cluster (h+)", 100, -30.0, 30.0, 100, -10.0, 10.0);
+        dxyNearestClusterMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "dXY from nearest cluster (h-)", 100, -30.0, 30.0, 100, -10.0, 10.0);
+        sumPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "pair px vs py", 100, -.1, .1, 100, -.1, .1);
+        clSizePlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Size h+", 10, 0, maxClSize);
+        clSizeMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Size h-", 10, 0, maxClSize);
+        clEnergyPlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Energy h+", 50, 0, maxClEnergy);
+        clEnergyMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Energy h-", 50, 0, maxClEnergy);
+
+    }
+    
     @Override
     public void process(EventHeader event) {
         /*  make sure everything is there */
@@ -73,19 +146,19 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
             //            aida.histogram2D(plotDir + trkType + triggerType + "/" + "P(e) vs P(p)").fill(getMomentum(ele), getMomentum(pos));
             //            aida.histogram2D(plotDir + trkType + triggerType + "/" + "Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1], pos.getTrackStates().get(0).getMomentum()[1]);
             //            aida.histogram2D(plotDir + trkType + triggerType + "/" + "Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2], pos.getTrackStates().get(0).getMomentum()[2]);
-            ReconstructedParticle muMinus = null;
-            ReconstructedParticle muPlus = null;
+            ReconstructedParticle hMinus = null;
+            ReconstructedParticle hPlus = null;
             //ReconParticles have the charge correct. 
             if (trks.get(0).getCharge() > 0 && trks.get(1).getCharge() < 0) {
-                muPlus = trks.get(0);
-                muMinus = trks.get(1);
+                hPlus = trks.get(0);
+                hMinus = trks.get(1);
             } else if (trks.get(1).getCharge() > 0 && trks.get(0).getCharge() < 0) {
-                muPlus = trks.get(1);
-                muMinus = trks.get(0);
+                hPlus = trks.get(1);
+                hMinus = trks.get(0);
             }
 
-            Hep3Vector pPlus = muPlus.getMomentum();
-            Hep3Vector pMinus = muMinus.getMomentum();
+            Hep3Vector pPlus = hPlus.getMomentum();
+            Hep3Vector pMinus = hMinus.getMomentum();
 
             //cut out pairs that have both particles on the same half of SVT.  
             if (pPlus.y() * pMinus.y() > 0)
@@ -105,8 +178,8 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
             if (pp > maxP || pm > maxP)
                 continue;
 
-            Track trackPlus = muPlus.getTracks().get(0);
-            Track trackMinus = muMinus.getTracks().get(0);
+            Track trackPlus = hPlus.getTracks().get(0);
+            Track trackMinus = hMinus.getTracks().get(0);
             double[] trkAtEcalPlus = TrackUtils.getTrackStateAtECal(trackPlus).getReferencePoint();
             double[] trkAtEcalMinus = TrackUtils.getTrackStateAtECal(trackMinus).getReferencePoint();
             double tPlus = TrackUtils.getTrackTime(trackPlus, hitToStrips, hitToRotated);
@@ -137,6 +210,7 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
                 continue;
             if (ncPlus.getEnergy() > maxClEnergy || ncMinus.getEnergy() > maxClEnergy)
                 continue;
+            //mg...Oct 2019, at some point add hodoscope requirement
 
             xyAtEcalPlus.fill(trkAtEcalPlus[1], trkAtEcalPlus[2]);
             xyAtEcalMinus.fill(trkAtEcalMinus[1], trkAtEcalMinus[2]);
@@ -156,10 +230,19 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
             timeDiff.fill(tPlus - tMinus);
 
             double mmu2 = .1057 * .1057;
-
-            double mass = Math.sqrt(2 * mmu2 + 2 * Math.sqrt(pPlus.magnitudeSquared() + mmu2) * Math.sqrt(pMinus.magnitudeSquared() + mmu2)
+            double massMu = Math.sqrt(2 * mmu2 + 2 * Math.sqrt(pPlus.magnitudeSquared() + mmu2) * Math.sqrt(pMinus.magnitudeSquared() + mmu2)
                     - 2 * (pPlus.x() * pMinus.x() + pPlus.y() * pMinus.y() + pPlus.z() * pMinus.z()));
-            this.mass.fill(mass);
+            this.massMu.fill(massMu);
+            
+            double mPi2 = .13957 * .13957;
+            double massPi = Math.sqrt(2 * mPi2 + 2 * Math.sqrt(pPlus.magnitudeSquared() + mPi2) * Math.sqrt(pMinus.magnitudeSquared() + mPi2)
+                    - 2 * (pPlus.x() * pMinus.x() + pPlus.y() * pMinus.y() + pPlus.z() * pMinus.z()));
+            this.massPi.fill(massPi);
+            
+            double mK2 = 0.49368*0.49368;
+            double massK = Math.sqrt(2 * mK2 + 2 * Math.sqrt(pPlus.magnitudeSquared() + mK2) * Math.sqrt(pMinus.magnitudeSquared() + mK2)
+                    - 2 * (pPlus.x() * pMinus.x() + pPlus.y() * pMinus.y() + pPlus.z() * pMinus.z()));
+            this.massK.fill(massK);
 
             sumPxPy.fill(pPlus.x() + pMinus.x(), pPlus.y() + pMinus.y());
 
@@ -212,75 +295,7 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
             }
         }
         return best;
-    }
+    }   
 
-    private double v0PSumMinCut, v0PSumMaxCut, maxDiffCut;
-
-    private double minP;
-    private double maxP;
-    private double maxClSize = 3;
-    private double maxClEnergy = 0.5;
-
-    @Override
-    protected void detectorChanged(Detector detector) {
-        super.detectorChanged(detector);
-        /*tab*///feeMomentumCut = 0.75*beamEnergy; //GeV
-        beamEnergy = 4.5;
-        v0PSumMinCut = 0.2 * beamEnergy;
-        v0PSumMaxCut = 1.25 * beamEnergy;
-        minP = .1 * beamEnergy;
-        maxP = .85 * beamEnergy;
-        maxDiffCut = .8 * beamEnergy;
-
-        LOGGER.info("Setting up the plotter");
-        aida.tree().cd("/");
-
-        String trkType = "SeedTrack/";
-        if (isGBL)
-            trkType = "GBLTrack/";
-        double minMass = 0.2;
-        double maxMass = .1 * beamEnergy;
-        /*  V0 Quantities   */
- /*  Mass, vertex, chi^2 of fit */
- /*  unconstrained */
-        mass = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Invariant Mass (GeV)", 100, minMass, maxMass);
-        pPlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P mu+", 100, 0, 1.2 * beamEnergy);
-        pMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P mu-", 100, 0, 1.2 * beamEnergy);
-
-        timeDiff = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Time Difference", 100, -10, 10);
-
-        tPlusVsTMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "t+ versus t-", 100, -10, 10, 100, -10, 10);
-
-        pPlusVsPMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P mu+ vs P mu-", 100, 0, 1.2 * beamEnergy, 100, 0, 1.2 * beamEnergy);
-
-        pTot = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P tot", 100, 0, 1.2 * beamEnergy);
-
-        xyAtEcalMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "XY at Ecal (mu-)", 100, -ecalXRange, ecalXRange, 100, -ecalYRange, ecalYRange);
-        xyAtEcalPlus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "XY at Ecal (mu+)", 100, -ecalXRange, ecalXRange, 100, -ecalYRange, ecalYRange);
-
-        clusterXY = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster XY", 100, -ecalXRange, ecalXRange, 85, -ecalYRange, ecalYRange);
-
-        dxyNearestClusterPlus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "dXY from nearest cluster (mu+)", 100, -30.0, 30.0, 100, -10.0, 10.0);
-        dxyNearestClusterMinus = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "dXY from nearest cluster (mu-)", 100, -30.0, 30.0, 100, -10.0, 10.0);
-        sumPxPy = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "pair px vs py", 100, -.1, .1, 100, -.1, .1);
-        clSizePlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Size mu+", 10, 0, maxClSize);
-        clSizeMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Size mu-", 10, 0, maxClSize);
-        clEnergyPlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Energy mu+", 50, 0, maxClEnergy);
-        clEnergyMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Cluster Energy mu-", 50, 0, maxClEnergy);
-
-    }
-
-    private IHistogram1D mass, pPlus, pMinus, pTot, timeDiff;
-
-    private IHistogram2D xyAtEcalPlus, xyAtEcalMinus, pPlusVsPMinus, tPlusVsTMinus;
-
-    private IHistogram2D dxyNearestClusterPlus, dxyNearestClusterMinus;
-
-    private IHistogram2D clusterXY;
-
-    private IHistogram2D sumPxPy;
-
-    private IHistogram1D clSizePlus, clSizeMinus;
-    private IHistogram1D clEnergyPlus, clEnergyMinus;
 
 }
