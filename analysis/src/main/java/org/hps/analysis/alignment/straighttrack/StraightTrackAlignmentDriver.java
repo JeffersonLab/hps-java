@@ -104,6 +104,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     boolean alignit = false;
     int bottomIter;
     int topIter;
+    int NITER = 7;
     List<List<Hit>> bottomEventsToAlign = new ArrayList<>();
     List<DetectorPlane> bottomPlanes = null;//new ArrayList<DetectorPlane>();
     List<List<Hit>> topEventsToAlign = new ArrayList<>();
@@ -122,7 +123,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
         // set up the DetectorPlanes at the 2H02 wire
-        double[] beamSpot = {-65., 0., -2267.};  // start with this...
+        double[] beamSpot = {target_x, target_y, target_z};  // start with this...
         double[] sigs = {0.050, 0.00}; // pick 50um for beam spot at wire
         xPlaneAtWire = new DetectorPlane(15, Matrix.identity(3, 3), beamSpot, sigs);
         yPlaneAtWire = new DetectorPlane(16, GEN_ROTMAT(PI / 2., 2), beamSpot, sigs);
@@ -515,7 +516,6 @@ public class StraightTrackAlignmentDriver extends Driver {
         }
         aida.tree().cd("..");
 
-        int NITER = 7;
         int NN = planes.size();
         // the following controls which variables for which planes are allowed to float...
         // this should be set in the calling routine...
@@ -815,6 +815,10 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     public void setNumberOfTracksPerAlignment(int i) {
         nEventsToAlign = i;
+    }
+
+    public void setNumberOfAlignmentIterations(int i) {
+        NITER = i;
     }
 
     public void setUseBeamConstraintInTrackFit(boolean b) {
