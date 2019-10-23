@@ -113,7 +113,10 @@ public class StraightTrackAlignmentDriver extends Driver {
     List<Track> topTracks = new ArrayList<Track>();
     List<Track> bottomTracks = new ArrayList<Track>();
     List<Track> topAndBottomTracks = new ArrayList<Track>();
-
+    int nTracksToVertex = 50;
+    double target_x = -68.0;
+    double target_y = 0.;
+    double target_z = -(672.71 - 583.44) * 25.4;
     double maxChisq = 100.;
 
     protected void detectorChanged(Detector detector) {
@@ -425,7 +428,7 @@ public class StraightTrackAlignmentDriver extends Driver {
             }
         }
         //let's try to vertex some tracks...
-        int nTracksToVertex = 200;
+
         if (topTracks.size() >= nTracksToVertex) {
             vertexEm(topTracks, "top");
             topTracks.clear();
@@ -788,5 +791,37 @@ public class StraightTrackAlignmentDriver extends Driver {
 //        System.out.println(ip);
 //        System.out.println(h);
         return h.uvm()[0] - ip.q()[0];
+    }
+
+    public void setNumberOfTracksToVertex(int i) {
+        nTracksToVertex = i;
+    }
+
+    public void setTargetX(double d) {
+        target_x = d;
+    }
+
+    public void setTargetY(double d) {
+        target_y = d;
+    }
+
+    public void setTargetZ(double d) {
+        target_z = d;
+    }
+
+    public void setMaxTrackChisquared(double d) {
+        maxChisq = d;
+    }
+
+    public void setNumberOfTracksPerAlignment(int i) {
+        nEventsToAlign = i;
+    }
+
+    public void setUseBeamConstraintInTrackFit(boolean b) {
+        beamConstrain = b;
+    }
+
+    public void setDoAlignment(boolean b) {
+        alignit = b;
     }
 }
