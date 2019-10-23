@@ -172,8 +172,11 @@ public class MakeGblTracks {
      * @return The refitted track.
      */
     public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
-
-        return refitTrackWithTraj(helix, stripHits, hth, nIterations, trackType, scattering, bfield, storeTrackStates).getFirst();
+        Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrack = refitTrackWithTraj(helix, stripHits, hth, nIterations, trackType, scattering, bfield, storeTrackStates);
+        if(refitTrack == null)
+            return null;
+        else
+            return refitTrack.getFirst();
     }
 
     public static Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrackWithTraj(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
@@ -181,6 +184,7 @@ public class MakeGblTracks {
         List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
         List<TrackerHit> sortedStripHits = TrackUtils.sortHits(stripHits);
         FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+        if(fit==null) return null;
         for (int i = 0; i < nIterations; i++) {
             Pair<Track, GBLKinkData> newTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
             helix = TrackUtils.getHTF(newTrack.getFirst());
@@ -240,8 +244,12 @@ public class MakeGblTracks {
             }
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
             MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
-            if (temp == null)
+            if (temp == null){
                 temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
+                if(temp == null){
+                    return null;
+                }
+            }
             GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
             if (stripData != null)
                 stripClusterDataList.add(stripData);

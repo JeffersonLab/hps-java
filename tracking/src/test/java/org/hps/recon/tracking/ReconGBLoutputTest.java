@@ -51,7 +51,7 @@ public class ReconGBLoutputTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(inputFile);
 
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
         loop.add(new MainTrackingDriver());
@@ -103,7 +103,7 @@ public class ReconGBLoutputTest extends TestCase {
             add(trd4);
 
             org.hps.recon.tracking.MergeTrackCollections mtc = new org.hps.recon.tracking.MergeTrackCollections();
-            mtc.setInputTrackCollectionName("");
+            mtc.setInputTrackCollectionName(new String[]{""});
             mtc.setRemoveCollections(true);
             add(mtc);
 

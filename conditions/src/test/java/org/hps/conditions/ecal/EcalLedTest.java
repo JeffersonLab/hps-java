@@ -30,7 +30,7 @@ public final class EcalLedTest extends TestCase {
      */
     @Override
     public void setUp() {
-        conditionsManager = new DatabaseConditionsManager();
+        conditionsManager = DatabaseConditionsManager.getInstance();
         try {
             conditionsManager.setDetector("HPS-ECalCommissioning-v2", RUN_NUMBER);
         } catch (final ConditionsNotFoundException e) {

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <!-- SLiC Data Readout Drivers -->
+        <driver name="EcalHitsOutputDriver"/>
+        <driver name="MCParticleOutputDriver"/>
+        <driver name="TrackerHitsSVTOutputDriver"/>
+        <driver name="TrackerHitsEcalOutputDriver"/>
+        
+        <!-- SVT Readout Drivers -->
+        <driver name="SVTReadoutDriver" />
+        <driver name="InactiveTrackerHitsOutputDriver"/>
+        
+        <!-- Readout Simulation Drivers -->
+        <driver name="EcalDigitizationDriver"/>
+        <driver name="EcalRawConverterDriver"/>
+        <driver name="GTPReadoutDriver"/>
+        <driver name="Pair1TriggerDriver"/>
+        
+        <!-- LCIO Output and Data Management Driver -->
+        <driver name="ReadoutManagerDriver"/>
+        
+        <driver name="CleanupDriver" />
+    </execute> 
+    
+    <drivers>
+        <!--
+             Truth handler drivers load truth information from the input SLIC file
+             and pass them off to the readout data manager, where they may be
+             accessed by other readout drivers.
+             
+             It is required that these drivers specify the name of the collection
+             that they manage, and be of the appropriate handler type that matches
+             the object type of the collection. They may also, optionally, specify
+             whether the truth collection managed by the driver should be output
+             into the readout file, and if so, over what time range.
+             
+             By default, SLIC truth data is not written out. If no output window is
+             specified, and truth is written, the output window will be derived
+             from the readout window and trigger offset parameters of the readout
+             data manager.
+             
+             In general, calorimeter truth information (and the related particles
+             data) are best handled by including truth readout in the calorimeter
+             simulation. This will automatically include all calorimeter truth hits
+             and related MC particles in the readout file.
+          -->
+        <driver name="EcalHitsOutputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
+            <collectionName>EcalHits</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="MCParticleOutputDriver" type="org.hps.readout.MCParticleReadoutDriver">
+            <collectionName>MCParticle</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>32.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
+            <collectionName>TrackerHits</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="InactiveTrackerHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
+            <collectionName>TrackerHits_Inactive</collectionName>
+           
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
+            <collectionName>TrackerHitsECal</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        
+        <!--
+            The SVT driver. Works just like before. Documentation is left to
+            the SVT group.
+        -->
+        <driver name="SVTReadoutDriver" type="org.hps.readout.svt.SVTReadoutDriver">
+            <enablePileupCut>false</enablePileupCut>
+            <useTimingConditions>true</useTimingConditions>
+            <addNoise>true</addNoise>
+        </driver>
+        
+        <!--
+             The calorimeter readout driver handles conversion of SLIC truth
+             hits into voltage pulses and ultimately into ADC counts every 4 ns
+             sample. These samples are then integrated and output as hits which
+             are used internally by the readout simulation in the collection
+             set by variable "outputHitCollectionName".
+             
+             When a trigger occurs, the ADC buffer is used to generate readout
+             hits. The exact form these take differs based on the mode that is
+             simulated, but they are always output to the collection defined by
+             variable "readoutHitCollectionName".
+             
+             If truth information is enabled, then a set of truth relations are
+             output as well that link each readout hit to all of the truth hits
+             that are associated with it. Additionally, all truth hits as well
+             as the particle (and its parents) that generated that truth hit
+             are written out to ensure that they are available post-readout.
+             The additional truth information is automatically written to the
+             same collection name as the input truth data. If a truth handler
+             driver also outputs data into this collection, the two will merge.
+          -->
+        <driver name="EcalDigitizationDriver" type="org.hps.readout.ecal.updated.EcalDigitizationReadoutDriver">
+            <!-- LCIO Collection Names -->
+            <inputHitCollectionName>EcalHits</inputHitCollectionName>
+            <outputHitCollectionName>EcalRawHits</outputHitCollectionName>
+            <readoutHitCollectionName>EcalReadoutHits</readoutHitCollectionName>
+            <truthRelationsCollectionName>EcalTruthRelations</truthRelationsCollectionName>
+            <triggerPathTruthRelationsCollectionName>TriggerPathTruthRelations</triggerPathTruthRelationsCollectionName>
+            
+            <!-- Driver Parameters -->
+            <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
+            <addNoise>true</addNoise>
+            <!-- 
+                 Readout offset is not the same as the old system - it measures
+                 amount of samples that are included before the trigger time in
+                 the ADC readout window. The old version can be converted by
+                 selecting a readout window equal to (readoutLatency - 64).
+              -->
+            <readoutOffset>13</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutWindow>50</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+            <integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
+            
+            <!--
+                The digitization driver produces as output a list of ADC values
+                within a specified window, in emulation of Mode-1 data. This
+                removes the truth information that is otherwise present in the
+                original SLiC output. Setting this option to true creates new
+                LCRelation objects that link the ADC list to the truth hits that
+                created it and stores this in readout. For production running,
+                this should generally be off to save space. Truth hits will be
+                included in readout automatically - the truth hit driver above
+                does not need to be persistent.
+            -->
+            <writeTruth>true</writeTruth>
+            
+            <!--
+                As above, except that truth relations are persisted for the
+                readout hits that are seen by the clusterer and trigger. This
+                is useful if some analysis needs to be performed at the readout
+                level. Otherwise, this should be left off.
+            -->
+            <writeTriggerPathTruth>false</writeTriggerPathTruth>
+        </driver>
+        
+        <!--
+             The raw converter handles the conversion of simulated ADC pulses from
+             the calorimeter readout driver into proper hits that can be used for
+             triggering.
+             
+             Note that it allows for these hits to be written to LCIO if desired,
+             though by default they are not persisted. This is generally unneeded,
+             since the clusterer will automatically output the hits which appear in
+             GTP clusters if cluster output is enabled.
+          -->
+        <driver name="EcalRawConverterDriver" type="org.hps.readout.ecal.updated.EcalRawConverterReadoutDriver">
+            <!--
+                NSA and NSB must match the digitization driver settings.
+            -->
+            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+            
+            <!--
+                Outputs all the trigger-level hits within the readout window.
+                This is not generally necessary outside of specialized
+                circumstances. Note that all readout hits associated with GTP
+                clusters will automatically be included if GTP clusters are
+                persisted.
+            -->
+            <persistent>false</persistent>
+        </driver>
+        
+        <!--
+             The GTP clusterer creates clusters from converted calorimeter hits
+             for use in the trigger. It take two parametesr: the clustering
+             window, which specifies the number of clock-cycles in which a seed
+             hit candidate must be a spatiotemporal maximum, and seed energy
+             threshold, which specifies how much energy a seed hit candidate
+             must have in order to be used.
+             
+             The GTP clusterer is able to be persisted into LCIO. If persisted,
+             it will output all of the clusters in the readout window range
+             (either specified manually as with the truth drivers or using the
+             default readout window and trigger offset of the manager). It will
+             also output all of the hits contained in each cluster into the
+             output file as well.
+          -->
+        <driver name="GTPReadoutDriver" type="org.hps.readout.ecal.updated.GTPClusterReadoutDriver">
+            <!-- Units of 4 ns clock-cycles. -->
+            <clusterWindow>4</clusterWindow>
+            <!-- Units of GeV. -->
+            <seedEnergyThreshold>0.100</seedEnergyThreshold>
+            
+            <!--
+                Specifies whether GTP clusters should be persisted in the
+                output LCIO data. This should generally be false for production
+                running to save space, but can be useful for some analyses, as
+                the exact trigger-time clusters are not otherwise recoverable
+                after readout.
+            -->
+            <persistent>false</persistent>
+        </driver>
+        
+        <!--
+            The production pair trigger. This trigger allows the user to
+            specify the trigger deadtime (how much time must pass before a new
+            trigger can occur after a previous trigger has been created) and
+            the values of all the trigger cuts.
+        -->
+        <driver name="Pair1TriggerDriver" type="org.hps.readout.trigger.PairTriggerReadoutDriver">
+            <inputCollectionName>EcalClustersGTP</inputCollectionName>
+            
+            <!-- Units of 2 ns beam bunches. -->
+            <deadTime>15</deadTime>
+            
+            <!-- Units of GeV. -->
+            <seedEnergyLow>0.100</seedEnergyLow>
+            <!-- Units of cluster hits. -->
+            <minHitCount>2</minHitCount>
+            <!-- Units of 4 ns clock-cycles. -->
+            <pairCoincidence>3</pairCoincidence>
+            <!-- Units of GeV. -->
+            <clusterEnergyLow>0.150</clusterEnergyLow>
+            <!-- Units of GeV. -->
+            <clusterEnergyHigh>1.400</clusterEnergyHigh>
+            <!-- Units of GeV. -->
+            <energySumLow>0.600</energySumLow>
+            <!-- Units of GeV. -->
+            <energySumHigh>2.000</energySumHigh>
+            <!-- Units of GeV. -->
+            <energyDifferenceHigh>1.1</energyDifferenceHigh>
+            <!-- Units of degrees. -->
+            <coplanarityHigh>35</coplanarityHigh>
+            <!-- Units of GeV / mm. -->
+            <energySlopeParamF>0.0055</energySlopeParamF>
+            <!-- Units of GeV. -->
+            <energySlopeLow>0.700</energySlopeLow>
+        </driver>
+        
+        <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
+            <readoutWindow>200</readoutWindow>
+            <outputFile>${outputFile}.slcio</outputFile>
+        </driver>
+        
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
+    </drivers>
+</lcsim>

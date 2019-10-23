@@ -37,7 +37,7 @@ public final class ResourceUtil {
      */
     public static String[] getConditionsTags() {
         // FIXME: New database manager should probably not be instantiated here.
-        DatabaseConditionsManager mgr = new DatabaseConditionsManager();
+        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
         String[] tags = mgr.getAvailableTags().toArray(new String[]{});
         try {
             mgr.getConnection().close();

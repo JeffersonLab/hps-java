@@ -1,5 +1,6 @@
 package org.hps.conditions.api;
 
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -312,6 +313,15 @@ public final class ConditionsRecord extends BaseConditionsObject {
         this.setFieldValue("created_by", System.getProperty("user.name"));
     }
 
+    static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    private static Date stringToDate(String dateString) {
+        try {
+            return DATE_FORMAT.parse((String) dateString);
+        } catch (java.text.ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Get the date this record was created.
      *
@@ -319,7 +329,12 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"created"})
     public Date getCreated() {
-        return this.getFieldValue("created");
+        Object created = this.getFieldValue("created");
+        if (created instanceof String) { /* handle sqlite dates which are returned as strings */
+            return stringToDate((String) created);
+        } else {
+            return this.getFieldValue("created");
+        }
     }
 
     /**
@@ -402,7 +417,12 @@ public final class ConditionsRecord extends BaseConditionsObject {
      */
     @Field(names = {"updated"})
     public Date getUpdated() {
-        return this.getFieldValue("updated");
+        Object updated = this.getFieldValue("updated");
+        if (updated instanceof String) { /* handle sqlite dates which are returned as strings */
+            return stringToDate((String) updated);
+        } else {
+            return this.getFieldValue("updated");
+        }
     }
 
     /**

@@ -95,8 +95,7 @@ public class ReconClusterDriver extends ClusterDriver {
      */
     public void process(EventHeader event) {
         // Do standard ClusterDriver processing.
-        super.process(event);        
-        
+        super.process(event);
         // Write rejected hit list.
         if (this.writeRejectedHitCollection) {
             writeRejectedHitList(event);        

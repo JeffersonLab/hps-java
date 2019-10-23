@@ -8,6 +8,8 @@ import java.util.Set;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOUtil;
 import org.lcsim.recon.tracking.digitization.sisim.CDFSiSensorSim;
@@ -16,21 +18,21 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
 /**
- * 
+ *
  * @author Matt Graham
  */
 // TODO: Add documentation about what this Driver does. --JM
 public class DataTrackerHitDriver extends Driver {
 
     // Debug switch for development.
-
     private boolean debug = false;
     // Collection name.
-    // private String readoutCollectionName = "TrackerHits";
+    private String readoutCollectionName = "TrackerHits";
     // Subdetector name.
     private String subdetectorName = "Tracker";
-    // Name of RawTrackerHit output collection.
-    // private String rawTrackerHitOutputCollectionName = "RawTrackerHitMaker_RawTrackerHits";
+    // Name of FittedTrackerHit output collection.
+    private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
+
     // Name of StripHit1D output collection.
     private String stripHitOutputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     // Clustering parameters.
@@ -60,7 +62,7 @@ public class DataTrackerHitDriver extends Driver {
     // private HPSFittedRawTrackerHitMaker hitMaker;
     private StripMaker stripClusterer;
     // private DumbShaperFit shaperFit;
-    int[][] counts = new int[2][10];
+    int[] counts = new int[14];
 
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -129,10 +131,10 @@ public class DataTrackerHitDriver extends Driver {
         this.fiveClusterErr = fiveClusterErr;
     }
 
-    public void setUseWeights(boolean useWeights){
+    public void setUseWeights(boolean useWeights) {
         this.useWeights = useWeights;
     }
-    
+
     /**
      * Creates a new instance of TrackerHitDriver.
      */
@@ -152,19 +154,15 @@ public class DataTrackerHitDriver extends Driver {
         // detector
         IDetectorElement deDetector = detector.getDetectorElement();
 
-        for (String path : processPaths) {
+        for (String path : processPaths)
             processDEs.add(deDetector.findDetectorElement(path));
-        }
 
-        if (processDEs.isEmpty()) {
+        if (processDEs.isEmpty())
             processDEs.add(deDetector);
-        }
 
-        for (IDetectorElement detectorElement : processDEs) {
-            processSensors.addAll(detectorElement.findDescendants(SiSensor.class));
-            // if (debug)
-            // System.out.println("added " + processSensors.size() + " sensors");
-        }
+        for (IDetectorElement detectorElement : processDEs)
+            processSensors.addAll(detectorElement.findDescendants(SiSensor.class)); // if (debug)
+        // System.out.println("added " + processSensors.size() + " sensors");
 
         // Create the sensor simulation.
         CDFSiSensorSim stripSim = new CDFSiSensorSim();
@@ -184,9 +182,9 @@ public class DataTrackerHitDriver extends Driver {
 
         stripClusterer.setMaxClusterSize(clusterMaxSize);
         stripClusterer.setCentralStripAveragingThreshold(clusterCentralStripAveragingThreshold);
-
+        stripClusterer.setDebug(debug);
         // Set the cluster errors.
-        
+
         DefaultSiliconResolutionModel model = new DefaultSiliconResolutionModel();
 
         model.setOneClusterErr(oneClusterErr);
@@ -195,9 +193,8 @@ public class DataTrackerHitDriver extends Driver {
         model.setFourClusterErr(fourClusterErr);
         model.setFiveClusterErr(fiveClusterErr);
         model.setUseWeights(useWeights);
-        
+
         stripClusterer.setResolutionModel(model);
-        
 
         // Set the detector to process.
         processPaths.add(subdetectorName);
@@ -211,49 +208,39 @@ public class DataTrackerHitDriver extends Driver {
         // Call sub-Driver processing.
         // super.process(event);
 
-        // Make new lists for output.
-        // List<HPSFittedRawTrackerHit> rawHits = new ArrayList<HPSFittedRawTrackerHit>();
+        // Make new lists for output.    
         List<SiTrackerHit> stripHits1D = new ArrayList<SiTrackerHit>();
 
-        // // Make HPS hits.
-        // for (SiSensor sensor : processSensors) {
-        // rawHits.addAll(hitMaker.makeHits(sensor));
-        // }
-
         // Make strip hits.
-        for (SiSensor sensor : processSensors) {
+        for (SiSensor sensor : processSensors)
             stripHits1D.addAll(stripClusterer.makeHits(sensor));
-        }
 
         // Debug prints.
         if (debug) {
-            // List<SimTrackerHit> simHits = event.get(SimTrackerHit.class,
-            // this.readoutCollectionName);
-            // System.out.println("SimTrackerHit collection " + this.readoutCollectionName +
-            // " has " + simHits.size() + " hits.");
-            // System.out.println("RawTrackerHit collection " +
-            // this.rawTrackerHitOutputCollectionName + " has " + rawHits.size() + " hits.");
+            if (event.hasCollection(SimTrackerHit.class, this.readoutCollectionName))
+                System.out.println("SimTrackerHit collection " + this.readoutCollectionName
+                        + " has " + event.get(SimTrackerHit.class, this.readoutCollectionName).size() + " hits.");
+            if (event.hasCollection(FittedRawTrackerHit.class, fittedTrackerHitCollectionName))
+                System.out.println("FittedRawTrackerHit collection "
+                        + this.fittedTrackerHitCollectionName + " has " + event.get(LCRelation.class, fittedTrackerHitCollectionName).size() + " hits.");
             System.out.println("TrackerHit collection " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
         }
 
         // Put output hits into collection.
-        int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.
-        // event.put(this.rawTrackerHitOutputCollectionName, rawHits, RawTrackerHit.class, flag,
-        // toString());
+        int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
-        if (debug) {
+        if (debug)
             System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
-        }
+        for (SiTrackerHit stripHit : stripHits1D)
+            counts[((SiTrackerHitStrip1D) stripHit).getRawHits().get(0).getLayerNumber()-1]++;
+
     }
 
     @Override
     public void endOfData() {
-        if (debug) {
-            for (int mod = 0; mod < 2; mod++) {
-                for (int layer = 0; layer < 10; layer++) {
-                    System.out.format("mod %d, layer %d, count %d\n", mod, layer, counts[mod][layer]);
-                }
-            }
-        }
+        if (debug)
+
+            for (int layer = 0; layer < 14; layer++)
+                System.out.format("layer %d, count %d\n",layer, counts[layer]);
     }
 }

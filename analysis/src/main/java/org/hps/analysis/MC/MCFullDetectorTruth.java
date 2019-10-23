@@ -6,6 +6,7 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +19,12 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.geometry.IDDecoder;
@@ -29,11 +32,8 @@ import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.util.swim.Trajectory;
 
 /**
- * This is the tuple template driver
- * Use this to add your code and variables to make a tuple
- * Run the GeneralTupleDriver to output info into a text file
- * Change the steering file to include this driver
- * Run "makeTree.py" on text file to create a root tuple
+ * This is the driver that takes a TrackTruthMatching object
+ * and computes the full truth information including scattering angles
  *
  * @author mrsolt on Aug 31, 2017
  */
@@ -41,6 +41,8 @@ import org.lcsim.util.swim.Trajectory;
 public class MCFullDetectorTruth{
 
     private TrackTruthMatching _pTruth =  null;
+    private List<SimTrackerHit> _truthActHits = null;
+    private Map<Integer,Set<Track>> _sharedTrk = new HashMap<Integer,Set<Track>>();
     private Map<Integer,Hep3Vector> _actHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Hep3Vector> _inactHitPos = new HashMap<Integer,Hep3Vector>();
     private Map<Integer,Hep3Vector> _actHitP = new HashMap<Integer,Hep3Vector>();
@@ -55,16 +57,11 @@ public class MCFullDetectorTruth{
     private int _ecalNHits = 0;
     private boolean _isTriggered = false;
     
-    private final String trackHitMCRelationsCollectionName = "RotatedHelicalTrackMCRelations";
     private String trackerHitsCollectionName = "TrackerHits";
     private String inactiveTrackerHitsCollectionName = "TrackerHits_Inactive";
     private String ecalHitsCollectionName = "EcalHits";
-    private final String mcParticleCollectionName = "MCParticle";
-    private String detectorFrameHitRelationsCollectionName = "HelicalTrackHitRelations";
-    private String trackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
+    private String trackCollectionName = "GBLTracks";
     
-    
-
     public MCFullDetectorTruth(EventHeader event, Track trk, FieldMap fieldMap, List<HpsSiSensor> sensors, Subdetector trackerSubdet) {
         doTruth(event, trk, fieldMap, sensors, trackerSubdet);
     }
@@ -73,6 +70,8 @@ public class MCFullDetectorTruth{
     
         List<SimTrackerHit> trackerHits = event.get(SimTrackerHit.class, trackerHitsCollectionName);
         List<SimTrackerHit> trackerHits_Inactive = null;
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
+        
         if(event.hasCollection(SimTrackerHit.class , inactiveTrackerHitsCollectionName)){
             trackerHits_Inactive = event.get(SimTrackerHit.class, inactiveTrackerHitsCollectionName);
         }
@@ -93,10 +92,42 @@ public class MCFullDetectorTruth{
         if(truthp == null)
             return;
         
-        List<SimTrackerHit> truthActHits = trackerHitMap.get(truthp);
+        List<TrackerHit> trk_hits = trk.getTrackerHits();
+        for(Track track : tracks){
+            if(track.equals(trk))
+                continue;
+            boolean sharedHit = false;
+            List<TrackerHit> hits = track.getTrackerHits();
+            int sharedLay = 9999;
+            for(TrackerHit hit : hits){
+                for(TrackerHit trk_hit : trk_hits){
+                    int lay = ((RawTrackerHit) trk_hit.getRawHits().get(0)).getLayerNumber();
+                    if(!_sharedTrk.containsKey(lay)){
+                        _sharedTrk.put(lay,new HashSet<Track>());
+                    }
+                    if(hit.equals(trk_hit)){
+                        sharedHit = true;
+                        sharedLay = lay;
+                        break;
+                    }
+                }
+                if(sharedHit)
+                    break;
+            }
+            if(sharedHit){
+                if(_sharedTrk.containsKey(sharedLay)){
+                    _sharedTrk.get(sharedLay).add(track);
+                }
+                else{
+                    _sharedTrk.put(sharedLay,new HashSet<Track>());
+                }
+            }
+        }
+        
+        _truthActHits = trackerHitMap.get(truthp);
         List<SimTrackerHit> truthInActHits = trackerInHitMap.get(truthp);
         
-        ComputeSVTVars(truthp, truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
+        ComputeSVTVars(truthp, _truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
         
         List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, ecalHitsCollectionName);
         Map<MCParticle, List<SimCalorimeterHit>> calHitMap = BuildCalHitMap(calHits);
@@ -166,23 +197,6 @@ public class MCFullDetectorTruth{
     }
     
     private List<Pair<SimTrackerHit,String>> orderHits(List<SimTrackerHit> hits_act, List<SimTrackerHit> hits_in, Subdetector trackerSubdet, List<HpsSiSensor> sensors){
-        /*if(hits_act != null && hits_in != null){
-            if(hits_in.size() > 9999){
-                for (SimTrackerHit hit : hits_act) {
-                    System.out.println("Active Hits " + hit.getLayer());
-                }
-            }
-        }
-        if(hits_act != null && hits_in != null){
-            if(hits_in.size() > 9999){
-                for (SimTrackerHit hit : hits_in) {
-                    IDetectorElement de = trackerSubdet.getDetectorElement().findDetectorElement(hit.getPositionVec());
-                    int layer = trackHitLayerNum(de, sensors, true);
-                    System.out.println("InActive Hits " + layer);
-                }
-            }
-        }*/
-        
         if(hits_act == null) 
             return null;
         List<Pair<SimTrackerHit,String>> hitlist = new ArrayList<Pair<SimTrackerHit,String>>();
@@ -190,9 +204,6 @@ public class MCFullDetectorTruth{
             for(SimTrackerHit hit : hits_act){
                 hitlist.add(new Pair<SimTrackerHit,String>(hit,"active"));
             }
-            /*for(Pair<SimTrackerHit,String> pair : hitlist){
-                System.out.println(pair.getFirst().getLayer() + " " + pair.getSecond());
-            }*/
             return hitlist;
         }
         
@@ -234,24 +245,6 @@ public class MCFullDetectorTruth{
 
             }
         }
-        /*if(hits_act != null && hits_in != null){
-            if(hits_in.size() > 999){
-                for(Pair<SimTrackerHit,String> pair : hitlist){
-                    SimTrackerHit hit = pair.getFirst();
-                    IDetectorElement de = trackerSubdet.getDetectorElement().findDetectorElement(hit.getPositionVec());
-                    int layer = 0;
-                    if(pair.getSecond() == "inactive")
-                        layer = trackHitLayerNum(de, sensors, true);
-                    else
-                        layer = hit.getLayerNumber();
-                    System.out.println(layer + " " + pair.getSecond());
-                }
-                System.out.println("");
-                System.out.println("");
-                System.out.println("");
-                System.out.println("");
-            }
-        }*/
         return hitlist;
     }
     
@@ -270,6 +263,7 @@ public class MCFullDetectorTruth{
     
     public static Map<MCParticle, List<SimTrackerHit>> BuildTrackerHitMap(List<SimTrackerHit> trackerHits){
         Map<MCParticle, List<SimTrackerHit>> trackerHitMap = new HashMap<MCParticle, List<SimTrackerHit>>();
+        if(trackerHits == null) { return trackerHitMap; }
         for (SimTrackerHit hit : trackerHits) {
             MCParticle p = hit.getMCParticle();
             if (p == null) {
@@ -304,67 +298,9 @@ public class MCFullDetectorTruth{
         return calHitMap;
     }
     
-    /*public static String trackHitLayer(SimTrackerHit hit) {
-        String layer = Integer.toString( (int) hit.getLayer());
-        double y = hit.getPositionVec().y();
-        String volume = "";
-        //boolean isTop = ((HpsSiSensor) ((SimTrackerHit) hit.getDetectorElement()).getDetectorElement()).isTopLayer();
-        //if(isTop) volume = "t";
-        if(y > 0) volume = "t";
-        else volume = "b";
-        String prefix = "L" + layer + volume;
-        return prefix;
-    }*/
-    
-    /*public static String trackHitLayer(IDetectorElement de, List<HpsSiSensor> sensors, boolean inactive) {
-        if(!inactive){
-            HpsSiSensor sensor = ((HpsSiSensor) de);
-            String layer = Integer.toString(sensor.getLayerNumber());
-            String volume = "";
-            if(sensor.isTopLayer()) volume = "t";
-            else volume = "b";
-            return "L" + layer + volume;
-        }
-        else{
-            HpsSiSensor sensor = null;
-            for (HpsSiSensor s : sensors){
-                String name = de.getName() + "_sensor0";
-                if(s.getName().equals(name)){
-                    sensor = s;
-                    break;
-                }
-            }
-            String layer = Integer.toString(sensor.getLayerNumber());
-            String volume = "";
-            if(sensor.isTopLayer()) volume = "t";
-            else volume = "b";
-            return "L" + layer + volume;
-        }
-        //System.out.println(sensor.getModuleId());
-        //String layer = "";
-        //System.out.println(sensor.getName());
-        //HpsSiSensor sensor = null;
-        /*for (HpsSiSensor s : sensors){
-            System.out.println(s.getName() + "  " + de.getName() + "  ");
-            String name = de.getName();
-            if(de.isSensitive()) name = name + "_sensor0";
-            if(s.getName() == name){
-                System.out.println(s.getName());
-                sensor = s;
-                break;
-            }
-        }
-        //String layer = Integer.toString(sensor.getLayerNumber());;
-        //String volume = "";
-        //if(sensor.isTopLayer()) volume = "t";
-        //else volume = "b";
-        //return "L" + layer + volume;
-    }*/
-    
     public static int trackHitLayerNum(IDetectorElement de, List<HpsSiSensor> sensors, boolean inactive) {
         if(!inactive){
             try{
-                //System.out.println(de.getName() + " " + de.getParent().getName() + " " + de.getAncestry());
                 HpsSiSensor sensor = ((HpsSiSensor) de);
                 return sensor.getLayerNumber();
             }
@@ -388,126 +324,15 @@ public class MCFullDetectorTruth{
                     return -1;
                 }
             }
-            return sensor.getLayerNumber();
+            if(sensor != null){
+                return sensor.getLayerNumber();
+            }
+            else{
+                return -1;
+            }
         }
     }
-    
-    /*public static String trackHitLayer_1(SimTrackerHit hit) {
-        String layer = Integer.toString( (int) hit.getLayer() - 1);
-        double y = hit.getPositionVec().y();
-        String volume = "";
-        //boolean isTop = ((HpsSiSensor) ((SimTrackerHit) hit.getDetectorElement()).getDetectorElement()).isTopLayer();
-        //if(isTop) volume = "t";
-        if(y > 0) volume = "t";
-        else volume = "b";
-        String prefix = "L" + layer + volume;
-        return prefix;
-    }*/
-    
-    /*public static String MCParticleType(MCParticle p, List<MCParticle> particles, double ebeam) {
-        boolean isEle = false;
-        boolean isPos = false;
-        
-        // particle PDG ID
-        int pdgid = p.getPDGID();
-        
-        // particle energy
-        double energy = p.getEnergy();
-        
-        if(pdgid == 11){
-            isEle = true;
-        }
-        
-        if(pdgid == -11){
-            isPos = true;
-        }
-        
-        // parent index in particle list
-        Integer parIdx = null;
-        
-        // find parent's index in the particle collection
-        if (p.getParents().size() > 0) {
-            MCParticle parent = p.getParents().get(0);
-            for (int i = 0; i < particles.size(); i++) {
-                if (particles.get(i) == parent) {
-                    parIdx = i;
-                    break;
-                }
-            }
-        }
-        else{
-            parIdx = -1;
-        }
-        if(isEle && parIdx == 0){
-            for (MCParticle particle : particles) {
-                if(particle.getParents().size() == 0) continue;
-                if(particle.getPDGID() == 11 && particle.getParents().get(0).getPDGID() == 622 && p != particle){
-                    if(particle.getEnergy() < energy){
-                        return "triEle1";
-                    }
-                    else{
-                        return "triEle2";
-                    }
-                }
-            }
-        }
-        
-        if(isPos && parIdx == 0){
-            return "triPos";
-        }     
-        
 
-        MCParticle wab = null;
-
-        MCParticle ele1 = null;// conversion electron daughter
-        MCParticle ele2 = null;// recoil wab electron
-        MCParticle pos = null;// conversion positron daughter
-
-        List<MCParticle> wabParticles = null;
-
-        for (MCParticle particle : particles) {
-            if (particle.getPDGID() == 22) {
-                if (particle.getDaughters().size() != 2) continue;
-                double wabEnergy = particle.getEnergy();
-                for(MCParticle part : particles){
-                    if(part.getPDGID() != 11 || !part.getParents().isEmpty()) continue;
-                    double eleEnergy = part.getEnergy();
-                    double esum = wabEnergy + eleEnergy;
-                    if(esum < 0.98 * ebeam || esum > 1.02 * ebeam) continue;
-                    ele2 = part;
-                    wab = particle;
-                    wabParticles = wab.getDaughters();
-                    break;
-                }
-            }
-        }
-        if (wab == null) {
-            return "";
-        }
-
-
-        for (MCParticle particle : wabParticles) {
-            if(particle.getPDGID() == 11){
-                pos = particle;
-            }
-            if(particle.getPDGID() == -11){
-                ele1 = particle;
-            }
-        }
-
-        if (ele1 == p) {
-            return "wabEle1";
-        }
-        if (ele2 == p) {
-            return "wabEle2";
-        }
-        if (pos == p) {
-            return "wabPos";
-        }
-        
-        return "";
-    }
-    */
     public static double deltaThetaX(Hep3Vector p1, Hep3Vector p2){
         double theta1 = p1.x()/p1.z();
         double theta2 = p2.x()/p2.z();
@@ -526,8 +351,6 @@ public class MCFullDetectorTruth{
         Hep3Vector currentPosition = CoordinateTransformations.transformVectorToTracking(endPosition);
         Hep3Vector currentMomentum = VecOp.neg(CoordinateTransformations.transformVectorToTracking(endMomentum));
         double startPositionZ = startPosition.z();
-    
-        //System.out.println(currentPosition.x() + "  " + currentPosition.y() + "  " + currentPosition.z() + "  ");
 
         // Retrieve the y component of the bfield in the middle of detector
         double bFieldY = fieldMap.getField(new BasicHep3Vector(0, 0, 500.0)).y();       
@@ -629,6 +452,12 @@ public class MCFullDetectorTruth{
         return _pTruth.isTop();
     }
 
+    //Returns list of all Tracks associated with a tracker hit
+    //on a layer
+    public Set<Track> getHitTrackList(int layer) {
+        return _sharedTrk.get(layer);
+    }
+    
     //Returns the number of MCParticles that contribute to the
     //tracker hit at a layer
     public int getNumberOfMCParticles(int layer) {
@@ -641,6 +470,10 @@ public class MCFullDetectorTruth{
         return _pTruth.getHitMCParticleList(layer);
     }
 
+    //Returns all active hits associated with MC particle
+    public List<SimTrackerHit> getActiveHitListMCParticle(){
+        return _truthActHits;
+    }
     
     //Returns a boolean of which hits of MCParticle contribute
     //to the track

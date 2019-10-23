@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+    
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal"/>
+        <driver name="EcalRawConverter" />
+        <driver name="EcalTimeCorrection"/>
+        <driver name="ReconClusterer" />
+        <driver name="ClusterRFTimeCorrDriver"/>
+        <driver name="CopyCluster" />
+
+        <driver name="HodoRunningPedestal"/>
+        <driver name="HodoRawConverter"/>
+
+        <!-- Monitoring -->
+        <driver name="HodoMonitoring"/>
+
+    </execute>    
+    <drivers>            
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
+            <useRunningPedestal>true</useRunningPedestal>
+            <tETAllChannels>12</tETAllChannels>
+            <logLevel>CONFIG</logLevel>
+        </driver>
+        
+        <driver name="HodoMonitoring" type="org.hps.monitoring.drivers.hodoscope.HodoscopePlots"/>
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+
+	
+    </drivers>
+</lcsim>

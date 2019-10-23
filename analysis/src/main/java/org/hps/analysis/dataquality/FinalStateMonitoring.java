@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -48,7 +47,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     String finalStateParticlesColName = "FinalStateParticles";
 
     String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event",
-            "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
+        "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
     // some counters
     int nRecoEvents = 0;
     int nTotEle = 0;
@@ -105,7 +104,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         super.detectorChanged(detector);
         double maxFactor = 1.5;
         double feeMomentumCut = 0.75; // this number, multiplied by the beam energy, is the actual cut
-
+        beamEnergy = 4.5;
+        System.out.println("Using beamEnergy = " + beamEnergy);
         LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
@@ -113,7 +113,7 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             trkType = "GBLTrack/";
 
         /* Final State Particle Quantities */
-        /* plot electron & positron momentum separately */
+ /* plot electron & positron momentum separately */
         elePx = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Electron Px (GeV)", 100, -0.1 * beamEnergy,
                 0.200 * beamEnergy);
         elePy = aida.histogram1D(plotDir + trkType + triggerType + "/" + "Electron Py (GeV)", 100, -0.1 * beamEnergy,
@@ -175,9 +175,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         /* make sure everything is there */
 
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
-            if (debug) {
+            if (debug)
                 LOGGER.info(finalStateParticlesColName + " collection not found???");
-            }
             return;
         }
 
@@ -185,25 +184,22 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         // check to see if this event is from the correct trigger (or "all");
-        if (!matchTrigger(event)) {
+        if (!matchTrigger(event))
             return;
-        }
 
         nRecoEvents++;
         int nPhotons = 0;  // number of photons
         int nUnAssTracks = 0; // number of tracks w/o clusters
         List<ReconstructedParticle> finalStateParticles = event.get(ReconstructedParticle.class,
                 finalStateParticlesColName);
-        if (debug) {
+        if (debug)
             LOGGER.info("This events has " + finalStateParticles.size() + " final state particles");
-        }
         for (ReconstructedParticle fsPart : finalStateParticles) {
-            if (debug) {
+            if (debug)
                 LOGGER.info("PDGID = " + fsPart.getParticleIDUsed() + "; charge = " + fsPart.getCharge() + "; pz = "
                         + fsPart.getMomentum().x());
-            }
-            if (isGBL != TrackType.isGBL(fsPart.getType()))
-                continue;
+//            if (isGBL != TrackType.isGBL(fsPart.getType()))
+//                continue;
             // Extrapolate the track to the Ecal cluster position
             boolean isPhoton = false;
             boolean hasCluster = true;
@@ -211,17 +207,15 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             Cluster fsCluster = null;
             // TODO: mg-May 14, 2014 use PID to do this instead...not sure if that's implemented yet
             if (fsPart.getTracks().size() == 1)// should always be 1 or zero for final state particles
-            {
+
                 fsTrack = fsPart.getTracks().get(0);
-            } else {
-                isPhoton = true;
-            }
             // get the cluster
-            if (fsPart.getClusters().size() == 1) {
+            if (fsPart.getClusters().size() == 1)
                 fsCluster = fsPart.getClusters().get(0);
-            } else {
+            else
                 hasCluster = false;
-            }
+            if (fsPart.getCharge() == 0)
+                isPhoton = true;
 
             // deal with electrons & positrons first
             if (!isPhoton) {
@@ -245,19 +239,16 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                     posPx.fill(mom.x());
                     posPy.fill(mom.y());
                     posPz.fill(mom.z());
-                    if (mom.y() > 0) {
+                    if (mom.y() > 0)
                         posPTop.fill(mom.magnitude());
-                    } else {
+                    else
                         posPBottom.fill(mom.magnitude());
-                    }
                 }
-
             }
             // now, the photons
             if (isPhoton) {
-                if (fsCluster == null) {
+                if (fsCluster == null)
                     throw new RuntimeException("isPhoton==true but no cluster found: should never happen");
-                }
                 double ene = fsPart.getEnergy();
                 // TODO: mg-May 14, 2014....I would like to do this!!!!
                 // double xpos = fsCluster.getPositionAtShowerMax(false)[0];// false-->assume a photon instead of
@@ -276,16 +267,15 @@ public class FinalStateMonitoring extends DataQualityMonitor {
             }
 
             if (hasCluster && !isPhoton) {
-                if (fsCluster == null) {
+                if (fsCluster == null)
                     throw new RuntimeException("hasCluster==true but no cluster found: should never happen");
-                }
                 nTotAss++;
                 Hep3Vector mom = fsPart.getMomentum();
                 double ene = fsPart.getEnergy();
                 double eOverP = ene / mom.magnitude();
                 Hep3Vector clusterPosition = new BasicHep3Vector(fsCluster.getPosition());// this gets position at
-                                                                                          // shower max assuming it's an
-                                                                                          // electron/positron
+                // shower max assuming it's an
+                // electron/positron
                 Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(fsTrack, clusterPosition.z());
                 double dx = trackPosAtEcal.x() - clusterPosition.x();// remember track vs detector coords
                 double dy = trackPosAtEcal.y() - clusterPosition.y();// remember track vs detector coords
@@ -321,9 +311,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     @Override
     public void printDQMData() {
         LOGGER.info("FinalStateMonitoring::printDQMData");
-        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet()) {
+        for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
             LOGGER.info(entry.getKey() + " = " + entry.getValue());
-        }
         LOGGER.info("*******************************");
     }
 
@@ -338,9 +327,8 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         IFitResult result = fitBeamEnergyPeak(elePzBeam, fitter, "range=\"(-10.0,10.0)\"");
         if (result != null) {
             double[] pars = result.fittedParameters();
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 5; i++)
                 LOGGER.info("Beam Energy Peak:  " + result.fittedParameterNames()[i] + " = " + pars[i]);
-            }
             monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[7],
                     (double) pars[1]);
             monitoredQuantityMap.put(finalStateParticlesColName + " " + triggerType + " " + fpQuantNames[8],
@@ -369,21 +357,19 @@ public class FinalStateMonitoring extends DataQualityMonitor {
         pstyle.dataStyle().lineStyle().setColor("black");
         plotter.region(0).plot(elePzBeam);
         // plotter.region(0).plot(result.fittedFunction());
-        if (outputPlots) {
+        if (outputPlots)
             try {
                 plotter.writeToFile(outputPlotDir + "beamEnergyElectrons.png");
             } catch (IOException ex) {
                 Logger.getLogger(FinalStateMonitoring.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
     }
 
     @Override
     public void printDQMStrings() {
         for (int i = 0; i < 9; i++)// TODO: do this in a smarter way...loop over the map
-        {
+
             LOGGER.info("ALTER TABLE dqm ADD " + fpQuantNames[i] + " double;");
-        }
     }
 
     IFitResult fitBeamEnergyPeak(IHistogram1D h1d, IFitter fitter, String range) {

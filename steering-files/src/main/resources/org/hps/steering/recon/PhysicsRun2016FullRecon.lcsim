@@ -7,7 +7,6 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-        
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
@@ -18,6 +17,7 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
+        <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
@@ -63,7 +63,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        
          <!-- Driver to reject "bad" events -->
          <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
              <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
@@ -82,6 +81,7 @@
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
         </driver> 
+        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>          
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
@@ -96,9 +96,11 @@
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>true</correctT0Shift>
+            <trigTimeScale>55.0</trigTimeScale>
             <useTruthTime>false</useTruthTime>
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
+            <subtractRFTime>true</subtractRFTime> 
             <correctChanT0>true</correctChanT0>
             <debug>false</debug>
         </driver>
@@ -139,21 +141,32 @@
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
-            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <beamPositionX> -0.246 </beamPositionX>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
+            <beamPositionX> -0.224 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
-            <beamPositionY> -0.138 </beamPositionY>
+            <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -3.9 </beamPositionZ>
+            <beamPositionZ> -4.3 </beamPositionZ>
+	    <maxElectronP> 2.15 </maxElectronP>
+	    <maxVertexP> 2.8 </maxVertexP>
+	    <minVertexChisqProb> 0.0 </minVertexChisqProb>
+	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
+            <maxMatchDt>10</maxMatchDt>
+            <trackClusterTimeOffset>55</trackClusterTimeOffset>
         </driver>  
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+	  <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+	  <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
+	</driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
-        </driver>       
+        </driver>             
     </drivers>
 </lcsim>
