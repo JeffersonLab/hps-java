@@ -267,6 +267,9 @@ public class StraightTrackAlignmentDriver extends Driver {
                         du = .04;
                     }
                     double[] pos = stripHit.getPosition();
+                    //TODO don't use the global position encoded in the SiTrackerHitStrip1D
+                    //Instead, calculate u directly from the raw hits which make up the strip cluster.
+                    //That would allow us to introduce new (read aligned) geometries in  the analysis.
                     Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
                     hits.add(h);
                     planes.add(detectorPlanesInFit.get(s));
