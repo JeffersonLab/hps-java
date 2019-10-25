@@ -631,6 +631,18 @@ public class StraightTrackAlignmentDriver extends Driver {
         aida.tree().cd("..");
     }
 
+    
+    public Hit makeHit(DetectorPlane p, SiTrackerHitStrip1D stripCluster)
+    {
+        List<RawTrackerHit> hits = stripCluster.getRawHits();
+        for(RawTrackerHit hit : hits)
+        {
+        
+        }
+                    
+        return null;
+    }
+    
     /**
      * Given a DetectorPlane and a global position, return a hit in local
      * coordinates

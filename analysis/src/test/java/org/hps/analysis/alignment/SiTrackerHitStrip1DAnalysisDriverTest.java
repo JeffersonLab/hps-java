@@ -1,8 +1,9 @@
-package org.hps.analysis.alignment.straighttrack;
+package org.hps.analysis.alignment;
 
 import java.io.File;
 import java.net.URL;
 import junit.framework.TestCase;
+import org.hps.analysis.alignment.straighttrack.StraightTrackAlignmentDriver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
@@ -10,13 +11,13 @@ import org.lcsim.util.loop.LCSimLoop;
  *
  * @author ngraf
  */
-public class StraightTrackAlignmentDriverTest extends TestCase {
+public class SiTrackerHitStrip1DAnalysisDriverTest extends TestCase {
 
     public void testIt() throws Exception {
         FileCache cache = new FileCache();
         int nEvents = -1;
         LCSimLoop loop = new LCSimLoop();
-        loop.add(new StraightTrackAlignmentDriver());
+        loop.add(new SiTrackerHitStrip1DAnalysisDriver());
         String fileName = "hps_010101.evio.00000_skim.slcio";
 //        String fileName = "hps_010101.evio.00000_skimBottomReReco_FieldOff_9Events.slcio";
 //        String fileName = "mu-_1.056GeV_slic-3.1.5_geant4-v9r6p1_QGSP_BERT_HPS-EngRun2015-Nominal-v1_fieldOff_++_reco.slcio";
