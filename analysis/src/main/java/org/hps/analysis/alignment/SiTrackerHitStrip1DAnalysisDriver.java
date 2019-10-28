@@ -61,7 +61,9 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
         Map<String, List<SiTrackerHitStrip1D>> hitsPerModuleMap = new HashMap<>();
         System.out.println("found " + stripClusters.size() + " strip clusters");
         for (TrackerHit thit : stripClusters) {
+            double[] stripPos = thit.getPosition();
             List<RawTrackerHit> hits = thit.getRawHits();
+            String moduleName = ((RawTrackerHit) hits.get(0)).getDetectorElement().getName();
             System.out.println(" Strip Cluster at " + Arrays.toString(thit.getPosition()) + " has " + hits.size() + " strip hits");
             for (RawTrackerHit hit : hits) {
                 SiSensor sensor = (SiSensor) hit.getDetectorElement();
@@ -71,8 +73,12 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
                 System.out.println(hit.getDetectorElement().getGeometry().getPosition());
             }
             Hep3Vector clusterPos = getPosition(hits, ((SiSensor) hits.get(0).getDetectorElement()).getReadoutElectrodes(ChargeCarrier.HOLE));
-            System.out.println("recalculated cluster position "+clusterPos);
-//            String moduleName = ((RawTrackerHit) rthList.get(0)).getDetectorElement().getName();
+            System.out.println("recalculated cluster position " + clusterPos);
+            aida.cloud1D(moduleName +" cluster dx "+hits.size()+" hits").fill(stripPos[0] - clusterPos.x());
+            aida.cloud1D(moduleName +" cluster dy "+hits.size()+" hits").fill(stripPos[1] - clusterPos.y());
+            aida.cloud1D(moduleName +" cluster dz "+hits.size()+" hits").fill(stripPos[2] - clusterPos.z());
+            
+//            
 //            if (!hitsPerModuleMap.containsKey(moduleName)) {
 //                hitsPerModuleMap.put(moduleName, new ArrayList<SiTrackerHitStrip1D>());
 //                hitsPerModuleMap.get(moduleName).add(new SiTrackerHitStrip1D(hit));
@@ -109,7 +115,7 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
             IIdentifier strippedId = dict.pack(expId);
             // Find the sensor DetectorElement.
             List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
-            if (des == null || des.size() == 0) {
+            if (des == null || des.isEmpty()) {
                 throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
             } else if (des.size() == 1) {
                 hit.setDetectorElement((SiSensor) des.get(0));
@@ -132,21 +138,13 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
     //from StripMaker
     private Hep3Vector getPosition(List<RawTrackerHit> cluster, SiSensorElectrodes electrodes) {
         boolean _debug = true;
+        SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
+        // Sensor simulation needed to correct for Lorentz drift
+        SiSensorSim _simulation = new CDFSiSensorSim();
         SiTrackerIdentifierHelper _sid_helper;
-        //_sid_helper = (SiTrackerIdentifierHelper) sensor.getIdentifierHelper();
-        // Temporary map connecting hits to strip numbers for sake of speed (reset once per sensor)
-//        Map<FittedRawTrackerHit, Integer> _strip_map = new HashMap<FittedRawTrackerHit, Integer>();
-//// get id and create strip map, get electrodes.
-//            IIdentifier id = hps_hit.getRawTrackerHit().getIdentifier();
-//            _strip_map.put(hps_hit, _sid_helper.getElectrodeValue(id));
 
 // Number of strips beyond which charge is averaged on center strips
         int _max_noaverage_nstrips = 4;
-
-        SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
-
-        // Sensor simulation needed to correct for Lorentz drift
-        SiSensorSim _simulation = new CDFSiSensorSim();
 
         //cng
         if (_debug) {
