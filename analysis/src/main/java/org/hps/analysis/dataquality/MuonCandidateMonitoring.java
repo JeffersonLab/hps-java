@@ -81,12 +81,16 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
             trkType = "GBLTrack/";
         double minMass = 0.2;
         double maxMass = .1 * beamEnergy;
+        double minMassK = 0.490*2;
+        double maxMassK = 1.5;
+        double minMassPi = 0.135*2;
+        double maxMassPi = .1 * beamEnergy;
         /*  V0 Quantities   */
  /*  Mass, vertex, chi^2 of fit */
  /*  unconstrained */
         massMu = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Muon Invariant Mass (GeV)", 100, minMass, maxMass);
-        massPi = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Pion Invariant Mass (GeV)", 100, minMass, maxMass);
-        massK = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Kaon Invariant Mass (GeV)", 100, minMass, maxMass);
+        massPi = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Pion Invariant Mass (GeV)", 100, minMassPi, maxMassPi);
+        massK = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "Di-Kaon Invariant Mass (GeV)", 100, minMassK, maxMassK);
         pPlus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P h+", 100, 0, 1.2 * beamEnergy);
         pMinus = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/" + "P h-", 100, 0, 1.2 * beamEnergy);
 
