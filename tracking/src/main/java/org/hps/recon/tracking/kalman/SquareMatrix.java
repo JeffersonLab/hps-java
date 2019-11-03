@@ -184,7 +184,7 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
             indxr[i] = irow;
             indxc[i] = icol;
             if (Minv.M[icol][icol] == 0.0) {
-                System.out.format("Singular matrix in SquareMatrix.java method invert.\n");
+                //System.out.format("Singular matrix in SquareMatrix.java method invert.\n");
                 return Minv;
             }
             double pivinv = 1.0 / Minv.M[icol][icol];

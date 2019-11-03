@@ -79,6 +79,8 @@ public class KalmanPatRecDriver extends Driver {
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman Track Chi2", 50, 0., 400.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
+        aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
+        aida.histogram1D("Kalman track hit residual", 100, -0.2, 0.2);
     }
 
     @Override
@@ -99,7 +101,7 @@ public class KalmanPatRecDriver extends Driver {
         TrackUtils.getBField(det).magnitude();
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface(this.verbose);
+        KI = new KalmanInterface(verbose);
         KI.createSiModules(detPlanes, fm);
     }
 
@@ -113,7 +115,6 @@ public class KalmanPatRecDriver extends Driver {
         }
         int evtNumb = event.getEventNumber();
 
-        int topBottom = 0;
         ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event);
 
         for (KalmanPatRecHPS kPat : kPatList) {
@@ -127,6 +128,29 @@ public class KalmanPatRecDriver extends Driver {
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
+                
+                // Histogram residuals of hits in layers with no hits on the track and with hits
+                for (MeasurementSite site : kTk.SiteList) {
+                    StateVector aS = site.aS;
+                    SiModule mod = site.m;
+                    if (aS != null && mod != null) {
+                        double phiS = aS.planeIntersect(mod.p);
+                        if (!Double.isNaN(phiS)) {
+                            Vec rLocal = aS.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.toGlobal(rLocal);  // Position in the global frame                 
+                            Vec rLoc = mod.toLocal(rGlobal);    // Position in the detector frame
+                            if (site.hitID < 0) {
+                                for (Measurement m : mod.hits) {
+                                    double resid = m.v - rLoc.v[1];
+                                    aida.histogram1D("Kalman missed hit residual").fill(resid);
+                                }                       
+                            } else {
+                                double resid = mod.hits.get(site.hitID).v - rLoc.v[1];
+                                aida.histogram1D("Kalman track hit residual").fill(resid);
+                            }
+                        }
+                    }
+                }
             }
         }
         

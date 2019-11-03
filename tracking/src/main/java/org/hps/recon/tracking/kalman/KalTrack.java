@@ -20,7 +20,7 @@ public class KalTrack {
     public Map<MeasurementSite, Vec> interceptVects;
     public Map<MeasurementSite, Vec> interceptMomVects;
     public Map<Integer, MeasurementSite> lyrMap;
-    int eventNumber;
+    public int eventNumber;
     private Vec helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
@@ -130,7 +130,7 @@ public class KalTrack {
     }
 
     public void print(String s) {
-        System.out.format("\n KalTrack %s: ID=%d, %d hits, chi^2=%10.5f\n", s, ID, nHits, chi2);
+        System.out.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f\n", s, eventNumber, ID, nHits, chi2);
         if (propagated) {
             System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             helixAtOrigin.print("helix for a pivot at the origin");
@@ -149,10 +149,17 @@ public class KalTrack {
             if (hitID < 0) { continue; }
             int idx = 2 * m.Layer;
             if (m.isStereo) { idx++; }
-            System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  \n", idx, m.Layer, m.stereo,
+            System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  ", idx, m.Layer, m.stereo,
                     site.chi2inc, site.scatX(), site.scatZ(), hitID);
+            if (m.hits.get(hitID).tksMC != null) {
+                System.out.format("  MC tracks: ");
+                for (int iMC : m.hits.get(hitID).tksMC) {
+                    System.out.format(" %d ", iMC);
+                }
+                System.out.format("\n");
+            }
         }
-        System.out.format("End of printing for KalTrack %s ID %d\n\n", s, ID);
+        System.out.format("End of printing for KalTrack %s ID %d in event %d\n\n", s, ID, eventNumber);
     }
 
     // Method to make simple yz plots of the track and the residuals. Note that in the yz plot of the track the hits are
@@ -350,6 +357,68 @@ public class KalTrack {
         else Collections.sort(SiteList, MeasurementSite.SiteComparatorDn);
     }
 
+    // Try to add missing hits to the track
+    public int addHits(ArrayList<SiModule> data, double mxResid, double mxChi2inc, boolean verbose) {
+        int numAdded  = 0;
+        int numLayers = 14;
+        if (nHits == numLayers) return numAdded;
+        if (verbose) System.out.format("KalTrack.addHits: trying to add hits to track %d\n", ID);
+        
+        sortSites(true);
+
+        ArrayList<ArrayList<SiModule>> moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
+        for (int lyr = 0; lyr < numLayers; lyr++) {
+            ArrayList<SiModule> modules = new ArrayList<SiModule>();
+            moduleList.add(modules);
+        }
+        for (SiModule thisSi : data) {
+            if (thisSi.hits.size() > 0) { moduleList.get(thisSi.Layer).add(thisSi); }
+        }
+        
+        ArrayList<MeasurementSite> newSites = new ArrayList<MeasurementSite>();
+        for (int idx = 0; idx < SiteList.size()-1; idx++) { 
+            MeasurementSite site = SiteList.get(idx); 
+            if (site.hitID < 0) continue;
+            int nxtIdx = -1;
+            for (int jdx = idx+1; jdx < SiteList.size(); jdx++) {
+                if (SiteList.get(jdx).hitID >= 0) {
+                    nxtIdx = jdx;
+                    break;
+                }
+            }
+            if (nxtIdx < 0) continue;
+            MeasurementSite nxtSite = SiteList.get(nxtIdx);
+            for (int lyr=site.m.Layer+1; lyr<nxtSite.m.Layer; ++lyr) {
+                if (verbose) System.out.format("KalTrack.addHits: looking for hits on layer %d\n", lyr);
+                for (SiModule module : moduleList.get(lyr)) {
+                    MeasurementSite newSite = new MeasurementSite(lyr, module, mxResid, 0.);
+                    int rF = newSite.makePrediction(site.aF, site.m, -1, false, true, false, verbose);
+                    if (rF == 1) {
+                        if (verbose) System.out.format("KalTrack.addHits: predicted chi2inc=%8.3f\n",newSite.chi2inc);
+                        if (newSite.filter()) {
+                            if (verbose) System.out.format("KalTrack.addHits: event %d track %d filtered chi2inc=%8.3f\n",eventNumber,ID,newSite.chi2inc);
+                            if (newSite.chi2inc < mxChi2inc) {
+                                if (verbose) System.out.format("KalTrack.addHits: event %d added hit with chi2inc<%8.3f to layer %d\n",eventNumber,mxChi2inc,module.Layer);
+                                newSites.add(newSite);
+                                numAdded++;
+                                site = newSite;
+                                break;
+                            }
+                        }
+                    }
+                }              
+            }
+        }
+        if (numAdded > 0) {
+            for (MeasurementSite site : newSites) {
+                SiteList.add(site);
+            }
+            sortSites(true);
+        }
+
+        return numAdded;
+    }
+        
     // re-fit the track using its existing hits
     public boolean fit(int nIterations, boolean verbose) {
         double chi2s = 0.;
@@ -359,7 +428,7 @@ public class KalTrack {
                 // sH.a.print("starting helix for iteration");
             }
             StateVector sH = SiteList.get(0).aS;
-            sH.C.scale(10000.); // Blow up the initial covariance matrix to avoid double counting measurements
+            sH.C.scale(1000.*chi2); // Blow up the initial covariance matrix to avoid double counting measurements
             SiModule prevMod = null;
             double chi2f = 0.;
             for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps
@@ -373,11 +442,11 @@ public class KalTrack {
                 currentSite.aS = null;
 
                 if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, false, false, false, verbose) < 0) {
-                    System.out.format("KalTrack.fit: event %d in iteration %d failed to make prediction!!\n", eventNumber, iteration);
+                    if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!\n", eventNumber, ID, iteration);
                     return false;
                 }
                 if (!currentSite.filter()) {
-                    System.out.format("KalTrack.fit: event %d in iteration %d failed to filter!!\n", eventNumber, iteration);
+                    if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to filter!!\n", eventNumber, ID, iteration);
                     return false;
                 }
 

@@ -232,6 +232,9 @@ class MeasurementSite {
                     if (m.hits.get(i).tracks.size() > 0) {
                         continue; // Skip used hits
                     }
+                    //if (m.hits.get(i).tksMC.size()==0) {  // For cheating, using MC truth to avoid noise hits.
+                    //    continue;
+                    //}
                     double residual = m.hits.get(i).v - aP.mPred;
                     if (verbose2) { System.out.format("    Unused hit, residual=%10.5f, cut=%10.5f\n", residual, mxResid); }
                     if (Math.abs(residual) < minResid) {
@@ -325,11 +328,12 @@ class MeasurementSite {
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
-            //if (verbose)
-            System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
-            aF.print("missing plane");
-            m.p.print("for the intersection");
-            //return false;
+            if (verbose) {
+                System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
+                aF.print("missing plane");
+                m.p.print("for the intersection");
+            }
+            return false;
         }
         aF.mPred = h(aF, m, phiF);
         aF.r = hit.v - aF.mPred;
@@ -378,9 +382,9 @@ class MeasurementSite {
         //if (verbose) {
         //    aS.print("in removeHit before");
         // }
-        Measurement hit = m.hits.get(hitID);
-        double V = hit.sigma * hit.sigma;
-        aS.inverseFilter(H, V);
+        //Measurement hit = m.hits.get(hitID);
+        //double V = hit.sigma * hit.sigma;
+        //aS.inverseFilter(H, V);  // This doesn't appear to work and is perhaps pointless
         //if (verbose) {
         //    aS.print("in removeHit after");
         //}
@@ -455,8 +459,7 @@ class MeasurementSite {
         if (!filtered) {
             System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");
             return false;
-        }
-        
+        }        
 
         this.aS = this.aF.smooth(nS.aS, nS.aP);
         if (hitID < 0) { return true; }
@@ -466,7 +469,7 @@ class MeasurementSite {
         double phiS = aS.planeIntersect(m.p);
 
         if (Double.isNaN(phiS)) { // This should almost never happen!
-            System.out.format("MeasurementSite.smooth: no intersection of helix with the plane exists.\n");
+            if (verbose) System.out.format("MeasurementSite.smooth: no intersection of helix with the plane exists.\n");
             return false;
         }
         this.aS.mPred = this.h(aS, m, phiS);

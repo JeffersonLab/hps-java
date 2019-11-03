@@ -18,9 +18,9 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10;              // The number of test eventNumbers to generate for fitting
-        int mxPlot = 10;                // Maximum number of single event plots
-        int [] eventToPrint = {0,9};  // Range of events to print in detail and plot as an event display
+        int nTrials = 10000;              // The number of test eventNumbers to generate for fitting
+        int mxPlot = 40;                // Maximum number of single event plots
+        int [] eventToPrint = {1,1};  // Range of events to print in detail and plot as an event display
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
@@ -365,9 +365,11 @@ public class PatRecTest {
                         if (md != null) {
                             md.v = 0.5 * (md.v + m1); // overlapping hits, take the average
                             md.sigma *= 1.5; // reduce resolution for overlapping hits
+                            md.addMC(ih);
                             if (verbose) { System.out.format("Overlapping with hit at v=%8.4f\n", md.v); }
                         } else {
                             Measurement thisM1 = new Measurement(m1, resolution, rscat, rDet.v[1]);
+                            thisM1.addMC(ih);
                             thisSi.addMeasurement(thisM1);
                             if (verbose) { System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size()); }
                         }
@@ -420,10 +422,10 @@ public class PatRecTest {
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, verbose);
-            if (nPlot < mxPlot && (patRec.TkrList.size()<nHelices || (eventNumber >= eventToPrint[0] && eventNumber <= eventToPrint[1]))) {
+            if (nPlot < mxPlot && verbose) {
                 nPlot++;
                 PrintWriter printWriter3 = null;
-                String fn = String.format("%shelix3_%d.gp", path, nPlot);
+                String fn = String.format("%shelix3_%d.gp", path, eventNumber);
                 System.out.format("Output single event plot to file %s\n", fn);
                 File file3 = new File(fn);
                 file3.getParentFile().mkdirs();

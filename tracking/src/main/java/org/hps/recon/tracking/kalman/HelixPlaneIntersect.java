@@ -129,7 +129,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         this.p = p;
         if (Double.isNaN(phi0) || p.T().v[1] == 1.0) return phi0;
 
-        double dphi = 0.3;
+        double dphi = 0.1;
         double accuracy = 0.0000001;
         // Iterative solution for a general plane orientation
         double phi = rtSafe(phi0, phi0 - dphi, phi0 + dphi, accuracy);
@@ -148,18 +148,24 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         int MAXIT = 100;
 
         if (xGuess <= x1 || xGuess >= x2) {
-            System.out.format("ZeroF.rtsafe: initial guess needs to be bracketed\n");
+            System.out.format("HelixPlaneIntersect.rtsafe: initial guess needs to be bracketed\n");
             return xGuess;
         }
         fl = S(x1);
         fh = S(x2);
-        if ((fl > 0.0 && fh > 0.0) || (fl < 0.0 && fh < 0.0)) {
-            System.out.format("ZeroFind.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f\n", fl, fh, alpha);
-            // p.print("internal plane");
-            // a.print("internal helix parameters");
-            // X0.print("internal pivot");
-            return xGuess;
+        int nTry = 0;
+        while (fl*fh > 0.0) {
+            if (nTry == 5) {
+                //System.out.format("HelixPlaneIntersect.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f, x1=%12.5f x2=%12.5f xGuess=%12.5f\n", fl, fh, alpha, x1, x2, xGuess);
+                return xGuess;
+            }
+            x1 -= 0.1;
+            x2 += 0.1;
+            fl = S(x1);
+            fh = S(x2);
+            nTry++;
         }
+        //if (nTry > 0) System.out.format("HelixPlaneIntersect.rtsafe: %d tries needed to bracket solution.\n", nTry);
         if (fl == 0.) return x1;
         if (fh == 0.) return x2;
         if (fl < 0.0) {

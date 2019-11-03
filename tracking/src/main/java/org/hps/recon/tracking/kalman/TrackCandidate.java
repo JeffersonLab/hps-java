@@ -22,8 +22,79 @@ public class TrackCandidate {
         hits = new ArrayList<KalHit>(12);
     }
 
+    boolean reFit(boolean verbose) {
+
+        if (verbose) System.out.format("TrackCandidate.reFit: starting filtering.\n");
+
+        StateVector sH = sites.get(0).aS;
+        sH.C.scale(1000.*chi2s); // Blow up the initial covariance matrix to avoid double counting measurements
+        SiModule prevMod = null;
+        chi2f = 0.;
+        for (int idx = 0; idx < sites.size(); idx++) { // Redo all the filter steps
+            MeasurementSite currentSite = sites.get(idx);
+            currentSite.predicted = false;
+            currentSite.filtered = false;
+            currentSite.smoothed = false;
+            currentSite.chi2inc = 0.;
+            currentSite.aP = null;
+            currentSite.aF = null;
+            currentSite.aS = null;
+
+            if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, false, false, false, verbose) < 0) {
+                if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction!!\n");
+                return false;
+            }
+            if (!currentSite.filter()) {
+                if (verbose) System.out.format("TrackCandidate.reFit: failed to filter!!\n");
+                return false;
+            }
+
+            // if (verbose) currentSite.print("iterating filtering");
+            chi2f += Math.max(currentSite.chi2inc,0.);
+            sH = currentSite.aF;
+            prevMod = currentSite.m;
+        }
+        if (verbose) System.out.format("TrackCandidate.reFit: Fit chi^2 after filtering = %12.4e\n", chi2f);
+        chi2s = 0.;
+        MeasurementSite nextSite = null;
+        for (int idx = sites.size() - 1; idx >= 0; idx--) {
+            MeasurementSite currentSite = sites.get(idx);
+            if (nextSite == null) {
+                currentSite.aS = currentSite.aF.copy();
+                currentSite.smoothed = true;
+            } else {
+                currentSite.smooth(nextSite);
+            }
+            chi2s += Math.max(currentSite.chi2inc,0.);
+
+            // if (verbose) {
+            // currentSite.print("iterating smoothing");
+            // }
+            nextSite = currentSite;
+        }
+        if (verbose) System.out.format("TrackCandidate.reFit: Fit chi^2 after smoothing = %12.4e\n", chi2s); 
+
+        return true;       
+    }
+    
     void print(String s, boolean shrt) {
         System.out.format("TrackCandidate %s, nHits=%d, nShared=%d, chi2f=%10.6f, chi2s=%10.6f\n", s, nHits, nTaken, chi2f, chi2s);
+        MeasurementSite site0 = sites.get(0);
+        if (site0 != null) {
+            int lyr = site0.m.Layer;
+            StateVector aS = site0.aS;
+            if (aS == null) aS = site0.aF;
+            if (aS != null) {
+                Vec p = aS.a;
+                double edrho = Math.sqrt(aS.C.M[0][0]);
+                double ephi0 = Math.sqrt(aS.C.M[1][1]);
+                double eK = Math.sqrt(aS.C.M[2][2]);
+                double eZ0 = Math.sqrt(aS.C.M[3][3]);
+                double etanl = Math.sqrt(aS.C.M[4][4]);
+                System.out.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
+                        p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
+            }
+        }
         System.out.format("   %d Hits: ", hits.size());
         for (KalHit ht : hits) { ht.print("short"); }
         if (shrt) {
