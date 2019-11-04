@@ -26,6 +26,7 @@ import org.lcsim.util.Driver;
 
 public class IterateGainFactorDriver extends Driver {
 
+    private boolean isGainFileRead = false;
     private EcalConditions ecalConditions = null;
 
     /**
@@ -70,7 +71,9 @@ public class IterateGainFactorDriver extends Driver {
     public String gainFileName = null;
 
     private void readGainFile() {
+        if (isGainFileRead==true) return;
         gainFileGains.clear();
+        System.out.println("read the file");
         // System.out.println("Reading ECal Gain Factors from:  "+gainFileName);
         File file = new File(gainFileName);
         try {
@@ -96,6 +99,7 @@ public class IterateGainFactorDriver extends Driver {
                 System.err.println("Invalid Gain File.");
                 System.exit(3);
             }
+            isGainFileRead = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,6 +109,7 @@ public class IterateGainFactorDriver extends Driver {
     public void detectorChanged(Detector detector) {
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+        readGainFile();
     }
 
     /**
@@ -133,7 +138,7 @@ public class IterateGainFactorDriver extends Driver {
      */
     @Override
     public void process(final EventHeader event) {
-        readGainFile();
+     
 
         // Check if output collection already exists in event which is an error.
         if (event.hasItem(outputCollectionName)) {
