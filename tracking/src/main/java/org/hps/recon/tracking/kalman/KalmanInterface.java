@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
@@ -23,16 +24,19 @@ import hep.physics.vec.VecOp;
 
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
@@ -41,6 +45,7 @@ import static org.lcsim.constants.Constants.fieldConversion;
 public class KalmanInterface {
 
     private Map<Measurement, TrackerHit> hitMap;
+    private Map<Measurement, SimTrackerHit> simHitMap;
     private Map<SiModule, SiStripPlane> moduleMap;
     public static SquareMatrix HpsToKalman;
     public static SquareMatrix KalmanToHps;
@@ -49,6 +54,7 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose;
+    Random rnd;
 
     public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
         if (moduleMap == null) return null;
@@ -60,8 +66,11 @@ public class KalmanInterface {
     }
 
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
+        // Field map for stand-alone running
         if (FieldMap.class.isInstance(hpsFm)) { return ((FieldMap) (hpsFm)).getField(kalPos); }
 
+        // Standard field map for running in hps-java
+        //System.out.format("Accessing HPS field map for position %8.3f %8.3f %8.3f\n", kalPos.v[0], kalPos.v[1], kalPos.v[2]);
         double[] hpsPos = { kalPos.v[0], -1.0 * kalPos.v[2], kalPos.v[1] };
         double[] hpsField = hpsFm.getField(hpsPos);
         return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
@@ -81,6 +90,7 @@ public class KalmanInterface {
 
     public KalmanInterface(boolean verbose) {
         hitMap = new HashMap<Measurement, TrackerHit>();
+        simHitMap = new HashMap<Measurement, SimTrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
         trackHitsKalman = new ArrayList<int[]>();
         SiMlist = new ArrayList<SiModule>();
@@ -98,6 +108,11 @@ public class KalmanInterface {
         }
         KalmanToHps = HpsToKalman.invert();
         this.verbose = verbose;
+        
+        // Seed the random number generator
+        long rndSeed = -3263009337738135404L;
+        rnd = new Random();
+        rnd.setSeed(rndSeed);
     }
 
     static Vec vectorGlbToKalman(double[] HPSvec) { // Convert a vector from global coordinates to Kalman coordinates
@@ -124,6 +139,7 @@ public class KalmanInterface {
     public void clearInterface() {
         if (verbose) System.out.println("Clearing the Kalman interface\n");
         hitMap.clear();
+        simHitMap.clear();
         trackHitsKalman.clear();
         for (SiModule SiM : SiMlist) {
             SiM.hits.clear();
@@ -336,17 +352,99 @@ public class KalmanInterface {
             }
             Plane p = new Plane(pointOnPlaneTransformed, normalToPlaneTransformed);
             int kalLayer = temp.getLayerNumber()+1;  // Not sure this transformation will work when lyr0 is implemented!!
+            int detector = temp.getModuleNumber();
             if (kalLayer > 13) {
                 System.out.format("***KalmanInterface.createSiModules Warning: Kalman layer %d out of range.***\n", kalLayer);
             }
             SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), stereo, inputPlane.getWidth(), inputPlane.getLength(),
-                    inputPlane.getThickness(), fm);
+                    inputPlane.getThickness(), fm, detector);
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);
         }
         Collections.sort(SiMlist, new SortByLayer());
     }
+    
+    // Feed simulated hits into the pattern recognition
+    private boolean fillAllSimHits(EventHeader event, IDDecoder decoder) {
+        boolean success = false;
 
+        if (verbose || event.getEventNumber() < 50) System.out.format("KalmanInterface.fillAllSimHits: entering for event %d\n", event.getEventNumber());
+        
+        // Get the collection of 1D hits
+        String stripHitInputCollectionName = "TrackerHits";
+        List<SimTrackerHit> striphits = event.get(SimTrackerHit.class, stripHitInputCollectionName);
+
+        // Make a mapping from (Layer,Module) to hits
+        Map<Pair<Integer,Integer>, ArrayList<SimTrackerHit>> hitSensorMap = new HashMap<Pair<Integer,Integer>, ArrayList<SimTrackerHit>>();
+        for (SimTrackerHit hit1D : striphits) {
+            //double[] tkMom = hit1D.getMomentum();
+            //System.out.format("MC true hit momentum=%10.5f %10.5f %10.5f\n",tkMom[0],tkMom[1],tkMom[2]);
+            decoder.setID(hit1D.getCellID());
+            int Layer = decoder.getValue("layer") + 1;
+            int Module = decoder.getValue("module");
+            Pair<Integer,Integer> sensor = new Pair<Integer,Integer>(Layer,Module);
+
+            ArrayList<SimTrackerHit> hitsInSensor = null;
+            if (hitSensorMap.containsKey(sensor)) {
+                hitsInSensor = hitSensorMap.get(sensor);
+            } else {
+                hitsInSensor = new ArrayList<SimTrackerHit>();
+            }
+            hitsInSensor.add(hit1D);
+            hitSensorMap.put(sensor, hitsInSensor);
+            if (verbose) System.out.format("    Adding hit for layer %d, module %d\n", Layer, Module);
+        }
+
+        int hitsFilled = 0;
+        for (int modIndex = 0; modIndex < SiMlist.size(); ++modIndex) {
+            SiModule module = SiMlist.get(modIndex);
+            Pair<Integer,Integer> sensor = new Pair<Integer,Integer>(module.Layer,module.detector);
+            if (verbose) System.out.format("   Si module in layer %d module %d, extent=%8.3f to %8.3f\n", module.Layer, module.detector, module.yExtent[0], module.yExtent[1]);
+
+            if (!hitSensorMap.containsKey(sensor)) continue;
+            ArrayList<SimTrackerHit> hitsInSensor = hitSensorMap.get(sensor);
+            if (hitsInSensor == null) continue;
+
+            for (int i = 0; i < hitsInSensor.size(); i++) {
+                SimTrackerHit hit = hitsInSensor.get(i);
+                Vec rGlobal = vectorGlbToKalman(hit.getPosition());
+                Vec rLocal = module.toLocal(rGlobal);
+                //module.Rinv.print("Inverse rot matrix");
+                //module.p.print("Si module plane");
+
+                double du = 0.006;
+                double umeas = rLocal.v[1] + rnd.nextGaussian()*du;
+
+                if (verbose) {
+                    System.out.format("\nKalmanInterface:fillAllSimHits %d, the measurement uncertainty is set to %10.7f\n", i,
+                            du);
+                    System.out.printf("Filling SiMod Layer %d, detector %d\n", module.Layer, module.detector);
+                    module.p.print("Corresponding KalmanPlane");
+                    Vec globalX = module.R.rotate(new Vec(1, 0, 0));
+                    Vec globalY = module.R.rotate(new Vec(0, 1, 0));
+                    globalX.print("globalX");
+                    globalY.print("globalY");
+                    System.out.format("     Adding measurement %10.5f to layer %d, module %d\n", umeas, module.Layer, module.detector);
+                }
+                Measurement m = new Measurement(umeas, du, rGlobal, rLocal.v[1]);
+                //rGlobal.print("new global hit location");
+
+                int[] hitPair = { modIndex, module.hits.size() };
+                if (verbose) System.out.format("    adding hitPair %d %d \n", hitPair[0], hitPair[1]);
+                trackHitsKalman.add(hitPair);
+                module.addMeasurement(m);
+                simHitMap.put(m, hit);
+                hitsFilled++;
+            }
+            if (verbose) { module.print("SiModule-filled"); }
+        }
+        if (hitsFilled > 0) success = true;
+        if (verbose) System.out.format("KalmanInterface.fillAllMeasurements: %d hits were filled into Si Modules\n", hitsFilled);
+
+        return success;
+    }
+    
+    
     // Method to fill all Si hits into the SiModule objects, to feed to the pattern recognition.
     private boolean fillAllMeasurements(EventHeader event) {
         boolean success = false;
@@ -579,10 +677,12 @@ public class KalmanInterface {
     }
 
     // Method to drive the Kalman-Filter based pattern recognition
-    public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event) {
+    public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event, IDDecoder decoder) {
         if (!fillAllMeasurements(event)) {
-            System.out.format("KalmanInterface.KalmanPatRec: failed to fill measurements in detector.\n");
-            return null;
+            if (!fillAllSimHits(event, decoder)) {
+                System.out.format("KalmanInterface.KalmanPatRec: failed to fill measurements in detector.\n");
+                return null;
+            }
         }
 
         int evtNum = event.getEventNumber();

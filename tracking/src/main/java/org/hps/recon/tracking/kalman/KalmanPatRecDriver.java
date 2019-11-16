@@ -6,7 +6,9 @@ import java.io.IOException;
 //import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,17 +20,21 @@ import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.MCParticle;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.lcsim.geometry.IDDecoder;
 
 // $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
 
 public class KalmanPatRecDriver extends Driver {
 
+    IDDecoder decoder;
     private ArrayList<SiStripPlane> detPlanes;
     private MaterialSupervisor _materialManager;
     private org.lcsim.geometry.FieldMap fm;
@@ -39,6 +45,8 @@ public class KalmanPatRecDriver extends Driver {
     public AIDA aida;
     private String outputPlots = "KalmanTestPlots.root";
     private int nPlotted;
+    private int nTracks;
+    private int[] nHitsOnTracks;
 
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
@@ -77,10 +85,21 @@ public class KalmanPatRecDriver extends Driver {
         nPlotted = 0;
 
         // arguments to histogram1D: name, nbins, min, max
-        aida.histogram1D("Kalman Track Chi2", 50, 0., 400.);
+        aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
         aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
         aida.histogram1D("Kalman track hit residual", 100, -0.2, 0.2);
+        aida.histogram1D("Kalman track Momentum", 100, 0., 5.);
+        for (int lyr=2; lyr<14; ++lyr) {
+            aida.histogram1D(String.format("Kalman track hit residual in layer %d",lyr), 100, -0.2, 0.2);
+            aida.histogram1D(String.format("Kalman layer %d chi^2 contribution", lyr), 100, 0., 20.);
+            if (lyr<13) {
+                aida.histogram1D(String.format("Kalman kink in xy, layer %d", lyr),100, -0.001, .001);
+                aida.histogram1D(String.format("Kalman kink in zy, layer %d", lyr),100, -0.0025, .0025);
+            }
+        }
+        nTracks = 0;
+        nHitsOnTracks = new int[14];
     }
 
     @Override
@@ -103,6 +122,8 @@ public class KalmanPatRecDriver extends Driver {
 
         KI = new KalmanInterface(verbose);
         KI.createSiModules(detPlanes, fm);
+        
+        decoder = det.getSubdetector("Tracker").getIDDecoder();
     }
 
     @Override
@@ -115,7 +136,11 @@ public class KalmanPatRecDriver extends Driver {
         }
         int evtNumb = event.getEventNumber();
 
-        ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event);
+        ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event, decoder);
+        if (kPatList == null) {
+            System.out.println("KalmanPatRecDriver.process: null returned by KalmanPatRec.");
+            return;
+        }
 
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
@@ -124,10 +149,17 @@ public class KalmanPatRecDriver extends Driver {
             }
             for (KalTrack kTk : kPat.TkrList) {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
-                aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
+
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
+                if (kTk.nHits < 12) continue;
+                
+                aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
+                double[] momentum = kTk.originP();
+                double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
+                aida.histogram1D("Kalman track Momentum").fill(pMag);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
+                nTracks++;
                 
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 for (MeasurementSite site : kTk.SiteList) {
@@ -145,8 +177,15 @@ public class KalmanPatRecDriver extends Driver {
                                     aida.histogram1D("Kalman missed hit residual").fill(resid);
                                 }                       
                             } else {
+                                nHitsOnTracks[mod.Layer]++;
                                 double resid = mod.hits.get(site.hitID).v - rLoc.v[1];
                                 aida.histogram1D("Kalman track hit residual").fill(resid);
+                                aida.histogram1D(String.format("Kalman track hit residual in layer %d",mod.Layer)).fill(resid);
+                                aida.histogram1D(String.format("Kalman layer %d chi^2 contribution", mod.Layer)).fill(site.chi2inc);
+                                if (mod.Layer<13) {
+                                    aida.histogram1D(String.format("Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
+                                    aida.histogram1D(String.format("Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
+                                }  
                             }
                         }
                     }
@@ -155,10 +194,12 @@ public class KalmanPatRecDriver extends Driver {
         }
         
         String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
-        if (nPlotted < 20) {
+        if (nPlotted < 40) {
             KI.plotKalmanEvent(path, event, kPatList);
             nPlotted++;
         }
+        
+        //simScatters(event);
         
         KI.clearInterface();
         if (verbose) System.out.format("\n KalmanPatRecDriver.process: Done with event %d\n", evtNumb);
@@ -166,7 +207,79 @@ public class KalmanPatRecDriver extends Driver {
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
-
+    
+    // Find the MC true scattering angles at tracker layers
+    // Note, this doesn't work, because the MC true momentum saved is neither the incoming nor outgoing momentum but rather
+    // some average of the two.
+    private void simScatters(EventHeader event) {
+        String stripHitInputCollectionName = "TrackerHits";
+        List<SimTrackerHit> striphits = event.get(SimTrackerHit.class, stripHitInputCollectionName);
+        if (striphits == null) return;
+        
+        // Make a map from MC particle to the hit in the layer
+        Map<Integer, ArrayList<SimTrackerHit>> hitMCparticleMap = new HashMap<Integer, ArrayList<SimTrackerHit>>();
+        for (SimTrackerHit hit1D : striphits) {
+            decoder.setID(hit1D.getCellID());
+            int Layer = decoder.getValue("layer") + 1;
+            //int Module = decoder.getValue("module");
+            //MCParticle MCpart = hit1D.getMCParticle();
+            ArrayList<SimTrackerHit> partInLayer = null;
+            if (hitMCparticleMap.containsKey(Layer)) {
+                partInLayer = hitMCparticleMap.get(Layer);
+            } else {
+                partInLayer = new ArrayList<SimTrackerHit>();
+            }
+            partInLayer.add(hit1D);
+            hitMCparticleMap.put(Layer,partInLayer);
+        }
+        
+        // Now analyze each MC hit, except those in the first and last layers
+        for (int Layer=2; Layer<11; ++Layer) {
+            if (hitMCparticleMap.containsKey(Layer) && hitMCparticleMap.containsKey(Layer-1)) {
+                hit2Loop :
+                for (SimTrackerHit hit2 : hitMCparticleMap.get(Layer)) {
+                    MCParticle MCP2 = hit2.getMCParticle();
+                    double Q2 = MCP2.getCharge();
+                    Vec p2 = KalmanInterface.vectorGlbToKalman(hit2.getMomentum());
+                    for (SimTrackerHit hit1 : hitMCparticleMap.get(Layer-1)) {
+                        Vec p1 = KalmanInterface.vectorGlbToKalman(hit2.getMomentum());  // reverse direction
+                        MCParticle MCP1 = hit1.getMCParticle();
+                        double Q1 = MCP1.getCharge();
+                        double ratio = p2.mag()/p1.mag();
+                        if (ratio > 0.98 && ratio <= 1.02 && Q1*Q2 > 0. && MCP1.equals(MCP2)) {
+                            // Integrate through the B field from the previous layer to this layer to get the momentum
+                            // before scattering. I'm assuming that the MC hit gives the momentum following the scatter.
+                            // The integration distance is approximated to be the straight line distance, which should get
+                            // pretty close for momenta of interest.
+                            double dx = 1.0;
+                            RungeKutta4 rk4 = new RungeKutta4(Q1, dx, fm);
+                            Vec xStart = KalmanInterface.vectorGlbToKalman(hit1.getPosition());
+                            Vec xEnd = KalmanInterface.vectorGlbToKalman(hit2.getPosition());
+                            double straightDistance = xEnd.dif(xStart).mag();
+                            double[] r= rk4.integrate(xStart, p1, straightDistance-dx);
+                            dx = dx/100.0;
+                            rk4 = new RungeKutta4(Q1, dx, fm);
+                            straightDistance = xEnd.dif(new Vec(r[0],r[1],r[2])).mag();
+                            r = rk4.integrate(new Vec(r[0],r[1],r[2]),  new Vec(r[3],r[4],r[5]), straightDistance-dx);
+                            
+                            Vec newPos = new Vec(r[0], r[1], r[2]);
+                            Vec newMom = new Vec(r[3], r[4], r[5]);
+                            System.out.format("KalmanPatRecDriver.simScatters: trial match at layer %d\n", Layer);
+                            xEnd.print("MC point on layer");
+                            newPos.print("integrated point near layer");
+                            p2.print("MC momentum at layer");
+                            newMom.print("integrated momentum near layer");
+                            double ctScat = p2.dot(newMom)/p2.mag()/newMom.mag();
+                            double angle = Math.acos(ctScat);
+                            System.out.format("  Angle between incoming and outgoing momenta=%10.6f\n", angle);
+                            continue hit2Loop;
+                        }
+                    }
+                }
+            }
+        }    
+    }
+    
     void printKalmanKinks(KalTrack tkr) {
         //for (MeasurementSite site : tkr.SiteList) {
         //    if (verbose) {
@@ -201,9 +314,14 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void endOfData() {
+        System.out.println("Individual layer efficiencies:");
+        for (int lyr=0; lyr<14; lyr++) {
+            double effic = (double)nHitsOnTracks[lyr]/(double)nTracks;
+            System.out.format("   Layer %d, hit efficiency = %9.3f\n", lyr, effic);
+        }
         if (outputPlots != null) {
             try {
-                System.out.println("Outputting the plots now.");
+                System.out.println("Outputting the aida histograms now.");
                 aida.saveAs(outputPlots);
             } catch (IOException ex) {
                 Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);

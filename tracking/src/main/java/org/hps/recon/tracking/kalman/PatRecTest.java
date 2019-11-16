@@ -18,7 +18,7 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000;              // The number of test eventNumbers to generate for fitting
+        int nTrials = 5000;              // The number of test eventNumbers to generate for fitting
         int mxPlot = 40;                // Maximum number of single event plots
         int [] eventToPrint = {1,1};  // Range of events to print in detail and plot as an event display
         boolean perfect = false;
@@ -33,7 +33,8 @@ public class PatRecTest {
 
         // Definition of the magnetic field
         String mapType = "binary";
-        String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
+        //String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
+        String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\209acm2_5kg_corrected_unfolded_scaled_1.04545_v4.bin";
         FieldMap fM = null;
         try {
             fM = new FieldMap(mapFile, mapType, 21.17, 0., 457.2);
@@ -44,7 +45,7 @@ public class PatRecTest {
         if (mapType != "binary") fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\fieldmap.bin");
 
         // Tracking instrument description
-        double thickness = 0.3; // Silicon thickness in mm
+        double thickness = 0.32; // Silicon thickness in mm
         if (perfect) { thickness = 0.0000000000001; }
         ArrayList<SiModule> SiModules = new ArrayList<SiModule>();
         Plane plnInt;
@@ -142,7 +143,7 @@ public class PatRecTest {
                     si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
 
-        int nHelices = 2; // Number of helix tracks to simulate
+        int nHelices = 1; // Number of helix tracks to simulate
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
@@ -153,6 +154,7 @@ public class PatRecTest {
         // Define histograms
         Histogram hNtracks = new Histogram(10, 0., 1., "Number of tracks found and fitted", "tracks", "events");
         Histogram hNhits = new Histogram(15, 0., 1., "Number of hits per fitted track", "hits", "tracks");
+        Histogram hScatProj = new Histogram(100, -0.01, 0.0002, "Projected Scattering Angle", "radians", "Si planes");
         Histogram hTkChi2 = new Histogram(80, 0., .5, "Track helix fit chi^2 after smoothing", "chi^2", "tracks");
         Histogram hEdrhoS = new Histogram(100, -10., 0.2, "Smoothed helix parameter drho error", "sigmas", "track");
         Histogram hEdrho = new Histogram(100, -2., 0.04, "drho error", "mm", "tracks");
@@ -173,6 +175,14 @@ public class PatRecTest {
         Histogram hEkS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter K error at lyr1", "sigmas", "track");
         Histogram hEdzS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter dz error at lyr1", "sigmas", "track");
         Histogram hEtanlS1 = new Histogram(100, -10., 0.2, "Smoothed helix parameter tanl error at lyr1", "sigmas", "track");
+        Histogram hMomentum = new Histogram(100, 0., 0.05, "Reconstructed track momentum","GeV","tracks");
+        Histogram[] hScatXY = new Histogram[nLayers];
+        Histogram[] hScatZY = new Histogram[nLayers];
+        for (int i = 2; i < nLayers; i++) {
+            hScatXY[i] = new Histogram(100, -0.001, 0.00002, String.format("Scattering angle in xy for layer %d", i), "radians", "tracks");
+            hScatZY[i] = new Histogram(100, -0.001, 0.00002, String.format("Scattering angle in xy for layer %d", i), "radians", "tracks");
+        }
+        
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
@@ -190,7 +200,7 @@ public class PatRecTest {
             for (int i = 0; i < nHelices; i++) {
                 if (rnd.nextGaussian() > 0.) Q[i] = 1.0;    // Randomize the momentum vectors
                 else Q[i] = -1.0;
-                p[i] = 2.0 + rnd.nextGaussian() * 0.02;
+                p[i] = 2.4 + rnd.nextGaussian() * 0.02;
                 double PhiR = Phi + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
                 double ThetaR = Theta + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
                 initialDirection[i] = new Vec(Math.cos(PhiR) * Math.sin(ThetaR), Math.sin(PhiR) * Math.sin(ThetaR), Math.cos(ThetaR));
@@ -387,13 +397,15 @@ public class PatRecTest {
                             if (verbose) { System.out.format("Saving helix after scatter in plane %d\n", pln); }
                         }
                         Vec t2 = Tk[ih].getMomGlobal(0.).unitVec();
+                        Vec p2 = Tk[ih].getMomGlobal(0.);                       
+                        double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
+                        double scattAngProj = Math.atan2(t1.v[0], t1.v[1]) - Math.atan2(t2.v[0], t2.v[1]);
+                        hScatProj.entry(scattAngProj);
                         if (verbose) {
                             Tk[ih].print("scattered from the detector plane");
-                            Vec p2 = Tk[ih].getMomGlobal(0.);
                             p2.print("momentum after scatter");
-                            double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
                             System.out.format("Scattering angle from 1st layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng,
-                                    p2.mag());
+                                            p2.mag());
                         }
                     }
                 }
@@ -499,6 +511,14 @@ public class PatRecTest {
                 }
                 hNhits.entry(tkr.nHits);
                 hTkChi2.entry(tkr.chi2);
+                double[] momentum = tkr.originP();
+                double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
+                hMomentum.entry(pMag);
+                for (MeasurementSite site : tkr.SiteList) {
+                    int layer = site.m.Layer;
+                    hScatXY[layer].entry(tkr.scatX(layer));
+                    hScatZY[layer].entry(tkr.scatZ(layer));
+                }
                 // Compare with the generated particles
                 if (!tkr.originHelix()) continue;
                 Vec helixAtOrigin = new Vec(5, tkr.originHelixParms());
@@ -595,6 +615,12 @@ public class PatRecTest {
         hXerr.plot(path + "xErr.gp", true, "gaus", " ");
         hYerr.plot(path + "yErr.gp", true, "gaus", " ");
         hZerr.plot(path + "zErr.gp", true, "gaus", " ");
+        hMomentum.plot(path+"momentum.gp", true, "gaus", " ");
+        hScatProj.plot(path+"scatt.gp",true," "," ");
+        for (int layer=2; layer<nLayers; ++layer) {
+            hScatXY[layer].plot(path + String.format("ScatXY_%d.gp", layer), true, " ", " ");
+            hScatZY[layer].plot(path + String.format("ScatZY_%d.gp", layer), true, " ", " ");
+        }
     }
 
 }

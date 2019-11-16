@@ -79,8 +79,8 @@ public class KalTrack {
     public double scatX(int layer) {
         if (!lyrMap.containsKey(layer)) { return -999.; }
         int lyrNxt = layer + 1;
-        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
-        if (lyrNxt > 12) { return -999.; }
+        while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
+        if (lyrNxt > 13) { return -999.; }
 
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
@@ -99,8 +99,8 @@ public class KalTrack {
     public double scatZ(int layer) {
         if (!lyrMap.containsKey(layer)) { return -999.; }
         int lyrNxt = layer + 1;
-        while (lyrNxt <= 12 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
-        if (lyrNxt > 12) { return -999.; }
+        while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
+        if (lyrNxt > 13) { return -999.; }
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
         double phiS1 = s1.aS.planeIntersect(s2.m.p);
