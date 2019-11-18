@@ -1,9 +1,7 @@
 package org.hps.recon.tracking.gbl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
@@ -49,6 +47,18 @@ public class GBLRefitterDriver extends Driver {
     private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
     private boolean writeMilleBinary = false;
     private double writeMilleChi2Cut = 20;
+    private boolean includeNoHitScatters = false;
+    
+    //Setting 0 is a single refit, 1 refit twice and so on..
+    private int gblRefitIterations = 5; 
+
+    public void setIncludeNoHitScatters(boolean val) {
+        includeNoHitScatters = val;
+    }
+    
+    public void setGblRefitIterations(int val) {
+        gblRefitIterations = val;
+    }
 
     public void setWriteMilleChi2Cut(int input) {
         writeMilleChi2Cut = input;
@@ -151,15 +161,15 @@ public class GBLRefitterDriver extends Driver {
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
-
-        Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
+        
+        //Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
             List<TrackerHit> temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
             if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
 
-            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
             if (newTrackTraj == null) {
                 System.out.println("GBLRefitterDriver::process() -- Aborted refit of track -- null pointer for newTrackTraj returned from MakeGblTracks.refitTrackWithTraj .");
                 continue;
@@ -177,7 +187,8 @@ public class GBLRefitterDriver extends Driver {
                 continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
-            inputToRefitted.put(track, gblTrk);
+            //PF :: unused
+            //inputToRefitted.put(track, gblTrk);
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
