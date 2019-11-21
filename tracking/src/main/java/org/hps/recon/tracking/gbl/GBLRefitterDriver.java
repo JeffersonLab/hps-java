@@ -41,6 +41,7 @@ public class GBLRefitterDriver extends Driver {
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
+    private boolean storeGBLStripClusters = true;
     private StandardCuts cuts = new StandardCuts();
 
     private MilleBinary mille;
@@ -59,7 +60,11 @@ public class GBLRefitterDriver extends Driver {
     public void setGblRefitIterations(int val) {
         gblRefitIterations = val;
     }
-
+    
+    public void setStoreGBLStripClusters( boolean val) {
+        storeGBLStripClusters = val;
+    }
+    
     public void setWriteMilleChi2Cut(int input) {
         writeMilleChi2Cut = input;
     }
@@ -161,6 +166,9 @@ public class GBLRefitterDriver extends Driver {
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
+
+        List< GBLStripClusterData > gblStripClusterDataCollection =  new ArrayList<GBLStripClusterData> ();
+        List<LCRelation>            gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
         
         //Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
@@ -199,6 +207,12 @@ public class GBLRefitterDriver extends Driver {
         event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
         event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
         event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
+        
+        if (storeGBLStripClusters) {
+            event.put("GBLStripClusterData",          gblStripClusterDataCollection, GBLStripClusterData.class, 0);
+            event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations,  LCRelation.class, 0);
+        }
+
     }
 
     private void setupSensors(EventHeader event) {
