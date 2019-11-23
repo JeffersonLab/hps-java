@@ -226,6 +226,7 @@ public class DetectorBuilder {
                 double zmax = bounds[1];
                 System.out.println("zmin " + zmin + " zmax " + zmax);
                 DetectorPlane dp = new DetectorPlane(id++, prodrot, origin.v(), SIGS);
+                dp.setName(stripPlaneName);
                 dp.setUVWR(uDir, vDir, normal, origin);
                 planes.add(dp);
                 planeMap.put(plane.getName(), dp);

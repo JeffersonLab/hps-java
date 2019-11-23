@@ -11,6 +11,7 @@ import java.util.Arrays;
 public class DetectorPlane {
 
     private int _id;
+    private String _name;
     private Matrix _rotMat; // rotation matrices local --> global
     private double[] _rot = new double[9]; // rotation matrix local -> global
     private double[] _r0 = new double[3]; //detector origin in global coordinates (mm)
@@ -153,8 +154,16 @@ public class DetectorPlane {
         _offset = new Offset(_id, _rotMat.getRowPackedCopy(), _r0, a, a, MASK);
     }
 
+    public void setName(String s) {
+        _name = s;
+    }
+
+    public String name() {
+        return _name;
+    }
+
     public String toString() {
-        StringBuffer sb = new StringBuffer("DetectorPlane " + _id + " : ");
+        StringBuffer sb = new StringBuffer("DetectorPlane " + _name + " " + _id + " : ");
         sb.append("rot : " + Arrays.toString(_rotMat.getRowPackedCopy()));
         sb.append(" r0  : " + Arrays.toString(_r0));
         sb.append(" sigs: " + Arrays.toString(_sigs));

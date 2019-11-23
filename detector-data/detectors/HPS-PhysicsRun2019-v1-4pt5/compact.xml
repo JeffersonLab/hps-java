@@ -208,13 +208,13 @@
         <!-- module_L2t_halfmodule_stereo -->
         <millepede_constant name="11104" value="0.0"/>
         <!-- module_L3t_halfmodule_axial -->
-        <millepede_constant name="11105" value="0.1599"/>
+        <millepede_constant name="11105" value="0.0"/>
         <!-- module_L3t_halfmodule_stereo -->
-        <millepede_constant name="11106" value="0.1068"/>
+        <millepede_constant name="11106" value="0.0"/>
         <!-- module_L4t_halfmodule_axial -->
-        <millepede_constant name="11107" value="0.1670"/>
+        <millepede_constant name="11107" value="0.0"/>
         <!-- module_L4t_halfmodule_stereo -->
-        <millepede_constant name="11108" value="0.1367"/>
+        <millepede_constant name="11108" value="0.0"/>
         <!-- module_L5t_halfmodule_axial_hole -->
         <millepede_constant name="11109" value="0.0"/>
         <!-- module_L5t_halfmodule_stereo_hole -->
@@ -224,9 +224,9 @@
         <!-- module_L5t_halfmodule_stereo_slot -->
         <millepede_constant name="11112" value="0.0"/>
         <!-- module_L6t_halfmodule_axial_hole -->
-        <millepede_constant name="11113" value="0.0150"/>
+        <millepede_constant name="11113" value="0.0"/>
         <!-- module_L6t_halfmodule_stereo_hole -->
-        <millepede_constant name="11114" value="-0.0239"/>
+        <millepede_constant name="11114" value="0.0"/>
         <!-- module_L6t_halfmodule_axial_slot -->
         <millepede_constant name="11115" value="0.0"/>
         <!-- module_L6t_halfmodule_stereo_slot -->
@@ -371,13 +371,13 @@
         <!-- module_L2b_halfmodule_axial -->
         <millepede_constant name="21104" value="0.0"/>
         <!-- module_L3b_halfmodule_stereo -->
-        <millepede_constant name="21105" value="-0.2129"/>
+        <millepede_constant name="21105" value="0.0"/>
         <!-- module_L3b_halfmodule_axial -->
-        <millepede_constant name="21106" value="-0.2277"/>
+        <millepede_constant name="21106" value="0.0"/>
         <!-- module_L4b_halfmodule_stereo -->
-        <millepede_constant name="21107" value="-0.077"/>
+        <millepede_constant name="21107" value="0.0"/>
         <!-- module_L4b_halfmodule_axial -->
-        <millepede_constant name="21108" value="-0.1291"/>
+        <millepede_constant name="21108" value="0.0"/>
         <!-- module_L5b_halfmodule_stereo_hole -->
         <millepede_constant name="21109" value="0.0"/>
         <!-- module_L5b_halfmodule_axial_hole -->
@@ -387,17 +387,17 @@
         <!-- module_L5b_halfmodule_axial_slot -->
         <millepede_constant name="21112" value="0.0"/>
         <!-- module_L6b_halfmodule_stereo_hole -->
-        <millepede_constant name="21113" value="-0.0913"/>
+        <millepede_constant name="21113" value="0.0"/>
         <!-- module_L6b_halfmodule_axial_hole -->
-        <millepede_constant name="21114" value="0.0576"/>
+        <millepede_constant name="21114" value="0.0"/>
         <!-- module_L6b_halfmodule_stereo_slot -->
         <millepede_constant name="21115" value="0.0"/>
         <!-- module_L6b_halfmodule_axial_slot -->
         <millepede_constant name="21116" value="0.0"/>
         <!-- module_L7b_halfmodule_stereo_hole -->
-        <millepede_constant name="21117" value="0.1331"/>
+        <millepede_constant name="21117" value="0.0"/>
         <!-- module_L7b_halfmodule_axial_hole -->
-        <millepede_constant name="21118" value="0.1094"/>
+        <millepede_constant name="21118" value="0.0"/>
         <!-- module_L7b_halfmodule_stereo_slot -->
         <millepede_constant name="21119" value="0.0"/>
         <!-- module_L7b_halfmodule_axial_slot -->

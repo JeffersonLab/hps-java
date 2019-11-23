@@ -61,14 +61,6 @@ public class StraightTrackAlignmentDriver extends Driver {
     // initial guess for the track direction
     double[] B0 = {0., 0., 1.};
 
-    // DetectorPlanes at the 2H02 wire to provide a beam-spot constraint.
-    DetectorPlane xPlaneAtWire = null;
-    DetectorPlane yPlaneAtWire = null;
-    Hit beamAtWire = null;
-
-    boolean beamConstrain = false;
-    int nEventsToAlign = 10000;
-
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
     Map<String, Hit> stripHitByModule = new TreeMap<String, Hit>();
@@ -101,7 +93,14 @@ public class StraightTrackAlignmentDriver extends Driver {
             "module_L7b_halfmodule_axial_hole_sensor0");
 
     // alignment stuff
-    boolean alignit = false;
+    boolean alignit = true;
+    // DetectorPlanes at the 2H02 wire to provide a beam-spot constraint.
+    DetectorPlane xPlaneAtWire = null;
+    DetectorPlane yPlaneAtWire = null;
+    Hit beamAtWire = null;
+
+    boolean beamConstrain = true;
+    int nEventsToAlign = 5000;
     int bottomIter;
     int topIter;
     int NITER = 7;
@@ -109,6 +108,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     List<DetectorPlane> bottomPlanes = null;//new ArrayList<DetectorPlane>();
     List<List<Hit>> topEventsToAlign = new ArrayList<>();
     List<DetectorPlane> topPlanes = null;//new ArrayList<DetectorPlane>();
+    Map<String, DetectorPlane> alignedDetectorPlanesInFit = new LinkedHashMap<>();
 
     // try some vertexing here...
     List<Track> topTracks = new ArrayList<Track>();
@@ -118,7 +118,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     double target_x = -68.0;
     double target_y = 0.;
     double target_z = -(672.71 - 583.44) * 25.4;
-    double maxChisq = 100.;
+    double maxChisq = 200.;
 
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
@@ -152,15 +152,25 @@ public class StraightTrackAlignmentDriver extends Driver {
         }
         aida.histogram1D("number of clusters", 10, 0., 10.).fill(clusters.size());
 //        Cluster c = null;
-//        for (Cluster cluster : clusters) {
-//            aida.histogram1D("All Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
-//        }
+        for (Cluster cluster : clusters) {
+            aida.histogram1D("All Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+            aida.histogram2D("All Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+            boolean isFiducial = TriggerModule.inFiducialRegion(cluster);
+            String fid = isFiducial ? "fiducial" : "";
+            aida.histogram1D("All Cluster " + fid + " energy", 100, 0., 7.).fill(cluster.getEnergy());
+            aida.histogram2D("All Cluster " + fid + " x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+            if (cluster.getPosition()[1] > 0) {
+                aida.histogram1D("All Cluster " + fid + " x top", 320, -270.0, 370.0).fill(cluster.getPosition()[0]);
+            } else {
+                aida.histogram1D("All Cluster " + fid + " x bottom", 320, -270.0, 370.0).fill(cluster.getPosition()[0]);
+            }
+        }
 //        if (clusters.size() != 1) {
 //            return;
 //        }
 
         for (Cluster cluster : clusters) {
-            aida.histogram1D("All Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
+//            aida.histogram1D("All Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
             if (cluster.getEnergy() > _minClusterEnergy) {
                 boolean isFiducial = TriggerModule.inFiducialRegion(cluster);
                 String fid = isFiducial ? "fiducial" : "";
@@ -176,7 +186,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 //            }
 //        }
 //        if (c != null) {
-                //OK, we have a good, high-energy cluster in the fiducial part of the calorimeter...
+                //OK, we have a good, high-energy cluster in tthe calorimeter...
                 Point3D P0 = new Point3D(H02Wire[0], H02Wire[1], H02Wire[2]);
                 double[] cPos = c.getPosition();
                 Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
@@ -214,6 +224,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 //            }
                 Map<String, SiTrackerHitStrip1D> hitsToFit = new LinkedHashMap<>();
                 Map<String, DetectorPlane> detectorPlanesInFit = new LinkedHashMap<>();
+
                 String trackingDetectorName = cPos[1] > 0 ? "topHole" : "bottomHole"; // work on slot later
                 List<DetectorPlane> td = _db.getTracker(trackingDetectorName);
                 String[] trackerSensorNames = _db.getTrackerSensorNames(trackingDetectorName);
@@ -270,13 +281,19 @@ public class StraightTrackAlignmentDriver extends Driver {
                     //TODO don't use the global position encoded in the SiTrackerHitStrip1D
                     //Instead, calculate u directly from the raw hits which make up the strip cluster.
                     //That would allow us to introduce new (read aligned) geometries in  the analysis.
+                    //for now, always calculate the local coordinate from the original plane, not the updated, aligned one.
                     Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
                     hits.add(h);
-                    planes.add(detectorPlanesInFit.get(s));
+                    // if we have an aligned plane, use it
+                    if (alignedDetectorPlanesInFit.containsKey(s)) {
+                        planes.add(alignedDetectorPlanesInFit.get(s));
+                    } else {
+                        planes.add(detectorPlanesInFit.get(s));
+                    }
                 }
                 // require at least 8 hits for fit
-                int minHitsToFit = isTop ? 8 : 10;
-                if (hits.size() == minHitsToFit) {
+                int minHitsToFit = isTop ? 8 : 9;  // only 10101 has a working layer 4...
+                if (hits.size() >= minHitsToFit) {
                     aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
                     TrackFit fit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
@@ -296,7 +313,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                         aida.histogram1D(topOrBottom + fid + " y at z=-2267", 100, -20., 20.).fill(pars[1]);
                         aida.histogram1D(topOrBottom + fid + " dXdZ at z=-2267", 100, 0., 0.050).fill(pars[2]);
                         aida.histogram1D(topOrBottom + fid + " dYdZ at z=-2267", 100, -0.050, 0.050).fill(pars[3]);
-                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., 100.).fill(fit.chisq() / fit.ndf());
+                        aida.histogram1D(topOrBottom + fid + " track fit chiSquared per ndf", 100, 0., maxChisq).fill(fit.chisq() / fit.ndf());
                         double chisqProb = ChisqProb.gammp(fit.ndf(), fit.chisq());
                         aida.histogram1D(topOrBottom + fid + " track fit chiSquared probability", 100, 0., 1.).fill(chisqProb);
                         aida.histogram2D("Final Cal Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
@@ -404,6 +421,10 @@ public class StraightTrackAlignmentDriver extends Driver {
                 System.out.println("Aligning the bottom SVT");
                 alignit(bottomPlanes, bottomEventsToAlign, false, bottomIter);
                 bottomIter++;
+                // add the aligned planes to the list for further processing...
+                for (DetectorPlane p : bottomPlanes) {
+                    alignedDetectorPlanesInFit.put(p.name(), p);
+                }
                 // clear the list
                 bottomEventsToAlign.clear();
             }
@@ -427,6 +448,10 @@ public class StraightTrackAlignmentDriver extends Driver {
                 System.out.println("Aligning the top SVT");
                 alignit(topPlanes, topEventsToAlign, true, topIter);
                 topIter++;
+                // add the aligned planes to the list for further processing...
+                for (DetectorPlane p : bottomPlanes) {
+                    alignedDetectorPlanesInFit.put(p.name(), p);
+                }
                 // clear the list
                 topEventsToAlign.clear();
             }
@@ -481,8 +506,8 @@ public class StraightTrackAlignmentDriver extends Driver {
         aida.histogram2D("vertex x vs z", 200, -2500., -2100, 100, -90., -45.).fill(v.z(), v.x());
         aida.histogram2D("vertex y vs z", 200, -2500., -2100, 100, -3.5, 1.5).fill(v.z(), v.y());
 
-        aida.cloud1D("vertex number of Tracks").fill(v.ntracks());
-        aida.cloud1D("vertex chisq per dof").fill(v.chisq() / v.ndf());
+        aida.histogram1D("vertex number of Tracks", 200, 0., 200.).fill(v.ntracks());
+        aida.histogram1D("vertex chisq per dof", 200, 0., 20000).fill(v.chisq() / v.ndf());
 
         aida.tree().cd("..");
     }
@@ -498,6 +523,12 @@ public class StraightTrackAlignmentDriver extends Driver {
         String path = isTop ? "top alignment " : "bottom alignment ";
         aida.tree().mkdirs(path + iter);
         aida.tree().cd(path + iter);
+
+        //print out starting planes
+        System.out.println("Before alignment...");
+        for (DetectorPlane p : planes) {
+            System.out.println(p);
+        }
 
         // let's look at unbiased residuals before alignment...
         aida.tree().mkdirs("before");
@@ -596,6 +627,11 @@ public class StraightTrackAlignmentDriver extends Driver {
         }// loop over iterations  
 
         // in principle we are now aligned...
+        // print out ending planes
+        System.out.println("After alignment...");
+        for (DetectorPlane p : planes) {
+            System.out.println(p);
+        }
         // see if the unbiased residuals improve...
         aida.tree().mkdirs("after");
         aida.tree().cd("after");
@@ -631,18 +667,15 @@ public class StraightTrackAlignmentDriver extends Driver {
         aida.tree().cd("..");
     }
 
-    
-    public Hit makeHit(DetectorPlane p, SiTrackerHitStrip1D stripCluster)
-    {
+    public Hit makeHit(DetectorPlane p, SiTrackerHitStrip1D stripCluster) {
         List<RawTrackerHit> hits = stripCluster.getRawHits();
-        for(RawTrackerHit hit : hits)
-        {
-        
+        for (RawTrackerHit hit : hits) {
+
         }
-                    
+
         return null;
     }
-    
+
     /**
      * Given a DetectorPlane and a global position, return a hit in local
      * coordinates
@@ -754,8 +787,10 @@ public class StraightTrackAlignmentDriver extends Driver {
             DetectorPlane missingPlane = planes.get(i);
             Hit missingHit = hits.get(i);
             // get the unbiased residual for the missing hit
-            double resid = unbiasedResidual(fit, missingPlane, missingHit, A0, B0);
-            aida.histogram1D(topOrBottom + "unbiased residual " + missingPlane.id(), 100, -1.0, 1.0).fill(resid);
+            double[] resid = unbiasedResidual(fit, missingPlane, missingHit, A0, B0);
+            aida.histogram1D(topOrBottom + "unbiased residual " + missingPlane.id(), 100, -1.0, 1.0).fill(resid[1]);
+            aida.histogram2D(topOrBottom + "unbiased x vs residual " + missingPlane.id(), 300, -200, 100, 100, -1.0, 1.0).fill(resid[0], resid[1]);
+            aida.histogram1D(topOrBottom + "unbiased x " + missingPlane.id(), 300, -200, 100).fill(resid[0]);
         }
         aida.tree().cd("..");
     }
@@ -772,7 +807,7 @@ public class StraightTrackAlignmentDriver extends Driver {
      * @param B0 The TrackFit direction
      * @return
      */
-    public double unbiasedResidual(TrackFit fit, DetectorPlane dp, Hit h, double[] A0, double[] B0) {
+    public double[] unbiasedResidual(TrackFit fit, DetectorPlane dp, Hit h, double[] A0, double[] B0) {
         double resid = 9999.;
         Matrix rot = dp.rot();
         Matrix[] uvwg = new Matrix[3];
@@ -805,7 +840,7 @@ public class StraightTrackAlignmentDriver extends Driver {
         ImpactPoint ip = FitTracks.GET_IMPACT(A, B, rot, dp.r0(), uvwg[2], BUVW[2]);
 //        System.out.println(ip);
 //        System.out.println(h);
-        return h.uvm()[0] - ip.q()[0];
+        return new double[]{ip.q()[1], h.uvm()[0] - ip.q()[0]};
     }
 
     public void setNumberOfTracksToVertex(int i) {
