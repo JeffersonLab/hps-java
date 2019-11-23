@@ -128,6 +128,19 @@ public final class HodoscopeChannel extends BaseConditionsObject {
             return foundIt;
         }
 
+        public HodoscopeChannel findChannel(int ix, int iy, int layer, int hole) {
+            HodoscopeChannel foundIt = null;
+            
+            for (HodoscopeChannel c : this) {
+                if( c.getIX() == ix && c.getIY() == iy && c.getLayer() == layer && c.getHole() == hole ){
+                    foundIt = c;
+                    break;
+                }
+            }
+            
+            return foundIt;
+        }
+
         /**
          * Find a channel by its encoded geometric ID.
          *
@@ -294,7 +307,7 @@ public final class HodoscopeChannel extends BaseConditionsObject {
      * hodoscope.
      * <br/><br/>
      * Static integer representation of the allowed values can be found in {@link
-     * org.hps.conditions.hodoscope.HodoscopeChannel#TOP TOP} and null     {@link
+     * org.hps.conditions.hodoscope.HodoscopeChannel#TOP TOP} and null null     {@link
      * org.hps.conditions.hodoscope.HodoscopeChannel#BOTTOM BOTTOM}.
      *
      * @return Returns the y-index as an <code>int</code>.

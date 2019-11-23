@@ -174,7 +174,6 @@ public abstract class ReconParticleDriver extends Driver {
                                                          // production running
     // Beam position variables.
     // The beamPosition array is in the tracking frame
-    /* TODO get the beam position from the conditions db */
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
     protected double beamEnergy = 1.056;

@@ -74,6 +74,8 @@ public final class TrackerReconDriver extends Driver {
     private double rmsTimeCut = -1;
     
     private boolean rejectUncorrectedHits = true;
+    
+    private int maxTrackerHits=250;
 
     public TrackerReconDriver() {
     }
@@ -84,8 +86,8 @@ public final class TrackerReconDriver extends Driver {
     
     public void setSubdetectorName(String subdetectorName) {
         this.subdetectorName = subdetectorName;
-    }
-
+    }    
+    
     /**
      * Set the tracking strategy resource.
      *
@@ -144,6 +146,9 @@ public final class TrackerReconDriver extends Driver {
         this.rejectUncorrectedHits = rejectUncorrectedHits;
     }
 
+    public void setMaxTrackerHits(int max){
+        this.maxTrackerHits=max;
+    }
     /**
      * This is used to setup the Drivers after XML config.
      */
@@ -183,6 +188,7 @@ public final class TrackerReconDriver extends Driver {
         stFinal.setInputCollectionName(stInputCollectionName);
         stFinal.setTrkCollectionName(trackCollectionName);
         stFinal.setBField(bfield);
+        stFinal.setMaxHelicalTrackHits(maxTrackerHits);
         if (debug) {
             stFinal.setDiagnostics(new SeedTrackerDiagnostics());
         }
@@ -238,7 +244,10 @@ public final class TrackerReconDriver extends Driver {
                     double correction = VecOp.sub(hth.getCorrectedPosition(), new BasicHep3Vector(hth.getPosition())).magnitude();
                     double chisq = hth.chisq();
                     if (correction < 1e-6) {
-                        this.getLogger().warning(String.format(event.getRunNumber()+ " " + event.getEventNumber()+" Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f)", correction, chisq));
+                        this.getLogger().warning(String.format(event.getRunNumber()+ " " + event.getEventNumber()+
+                                " Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f) Layer = %d"
+                                , correction, chisq,hth.Layer(),hth.Layer()));
+//                        System.out.println("Y = "+hth.getPosition()[2]);
                         iter.remove();
                         continue trackLoop;
                     }

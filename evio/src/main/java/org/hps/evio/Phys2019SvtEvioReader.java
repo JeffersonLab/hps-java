@@ -103,7 +103,9 @@ public class Phys2019SvtEvioReader extends AbstractSvtEvioReader {
             int channel = SvtEvioUtils.getChannelNumber(data);
 
             // Extract the APV ID from the data
-            int apv = SvtEvioUtils.getApvFromMultiSample(data); 
+            int apv = SvtEvioUtils.getApvFromMultiSample(data);
+            if (apv == 0) apv = 1; 
+            else if (apv == 1) apv = 0;   
 
             // Get the physical channel number
             pChannel = apv*CHANNELS_PER_APV25 + channel; 
@@ -201,7 +203,11 @@ public class Phys2019SvtEvioReader extends AbstractSvtEvioReader {
                 for (int imsample = 0; imsample < multiSampleCount; imsample++) { 
                     int[] samples = new int[4];
                     currentSample -= 4; 
-                    System.arraycopy(data, currentSample, samples, 0, samples.length);    
+                    System.arraycopy(data, currentSample, samples, 0, samples.length);   
+                    if (((samples[3] >>> 30) & 0x1) == 1) { 
+                        //System.out.println("Found a header."); 
+                        continue; 
+                    }
                     sampleList.add(samples); 
                 }
                 //System.out.println("Total number of multisamples extracted: " + sampleList.size()); 

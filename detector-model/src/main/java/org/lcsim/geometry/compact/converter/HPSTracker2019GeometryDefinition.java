@@ -11,8 +11,10 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseSensor;
+//import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.TestRunHalfModuleBundle;
 // import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent;
 // import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
+import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
 
 /**
  * Updated geometry information for the HPS tracker 2019
@@ -68,16 +70,21 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         surveyVolumes.add(supportRingKinL13Bottom);
 
         LOGGER.info("Construct uChannelL14Bottom");
+        
 
         UChannelL13 uChannelL14Bottom = new UChannelL14Bottom("support_bottom_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Bottom);
         surveyVolumes.add(uChannelL14Bottom);
+        
+        System.out.println("Constructed uChannelL14Bottom: " + uChannelL14Bottom.toString());
 
         LOGGER.info("Construct uChannelL14BottomPlate");
 
         UChannelL14Plate uChannelL14BottomPlate = new UChannelL14BottomPlate("support_plate_bottom_L14", svtBox, null,
                 uChannelL14Bottom);
         surveyVolumes.add(uChannelL14BottomPlate);
+        
+        System.out.println("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
 
         LOGGER.info("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
 
@@ -88,10 +95,14 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Top);
         surveyVolumes.add(uChannelL14Top);
+        
+        System.out.println("Constructed uChannelL14Top: " + uChannelL14Top.toString());
 
         UChannelL14Plate uChannelL14TopPlate = new UChannelL14TopPlate("support_plate_top_L14", svtBox, null,
                 uChannelL14Top);
         surveyVolumes.add(uChannelL14TopPlate);
+        
+        System.out.println("Constructed uChannelL14TopPlate: " + uChannelL14TopPlate.toString());
 
         UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrections);
         surveyVolumes.add(uChannelL46Bottom);
@@ -108,7 +119,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         surveyVolumes.add(uChannelL46TopPlate);
 
         LOGGER.info("Construct modules");
-
         for (int l = 1; l <= 7; ++l) {
             if (doLayer(l)) {
                 LOGGER.info("Construct layer " + l + " modules");
@@ -174,16 +184,19 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         BaseModuleBundle bundle;
 
         if (layer <= 2) {
-            bundle = new ShortModuleBundle(module);
+            //bundle = new ShortModuleBundle(module);
+            bundle = new ShortModuleBundleOneSensor(module);
             addModuleBundle(bundle);
             if (doAxial) {
-                makeShortHalfModule("axial", "hole", module);
-                makeShortHalfModule("axial", "slot", module);
+                //makeShortHalfModule("axial", "hole", module);
+                makeShortHalfModule("axial", module);
+                //makeShortHalfModule("axial", "slot", module);
             }
             // if(doColdBlock) makeColdBlock(module);
             if (doStereo) {
-                makeShortHalfModule("stereo", "hole", module);
-                makeShortHalfModule("stereo", "slot", module);
+                //makeShortHalfModule("stereo", "hole", module);
+                makeShortHalfModule("stereo", module);
+                //makeShortHalfModule("stereo", "slot", module);
             }
         } else if (layer > 2 && layer <= 4) {
             bundle = new TestRunModuleBundle(module);
@@ -463,12 +476,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         }
 
     }
-
-    public static class ModuleL2Bot extends ModuleL13Bot {
-        protected final static double shift_across_uchannel = 0;
-        protected final static double shift_vertically_uchannel = 0;
+    //public static class ModuleL2Bot extends ModuleL13Bot {
+    public static class ModuleL2Bot extends ShortModuleBot {
+        protected final static double shift_along_uchannel = 0; //positive is downstream
+        protected final static double shift_across_uchannel = 0.250; //positive is beam right
+        protected final static double shift_vertically_uchannel = -0.300; //positive is towards beam
         // Note the L1 measures are used here
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel;
+        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
@@ -477,21 +491,22 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
 
-        protected Hep3Vector getHolePosition() {
+        //protected Hep3Vector getHolePosition() {
+        protected Hep3Vector getHole() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
             double z = cone_to_hole_vertical_from_uchannel;
             return new BasicHep3Vector(x, y, z);
         }
-
     }
-
-    public static class ModuleL2Top extends ModuleL13Top {
-        protected final static double shift_across_uchannel = 0;
-        protected final static double shift_vertically_uchannel = 0;
+    //public static class ModuleL2Top extends ModuleL13Top {
+    public static class ModuleL2Top extends ShortModuleTop {
+        protected final static double shift_along_uchannel = 0; //positive is downstream
+        protected final static double shift_across_uchannel = -0.250; //positive is beam left
+        protected final static double shift_vertically_uchannel = -0.300; //positive is towards beam
 
         // Note the L1 measures are used here
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel;
+        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel + shift_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
@@ -500,7 +515,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
 
-        protected Hep3Vector getHolePosition() {
+        //protected Hep3Vector getHolePosition() {
+        protected Hep3Vector getHole() {
             double x = cone_to_hole_across_uchannel;
             double y = cone_to_hole_along_uchannel;
             double z = cone_to_hole_vertical_from_uchannel;
@@ -514,7 +530,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_vertical_from_uchannel;
-        protected final static double L3_new_vertical_shift = 0.8;
+        protected final static double L3_new_vertical_shift = 0.7 - 0.012;
 
         public ModuleL3Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -535,7 +551,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_vertical_from_uchannel;
-        protected final static double L3_new_vertical_shift = 0.8;
+        protected final static double L3_new_vertical_shift = 0.7 + 0.055;
 
         public ModuleL3Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -556,7 +572,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_vertical_from_uchannel;
-        protected final static double L4_new_vertical_shift = 0.8;
+        protected final static double L4_new_vertical_shift = 0.7 + 0.0356;
 
         public ModuleL4Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -577,7 +593,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_vertical_from_uchannel;
-        protected final static double L4_new_vertical_shift = 0.8;
+        protected final static double L4_new_vertical_shift = 0.7 + 0.062;
 
         public ModuleL4Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -670,8 +686,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     public static class ShortSensor extends BaseSensor {
 
         // static final double length= 10.00 + 1.00;
-        static final double length = 10.00;
-        static final double width = 14.080 + 2 * 0.250;
+        //static final double length = 10.00;
+        //static final double length = 10.00*2;
+        static final double length = 15.00*2;
+        //static final double width = 14.080 + 2 * 0.250;
+        static final double width = 14.025 + 2 * 0.250;
         static final double thickness = 0.200; // 0.250;
         static final double height = thickness;
 
@@ -747,6 +766,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // 98.33);
         private static final double length = ShortSensor.length;
         private static final double width = ShortSensor.width - 2 * 0.250;
+        //private static final double width = ShortSensor.width - 2 * 0.250 - 0.055; //subtract strip length since we have n - 1 strips
         private static final double thickness = ShortSensor.thickness;
 
         public ActiveShortSensor(String name, SurveyVolume m) {
@@ -803,7 +823,9 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
      */
     public abstract static class ShortModule extends BaseModule {
 
-        protected final static double distance_between_stereo_axial_norm_dir = 3.0 / 16.0 * inch;
+        //protected final static double distance_between_stereo_axial_norm_dir = 3.0 / 16.0 * inch;
+        //protected final static double distance_between_stereo_axial_norm_dir = 5.0 / 16.0 * inch;
+        protected final static double distance_between_stereo_axial_norm_dir = 0.299 * inch;
 
         // OLD STUFF MOSTLY
         protected final static double hole_to_center_of_plate_width_dir = 5.875 * inch;
@@ -908,9 +930,9 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // position this module w.r.t. previous L1 by shifting it along the
         // channel
         protected final static double shift_along_uchannel = -50.;
-        protected final static double shift_vertically_uchannel = 0;// 20.6658;
-        protected final static double shift_across_uchannel = 5.19;
-        protected final static double shift_again_along_uchannel = 4.66;
+        protected final static double shift_vertically_uchannel = 0.0;//0;// 20.6658;
+        protected final static double shift_across_uchannel = 0;//5.19;
+        protected final static double shift_again_along_uchannel = 0;//4.66;
 
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel
                 + shift_along_uchannel - shift_again_along_uchannel;
@@ -939,14 +961,15 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // channel
         // note flip
         protected final static double shift_along_uchannel = -50.;
-        protected final static double shift_across_uchannel = 4.81;
-        protected final static double shift_again_along_uchannel = 4.32;
+        protected final static double shift_vertically_uchannel = 0.0;
+        protected final static double shift_across_uchannel = 0;//4.81;
+        protected final static double shift_again_along_uchannel = 0;//4.32;
         // note flip wr.t. bottom
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel
                 + shift_along_uchannel + shift_again_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel
                 - shift_across_uchannel; // change x position layer 1 top
-        protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel;
+        protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
         public ModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -969,6 +992,127 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
      * @param type - hole or slot
      * @param mother to the half-module
      */
+    
+    protected void makeShortHalfModule(String side, BaseModule mother) {
+
+        String moduleName = mother.getName();
+
+        if (isDebug())
+            System.out.printf("%s: makeHalfModule for %s %s %s \n", this.getClass().getSimpleName(), moduleName, side);
+
+        String volName = moduleName + "_halfmodule_" + side;
+
+        // top or bottom?
+        String half = mother.getHalf();
+        boolean isTopLayer = !mother.isBottom();
+
+        // find layer
+        int layer = mother.getLayer();
+        
+        // axial or stereo
+        boolean isAxial = isAxialFromName(volName);
+        
+        //Make Millepede Layer always hole for short sensor
+        //boolean isHole = true;
+
+        // find layer according to Millepede layer definition
+        //int millepedeLayer = getMillepedeLayer(isTopLayer, layer, isAxial, isHole);
+        int millepedeLayer = getMillepedeLayer(volName);
+
+        // find alignment correction to this volume
+        AlignmentCorrection alignmentCorrection = getHalfModuleAlignmentCorrection(isTopLayer, millepedeLayer);
+        alignmentCorrection.setNode(node);
+
+        // find the module bundle that it will be added to
+        // TestRunModuleBundle bundle =
+        // (TestRunModuleBundle)getModuleBundle(mother);
+        // TestRunHalfModuleBundle halfModuleBundle;
+        ShortModuleBundleOneSensor bundle = (ShortModuleBundleOneSensor) getModuleBundle(mother);
+        //TestRunModuleBundle bundle = (TestRunModuleBundle) getModuleBundle(mother);
+
+        // Build the half-module bundle and half-module
+        // TODO clean this up to a separate method
+        ShortHalfModule halfModule;
+        HalfModuleBundle halfModuleBundle;
+        if (isAxial) {
+            //halfModuleBundle = new ShortHalfModuleBundle();
+            //halfModule = new ShortAxialHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+            //bundle.halfModuleAxial = halfModuleBundle;
+            if(layer == 1){
+                if(isTopLayer){
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleAxial = halfModuleBundle;
+                }
+                else{
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortAxialHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleAxial = halfModuleBundle;
+                }
+            }
+            else if(layer == 2){
+                if(isTopLayer){
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortAxialHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleAxial = halfModuleBundle;
+                }
+                else{
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortAxialHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleAxial = halfModuleBundle;
+                }
+            }
+            else{
+                System.out.println("Short modules should only apply to L0 and L1 modules. Please check geometry code.");
+                halfModuleBundle = new ShortHalfModuleBundle();
+                halfModule = new ShortAxialHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+                bundle.halfModuleAxial = halfModuleBundle;
+            }
+        } else {
+            //halfModuleBundle = new ShortHalfModuleBundle();
+            //halfModule = new ShortStereoHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+            //bundle.halfModuleStereo = halfModuleBundle;
+            if(layer == 1){
+                if(isTopLayer){
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortStereoHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleStereo = halfModuleBundle;
+                }
+                else{
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortStereoHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleStereo = halfModuleBundle;
+                }
+            }
+            else if(layer == 2){
+                if(isTopLayer){
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortStereoHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleStereo = halfModuleBundle;
+                }
+                else{
+                    halfModuleBundle = new ShortHalfModuleBundle();
+                    halfModule = new ShortStereoHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleStereo = halfModuleBundle;
+                }
+            }
+            else{
+                System.out.println("Short modules should only apply to L0 and L1 modules. Please check geometry code.");
+                halfModuleBundle = new ShortHalfModuleBundle();
+                halfModule = new ShortStereoHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                bundle.halfModuleStereo = halfModuleBundle;
+            }
+        }
+        halfModuleBundle.halfModule = halfModule;
+
+        // create the half module components
+        makeShortHalfModuleComponentSensor(halfModule);
+        // makeShortHalfModuleComponentKapton(halfModule);
+        // makeHalfModuleComponentCF(halfModule);
+        // makeHalfModuleComponentHybrid(halfModule);
+
+    }
+    
     protected void makeShortHalfModule(String side, String type, BaseModule mother) {
 
         String moduleName = mother.getName();
@@ -1012,18 +1156,70 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         if (isAxial) {
             halfModuleBundle = new ShortHalfModuleBundle();
             if (isHole) {
-                halfModule = new ShortAxialHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
-                bundle.halfModuleAxialHole = halfModuleBundle;
+                //halfModule = new ShortAxialHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+                //bundle.halfModuleAxialHole = halfModuleBundle;
+                if(layer == 1){
+                    if(isTopLayer){
+                        halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleAxialHole = halfModuleBundle;
+                    }
+                    else{
+                        halfModule = new ShortAxialHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleAxialHole = halfModuleBundle;
+                    }
+                }
+                else if(layer == 2){
+                    if(isTopLayer){
+                        halfModule = new ShortAxialHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleAxialHole = halfModuleBundle;
+                    }
+                    else{
+                        halfModule = new ShortAxialHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleAxialHole = halfModuleBundle;
+                    }
+                }
+                else{
+                    System.out.println("Short modules should only apply to L0 and L1 modules. Please check geometry code.");
+                    halfModule = new ShortAxialHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleAxialHole = halfModuleBundle;
+                }
             } else {
+                System.out.println("Short modules should NOT have a slot sensor. Please check geometry code.");
                 halfModule = new ShortAxialSlotHalfModule(volName, mother, alignmentCorrection, layer, half);
                 bundle.halfModuleAxialSlot = halfModuleBundle;
             }
         } else {
             halfModuleBundle = new ShortHalfModuleBundle();
             if (isHole) {
-                halfModule = new ShortStereoHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
-                bundle.halfModuleStereoHole = halfModuleBundle;
+                //halfModule = new ShortStereoHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+                //bundle.halfModuleStereoHole = halfModuleBundle;
+                if(layer == 1){
+                    if(isTopLayer){
+                        halfModule = new ShortStereoHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleStereoHole = halfModuleBundle;
+                    }
+                    else{
+                        halfModule = new ShortStereoHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleStereoHole = halfModuleBundle;
+                    }
+                }
+                else if(layer == 2){
+                    if(isTopLayer){
+                        halfModule = new ShortStereoHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleStereoHole = halfModuleBundle;
+                    }
+                    else{
+                        halfModule = new ShortStereoHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
+                        bundle.halfModuleStereoHole = halfModuleBundle;
+                    }
+                }
+                else{
+                    System.out.println("Short modules should only apply to L0 and L1 modules. Please check geometry code.");
+                    halfModule = new ShortStereoHoleHalfModule(volName, mother, alignmentCorrection, layer, half);
+                    bundle.halfModuleStereoHole = halfModuleBundle;
+                }
             } else {
+                System.out.println("Short modules should NOT have a slot sensor. Please check geometry code.");
                 halfModule = new ShortStereoSlotHalfModule(volName, mother, alignmentCorrection, layer, half);
                 bundle.halfModuleStereoSlot = halfModuleBundle;
             }
@@ -1112,6 +1308,18 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             super(hm);
         }
     }
+    
+    /*public static class ShortHalfModuleBundleOneSensor extends TestRunHalfModuleBundle {
+        protected static SurveyVolume carbonFiber = null;
+    
+        public ShortHalfModuleBundleOneSensor() {
+            super(carbonFiber);
+        }
+
+        public ShortHalfModuleBundleOneSensor(SurveyVolume hm) {
+            super(hm);
+        }
+    }*/
 
     /**
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
@@ -1121,6 +1329,29 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         public ShortModuleBundle(BaseModule m) {
             super(m);
         }
+
+    }
+    
+    public static class ShortModuleBundleOneSensor extends TestRunModuleBundle {
+
+       // public HalfModuleBundle halfModuleStereo = null;
+        //public HalfModuleBundle halfModuleAxial = null;
+        //protected SurveyVolume coldBlock = null;
+
+        public ShortModuleBundleOneSensor(BaseModule m) {
+            super(m);
+        }
+
+        /*public void print() {
+            if (module != null)
+                System.out.printf("%s: %s\n", this.getClass().getSimpleName(), module.toString());
+            if (halfModuleAxial != null)
+                halfModuleAxial.print();
+            if (coldBlock != null)
+                System.out.printf("%s: %s\n", this.getClass().getSimpleName(), coldBlock.getName());
+            if (halfModuleStereo != null)
+                halfModuleStereo.print();
+        }*/
 
     }
 
@@ -1256,6 +1487,134 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         }
 
     }
+    
+    public static class ShortAxialHoleHalfModuleL0Top extends ShortAxialHalfModule {
+
+        // private final static double sensor_x = 1.382*inch;
+        // private final static double sensor_y = 3.887*inch;
+
+        // place vertically based on L2 (old L1) position to make it easier
+        protected final static double shift_vertically_to_beam_plane = -20.6658;
+        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
+        
+        protected final static double survey_shift_x = 0.086; //positive is away from beam (up)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is downstream shift
+
+        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
+                + shift_vertically_to_15mrad + survey_shift_x;
+        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        // private final static double sensor_z = HalfModuleAxial.sensor_z;
+        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+
+        public ShortAxialHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+    }
+    
+    public static class ShortAxialHoleHalfModuleL0Bot extends ShortAxialHalfModule {
+
+        // private final static double sensor_x = 1.382*inch;
+        // private final static double sensor_y = 3.887*inch;
+
+        // place vertically based on L2 (old L1) position to make it easier
+        protected final static double shift_vertically_to_beam_plane = -20.6658;
+        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
+        
+        protected final static double survey_shift_x = 0.200; //positive is away from beam (down)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is upstream shift
+
+        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
+                + shift_vertically_to_15mrad + survey_shift_x;
+        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        // private final static double sensor_z = HalfModuleAxial.sensor_z;
+        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+
+        public ShortAxialHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+    }
+    
+    public static class ShortAxialHoleHalfModuleL1Top extends ShortAxialHalfModule {
+
+        // private final static double sensor_x = 1.382*inch;
+        // private final static double sensor_y = 3.887*inch;
+
+        // place vertically based on L2 (old L1) position to make it easier
+        protected final static double shift_vertically_to_beam_plane = -20.6658;
+        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
+        
+        protected final static double survey_shift_x = 0.366 - 0.245; //positive is away from beam (up)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is downstream shift
+
+        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
+                + shift_vertically_to_15mrad + survey_shift_x;
+        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        // private final static double sensor_z = HalfModuleAxial.sensor_z;
+        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+
+        public ShortAxialHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+    }
+    
+    public static class ShortAxialHoleHalfModuleL1Bot extends ShortAxialHalfModule {
+
+        // private final static double sensor_x = 1.382*inch;
+        // private final static double sensor_y = 3.887*inch;
+
+        // place vertically based on L2 (old L1) position to make it easier
+        protected final static double shift_vertically_to_beam_plane = -20.6658;
+        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
+        
+        protected final static double survey_shift_x = 0.285; //positive is away from beam (down)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is upstream shift
+
+        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
+                + shift_vertically_to_15mrad + survey_shift_x;
+        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        // private final static double sensor_z = HalfModuleAxial.sensor_z;
+        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+
+        public ShortAxialHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+    }
 
     public static class ShortAxialSlotHalfModule extends ShortAxialHalfModule {
 
@@ -1315,8 +1674,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
-        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
-                ShortSensor.length / 2, 0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,
+                0, 0);
 
         public ShortStereoHoleHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
@@ -1360,7 +1721,484 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             }
 
             // flip around v ~ along the strips
-            Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
+            // apply stereo angle around w ~ normal to the sensor plane
+            Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
+            // Build full rotation
+            Rotation r = r2.applyTo(r1);
+            // Rotation r = r2;
+            // Rotation r = r1;
+            if (debug) {
+                System.out.printf("%s: LongStereoHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+            // flip s
+            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v())).toArray());
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf %s\n", getClass().getSimpleName(), sf.toString());
+
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass().getSimpleName(), VecOp.mult(-1, sf).toString());
+            }
+
+            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+
+            if (debug) {
+
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass().getSimpleName(), sfp.toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass().getSimpleName(), VecOp.add(o2, sf).toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass().getSimpleName(),
+                        VecOp.add(VecOp.add(o2, sf), sfp).toString());
+
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass().getSimpleName(), VecOp.add(sf, sfp)
+                        .toString());
+            }
+
+            getCoord().translate(VecOp.add(sf, sfp));
+
+            getCoord().rotateApache(r);
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+        }
+
+    }
+    
+    public static class ShortStereoHoleHalfModuleL0Top extends ShortStereoHalfModule {
+
+        protected final static double survey_shift_x = 0.113; //positive is away from beam (up)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is downstream shift
+        
+        // reference is kind of random I guess
+        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
+                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
+        // private final static double sensor_x = 1.282*inch;
+        // private final static double sensor_y = 3.889*inch;
+
+        // protected final static Hep3Vector pos_of_rotation = new
+        // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,
+                0, 0);
+
+        public ShortStereoHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+        @Override
+        protected void applyGenericCoordinateSystemCorrections() {
+
+            super.applyGenericCoordinateSystemCorrections();
+
+            stereo_rotation();
+
+        }
+
+        protected void stereo_rotation() {
+
+            // Rotate these into the right place for the stereo
+            // My rotations here are active rotations in the mother coordinate
+            // system frame
+
+            if (debug) {
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+            }
+
+            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(), getCoord().origin().y(), getCoord().origin()
+                    .z());
+            Hep3Vector s = pos_of_rotation;
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 o2 %s\n", getClass().getSimpleName(), o2.toString());
+
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(), s.toString());
+            }
+
+            // flip around v ~ along the strips
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
+            // apply stereo angle around w ~ normal to the sensor plane
+            Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
+            // Build full rotation
+            Rotation r = r2.applyTo(r1);
+            // Rotation r = r2;
+            // Rotation r = r1;
+            if (debug) {
+                System.out.printf("%s: LongStereoHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+            // flip s
+            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v())).toArray());
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf %s\n", getClass().getSimpleName(), sf.toString());
+
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass().getSimpleName(), VecOp.mult(-1, sf).toString());
+            }
+
+            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+
+            if (debug) {
+
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass().getSimpleName(), sfp.toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass().getSimpleName(), VecOp.add(o2, sf).toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass().getSimpleName(),
+                        VecOp.add(VecOp.add(o2, sf), sfp).toString());
+
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass().getSimpleName(), VecOp.add(sf, sfp)
+                        .toString());
+            }
+
+            getCoord().translate(VecOp.add(sf, sfp));
+
+            getCoord().rotateApache(r);
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+        }
+
+    }
+
+    public static class ShortStereoHoleHalfModuleL0Bot extends ShortStereoHalfModule {
+
+        protected final static double survey_shift_x = 0.098; //positive is away from beam (down)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is upstream shift
+        
+        // reference is kind of random I guess
+        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
+                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
+        // private final static double sensor_x = 1.282*inch;
+        // private final static double sensor_y = 3.889*inch;
+
+        // protected final static Hep3Vector pos_of_rotation = new
+        // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,
+                0, 0);
+
+        public ShortStereoHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+        @Override
+        protected void applyGenericCoordinateSystemCorrections() {
+
+            super.applyGenericCoordinateSystemCorrections();
+
+            stereo_rotation();
+
+        }
+
+        protected void stereo_rotation() {
+
+            // Rotate these into the right place for the stereo
+            // My rotations here are active rotations in the mother coordinate
+            // system frame
+
+            if (debug) {
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+            }
+
+            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(), getCoord().origin().y(), getCoord().origin()
+                    .z());
+            Hep3Vector s = pos_of_rotation;
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 o2 %s\n", getClass().getSimpleName(), o2.toString());
+
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(), s.toString());
+            }
+
+            // flip around v ~ along the strips
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
+            // apply stereo angle around w ~ normal to the sensor plane
+            Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
+            // Build full rotation
+            Rotation r = r2.applyTo(r1);
+            // Rotation r = r2;
+            // Rotation r = r1;
+            if (debug) {
+                System.out.printf("%s: LongStereoHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+            // flip s
+            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v())).toArray());
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf %s\n", getClass().getSimpleName(), sf.toString());
+
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass().getSimpleName(), VecOp.mult(-1, sf).toString());
+            }
+
+            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+
+            if (debug) {
+
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass().getSimpleName(), sfp.toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass().getSimpleName(), VecOp.add(o2, sf).toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass().getSimpleName(),
+                        VecOp.add(VecOp.add(o2, sf), sfp).toString());
+
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass().getSimpleName(), VecOp.add(sf, sfp)
+                        .toString());
+            }
+
+            getCoord().translate(VecOp.add(sf, sfp));
+
+            getCoord().rotateApache(r);
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+        }
+
+    }
+
+    public static class ShortStereoHoleHalfModuleL1Top extends ShortStereoHalfModule {
+
+        protected final static double survey_shift_x = 0.253; //positive is away from beam (up)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is downstream shift
+        
+        // reference is kind of random I guess
+        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
+                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
+        // private final static double sensor_x = 1.282*inch;
+        // private final static double sensor_y = 3.889*inch;
+
+        // protected final static Hep3Vector pos_of_rotation = new
+        // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,
+                0, 0);
+
+        public ShortStereoHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+        @Override
+        protected void applyGenericCoordinateSystemCorrections() {
+
+            super.applyGenericCoordinateSystemCorrections();
+
+            stereo_rotation();
+
+        }
+
+        protected void stereo_rotation() {
+
+            // Rotate these into the right place for the stereo
+            // My rotations here are active rotations in the mother coordinate
+            // system frame
+
+            if (debug) {
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+            }
+
+            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(), getCoord().origin().y(), getCoord().origin()
+                    .z());
+            Hep3Vector s = pos_of_rotation;
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 o2 %s\n", getClass().getSimpleName(), o2.toString());
+
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(), s.toString());
+            }
+
+            // flip around v ~ along the strips
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
+            // apply stereo angle around w ~ normal to the sensor plane
+            Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
+            // Build full rotation
+            Rotation r = r2.applyTo(r1);
+            // Rotation r = r2;
+            // Rotation r = r1;
+            if (debug) {
+                System.out.printf("%s: LongStereoHalfModule Generic Corrections\n", getClass().getSimpleName());
+                System.out.printf("%s: Coord before corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center before corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+            // flip s
+            Hep3Vector sf = new BasicHep3Vector(r1.applyTo(new Vector3D(s.v())).toArray());
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 sf %s\n", getClass().getSimpleName(), sf.toString());
+
+                System.out.printf("%s: YIHAA 1 -sf %s\n", getClass().getSimpleName(), VecOp.mult(-1, sf).toString());
+            }
+
+            Hep3Vector sfp = new BasicHep3Vector(r2.applyTo(new Vector3D(VecOp.mult(-1, sf).v())).toArray());
+
+            if (debug) {
+
+                System.out.printf("%s: YIHAA 1 sf' %s\n", getClass().getSimpleName(), sfp.toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf %s\n", getClass().getSimpleName(), VecOp.add(o2, sf).toString());
+
+                System.out.printf("%s: YIHAA 1 o2+sf+(sf') %s\n", getClass().getSimpleName(),
+                        VecOp.add(VecOp.add(o2, sf), sfp).toString());
+
+                System.out.printf("%s: YIHAA 1 sf+(sf') %s\n", getClass().getSimpleName(), VecOp.add(sf, sfp)
+                        .toString());
+            }
+
+            getCoord().translate(VecOp.add(sf, sfp));
+
+            getCoord().rotateApache(r);
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 3 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+                System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord()
+                        .toString());
+                System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim()
+                        .toString());
+            }
+
+        }
+
+    }
+
+    public static class ShortStereoHoleHalfModuleL1Bot extends ShortStereoHalfModule {
+
+        protected final static double survey_shift_x = 0.231; //positive is away from beam (down)
+        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        protected final static double survey_shift_z = 0.0; //positive is upstream shift
+        
+        // reference is kind of random I guess
+        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
+                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
+        // private final static double sensor_x = 1.282*inch;
+        // private final static double sensor_y = 3.889*inch;
+
+        // protected final static Hep3Vector pos_of_rotation = new
+        // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,
+                0, 0);
+
+        public ShortStereoHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
+                int layer, String half) {
+            super(name, mother, alignmentCorrection, layer, half);
+            init();
+        }
+
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+
+        @Override
+        protected void applyGenericCoordinateSystemCorrections() {
+
+            super.applyGenericCoordinateSystemCorrections();
+
+            stereo_rotation();
+
+        }
+
+        protected void stereo_rotation() {
+
+            // Rotate these into the right place for the stereo
+            // My rotations here are active rotations in the mother coordinate
+            // system frame
+
+            if (debug) {
+                System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
+                System.out.printf("%s: YIHAA 1 coord %s\n", getClass().getSimpleName(), getCoord().toString());
+            }
+
+            Hep3Vector o2 = new BasicHep3Vector(getCoord().origin().x(), getCoord().origin().y(), getCoord().origin()
+                    .z());
+            Hep3Vector s = pos_of_rotation;
+
+            if (debug) {
+                System.out.printf("%s: YIHAA 1 o2 %s\n", getClass().getSimpleName(), o2.toString());
+
+                System.out.printf("%s: YIHAA 1 s %s\n", getClass().getSimpleName(), s.toString());
+            }
+
+            // flip around v ~ along the strips
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
             // apply stereo angle around w ~ normal to the sensor plane
             Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
             // Build full rotation
@@ -1426,8 +2264,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,-1*ActiveShortSensor.length/2,0);
-        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
-                -ShortSensor.length / 2, 0);
+        //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
+        //        -ShortSensor.length / 2, 0);
+        protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2 - 0.5,
+                0, 0);
 
         public ShortStereoSlotHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
@@ -1462,7 +2302,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             }
 
             // flip around v ~ along the strips
-            Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            //Rotation r1 = new Rotation(new Vector3D(0, 1, 0), Math.PI);
+            Rotation r1 = new Rotation(new Vector3D(1, 0, 0), Math.PI);
             // apply stereo angle around w ~ normal to the sensor plane
             Rotation r2 = new Rotation(new Vector3D(0, 0, 1), stereo_angle);
             // Build full rotation

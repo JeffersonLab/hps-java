@@ -40,7 +40,8 @@ public class HPSTracker2019 extends HPSTracker2014v1 {
         int layer = HPSTrackerBuilder.getLayerFromVolumeName(surveyVolume);
         int moduleNumber = -1;
         if (isTopLayer) {
-            if (layer < 3 || layer > 4) {
+            //if (layer < 3 || layer > 4) {
+            if (layer > 4) {
                 if (HPSTrackerBuilder.isHoleFromName(surveyVolume)) {
                     moduleNumber = 2;
                 } else {
@@ -50,7 +51,8 @@ public class HPSTracker2019 extends HPSTracker2014v1 {
                 moduleNumber = 0;
             }
         } else {
-            if (layer < 3 || layer > 4) {
+            //if (layer < 3 || layer > 4) {
+            if (layer > 4) {
                 if (HPSTrackerBuilder.isHoleFromName(surveyVolume)) {
                     moduleNumber = 1;
                 } else {

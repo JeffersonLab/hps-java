@@ -135,7 +135,8 @@ public class StraightTracker extends Driver {
 
         //  Loop over strategies and perform track finding
         for (SeedStrategy strategy : _strategylist) {
-
+            if(hitcol.size()>250)
+                continue;
             //  Set the strategy for the diagnostics
             if (_diag != null)
                 _diag.fireStrategyChanged(strategy);
