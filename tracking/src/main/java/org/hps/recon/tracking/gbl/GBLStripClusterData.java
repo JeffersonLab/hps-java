@@ -54,8 +54,11 @@ public class GBLStripClusterData implements GenericObject {
         public static final int UMEASERR = 19;
         public static final int MSANGLE = 20;
         public static final int TLAMBDA = 21;
+        public static final int OPOSX   = 22;
+        public static final int OPOSY   = 23;
+        public static final int OPOSZ   = 24;
 
-        public static final int BANK_DOUBLE_SIZE = 22;
+        public static final int BANK_DOUBLE_SIZE = 25;
 
     }
 
@@ -310,6 +313,22 @@ public class GBLStripClusterData implements GenericObject {
 
     public Hep3Vector getTrackPos() {
         return new BasicHep3Vector(getTrackPosU(), getTrackPosV(), getTrackPosW());
+    }
+
+    /**
+     * Set sensor origin from the strip hit. 
+     * This useful to re-fit tracks from GBLStripClusterData only
+     * @param origin
+     */
+    
+    public void setOrigin(Hep3Vector origin) {
+        bank_double[GBLDOUBLE.OPOSX] = origin.x();
+        bank_double[GBLDOUBLE.OPOSY] = origin.y();
+        bank_double[GBLDOUBLE.OPOSZ] = origin.z();
+    }
+
+    public Hep3Vector getOrigin() {
+        return new BasicHep3Vector(bank_double[GBLDOUBLE.OPOSX],bank_double[GBLDOUBLE.OPOSY],bank_double[GBLDOUBLE.OPOSZ]);
     }
 
     public double getTrackPosU() {
