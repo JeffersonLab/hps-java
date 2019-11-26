@@ -110,6 +110,20 @@ public class FittedGblTrajectory {
         return gblPointIndex;
     }
 
+    /** Add the GBLStripClusterData used to perform the fit 
+     * @param stripData - List of GBLStripClusterData used to perform the GBL fit
+     */
+    public void addGBLStripClusterData(List<GBLStripClusterData> stripData) {
+        _stripData = stripData;
+    }
+    
+    /** Returns the GBLStripClusterData used to perform the fit
+     */
+    
+    public List<GBLStripClusterData> getGBLStripClusterData() { 
+        return _stripData;
+    }
+
     /**
      * Find the corrections and covariance matrix for a particular {@link GBLPOINT}
      * 
