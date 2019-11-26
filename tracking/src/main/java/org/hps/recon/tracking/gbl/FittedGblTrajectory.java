@@ -4,6 +4,8 @@ import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.Hep3Vector;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.HpsHelicalTrackFit;
@@ -77,6 +79,8 @@ public class FittedGblTrajectory {
     private Track _seed = null;
     private Map<Integer, Double> pathLengthMap = null;
     private Map<Integer, Integer> sensorMap = null;
+    // List of GBLStripClusterData, used to return this to the LCIO event model.
+    private List<GBLStripClusterData> _stripData = new ArrayList<GBLStripClusterData>();
 
     /**
      * Default constructor.
