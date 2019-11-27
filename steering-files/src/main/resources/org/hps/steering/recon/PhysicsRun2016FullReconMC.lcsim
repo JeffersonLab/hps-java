@@ -157,7 +157,7 @@
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>43</trackClusterTimeOffset>
+            <trackClusterTimeOffset>51</trackClusterTimeOffset>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
@@ -166,8 +166,11 @@
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
-        </driver>         
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        </driver>
+	<driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+          <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+          <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
+        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
