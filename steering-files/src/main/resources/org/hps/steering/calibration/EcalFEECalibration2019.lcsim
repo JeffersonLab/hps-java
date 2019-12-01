@@ -23,6 +23,8 @@
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
            <inputCollection>EcalClustersIter1</inputCollection>
            <outputPlots>yes</outputPlots>
+           <minTime>35</minTime>
+           <maxTime>65</maxTime>
            <minHistoE>0.5</minHistoE>
            <maxHistoE>6.0</maxHistoE>
         </driver>

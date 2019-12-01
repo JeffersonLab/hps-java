@@ -3,11 +3,12 @@ package org.hps.recon.filtering;
 import org.lcsim.event.Cluster;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.record.epics.EpicsData;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
+//import org.hps.record.triggerbank.AbstractIntData;
+//import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
+//import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
+
 
 public class FEEFilterDriver extends EventReconFilter {
 
@@ -56,11 +57,13 @@ public class FEEFilterDriver extends EventReconFilter {
         if (data != null)
             return;
 
+        incrementEventProcessed();
+        
         // only keep singles triggers:
-        if (!event.hasCollection(GenericObject.class, "TriggerBank"))
-            skipEvent();
-        boolean isSingles = false;
-        for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) {
+     /*   if (!event.hasCollection(GenericObject.class, "TriggerBank"))
+            skipEvent();*/
+        boolean isSingles = true;
+        /*for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) {
             if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG))
                 continue;
             TIData tid = new TIData(gob);
@@ -68,13 +71,19 @@ public class FEEFilterDriver extends EventReconFilter {
                 isSingles = true;
                 break;
             }
+        }*/
+        if (!isSingles) {
+            System.out.println("Skip because is not a single");
+            skipEvent();
         }
-        if (!isSingles)
+            
+        if (!event.hasCollection(Cluster.class, clusterCollection)) {
+            System.out.println("Skip because no clusters");
             skipEvent();
+        }
 
-        if (!event.hasCollection(Cluster.class, clusterCollection))
-            skipEvent();
-
+       
+        
         for (Cluster cc : event.get(Cluster.class, clusterCollection)) {
             // try to drop clusters:
             // if (cc.getEnergy() < 0.6 ||
@@ -84,8 +93,10 @@ public class FEEFilterDriver extends EventReconFilter {
             // keep events with a cluster over 600 MeV with seed over 400 MeV (for 2015 running).
             // keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
             if (cc.getEnergy() > clusterCut && ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > seedCut
-                    && cc.getCalorimeterHits().size() >= minHits)
+                    && cc.getCalorimeterHits().size() >= minHits) {
+                incrementEventPassed();
                 return;
+            }
         }
 
         skipEvent();
