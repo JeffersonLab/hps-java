@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
+//import org.hps.record.triggerbank.AbstractIntData;
+//import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -79,6 +79,13 @@ public class FEEClusterPlotter extends Driver {
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             aida.histogram1D(getHistoName(cc), 200, minHistoE, maxHistoE);
         }
+        
+        //Create a 1D histo to hold the time
+        aida.histogram1D("seedTime",400,0,200);
+        aida.histogram1D("seedTimeTop",400,0,200);
+        aida.histogram1D("seedTimeBot",400,0,200);
+        //Create a 2D histo to hold the number of entries in each 1D histogram
+        aida.histogram2D("numberOfHits",47,-23.5,23.5,11,-5.5,5.5);
 
     }
 
@@ -155,7 +162,8 @@ public class FEEClusterPlotter extends Driver {
         if (!event.hasCollection(GenericObject.class, "TriggerBank"))
             throw new Driver.NextEventException();
         boolean isSingles = false;
-        for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) {
+        isSingles=true;
+       /* for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) {
             if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG))
                 continue;
             TIData tid = new TIData(gob);
@@ -163,7 +171,7 @@ public class FEEClusterPlotter extends Driver {
                 isSingles = true;
                 break;
             }
-        }
+        }*/
 
         if (isSingles) {
             List<Cluster> clusters = event.get(Cluster.class, inputCollection);
@@ -174,6 +182,10 @@ public class FEEClusterPlotter extends Driver {
                 double seedE = seed.getCorrectedEnergy();
                 double clusE = clus.getEnergy();
                 double time = seed.getTime();
+
+                aida.histogram1D("seedTime").fill(time);
+                if (findChannel(seed).getY()>0) aida.histogram1D("seedTimeTop").fill(time);
+                else aida.histogram1D("seedTimeBot").fill(time);
 
                 // in 2015, not hit count cut used at all
                 if (useHitCut) {
@@ -186,14 +198,14 @@ public class FEEClusterPlotter extends Driver {
                             && seedE > seedCut && time > minTime && time < maxTime && hits.size() > (hitCut)) {
 
                         EcalChannel cc = findChannel(seed);
+                        aida.histogram2D("numberOfHits").fill(cc.getX(),cc.getY());
                         aida.histogram1D(getHistoName(cc)).fill(clusE);
                     }
                 } else {
                     if ((seedE / clusE > 0.6) && seedE > seedCut && time > minTime && time < maxTime) {
-
                         EcalChannel cc = findChannel(seed);
+                        aida.histogram2D("numberOfHits").fill(cc.getX(),cc.getY());
                         aida.histogram1D(getHistoName(cc)).fill(clusE);
-
                     }
                 }
             }
