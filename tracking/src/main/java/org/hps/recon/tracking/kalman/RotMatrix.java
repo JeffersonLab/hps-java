@@ -6,6 +6,11 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
     RotMatrix() { // Create a blank matrix
         M = new double[3][3];
     }
+    
+    // Careful here: a new array is not made
+    RotMatrix(double[][] Min) {
+        M = Min;
+    }
 
     RotMatrix(Vec u, Vec v, Vec t) { // Transforms from global coordinates to frame with 3-D unit vectors u, v, t
         M = new double[3][3];

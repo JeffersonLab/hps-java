@@ -21,11 +21,14 @@ import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.geometry.IDDecoder;
@@ -85,13 +88,17 @@ public class KalmanPatRecDriver extends Driver {
         nPlotted = 0;
 
         // arguments to histogram1D: name, nbins, min, max
+        aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
         aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
         aida.histogram1D("Kalman track hit residual", 100, -0.2, 0.2);
+        aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman track Momentum", 100, 0., 5.);
+        aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
         for (int lyr=2; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Kalman track hit residual in layer %d",lyr), 100, -0.2, 0.2);
+            aida.histogram1D(String.format("Kalman true error in layer %d",lyr), 100, -0.2, 0.2);
             aida.histogram1D(String.format("Kalman layer %d chi^2 contribution", lyr), 100, 0., 20.);
             if (lyr<13) {
                 aida.histogram1D(String.format("Kalman kink in xy, layer %d", lyr),100, -0.001, .001);
@@ -142,14 +149,15 @@ public class KalmanPatRecDriver extends Driver {
             return;
         }
 
+        nTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
-                System.out.println("KalmanPatRecDriver.process: pattern recognition failed in the bottom tracker.\n");
+                System.out.println("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker.\n");
                 return;
             }
             for (KalTrack kTk : kPat.TkrList) {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
-
+                nTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
                 if (kTk.nHits < 12) continue;
                 
@@ -159,7 +167,6 @@ public class KalmanPatRecDriver extends Driver {
                 aida.histogram1D("Kalman track Momentum").fill(pMag);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
-                nTracks++;
                 
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 for (MeasurementSite site : kTk.SiteList) {
@@ -192,6 +199,7 @@ public class KalmanPatRecDriver extends Driver {
                 }
             }
         }
+        aida.histogram1D("Kalman number of tracks").fill(nTracks);
         
         String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
         if (nPlotted < 40) {
@@ -200,6 +208,7 @@ public class KalmanPatRecDriver extends Driver {
         }
         
         //simScatters(event);
+        simHitRes(event);
         
         KI.clearInterface();
         if (verbose) System.out.format("\n KalmanPatRecDriver.process: Done with event %d\n", evtNumb);
@@ -207,7 +216,94 @@ public class KalmanPatRecDriver extends Driver {
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
     }
-    
+
+    // Make histograms of the MC hit resolution
+    private void simHitRes(EventHeader event) {
+        // Get the collection of 1D hits
+        String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+        List<TrackerHit> stripHits = event.get(TrackerHit.class, stripHitInputCollectionName);
+        
+        if (stripHits == null) return;
+
+        // Make a mapping from sensor to hits
+        Map<HpsSiSensor, ArrayList<TrackerHit>> hitSensorMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
+        for (TrackerHit hit1D : stripHits) {
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit1D.getRawHits().get(0)).getDetectorElement();
+
+            ArrayList<TrackerHit> hitsInSensor = null;
+            if (hitSensorMap.containsKey(sensor)) {
+                hitsInSensor = hitSensorMap.get(sensor);
+            } else {
+                hitsInSensor = new ArrayList<TrackerHit>();
+            }
+            hitsInSensor.add(hit1D);
+            hitSensorMap.put(sensor, hitsInSensor);
+        }
+        
+        String MCHitInputCollectionName = "TrackerHits";
+        List<SimTrackerHit> MChits = event.get(SimTrackerHit.class, MCHitInputCollectionName);
+        
+        if (MChits == null) return;
+
+        // Make a map from MC particle to the hit in the layer
+        Map<Integer, ArrayList<SimTrackerHit>> hitMCparticleMap = new HashMap<Integer, ArrayList<SimTrackerHit>>();
+        for (SimTrackerHit hit1D : MChits) {
+            decoder.setID(hit1D.getCellID());
+            int Layer = decoder.getValue("layer") + 1;  // Kalman layers go from 0 to 13, with 0 and 1 for new 2019 modules
+            //int Module = decoder.getValue("module");
+            //MCParticle MCpart = hit1D.getMCParticle();
+            ArrayList<SimTrackerHit> partInLayer = null;
+            if (hitMCparticleMap.containsKey(Layer)) {
+                partInLayer = hitMCparticleMap.get(Layer);
+            } else {
+                partInLayer = new ArrayList<SimTrackerHit>();
+            }
+            partInLayer.add(hit1D);
+            hitMCparticleMap.put(Layer,partInLayer);
+        }
+        //System.out.format("KalmanPatRecDriver.simHitRes: found both hit collections in event %d\n", event.getEventNumber());
+        
+        ArrayList<SiModule> SiMlist = KI.getSiModuleList();
+        Map<SiModule, SiStripPlane> moduleMap = KI.getModuleMap();
+        for (SiModule siMod : SiMlist) {
+            int layer = siMod.Layer;
+            if (hitMCparticleMap.get(layer) == null) continue;
+            SiStripPlane plane = moduleMap.get(siMod);
+            if (!hitSensorMap.containsKey(plane.getSensor())) continue;
+            ArrayList<TrackerHit> hitsInSensor = hitSensorMap.get(plane.getSensor());
+            if (hitsInSensor == null) continue;
+            for (TrackerHit hit : hitsInSensor) {
+                //System.out.format("simHitRes: Hit in sensor of layer %d, detector %d\n",layer,siMod.detector);
+                //Vec tkrHit = new Vec(3,hit.getPosition());
+                //tkrHit.print("Tracker hit position");
+                //SiTrackerHitStrip1D global = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+                SiTrackerHitStrip1D localHit = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                //Vec globalHPS = new Vec(3,global.getPosition());
+                Vec localHPS = new Vec(3,localHit.getPosition());
+                //globalHPS.print("simulated hit in HPS global system");
+                //localHPS.print("simulated hit in HPS local system");
+                
+                //Vec hitGlobal = KalmanInterface.vectorGlbToKalman(global.getPosition());
+                Vec hitLocal = new Vec(-localHit.getPosition()[1], localHit.getPosition()[0], localHit.getPosition()[2]);
+                
+                //hitGlobal.print("simulated hit Kal global position");
+                //hitLocal.print("simulated hit Kal local position");
+                //Vec kalGlobal = siMod.toGlobal(hitLocal);
+                //kalGlobal.print("simulated hit global position from Kalman transformation");
+                for (SimTrackerHit hitMC : hitMCparticleMap.get(layer)) {
+                    Vec hitMCglobal = KalmanInterface.vectorGlbToKalman(hitMC.getPosition());
+                    //hitMCglobal.print("true hit Kal global position");
+                    Vec kalMClocal = siMod.toLocal(hitMCglobal);
+                    //kalMClocal.print("true hit Kal local position");
+                    //hitLocal.print("sim hit Kal local position");
+                    double hitError = hitLocal.v[1] - kalMClocal.v[1];
+                    aida.histogram1D("Kalman hit true error").fill(hitError);
+                    aida.histogram1D(String.format("Kalman true error in layer %d",layer)).fill(hitError);
+                    aida.histogram1D("MC hit z in local system (should be zero)").fill(kalMClocal.v[2]);
+                }
+            }
+        }
+    }
     // Find the MC true scattering angles at tracker layers
     // Note, this doesn't work, because the MC true momentum saved is neither the incoming nor outgoing momentum but rather
     // some average of the two.

@@ -557,9 +557,9 @@ public class KalmanDriverHPS extends Driver {
         for (MeasurementSite site : trk.interceptVects.keySet()) {
             Vec mom = trk.interceptMomVects.get(site);
             Vec loc = trk.interceptVects.get(site);
-            double[] locTransformed = loc.leftMultiply(KalmanInterface.KalmanToHps).v;
+            double[] locTransformed = (KalmanInterface.KalmanToHpsSvt.rotate(loc)).v;
             double[] locTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(locTransformed)).v();
-            double[] momTransformed = mom.leftMultiply(KalmanInterface.KalmanToHps).v;
+            double[] momTransformed = (KalmanInterface.KalmanToHpsSvt.rotate(mom)).v;
             double[] momTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(momTransformed)).v();
             MomsLocs.add(new Pair<double[], double[]>(momTrans, locTrans));
         }

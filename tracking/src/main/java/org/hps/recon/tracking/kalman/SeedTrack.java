@@ -95,7 +95,6 @@ class SeedTrack {
         double[] xMC = null;
         double[] y = new double[hitList.size()]; // Global y coordinates of measurements (along beam direction)
         double[] zMC = null;
-        double[] t = null;
         double[] yMC = null;
         double[] mTrue = null;
         if (verbose) {
@@ -103,7 +102,6 @@ class SeedTrack {
             for (KalHit hit : hitList) { hit.print(" in SeedTrack "); }
             xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
             zMC = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
-            t = new double[hitList.size()]; // Stereo angle
             yMC = new double[hitList.size()];
             mTrue = new double[hitList.size()];
         }
@@ -143,14 +141,13 @@ class SeedTrack {
             pnt = thisSi.toGlobal(pnt);
             if (verbose) {
                 if (thisSi.isStereo) {
-                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
-                            m.v, thisSi.stereo);
+                    System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f\n", thisSi.Layer, thisSi.detector, N,
+                            m.v);
                 } else {
-                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f, stereo=%10.7f\n", thisSi.Layer, thisSi.detector, N,
-                            m.v, thisSi.stereo);
+                    System.out.format("Layer %d detector %d, Axial measurement %d = %10.7f\n", thisSi.Layer, thisSi.detector, N,
+                            m.v);
                 }
                 pnt.print("point global");
-                t[N] = thisSi.stereo;
             }
             y[N] = pnt.v[1] - yOrigin;
             if (verbose) {
@@ -182,11 +179,11 @@ class SeedTrack {
             return;
         }
         if (verbose) {
-            System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, R2[0..2] theta\n");
+            System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, R2[0..2]\n");
             for (int i = 0; i < N; i++) {
                 double vcheck = R2[i][0] * (xMC[i] - delta[i][0]) + R2[i][2] * (zMC[i] - delta[i][2]) + R2[i][1] * (yMC[i] - delta[i][1]);
-                System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f %10.7f %10.7f %10.7f %8.5f\n", i,
-                        y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], R2[i][0], R2[i][1], R2[i][2], t[i]);
+                System.out.format("%d  %10.6f  %10.6f  %10.6f  %10.6f   %10.6f   %10.6f   %10.6f   %10.6f %10.7f %10.7f %10.7f\n", i,
+                        y[i], yMC[i], zMC[i], xMC[i], v[i], mTrue[i], vcheck, s[i], R2[i][0], R2[i][1], R2[i][2]);
             }
         }
 
@@ -379,6 +376,12 @@ class SeedTrack {
             Vec pInt1 = t1.planeIntersection(p0);
             Vec pInt2 = t2.planeIntersection(p0);
             double diff = pInt1.mag() - pInt2.mag();
+            if (diff > 0.) {
+                return 1;
+            } else {
+                return -1;
+            }
+            /*  // This more complex version is not always consistent and results in some java errors
             if (Math.abs(diff) > minDistXZ) {
                 if (diff > 0.) {
                     return 1;
@@ -394,6 +397,7 @@ class SeedTrack {
                     return -1;
                 }
             }
+            */
         }
     };
 

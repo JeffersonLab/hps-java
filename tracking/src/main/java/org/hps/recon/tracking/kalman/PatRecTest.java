@@ -18,13 +18,14 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 5000;              // The number of test eventNumbers to generate for fitting
-        int mxPlot = 40;                // Maximum number of single event plots
+        int nTrials = 1000;              // The number of test eventNumbers to generate for fitting
+        int mxPlot = 1;                // Maximum number of single event plots
         int [] eventToPrint = {1,1};  // Range of events to print in detail and plot as an event display
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = false;
+        boolean noisy = true;
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -52,77 +53,81 @@ public class PatRecTest {
         SiModule newModule;
 
         double yStart = 103.69;
-        plnInt = new Plane(new Vec(3.4814, yStart, 20.781), new Vec(-0.030928, -0.99952, 0.00056169));
-        newModule = new SiModule(2, plnInt, true, -0.100076, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(3.4814, yStart, 20.781), new Vec(-0.030928, -0.99952, 0.00056169), -0.100076);
+        newModule = new SiModule(2, plnInt, true, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(3.7752, 111.75, 20.770), new Vec(0.029092, 0.99957, 0.0031495));
-        newModule = new SiModule(3, plnInt, false, 0.000303, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(3.7752, 111.75, 20.770), new Vec(0.029092, 0.99957, 0.0031495), 0.000303);
+        newModule = new SiModule(3, plnInt, false, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(6.6595, 203.81, 22.296), new Vec(-0.029875, -0.99954, 0.0053661));
-        newModule = new SiModule(4, plnInt, true, -0.099851, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(6.6595, 203.81, 22.296), new Vec(-0.029875, -0.99954, 0.0053661), -0.099851);
+        newModule = new SiModule(4, plnInt, true, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(6.7661, 211.87, 22.281), new Vec(0.028940, 0.99958, 0.0028008));
-        newModule = new SiModule(5, plnInt, false, 0.000145, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(6.7661, 211.87, 22.281), new Vec(0.028940, 0.99958, 0.0028008), 0.000145);
+        newModule = new SiModule(5, plnInt, false, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(9.4835, 303.76, 23.796), new Vec(-0.029471, -0.99955, 0.0048642));
-        newModule = new SiModule(6, plnInt, true, -0.100012, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(9.4835, 303.76, 23.796), new Vec(-0.029471, -0.99955, 0.0048642), -0.100012);
+        newModule = new SiModule(6, plnInt, true, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(9.7121, 311.63, 23.777), new Vec(0.027875, 0.99961, -0.0027053));
-        newModule = new SiModule(7, plnInt, false, 0.000106, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(9.7121, 311.63, 23.777), new Vec(0.027875, 0.99961, -0.0027053), 0.000106);
+        newModule = new SiModule(7, plnInt, false, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-35.087, 505.57, 29.328), new Vec(-0.029044, -0.99958, 0.0022785));
-        newModule = new SiModule(8, plnInt, true, -0.049060, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-35.087, 505.57, 29.328), new Vec(-0.029044, -0.99958, 0.0022785), -0.049060);
+        newModule = new SiModule(8, plnInt, true, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(65.791, 502.52, 24.294), new Vec(-0.030402, -0.99954, 0.0012687));
-        newModule = new SiModule(8, plnInt, true, -0.050671, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(65.791, 502.52, 24.294), new Vec(-0.030402, -0.99954, 0.0012687), -0.050671);
+        newModule = new SiModule(8, plnInt, true, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-34.848, 513.08, 26.824), new Vec(0.030086, 0.99954, -0.0021664));
-        newModule = new SiModule(9, plnInt, false, 0.000199, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-34.848, 513.08, 26.824), new Vec(0.030086, 0.99954, -0.0021664), 0.000199);
+        newModule = new SiModule(9, plnInt, false, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(65.958, 510.03, 26.821), new Vec(0.030452, 0.99954, -0.00060382));
-        newModule = new SiModule(9, plnInt, false, 0.000194, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(65.958, 510.03, 26.821), new Vec(0.030452, 0.99954, -0.00060382), 0.000194);
+        newModule = new SiModule(9, plnInt, false, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-29.010, 705.47, 32.358), new Vec(-0.030508, -0.99953, -0.00048837));
-        newModule = new SiModule(10, plnInt, true, -0.050035, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-29.010, 705.47, 32.358), new Vec(-0.030508, -0.99953, -0.00048837), -0.050035);
+        newModule = new SiModule(10, plnInt, true, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(71.778, 702.43, 27.322), new Vec(-0.029627, -0.99956, -0.0015542));
-        newModule = new SiModule(10, plnInt, true, -0.050102, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(71.778, 702.43, 27.322), new Vec(-0.029627, -0.99956, -0.0015542), -0.050102);
+        newModule = new SiModule(10, plnInt, true, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-28.846, 713.07, 29.845), new Vec(0.029810, 0.99956, -0.00084633));
-        newModule = new SiModule(11, plnInt, false, 0.000172, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-28.846, 713.07, 29.845), new Vec(0.029810, 0.99956, -0.00084633), 0.000172);
+        newModule = new SiModule(11, plnInt, false, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(72.034, 710.03, 29.845), new Vec(0.030891, 0.99952, 0.00016092));
-        newModule = new SiModule(11, plnInt, false, 0.000205, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(72.034, 710.03, 29.845), new Vec(0.030891, 0.99952, 0.00016092), 0.000205);
+        newModule = new SiModule(11, plnInt, false, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280));
-        newModule = new SiModule(12, plnInt, true, -0.049801, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280), -0.049801);
+        newModule = new SiModule(12, plnInt, true, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471));
-        newModule = new SiModule(12, plnInt, true, -0.049863, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471), -0.049863);
+        newModule = new SiModule(12, plnInt, true, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105));
-        newModule = new SiModule(13, plnInt, false, 0.000107, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105), 0.000107);
+        newModule = new SiModule(13, plnInt, false, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(78.097, 909.99, 32.835), new Vec(0.030889, 0.99952, -0.00029751));
-        newModule = new SiModule(13, plnInt, false, 0.000071, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(78.097, 909.99, 32.835), new Vec(0.030889, 0.99952, -0.00029751), 0.000071);
+        newModule = new SiModule(13, plnInt, false, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
+        
+        for (SiModule siM : SiModules) {
+            siM.print(" ");
+        }
 
         int nLayers = 14; // Layer 0 not yet implemented here
         double resolution = 0.006; // SSD point resolution, in mm
@@ -143,7 +148,7 @@ public class PatRecTest {
                     si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
 
-        int nHelices = 1; // Number of helix tracks to simulate
+        int nHelices = 2; // Number of helix tracks to simulate
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
@@ -155,7 +160,7 @@ public class PatRecTest {
         Histogram hNtracks = new Histogram(10, 0., 1., "Number of tracks found and fitted", "tracks", "events");
         Histogram hNhits = new Histogram(15, 0., 1., "Number of hits per fitted track", "hits", "tracks");
         Histogram hScatProj = new Histogram(100, -0.01, 0.0002, "Projected Scattering Angle", "radians", "Si planes");
-        Histogram hTkChi2 = new Histogram(80, 0., .5, "Track helix fit chi^2 after smoothing", "chi^2", "tracks");
+        Histogram hTkChi2 = new Histogram(100, 0., 1.0, "Track helix fit chi^2 after smoothing", "chi^2", "tracks");
         Histogram hEdrhoS = new Histogram(100, -10., 0.2, "Smoothed helix parameter drho error", "sigmas", "track");
         Histogram hEdrho = new Histogram(100, -2., 0.04, "drho error", "mm", "tracks");
         Histogram hEphi0S = new Histogram(100, -10., 0.2, "Smoothed helix parameter phi0 error", "sigmas", "track");
@@ -178,9 +183,13 @@ public class PatRecTest {
         Histogram hMomentum = new Histogram(100, 0., 0.05, "Reconstructed track momentum","GeV","tracks");
         Histogram[] hScatXY = new Histogram[nLayers];
         Histogram[] hScatZY = new Histogram[nLayers];
+        Histogram[] hResidS0 = new Histogram[nLayers];
+        Histogram[] hResidS2 = new Histogram[nLayers];
         for (int i = 2; i < nLayers; i++) {
             hScatXY[i] = new Histogram(100, -0.001, 0.00002, String.format("Scattering angle in xy for layer %d", i), "radians", "tracks");
             hScatZY[i] = new Histogram(100, -0.001, 0.00002, String.format("Scattering angle in xy for layer %d", i), "radians", "tracks");
+            hResidS0[i] = new Histogram(100, -10., 0.2, String.format("Smoothed fit residual for plane %d", i), "sigmas", "hits");
+            hResidS2[i] = new Histogram(100, -0.02, 0.0004, String.format("Smoothed fit residual for plane %d", i), "mm", "hits");
         }
         
         Instant timestamp = Instant.now();
@@ -275,18 +284,20 @@ public class PatRecTest {
                 thisSi.reset();
             }
             // Populate the Si detector planes with noise hits
-            for (SiModule thisSi : SiModules) {
-                // Assume a strip every 60 microns
-                double dy = 0.060;
-                double a = 3.0;
-                int nstrips = (int) ((thisSi.yExtent[1] - thisSi.yExtent[0]) / dy);
-                for (int i = 1; i < nstrips - 1; i++) {
-                    double ys = thisSi.yExtent[0] + i * dy;
-                    double occ = 0.0002 + 0.01 * Math.exp(-(thisSi.yExtent[1] - ys) / a);
-                    if (rnd.nextDouble() < occ) {
-                        Vec pntGlobal = thisSi.toGlobal(new Vec(0., ys, 0.));
-                        Measurement ms = new Measurement(ys, resolution, pntGlobal, 999.);
-                        thisSi.addMeasurement(ms);
+            if (noisy) {
+                for (SiModule thisSi : SiModules) {
+                    // Assume a strip every 60 microns
+                    double dy = 0.060;
+                    double a = 3.0;
+                    int nstrips = (int) ((thisSi.yExtent[1] - thisSi.yExtent[0]) / dy);
+                    for (int i = 1; i < nstrips - 1; i++) {
+                        double ys = thisSi.yExtent[0] + i * dy;
+                        double occ = 0.0002 + 0.01 * Math.exp(-(thisSi.yExtent[1] - ys) / a);
+                        if (rnd.nextDouble() < occ) {
+                            Vec pntGlobal = thisSi.toGlobal(new Vec(0., ys, 0.));
+                            Measurement ms = new Measurement(ys, resolution, pntGlobal, 999.);
+                            thisSi.addMeasurement(ms);
+                        }
                     }
                 }
             }
@@ -518,6 +529,8 @@ public class PatRecTest {
                     int layer = site.m.Layer;
                     hScatXY[layer].entry(tkr.scatX(layer));
                     hScatZY[layer].entry(tkr.scatZ(layer));
+                    hResidS0[layer].entry(site.aS.r/Math.sqrt(site.aS.R));
+                    hResidS2[layer].entry(site.aS.r);
                 }
                 // Compare with the generated particles
                 if (!tkr.originHelix()) continue;
@@ -620,6 +633,8 @@ public class PatRecTest {
         for (int layer=2; layer<nLayers; ++layer) {
             hScatXY[layer].plot(path + String.format("ScatXY_%d.gp", layer), true, " ", " ");
             hScatZY[layer].plot(path + String.format("ScatZY_%d.gp", layer), true, " ", " ");
+            hResidS0[layer].plot(path + String.format("ResidS0_%d.gp", layer), true, " ", " ");
+            hResidS2[layer].plot(path + String.format("ResidS2_%d.gp", layer), true, " ", " ");
         }
     }
 

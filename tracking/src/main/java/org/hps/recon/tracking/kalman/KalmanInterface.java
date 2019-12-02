@@ -47,13 +47,14 @@ public class KalmanInterface {
     private Map<Measurement, TrackerHit> hitMap;
     private Map<Measurement, SimTrackerHit> simHitMap;
     private Map<SiModule, SiStripPlane> moduleMap;
-    public static SquareMatrix HpsToKalman;
-    public static SquareMatrix KalmanToHps;
-    public static BasicHep3Matrix HpsToKalmanMatrix;
+    public static RotMatrix HpsSvtToKalman;
+    public static RotMatrix KalmanToHpsSvt;
+    public static BasicHep3Matrix HpsSvtToKalmanMatrix;
     private ArrayList<int[]> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose;
+    double svtAngle;
     Random rnd;
 
     public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
@@ -64,7 +65,13 @@ public class KalmanInterface {
             else return (HpsSiSensor) (temp.getSensor());
         }
     }
+    
+    public Map<SiModule, SiStripPlane> getModuleMap() {
+        return moduleMap;
+    }
 
+    // The HPS field map is in the HPS global coordinate system. This routine includes the transformations
+    // to return the field in the Kalman global coordinate system given a coordinate in the same system.
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         // Field map for stand-alone running
         if (FieldMap.class.isInstance(hpsFm)) { return ((FieldMap) (hpsFm)).getField(kalPos); }
@@ -99,15 +106,27 @@ public class KalmanInterface {
         SeedTrackLayers.add(3);
         SeedTrackLayers.add(4);
         SeedTrackLayers.add(5);
-        double[][] HpsToKalmanVals = { { 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 } };
-        HpsToKalman = new SquareMatrix(3, HpsToKalmanVals);
-        HpsToKalmanMatrix = new BasicHep3Matrix();
+        
+        // Transformation from HPS SVT tracking coordinates to Kalman global coordinates
+        double[][] HpsSvtToKalmanVals = { { 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 } };
+        HpsSvtToKalman = new RotMatrix(HpsSvtToKalmanVals);
+        HpsSvtToKalmanMatrix = new BasicHep3Matrix();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++)
-                HpsToKalmanMatrix.setElement(i, j, HpsToKalmanVals[i][j]);
+                HpsSvtToKalmanMatrix.setElement(i, j, HpsSvtToKalmanVals[i][j]);
         }
-        KalmanToHps = HpsToKalman.invert();
+        KalmanToHpsSvt = HpsSvtToKalman.invert();
         this.verbose = verbose;
+        if (verbose) {
+            HpsSvtToKalman.print("HPS tracking to Kalman conversion");
+            KalmanToHpsSvt.print("Kalman to HPS tracking conversion");
+            Vec zHPS = new Vec(0.,0.,1.);
+            Vec xHPS = new Vec(1.,0.,0.);
+            Vec yHPS = new Vec(0.,1.,0.);
+            HpsSvtToKalman.rotate(xHPS).print("HPS tracking x axis in Kalman coordinates");
+            HpsSvtToKalman.rotate(yHPS).print("HPS tracking y axis in Kalman coordinates");
+            HpsSvtToKalman.rotate(zHPS).print("HPS tracking z axis in Kalman coordinates");
+        }
         
         // Seed the random number generator
         long rndSeed = -3263009337738135404L;
@@ -115,7 +134,8 @@ public class KalmanInterface {
         rnd.setSeed(rndSeed);
     }
 
-    static Vec vectorGlbToKalman(double[] HPSvec) { // Convert a vector from global coordinates to Kalman coordinates
+    // Transformation from HPS global coordinates to Kalman global coordinates
+    static Vec vectorGlbToKalman(double[] HPSvec) { 
         Vec kalVec = new Vec(HPSvec[0], HPSvec[2], -HPSvec[1]);
         return kalVec;
     }
@@ -332,31 +352,46 @@ public class KalmanInterface {
 
             HpsSiSensor temp = (HpsSiSensor) (inputPlane.getSensor());
 
-            // u and v are reversed in hps compared to kalman
-            Hep3Vector v = inputPlane.getUnmeasuredCoordinate();
-            Hep3Vector w = inputPlane.normal();
-            double stereo = Math.signum(w.x()) * (Math.asin(v.z()));
-            if (temp.getName().contains("slot")) stereo *= -1.0;
+            double[] uGlb = new double[3];
+            double[] vGlb = new double[3];
+            double[] tGlb = new double[3];
+            for (int row=0; row<3; ++row) {
+                uGlb[row] = inputPlane.getSensor().getGeometry().getLocalToGlobal().getRotation().getRotationMatrix().e(row,0);
+                vGlb[row] = inputPlane.getSensor().getGeometry().getLocalToGlobal().getRotation().getRotationMatrix().e(row,1);
+                tGlb[row] = inputPlane.getSensor().getGeometry().getLocalToGlobal().getRotation().getRotationMatrix().e(row,2);
+            }
+            Vec uK = (vectorGlbToKalman(vGlb).scale(-1.0));  // u and v are reversed in hps compared to kalman
+            Vec vK = vectorGlbToKalman(uGlb);
+            Vec tK = vectorGlbToKalman(tGlb);
 
-            Vec pointOnPlane = new Vec(3, inputPlane.origin().v());
-            Vec normalToPlane = new Vec(3, w.v());
-
-            Vec normalToPlaneTransformed = normalToPlane.leftMultiply(HpsToKalman);
-            Vec pointOnPlaneTransformed = pointOnPlane.leftMultiply(HpsToKalman);
+            double[] pointOnPlane = inputPlane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector().v();
+            Vec pointOnPlaneTransformed = vectorGlbToKalman(pointOnPlane);
 
             if (verbose) {
-                System.out.printf("HPSsensor raw info: %s : v %s w %s, origin %s, stereo %f \n", temp.getName(), v.toString(), w.toString(),
-                        inputPlane.origin().toString(), stereo);
+                System.out.format("\nSiTrackerHit local to global rotation matrix for %s:\n",temp.getName());
+                for (int row=0; row<3; ++row) {
+                    for (int col=0; col<3; ++col) {
+                        System.out.format("  %10.6f", inputPlane.getSensor().getGeometry().getLocalToGlobal().getRotation().getRotationMatrix().e(row,col));
+                    }
+                    System.out.format("\n");
+                }
+                System.out.format("SiTrackerHit local to global translation vector for %s: %s\n",temp.getName(),
+                        inputPlane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector().toString());     
+                uK.print("u in Kalman coordinates");
+                vK.print("v in Kalman coordinates");
+                tK.print("t in Kalman coordinates");           
+                pointOnPlaneTransformed.print("point on plane in Kalman coordinates");
+                HpsSvtToKalman.rotate(new Vec(3, inputPlane.origin().v())).print("old, bad point on plane in Kalman coordinates");
                 System.out.printf("    Building with Kalman plane: point %s normal %s \n",
-                        new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(normalToPlaneTransformed.v).toString());
+                        new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(tK.v).toString());
             }
-            Plane p = new Plane(pointOnPlaneTransformed, normalToPlaneTransformed);
-            int kalLayer = temp.getLayerNumber()+1;  // Not sure this transformation will work when lyr0 is implemented!!
+            Plane p = new Plane(pointOnPlaneTransformed, tK, uK, vK);
+            int kalLayer = temp.getLayerNumber()+1;  // Include new layer-0, layers go from 0 to 13!!
             int detector = temp.getModuleNumber();
             if (kalLayer > 13) {
                 System.out.format("***KalmanInterface.createSiModules Warning: Kalman layer %d out of range.***\n", kalLayer);
             }
-            SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), stereo, inputPlane.getWidth(), inputPlane.getLength(),
+            SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), inputPlane.getWidth(), inputPlane.getLength(),
                     inputPlane.getThickness(), fm, detector);
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);
@@ -475,22 +510,72 @@ public class KalmanInterface {
             SiStripPlane plane = moduleMap.get(module);
             if (!hitSensorMap.containsKey(plane.getSensor())) continue;
             ArrayList<TrackerHit> hitsInSensor = hitSensorMap.get(plane.getSensor());
-            if (hitsInSensor == null) continue;
-
-            Hep3Vector planeMeasuredVec = VecOp.mult(HpsToKalmanMatrix, plane.getMeasuredCoordinate());
+            if (hitsInSensor == null) continue;            
 
             for (int i = 0; i < hitsInSensor.size(); i++) {
                 TrackerHit hit = hitsInSensor.get(i);
 
                 SiTrackerHitStrip1D localHit = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-                // SiTrackerHitStrip1D global = (new
-                // SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
 
+                if (verbose) {
+                    System.out.format("\nFilling hits in SiModule for %s\n", plane.getName());
+                    SiTrackerHitStrip1D global = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL); 
+                    Vec rGlobal = vectorGlbToKalman(global.getPosition());
+                    Vec rLocal = module.toLocal(rGlobal);
+                    Vec hpsLocal = new Vec(3,localHit.getPosition());
+                    rLocal.print("hps global hit transformed to Kalman local frame");
+                    hpsLocal.print("hps local hit");
+                    
+                    /*
+                    System.out.format("\nTesting the hps coordinate transformation matrices and displacements for %s\n",plane.getSensor().getName());
+                    Vec hitGlobal = new Vec(3,global.getPosition());
+                    Vec hitLocal = new Vec(3,localHit.getPosition());
+                    System.out.format("SiTrackerHit local to global rotation matrix:\n");
+                    RotMatrix lTogRot = new RotMatrix();
+                    RotMatrix gTolRot = new RotMatrix();
+                    Vec lTogTran = new Vec(3);
+                    Vec gTolTran = new Vec(3);
+                    for (int row=0; row<3; ++row) {
+                        lTogTran.v[row] = plane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector().v()[row];
+                        gTolTran.v[row] = plane.getSensor().getGeometry().getGlobalToLocal().getTranslation().getTranslationVector().v()[row];
+                        for (int col=0; col<3; ++col) {
+                            lTogRot.M[row][col] = plane.getSensor().getGeometry().getLocalToGlobal().getRotation().getRotationMatrix().e(row,col);
+                            gTolRot.M[row][col] = plane.getSensor().getGeometry().getGlobalToLocal().getRotation().getRotationMatrix().e(row,col);
+                            //System.out.format("  %10.6f", localHit.getLocalToGlobal().getRotation().getRotationMatrix().e(row,col));
+                            System.out.format("  %10.6f", plane.getSensor().getGeometry().getLocalToGlobal().getRotation().getRotationMatrix().e(row,col));
+                        }
+                        System.out.format("\n");
+                    }
+                    System.out.format("SiTrackerHit local to global translation vector:\n");
+                    //System.out.println(localHit.getLocalToGlobal().getTranslation().getTranslationVector().toString());
+                    System.out.println(plane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector().toString());
+                    lTogRot.print("rotation local to global");
+                    lTogTran.print("translation local to global");   
+                    Vec newHitGlobal = lTogRot.rotate(hitLocal).sum(lTogTran);
+                    hitLocal.print("local hps hit");
+                    hitGlobal.print("global hps hit");
+                    newHitGlobal.print("transformed local hit");
+                    gTolRot.print("rotation global to local");
+                    gTolTran.print("translation global to local");
+                    hitGlobal.print("global hps hit");
+                    hitLocal.print("local hps hit");
+                    Vec newHitLocal = gTolRot.rotate(hitGlobal).sum(gTolTran);
+                    newHitLocal.print("transformed global hit");
+                    newHitLocal = lTogRot.inverseRotate(hitGlobal.dif(lTogTran));
+                    newHitLocal.print("transformed global hit");
+                    */
+                }
+                
                 double umeas = localHit.getPosition()[0];
                 double du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
 
-                // If HPS measured coordinate axis is opposite to kalman measured coordinate axis
-                if (planeMeasuredVec.z() * module.p.V().v[2] < 0) umeas *= -1.0;
+                // If HPS measured coordinate axis is opposite to Kalman measured coordinate axis
+                // This really should not happen, as the Kalman axis is copied directly from the hps geometry.
+                Hep3Vector planeMeasuredVec = VecOp.mult(HpsSvtToKalmanMatrix, plane.getMeasuredCoordinate());
+                if (planeMeasuredVec.z() * module.p.V().v[2] < 0) {
+                    System.out.format("*** KalmanInterface.fillAllMeasurements: flipping Kalman coordinate sign %d! ***\n", i);
+                    umeas *= -1.0;
+                }
 
                 if (verbose) {
                     System.out.format("\nKalmanInterface:fillAllMeasurements Measurement %d, the measurement uncertainty is set to %10.7f\n", i,
@@ -500,7 +585,7 @@ public class KalmanInterface {
                             plane.getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(), plane.normal().toString(),
                             umeas);
                     System.out.printf(" converted to Kalman Coords  Measured %s Unmeasured %s umeas %f \n", planeMeasuredVec.toString(),
-                            VecOp.mult(HpsToKalmanMatrix, plane.getUnmeasuredCoordinate()).toString(), umeas);
+                            VecOp.mult(HpsSvtToKalmanMatrix, plane.getUnmeasuredCoordinate()).toString(), umeas);
                     module.p.print("Corresponding KalmanPlane");
                     Vec globalX = module.R.rotate(new Vec(1, 0, 0));
                     Vec globalY = module.R.rotate(new Vec(0, 1, 0));
@@ -554,7 +639,7 @@ public class KalmanInterface {
             ArrayList<TrackerHit> temp = hitsMap.get(plane.getSensor());
             if (temp == null) { continue; }
 
-            Hep3Vector planeMeasuredVec = VecOp.mult(HpsToKalmanMatrix, plane.getMeasuredCoordinate());
+            Hep3Vector planeMeasuredVec = VecOp.mult(HpsSvtToKalmanMatrix, plane.getMeasuredCoordinate());
 
             for (int i = 0; i < temp.size(); i++) {
                 TrackerHit hit = temp.get(i);
@@ -567,7 +652,11 @@ public class KalmanInterface {
                 double du = Math.sqrt(local.getCovarianceAsMatrix().diagonal(0));
 
                 // if hps measured coord axis is opposite to kalman measured coord axis
-                if (planeMeasuredVec.z() * mod.p.V().v[2] < 0) { umeas *= -1.0; }
+                // This really should not happen, as the Kalman axis is copied directly from the hps geometry.
+                if (planeMeasuredVec.z() * mod.p.V().v[2] < 0) { 
+                    System.out.format("*** KalmanInterface.fillMeasurements: flipping Kalman coordinate sign %d! ***\n", i);
+                    umeas *= -1.0; 
+                }
 
                 if (verbose) {
                     System.out.format("\nKalmanInterface:fillMeasurements Measurement %d, the measurement uncertainty is set to %10.7f\n", i,
@@ -577,7 +666,7 @@ public class KalmanInterface {
                             plane.getMeasuredCoordinate().toString(), plane.getUnmeasuredCoordinate().toString(), plane.normal().toString(),
                             umeas);
                     System.out.printf(" converted to Kalman Coords  Measured %s Unmeasured %s umeas %f \n", planeMeasuredVec.toString(),
-                            VecOp.mult(HpsToKalmanMatrix, plane.getUnmeasuredCoordinate()).toString(), umeas);
+                            VecOp.mult(HpsSvtToKalmanMatrix, plane.getUnmeasuredCoordinate()).toString(), umeas);
                     mod.p.print("Corresponding KalmanPlane");
                     Vec globalX = mod.R.rotate(new Vec(1, 0, 0));
                     Vec globalY = mod.R.rotate(new Vec(0, 1, 0));
@@ -678,7 +767,8 @@ public class KalmanInterface {
 
     // Method to drive the Kalman-Filter based pattern recognition
     public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event, IDDecoder decoder) {
-        if (!fillAllMeasurements(event)) {
+        boolean realHits = false;
+        if (!fillAllMeasurements(event) || !realHits) {
             if (!fillAllSimHits(event, decoder)) {
                 System.out.format("KalmanInterface.KalmanPatRec: failed to fill measurements in detector.\n");
                 return null;

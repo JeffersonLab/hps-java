@@ -1,7 +1,6 @@
 package org.hps.recon.tracking.kalman;
 
-class SquareMatrix { // Simple matrix package strictly for N by N matrices needed by the Kalman
-                     // fitter
+class SquareMatrix { // Simple matrix package strictly for N by N matrices needed by the Kalman fitter
     double[][] M = null;
     int N;
 
@@ -10,14 +9,10 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         this.N = N;
     }
 
+    // Careful here: a new array is not made
     SquareMatrix(int N, double[][] m) {
-        M = new double[N][N];
+        M = m;
         this.N = N;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                M[i][j] = m[i][j];
-            }
-        }
     }
 
     SquareMatrix(int N, double v) { // Create a diagonal matrix proportional to the unit matrix

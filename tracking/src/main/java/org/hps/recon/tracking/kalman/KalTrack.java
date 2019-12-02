@@ -149,7 +149,7 @@ public class KalTrack {
             if (hitID < 0) { continue; }
             int idx = 2 * m.Layer;
             if (m.isStereo) { idx++; }
-            System.out.format("%d Layer %d, stereo=%9.7f, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  ", idx, m.Layer, m.stereo,
+            System.out.format("%d Layer %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  ", idx, m.Layer, m.isStereo,
                     site.chi2inc, site.scatX(), site.scatZ(), hitID);
             if (m.hits.get(hitID).tksMC != null) {
                 System.out.format("  MC tracks: ");

@@ -25,6 +25,30 @@ class Plane { // Description of a 2D plane in 3D space
         u = newU;
         v = newV;
     }
+    
+    Plane(Vec X, Vec T, Vec U) {
+        x = X;
+        t = T;
+        u = U;
+        v = t.cross(u);        
+    }
+    
+    // strange constructor for backward compatibility of SiModule.java
+    Plane(Vec X, Vec T, double theta) {
+        x = X;
+        Vec zhat = new Vec(0., 0., 1.);
+        t = T.copy();
+        u = t.cross(zhat).unitVec();
+        v = t.cross(u);
+        RotMatrix R1 = new RotMatrix(u,v,t);
+        RotMatrix R2 = new RotMatrix(theta);
+        RotMatrix Rt = R2.multiply(R1);
+        for (int i=0; i<3; i++) {
+            u.v[i] = Rt.M[0][i];
+            v.v[i] = Rt.M[1][i];
+            t.v[i] = Rt.M[2][i];
+        }
+    }
 
     void print(String s) {
         System.out.format("Printout of plane %s\n", s);

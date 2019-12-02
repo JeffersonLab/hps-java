@@ -25,7 +25,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 2000; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -68,60 +68,60 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         SiModule newModule;
 
         double yStart = 103.69;
-        plnInt = new Plane(new Vec(3.4814, yStart, 20.781), new Vec(-0.030928, -0.99952, 0.00056169));
-        newModule = new SiModule(1, plnInt, true, -0.100076, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(3.4814, yStart, 20.781), new Vec(-0.030928, -0.99952, 0.00056169), -0.100076);
+        newModule = new SiModule(1, plnInt, true, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(3.7752, 111.75, 20.770), new Vec(0.029092, 0.99957, 0.0031495));
-        newModule = new SiModule(2, plnInt, false, 0.000303, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(3.7752, 111.75, 20.770), new Vec(0.029092, 0.99957, 0.0031495), 0.000303);
+        newModule = new SiModule(2, plnInt, false, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(6.6595, 203.81, 22.296), new Vec(-0.029875, -0.99954, 0.0053661));
-        newModule = new SiModule(3, plnInt, true, -0.099851, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(6.6595, 203.81, 22.296), new Vec(-0.029875, -0.99954, 0.0053661), -0.099851);
+        newModule = new SiModule(3, plnInt, true, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(6.7661, 211.87, 22.281), new Vec(0.028940, 0.99958, 0.0028008));
-        newModule = new SiModule(4, plnInt, false, 0.000145, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(6.7661, 211.87, 22.281), new Vec(0.028940, 0.99958, 0.0028008), 0.000145);
+        newModule = new SiModule(4, plnInt, false, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(9.4835, 303.76, 23.796), new Vec(-0.029471, -0.99955, 0.0048642));
-        newModule = new SiModule(5, plnInt, true, -0.100012, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(9.4835, 303.76, 23.796), new Vec(-0.029471, -0.99955, 0.0048642), -0.100012);
+        newModule = new SiModule(5, plnInt, true, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(9.7121, 311.63, 23.777), new Vec(0.027875, 0.99961, -0.0027053));
-        newModule = new SiModule(6, plnInt, false, 0.000106, 200., 47.17, thickness, fM, 0);
+        plnInt = new Plane(new Vec(9.7121, 311.63, 23.777), new Vec(0.027875, 0.99961, -0.0027053), 0.000106);
+        newModule = new SiModule(6, plnInt, false, 200., 47.17, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-35.087, 505.57, 29.328), new Vec(-0.029044, -0.99958, 0.0022785));
-        newModule = new SiModule(7, plnInt, true, -0.049060, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-35.087, 505.57, 29.328), new Vec(-0.029044, -0.99958, 0.0022785), -0.049060);
+        newModule = new SiModule(7, plnInt, true, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(65.791, 502.52, 24.294), new Vec(-0.030402, -0.99954, 0.0012687));
-        newModule = new SiModule(7, plnInt, true, -0.050671, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(65.791, 502.52, 24.294), new Vec(-0.030402, -0.99954, 0.0012687), -0.050671);
+        newModule = new SiModule(7, plnInt, true, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-34.848, 513.08, 26.824), new Vec(0.030086, 0.99954, -0.0021664));
-        newModule = new SiModule(8, plnInt, false, 0.000199, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-34.848, 513.08, 26.824), new Vec(0.030086, 0.99954, -0.0021664), 0.000199);
+        newModule = new SiModule(8, plnInt, false, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(65.958, 510.03, 26.821), new Vec(0.030452, 0.99954, -0.00060382));
-        newModule = new SiModule(8, plnInt, false, 0.000194, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(65.958, 510.03, 26.821), new Vec(0.030452, 0.99954, -0.00060382), 0.000194);
+        newModule = new SiModule(8, plnInt, false, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-29.010, 705.47, 32.358), new Vec(-0.030508, -0.99953, -0.00048837));
-        newModule = new SiModule(9, plnInt, true, -0.050035, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-29.010, 705.47, 32.358), new Vec(-0.030508, -0.99953, -0.00048837), -0.050035);
+        newModule = new SiModule(9, plnInt, true, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(71.778, 702.43, 27.322), new Vec(-0.029627, -0.99956, -0.0015542));
-        newModule = new SiModule(9, plnInt, true, -0.050102, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(71.778, 702.43, 27.322), new Vec(-0.029627, -0.99956, -0.0015542), -0.050102);
+        newModule = new SiModule(9, plnInt, true, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-28.846, 713.07, 29.845), new Vec(0.029810, 0.99956, -0.00084633));
-        newModule = new SiModule(10, plnInt, false, 0.000172, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-28.846, 713.07, 29.845), new Vec(0.029810, 0.99956, -0.00084633), 0.000172);
+        newModule = new SiModule(10, plnInt, false, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(72.034, 710.03, 29.845), new Vec(0.030891, 0.99952, 0.00016092));
-        newModule = new SiModule(10, plnInt, false, 0.000205, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(72.034, 710.03, 29.845), new Vec(0.030891, 0.99952, 0.00016092), 0.000205);
+        newModule = new SiModule(10, plnInt, false, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
         // Add some dummy in-between planes in this region where the field is changing rapidly
@@ -142,20 +142,20 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         newModule = new SiModule(-5, plnInt, false, 0., 900., 900., 0., fM, 0);
         SiModules.add(newModule);        
         */
-        plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280));
-        newModule = new SiModule(11, plnInt, true, -0.049801, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280), -0.049801);
+        newModule = new SiModule(11, plnInt, true, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471));
-        newModule = new SiModule(11, plnInt, true, -0.049863, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471), -0.049863);
+        newModule = new SiModule(11, plnInt, true, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105));
-        newModule = new SiModule(12, plnInt, false, 0.000107, 100., 40.34, thickness, fM, 0);
+        plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105), 0.000107);
+        newModule = new SiModule(12, plnInt, false, 100., 40.34, thickness, fM, 0);
         SiModules.add(newModule);
 
-        plnInt = new Plane(new Vec(78.097, 909.99, 32.835), new Vec(0.030889, 0.99952, -0.00029751));
-        newModule = new SiModule(12, plnInt, false, 0.000071, 100., 40.34, thickness, fM, 1);
+        plnInt = new Plane(new Vec(78.097, 909.99, 32.835), new Vec(0.030889, 0.99952, -0.00029751), 0.000071);
+        newModule = new SiModule(12, plnInt, false, 100., 40.34, thickness, fM, 1);
         SiModules.add(newModule);
 
         int nLayers = 13; // Layer 0 not yet implemented here

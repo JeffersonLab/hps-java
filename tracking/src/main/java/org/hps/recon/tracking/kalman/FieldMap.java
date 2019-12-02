@@ -18,6 +18,7 @@ import org.lcsim.geometry.field.FieldOverlay;
 //     x map =  x Kalman
 //     y map = -z Kalman
 //     z map =  y Kalman
+// These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
 
 public class FieldMap extends FieldOverlay {
     private int nX, nY, nZ;
@@ -170,8 +171,10 @@ public class FieldMap extends FieldOverlay {
         // double Byc = bY[iX][iY][iZ]*1000.;
         // double Bzc = bZ[iX][iY][iZ]*1000.;
         // new Vec(-Bxc,Bzc,Byc).print("B on grid");
-        //return new Vec(Bx, Bz, -By); // correct HPS field
-        return new Vec(0.,0.,0.519); // constant field
+        
+        // This transforms the field from the HPS global coordinates to Kalman global coordinates
+        return new Vec(Bx, Bz, -By); // correct HPS field
+        //return new Vec(0.,0.,0.519); // constant field
         // return new Vec(-Bx, -Bz, +By); // reversed field
     }
 

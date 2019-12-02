@@ -111,7 +111,7 @@ public class TrackCandidate {
                 double resid;
                 if (site.hitID < 0) resid = 99.;
                 else resid = vPred - m.hits.get(site.hitID).v;
-                System.out.format("   %d Lyr %d stereo=%5.2f Hit %d chi2inc=%10.6f, resid=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.stereo,
+                System.out.format("   %d Lyr %d stereo=%b Hit %d chi2inc=%10.6f, resid=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.isStereo,
                         site.hitID, site.chi2inc, resid, vPred);
                 for (Measurement hit : m.hits) {
                     if (hit.vTrue == 999.) System.out.format(" (v=%10.6f #tks=%d),", hit.v, hit.tracks.size());
