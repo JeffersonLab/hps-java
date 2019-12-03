@@ -138,13 +138,13 @@ public class HodoUtils {
         List<HodoTileIdentifier> t5t = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_T4, L2_T5));
         clusterPairMap.put(L1_T5, t5t);
         // bottom L0/L1 pairs
-        List<HodoTileIdentifier> t1b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B1, L2_B1));
+        List<HodoTileIdentifier> t1b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B1));
         clusterPairMap.put(L1_B1, t1b);
-        List<HodoTileIdentifier> t2b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B2, L2_B3));
+        List<HodoTileIdentifier> t2b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B1,L2_B2));
         clusterPairMap.put(L1_B2, t2b);
-        List<HodoTileIdentifier> t3b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B3, L2_B4));
+        List<HodoTileIdentifier> t3b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B2,L2_B3));
         clusterPairMap.put(L1_B3, t3b);
-        List<HodoTileIdentifier> t4b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B4, L2_B5));
+        List<HodoTileIdentifier> t4b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B3,L2_B4));
         clusterPairMap.put(L1_B4, t4b);
         List<HodoTileIdentifier> t5b = new ArrayList<HodoTileIdentifier>(Arrays.asList(L2_B4, L2_B5));
         clusterPairMap.put(L1_B5, t5b);
@@ -582,9 +582,9 @@ public class HodoUtils {
 
 // ***  Container class for Hodoscope Clusters == hole combinations  ***//
     public class HodoCluster {
-        HodoTileIdentifier hodoTileID;
-        double clEnergy;
-        double clTime;
+        private HodoTileIdentifier hodoTileID;
+        private double clEnergy;
+        private double clTime;
 
         public HodoCluster(int ax, int ay, int alayer, double energy, double time) {
             clEnergy = energy;
@@ -621,8 +621,8 @@ public class HodoUtils {
     // *** Container class for Hodoscope Cluster Pairs == layer cluster combinations
     // ***//
     public class HodoClusterPair {
-        HodoCluster hodoCl0;
-        HodoCluster hodoCl1;
+        private HodoCluster hodoCl0;
+        private HodoCluster hodoCl1;
 
         public HodoClusterPair(HodoCluster cl0, HodoCluster cl1) {
             if (cl0.getLayer() == cl1.getLayer())
@@ -652,6 +652,10 @@ public class HodoUtils {
             return (hodoCl0.getTime() + hodoCl1.getTime()) / 2.;
         }
 
+        public double getTimeDiff() {
+            return (hodoCl0.getTime() - hodoCl1.getTime());
+        }
+
         public double getMeanEnergy() {
             return (hodoCl0.getEnergy() + hodoCl1.getEnergy()) / 2.;
         }
@@ -675,20 +679,58 @@ public class HodoUtils {
     // with a partner in clusterPairMap whose energy> minE
     // and within time maxdT
     // returns null if no matching hits found!
+    // Currently, we make the L0/L1 pair from the highest in-time L1 cluster;
+    // ...maybe we should modify this to include possibility of having both
+    // neighboring L1 tiles in the L0/L1 "pair"? How probable is it that track
+    // hits two adjacent tiles?
     public HodoClusterPair findHodoClusterPair(HodoCluster l0Cluster, List<HodoCluster> allClusters, double minE,
             double maxDt) {
+        HodoCluster l1ClusterMatch = null;
         HodoClusterPair pair = null;
         HodoTileIdentifier l0Id = l0Cluster.getHodoID();
         List<HodoTileIdentifier> pairIds = clusterPairMap.get(l0Id);
+        System.out.println("findHodoClusterPair:: l0Cluster Energy = " + l0Cluster.getEnergy() + "; time = "
+                + l0Cluster.getTime());
         for (HodoCluster cl : allClusters) {
-            if (cl.getLayer() > 0)
+            if (cl.getLayer() == 0)
                 continue;
+            System.out.println("findHodoClusterPair::  found l1 cluster with energy =" + cl.getEnergy() + " and time = "
+                    + cl.getTime());
             if (clusterPairMap.get(l0Id).contains(cl.getHodoID())) { // found a potential pair
+                System.out.println("l1 cluster is a neighbor");
                 if (cl.clEnergy < minE)
                     continue;
+                double dt = l0Cluster.getTime() - cl.getTime();
+                if (Math.abs(dt) > maxDt)
+                    continue;
+                System.out.println("l1 cluster passes cuts !");
+                // ok, this neighbor cluster passes cuts...pick out highest energy
+                if (l1ClusterMatch != null) {
+                    if (cl.getEnergy() < l1ClusterMatch.getEnergy())
+                        continue;
+                }
+                l1ClusterMatch = cl;
             }
         }
+        if (l1ClusterMatch != null)
+            pair = new HodoClusterPair(l0Cluster, l1ClusterMatch);
         return pair;
+    }
+
+    public List<HodoCluster> makeCleanHodoClusterList(List<SimpleGenericObject> hodoClusters, double minE,
+            double meanTime, double maxDt) {
+        List<HodoCluster> clusters = new ArrayList<HodoCluster>();
+        int n_hits = hodoClusters.get(0).getNInt();
+        for (int ihit = 0; ihit < n_hits; ihit++) {
+            int ix = hodoClusters.get(0).getIntVal(ihit);
+            int iy = hodoClusters.get(1).getIntVal(ihit);
+            int layer = hodoClusters.get(2).getIntVal(ihit);
+            double Energy = hodoClusters.get(3).getDoubleVal(ihit);
+            double hit_time = hodoClusters.get(4).getDoubleVal(ihit);
+            if (Energy > minE && Math.abs(hit_time - meanTime) < maxDt)
+                clusters.add(new HodoCluster(ix, iy, layer, Energy, hit_time));
+        }
+        return clusters;
     }
 
 }

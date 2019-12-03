@@ -1,6 +1,8 @@
 package org.hps.analysis.dataquality;
 
 import org.hps.recon.ecal.HodoUtils;
+import org.hps.recon.ecal.HodoUtils.HodoCluster;
+import org.hps.recon.ecal.HodoUtils.HodoClusterPair;
 import org.hps.recon.ecal.HodoUtils.HodoTileIdentifier;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -9,7 +11,11 @@ import hep.aida.IProfile1D;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -65,9 +71,14 @@ public class TrackEfficiencyHodoECal extends DataQualityMonitor {
     private IProfile1D peffElectrons;
     private IProfile1D phieffElectrons;
     private IProfile1D ctheffElectrons;
-    
+
     IHistogram1D nECalClEvt;
     IHistogram1D nHodoClEvt;
+    IHistogram1D nHodoCleanClEvt;
+    IHistogram1D nTrkEvt;
+    IHistogram1D nPosEvt;
+    IHistogram1D nParedTrkEvt;
+    IHistogram1D nParedPosEvt;
     IHistogram1D nClHodoMatches;
     IHistogram1D nClTrkMatches;
     IHistogram1D dtEcalHodo;
@@ -82,11 +93,30 @@ public class TrackEfficiencyHodoECal extends DataQualityMonitor {
     IHistogram1D trClTimeDiff;
     IHistogram1D clXECalMatch;
     IHistogram1D clYECalMatch;
+    IHistogram1D clYECalTopMatch;
+    IHistogram1D clYECalBotMatch;
     IHistogram2D clXVsYECalMatch;
-    
+
+    IHistogram2D hodoDLayerL0L1vsL0Top;
+    IHistogram2D hodoDLayerL0L1vsL0Bot;
+
+    IHistogram2D hodoCleanDLayerL0L1vsL0Top;
+    IHistogram2D hodoCleanDLayerL0L1vsL0Bot;
+
+    IHistogram1D nHodoPairs;
+    IHistogram1D hodoPairEnergy;
+    IHistogram1D hodoPairTime;
+    IHistogram1D hodoAllEnergy;
+    IHistogram1D hodoAllTime;
+    IHistogram1D hodoCleanEnergy;
+    IHistogram1D hodoCleanTime;
+
     double beamP = 4.4;
     int nlayers = 14;
-   
+    double minHodoE = 200.; // ADC counts?
+    double maxHodoDt = 8.; // ns
+    double meanHodoPairTime = 43.;// ns
+    double meanHodoPairTimeCut = 8.0;// ns
     private boolean debugTrackEfficiency = false;
     private String plotDir = "TrackEfficiencyHodoECal/";
 
@@ -96,7 +126,8 @@ public class TrackEfficiencyHodoECal extends DataQualityMonitor {
     private int maxNHodoCl = 9; // maximum number of Hodo clusters
     private double offsetDtEcalHodo = -5.0; // time offset between hodo and ECal clusters
     private double maxDtECalHodo = 10.0;// max |deltaT| between hodo and ECal clusters
-    private double clTrTimeOffset=41;
+    private double clTrTimeOffset = 41;
+
     public void setTrackHitCollectionName(String trackHitCollectionName) {
         this.trackHitCollectionName = trackHitCollectionName;
     }
@@ -128,25 +159,49 @@ public class TrackEfficiencyHodoECal extends DataQualityMonitor {
         IHistogramFactory hf = aida.histogramFactory();
 
         nECalClEvt = hf.createHistogram1D(plotDir + "N ECal Clusters in Event", 9, 0, 9.);
-        nHodoClEvt = hf.createHistogram1D(plotDir + "N Hodo Clusters in Event", 9, 0, 9.);
-        nClHodoMatches= hf.createHistogram1D(plotDir + "N Hodo-Clusters Matches", 9, 0, 9.);
-        nClTrkMatches= hf.createHistogram1D(plotDir + "N Track-Clusters Matches", 9, 0, 9.);
+        nHodoClEvt = hf.createHistogram1D(plotDir + "N Hodo Clusters in Event", 15, 0, 15.);
+        nHodoCleanClEvt = hf.createHistogram1D(plotDir + "N Hodo Clean Clusters in Event", 9, 0, 9.);
+        nTrkEvt = hf.createHistogram1D(plotDir + "N Tracks in Event", 9, 0, 9.);
+        nPosEvt = hf.createHistogram1D(plotDir + "N Positrons in Event", 9, 0, 9.);
+        nParedTrkEvt = hf.createHistogram1D(plotDir + "N Pared Tracks in Event", 9, 0, 9.);
+        nParedPosEvt = hf.createHistogram1D(plotDir + "N Pared Positrons in Event", 9, 0, 9.);
+        nClHodoMatches = hf.createHistogram1D(plotDir + "N Hodo-Clusters Matches", 9, 0, 9.);
+        nClTrkMatches = hf.createHistogram1D(plotDir + "N Track-Clusters Matches", 9, 0, 9.);
         dtEcalHodo = hf.createHistogram1D(plotDir + "dt Ecal-Hodo", 50, -maxDtECalHodo, maxDtECalHodo);
         clEnergyECal = hf.createHistogram1D(plotDir + "ECal Cluster Energy (GeV)", 100, 0., 5.0);
         clXECal = hf.createHistogram1D(plotDir + "ECal Cluster X (mm)", 150, 100., 400.0);
-        clYECal = hf.createHistogram1D(plotDir + "ECal Cluster |Y| (mm)", 60,28, 88.0);
-        clYECalTop = hf.createHistogram1D(plotDir + "ECal Top Cluster |Y| (mm)", 100, 0., 100.0);
-        clYECalBot = hf.createHistogram1D(plotDir + "ECal Bottom Cluster |Y| (mm)", 100, -100.0, 0.0);
-        clXVsYECal = hf.createHistogram2D(plotDir + "ECal Cluster X (mm) vs Cluster Y (mm)", 100, 0., 300.0, 100, 0,
+        clYECal = hf.createHistogram1D(plotDir + "ECal Cluster |Y| (mm)", 60, 28, 88.0);
+        clYECalTop = hf.createHistogram1D(plotDir + "ECal Top Cluster |Y| (mm)", 60, 28, 88.0);
+        clYECalBot = hf.createHistogram1D(plotDir + "ECal Bottom Cluster |Y| (mm)", 60, 28, 88.0);
+        clXVsYECal = hf.createHistogram2D(plotDir + "ECal Cluster X (mm) vs Cluster Y (mm)", 150, 100.0, 400.0, 50, 0,
                 100.0);
-        
-        clXECalMatch = hf.createHistogram1D(plotDir + "Matched ECal Cluster X (mm)", 150, 100., 400.0);
-        clYECalMatch = hf.createHistogram1D(plotDir + "Matched ECal Cluster |Y| (mm)", 60,28, 88.0);
 
+        hodoDLayerL0L1vsL0Top = hf.createHistogram2D(plotDir + "Top Hodo Cluster Delta L1-L0 vs L0", 5, 0, 5, 10, -5,
+                5);
+        hodoDLayerL0L1vsL0Bot = hf.createHistogram2D(plotDir + "Bot Hodo Cluster Delta L1-L0 vs L0", 5, 0, 5, 10, -5,
+                5);
+        hodoCleanDLayerL0L1vsL0Top = hf.createHistogram2D(plotDir + "Top Hodo Clean Cluster Delta L1-L0 vs L0", 5, 0, 5,
+                10, -5, 5);
+        hodoCleanDLayerL0L1vsL0Bot = hf.createHistogram2D(plotDir + "Bot Hodo Clean Cluster Delta L1-L0 vs L0", 5, 0, 5,
+                10, -5, 5);
+
+        clXECalMatch = hf.createHistogram1D(plotDir + "Matched ECal Cluster X (mm)", 150, 100., 400.0);
+        clYECalMatch = hf.createHistogram1D(plotDir + "Matched ECal Cluster |Y| (mm)", 60, 28, 88.0);
+        clYECalTopMatch = hf.createHistogram1D(plotDir + "Matched ECal Top Cluster |Y| (mm)", 60, 28, 88.0);
+        clYECalBotMatch = hf.createHistogram1D(plotDir + "Matched ECal Bot Cluster |Y| (mm)", 60, 28, 88.0);
         trClXDiff = hf.createHistogram1D(plotDir + "Track-Cluster Diff X (mm)", 50, -50., 50.0);
         trClYDiff = hf.createHistogram1D(plotDir + "Track-Cluster Diff Y (mm)", 50, -30., 30.0);
-        trClTimeDiff = hf.createHistogram1D(plotDir + "Track-Cluster Diff Time (mm)", 50,-10., 10.0);
-        clXVsYECalMatch = hf.createHistogram2D(plotDir + "Matched ECal Cluster X (mm) vs Cluster Y (mm)", 100, 0., 300.0, 100, 0,   100.0);
+        trClTimeDiff = hf.createHistogram1D(plotDir + "Track-Cluster Diff Time (mm)", 50, -10., 10.0);
+        clXVsYECalMatch = hf.createHistogram2D(plotDir + "Matched ECal Cluster X (mm) vs Cluster Y (mm)", 150, 100.0,
+                400.0, 50, 0, 100.0);
+
+        nHodoPairs = hf.createHistogram1D(plotDir + "N Hodo Pairs in Event", 9, 0, 9);
+        hodoPairEnergy = hf.createHistogram1D(plotDir + "Hodo Pair Mean Energy", 50, 100, 1500.);
+        hodoPairTime = hf.createHistogram1D(plotDir + "Hodo Pair Mean Time", 50, -0, 100);
+        hodoAllEnergy = hf.createHistogram1D(plotDir + "Hodo Energy: All Clusters", 50, 0, 2000.);
+        hodoAllTime = hf.createHistogram1D(plotDir + "Hodo Time: All Clusters", 32, 0, 128);
+        hodoCleanEnergy = hf.createHistogram1D(plotDir + "Hodo Energy: Clean Clusters", 50, 0, 2000.);
+        hodoCleanTime = hf.createHistogram1D(plotDir + "Hodo Time: Clean Clusters", 32, 0, 128);
 
     }
 
@@ -204,66 +259,148 @@ public class TrackEfficiencyHodoECal extends DataQualityMonitor {
 //        System.out.println("ecal hits  = " +ecalClusters.size() );
         nECalClEvt.fill(ecalClusters.size());
         nHodoClEvt.fill(n_hits);
+        nTrkEvt.fill(tracks.size());
+        int nPos = 0;
+        for (Track trk : tracks) {
+            if (trk.getCharge() < 0)
+                nPos++;
+        }
+        nPosEvt.fill(nPos);
+        List<Track> paredTrkList = removeRedundentTracks(tracks);
+        nParedTrkEvt.fill(paredTrkList.size());
+        nPos = 0;
+        for (Track trk : paredTrkList) {
+            if (trk.getCharge() < 0)
+                nPos++;
+        }
+        nParedPosEvt.fill(nPos);
         if (ecalClusters.size() > maxNECalCl || n_hits > maxNHodoCl)
             return;
-        int nclhodomatches=0;
+        int nclhodomatches = 0;
         // ======= Loop over hits, and fill corresponding histogram =======
         for (int ihit = 0; ihit < n_hits; ihit++) {
             int ix = hodoClusters.get(0).getIntVal(ihit);
             int iy = hodoClusters.get(1).getIntVal(ihit);
             int layer = hodoClusters.get(2).getIntVal(ihit);
-//            int hole = hodoClusters.get(3).getIntVal(ihit);
             double Energy = hodoClusters.get(3).getDoubleVal(ihit);
             double hit_time = hodoClusters.get(4).getDoubleVal(ihit);
-//            System.out.println("hodo time = "+hit_time);
+            hodoAllEnergy.fill(Energy);
+            hodoAllTime.fill(hit_time);
+            if (layer != 0)
+                continue;
+            for (int jhit = 0; jhit < n_hits; jhit++) {
+                int jlayer = hodoClusters.get(2).getIntVal(jhit);
+                int jy = hodoClusters.get(1).getIntVal(jhit);
+                int jx = hodoClusters.get(0).getIntVal(jhit);
+                if (jlayer != 1)
+                    continue;
+                if (jy != iy)
+                    continue;
+                if (jy > 0)
+                    hodoDLayerL0L1vsL0Top.fill(ix, jx - ix);
+                else
+                    hodoDLayerL0L1vsL0Bot.fill(ix, jx - ix);
+            }
+        }
+//        List<HodoCluster> hodoClusterList = hodoutils.makeHodoClusterList(hodoClusters);
+        List<HodoCluster> hodoClusterList = hodoutils.makeCleanHodoClusterList(hodoClusters, 200, 43, maxDtECalHodo);
+        nHodoCleanClEvt.fill(hodoClusterList.size());
+        Map<HodoClusterPair, Cluster> hodoPairECalMap = new HashMap<HodoClusterPair, Cluster>();
+        int nhodopairs = 0;
+        for (HodoCluster cl : hodoClusterList) {
+            int ix = cl.getXId();
+            int iy = cl.getYId();
+            int layer = cl.getLayer();
+            double energy = cl.getEnergy();
+            double hit_time = cl.getTime();
+            hodoCleanEnergy.fill(energy);
+            hodoCleanTime.fill(hit_time);
+            System.out.println("hodoCluster layer = " + layer);
+            if (layer != 0)// only loop over first layer
+                continue;
+            for (HodoCluster jcl : hodoClusterList) {
+                int jx = jcl.getXId();
+                int jy = jcl.getYId();
+                int jlayer = jcl.getLayer();
+                if (jlayer != 1)
+                    continue;
+                if (jy != iy)
+                    continue;
+                if (jy > 0)
+                    hodoCleanDLayerL0L1vsL0Top.fill(ix, jx - ix);
+                else
+                    hodoCleanDLayerL0L1vsL0Bot.fill(ix, jx - ix);
+            }
+            HodoClusterPair pair = hodoutils.findHodoClusterPair(cl, hodoClusterList, minHodoE, maxHodoDt);
+            if (pair == null)
+                continue;
+            System.out.println("Found a hodo pair:  L0 energy = " + pair.getLayer0Cluster().getEnergy() + "; time = "
+                    + pair.getLayer0Cluster().getTime() + "; L1 energy = " + pair.getLayer1Cluster().getEnergy()
+                    + "; time = " + pair.getLayer1Cluster().getTime());
+            nhodopairs++;
+            hodoPairEnergy.fill(pair.getMeanEnergy());
+            hodoPairTime.fill(pair.getMeanTime());
+            if (Math.abs(pair.getMeanTime() - meanHodoPairTime) > meanHodoPairTimeCut)// cut around the mean pair time
+                continue;
             HodoUtils.HodoTileIdentifier tile_id = hodoutils.new HodoTileIdentifier(ix, iy, layer);
             Cluster matchedEcalCluster = findECalHodoMatch(tile_id, ecalClusters);
             if (matchedEcalCluster == null)
                 continue;
-            double dt = matchedEcalCluster.getCalorimeterHits().get(0).getTime() - hit_time - offsetDtEcalHodo;
-            System.out.println("Found matching cluster dt = " + dt);
-            if (Math.abs(dt) > maxDtECalHodo)
-                continue;
+            hodoPairECalMap.put(pair, matchedEcalCluster);
             nclhodomatches++;
+            double dt = matchedEcalCluster.getCalorimeterHits().get(0).getTime() - hit_time - offsetDtEcalHodo;
             dtEcalHodo.fill(dt);
             clEnergyECal.fill(matchedEcalCluster.getEnergy());
             clXECal.fill(matchedEcalCluster.getPosition()[0]);
             clXVsYECal.fill(matchedEcalCluster.getPosition()[0], Math.abs(matchedEcalCluster.getPosition()[1]));
             clYECal.fill(Math.abs(matchedEcalCluster.getPosition()[1]));
-            int ncltrkmatches=0;
-            for (Track trk : tracks) {
+            if (matchedEcalCluster.getPosition()[1] > 0)
+                clYECalTop.fill(matchedEcalCluster.getPosition()[1]);
+            else
+                clYECalBot.fill(Math.abs(matchedEcalCluster.getPosition()[1]));
+
+        }
+        nHodoPairs.fill(nhodopairs);
+        nClHodoMatches.fill(nclhodomatches);
+        System.out.println("Number of pair-cluster matches = " + hodoPairECalMap.size());
+        if (hodoPairECalMap.size() != 1) { // require a single pair-cluster match in the event
+            return;
+        }
+        int ncltrkmatches = 0;
+        Iterator<Map.Entry<HodoClusterPair, Cluster>> itr = hodoPairECalMap.entrySet().iterator();
+        while (itr.hasNext()) {
+            Map.Entry<HodoClusterPair, Cluster> entry = itr.next();
+            System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+            HodoClusterPair pair = entry.getKey();
+            Cluster matchedEcalCluster = entry.getValue();
+            for (Track trk : paredTrkList) {
                 int charge = -1 * trk.getCharge();// switch sign
+                if (charge < 0)// only pick positrons
+                    continue;
                 TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
                 Hep3Vector tPosAtECal = new BasicHep3Vector(stateAtEcal.getReferencePoint());
                 Hep3Vector clPos = new BasicHep3Vector(matchedEcalCluster.getPosition());
-                if (tPosAtECal.y() * clPos.y() < 0)
+                System.out.println("trkPos = " + tPosAtECal.toString());
+                System.out.println("clPos = " + clPos.toString());
+
+                if (tPosAtECal.z() * clPos.y() < 0)
                     continue;
-                System.out.println("trkPos = "+tPosAtECal.toString());
-                System.out.println("clPos = "+clPos.toString());
-                trClXDiff.fill(tPosAtECal.y() - clPos.x());
-                trClYDiff.fill(tPosAtECal.z() - clPos.y());
                 double trkTime = this.getTrackTime(trk);
                 ncltrkmatches++;
-                trClTimeDiff.fill( matchedEcalCluster.getCalorimeterHits().get(0).getTime()-trkTime -clTrTimeOffset);
+                trClXDiff.fill(tPosAtECal.y() - clPos.x());
+                trClYDiff.fill(tPosAtECal.z() - clPos.y());
+                trClTimeDiff.fill(matchedEcalCluster.getCalorimeterHits().get(0).getTime() - trkTime - clTrTimeOffset);
                 clXECalMatch.fill(matchedEcalCluster.getPosition()[0]);
-                clXVsYECalMatch.fill(matchedEcalCluster.getPosition()[0], Math.abs(matchedEcalCluster.getPosition()[1]));
+                clXVsYECalMatch.fill(matchedEcalCluster.getPosition()[0],
+                        Math.abs(matchedEcalCluster.getPosition()[1]));
                 clYECalMatch.fill(Math.abs(matchedEcalCluster.getPosition()[1]));
-                
+                if (matchedEcalCluster.getPosition()[1] > 0)
+                    clYECalTopMatch.fill(matchedEcalCluster.getPosition()[1]);
+                else
+                    clYECalBotMatch.fill(Math.abs(matchedEcalCluster.getPosition()[1]));
             }
-            nClTrkMatches.fill(ncltrkmatches);
         }
-        nClHodoMatches.fill(nclhodomatches);
-        
-        for (int ihit = 0; ihit < n_hits; ihit++) {
-            int ix = hodoClusters.get(0).getIntVal(ihit);
-            int iy = hodoClusters.get(1).getIntVal(ihit);
-            int layer = hodoClusters.get(2).getIntVal(ihit);
-//            int hole = hodoClusters.get(3).getIntVal(ihit);
-            double Energy = hodoClusters.get(3).getDoubleVal(ihit);
-            double hit_time = hodoClusters.get(4).getDoubleVal(ihit);
-            if(layer!=0)//only loop over first layer
-                continue;
-        }
+        nClTrkMatches.fill(ncltrkmatches);
     }
 
     @Override
@@ -350,5 +487,58 @@ public class TrackEfficiencyHodoECal extends DataQualityMonitor {
                 hitCount++;
             }
         return trackTime / hitCount;
+    }
+
+    private List<Track> removeRedundentTracks(List<Track> origTrks) {
+        List<Track> paredList = new ArrayList<Track>();
+        for (int i = 0; i < origTrks.size(); i++) {
+            Track origTrk = origTrks.get(i);
+            boolean originalIsBest = true;
+            for (int j = i + 1; j < origTrks.size(); j++) {
+                Track testTrk = origTrks.get(j);
+                if (!checkOverlapAndCheckBestTrack(origTrk, testTrk)) {
+                    originalIsBest = false;
+                    break;
+                }
+            }
+            if (originalIsBest)
+                paredList.add(origTrk);
+        }
+        System.out.println("Original List Length = " + origTrks.size());
+        System.out.println("Pared    List Length = " + paredList.size());
+        return paredList;
+    }
+
+    // check two track for overlapping hits...if > maxOverlap,
+    // then check if the test track is "better" than original track
+    // using nHits then chi squared
+    // return true if original track is best, false otherwise
+    private boolean checkOverlapAndCheckBestTrack(Track origTrk, Track testTrk) {
+        int maxOverlap = 1;
+        if (checkHitOverlap(origTrk, testTrk) <= maxOverlap) // not an overlapping track...return original
+            return true;
+        // otherwise, there is overlap and now choose best one
+        int nHitsOrig = origTrk.getTrackerHits().size();
+        int nHitsTest = testTrk.getTrackerHits().size();
+        if (nHitsOrig > nHitsTest)
+            return true;
+        if (nHitsOrig < nHitsTest)
+            return false;
+        // if we get here, these have same number of 3d hits...check chiSq
+        if (origTrk.getChi2() > testTrk.getChi2())
+            return true;
+        return false;
+    }
+
+    private int checkHitOverlap(Track trk1, Track trk2) {
+        int nOverlap = 0;
+        List<TrackerHit> trk1Hth = trk1.getTrackerHits();
+        List<TrackerHit> trk2Hth = trk2.getTrackerHits();
+        for (TrackerHit h1 : trk1Hth) {
+            if (trk2Hth.contains(h1))
+                nOverlap++;
+        }
+        System.out.println("Found an overlap of " + nOverlap);
+        return nOverlap;
     }
 }
