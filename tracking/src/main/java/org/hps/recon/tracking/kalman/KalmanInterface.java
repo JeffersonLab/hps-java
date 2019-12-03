@@ -40,10 +40,9 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
-import static org.lcsim.constants.Constants.fieldConversion;
+//import static org.lcsim.constants.Constants.fieldConversion;
 
 public class KalmanInterface {
-
     private Map<Measurement, TrackerHit> hitMap;
     private Map<Measurement, SimTrackerHit> simHitMap;
     private Map<SiModule, SiStripPlane> moduleMap;
@@ -57,6 +56,7 @@ public class KalmanInterface {
     double svtAngle;
     Random rnd;
 
+    // Get the HPS sensor that corresponds to a Kalman SiModule
     public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
         if (moduleMap == null) return null;
         else {
@@ -66,6 +66,7 @@ public class KalmanInterface {
         }
     }
     
+    // Return the entire map relating HPS sensors to Kalman SiModule objects
     public Map<SiModule, SiStripPlane> getModuleMap() {
         return moduleMap;
     }
@@ -83,10 +84,7 @@ public class KalmanInterface {
         return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
     }
 
-    static Vec convertMomentumToHps(Vec kalMom, double bfield) {
-        return kalMom.scale(fieldConversion * bfield);
-    }
-
+    // Set the layers to be used for finding seed tracks (not used by Kalman pattern recognition)
     public void setSeedTrackLayers(List<Integer> input) {
         SeedTrackLayers = input;
     }
@@ -140,10 +138,12 @@ public class KalmanInterface {
         return kalVec;
     }
 
+    // Return the entire list of Kalman SiModule
     public ArrayList<SiModule> getSiModuleList() {
         return SiMlist;
     }
 
+    // Return a list of all measurements for all SiModule
     public ArrayList<Measurement> getMeasurements() {
         ArrayList<Measurement> measList = new ArrayList<Measurement>();
         int modIndex = 0;
@@ -156,6 +156,7 @@ public class KalmanInterface {
         return measList;
     }
 
+    // Clear the event hit and track information without deleting the SiModule geometry information
     public void clearInterface() {
         if (verbose) System.out.println("Clearing the Kalman interface\n");
         hitMap.clear();
@@ -166,6 +167,7 @@ public class KalmanInterface {
         }
     }
 
+    // Create an HPS track state from a Kalman track state at the location of a particular SiModule
     public static TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
         // public BaseTrackState(double[] trackParameters, double[] covarianceMatrix, double[] position, int location)
         StateVector sv = null;
@@ -177,7 +179,8 @@ public class KalmanInterface {
             sv = ms.aF;
         }
 
-        // local params, rotated
+        // Local helix params, rotated. Note: this rotation doesn't really make sense, as the helix parameters are defined,
+        // strictly speaking, only in a frame in which the B field is the axis of the helix.
         Vec localParams = sv.a;
         SquareMatrix fRot = new SquareMatrix(5);
         double[] globalParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot).v;
@@ -186,20 +189,42 @@ public class KalmanInterface {
         SquareMatrix globalCov = localCov.similarity(fRot);
         double[] newCov = getLCSimCov(globalCov.M, sv.alpha).asPackedArray(true);
 
-        return new BaseTrackState(newParams, newCov, new double[] { 0, 0, 0 }, loc);
+        return new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
     }
 
+    // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
-        if (kT.SiteList == null) return null;
+        if (kT.SiteList == null) {
+            System.out.format("KalmanInterface.createTrack: Kalman track is incomplete.\n");
+            return null;
+        }
         kT.sortSites(true);
         int prevID = 0;
         int dummyCounter = -1;
-
         BaseTrack newTrack = new BaseTrack();
-        // track states at each layer
+        
+        // Add trackstate at IP as first trackstate,
+        // and make this trackstate's params the overall track params
+        double[][] globalCov = kT.originCovariance();
+        double[] globalParams = kT.originHelixParms();
+        double c = 2.99793e8; // Speed of light in m/s
+        double conFac = 1.0e12 / c;
+        Vec Bfield = KalmanInterface.getField(new Vec(0.,0.,0.), kT.SiteList.get(0).m.Bfield); // Field at the origin
+        double B = Bfield.mag();
+        double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
+        double[] newParams = getLCSimParams(globalParams, alpha);
+        double[] newCov = getLCSimCov(globalCov, alpha).asPackedArray(true);
+        TrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, TrackState.AtIP);
+        if (ts != null) {
+            newTrack.getTrackStates().add(ts);                    
+            newTrack.setTrackParameters(ts.getParameters(), B);
+            newTrack.setCovarianceMatrix(new SymmetricMatrix(5, ts.getCovMatrix(), true));
+        }
+        
+        // Get the track states at each layer
         for (int i = 0; i < kT.SiteList.size(); i++) {
             MeasurementSite site = kT.SiteList.get(i);
-            TrackState ts = null;
+            ts = null;
             int loc = TrackState.AtOther;
 
             HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
@@ -208,15 +233,6 @@ public class KalmanInterface {
 
             if (i == 0) {
                 loc = TrackState.AtFirstHit;
-                // add trackstate at IP as first trackstate
-                // make this trackstate's params the overall track params
-                ts = createTrackState(site, TrackState.AtIP, true);
-                if (ts != null) {
-                    newTrack.getTrackStates().add(ts);
-                    // take first TrackState as overall Track params
-                    newTrack.setTrackParameters(ts.getParameters(), kT.Bmag);
-                    newTrack.setCovarianceMatrix(new SymmetricMatrix(5, ts.getCovMatrix(), true));
-                }
             } else if (i == kT.SiteList.size() - 1) loc = TrackState.AtLastHit;
 
             if (storeTrackStates) {
@@ -231,7 +247,7 @@ public class KalmanInterface {
 
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
-                if (ts != null) { newTrack.getTrackStates().add(ts); }
+                if (ts != null) newTrack.getTrackStates().add(ts);
             }
         }
 
@@ -245,8 +261,8 @@ public class KalmanInterface {
         return newTrack;
     }
 
-    static double[] getLCSimParams(double[] oldParams, double alpha) {
-        // convert helix parameters from Kalman to LCSim
+    // Convert helix parameters from Kalman to LCSim
+    static double[] getLCSimParams(double[] oldParams, double alpha) {        
         double[] params = new double[5];
         params[ParameterName.d0.ordinal()] = oldParams[0];
         params[ParameterName.phi0.ordinal()] = -1.0 * oldParams[1];
@@ -263,8 +279,8 @@ public class KalmanInterface {
         return params;
     }
 
-    static double[] unGetLCSimParams(double[] oldParams, double alpha) {
-        // convert helix parameters from LCSim to Kalman
+    // Convert helix parameters from LCSim to Kalman
+    static double[] unGetLCSimParams(double[] oldParams, double alpha) {      
         double[] params = new double[5];
         params[0] = oldParams[ParameterName.d0.ordinal()];
         params[1] = -1.0 * oldParams[ParameterName.phi0.ordinal()];
@@ -274,6 +290,7 @@ public class KalmanInterface {
         return params;
     }
 
+    // Convert helix parameter covariance matrix from Kalman to LCSim
     static SymmetricMatrix getLCSimCov(double[][] oldCov, double alpha) {
         double[] d = { 1.0, -1.0, -1.0 / alpha, -1.0, -1.0 };
         SymmetricMatrix cov = new SymmetricMatrix(5);
@@ -291,6 +308,7 @@ public class KalmanInterface {
         return cov;
     }
 
+    // Convert helix parameter covariance matrix from LCSim to Kalman
     static double[][] ungetLCSimCov(double[] oldCov, double alpha) {
         double[] d = { 1.0, -1.0, -1.0 * alpha, -1.0, -1.0 };
         double[][] cov = new double[5][5];
@@ -329,8 +347,8 @@ public class KalmanInterface {
         newTrack.setNDF(newTrack.getTrackerHits().size());
     }
 
+    // Create an HPS track from a Kalman seed
     public BaseTrack createTrack(SeedTrack trk) {
-
         double[] newPivot = { 0., 0., 0. };
         double[] params = getLCSimParams(trk.pivotTransform(newPivot), trk.getAlpha());
         SymmetricMatrix cov = getLCSimCov(trk.covariance().M, trk.getAlpha());
@@ -344,7 +362,7 @@ public class KalmanInterface {
         return newTrack;
     }
 
-    // Method to create one SiModule object for each silicon-strip detector
+    // Method to create one Kalman SiModule object for each silicon-strip detector
     public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
         SiMlist.clear();
 
@@ -399,7 +417,7 @@ public class KalmanInterface {
         Collections.sort(SiMlist, new SortByLayer());
     }
     
-    // Feed simulated hits into the pattern recognition
+    // Method to feed simulated hits into the pattern recognition, for testing
     private boolean fillAllSimHits(EventHeader event, IDDecoder decoder) {
         boolean success = false;
 
@@ -478,8 +496,7 @@ public class KalmanInterface {
 
         return success;
     }
-    
-    
+       
     // Method to fill all Si hits into the SiModule objects, to feed to the pattern recognition.
     private boolean fillAllMeasurements(EventHeader event) {
         boolean success = false;
@@ -687,8 +704,8 @@ public class KalmanInterface {
         return firstZ;
     }
 
+    // Make a linear fit to a set of hits to be used to initialize the Kalman Filter
     public SeedTrack createKalmanSeedTrack(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
         if (verbose) { System.out.printf("firstHitZ %f \n", firstHitZ); }
@@ -767,10 +784,10 @@ public class KalmanInterface {
 
     // Method to drive the Kalman-Filter based pattern recognition
     public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event, IDDecoder decoder) {
-        boolean realHits = false;
-        if (!fillAllMeasurements(event) || !realHits) {
+        if (!fillAllMeasurements(event)) {
+            System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d; try sim hits\n",event.getEventNumber());
             if (!fillAllSimHits(event, decoder)) {
-                System.out.format("KalmanInterface.KalmanPatRec: failed to fill measurements in detector.\n");
+                System.out.format("KalmanInterface.KalmanPatRec: failed to fill SVT hits for event %d.\n",event.getEventNumber());
                 return null;
             }
         }
