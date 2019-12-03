@@ -434,7 +434,7 @@ public class EvioDAQParser2019 {
     private List<HodoscopeChannel> channelsHodo = new ArrayList<HodoscopeChannel>();
 
     /**
-     * Instantiates the <code>EvioDAQParser</code>.
+     * Instantiates the <code>EvioDAQParser2019</code>.
      */
     public EvioDAQParser2019() {
         // Create a map to map Ecal crystals to their database channel object.
