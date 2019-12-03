@@ -75,7 +75,7 @@ public class TriggerConfigEvioReader {
                     continue;
                 int crate = bank.getHeader().getTag();
                 for (BaseStructure subBank : bank.getChildrenList()) {
-                    if (subBank.getHeader().getTag() == EvioDAQParser.BANK_TAG) {
+                    if (subBank.getHeader().getTag() == EvioDAQParser2019.BANK_TAG) {
                         if (subBank.getStringData() == null) {
                             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
                                     "JEVIO can't parse DAQ Config bank.  Event Number "
