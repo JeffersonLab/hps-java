@@ -21,18 +21,18 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.base.BaseRawCalorimeterHit;
 import org.lcsim.geometry.Detector;
 
-/**
- * This class is used to convert between {@link org.lcsim.event.RawCalorimeterHit} or
- * {@link org.lcsim.event.RawTrackerHit}, objects with ADC/sample information, and
- * {@link org.lcsim.event.CalorimeterHit}, an object with energy+time information. At minimum this involves pedestal
- * subtraction/addition and gain scaling. Knows how to deal with Mode-1/3/7 FADC readout formats. Can perform Mode-3/7
- * firmware algorithms on Mode-1 data. Can alternatively call pulse-fitting on Mode-1 data.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Nathan Baltzell <baltzell@jlab.org>
- * @author Holly Szumila <hvanc001@odu.edu>
- */
+    /**
+     * This class is used to convert between {@link org.lcsim.event.RawCalorimeterHit} or
+     * {@link org.lcsim.event.RawTrackerHit}, objects with ADC/sample information, and
+     * {@link org.lcsim.event.CalorimeterHit}, an object with energy+time information. At minimum this involves pedestal
+     * subtraction/addition and gain scaling. Knows how to deal with Mode-1/3/7 FADC readout formats. Can perform Mode-3/7
+     * firmware algorithms on Mode-1 data. Can alternatively call pulse-fitting on Mode-1 data.
+     *
+     * @author Sho Uemura <meeg@slac.stanford.edu>
+     * @author Andrea Celentano <andrea.celentano@ge.infn.it>
+     * @author Nathan Baltzell <baltzell@jlab.org>
+     * @author Holly Szumila <hvanc001@odu.edu>
+     */
 public class EcalRawConverter {
 
     /**

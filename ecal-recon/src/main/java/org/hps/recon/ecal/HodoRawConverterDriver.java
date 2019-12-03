@@ -1,6 +1,5 @@
 /*
- * Here comes the text of your license
- * Each line should be prefixed with  * 
+ * 
  */
 package org.hps.recon.ecal;
 
@@ -20,8 +19,12 @@ import java.util.ArrayList;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
- *
- * @author rafopar
+ * This class is used to convert between {@link org.lcsim.event.RawTrackerHit} objects 
+ * with FADC mode 1 sample information, and a {@link org.lcsom.event.GenericObject} object 
+ * with energy+time information. 
+ * 
+ * @author rafopar <rafo@physics.unh.edu>
+ * @author Maurik <maurik@physics.unh.edu>
  */
 public class HodoRawConverterDriver extends Driver {
 
@@ -157,12 +160,6 @@ public class HodoRawConverterDriver extends Driver {
                 }
 
                 hodoHits.addAll(hits_in_this_channel);
-
-                // ===== The following few lines are the equivalent of the cin.ignore() of C
-//                try {
-//                    System.in.read();
-//                } catch (Exception e) {
-//                }
             }
 
             // ====== Adding hodo hits to as a Calorimeter hit to the event, however we might later drop this

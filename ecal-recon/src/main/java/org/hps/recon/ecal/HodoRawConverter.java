@@ -32,9 +32,6 @@ public class HodoRawConverter {
 
     public ArrayList<Integer> FindThresholdCrossings(RawTrackerHit hit, double ped) {
 
-        // Getting the cellID of the hit
-        final long cellID = hit.getCellID();
-
         // ADC values for this hit
         final short samples[] = hit.getADCValues();
 
