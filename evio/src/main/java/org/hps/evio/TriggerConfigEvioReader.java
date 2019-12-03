@@ -9,7 +9,7 @@ import org.hps.record.daqconfig.EvioDAQParser;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
-import org.hps.record.daqconfig.EvioDAQParser2019;
+import org.hps.record.daqconfig2019.EvioDAQParser2019;
 
 /*
  * Search for a configuration bank in EvioEvent, and, if found, create an instance of
