@@ -869,7 +869,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
 
-        hGaus.plot(path + "Gaussian.gp", true, " ", " ");
+        hGaus.plot(path + "Gaussian.gp", true, "gaus", " ");
         hReducedErr.plot(path + "ReducedErr.gp", true, " ", " ");
         hXscat.plot(path + "XscatAng.gp", true, " ", " ");
         hZscat.plot(path + "ZscatAng.gp", true, " ", " ");
@@ -895,16 +895,16 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         hEk.plot(path + "kError.gp", true, " ", " ");
         hEdz.plot(path + "dzError.gp", true, " ", " ");
         hEtanl.plot(path + "tanlError.gp", true, " ", " ");
-        hEdrhoS.plot(path + "drhoErrorS.gp", true, " ", " ");
-        hEphi0S.plot(path + "phi0ErrorS.gp", true, " ", " ");
-        hEkS.plot(path + "kErrorS.gp", true, " ", " ");
-        hEdzS.plot(path + "dzErrorS.gp", true, " ", " ");
-        hEtanlS.plot(path + "tanlErrorS.gp", true, " ", " ");
-        hEdrhoO.plot(path + "drhoErrorO.gp", true, " ", " ");
-        hEphi0O.plot(path + "phi0ErrorO.gp", true, " ", " ");
-        hEkO.plot(path + "kErrorO.gp", true, " ", " ");
-        hEdzO.plot(path + "dzErrorO.gp", true, " ", " ");
-        hEtanlO.plot(path + "tanlErrorO.gp", true, " ", " ");
+        hEdrhoS.plot(path + "drhoErrorS.gp", true, "gaus", " ");
+        hEphi0S.plot(path + "phi0ErrorS.gp", true, "gaus", " ");
+        hEkS.plot(path + "kErrorS.gp", true, "gaus", " ");
+        hEdzS.plot(path + "dzErrorS.gp", true, "gaus", " ");
+        hEtanlS.plot(path + "tanlErrorS.gp", true, "gaus", " ");
+        hEdrhoO.plot(path + "drhoErrorO.gp", true, "gaus", " ");
+        hEphi0O.plot(path + "phi0ErrorO.gp", true, "gaus", " ");
+        hEkO.plot(path + "kErrorO.gp", true, "gaus", " ");
+        hEdzO.plot(path + "dzErrorO.gp", true, "gaus", " ");
+        hEtanlO.plot(path + "tanlErrorO.gp", true, "gaus", " ");
         hEdrhoG.plot(path + "drhoErrorG.gp", true, " ", " ");
         hEphi0G.plot(path + "phi0ErrorG.gp", true, " ", " ");
         hEkG.plot(path + "kErrorG.gp", true, " ", " ");
@@ -918,11 +918,11 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         hResid0.plot(path + "resid0.gp", true, " ", " ");
         hResid1.plot(path + "resid1.gp", true, " ", " ");
         for (int i = 0; i < nLayers; i++) {
-            hResidS0[i].plot(path + String.format("residS0_%d.gp", i), true, " ", " ");
-            hResidS2[i].plot(path + String.format("residS2_%d.gp", i), true, " ", " ");
-            hResidS4[i].plot(path + String.format("residS4_%d.gp", i), true, " ", " ");
-            hResidX[i].plot(path + String.format("residX_%d.gp", i), true, " ", " ");
-            hResidZ[i].plot(path + String.format("residZ_%d.gp", i), true, " ", " ");
+            hResidS0[i].plot(path + String.format("residS0_%d.gp", i), true, "gaus", " ");
+            hResidS2[i].plot(path + String.format("residS2_%d.gp", i), true, "gaus", " ");
+            hResidS4[i].plot(path + String.format("residS4_%d.gp", i), true, "gaus", " ");
+            hResidX[i].plot(path + String.format("residX_%d.gp", i), true, "gaus", " ");
+            hResidZ[i].plot(path + String.format("residZ_%d.gp", i), true, "gaus", " ");
         }
     }
     /*

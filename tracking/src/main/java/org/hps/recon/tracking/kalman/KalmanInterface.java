@@ -56,6 +56,11 @@ public class KalmanInterface {
     double svtAngle;
     Random rnd;
 
+    // Get the HPS tracker hit corresponding to a Kalman hit
+    public TrackerHit getHpsHit(Measurement km) {
+        return hitMap.get(km);
+    }
+    
     // Get the HPS sensor that corresponds to a Kalman SiModule
     public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
         if (moduleMap == null) return null;
@@ -219,6 +224,12 @@ public class KalmanInterface {
             newTrack.getTrackStates().add(ts);                    
             newTrack.setTrackParameters(ts.getParameters(), B);
             newTrack.setCovarianceMatrix(new SymmetricMatrix(5, ts.getCovMatrix(), true));
+        }
+        
+        // Add the hits to the track
+        for (MeasurementSite site : kT.SiteList) {
+            if (site.hitID < 0) continue;
+            newTrack.addHit(getHpsHit(site.m.hits.get(site.hitID)));
         }
         
         // Get the track states at each layer

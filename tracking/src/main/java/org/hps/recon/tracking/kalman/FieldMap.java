@@ -19,6 +19,8 @@ import org.lcsim.geometry.field.FieldOverlay;
 //     y map = -z Kalman
 //     z map =  y Kalman
 // These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
+// This class is used for standalone testing of the Kalman code. See KalmanInterface.java for how the B-field access works
+// when running in hps-java.
 
 public class FieldMap extends FieldOverlay {
     private int nX, nY, nZ;
@@ -30,8 +32,7 @@ public class FieldMap extends FieldOverlay {
     public FieldMap(String FileName, String type, double xOffset, double yOffset, double zOffset) throws IOException {
         // The offsets are in HPS coordinates and come from HPSDipoleFieldMap3D
 
-        if (type == "binary") { // This is far faster than scanning the text file (and the file is ~1/3 the
-                                // size)!
+        if (type == "binary") { // This is far faster than scanning the text file (and the file is ~1/3 the size)!
             FileInputStream ifile = new FileInputStream(FileName);
             BufferedInputStream bis = new BufferedInputStream(ifile); // This buffering is essential!
             DataInputStream dis = new DataInputStream(bis);
