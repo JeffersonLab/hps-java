@@ -26,10 +26,10 @@ public class ReconTestSkeleton extends TestCase {
     static {
         System.getProperties().setProperty("hep.aida.IAnalysisFactory", "hep.aida.ref.BatchAnalysisFactory");
     }
-    protected String testInputFileName = "ap_raw_0000-new.slcio";
+    protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName;
-    protected String testURLBase = null;
-    protected long nEvents = 1000;
+    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
+    protected long nEvents = 1;
     protected URL testURL;
     protected FileCache cache;
     protected Driver testTrackingDriver = null;
@@ -133,8 +133,10 @@ public class ReconTestSkeleton extends TestCase {
             mtc.setInputTrackCollectionName(new String[]{""});
             mtc.setRemoveCollections(true);
             add(mtc);
+
             add(new org.hps.recon.tracking.gbl.GBLRefitterDriver());
             add(new org.hps.recon.tracking.TrackDataDriver());
+
             add(new ReadoutCleanupDriver());
         }
 
