@@ -547,6 +547,10 @@ public class EvioDAQParser2019 {
      * <code>[PARAMETER KEY] --> { [PARAMETER VALUES] }</code>.
      */
     public void parseConfigMap() {
+        //////////// Parse VTP cluster cut values ////////////        
+        
+        
+        
         //////////// Parse trigger data ////////////
         // Parse singles and pairs trigger data.
         for (int ii = 0; ii < 4; ii++) {

@@ -14,40 +14,40 @@ import java.io.PrintStream;
  */
 public class DAQConfig2019 extends IDAQConfig2019 {
     // Store the configuration objects.
-    private SSPConfig sspConfig = new SSPConfig();
-    private GTPConfig gtpConfig = new GTPConfig();
-    private FADCConfig fadcConfig = new FADCConfig();
+    private VTPConfig2019 vtpConfig = new VTPConfig2019();
+    private FADCConfigEcal2019 fadcConfigEcal = new FADCConfigEcal2019();
+    private FADCConfigHodo2019 fadcConfigHodo = new FADCConfigHodo2019();
     
     /**
-     * Gets the configuration parameters for the FADC.
-     * @return Returns the FADC configuration.
+     * Gets the configuration parameters for the Ecal FADC.
+     * @return Returns the Ecal FADC configuration.
      */
-    public FADCConfig getFADCConfig() {
-        return fadcConfig;
+    public FADCConfigEcal2019 getEcalFADCConfig() {
+        return fadcConfigEcal;
     }
     
     /**
-     * Gets the configuration parameters for the GTP.
-     * @return Returns the GTP configuration.
+     * Gets the configuration parameters for the Hodoscope FADC.
+     * @return Returns the Hodoscope FADC configuration.
      */
-    public GTPConfig getGTPConfig() {
-        return gtpConfig;
+    public FADCConfigHodo2019 getHodoFADCConfig() {
+        return fadcConfigHodo;
     }
     
     /**
      * Gets the configuration parameters for the SSP.
      * @return Returns the SSP configuration.
      */
-    public SSPConfig getSSPConfig() {
-        return sspConfig;
+    public VTPConfig2019 getVTPConfig() {
+        return vtpConfig;
     }
     
     @Override
-    void loadConfig(EvioDAQParser parser) {
+    void loadConfig(EvioDAQParser2019 parser) {
         // Pass the configuration parser to the system-specific objects.
-        sspConfig.loadConfig(parser);
-        gtpConfig.loadConfig(parser);
-        fadcConfig.loadConfig(parser);
+        vtpConfig.loadConfig(parser);
+        fadcConfigEcal.loadConfig(parser);
+        fadcConfigHodo.loadConfig(parser);
         
         // Print the loaded configuration to the terminal.
         printConfig(System.out);
@@ -56,11 +56,11 @@ public class DAQConfig2019 extends IDAQConfig2019 {
     @Override
     public void printConfig(PrintStream ps) {
         // Print the system-specific objects.
-        fadcConfig.printConfig(ps);
+        fadcConfigEcal.printConfig(ps);
         ps.println();
-        gtpConfig.printConfig(ps);
+        fadcConfigHodo.printConfig(ps);
         ps.println();
-        sspConfig.printConfig(ps);
+        vtpConfig.printConfig(ps);
     }
 
     public String toString() {

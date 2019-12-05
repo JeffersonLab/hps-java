@@ -10,7 +10,7 @@ import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 
 /**
- * Class <code>FADCConfig2019</code> stores FADC configuration settings
+ * Class <code>FADCConfigEcal2019</code> stores ECal FADC configuration settings
  * parsed from the an EVIO file. This class manages the following
  * properties:
  * <ul>
@@ -27,7 +27,7 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
  * 
  * @author Tongtong Cao <caot@jlab.org>
  */
-public class FADCConfig2019 extends IDAQConfig2019 {
+public class FADCConfigEcal2019 extends IDAQConfig2019 {
     // Store basic FADC information.
     private int mode        = -1;
     private int nsa         = -1;
@@ -49,14 +49,14 @@ public class FADCConfig2019 extends IDAQConfig2019 {
     private EcalChannelCollection geoMap = null;
     
     @Override
-    void loadConfig(EvioDAQParser parser) {
+    void loadConfig(EvioDAQParser2019 parser) {
         // Store the basic FADC information.
-        mode = parser.fadcMODE;
-        nsa = parser.fadcNSA;
-        nsb = parser.fadcNSB;
-        windowWidth = parser.fadcWIDTH;
-        offset = parser.fadcOFFSET;
-        maxPulses = parser.fadcNPEAK;
+        mode = parser.fadcMODEEcal;
+        nsa = parser.fadcNSAEcal;
+        nsb = parser.fadcNSBEcal;
+        windowWidth = parser.fadcWIDTHEcal;
+        offset = parser.fadcOFFSETEcal;
+        maxPulses = parser.fadcNPEAKEcal;
         
         // Get the channel collection from the database.
         DatabaseConditionsManager database = DatabaseConditionsManager.getInstance();
@@ -74,9 +74,9 @@ public class FADCConfig2019 extends IDAQConfig2019 {
             indexChannelMap.put(new Point(ix, iy), new Integer(channel));
             
             // Place the mapped values into the arrays.
-            gains[ecalChannel.getChannelId()]      = parser.GAIN.get(ecalChannel);
-            pedestals[ecalChannel.getChannelId()]  = parser.PEDESTAL.get(ecalChannel);
-            thresholds[ecalChannel.getChannelId()] = parser.THRESHOLD.get(ecalChannel);
+            gains[ecalChannel.getChannelId()]      = parser.GAINECAL.get(ecalChannel);
+            pedestals[ecalChannel.getChannelId()]  = parser.PEDESTALECAL.get(ecalChannel);
+            thresholds[ecalChannel.getChannelId()] = parser.THRESHOLDECAL.get(ecalChannel);
         }
     }
     
@@ -286,7 +286,12 @@ public class FADCConfig2019 extends IDAQConfig2019 {
      * of ADC.
      */
     public int getThreshold(Point ixy) {
-        return getThreshold(indexChannelMap.get(ixy));
+        // Get the channel index.
+        Integer index = indexChannelMap.get(ixy);
+        if(index != null) { return getThreshold(index); }
+        else {
+            throw new IllegalArgumentException(String.format("Crystal (%3d, %3d) does not exist.", ixy.x, ixy.y));
+        }        
     }
     
     /**
