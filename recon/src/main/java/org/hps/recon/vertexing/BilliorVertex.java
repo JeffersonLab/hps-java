@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
@@ -28,7 +27,7 @@ public class BilliorVertex implements Vertex {
     private Hep3Vector _vertexPosition;
     private Hep3Vector _vertexPositionError;
 
-    private Matrix _covVtx = new BasicMatrix(3, 3);
+    private SymmetricMatrix _covVtx = null;
     private Map<Integer, Hep3Vector> _fittedMomentum = new HashMap<Integer, Hep3Vector>();
     private ReconstructedParticle _particle = null;
     private String _constraintType;
@@ -43,21 +42,23 @@ public class BilliorVertex implements Vertex {
     
     private List<Matrix> _covTrkMomList = null;
     private double _invMassError;
-    private boolean storeCovTrkMomList = false;
+    private boolean storeCovTrkMomList = true;
 
     private Hep3Vector _v0Momentum;
     private Hep3Vector _v0MomentumErr;
 
     private double[] _v0TargetProjectionXY;
     private double[] _v0TargetProjectionXYErr;
-
+    
+    private List<double[]> _fitTrkParsList=null;//fitted track parameters (theta,phiv,rho)   
+    private List<Matrix> _fitTrkCovList=null;  //list of trk covariances (theta,phiv,rho)
     /**
      * Dflt Ctor
      */
     public BilliorVertex() {
     }
 
-    BilliorVertex(Hep3Vector vtxPos, Matrix covVtx, double chiSq, double invMass, Map<Integer, Hep3Vector> pFitMap, String constraintType) {
+    BilliorVertex(Hep3Vector vtxPos, SymmetricMatrix covVtx, double chiSq, double invMass, Map<Integer, Hep3Vector> pFitMap, String constraintType) {
         _chiSq = chiSq;
         _covVtx = covVtx;
         _vertexPosition = vtxPos;
@@ -67,7 +68,7 @@ public class BilliorVertex implements Vertex {
         
     }
 
-    BilliorVertex(Hep3Vector vtxPos, Matrix covVtx, double chiSq, double invMass) {
+    BilliorVertex(Hep3Vector vtxPos, SymmetricMatrix covVtx, double chiSq, double invMass) {
         _chiSq = chiSq;
         _covVtx = covVtx;
         _vertexPosition = vtxPos;
@@ -120,6 +121,19 @@ public class BilliorVertex implements Vertex {
             SymmetricMatrix cov2 = new SymmetricMatrix(3, temp, true);
             covList.add(cov2);
         }
+        
+        if (paramMap.containsKey("c12-0")) {
+            double[] temp = new double[6];
+            temp[0] = paramMap.get("c12-0");
+            temp[1] = paramMap.get("c12-1");
+            temp[2] = paramMap.get("c12-2");
+            temp[3] = paramMap.get("c12-3");
+            temp[4] = paramMap.get("c12-4");
+            temp[5] = paramMap.get("c12-5");
+            SymmetricMatrix cov12 = new SymmetricMatrix(3, temp, true);
+            covList.add(cov12);
+        }
+        
         if (covList.size() > 0)
             _covTrkMomList = covList;
 
@@ -194,6 +208,14 @@ public class BilliorVertex implements Vertex {
         _v0TargetProjectionXY = xy;
         _v0TargetProjectionXYErr = xyerr;
     }
+    
+    public void setFittedTrackParameters(List<double[]> pars){
+        _fitTrkParsList=pars;
+    }
+    
+    public void setFittedTrackCovariance(List<Matrix> covs){
+        _fitTrkCovList=covs;
+    }
 
     @Override
     public boolean isPrimary() {
@@ -226,7 +248,7 @@ public class BilliorVertex implements Vertex {
 
     @Override
     public SymmetricMatrix getCovMatrix() {
-        return new SymmetricMatrix(_covVtx);
+        return  _covVtx;
     }
 
     // TODO: These should be pulled out and accessed by their own 
@@ -249,7 +271,11 @@ public class BilliorVertex implements Vertex {
             pars.put("p2Y", p2Fit.y());
             pars.put("p2Z", p2Fit.z());
         }
-
+        if (_vertexPositionError !=null){
+            pars.put("vXErr", _vertexPositionError.x());
+            pars.put("vYErr", _vertexPositionError.y());
+            pars.put("vZErr", _vertexPositionError.z());
+        }
         if (_covTrkMomList != null && storeCovTrkMomList == true)
             if (_covTrkMomList.size() >= 2) {
                 SymmetricMatrix covMat = new SymmetricMatrix(_covTrkMomList.get(0));
@@ -390,6 +416,13 @@ public class BilliorVertex implements Vertex {
 
     public double[] getV0TargetXYError() {
         return _v0TargetProjectionXYErr;
+    }
+    
+    public double[] getFittedTrackParameters(int index){
+        return _fitTrkParsList.get(index);
+    }
+    public Matrix getFittedTrackCovariance(int index){
+        return _fitTrkCovList.get(index);
     }
 
 }

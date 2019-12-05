@@ -29,7 +29,6 @@ public class ClusterRFTimeCorrDriver extends Driver {
 
     // Get the ideal trigger time window for a run from the conditions db
     public void detectorChanged(Detector detector) {
-        System.out.println("detector changed");
 
         DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         TriggerTimeWindowCollection trigColl = manager.getCachedConditions(TriggerTimeWindowCollection.class,

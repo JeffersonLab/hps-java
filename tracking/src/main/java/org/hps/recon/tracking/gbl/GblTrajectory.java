@@ -358,11 +358,10 @@ public class GblTrajectory {
             Matrix matN = new Matrix(2, 2);
             Vector prevWd = new Vector(2);
             Vector nextWd = new Vector(2);
-            int ierr;
             aPoint.getDerivatives(0, prevW, prevWJ, prevWd); // W-, W- * J-, W- * d-
             aPoint.getDerivatives(1, nextW, nextWJ, nextWd); // W-, W- * J-, W- * d-
             Matrix sumWJ = prevWJ.plus(nextWJ);
-            // ? matN = sumWJ.inverse(ierr); // N = (W- * J- + W+ * J+)^-1
+            matN = sumWJ.inverse(); // N = (W- * J- + W+ * J+)^-1
             // derivatives for u_int
             Matrix prevNW = matN.times(prevW); // N * W-
             Matrix nextNW = matN.times(nextW); // N * W+
@@ -684,6 +683,10 @@ public class GblTrajectory {
             d.getAllData(floats, indLocal, derLocal, labGlobal, derGlobal);
             aMille.addData(floats[0], floats[1], indLocal, derLocal, labGlobal, derGlobal);
         }
+
+        //for debug only
+        //aMille.printRecord();
+
         aMille.writeRecord();
     }
 

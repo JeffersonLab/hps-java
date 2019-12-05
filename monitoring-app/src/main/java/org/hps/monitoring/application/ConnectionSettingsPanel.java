@@ -233,19 +233,37 @@ final class ConnectionSettingsPanel extends AbstractFieldsPanel {
             } else if (source.equals(this.hostField)) {
                 this.getConfigurationModel().setHost(this.hostField.getText());
             } else if (source.equals(this.portField)) {
-                this.getConfigurationModel().setPort(Integer.parseInt(this.portField.getText()));
+                String text = this.portField.getText().trim();
+                if (text.length() > 0) {
+                    this.getConfigurationModel().setPort(Integer.parseInt(text));
+                }
             } else if (source.equals(this.stationNameField)) {
                 this.getConfigurationModel().setStationName(this.stationNameField.getText());
             } else if (source.equals(this.chunkSizeField)) {
-                this.getConfigurationModel().setChunkSize(Integer.parseInt(this.chunkSizeField.getText()));
+                String text = this.chunkSizeField.getText().trim();
+                if (text.length() > 0) {
+                    this.getConfigurationModel().setChunkSize(Integer.parseInt(text));
+                }
             } else if (source.equals(this.queueSizeField)) {
-                this.getConfigurationModel().setQueueSize(Integer.parseInt(this.queueSizeField.getText()));
+                String text = this.queueSizeField.getText().trim();
+                if (text.length() > 0) {
+                    this.getConfigurationModel().setQueueSize(Integer.parseInt(text));
+                }
             } else if (source.equals(this.stationPositionField)) {
-                this.getConfigurationModel().setStationPosition(Integer.parseInt(this.stationPositionField.getText()));
+                String text = this.stationPositionField.getText().trim();
+                if (text.length() > 0) {
+                    this.getConfigurationModel().setStationPosition(Integer.parseInt(text));                    
+                }
             } else if (source.equals(this.waitTimeField)) {
-                this.getConfigurationModel().setWaitTime(Integer.parseInt(this.waitTimeField.getText()));
+                String text = this.waitTimeField.getText().trim();
+                if (text.length() > 0) {
+                    this.getConfigurationModel().setWaitTime(Integer.parseInt(text));
+                }
             } else if (source.equals(this.prescaleField)) {
-                this.getConfigurationModel().setPrescale(Integer.parseInt(this.prescaleField.getText()));
+                String text = this.prescaleField.getText().trim();
+                if (text.length() > 0) {
+                    this.getConfigurationModel().setPrescale(Integer.parseInt(text));
+                }
             }
         } finally {
             this.getConfigurationModel().addPropertyChangeListener(this);

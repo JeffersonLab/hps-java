@@ -108,8 +108,8 @@ public abstract class MCTupleMaker extends TupleMaker {
     }
 
     protected void addMCParticleVariables(String prefix) {
-        String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "PX/D","PY/D", "PZ/D", 
-                "P/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NGoodTruthHits/I","NBadTruthHits/I",
+        String[] newVars = new String[] {"StartX/D", "StartY/D", "StartZ/D", "EndX/D", "EndY/D", "EndZ/D", "StartPX/D","StartPY/D", "StartPZ/D", 
+                "StartP/D", "M/D", "E/D","pdgid/I","parentID/I","HasTruthMatch/I","NTruthHits/I","NGoodTruthHits/I","NBadTruthHits/I",
                 "Purity/D"};
 
         for (int i = 0; i < newVars.length; i++) {
@@ -189,10 +189,10 @@ public abstract class MCTupleMaker extends TupleMaker {
             tupleMap.put(prefix + "EndY/D", end.y());
             tupleMap.put(prefix + "EndZ/D", end.z());
         }
-        tupleMap.put(prefix + "PX/D", p.x());
-        tupleMap.put(prefix + "PY/D", p.y());
-        tupleMap.put(prefix + "PZ/D", p.z());
-        tupleMap.put(prefix + "P/D", p.magnitude());
+        tupleMap.put(prefix + "StartPX/D", p.x());
+        tupleMap.put(prefix + "StartPY/D", p.y());
+        tupleMap.put(prefix + "StartPZ/D", p.z());
+        tupleMap.put(prefix + "StartP/D", p.magnitude());
         tupleMap.put(prefix + "M/D", particle.getMass());
         tupleMap.put(prefix + "E/D", particle.getEnergy());
         tupleMap.put(prefix + "pdgid/I", (double) particle.getPDGID());

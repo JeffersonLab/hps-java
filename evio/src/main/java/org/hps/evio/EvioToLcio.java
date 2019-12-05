@@ -695,6 +695,9 @@ public final class EvioToLcio {
             // Configure conditions system for Test Run.
             LOGGER.info("using Test Run event builder");
             eventBuilder = new LCSimTestRunEventBuilder();
+        } else if (DatabaseConditionsManager.isPhys2019Run(runNumber)) { 
+            LOGGER.info("using 2019 Physics Run builder."); 
+            eventBuilder = new LCSimPhys2019EventBuilder(); 
         } else {
             // Configure conditions system for Eng Run or default.
             LOGGER.info("using Eng Run event builder");

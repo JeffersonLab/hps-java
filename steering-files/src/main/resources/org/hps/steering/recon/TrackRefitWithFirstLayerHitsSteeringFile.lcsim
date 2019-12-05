@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @Steering file used to refit tracks and re-run the recon on a recon file
+      @author <a href="mailto:mrsolt1@slac.stanford.edu">Matt Solt</a>
+    -->
+    <execute>
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="TrackRefitDriver"/>
+        <driver name="GBLRefitterDriverRefitTracks"/>
+        <!--<driver name="TrackDataDriverRefitTracks"/>-->
+        <driver name="ReconParticleDriverRefitTracks" />
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>    
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="TrackRefitDriver" type="org.hps.analysis.MC.TrackRefitWithFirstLayerHits"/>
+        <driver name="GBLRefitterDriverRefitTracks" type="org.hps.analysis.MC.FirstHitGBLRefitterDriver">
+            <inputCollectionName>Tracks_refit</inputCollectionName>
+            <outputCollectionName>GBLTracks_refit</outputCollectionName>
+            <kinkDataCollectionName>GBLKinkData_refit</kinkDataCollectionName>
+            <kinkDataRelationsName>GBLKinkDataRelations_refit</kinkDataRelationsName>
+            <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_refit</helicalTrackHitRelationsCollectionName>
+        </driver>
+        <driver name="TrackDataDriverTruthTracks" type="org.hps.analysis.MC.TrackDataDriverWithTruth">
+            <trackCollectionName>GBLTracks_refit</trackCollectionName>
+            <helicalTrackHitRelationsCollectionName>HelicalTrackHitRelations_refit</helicalTrackHitRelationsCollectionName>
+            <rotatedHelicalTrackHitRelationsCollectionName>RotatedHelicalTrackHitRelations_refit</rotatedHelicalTrackHitRelationsCollectionName>
+        </driver>
+            <driver name="ReconParticleDriverRefitTracks" type="org.hps.analysis.MC.HpsReconParticleDriverForTrackRefit" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <disablePID>true</disablePID>
+            <!--<maxElectronP> 2.15 </maxElectronP>
+            <maxVertexP> 2.8 </maxVertexP>
+            <minVertexChisqProb> 0.0 </minVertexChisqProb>
+            <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
+            <maxMatchDt>10</maxMatchDt>
+            <trackClusterTimeOffset>55</trackClusterTimeOffset>-->
+        </driver>  
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>             
+    </drivers>
+</lcsim>

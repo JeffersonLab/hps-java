@@ -472,6 +472,11 @@ final class EventProcessing {
             // Create the job manager. A new conditions manager is instantiated from this call but not configured.
             this.sessionState.jobManager = new JobManager();
 
+            // Reset the conditions system because if run and detector name are the same in multiple sessions, it
+            // will not be activated in subsequent sessions after the first one.
+            this.logger.config("Resetting the conditions system for new session");
+            DatabaseConditionsManager.reset();
+            
             // Setup class for conditions system.
             DatabaseConditionsManagerSetup conditions = new DatabaseConditionsManagerSetup();
 
@@ -528,9 +533,24 @@ final class EventProcessing {
             } else if (steeringType.equals(SteeringType.FILE)) {
                 this.setupSteeringFile(steering);
             }
+            
+            // Activate conditions system if run number was provided as hard-coded value.
+            if (configurationModel.hasValidProperty(ConfigurationModel.USER_RUN_NUMBER_PROPERTY)) {
+                
+                // Configure the conditions manager.
+                conditions.configure();
+                
+                // Activate conditions system with supplied detector and run number.
+                this.logger.config("Activating conditions with detector <" 
+                        + configurationModel.getDetectorName() + "> and run "
+                        + configurationModel.getUserRunNumber());
+                conditions.setup();
 
-            // Post-init conditions system which may freeze if run and name were provided.
-            this.sessionState.jobManager.getConditionsSetup().postInitialize();
+                // Post-initialize  the conditions system, which may freeze it.
+                this.sessionState.jobManager.getConditionsSetup().postInitialize();
+            } else {
+                this.logger.config("Conditions system not activated. No user run number was supplied.");
+            }
 
             this.logger.info("lcsim setup was successful");
 

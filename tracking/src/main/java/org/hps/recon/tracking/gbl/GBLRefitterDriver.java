@@ -1,9 +1,7 @@
 package org.hps.recon.tracking.gbl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
@@ -21,6 +19,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
@@ -35,11 +34,43 @@ public class GBLRefitterDriver extends Driver {
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
     private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
+    private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
+    private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
+    private String rawHitCollectionName = "SVTRawTrackerHits";
 
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
-    private StandardCuts cuts = null;
+    private StandardCuts cuts = new StandardCuts();
+
+    private MilleBinary mille;
+    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
+    private boolean writeMilleBinary = false;
+    private double writeMilleChi2Cut = 20;
+    private boolean includeNoHitScatters = false;
+    
+    //Setting 0 is a single refit, 1 refit twice and so on..
+    private int gblRefitIterations = 5; 
+
+    public void setIncludeNoHitScatters(boolean val) {
+        includeNoHitScatters = val;
+    }
+    
+    public void setGblRefitIterations(int val) {
+        gblRefitIterations = val;
+    }
+
+    public void setWriteMilleChi2Cut(int input) {
+        writeMilleChi2Cut = input;
+    }
+
+    public void setMilleBinaryFileName(String filename) {
+        milleBinaryFileName = filename;
+    }
+
+    public void setWriteMilleBinary(boolean writeMillepedeFile) {
+        writeMilleBinary = writeMillepedeFile;
+    }
 
     public void setStoreTrackStates(boolean input) {
         storeTrackStates = input;
@@ -56,17 +87,53 @@ public class GBLRefitterDriver extends Driver {
     public void setOutputCollectionName(String outputCollectionName) {
         this.outputCollectionName = outputCollectionName;
     }
+    
+    public void setTrackRelationCollectionName(String trackRelationCollectionName) {
+        this.trackRelationCollectionName = trackRelationCollectionName;
+    }
+
+    public void setHelicalTrackHitRelationsCollectionName(String helicalTrackHitRelationsCollectionName) {
+        this.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
+    }
+
+    public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
+        this.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
+    }
+
+    public void setRawHitCollectionName(String rawHitCollectionName) {
+        this.rawHitCollectionName = rawHitCollectionName;
+    }
 
     public void setMaxTrackChisq(int nhits, double input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
         cuts.setMaxTrackChisq(nhits, input);
     }
 
-    public void setMaxTrackChisq(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts();
+    public void setMaxTrackChisq4hits(double input) {
+        cuts.setMaxTrackChisq(4, input);
+    }
+
+    public void setMaxTrackChisq5hits(double input) {
+        cuts.setMaxTrackChisq(5, input);
+    }
+
+    public void setMaxTrackChisq6hits(double input) {
+        cuts.setMaxTrackChisq(6, input);
+    }
+
+    public void setMaxTrackChisqProb(double input) {
         cuts.changeChisqTrackProb(input);
+    }
+
+    @Override
+    protected void startOfData() {
+        if (writeMilleBinary)
+            mille = new MilleBinary(milleBinaryFileName);
+    }
+
+    @Override
+    protected void endOfData() {
+        if (writeMilleBinary)
+            mille.close();
     }
 
     @Override
@@ -74,11 +141,6 @@ public class GBLRefitterDriver extends Driver {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
-
-        if (cuts == null) {
-            cuts = new StandardCuts();
-            //System.out.printf("in constructor 5 %f 6 %f \n", cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
-        }
     }
 
     @Override
@@ -89,32 +151,44 @@ public class GBLRefitterDriver extends Driver {
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
         //       System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        //RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        //RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
-
-        Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
+        
+        //Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            //            System.out.println("GBLRefitterDriver::process  number of hits on track = "+track.getTrackerHits().size());
-            if (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0)
+            List<TrackerHit> temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+            if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
-            Pair<Track, GBLKinkData> newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+
+            Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
+            if (newTrackTraj == null) {
+                System.out.println("GBLRefitterDriver::process() -- Aborted refit of track -- null pointer for newTrackTraj returned from MakeGblTracks.refitTrackWithTraj .");
+                continue;
+            }
+            Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
+            if (writeMilleBinary)
+                if (gblTrk.getChi2() < writeMilleChi2Cut)
+                    newTrackTraj.getSecond().get_traj().milleOut(mille);
+
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
             if (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
                 continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
-            inputToRefitted.put(track, gblTrk);
-
+            //PF :: unused
+            //inputToRefitted.put(track, gblTrk);
             kinkDataCollection.add(newTrack.getSecond());
             kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
         }
@@ -129,8 +203,8 @@ public class GBLRefitterDriver extends Driver {
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
-        if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits"))
-            rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        if (event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
+            rawTrackerHits = event.get(RawTrackerHit.class, rawHitCollectionName);
         if (event.hasCollection(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits"))
             rawTrackerHits = event.get(RawTrackerHit.class, "RawTrackerHitMaker_RawTrackerHits");
 

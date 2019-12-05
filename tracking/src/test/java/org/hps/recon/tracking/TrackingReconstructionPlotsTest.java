@@ -38,7 +38,7 @@ public class TrackingReconstructionPlotsTest extends TestCase {
             inputFile = cache.getCachedFile(testURL);
         }
 
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());
 
         LCSimLoop loop2 = new LCSimLoop();

@@ -1,0 +1,22 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="SVTOccupancyPlots"/>
+        <driver name="AidaSaveDriverRoot"/>
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>            
+        </driver>
+        <driver name="SVTOccupancyPlots" type="org.hps.svt.OccupancyPlots">
+            <eventRefreshRate>50</eventRefreshRate>
+            <enablePositionPlots>true</enablePositionPlots>
+            <enableMaxSamplePlots>true</enableMaxSamplePlots>
+            <maxSamplePosition>4</maxSamplePosition>
+            <timeWindowWeight>3</timeWindowWeight>
+        </driver>
+        <driver name="AidaSaveDriverRoot" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+	    </driver>
+    </drivers>
+</lcsim>

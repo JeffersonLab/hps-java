@@ -42,8 +42,9 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Utility used to determine if a track and cluster are matched
      */
-    TrackClusterMatcher matcher = new TrackClusterMatcher();
+    TrackClusterMatcher matcher;
 
+    private String clusterParamFileName = null;
     String[] trackCollectionNames = {"GBLTracks"};
 
     public static final int ELECTRON = 0;
@@ -58,7 +59,7 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
-    protected StandardCuts cuts = null;
+    protected StandardCuts cuts = new StandardCuts();
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
 
@@ -83,11 +84,6 @@ public abstract class ReconParticleDriver extends Driver {
      * Indicates whether debug text should be output or not.
      */
     protected boolean debug = false;
-
-    /**
-     * Indicates whether this is Monte Carlo or data
-     */
-    public boolean isMonteCarlo = false;
 
     /**
      * The simple name of the class used for debug print statements.
@@ -140,7 +136,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for tracks.
      */
-    private String trackCollectionName = "MatchedTracks";
+    private String trackCollectionName = "GBLTracks";
     /**
      * LCIO collection name for reconstructed particles.
      */
@@ -178,7 +174,6 @@ public abstract class ReconParticleDriver extends Driver {
                                                          // production running
     // Beam position variables.
     // The beamPosition array is in the tracking frame
-    /* TODO get the beam position from the conditions db */
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
     protected double beamEnergy = 1.056;
@@ -364,13 +359,32 @@ public abstract class ReconParticleDriver extends Driver {
     public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
     }
+    
+    public void setClusterParamFileName(String input) {
+        clusterParamFileName = input;
+    }
 
     /**
      * Updates the magnetic field parameters to match the appropriate values for the current detector settings.
      */
     @Override
     protected void detectorChanged(Detector detector) {
+
+        BeamEnergyCollection beamEnergyCollection = 
+                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+
+        if (clusterParamFileName == null) {
+            if (beamEnergy > 2)
+                setClusterParamFileName("ClusterParameterization2016.dat");
+            else
+                setClusterParamFileName("ClusterParameterization2015.dat");
+        }
+
+        matcher = new TrackClusterMatcher(clusterParamFileName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
+        matcher.setBeamEnergy(beamEnergy); 
+        matcher.setBFieldMap(detector.getFieldMap());
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
@@ -380,11 +394,6 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
-        matcher.setBFieldMap(detector.getFieldMap());
-        BeamEnergyCollection beamEnergyCollection = 
-                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();        
-        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        matcher.setBeamEnergy(beamEnergy); 
         
         if (cuts == null)
             cuts = new StandardCuts(beamEnergy);
@@ -393,27 +402,19 @@ public abstract class ReconParticleDriver extends Driver {
     }
     
     public void setMaxMatchChisq(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchChisq(input);
     }
     
     
     public void setMaxElectronP(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxElectronP(input);
     }
     
     public void setMaxMatchDt(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setMaxMatchDt(input);
     }
     
     public void setTrackClusterTimeOffset(double input) {
-        if (cuts == null)
-            cuts = new StandardCuts(beamEnergy);
         cuts.setTrackClusterTimeOffset(input);
     }
     
@@ -498,8 +499,13 @@ public abstract class ReconParticleDriver extends Driver {
                     double clusTime = ClusterUtilities.getSeedHitTime(cluster);
                     double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
                     
-                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()){
+                        if (debug) {
+                            System.out.println("Failed cluster-track deltaT!");
+                            System.out.println(clusTime + "  " + trkT + "  " + cuts.getTrackClusterTimeOffset() + ">" + cuts.getMaxMatchDt());
+                        }
                         continue;
+                    }
                     
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
@@ -519,13 +525,23 @@ public abstract class ReconParticleDriver extends Driver {
                     }
 
                     // ignore if matching quality doesn't make the cut:
-                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH)
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH){
+                        if (debug) {
+                            System.out.println("Failed cluster-track NSigma Cut!");
+                            System.out.println("match NSigma = "+thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH );
+                        }
                         continue;
+                    }
+                        
 
                     // ignore if we already found a cluster that's a better match:
-                    if (thisNSigma > smallestNSigma)
+                    if (thisNSigma > smallestNSigma) {
+                        if (debug) {
+                            System.out.println("Already found a better match than this!");
+                            System.out.println("match NSigma = "+thisNSigma + "; smallest NSigma =  " + smallestNSigma );
+                        }
                         continue;
-
+                    }
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
                     matchedCluster = originalCluster;
@@ -678,6 +694,8 @@ public abstract class ReconParticleDriver extends Driver {
         if (trackCollectionNames != null) {
             for (String collectionName : trackCollectionNames) {
                 if (event.hasCollection(Track.class, collectionName)) {
+                         // VERBOSE :: Output the number of clusters in the event.
+                    printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
                     trackCollections.add(event.get(Track.class, collectionName));
                 }
             }

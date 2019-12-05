@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      Steering file for tracking and v0 reconstruction monitoring, using L1-3 and L4-6 tracking to check SVT opening angle
+      @author Matt Graham <mgraham@slac.stanford.edu>
+    -->
+    <execute>     
+        <!--  the 3 drivers below are for reading out 6-sample ADC data -->
+        <!--      <driver name="RawTrackerHitSensorSetup" />  --> 
+        <driver name="RawTrackerHitFitterDriver" /> 
+        <driver name="TrackerHitDriver" />  
+        <driver name="HelicalTrackHitDriver" />
+        <!--  SVT opening angle alignment -->
+        <driver name="TrackerL2to7ReconDriver"/> 
+        <!--<driver name="s234_c5_e167"/>-->
+        <driver name="GBLRefitterDriver" />  
+        <!-- Online Monitoring Drivers -->
+        <driver name="SVTAlignment" />
+        <driver name="CleanupDriver" />
+    </execute>
+    <drivers>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+   
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <debug>false</debug>
+        </driver>            
+
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup" />
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>40.0</clusterTimeCut>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+            <maxDt>40.0</maxDt>
+            <vThin>0.0</vThin>
+            <saveAxialHits>false</saveAxialHits>
+        </driver>
+   
+        <driver name="TrackerL2to7ReconDriver" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>L2to6Tracks</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS_s345_e67.xml</strategyResource>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>       
+        <driver name="s234_c5_e167" type="org.hps.recon.tracking.TrackerReconDriver">
+            <debug>false</debug>
+            <trackCollectionName>s234_c5_e167</trackCollectionName>
+            <strategyResource>/org/hps/recon/tracking/strategies/HPS_s234_c5_e167.xml</strategyResource>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
+      
+        <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver">
+        </driver>       
+        
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+                
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver> 
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/> 
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver> 
+        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>          
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+              
+        <!--                   
+        <driver name="ReconParticle" type="org.hps.recon.particle.HpsReconParticleDriver">
+            <debug>false</debug>
+        </driver>   -->
+        <!--        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.TrackingReconPlots">                
+        </driver>
+        <driver name="TrackingResiduals" type="org.hps.monitoring.drivers.trackrecon.TrackResiduals">              
+        </driver>
+        <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">               
+        </driver>      -->
+        <driver name="SVTAlignment" type="org.hps.monitoring.drivers.trackrecon.L01UnbiasedResidualsFromL26">  
+            <matchFullTracks>false</matchFullTracks>
+            <fullTrackCollectionName>s234_c5_e167</fullTrackCollectionName>     
+            <onlyElectrons>true</onlyElectrons>   
+        </driver>   
+        <!--        <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.TrackTimePlots">                
+        </driver>-->
+
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+            <maxTrackChisq4hits> 100. </maxTrackChisq4hits>
+            <maxTrackChisq5hits> 100. </maxTrackChisq5hits>
+            <maxTrackChisq6hits> 100. </maxTrackChisq6hits>
+            <inputCollectionName>L2to6Tracks</inputCollectionName>
+            <outputCollectionName>L2to6TracksGBL</outputCollectionName>
+            <storeTrackStates>true</storeTrackStates>
+        </driver>
+
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />       
+    </drivers>
+</lcsim>

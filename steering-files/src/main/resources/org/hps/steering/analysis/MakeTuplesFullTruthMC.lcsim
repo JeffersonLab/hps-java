@@ -36,6 +36,7 @@
 	<driver name="FullTruthTuple" type="org.hps.analysis.tuple.TridentFullTupleDriver">
             <nEcalHit>3</nEcalHit>
             <tupleFile>${outputFile}_fulltruth.txt</tupleFile>
+            <cutTuple>false</cutTuple>
         </driver>
     </drivers>
 </lcsim>

@@ -3,7 +3,6 @@ package org.hps.recon.tracking.gbl;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
-import static org.hps.recon.tracking.gbl.MakeGblTracks.makeCorrectedTrack;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -14,22 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.apache.commons.math3.util.Pair;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
-import org.lcsim.constants.Constants;
-import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
-import org.lcsim.event.LCRelation;
-import org.lcsim.event.Track;
-import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
-import org.lcsim.lcio.LCIOConstants;
-import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
-import org.lcsim.recon.tracking.seedtracker.SeedTrack;
-import org.lcsim.util.Driver;
+
 
 /**
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written by Per Hansson and Omar Moreno. Requires
@@ -39,31 +26,14 @@ import org.lcsim.util.Driver;
  * @author Per Hansson Adrian, SLAC
  * @author Miriam Diamond, SLAC
  */
-public class HpsGblRefitter extends Driver {
+public class HpsGblRefitter {
 
     private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
-    private final String trackCollectionName = "MatchedTracks";
-    private final String track2GblTrackRelationName = "TrackToGBLTrack";
-    private final String gblTrack2StripRelationName = "GBLTrackToStripData";
-    private final String outputTrackCollectionName = "GBLTracks";
-    private final String trackRelationCollectionName = "MatchedToGBLTrackRelations";
-
-    private MilleBinary mille;
-    private String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
-    private boolean writeMilleBinary = false;
 
     public void setDebug(boolean debug) {
         _debug = debug;
         MakeGblTracks.setDebug(debug);
-    }
-
-    public void setMilleBinaryFileName(String filename) {
-        milleBinaryFileName = filename;
-    }
-
-    public void setWriteMilleBinary(boolean writeMillepedeFile) {
-        writeMilleBinary = writeMillepedeFile;
     }
 
     public HpsGblRefitter() {
@@ -75,151 +45,6 @@ public class HpsGblRefitter extends Driver {
     // public void setLogLevel(String logLevel) {
     // logger.setLevel(Level.parse(logLevel));
     // }
-    @Override
-    protected void startOfData() {
-        if (writeMilleBinary) {
-            mille = new MilleBinary(milleBinaryFileName);
-        }
-    }
-
-    @Override
-    protected void endOfData() {
-        if (writeMilleBinary) {
-            mille.close();
-        }
-    }
-
-    @Override
-    protected void process(EventHeader event) {
-        double bfield = TrackUtils.getBField(event.getDetector()).y();
-        // double bfac = 0.0002998 * bfield;
-        double bfac = Constants.fieldConversion * bfield;
-
-        // get the tracks
-        if (!event.hasCollection(Track.class, trackCollectionName)) {
-            if (_debug) {
-                System.out.printf("%s: No tracks in Event %d \n", this.getClass().getSimpleName(), event.getEventNumber());
-            }
-            return;
-        }
-
-        // get the relations to the GBLtracks
-        if (!event.hasItem(track2GblTrackRelationName)) {
-            System.out.println("Need Relations " + track2GblTrackRelationName);
-            return;
-        }
-        // and strips
-        if (!event.hasItem(gblTrack2StripRelationName)) {
-            System.out.println("Need Relations " + gblTrack2StripRelationName);
-            return;
-        }
-
-        List<LCRelation> track2GblTrackRelations = event.get(LCRelation.class, track2GblTrackRelationName);
-        // need a map of GBLTrackData keyed on the Generic object from which it created
-        Map<GenericObject, GBLTrackData> gblObjMap = new HashMap<GenericObject, GBLTrackData>();
-        // need a map of SeedTrack to GBLTrackData keyed on the track object from which it created
-        Map<GBLTrackData, Track> gblToSeedMap = new HashMap<GBLTrackData, Track>();
-
-        // loop over the relations
-        for (LCRelation relation : track2GblTrackRelations) {
-            Track t = (Track) relation.getFrom();
-            GenericObject gblTrackObject = (GenericObject) relation.getTo();
-            GBLTrackData gblT = new GBLTrackData(gblTrackObject);
-            gblObjMap.put(gblTrackObject, gblT);
-            gblToSeedMap.put(gblT, t);
-        } // end of loop over tracks
-
-        // get the strip hit relations
-        List<LCRelation> gblTrack2StripRelations = event.get(LCRelation.class, gblTrack2StripRelationName);
-
-        // need a map of lists of strip data keyed by the gblTrack to which they correspond
-        Map<GBLTrackData, List<GBLStripClusterData>> stripsGblMap = new HashMap<GBLTrackData, List<GBLStripClusterData>>();
-        for (LCRelation relation : gblTrack2StripRelations) {
-            // from GBLTrackData to GBLStripClusterData
-            GenericObject gblTrackObject = (GenericObject) relation.getFrom();
-            // Let's get the GBLTrackData that corresponds to this object...
-            GBLTrackData gblT = gblObjMap.get(gblTrackObject);
-            GBLStripClusterData sd = new GBLStripClusterData((GenericObject) relation.getTo());
-            if (stripsGblMap.containsKey(gblT)) {
-                stripsGblMap.get(gblT).add(sd);
-            } else {
-                stripsGblMap.put(gblT, new ArrayList<GBLStripClusterData>());
-                stripsGblMap.get(gblT).add(sd);
-            }
-        }
-
-        // loop over the tracks and do the GBL fit
-        List<FittedGblTrajectory> trackFits = new ArrayList<FittedGblTrajectory>();
-        LOGGER.info("Trying to fit " + stripsGblMap.size() + " tracks");
-        for (GBLTrackData t : stripsGblMap.keySet()) {
-            FittedGblTrajectory traj = fit(stripsGblMap.get(t), bfac, _debug);
-            if (traj != null) {
-                LOGGER.info("GBL fit successful");
-                if (_debug) {
-                    System.out.printf("%s: GBL fit successful.\n", getClass().getSimpleName());
-                }
-                // write to MP binary file
-                if (writeMilleBinary) {
-                    traj.get_traj().milleOut(mille);
-                }
-                traj.set_seed(gblToSeedMap.get(t));
-                trackFits.add(traj);
-            } else {
-                LOGGER.info("GBL fit failed");
-                if (_debug) {
-                    System.out.printf("%s: GBL fit failed.\n", getClass().getSimpleName());
-                }
-            }
-        }
-
-        LOGGER.info(event.get(Track.class, trackCollectionName).size() + " tracks in collection \"" + trackCollectionName + "\"");
-        LOGGER.info(gblObjMap.size() + " tracks in gblObjMap");
-        LOGGER.info(gblToSeedMap.size() + " tracks in gblToSeedMap");
-        LOGGER.info(stripsGblMap.size() + " tracks in stripsGblMap");
-        LOGGER.info(trackFits.size() + " fitted GBL tracks before adding to event");
-
-        List<Track> newTracks = new ArrayList<Track>();
-
-        List<LCRelation> trackRelations = new ArrayList<LCRelation>();
-
-        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
-
-        List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
-
-        LOGGER.info("adding " + trackFits.size() + " of fitted GBL tracks to the event");
-
-        for (FittedGblTrajectory fittedTraj : trackFits) {
-
-            SeedTrack seedTrack = (SeedTrack) fittedTraj.get_seed();
-            SeedCandidate trackseed = seedTrack.getSeedCandidate();
-
-            // Create a new Track
-            Pair<Track, GBLKinkData> trk = makeCorrectedTrack(fittedTraj, trackseed.getHelix(), seedTrack.getTrackerHits(), seedTrack.getType(), bfield);
-
-            // Add the track to the list of tracks
-            newTracks.add(trk.getFirst());
-
-            // Create relation from seed to GBL track
-            trackRelations.add(new BaseLCRelation(fittedTraj.get_seed(), trk.getFirst()));
-
-            kinkDataCollection.add(trk.getSecond());
-            kinkDataRelations.add(new BaseLCRelation(trk.getSecond(), trk.getFirst()));
-        }
-
-        LOGGER.info("adding " + Integer.toString(newTracks.size()) + " Gbl tracks to event with " + event.get(Track.class, "MatchedTracks").size() + " matched tracks");
-
-        // Put the tracks back into the event and exit
-        int flag = 1 << LCIOConstants.TRBIT_HITS;
-        event.put(outputTrackCollectionName, newTracks, Track.class, flag);
-        event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
-        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
-        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
-
-        if (_debug) {
-            System.out.printf("%s: Done.\n", getClass().getSimpleName());
-        }
-
-    }
 
     public static FittedGblTrajectory fit(List<GBLStripClusterData> hits, double bfac, boolean debug) {
         // path length along trajectory
@@ -258,6 +83,10 @@ public class HpsGblRefitter extends Driver {
             double step = strip.getPath3D() - s;
             if (debug) {
                 System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath3D());
+            }
+            
+            if (strip.getScatterOnly() == 1 && debug) {
+                System.out.println("This is scatter only on sensor: MPID " + strip.getId());
             }
 
             // get measurement frame unit vectors
@@ -314,7 +143,10 @@ public class HpsGblRefitter extends Driver {
 
             // projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
-            proL2m = proL2m.inverse();
+            
+            //Invertible
+            if (strip.getScatterOnly() == 0)
+                proL2m = proL2m.inverse();
 
             if (debug) {
                 System.out.println("HpsGblFitter: " + "proM2l:");
@@ -357,7 +189,9 @@ public class HpsGblRefitter extends Driver {
 
             GblPoint point = new GblPoint(jacPointToPoint);
             // Add measurement to the point
-            point.addMeasurement(proL2m, meas, measPrec, 0.);
+
+            if (strip.getScatterOnly()==0)
+                point.addMeasurement(proL2m, meas, measPrec, 0.);
             // Add scatterer in curvilinear frame to the point
             // no direction in this frame
             Vector scat = new Vector(2);
@@ -459,10 +293,6 @@ public class HpsGblRefitter extends Driver {
         return fittedTraj;
     }
 
-    @Override
-    protected void detectorChanged(Detector detector) {
-    }
-
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /**
          * Simple jacobian: quadratic in arc length difference. using lambda phi as directions
@@ -486,132 +316,5 @@ public class HpsGblRefitter extends Driver {
         jac.set(3, 2, ds * cosl);
         jac.set(4, 1, ds);
         return jac;
-    }
-
-    private static class GlobalDers {
-
-        private final int _layer;
-        private final Hep3Vector _t; // track direction
-        private final Hep3Vector _p; // track prediction
-        private final Hep3Vector _n; // normal to plane
-        private final Matrix _dm_dg; // Global derivaties of the local measurements
-        private final Matrix _dr_dm; // Derivatives of residuals w.r.t. measurement
-        private final Matrix _dr_dg; // Derivatives of residuals w.r.t. global parameters
-
-        public GlobalDers(int layer, double umeas, double vmeas, double wmeas, Hep3Vector tDir, Hep3Vector tPred, Hep3Vector normal) {
-            _layer = layer;
-            _t = tDir;
-            _p = tPred;
-            _n = normal;
-            // Derivatives of residuals w.r.t. perturbed measurement
-            _dr_dm = getResDers();
-            // Derivatives of perturbed measurement w.r.t. global parameters
-            _dm_dg = getMeasDers();
-            // Calculate, by chain rule, derivatives of residuals w.r.t. global parameters
-            _dr_dg = _dr_dm.times(_dm_dg);
-
-        }
-
-        /**
-         * Derivative of mt, the perturbed measured coordinate vector m w.r.t. to global parameters:
-         * u,v,w,alpha,beta,gamma
-         */
-        private Matrix getMeasDers() {
-
-            // Derivative of the local measurement for a translation in u
-            double dmu_du = 1.;
-            double dmv_du = 0.;
-            double dmw_du = 0.;
-            // Derivative of the local measurement for a translation in v
-            double dmu_dv = 0.;
-            double dmv_dv = 1.;
-            double dmw_dv = 0.;
-            // Derivative of the local measurement for a translation in w
-            double dmu_dw = 0.;
-            double dmv_dw = 0.;
-            double dmw_dw = 1.;
-            // Derivative of the local measurement for a rotation around u-axis (alpha)
-            double dmu_dalpha = 0.;
-            double dmv_dalpha = _p.z(); // self.wmeas
-            double dmw_dalpha = -1.0 * _p.y(); // -1.0 * self.vmeas
-            // Derivative of the local measurement for a rotation around v-axis (beta)
-            double dmu_dbeta = -1.0 * _p.z(); // -1.0 * self.wmeas
-            double dmv_dbeta = 0.;
-            double dmw_dbeta = _p.x(); // self.umeas
-            // Derivative of the local measurement for a rotation around w-axis (gamma)
-            double dmu_dgamma = _p.y(); // self.vmeas
-            double dmv_dgamma = -1.0 * _p.x(); // -1.0 * self.umeas 
-            double dmw_dgamma = 0.;
-            // put into matrix
-            Matrix dm_dg = new Matrix(3, 6);
-            dm_dg.set(0, 0, dmu_du);
-            dm_dg.set(0, 1, dmu_dv);
-            dm_dg.set(0, 2, dmu_dw);
-            dm_dg.set(0, 3, dmu_dalpha);
-            dm_dg.set(0, 4, dmu_dbeta);
-            dm_dg.set(0, 5, dmu_dgamma);
-            dm_dg.set(1, 0, dmv_du);
-            dm_dg.set(1, 1, dmv_dv);
-            dm_dg.set(1, 2, dmv_dw);
-            dm_dg.set(1, 3, dmv_dalpha);
-            dm_dg.set(1, 4, dmv_dbeta);
-            dm_dg.set(1, 5, dmv_dgamma);
-            dm_dg.set(2, 0, dmw_du);
-            dm_dg.set(2, 1, dmw_dv);
-            dm_dg.set(2, 2, dmw_dw);
-            dm_dg.set(2, 3, dmw_dalpha);
-            dm_dg.set(2, 4, dmw_dbeta);
-            dm_dg.set(2, 5, dmw_dgamma);
-
-            return dm_dg;
-        }
-
-        /**
-         * Derivatives of the local perturbed residual w.r.t. the measurements m (u,v,w)'
-         */
-        private Matrix getResDers() {
-            double tdotn = VecOp.dot(_t, _n);
-            Matrix dr_dm = Matrix.identity(3, 3);
-
-            double delta, val;
-            for (int i = 0; i < 3; ++i) {
-                for (int j = 0; j < 3; ++j) {
-                    delta = i == j ? 1. : 0.;
-                    val = delta - _t.v()[i] * _n.v()[j] / tdotn;
-                    dr_dm.set(i, j, val);
-                }
-            }
-            return dr_dm;
-        }
-
-        /**
-         * Turn derivative matrix into @Milleparameter
-         *
-         * @param isTop - top or bottom track
-         * @return list of @Milleparameters
-         */
-        private List<MilleParameter> getDers(boolean isTop) {
-            int transRot;
-            int direction;
-            int label;
-            double value;
-            List<MilleParameter> milleParameters = new ArrayList<MilleParameter>();
-            int topBot = isTop == true ? 1 : 2;
-            for (int ip = 1; ip < 7; ++ip) {
-                if (ip > 3) {
-                    transRot = 2;
-                    direction = ((ip - 1) % 3) + 1;
-                } else {
-                    transRot = 1;
-                    direction = ip;
-                }
-                label = topBot * MilleParameter.half_offset + transRot * MilleParameter.type_offset + direction * MilleParameter.dimension_offset + _layer;
-                value = _dr_dg.get(0, ip - 1);
-                MilleParameter milleParameter = new MilleParameter(label, value, 0.0);
-                milleParameters.add(milleParameter);
-            }
-            return milleParameters;
-        }
-
     }
 }

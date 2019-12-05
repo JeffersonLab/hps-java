@@ -69,7 +69,7 @@ public final class TestRunSvtDaqMappingTest extends TestCase {
      */
     public void test() throws Exception {
 
-        final DatabaseConditionsManager conditionsManager = new DatabaseConditionsManager();
+        final DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.setDetector("HPS-TestRun-v5", RUN_NUMBER);
 
         final TestRunSvtDaqMappingCollection daqMappingCollection = conditionsManager.getCachedConditions(

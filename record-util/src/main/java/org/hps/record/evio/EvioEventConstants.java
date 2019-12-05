@@ -22,6 +22,24 @@ public final class EvioEventConstants {
      */
     public static final int EPICS_EVENT_TAG = 31;
 
+
+    /**
+     * VTP Bank tag.
+     */
+    public static final int VTP_BANK_TAG = 57634;
+
+    public static final int VTP_TOP_RocID = 11;
+    public static final int VTP_BOT_RocID = 12;
+
+    
+    /**
+     * TS Bank tag.
+     */
+    public static final int TS_BANK_TAG = 57610;
+
+    public static final int TS_RocID = 46;
+
+    
     /**
      * Tag of bank containing the EPICS data bank.
      */
