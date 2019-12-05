@@ -25,8 +25,8 @@ public class KalmanInterfaceTest extends TestCase {
         File lcioInputFile = new File(testInput);
         //File outputFile = new TestOutputFile(testOutput);
 
-        final DatabaseConditionsManager manager = new DatabaseConditionsManager();
-        manager.addConditionsListener(new SvtDetectorSetup());
+        //final DatabaseConditionsManager manager = new DatabaseConditionsManager();
+        //manager.addConditionsListener(new SvtDetectorSetup());
 
         LCSimLoop loop2 = new LCSimLoop();
         loop2.setLCIORecordSource(lcioInputFile);
