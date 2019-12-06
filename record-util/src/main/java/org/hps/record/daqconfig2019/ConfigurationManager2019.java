@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * Class <code>ConfigurationManager2019</code> provides static access to
- * the DAQ configuration that can be parsed from EVIO files. It works
+ * the 2019 DAQ configuration that can be parsed from EVIO files. It works
  * in conjunction with the <code>DAQConfigDriver2019</code>, which obtains
  * the configuration parser object when available and passes it to this
  * manager, and <code>EvioDAQParser2019</code>, which parses the EVIO data.
@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class ConfigurationManager2019 {
     // Store the configuration object.
-    private static final DAQConfig DAQ_CONFIG = new DAQConfig();
+    private static final DAQConfig2019 DAQ_CONFIG = new DAQConfig2019();
     
     // Track whether a DAQ configuration has been read yet.
     private static boolean INITIALIZED = false;
@@ -34,7 +34,7 @@ public class ConfigurationManager2019 {
      * @return Returns the DAQ settings as a <code>DAQConfig</code>
      * object or <code>null</code>.
      */
-    public synchronized static final DAQConfig getInstance() {
+    public synchronized static final DAQConfig2019 getInstance() {
         if(INITIALIZED) { return DAQ_CONFIG; }
         else { return null; }
     }
@@ -82,7 +82,7 @@ public class ConfigurationManager2019 {
      * associated listeners that an update has occurred.
      * @param parser - The updated DAQ information.
      */
-    public synchronized static final void updateConfiguration(EvioDAQParser parser) {
+    public synchronized static final void updateConfiguration(EvioDAQParser2019 parser) {
         INITIALIZED = false;
         DAQ_CONFIG.loadConfig(parser);
         INITIALIZED = true;

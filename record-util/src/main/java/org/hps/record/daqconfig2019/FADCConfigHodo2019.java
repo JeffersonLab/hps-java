@@ -313,10 +313,10 @@ public class FADCConfigHodo2019 extends IDAQConfig2019 {
         Set<int[]> iGeoSet = indexChannelMap.keySet();
         Iterator<int[]> iterator = iGeoSet.iterator();                
         while (iterator.hasNext()) {    
-         int[] iGeo = iterator.next();  
-         int channelID = indexChannelMap.get(iGeo);
-         ps.printf("\t%3d\t%3d\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", iGeo[0], iGeo[1], iGeo[2], iGeo[3],
-                 getPedestal(channelID), getGain(channelID), getThreshold(channelID));  
+            int[] iGeo = iterator.next();  
+            int channelID = indexChannelMap.get(iGeo);
+            ps.printf("\t%3d\t%3d\t%3d\t%3d\t%8.3f\t%8.3f\t%4d%n", iGeo[0], iGeo[1], iGeo[2], iGeo[3],
+                    getPedestal(channelID), getGain(channelID), getThreshold(channelID));  
         }        
     }
     

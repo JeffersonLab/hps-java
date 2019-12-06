@@ -38,6 +38,28 @@ public class EvioDAQParser2019 {
     private int nBanks = 0;
     private boolean debug = false;
 
+    //////////// Cluster cut configuration ////////////
+    /**
+     * Cluster hit timing coincidence: 0 to 16, units: +/-ns
+     */
+    int ecalClusterHitDT = 0;
+    /**
+     * Cluster seed threshold in: 1 to 8191, units MeV
+     */
+    int ecalClusterSeedThr = 0;
+    /**
+     * Hodoscope fadc hit cut: minimum acceptable FADC hit integral: 1 to 8191, units TBD
+     */
+    int hodoFADCHitThr = 0;
+    /**
+     * Hodoscope trigger hit cut: minimum acceptable integral (clustered or single tile): 1 to 8191, units TBD
+     */
+    int hodoThr = 0;
+    /**
+     * Hodoscope hit coincidence between L1,L2, and also ECAL clusters (real with is specified value +4ns): 0 to 60, units: ns
+     */
+    int hodoDT = 0;
+    
     //////////// Triggers ////////////
     ////// Singles //////
     /**
@@ -323,7 +345,19 @@ public class EvioDAQParser2019 {
      * Specifies the value of the FEE cluster total energy upper bound cuts. Use the
      * format, in units of MeV, <code> FEE_Enabled </code>.
      */
-    int FEEEnergyMax = 0;
+    int FEEEnergyMax = 0;      
+    /**
+     * Specifies minimum of each region for FEE prescale <code> FEE_Enabled </code>.
+     */
+    int[] FEERegionXMin = {0, 0, 0, 0, 0, 0, 0};
+    /**
+     * Specifies maximum of each region for FEE prescale <code> FEE_Enabled </code>.
+     */
+    int[] FEERegionXMax = {0, 0, 0, 0, 0, 0, 0};
+    /**
+     * Specifies FEE prescale for each region <code> FEE_Enabled </code>.
+     */
+    int[] FEERegionPrescale = {0, 0, 0, 0, 0, 0, 0};
 
     //////////// TS Prescale ////////////
     /**
@@ -333,7 +367,7 @@ public class EvioDAQParser2019 {
      * Prescale_Pairs0, Prescale_Pairs1, Prescale_Pairs2, Prescale_Pairs3, LED, Cosmic, Hodoscope,
      * Pulser, Multiplicity0, Multiplicity1, FEE_Top, FEE_Bot } </code>.
      */
-    int[] TSPrescale = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    int[] TSPrescale = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     //////////// FADC Config ////////////
 
@@ -547,8 +581,12 @@ public class EvioDAQParser2019 {
      * <code>[PARAMETER KEY] --> { [PARAMETER VALUES] }</code>.
      */
     public void parseConfigMap() {
-        //////////// Parse VTP cluster cut values ////////////        
-        
+        //////////// Parse VTP cluster cut values ////////////   
+        ecalClusterHitDT = Integer.valueOf(getConfigParameter("VTP_HPS_ECAL_CLUSTER_HIT_DT", 0));        
+        ecalClusterSeedThr = Integer.valueOf(getConfigParameter("VTP_HPS_ECAL_CLUSTER_SEED_THR", 0));
+        hodoFADCHitThr = Integer.valueOf(getConfigParameter("VTP_HPS_HODOSCOPE_FADCHIT_THR", 0));
+        hodoThr = Integer.valueOf(getConfigParameter("VTP_HPS_HODOSCOPE_HODO_THR", 0));
+        hodoDT = Integer.valueOf(getConfigParameter("VTP_HPS_HODOSCOPE_HODO_DT", 0));        
         
         
         //////////// Parse trigger data ////////////
@@ -617,14 +655,19 @@ public class EvioDAQParser2019 {
         FEENhitsMin = Integer.valueOf(getConfigParameter("VTP_HPS_FEE_NMIN", 0));
         FEEEnergyMin = Integer.valueOf(getConfigParameter("VTP_HPS_FEE_EMIN", 0));
         FEEEnergyMax = Integer.valueOf(getConfigParameter("VTP_HPS_FEE_EMAX", 0));
+        for (int ii = 0; ii < 7; ii++) {
+            FEERegionXMin[ii] = getIntConfigVTP(ii, "FEE_PRESCALE", 0);
+            FEERegionXMax[ii] = getIntConfigVTP(ii, "FEE_PRESCALE", 1);
+            FEERegionPrescale[ii] = getIntConfigVTP(ii, "FEE_PRESCALE", 2);
+        }
 
         //////////// Parse TS prescale ////////////
-        for (int ii = 0; ii < 19; ii++) {
+        for (int ii = 0; ii < 20; ii++) {
             TSPrescale[ii] = getIntConfigVTP(ii, "PRESCALE", 0);
         }
 
     }
-
+    
     /**
      * Gets a VTP parameter value using a shortened version of the full parameter
      * key and parses it as a <code>float</code>.
@@ -1000,6 +1043,13 @@ public class EvioDAQParser2019 {
         System.out.println("\nTriggerConfigVars%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
         System.out.println();
         System.out.println();
+        
+        System.out.println(String.format("VTP_HPS_ECAL_CLUSTER_HIT_DT: %d", ecalClusterHitDT));
+        System.out.println(String.format("VTP_HPS_ECAL_CLUSTER_SEED_THR: %d", ecalClusterSeedThr));
+        System.out.println(String.format("VTP_HPS_HODOSCOPE_FADCHIT_THR: %d", hodoFADCHitThr));
+        System.out.println(String.format("VTP_HPS_HODOSCOPE_HODO_THR: %d", hodoThr));
+        System.out.println(String.format("VTP_HPS_HODOSCOPE_HODO_DT: %d", hodoDT));
+        
         System.out.println(String.format("FADC250_NSA_Ecal: %d", fadcNSAEcal));
         System.out.println(String.format("FADC250_NSB_Ecal: %d", fadcNSBEcal));
         System.out.println(String.format("FADC250_NPEAK_Ecal: %d", fadcNPEAKEcal));
@@ -1088,8 +1138,12 @@ public class EvioDAQParser2019 {
         System.out.println(String.format("FEE_NHITS %d", FEENhitsMin));
         System.out.println(String.format("FEE_EMIN %d", FEEEnergyMin));
         System.out.println(String.format("FEE_EMAX %d", FEEEnergyMax));
+        
+        for (int ii = 0; ii < 7; ii++) {
+            System.out.println(String.format("FEE_Prescale %d\t%d\t%d\t%d", ii, FEERegionXMin[ii], FEERegionXMax[ii], FEERegionPrescale[ii]));
+        }
 
-        for (int ii = 0; ii < 19; ii++) {
+        for (int ii = 0; ii < 20; ii++) {
             System.out.println(String.format("TS_Prescale %d %d", ii, TSPrescale[ii]));
         }
         System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");

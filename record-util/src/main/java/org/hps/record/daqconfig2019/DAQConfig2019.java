@@ -17,6 +17,7 @@ public class DAQConfig2019 extends IDAQConfig2019 {
     private VTPConfig2019 vtpConfig = new VTPConfig2019();
     private FADCConfigEcal2019 fadcConfigEcal = new FADCConfigEcal2019();
     private FADCConfigHodo2019 fadcConfigHodo = new FADCConfigHodo2019();
+    private TSConfig2019 tsConfig = new TSConfig2019();
     
     /**
      * Gets the configuration parameters for the Ecal FADC.
@@ -43,11 +44,12 @@ public class DAQConfig2019 extends IDAQConfig2019 {
     }
     
     @Override
-    void loadConfig(EvioDAQParser2019 parser) {
+    public void loadConfig(EvioDAQParser2019 parser) {
         // Pass the configuration parser to the system-specific objects.
         vtpConfig.loadConfig(parser);
         fadcConfigEcal.loadConfig(parser);
         fadcConfigHodo.loadConfig(parser);
+        tsConfig.loadConfig(parser);
         
         // Print the loaded configuration to the terminal.
         printConfig(System.out);
@@ -61,6 +63,8 @@ public class DAQConfig2019 extends IDAQConfig2019 {
         fadcConfigHodo.printConfig(ps);
         ps.println();
         vtpConfig.printConfig(ps);
+        ps.println();
+        tsConfig.printConfig(ps);
     }
 
     public String toString() {

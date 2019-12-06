@@ -11,9 +11,9 @@ package org.hps.record.daqconfig2019;
  */
 public class PDECutConfig2019 extends AbstractConfig2019<Double> {
     private static final int parC0 = 0;
-    private static final int parC1 = 0;
-    private static final int parC2 = 0;
-    private static final int parC3 = 0;
+    private static final int parC1 = 1;
+    private static final int parC2 = 2;
+    private static final int parC3 = 3;
     
     /**
      * Instantiates a new <code>PDECutConfig2019</code> object.

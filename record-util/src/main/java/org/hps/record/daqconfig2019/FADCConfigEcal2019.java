@@ -74,9 +74,9 @@ public class FADCConfigEcal2019 extends IDAQConfig2019 {
             indexChannelMap.put(new Point(ix, iy), new Integer(channel));
             
             // Place the mapped values into the arrays.
-            gains[ecalChannel.getChannelId()]      = parser.GAINECAL.get(ecalChannel);
-            pedestals[ecalChannel.getChannelId()]  = parser.PEDESTALECAL.get(ecalChannel);
-            thresholds[ecalChannel.getChannelId()] = parser.THRESHOLDECAL.get(ecalChannel);
+            gains[channel]      = parser.GAINECAL.get(ecalChannel);
+            pedestals[channel]  = parser.PEDESTALECAL.get(ecalChannel);
+            thresholds[channel] = parser.THRESHOLDECAL.get(ecalChannel);
         }
     }
     
