@@ -35,7 +35,8 @@ import org.lcsim.util.Driver;
  * in the chain rely on <code>ConfigurationManager2019</code>, as it can
  * not be initialized otherwise.
  * 
- * @author Tongtong Cao
+ * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Tongtong Cao <caot@jlab.org>
  * @see ConfigurationManager2019
  */
 public class DAQConfigDriver2019 extends Driver {
