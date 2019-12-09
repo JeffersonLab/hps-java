@@ -18,7 +18,7 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1000;              // The number of test eventNumbers to generate for fitting
+        int nTrials = 2;              // The number of test eventNumbers to generate for pattern recognition and fitting
         int mxPlot = 1;                // Maximum number of single event plots
         int [] eventToPrint = {1,1};  // Range of events to print in detail and plot as an event display
         boolean perfect = false;
@@ -519,6 +519,7 @@ public class PatRecTest {
                 if (verbose) {
                     System.out.format("Track %d, %d hits, chi^2=%10.5f, 1st layer=%d\n", tkr.ID, tkr.nHits, tkr.chi2,
                             tkr.SiteList.get(0).m.Layer);
+                    tkr.print("from KalmanPatRecHPS");
                 }
                 hNhits.entry(tkr.nHits);
                 hTkChi2.entry(tkr.chi2);

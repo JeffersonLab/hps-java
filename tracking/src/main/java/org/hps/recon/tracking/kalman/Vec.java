@@ -51,12 +51,19 @@ class Vec { // N-vector for the Kalman filter
         System.out.format("\n");
     }
 
+    String string() {
+        String s = String.format("%10.5f %10.5f %10.5f", v[0], v[1], v[2]);
+        return s;
+    }
+    
     Vec copy() {
         return new Vec(N, v);
     }
 
     Vec cross(Vec y) { // Warning, this only makes sense for 3-vectors!
-        return new Vec(v[1] * y.v[2] - v[2] * y.v[1], v[2] * y.v[0] - v[0] * y.v[2], v[0] * y.v[1] - v[1] * y.v[0]);
+        if (N==3) {
+            return new Vec(v[1] * y.v[2] - v[2] * y.v[1], v[2] * y.v[0] - v[0] * y.v[2], v[0] * y.v[1] - v[1] * y.v[0]);
+        } else return null;
     }
 
     Vec unitVec() {

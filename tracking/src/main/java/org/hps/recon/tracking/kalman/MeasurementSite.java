@@ -15,6 +15,7 @@ class MeasurementSite {
     boolean smoothed; // True if the smoothed state vector has been built
     double chi2inc; // chi^2 increment for this site
     Vec H; // Derivatives of the transformation from state vector to measurement
+    double arcLength; // Arc length from the previous measurement
     private double conFac; // Conversion from B to alpha
     private double alpha;
     private double radLen; // radiation length in silicon
@@ -162,9 +163,19 @@ class MeasurementSite {
         double XL;
         if (mPs == null) {
             XL = 0.;
+            arcLength = 0.;
         } else {
             double ct = pMom.unitVec().dot(mPs.p.T()); // cos(theta) at the **previous** site
+            double radius = Math.abs(alpha/pS.a.v[2]);
             XL = mPs.thickness / radLen / Math.abs(ct); // Si scattering thickness at previous site
+            arcLength = radius*phi*Math.sqrt(1.0 + pS.a.v[4] * pS.a.v[4]);
+            if (verbose) {
+                double dx = m.p.X().v[0]-mPs.p.X().v[0];
+                double dy = m.p.X().v[1]-mPs.p.X().v[1];
+                double dz = m.p.X().v[2]-mPs.p.X().v[2];
+                double distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                System.out.format("MeasurementSite.predict: arc length=%10.5f, distance=%10.5f\n", arcLength, distance);
+            }
         }
         aP = pS.predict(thisSite, X0, B, tB, origin, XL, deltaE);
         if (verbose) {
@@ -484,6 +495,7 @@ class MeasurementSite {
             if (verbose) System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", this.aS.R);
             //aS.print("the smoothed state");
             //nS.print("the next site in the chain");
+            this.aS.mPred = V;
         }
 
         this.chi2inc = (this.aS.r * this.aS.r) / this.aS.R;

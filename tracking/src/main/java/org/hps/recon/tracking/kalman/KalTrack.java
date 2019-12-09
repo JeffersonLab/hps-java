@@ -16,7 +16,6 @@ public class KalTrack {
     public double chi2;
 
     ArrayList<MeasurementSite> SiteList;
-    public Map<MeasurementSite, Double> intercepts;
     public Map<MeasurementSite, Vec> interceptVects;
     public Map<MeasurementSite, Vec> interceptMomVects;
     public Map<Integer, MeasurementSite> lyrMap;
@@ -60,7 +59,6 @@ public class KalTrack {
         alpha = 1.0e12 / (c * Bmag); // Convert from pt in GeV to curvature in mm
         Cx = null;
         Cp = null;
-        intercepts = new HashMap<MeasurementSite, Double>();
         interceptVects = new HashMap<MeasurementSite, Vec>();
         interceptMomVects = new HashMap<MeasurementSite, Vec>();
         lyrMap = new HashMap<Integer, MeasurementSite>();
@@ -70,7 +68,6 @@ public class KalTrack {
             if (Double.isNaN(phiS)) { phiS = 0.; }
             interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
             interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
-            intercepts.put(site, site.h(site.aS, site.m, phiS));
             lyrMap.put(site.m.Layer, site);
         }
     }
@@ -146,17 +143,21 @@ public class KalTrack {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
             int hitID = site.hitID;
-            if (hitID < 0) { continue; }
-            int idx = 2 * m.Layer;
-            if (m.isStereo) { idx++; }
-            System.out.format("%d Layer %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, hit=%d  ", idx, m.Layer, m.isStereo,
-                    site.chi2inc, site.scatX(), site.scatZ(), hitID);
+            System.out.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
+                    site.chi2inc, site.scatX(), site.scatZ(), site.arcLength, hitID);
+            if (hitID < 0) continue;
             if (m.hits.get(hitID).tksMC != null) {
                 System.out.format("  MC tracks: ");
                 for (int iMC : m.hits.get(hitID).tksMC) {
                     System.out.format(" %d ", iMC);
                 }
                 System.out.format("\n");
+            }
+            if (interceptVects.containsKey(site)) {
+                Vec interceptVec = interceptVects.get(site);
+                Vec interceptMomVec = interceptMomVects.get(site);
+                System.out.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, error=%9.5f \n", interceptVec.string(),
+                        interceptMomVec.string(), site.m.hits.get(hitID).v, site.aS.mPred, Math.sqrt(site.aS.R));
             }
         }
         System.out.format("End of printing for KalTrack %s ID %d in event %d\n\n", s, ID, eventNumber);
