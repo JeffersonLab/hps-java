@@ -49,7 +49,7 @@ public class KalmanInterface {
     public static RotMatrix HpsSvtToKalman;
     public static RotMatrix KalmanToHpsSvt;
     public static BasicHep3Matrix HpsSvtToKalmanMatrix;
-    private ArrayList<int[]> trackHitsKalman;
+    private ArrayList<KalHit> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose;
@@ -99,10 +99,11 @@ public class KalmanInterface {
     }
 
     public KalmanInterface(boolean verbose) {
+        System.out.format("Entering the KalmanInterface constructor\n");
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
-        trackHitsKalman = new ArrayList<int[]>();
+        trackHitsKalman = new ArrayList<KalHit>();  // Used only to refit existing GBL tracks
         SiMlist = new ArrayList<SiModule>();
         SeedTrackLayers = new ArrayList<Integer>();
         // SeedTrackLayers.add(2);
@@ -150,13 +151,11 @@ public class KalmanInterface {
 
     // Return a list of all measurements for all SiModule
     public ArrayList<Measurement> getMeasurements() {
-        ArrayList<Measurement> measList = new ArrayList<Measurement>();
-        int modIndex = 0;
+        ArrayList<Measurement> measList = new ArrayList<Measurement>();;
         for (SiModule SiM : SiMlist) {
-            for (int[] hitPair : trackHitsKalman) {
-                if (hitPair[0] == modIndex) measList.add(SiM.hits.get(hitPair[1]));
+            for (Measurement m : SiM.hits) {
+                measList.add(m);
             }
-            modIndex++;
         }
         return measList;
     }
@@ -346,6 +345,7 @@ public class KalmanInterface {
         return cov;
     }
 
+    // Used only for Kalman tracks made by fitting hits on a GBL track
     private void addHitsToTrack(BaseTrack newTrack) {
         List<Measurement> measList = getMeasurements();
 
@@ -375,6 +375,7 @@ public class KalmanInterface {
 
     // Method to create one Kalman SiModule object for each silicon-strip detector
     public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
+        System.out.format("Entering KalmanInterface.creasteSiModules\n");
         SiMlist.clear();
 
         for (SiStripPlane inputPlane : inputPlanes) {
@@ -410,7 +411,9 @@ public class KalmanInterface {
                 vK.print("v in Kalman coordinates");
                 tK.print("t in Kalman coordinates");           
                 pointOnPlaneTransformed.print("point on plane in Kalman coordinates");
-                HpsSvtToKalman.rotate(new Vec(3, inputPlane.origin().v())).print("old, bad point on plane in Kalman coordinates");
+                Vec oldBadPoint = HpsSvtToKalman.rotate(new Vec(3, inputPlane.origin().v()));
+                oldBadPoint.print("old, bad point on plane in Kalman coordinates");
+                pointOnPlaneTransformed.dif(oldBadPoint).print("difference good - bad");
                 System.out.printf("    Building with Kalman plane: point %s normal %s \n",
                         new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(tK.v).toString());
             }
@@ -493,9 +496,6 @@ public class KalmanInterface {
                 Measurement m = new Measurement(umeas, du, rGlobal, rLocal.v[1]);
                 //rGlobal.print("new global hit location");
 
-                int[] hitPair = { modIndex, module.hits.size() };
-                if (verbose) System.out.format("    adding hitPair %d %d \n", hitPair[0], hitPair[1]);
-                trackHitsKalman.add(hitPair);
                 module.addMeasurement(m);
                 simHitMap.put(m, hit);
                 hitsFilled++;
@@ -621,10 +621,6 @@ public class KalmanInterface {
                     globalY.print("globalY");
                 }
                 Measurement m = new Measurement(umeas, du);
-
-                int[] hitPair = { modIndex, module.hits.size() };
-                if (verbose) System.out.format("    adding hitPair %d %d \n", hitPair[0], hitPair[1]);
-                trackHitsKalman.add(hitPair);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
@@ -659,9 +655,7 @@ public class KalmanInterface {
             hitsMap.put(temp, hitsInLayer);
         }
 
-        int modIndex = -1;
         for (SiModule mod : SiMlist) {
-            modIndex++;
             SiStripPlane plane = moduleMap.get(mod);
             if (!hitsMap.containsKey(plane.getSensor())) { continue; }
             ArrayList<TrackerHit> temp = hitsMap.get(plane.getSensor());
@@ -703,8 +697,7 @@ public class KalmanInterface {
                 }
                 Measurement m = new Measurement(umeas, du);
 
-                int[] hitPair = { modIndex, mod.hits.size() };
-                if (verbose) { System.out.printf("    adding hitPair %d %d \n", hitPair[0], hitPair[1]); }
+                KalHit hitPair = new KalHit(mod,m);
                 trackHitsKalman.add(hitPair);
                 mod.addMeasurement(m);
                 hitMap.put(m, hit);
@@ -719,8 +712,8 @@ public class KalmanInterface {
     public SeedTrack createKalmanSeedTrack(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
-        if (verbose) { System.out.printf("firstHitZ %f \n", firstHitZ); }
-        return new SeedTrack(SiMlist, firstHitZ, trackHitsKalman, verbose);
+        if (verbose) System.out.printf("firstHitZ %f \n", firstHitZ);
+        return new SeedTrack(trackHitsKalman, firstHitZ, verbose);
     }
 
     // Method to refit an existing track's hits, using the Kalman seed-track to initialize the Kalman Filter.
