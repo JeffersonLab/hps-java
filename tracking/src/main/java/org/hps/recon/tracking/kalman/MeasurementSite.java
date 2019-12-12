@@ -18,7 +18,7 @@ class MeasurementSite {
     double arcLength; // Arc length from the previous measurement
     private double conFac; // Conversion from B to alpha
     private double alpha;
-    private double radLen; // radiation length in silicon
+    double radLen; // radiation length in silicon
     private double dEdx; // in GeV/mm
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit

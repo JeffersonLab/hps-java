@@ -17,14 +17,17 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -149,6 +152,8 @@ public class KalmanPatRecDriver extends Driver {
             return;
         }
 
+        List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
+        List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
         nTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
@@ -167,9 +172,19 @@ public class KalmanPatRecDriver extends Driver {
                 aida.histogram1D("Kalman track Momentum").fill(pMag);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
-                
+                List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
+                if (verbose) {
+                    for (GBLStripClusterData clstr : clstrs) {
+                        KI.printGBLStripClusterData(clstr);
+                    }
+                }
+                allClstrs.addAll(clstrs);
+                for (GBLStripClusterData clstr : clstrs) {
+                    gblStripClusterDataRelations.add(new BaseLCRelation(KalmanTrackHPS, clstr));
+                }
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 for (MeasurementSite site : kTk.SiteList) {
+                    if (verbose) site.print(String.format("track %d", kTk.ID));
                     StateVector aS = site.aS;
                     SiModule mod = site.m;
                     if (aS != null && mod != null) {
@@ -215,6 +230,8 @@ public class KalmanPatRecDriver extends Driver {
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
+        event.put("GBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
+        event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations,  LCRelation.class, flag);
     }
 
     // Make histograms of the MC hit resolution

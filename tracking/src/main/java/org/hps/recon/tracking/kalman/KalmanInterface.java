@@ -24,6 +24,7 @@ import hep.physics.vec.VecOp;
 
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -94,12 +95,14 @@ public class KalmanInterface {
         SeedTrackLayers = input;
     }
 
+    // Constructor with no argument defaults to verbose being turned off
     public KalmanInterface() {
         this(false);
     }
 
     public KalmanInterface(boolean verbose) {
-        System.out.format("Entering the KalmanInterface constructor\n");
+        System.out.format("Entering the KalmanInterface constructor with verbose=%b\n",verbose);
+        this.verbose = verbose;
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
@@ -120,7 +123,6 @@ public class KalmanInterface {
                 HpsSvtToKalmanMatrix.setElement(i, j, HpsSvtToKalmanVals[i][j]);
         }
         KalmanToHpsSvt = HpsSvtToKalman.invert();
-        this.verbose = verbose;
         if (verbose) {
             HpsSvtToKalman.print("HPS tracking to Kalman conversion");
             KalmanToHpsSvt.print("Kalman to HPS tracking conversion");
@@ -139,9 +141,48 @@ public class KalmanInterface {
     }
 
     // Transformation from HPS global coordinates to Kalman global coordinates
-    static Vec vectorGlbToKalman(double[] HPSvec) { 
+    public static Vec vectorGlbToKalman(double[] HPSvec) { 
         Vec kalVec = new Vec(HPSvec[0], HPSvec[2], -HPSvec[1]);
         return kalVec;
+    }
+    
+    // Transformation from Kalman global coordinates to HPS global coordinates
+    public static double[] vectorKalmanToGlb(Vec KalVec) {
+        double[] HPSvec = new double[3];
+        HPSvec[0] = KalVec.v[0];
+        HPSvec[1] = -KalVec.v[2];
+        HPSvec[2] = KalVec.v[1];
+        return HPSvec;
+    }
+    
+    // Transformation from Kalman global coordinates to HPS tracking coordinates
+    public static double[] vectorKalmanToTrk(Vec KalVec) {
+        double[] HPSvec = new double[3];
+        HPSvec[0] = KalVec.v[1];
+        HPSvec[1] = KalVec.v[0];
+        HPSvec[2] = -KalVec.v[2];
+        return HPSvec;
+    }
+    
+    // Transformation from HPS tracking coordinates to Kalman global coordinates
+    public static Vec vectorTrkToKalman(double[] HPSvec) { 
+        Vec kalVec = new Vec(HPSvec[1], HPSvec[0], -HPSvec[2]);
+        return kalVec;
+    }
+    
+    // Transformation from HPS sensor coordinates to Kalman sensor coordinates
+    public static Vec localHpsToKal(double[] HPSvec) { 
+        Vec kalVec = new Vec(-HPSvec[1], HPSvec[0], HPSvec[2]);
+        return kalVec;
+    }
+    
+    // Transformation from Kalman sensor coordinates to HPS sensor coordinates
+    public static double[] localKalToHps(Vec KalVec) {
+        double[] HPSvec = new double[3];
+        HPSvec[0] = KalVec.v[1];
+        HPSvec[1] = -KalVec.v[0];
+        HPSvec[2] = KalVec.v[2];
+        return HPSvec;
     }
 
     // Return the entire list of Kalman SiModule
@@ -196,6 +237,92 @@ public class KalmanInterface {
         return new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
     }
 
+    public void printGBLStripClusterData(GBLStripClusterData clstr) {
+        System.out.format("\nKalmanInterface.printGBLStripClusterData: cluster ID=%d, scatterOnly=%d\n", clstr.getId(), clstr.getScatterOnly());
+        System.out.format("  HPS tracking system U=%s\n", clstr.getU().toString());
+        System.out.format("  HPS tracking system V=%s\n", clstr.getV().toString());
+        System.out.format("  HPS tracking system W=%s\n", clstr.getW().toString());
+        System.out.format("  HPS tracking system Track direction=%s\n", clstr.getTrackDirection().toString());
+        System.out.format("  phi=%10.6f, lambda=%10.6f\n", clstr.getTrackPhi(), clstr.getTrackLambda());
+        System.out.format("  Arc length 2D=%10.5f mm,  Arc length 3D=%10.5f mm\n", clstr.getPath(), clstr.getPath3D());
+        System.out.format("  Measurement = %10.5f +- %8.5f mm\n", clstr.getMeas(), clstr.getMeasErr());
+        System.out.format("  Track intercept in sensor frame = %s\n", clstr.getTrackPos().toString());
+        System.out.format("  RMS projected scattering angle=%10.6f\n", clstr.getScatterAngle());
+    }
+    
+    // Make a GBLStripClusterData object for each MeasurementSite of a Kalman track
+    public List<GBLStripClusterData> createGBLStripClusterData(KalTrack kT) {
+        List<GBLStripClusterData> rtnList = new ArrayList<GBLStripClusterData>(kT.SiteList.size());
+        
+        for (MeasurementSite site : kT.SiteList) {
+            GBLStripClusterData clstr = new GBLStripClusterData(kT.SiteList.indexOf(site));
+            
+            // Sites without hits are "scatter-only"
+            if (site.hitID < 0) clstr.setScatterOnly(1);
+            else clstr.setScatterOnly(0);
+            
+            // Arc length along helix from the previous site
+            clstr.setPath3D(site.arcLength);
+            double tanL = site.aS.a.v[4];
+            clstr.setPath(site.arcLength/Math.sqrt(1.+tanL*tanL));
+            
+            // Direction cosines of the sensor axes in the HPS tracking coordinate system
+            Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V().scale(-1.0)));
+            Hep3Vector v = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.U()));
+            Hep3Vector w = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.T()));
+            clstr.setU(u);
+            clstr.setV(v);
+            clstr.setW(w);
+            
+            // Direction of the track in the HPS tracking coordinate system
+            // Find the momentum from the smoothed helix at the sensor location, make it a unit vector, 
+            // and then transform from the B-field frame to the Kalman global tracking frame.
+            Vec momentum = site.aS.getMom(0.);
+            Vec pDir= site.aS.Rot.inverseRotate(momentum.unitVec());
+            Hep3Vector trackDir = new BasicHep3Vector(vectorKalmanToTrk(pDir));
+            clstr.setTrackDir(trackDir);
+            
+            // Phi and lambda of the track (assuming standard spherical polar coordinates)
+            double phi = Math.atan2(trackDir.y(), trackDir.x());
+            double ct = trackDir.z()/trackDir.magnitude();
+            double tanLambda = ct/Math.sqrt(1-ct*ct);  // Should be very much the same as tanL above, after accounting for the field tilt
+            if (verbose) {
+                Vec tilted = site.aS.Rot.inverseRotate(new Vec(0.,0.,1.));
+                double tiltAngle = Math.acos(tilted.v[2]);
+                System.out.format("KalmanInterface.createGBLStripClusterData: layer=%d det=%d tanL=%10.6f, tanLambda=%10.6f, tilt=%10.6f, sum=%10.6f\n", 
+                        site.m.Layer, site.m.detector, -tanL, tanLambda, tiltAngle, tiltAngle+tanLambda);
+            }
+            clstr.setTrackPhi(phi);
+            clstr.setTrackLambda(Math.atan(tanLambda));
+            
+            // Measured value in the sensor coordinates (u-value in the HPS system)
+            double uMeas, uMeasErr;
+            if (site.hitID >= 0) {
+                uMeas = site.m.hits.get(site.hitID).v; 
+                uMeasErr = Math.sqrt(site.aS.R);
+            } else {
+                uMeas = -999.;
+                uMeasErr = -9999.;
+            }
+            clstr.setMeas(uMeas);
+            clstr.setMeasErr(uMeasErr);
+            
+            // Track position in local frame. First coordinate will be the predicted measurement.
+            Vec rGlb = site.aS.toGlobal(site.aS.atPhi(0.));
+            Vec rLoc = site.m.toLocal(rGlb);
+            Hep3Vector rLocHps = new BasicHep3Vector(localKalToHps(rLoc));
+            clstr.setTrackPos(rLocHps);
+            
+            // rms projected scattering angle
+            double ctSensor = pDir.dot(site.m.p.T());
+            double XL = Math.abs(site.radLen/ctSensor);
+            clstr.setScatterAngle(StateVector.projMSangle(momentum.mag(), XL));
+            
+            rtnList.add(clstr);
+        }
+        return rtnList;
+    }
+    
     // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null) {

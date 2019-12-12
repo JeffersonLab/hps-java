@@ -205,7 +205,7 @@ class StateVector {
             if (verbose) { System.out.format("StateVector.predict: XL=%9.6f\n", XL); }
         } else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
-            double sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+            double sigmaMS = projMSangle(momentum, XL);
             if (verbose) { System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS); }
             Ctot = this.C.sum(this.getQ(sigmaMS));
         }
@@ -327,6 +327,7 @@ class StateVector {
     }
 
     // Returns a point on the helix at the angle phi
+    // Warning: the point returned is in the B-Field reference frame
     Vec atPhi(double phi) {
         return atPhi(X0, a, phi, alpha);
         // double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * Math.cos(a.v[1]) - (alpha
@@ -345,6 +346,7 @@ class StateVector {
     }
 
     // Returns the particle momentum at the helix angle phi
+    // Warning! This is returned in the B-Field coordinate system.
     Vec getMom(double phi) {
         return getMom(phi, a);
     }
@@ -514,7 +516,7 @@ class StateVector {
         double sigmaMS;
         SquareMatrix Covariance;
         if (XL > 0.) {
-            sigmaMS = (0.0136 / Math.abs(momentum)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+            sigmaMS = projMSangle(momentum, XL);
             Covariance = C.sum(this.getQ(sigmaMS));
         } else {
             sigmaMS = 0.;
@@ -539,6 +541,10 @@ class StateVector {
         return helixAtOrigin;
     }
 
+    static double projMSangle(double p, double XL) {
+        return (0.0136 / Math.abs(p)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+    }
+    
     // Transform a helix from one pivot to another through a non-uniform B field in
     // several steps
     Vec helixStepper(int nSteps, SquareMatrix Covariance, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
