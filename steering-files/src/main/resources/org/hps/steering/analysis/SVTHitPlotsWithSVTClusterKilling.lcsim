@@ -80,9 +80,14 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
-         <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
+        <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
             <ratioFiles>pass4b-hps2016_L1b_axial_hole.txt pass4b-hps2016_L1b_stereo_hole.txt pass4b-hps2016_L1t_axial_hole.txt pass4b-hps2016_L1t_stereo_hole.txt pass4b-hps2016_L6b_axial_hole.txt pass4b-hps2016_L6b_axial_slot.txt pass4b-hps2016_L6b_stereo_hole.txt pass4b-hps2016_L6b_stereo_slot.txt pass4b-hps2016_L6t_axial_hole.txt pass4b-hps2016_L6t_axial_slot.txt pass4b-hps2016_L6t_stereo_hole.txt pass4b-hps2016_L6t_stereo_slot.txt</ratioFiles>
-        </driver>
+        </driver> 
+
+<!--         <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
+            <ratioFiles>pass4b-hps2016_L1t_axial_hole.txt</ratioFiles>
+        </driver> -->
+
 
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
@@ -165,8 +170,7 @@
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>        
-        <driver name="HitEfficiency" type="org.hps.svt.SVTHitLevelPlots">
-            <cleanFEE>true</cleanFEE>
+        <driver name="HitEfficiency" type="org.hps.svt.SVTHitLevelPlots">         
             <outputFileName>${outputFile}.txt</outputFileName>
         </driver>	
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">

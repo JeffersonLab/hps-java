@@ -2,6 +2,7 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <!--RF driver-->
+        <driver name="PreCleanupDriver"/> 
         <driver name="RfFitter"/> 
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/>
@@ -37,6 +38,10 @@
         <driver name="CleanupDriver"/>
     </execute>   
     <drivers>
+
+  <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames>
+        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
@@ -157,7 +162,6 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>        
         <driver name="HitEfficiency" type="org.hps.svt.SVTHitLevelPlots">
-            <cleanFEE>true</cleanFEE>
             <outputFileName>${outputFile}.txt</outputFileName>
         </driver>	
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
