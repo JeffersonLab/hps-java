@@ -88,9 +88,9 @@ class StateVector {
     // Debug printout of the state vector
     void print(String s) {
         System.out.format(">>>Dump of state vector %s %d  %d, B=%10.7f Tesla\n", s, kUp, kLow, B);
-        origin.print("origin of local coordinates");
+        origin.print("origin of local field coordinates");
         Rot.print("from global to field coordinates");
-        X0.print("pivot point in local coordinates");
+        X0.print("pivot point in local field coordinates");
         this.toGlobal(X0).print("pivot point in global coordinates");
         a.print("helix parameters");
         helixErrors().print("helix parameter errors");
@@ -669,7 +669,7 @@ class StateVector {
 
     // Derivative matrix for the pivot transform (without energy loss or field
     // rotations)
-    private SquareMatrix makeF(Vec aP) {
+    SquareMatrix makeF(Vec aP) {
         return makeF(aP, a, alpha);
     }
 
@@ -728,7 +728,8 @@ class StateVector {
 
     // Transformation of helix parameters from one B-field frame to another, by rotation R
     // Warning: the pivot point has to be transformed too! Here we assume that the new pivot point
-    // will be on the helix at phi=0, so drho and dz will always be returned as zero.
+    // will be on the helix at phi=0, so drho and dz will always be returned as zero. Therefore, before
+    // calling this routine, make sure that the current pivot point is on the helix (drho=dz=0)
     static Vec rotateHelix(Vec a, RotMatrix R, SquareMatrix fRot) {
         // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.

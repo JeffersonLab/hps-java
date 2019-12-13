@@ -213,7 +213,7 @@ public class KalmanInterface {
     }
 
     // Create an HPS track state from a Kalman track state at the location of a particular SiModule
-    public static TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
+    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
         // public BaseTrackState(double[] trackParameters, double[] covarianceMatrix, double[] position, int location)
         StateVector sv = null;
         if (useSmoothed) {
@@ -224,15 +224,57 @@ public class KalmanInterface {
             sv = ms.aF;
         }
 
-        // Local helix params, rotated. Note: this rotation doesn't really make sense, as the helix parameters are defined,
-        // strictly speaking, only in a frame in which the B field is the axis of the helix.
-        Vec localParams = sv.a;
+        // Local helix params, rotated from the field frame back to the HPS global frame.
+        // First pivot transform to the point of intersection of helix with SSD.  
+        // Then rotate to the global frame.
+        // Then pivot transform back to the origin
+        double phiS = sv.planeIntersect(ms.m.p);
+        if (Double.isNaN(phiS)) phiS = 0.;
+        Vec newPivot = sv.atPhi(phiS);
+        Vec localParams = sv.pivotTransform(newPivot);
+        // Note: this rotation doesn't totally make sense, as the helix parameters are defined, strictly speaking, 
+        // only in a frame in which the B field is the axis of the helix. It's probably okay, though, as long
+        // as the parameters are not used to propagate the helix over a large distance.
+        SquareMatrix F = sv.makeF(localParams);
         SquareMatrix fRot = new SquareMatrix(5);
-        double[] globalParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot).v;
-        double[] newParams = getLCSimParams(globalParams, sv.alpha);
+        Vec rotatedParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot);
+        Vec globalParams = StateVector.pivotTransform(sv.origin.scale(-1.0), rotatedParams, newPivot, sv.alpha, 0.);
+        double[] newParams = getLCSimParams(globalParams.v, sv.alpha);
+        SquareMatrix F2 = StateVector.makeF(globalParams, rotatedParams, sv.alpha);
         SquareMatrix localCov = sv.C;
-        SquareMatrix globalCov = localCov.similarity(fRot);
+        SquareMatrix globalCov = localCov.similarity(F2.multiply(fRot.multiply(F)));
         double[] newCov = getLCSimCov(globalCov.M, sv.alpha).asPackedArray(true);
+        if (verbose) {  // The enclosed code is for testing that the transformations made some sense. . .
+            System.out.format("KalmanInterface.createTrackState: transforming to the HPS global frame\n");
+            sv.X0.print("helix pivot");
+            sv.origin.print("origin of local field frame");
+            sv.a.print("local helix parameters");
+            newPivot.print("new pivot on helix");
+            localParams.print("local helix parameters transformed to pivot on helix; should have drho & dz = 0");
+            rotatedParams.print("rotated local helix parameters");
+            globalParams.print("helix parameters for pivot at the origin");
+            F.print("Jacobian of first pivot transform");
+            fRot.print("Jacobian for rotation");
+            F2.print("Jacobian of second pivot transform");
+            localCov.print("original covariance");
+            globalCov.print("transformed covariance");
+            Plane pTest = new Plane(new Vec(0.,0.,0.),new Vec(0.,1.,0.));
+            HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+            double phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, pTest);
+            Vec rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.alpha);
+            Plane pTran = new Plane(sv.toLocal(new Vec(0.,0.,0.)), sv.Rot.rotate(new Vec(0.,1.,0.)));
+            pTran.print("y=0 plane in field system");
+            double phiInt2 = sv.planeIntersect(pTest);
+            Vec rInt2 = sv.atPhi(phiInt2);
+            rInt2.print("intersection of the original helix with the y=0 plane in field coordinates");
+            System.out.format("The following two points will not match exactly, due to the field tilt\n");
+            rInt.print("intersection of the transformed helix with y=0 plane");
+            sv.toGlobal(rInt2).print("intersection of the original helix with the y=0 plane in global coordinates");
+            phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, ms.m.p);
+            rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.alpha);
+            rInt.print("intersection of the global helix with the sensor plane, in global coordinates");
+            sv.toGlobal(newPivot).print("intersection of local helix wit the sensor plane, in global coordinates");
+        }
 
         return new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
     }
