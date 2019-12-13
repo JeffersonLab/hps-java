@@ -23,7 +23,8 @@ import org.lcsim.geometry.FieldMap;
 import org.lcsim.util.Driver;
 
 /**
- * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
+ * Driver used to persist additional {@link org.lcsim.event.Track} information
+ * via a
  * {@link org.lcsim.event.GenericObject} collection.
  *
  * @author Omar Moreno, UCSC
@@ -31,30 +32,38 @@ import org.lcsim.util.Driver;
  */
 public final class TrackDataDriver extends Driver {
 
-    /** logger **/
-
+    /**
+     * logger *
+     */
     private static final Logger LOGGER = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
 
-    /** The B field map */
+    /**
+     * The B field map
+     */
     FieldMap bFieldMap = null;
     double bField = 0;
 
-    /** Collection Names */
+    /**
+     * Collection Names
+     */
     private String TRK_COLLECTION_NAME = "GBLTracks";
 
-    /** Collection name of TrackResidualData objects */
+    /**
+     * Collection name of TrackResidualData objects
+     */
     private static final String TRK_RESIDUALS_COL_NAME = "TrackResiduals";
 
-    /** 
-     * Collection name of LCRelations between a Track and  TrackResidualsData
+    /**
+     * Collection name of LCRelations between a Track and TrackResidualsData
      * objects.
      */
     private static final String TRK_RESIDUALS_REL_COL_NAME = "TrackResidualsRelations";
     List<HpsSiSensor> sensors = null;
 
     //    public AIDA aida = AIDA.defaultInstance();
-
-    /** Default constructor */
+    /**
+     * Default constructor
+     */
     public TrackDataDriver() {
     }
 
@@ -64,10 +73,10 @@ public final class TrackDataDriver extends Driver {
 
     /**
      * Method called by the framework when a new {@link Detector} geometry is
-     * loaded. This method is called at the beginning of every run and 
+     * loaded. This method is called at the beginning of every run and
      * provides access to the {@link Detector} object itself.
-     * 
-     * @param detector LCSim {@link Detector} geometry 
+     *
+     * @param detector LCSim {@link Detector} geometry
      */
     @Override
     protected void detectorChanged(Detector detector) {
@@ -81,7 +90,7 @@ public final class TrackDataDriver extends Driver {
 
     /**
      * Method called by the framework to process the event.
-     * 
+     *
      * @param event : LCSim event
      */
     @Override
@@ -96,21 +105,19 @@ public final class TrackDataDriver extends Driver {
         // required since the event contains a track collection for each of the
         // different tracking strategies.
         List<List<Track>> trackCollections = null;
-        if (TRK_COLLECTION_NAME == null) {
+        if (TRK_COLLECTION_NAME == null)
             trackCollections = event.get(Track.class);
-        } else {
+        else {
             trackCollections = new ArrayList<List<Track>>();
             trackCollections.add(event.get(Track.class, TRK_COLLECTION_NAME));
         }
 
         // Get the collection of LCRelations relating RotatedHelicalTrackHits to
         // HelicalTrackHits
-
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         //        List<HelicalTrackHit> rotatedHths = event.get(HelicalTrackHit.class, ROTATED_HTH_COL_NAME);
-
         // Create a container that will be used to store all TrackData objects.
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
 
@@ -146,7 +153,7 @@ public final class TrackDataDriver extends Driver {
         List<Integer> stereoLayers = new ArrayList<Integer>();
 
         // Loop over each of the track collections retrieved from the event
-        for (List<Track> tracks : trackCollections) {
+        for (List<Track> tracks : trackCollections)
 
             // Loop over all the tracks in the event
             for (Track track : tracks) {
@@ -170,11 +177,10 @@ public final class TrackDataDriver extends Driver {
 
                         if (isFirstHit) {
                             sensor = (HpsSiSensor) ((RawTrackerHit) cluster.rawhits().get(0)).getDetectorElement();
-                            if (sensor.isTopLayer()) {
+                            if (sensor.isTopLayer())
                                 trackerVolume = 0;
-                            } else if (sensor.isBottomLayer()) {
+                            else if (sensor.isBottomLayer())
                                 trackerVolume = 1;
-                            }
                             isFirstHit = false;
                         }
                     }
@@ -215,6 +221,17 @@ public final class TrackDataDriver extends Driver {
                         track.getTrackStates().add(stateEcal);
                 }
 
+                // Extrapolate the track to the face of the Ecal and get the TrackState
+                if (TrackType.isGBL(track.getType())) {
+                    TrackState stateHodo1 = TrackUtils.getTrackExtrapAtHodoRK(track, bFieldMap, 1);
+                    if (stateHodo1 != null)
+                        track.getTrackStates().add(stateHodo1);
+
+                    TrackState stateHodo2 = TrackUtils.getTrackExtrapAtHodoRK(track, bFieldMap, 2);
+                    if (stateHodo2 != null)
+                        track.getTrackStates().add(stateHodo2);
+                }
+
                 LOGGER.fine(Integer.toString(track.getTrackStates().size()) + " track states for this track at this point:");
                 for (TrackState state : track.getTrackStates()) {
                     String s = "type " + Integer.toString(track.getType()) + " location " + Integer.toString(state.getLocation()) + " refPoint (" + state.getReferencePoint()[0] + " " + state.getReferencePoint()[1] + " " + state.getReferencePoint()[2] + ") " + " params: ";
@@ -226,13 +243,17 @@ public final class TrackDataDriver extends Driver {
                 // The track time is the mean t0 of hits on a track
                 trackTime = totalT0 / totalHits;
 
+                int nLay = 6;
+                //Check to see if detector has an L0
+//                System.out.println(sensors.size());
+                if (sensors.size() > 36)
+                    nLay = 7;
                 // Calculate the track isolation constants for each of the 
                 // layers
-                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, 6);
+                Double[] isolations = TrackUtils.getIsolations(track, hitToStrips, hitToRotated, nLay);
                 double qualityArray[] = new double[isolations.length];
-                for (int i = 0; i < isolations.length; i++) {
+                for (int i = 0; i < isolations.length; i++)
                     qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
-                }
 
                 // Create a new TrackData object and add it to the event
                 TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
@@ -245,7 +266,6 @@ public final class TrackDataDriver extends Driver {
                 trackToTrackResidualsRelations.add(new BaseLCRelation(trackResiduals, track));
 
             }
-        }
 
         // Add all collections to the event
         event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackData.class, 0);

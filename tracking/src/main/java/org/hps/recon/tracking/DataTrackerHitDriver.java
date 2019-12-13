@@ -67,7 +67,7 @@ public class DataTrackerHitDriver extends Driver {
     // private HPSFittedRawTrackerHitMaker hitMaker;
     private StripMaker stripClusterer;
     // private DumbShaperFit shaperFit;
-    int[][] counts = new int[2][10];
+    int[] counts = new int[14];
 
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -236,13 +236,16 @@ public class DataTrackerHitDriver extends Driver {
         event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
         if (debug)
             System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
+        for (SiTrackerHit stripHit : stripHits1D)
+            counts[((SiTrackerHitStrip1D) stripHit).getRawHits().get(0).getLayerNumber()-1]++;
+
     }
 
     @Override
     public void endOfData() {
         if (debug)
-            for (int mod = 0; mod < 2; mod++)
-                for (int layer = 0; layer < 10; layer++)
-                    System.out.format("mod %d, layer %d, count %d\n", mod, layer, counts[mod][layer]);
+
+            for (int layer = 0; layer < 14; layer++)
+                System.out.format("layer %d, count %d\n",layer, counts[layer]);
     }
 }

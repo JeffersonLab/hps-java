@@ -103,7 +103,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         _crosser.setEpsParallel(0.013);
         _colnames.add("StripClusterer_SiTrackerHitStrip1D");
     }
-
+    
     public void setAllowHoleSlotCombo(boolean input) {
         allowHoleSlotCombo = input;
     }
@@ -277,19 +277,17 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
                     if (_saveAxialHits)//                           
                     {
-                        if (((HpsSiSensor) h.getSensor()).isAxial()) {
-                            HelicalTrack2DHit haxial = makeDigiAxialHit(h);
-                            axialhits.add(haxial);
-                            if (hittomc != null) {
-                                List<RawTrackerHit> rl = haxial.getRawHits();
-                                for (RawTrackerHit rth : rl) {
-                                    for (Object simHit : hittomc.allFrom(rth)) {
-                                        haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
-                                    }
-                                }
-                            }
-                            axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+
+                        HelicalTrack2DHit haxial = makeDigiAxialHit(h);
+                        axialhits.add(haxial);
+                        if (hittomc != null) {
+                            List<RawTrackerHit> rl = haxial.getRawHits();
+                            for (RawTrackerHit rth : rl)
+                                for (Object simHit : hittomc.allFrom(rth))
+                                    haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
                         }
+                        axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+                        
                     }
                 }
             }
@@ -594,6 +592,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         double dEdx = h.getdEdx();
         double time = h.getTime();
         List<RawTrackerHit> rawhits = h.getRawHits();
+        
         HelicalTrackStrip strip = new HelicalTrackStrip(org, u, v, umeas, du, vmin, vmax, dEdx, time, rawhits, det, lyr, be);
 
         try {

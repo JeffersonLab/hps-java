@@ -481,12 +481,12 @@
         
         <!-- top support tilt angles -->
 	
-        <millepede_constant name="13100" value="0.00"/> <!-- + means opening-->
+        <millepede_constant name="13100" value="-0.0001"/> <!-- + means opening-->
         <millepede_constant name="13200" value="0.0"/>
         <millepede_constant name="13300" value="0.0"/>
         
         <!-- bottom support tilt angles -->
-        <millepede_constant name="23100" value="-0.000"/>  <!-- - means opening -->
+        <millepede_constant name="23100" value="0.0001"/>  <!-- - means opening -->
         <millepede_constant name="23200" value="0.0"/>
         <millepede_constant name="23300" value="0.0"/>
         
@@ -577,11 +577,11 @@
     <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
       <comment>The crystal ECal</comment>
       <material name="LeadTungstate" />
-      <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />          
-      <layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+      <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+      <layout beamgapBottom="22.4*mm" beamgapTop="22.3*mm" nx="46" ny="5" dface="ecal_dface">
         <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
-        <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
-        <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+        <top dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0."/>
+        <bottom dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0."/>
       </layout>
     </detector>
   </detectors>
@@ -614,8 +614,7 @@
       <processor type="ScoringTrackerHitProcessor" />        
     </readout>
     <readout name="HodoscopeHits">
-      <segmentation type="GridXYZ" gridSizeX="1.0*mm" gridSizeY="0.0" gridSizeZ="0.0" />
-      <id>system:6,layer:2,x:-8,y:-6</id>
+      <id>system:6,barrel:3,layer:4,ix:4,iy:-3,hole:-3</id>
     </readout>
     <readout name="HodoscopeForeHits">
       <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>

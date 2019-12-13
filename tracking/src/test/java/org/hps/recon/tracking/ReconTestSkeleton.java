@@ -130,7 +130,7 @@ public class ReconTestSkeleton extends TestCase {
             add(trd4);
 
             org.hps.recon.tracking.MergeTrackCollections mtc = new org.hps.recon.tracking.MergeTrackCollections();
-            mtc.setInputTrackCollectionName("");
+            mtc.setInputTrackCollectionName(new String[]{""});
             mtc.setRemoveCollections(true);
             add(mtc);
 

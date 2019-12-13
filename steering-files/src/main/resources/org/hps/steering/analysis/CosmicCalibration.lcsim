@@ -3,17 +3,19 @@
     <execute>
         <driver name="CosmicPMTFilter"/> 
         <driver name="CosmicCalib"/> 
-        <driver name="LCIOWriter"/>
-        <driver name="AidaSaveDriver"/>
+	    <driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
         <driver name="CosmicPMTFilter" type="org.hps.recon.filtering.CosmicPMTFilter"/>
-        <driver name="CosmicCalib" type="org.hps.analysis.ecal.cosmic.CosmicCalibrationInt"/>
-        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        <driver name="CosmicCalib" type="org.hps.analysis.ecal.cosmic.CosmicCalibrationInt">
+        	<minSampleSignal>25</minSampleSignal>
+        	<maxSampleSignal>45</maxSampleSignal>
+ 			<minSamplePedestal>0</minSamplePedestal>
+ 			<maxSamplePedestal>20</maxSamplePedestal>
+ 			<threshold>3.0</threshold>
         </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>       

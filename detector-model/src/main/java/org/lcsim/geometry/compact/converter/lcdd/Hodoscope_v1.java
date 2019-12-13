@@ -610,9 +610,14 @@ public class Hodoscope_v1 extends LCDDSubdetector {
         // be attached to it.
         PhysVol physvol = new PhysVol(pixelVolume, lcdd.pickMotherVolume(this), scinPos, PIXEL_ROTATION);
         physvol.addPhysVolID("system", getSystemID());
+        physvol.addPhysVolID("barrel", 1);
+        physvol.addPhysVolID("layer", layer == LAYER1 ? 0 : 1);
         physvol.addPhysVolID("ix", ix);
         physvol.addPhysVolID("iy", topBot == TOP ? 1 : -1);
-        physvol.addPhysVolID("iz", layer == LAYER1 ? 1 : 2);
+
+        int layerId = (layer == LAYER1 ? 1 : 2);
+        int iy = (topBot == TOP ? 1 : -1);
+        System.out.printf("%s (system/layer/ix/iy): %d/%d/%d/%d%n", uid, getSystemID(), layerId, ix, iy);
         
         // Define the positions of the scintillator covers. These sit
         // both in front of and behind the scintillator.
@@ -666,8 +671,8 @@ public class Hodoscope_v1 extends LCDDSubdetector {
             new PhysVol(topReflectorVolume, lcdd.pickMotherVolume(this), pos, PIXEL_ROTATION);
         }
     }
-    
-    public boolean isCalorimeter() {
+        
+    public boolean isTracker() {
         return true;
     }
     

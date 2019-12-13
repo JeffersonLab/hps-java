@@ -19,6 +19,7 @@ import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.ITransform3D;
+import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
@@ -172,19 +173,23 @@ public class MakeGblTracks {
      * @return The refitted track.
      */
     public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
-
-        return refitTrackWithTraj(helix, stripHits, hth, nIterations, trackType, scattering, bfield, storeTrackStates).getFirst();
+        Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrack = refitTrackWithTraj(helix, stripHits, hth, nIterations, trackType, scattering, bfield, storeTrackStates,false);
+        if(refitTrack == null)
+            return null;
+        else
+            return refitTrack.getFirst();
     }
 
-    public static Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrackWithTraj(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
+    public static Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrackWithTraj(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates,boolean includeMS) {
 
         List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
         List<TrackerHit> sortedStripHits = TrackUtils.sortHits(stripHits);
-        FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+        FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0,includeMS);
+        if(fit==null) return null;
         for (int i = 0; i < nIterations; i++) {
             Pair<Track, GBLKinkData> newTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
             helix = TrackUtils.getHTF(newTrack.getFirst());
-            fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0);
+            fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0,includeMS);
             if (fit == null)
                 return null;
         }
@@ -204,8 +209,8 @@ public class MakeGblTracks {
      * @param debug - debug flag.
      * @return the fitted GBL trajectory
      */
-    public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug) {
-        List<GBLStripClusterData> stripData = makeStripData(htf, stripHits, _scattering, bfield, debug);
+    public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug,boolean includeMS) {
+        List<GBLStripClusterData> stripData = makeStripData(htf, stripHits, _scattering, bfield, debug, includeMS);
         if (stripData == null)
             return null;
         double bfac = Constants.fieldConversion * bfield;
@@ -224,33 +229,111 @@ public class MakeGblTracks {
      * @param _debug
      * @return the list of GBL strip cluster data
      */
-    public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B, int _debug) {
+    public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B, int _debug,boolean includeMS) {
         List<GBLStripClusterData> stripClusterDataList = new ArrayList<GBLStripClusterData>();
 
         // Find scatter points along the path
+        //In principle I could use this to add the hits - TODO ?
         MultipleScattering.ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
+        
+        //Loop over the Scatters
+        
+        //Two things can happen here at each iteration:
+        //1) Nscatters >= Nhits on tracks =>
+        //   Build GBLStripClusterData for both measurements and scatters
+        //2) Nscatters < Nhits on track =>
+        //   The hit has been associated to the track but couldn't find the scatter on the volume => create a scatter at that sensor
+        //   Does this makes sense?
 
-        for (TrackerHit stripHit : stripHits) {
-            HelicalTrackStripGbl strip;
-            if (stripHit instanceof SiTrackerHitStrip1D) {
-                strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit), true);
-            } else {
-                SiTrackerHitStrip1D newHit = new SiTrackerHitStrip1D(stripHit);
-                strip = new HelicalTrackStripGbl(makeDigiStrip(newHit), true);
-            }
-            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
-            MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
-            if (temp == null){
-                temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
-                if(temp == null){
-                    return null;
+        //Case (1)
+        //Check if the scatter has a measurement => then use the usual way to build the HelicalTrackStripGbl
+        
+        int nhits = 0;
+        int nscatters = 0;
+        boolean addScatters = true;
+            
+        if (scatters.getPoints().size() >= stripHits.size() && includeMS) {
+            
+            for (MultipleScattering.ScatterPoint scatter : scatters.getPoints()) {
+            
+                boolean MeasOnScatter = false;
+            
+                //This is bit inefficient as it always loop on all the stripHits
+                //TODO: optimize and only check hit once if is in the scatters.
+                
+                HpsSiSensor scatter_sensor = (HpsSiSensor) scatter.getDet();
+            
+                for (TrackerHit stripHit : stripHits) {
+                
+                    if (MeasOnScatter)
+                        continue;
+                
+                    IDetectorElement det_element = ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
+                
+                    if (det_element.equals(scatter.getDet())) {
+                        MeasOnScatter = true;
+                        HpsSiSensor hit_sensor = (HpsSiSensor) det_element;
+                        nhits+=1;
+                        HelicalTrackStripGbl gbl_strip;
+                        if (stripHit instanceof SiTrackerHitStrip1D) {
+                            gbl_strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit),true);
+                        } else {
+                            SiTrackerHitStrip1D newHit = new SiTrackerHitStrip1D(stripHit);
+                            gbl_strip = new HelicalTrackStripGbl(makeDigiStrip(newHit), true);
+                        }
+                        //hit_sensor or scatter_sensor, they are the same here
+                        GBLStripClusterData stripData = makeStripData(hit_sensor, gbl_strip, htf, scatter);
+                        if (stripData != null) {
+                            stripClusterDataList.add(stripData); 
+                        }
+                        else {
+                            System.out.printf("WARNING::MakeGblTracks::Couldn't make stripClusterData for hps sensor. Skipping scatter");
+                        }
+                    }
                 }
+            
+                if (!MeasOnScatter && addScatters) {
+                    //No measurement
+                    nscatters+=1;
+                    //If the scatter has no measurement => then only build a scatter point 
+                    //Here only scatter sensor is available
+                    GBLStripClusterData stripData = makeScatterOnlyData(scatter_sensor,htf,scatter);
+                    
+                    if (stripData != null) {
+                        stripClusterDataList.add(stripData);
+                    }
+                }
+            } // loop on scatters
+        } // more scatters than hits
+        
+        else { //more hits than scatters 
+            
+   
+            for (TrackerHit stripHit : stripHits) {
+                HelicalTrackStripGbl strip;
+                if (stripHit instanceof SiTrackerHitStrip1D) {
+                    strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit), true);
+                } else {
+                    SiTrackerHitStrip1D newHit = new SiTrackerHitStrip1D(stripHit);
+                    strip = new HelicalTrackStripGbl(makeDigiStrip(newHit),true);
+                }
+                HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
+                MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
+                
+                //This is done to correct the fact that the helical fit might not hit a volume
+                //But hit is associated to the track => must scatter
+                if (temp == null){
+                    temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
+                    if(temp == null){
+                        return null;
+                    }
+                }
+                GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
+                if (stripData != null)
+                    stripClusterDataList.add(stripData);
             }
-            GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
-            if (stripData != null)
-                stripClusterDataList.add(stripData);
         }
-
+        
         return stripClusterDataList;
     }
 
@@ -270,6 +353,46 @@ public class MakeGblTracks {
 
         return temp;
     }
+    
+    public static GBLStripClusterData makeScatterOnlyData(HpsSiSensor sensor, HelicalTrackFit htf, MultipleScattering.ScatterPoint temp) {
+        
+        if (temp ==null)
+            return null;
+        
+        // find Millepede layer definition from DetectorElement
+        int millepedeId = sensor.getMillepedeId();
+        // find volume of the sensor (top or bottom)
+        int volume = sensor.isTopLayer() ? 0 : 1;
+                                                
+        // GBLDATA
+        GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
+        stripData.setVolume(volume);
+        
+        //This GBLStripData doesn't hold a measurement
+        stripData.setScatterOnly(1);
+
+        double s3D = temp.getScatterAngle().PathLen() / Math.cos(Math.atan(htf.slope()));
+        stripData.setPath(temp.getScatterAngle().PathLen());
+        stripData.setPath3D(s3D);
+        
+        //Do not set U,V,W
+        
+        // Print track direction at intercept
+        double phi = htf.phi0() - temp.getScatterAngle().PathLen() / htf.R();
+        double lambda = Math.atan(htf.slope());
+        
+        stripData.setTrackDir(temp.getDirection());
+        stripData.setTrackPhi(phi);
+        stripData.setTrackLambda(lambda);
+        
+        //Do not set the measurement. 
+        //Set a negative large error
+        stripData.setMeasErr(-9999);
+
+        stripData.setScatterAngle(temp.getScatterAngle().Angle());
+        
+        return stripData;
+    }
 
     public static GBLStripClusterData makeStripData(HpsSiSensor sensor, HelicalTrackStripGbl strip, HelicalTrackFit htf, MultipleScattering.ScatterPoint temp) {
         if (temp == null)
@@ -277,12 +400,21 @@ public class MakeGblTracks {
 
         // find Millepede layer definition from DetectorElement
         int millepedeId = sensor.getMillepedeId();
+        // find volume of the sensor (top or bottom)
+        int volume = sensor.isTopLayer() ? 0 : 1;
 
         // Center of the sensor
         Hep3Vector origin = strip.origin();
 
         // GBLDATA
         GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
+
+        // Add the volume
+        stripData.setVolume(volume);
+
+        //This GBLStripData holds a measurement
+        stripData.setScatterOnly(0);
+        
         // Add to output list
 
         // path length to intercept

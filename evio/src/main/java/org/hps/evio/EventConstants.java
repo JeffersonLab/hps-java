@@ -21,6 +21,11 @@ public final class EventConstants {
     public static final int ECAL_PULSE_INTEGRAL_MODE = 3; //FADC mode 3
     public static final int ECAL_PULSE_INTEGRAL_HIGHRESTDC_MODE = 4; //FADC mode 7
 
+    public static final int HODO_RAW_MODE = 1;
+    public static final int HODO_PULSE_MODE = 2;
+    public static final int HODO_PULSE_INTEGRAL_MODE = 3; //FADC mode 3
+    public static final int HODO_PULSE_INTEGRAL_HIGHRESTDC_MODE = 4; //FADC mode 7
+
     
     // The composite data format for window ecal data. MODE 1
     public static final String ECAL_WINDOW_FORMAT = "c,i,l,N(c,Ns)";
@@ -36,15 +41,28 @@ public final class EventConstants {
     
     // The tag for ECal window data.
     public static final int ECAL_WINDOW_BANK_TAG = 0xe101;
+
+    // The tag for FADC Mode1 data.
+    // This is more generic name, will be good if later, ECal also will use this name instead of the "ECAL_WINDOW_BANK_TAG"
+    public static final int FADC_MODE1_BANK_TAG = 0xe101; 
     
     // The tag for ECal pulse data.
     public static final int ECAL_PULSE_BANK_TAG = 0xe10F; 
+
+    // The tag for FADC pulse data.
+    public static final int FADC_PULSE_BANK_TAG = 0xe10F; 
     
     // The tag for ECal pulse integral data mode 3
     public static final int ECAL_PULSE_INTEGRAL_BANK_TAG = 0xe103;
+
+    // The tag for FADC pulse integral data mode 3
+    public static final int FADC_PULSE_INTEGRAL_BANK_TAG = 0xe103;
     
     // The tag for ECal pulse integral data mode 7
     public static final int ECAL_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG = 0xe102;
+
+    // The tag for ECal pulse integral data mode 7
+    public static final int FADC_PULSE_INTEGRAL_HIGHRESTDC_BANK_TAG = 0xe102;
     
     // The tag for trigger data.
     public static final int TRIGGER_BANK_TAG = 0xe106;

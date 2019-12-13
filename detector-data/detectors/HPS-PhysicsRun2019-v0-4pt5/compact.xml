@@ -192,7 +192,7 @@
   
   <detectors>
     
-    <detector id="1" name="Tracker" type="HPSTracker2019" readout="TrackerHits">
+    <detector id="1" name="Tracker" type="HPSTracker2017" readout="TrackerHits">
   
       <millepede_constants>
         
@@ -614,8 +614,7 @@
       <processor type="ScoringTrackerHitProcessor" />        
     </readout>
     <readout name="HodoscopeHits">
-      <segmentation type="GridXYZ" gridSizeX="1.0*mm" gridSizeY="0.0" gridSizeZ="0.0" />
-      <id>system:6,layer:2,x:-8,y:-6</id>
+      <id>system:6,barrel:3,layer:4,ix:4,iy:-3</id>
     </readout>
     <readout name="HodoscopeForeHits">
       <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>

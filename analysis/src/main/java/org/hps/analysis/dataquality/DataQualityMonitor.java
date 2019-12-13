@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
@@ -16,6 +17,7 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import org.hps.record.triggerbank.TSData2019;
 
 /**
  * Interface for DQM analysis drivers.
@@ -37,10 +39,11 @@ public class DataQualityMonitor extends Driver {
     protected AIDA aida = AIDA.defaultInstance();
     protected DQMDatabaseManager manager;
     protected String recoVersion = "v0.0";
-    protected static int runNumber = 1350;
+    protected int runNumber = 1350;
     protected boolean overwriteDB = false;
     protected boolean connectToDB = false;
     protected boolean printDQMStrings = false;
+    protected boolean is2019Run = false;
     protected Map<String, Double> monitoredQuantityMap = new HashMap<>();
     protected boolean debug = false;
     protected boolean outputPlots = false;
@@ -56,7 +59,8 @@ public class DataQualityMonitor extends Driver {
             LOGGER.log(Level.WARNING, "warning:  beam energy not found.  Using a 6.6 GeV as the default energy");
             beamEnergy = 6.6;
         }
-
+        this.runNumber = this.getConditionsManager().getRun();
+        is2019Run = DatabaseConditionsManager.isPhys2019Run(this.getConditionsManager().getRun());
     }
 
     String triggerType = "all";// allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
@@ -76,10 +80,6 @@ public class DataQualityMonitor extends Driver {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
-    }
-
-    public void setRunNumber(int run) {
-        DataQualityMonitor.runNumber = run;
     }
 
     public void setOverwriteDB(boolean overwrite) {
@@ -107,9 +107,8 @@ public class DataQualityMonitor extends Driver {
         calculateEndOfRunQuantities();
         fillEndOfRunPlots();
         printDQMData();
-        if (printDQMStrings) {
+        if (printDQMStrings)
             printDQMStrings();
-        }
         LOGGER.info("Write to database =  " + connectToDB);
         if (connectToDB) {
             LOGGER.info("Connecting To Database...getting DQMDBManager");
@@ -118,16 +117,14 @@ public class DataQualityMonitor extends Driver {
             boolean entryExists = false;
             try {
                 entryExists = checkRowExists();
-                if (entryExists) {
+                if (entryExists)
                     LOGGER.info("Found an existing run/reco entry in the dqm database; overwrite = " + overwriteDB);
-                }
             } catch (SQLException ex) {
                 Logger.getLogger(DataQualityMonitor.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            if (!entryExists) {
+            if (!entryExists)
                 makeNewRow();
-            }
             dumpDQMData();
         }
     }
@@ -155,9 +152,8 @@ public class DataQualityMonitor extends Driver {
         ResultSet res = manager.selectQuery(ins);
         res.next();
         double result = res.getDouble(var);
-        if (res.wasNull()) {
+        if (res.wasNull())
             return true;
-        }
         LOGGER.info("checkSelectionIsNULL::" + var + " = " + result);
         return false;
     }
@@ -202,41 +198,108 @@ public class DataQualityMonitor extends Driver {
     }
 
     public boolean matchTriggerType(TIData triggerData) {
-        if (triggerType.contentEquals("") || triggerType.contentEquals("all")) {
+//        System.out.println("matchTriggerType:: "+triggerType+" run number = "+runNumber);
+        if (triggerType.contentEquals("") || triggerType.contentEquals("all"))
             return true;
-        }
-        if (triggerData.isSingle0Trigger() && triggerType.contentEquals("singles0")) {
+        if (triggerData.isSingle0Trigger() && triggerType.contentEquals("singles0"))
             return true;
-        }
-        if (triggerData.isSingle1Trigger() && triggerType.contentEquals("singles1")) {
+        if (triggerData.isSingle1Trigger() && triggerType.contentEquals("singles1"))
             return true;
-        }
-        if (triggerData.isPair0Trigger() && triggerType.contentEquals("pairs0")) {
+        if (triggerData.isPair0Trigger() && triggerType.contentEquals("pairs0"))
             return true;
-        }
-        if (triggerData.isPair1Trigger() && triggerType.contentEquals("pairs1")) {
+        if (triggerData.isPair1Trigger() && triggerType.contentEquals("pairs1"))
             return true;
-        }
+        return false;
+
+    }
+
+    public boolean matchTriggerType2019(TSData2019 triggerData) {
+//        System.out.println("matchTriggerType2019:: "+triggerType+" run number = "+runNumber);
+        if (triggerType.contentEquals("") || triggerType.contentEquals("all"))
+            return true;
+        if (triggerData.isSingle0TopTrigger() && triggerType.contentEquals("singles0Top"))
+            return true;
+        if (triggerData.isSingle1TopTrigger() && triggerType.contentEquals("singles1Top"))
+            return true;
+        if (triggerData.isSingle2TopTrigger() && triggerType.contentEquals("singles2Top"))
+            return true;
+        if (triggerData.isSingle3TopTrigger() && triggerType.contentEquals("singles3Top"))
+            return true;
+        if (triggerData.isSingle0BotTrigger() && triggerType.contentEquals("singles0Bot"))
+            return true;
+        if (triggerData.isSingle1BotTrigger() && triggerType.contentEquals("singles1Bot"))
+            return true;
+        if (triggerData.isSingle2BotTrigger() && triggerType.contentEquals("singles2Bot"))
+            return true;
+        if (triggerData.isSingle3BotTrigger() && triggerType.contentEquals("singles3Bot"))
+            return true;
+        if (triggerData.isPair0Trigger() && triggerType.contentEquals("pairs0"))
+            return true;
+        if (triggerData.isPair1Trigger() && triggerType.contentEquals("pairs1"))
+            return true;
+        if (triggerData.isPair2Trigger() && triggerType.contentEquals("pairs2"))
+            return true;
+        if (triggerData.isPair3Trigger() && triggerType.contentEquals("pairs3"))
+            return true;
+        if (triggerData.isHodoscopeTrigger() && triggerType.contentEquals("hodo"))
+            return true;
+        if (triggerData.isPulserTrigger() && triggerType.contentEquals("pulser"))
+            return true;
+        if (triggerData.isMultiplicity0Trigger() && triggerType.contentEquals("mult0"))
+            return true;
+        if (triggerData.isMultiplicity1Trigger() && triggerType.contentEquals("mult1"))
+            return true;
+        if (triggerData.isFEETopTrigger() && triggerType.contentEquals("feeTop"))
+            return true;
+        if (triggerData.isFEEBotTrigger() && triggerType.contentEquals("feeBot"))
+            return true;
+        if (triggerData.isFaradayCupTrigger()&&triggerType.contentEquals("faraday"))
+            return true;
+        //let's combine some of these top/bottom triggers
+        if ((triggerData.isSingle0TopTrigger() || triggerData.isSingle0BotTrigger())
+                && triggerType.contentEquals("singles0"))
+            return true;
+        if ((triggerData.isSingle1TopTrigger() || triggerData.isSingle1BotTrigger())
+                && triggerType.contentEquals("singles1"))
+            return true;
+        if ((triggerData.isSingle2TopTrigger() || triggerData.isSingle2BotTrigger())
+                && triggerType.contentEquals("singles2"))
+            return true;
+        if ((triggerData.isSingle3TopTrigger() || triggerData.isSingle3BotTrigger())
+                && triggerType.contentEquals("singles3"))
+            return true;
+        if ((triggerData.isFEETopTrigger() || triggerData.isFEEBotTrigger())
+                && triggerType.contentEquals("fee"))
+            return true;
+
         return false;
 
     }
 
     public boolean matchTrigger(EventHeader event) {
         boolean match = true;
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
-            for (GenericObject data : triggerList) {
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
-                    TIData triggerData = new TIData(data);
-                    if (!matchTriggerType(triggerData))// only process singles0 triggers...
-                    {
-                        match = false;
+        if (!is2019Run) {
+            if (event.hasCollection(GenericObject.class, "TriggerBank")) {
+                List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+                for (GenericObject data : triggerList)
+                    if (AbstractIntData.getTag(data) == TIData.BANK_TAG) {
+                        TIData triggerData = new TIData(data);
+                        if (!matchTriggerType(triggerData))                  
+                            match = false;
                     }
-                }
             }
-        } else if (debug) {
+        } else if (is2019Run) {
+            if (event.hasCollection(GenericObject.class, "TSBank")) {
+                List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+                for (GenericObject data : triggerList)
+                    if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
+                        TSData2019 triggerData = new TSData2019(data);
+                        if (!matchTriggerType2019(triggerData))                    
+                            match = false;                       
+                    }
+            }
+        } else if (debug)
             LOGGER.info(this.getClass().getSimpleName() + ":  No trigger bank found...running over all trigger types");
-        }
         return match;
     }
 
