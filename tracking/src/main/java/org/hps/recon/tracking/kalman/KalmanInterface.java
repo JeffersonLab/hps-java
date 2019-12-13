@@ -55,6 +55,7 @@ public class KalmanInterface {
     private List<Integer> SeedTrackLayers = null;
     public boolean verbose;
     double svtAngle;
+    private HelixPlaneIntersect hpi;
     Random rnd;
 
     // Get the HPS tracker hit corresponding to a Kalman hit
@@ -103,6 +104,7 @@ public class KalmanInterface {
     public KalmanInterface(boolean verbose) {
         System.out.format("Entering the KalmanInterface constructor with verbose=%b\n",verbose);
         this.verbose = verbose;
+        hpi = new HelixPlaneIntersect();
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
@@ -239,6 +241,7 @@ public class KalmanInterface {
         SquareMatrix fRot = new SquareMatrix(5);
         Vec rotatedParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot);
         Vec globalParams = StateVector.pivotTransform(sv.origin.scale(-1.0), rotatedParams, newPivot, sv.alpha, 0.);
+        double phiInt3 = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, ms.m.p);
         double[] newParams = getLCSimParams(globalParams.v, sv.alpha);
         SquareMatrix F2 = StateVector.makeF(globalParams, rotatedParams, sv.alpha);
         SquareMatrix localCov = sv.C;
@@ -258,8 +261,7 @@ public class KalmanInterface {
             F2.print("Jacobian of second pivot transform");
             localCov.print("original covariance");
             globalCov.print("transformed covariance");
-            Plane pTest = new Plane(new Vec(0.,0.,0.),new Vec(0.,1.,0.));
-            HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+            Plane pTest = new Plane(new Vec(0.,0.,0.),new Vec(0.,1.,0.));            
             double phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, pTest);
             Vec rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.alpha);
             Plane pTran = new Plane(sv.toLocal(new Vec(0.,0.,0.)), sv.Rot.rotate(new Vec(0.,1.,0.)));
@@ -269,14 +271,28 @@ public class KalmanInterface {
             rInt2.print("intersection of the original helix with the y=0 plane in field coordinates");
             System.out.format("The following two points will not match exactly, due to the field tilt\n");
             rInt.print("intersection of the transformed helix with y=0 plane");
-            sv.toGlobal(rInt2).print("intersection of the original helix with the y=0 plane in global coordinates");
-            phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, ms.m.p);
-            rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.alpha);
+            sv.toGlobal(rInt2).print("intersection of the original helix with the y=0 plane in global coordinates");            
+            rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt3, sv.alpha);
             rInt.print("intersection of the global helix with the sensor plane, in global coordinates");
             sv.toGlobal(newPivot).print("intersection of local helix wit the sensor plane, in global coordinates");
-        }
+        } 
 
-        return new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
+        BaseTrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
+        
+        // Set phi to be the angle through which the helix turns to reach the SSD plane
+        // Set the reference point (normally defaulted to the origin) to be the intersection point, in HPS tracking coordinates
+        ts.setPhi(phiInt3);
+        ts.setReferencePoint(vectorKalmanToTrk(sv.toGlobal(newPivot)));
+        if (verbose && ts != null) {
+            System.out.format("KalmanInterface.createTrackState: location=%d layer=%d detector=%d\n", ts.getLocation(), ms.m.Layer, ms.m.detector);
+            double [] momtm = ts.computeMomentum(sv.B);
+            double [] refpt= ts.getReferencePoint();
+            System.out.format("  p=%9.4f %9.4f %9.4f, ref=%9.4f %9.4f %9.4f\n", momtm[0], momtm[1], momtm[2], refpt[0], refpt[1], refpt[2]);
+            System.out.format("  phi=%10.6f  tan(lambda)=%10.6f\n", ts.getPhi(), ts.getTanLambda());
+            double [] prm = ts.getParameters();
+            System.out.format("  Helix parameters=%9.4f %9.4f %9.4f %9.4f %9.4f\n", prm[0], prm[1], prm[2], prm[3], prm[4]);
+        }
+        return ts;
     }
 
     public void printGBLStripClusterData(GBLStripClusterData clstr) {
