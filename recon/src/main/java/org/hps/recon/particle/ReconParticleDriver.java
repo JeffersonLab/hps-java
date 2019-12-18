@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
@@ -32,7 +31,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.util.Driver;
 
 /**
- * Driver used to create reconstructed particles and matching clusters and tracks.
+ * Driver used to create reconstructed particles and matching clusters and
+ * tracks.
  *
  * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
  * @author Mathew Graham <mgraham@slac.stanford.edu>
@@ -53,7 +53,7 @@ public abstract class ReconParticleDriver extends Driver {
     public static final int MOLLER_BOT = 1;
 
     // normalized cluster-track distance required for qualifying as a match:
-    private double MAXNSIGMAPOSITIONMATCH=15.0;
+    private double MAXNSIGMAPOSITIONMATCH = 15.0;
 
     HPSEcal3 ecal;
 
@@ -64,17 +64,29 @@ public abstract class ReconParticleDriver extends Driver {
     RelationalTable hitToStrips = null;
 
     protected boolean enableTrackClusterMatchPlots = false;
-    
+
     public void setTrackClusterMatchPlots(boolean input) {
         enableTrackClusterMatchPlots = input;
     }
 
-   
-    public void setUseCorrectedClusterPositionsForMatching(boolean val){
+    public void setUseCorrectedClusterPositionsForMatching(boolean val) {
         useCorrectedClusterPositionsForMatching = val;
     }
-    
+
+    public void setUseTrackPositionForClusterCorrection(boolean val) {
+        useTrackPositionForClusterCorrection = val;
+    }
+
+    public void setApplyClusterCorrections(boolean val) {
+        applyClusterCorrections = val;
+    }
+
     boolean useCorrectedClusterPositionsForMatching = false;
+    
+    // These are new for 2019 running and should be set to false in the steering file.
+    // Default values should replicate correct behavior for 2015 and 2016 data
+    boolean useTrackPositionForClusterCorrection = true;
+    boolean applyClusterCorrections = true;
 
     // ==============================================================
     // ==== Class Variables =========================================
@@ -104,15 +116,18 @@ public abstract class ReconParticleDriver extends Driver {
      */
     protected List<ReconstructedParticle> finalStateParticles;
     /**
-     * Stores reconstructed V0 candidate particles generated without constraints.
+     * Stores reconstructed V0 candidate particles generated without
+     * constraints.
      */
     protected List<ReconstructedParticle> unconstrainedV0Candidates;
     /**
-     * Stores reconstructed V0 candidate particles generated with beam spot constraints.
+     * Stores reconstructed V0 candidate particles generated with beam spot
+     * constraints.
      */
     protected List<ReconstructedParticle> beamConV0Candidates;
     /**
-     * Stores reconstructed V0 candidate particles generated with target constraints.
+     * Stores reconstructed V0 candidate particles generated with target
+     * constraints.
      */
     protected List<ReconstructedParticle> targetConV0Candidates;
     /**
@@ -120,11 +135,13 @@ public abstract class ReconParticleDriver extends Driver {
      */
     protected List<Vertex> unconstrainedV0Vertices;
     /**
-     * Stores reconstructed V0 candidate vertices generated with beam spot constraints.
+     * Stores reconstructed V0 candidate vertices generated with beam spot
+     * constraints.
      */
     protected List<Vertex> beamConV0Vertices;
     /**
-     * Stores reconstructed V0 candidate vertices generated with target constraints.
+     * Stores reconstructed V0 candidate vertices generated with target
+     * constraints.
      */
     protected List<Vertex> targetConV0Vertices;
 
@@ -143,27 +160,33 @@ public abstract class ReconParticleDriver extends Driver {
     private String finalStateParticlesColName = "FinalStateParticles";
     private String OtherElectronsColName = "OtherElectrons";
     /**
-     * LCIO collection name for V0 candidate particles generated without constraints.
+     * LCIO collection name for V0 candidate particles generated without
+     * constraints.
      */
     protected String unconstrainedV0CandidatesColName = null;
     /**
-     * LCIO collection name for V0 candidate particles generated with beam spot constraints.
+     * LCIO collection name for V0 candidate particles generated with beam spot
+     * constraints.
      */
     protected String beamConV0CandidatesColName = null;
     /**
-     * LCIO collection name for V0 candidate particles generated with target constraints.
+     * LCIO collection name for V0 candidate particles generated with target
+     * constraints.
      */
     protected String targetConV0CandidatesColName = null;
     /**
-     * LCIO collection name for V0 candidate vertices generated without constraints.
+     * LCIO collection name for V0 candidate vertices generated without
+     * constraints.
      */
     protected String unconstrainedV0VerticesColName = null;
     /**
-     * LCIO collection name for V0 candidate vertices generated with beam spot constraints.
+     * LCIO collection name for V0 candidate vertices generated with beam spot
+     * constraints.
      */
     protected String beamConV0VerticesColName = null;
     /**
-     * LCIO collection name for V0 candidate vertices generated with target constraints.
+     * LCIO collection name for V0 candidate vertices generated with target
+     * constraints.
      */
     protected String targetConV0VerticesColName = null;
 
@@ -171,7 +194,7 @@ public abstract class ReconParticleDriver extends Driver {
     // The beamsize array is in the tracking frame
     /* TODO mg-May 14, 2014: the the beam size from the conditions db...also beam position! */
     protected double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
-                                                         // production running
+    // production running
     // Beam position variables.
     // The beamPosition array is in the tracking frame
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
@@ -187,9 +210,10 @@ public abstract class ReconParticleDriver extends Driver {
     private int flipSign = 1;
 
     /**
-     * Sets the condition of whether the data is Monte Carlo or not. This is used to smear the cluster energy
-     * corrections so that the energy resolution is consistent with data. False by default.
-     * 
+     * Sets the condition of whether the data is Monte Carlo or not. This is
+     * used to smear the cluster energy corrections so that the energy
+     * resolution is consistent with data. False by default.
+     *
      * @param isMC
      */
     public void setIsMC(boolean state) {
@@ -197,7 +221,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for beam spot constrained V0 candidate particles.
+     * Sets the name of the LCIO collection for beam spot constrained V0
+     * candidate particles.
      *
      * @param beamConV0CandidatesColName - The LCIO collection name.
      */
@@ -206,7 +231,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for beam spot constrained V0 candidate vertices.
+     * Sets the name of the LCIO collection for beam spot constrained V0
+     * candidate vertices.
      *
      * @param beamConV0VerticesColName - The LCIO collection name.
      */
@@ -226,7 +252,8 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Sets the beam size sigma in the x-direction.
      *
-     * @param sigmaX - The standard deviation of the beam width in the x-direction.
+     * @param sigmaX - The standard deviation of the beam width in the
+     * x-direction.
      */
     public void setBeamSigmaX(double sigmaX) {
         beamSize[1] = sigmaX; // The beamsize array is in the tracking frame HPS X => TRACK Y
@@ -244,7 +271,8 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Sets the beam size sigma in the y-direction.
      *
-     * @param sigmaY - The standard deviation of the beam width in the y-direction.
+     * @param sigmaY - The standard deviation of the beam width in the
+     * y-direction.
      */
     public void setBeamSigmaY(double sigmaY) {
         beamSize[2] = sigmaY; // The beamsize array is in the tracking frame HPS Y => TRACK Z
@@ -260,11 +288,11 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Indicates whether verbose debug text should be written out during runtime or note. Defaults to <code>false</code>
-     * .
+     * Indicates whether verbose debug text should be written out during runtime
+     * or note. Defaults to <code>false</code> .
      *
-     * @param debug - <code>true</code> indicates that debug text should be written and <code>false</code> that it
-     *            should be suppressed.
+     * @param debug - <code>true</code> indicates that debug text should be
+     * written and <code>false</code> that it should be suppressed.
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
@@ -289,20 +317,22 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for target constrained V0 candidate particles.
+     * Sets the name of the LCIO collection for target constrained V0 candidate
+     * particles.
      *
      * @param targetConV0CandidatesColName - The LCIO collection name.
      */
     public void setTargetConV0CandidatesColName(String targetConV0CandidatesColName) {
         this.targetConV0CandidatesColName = targetConV0CandidatesColName;
     }
-    
+
     public void setOtherElectronsColName(String input) {
         OtherElectronsColName = input;
     }
 
     /**
-     * Sets the name of the LCIO collection for target constrained V0 candidate vertices.
+     * Sets the name of the LCIO collection for target constrained V0 candidate
+     * vertices.
      *
      * @param targetConV0VerticesColName - The LCIO collection name.
      */
@@ -320,7 +350,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for unconstrained V0 candidate particles.
+     * Sets the name of the LCIO collection for unconstrained V0 candidate
+     * particles.
      *
      * @param unconstrainedV0CandidatesColName - The LCIO collection name.
      */
@@ -329,7 +360,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the name of the LCIO collection for unconstrained V0 candidate vertices.
+     * Sets the name of the LCIO collection for unconstrained V0 candidate
+     * vertices.
      *
      * @param unconstrainedV0VerticesColName - The LCIO collection name.
      */
@@ -340,50 +372,56 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Set the names of the LCIO track collections used as input.
      *
-     * @param trackCollectionNames Array of collection names. If not set, use all Track collections in the event.
+     * @param trackCollectionNames Array of collection names. If not set, use
+     * all Track collections in the event.
      */
     public void setTrackCollectionNames(String[] trackCollectionNames) {
         this.trackCollectionNames = trackCollectionNames;
     }
 
     /**
-     * Set the requirement on cluster-track position matching in terms of N-sigma.
-     * 
+     * Set the requirement on cluster-track position matching in terms of
+     * N-sigma.
+     *
      * @param nsigma
      */
     public void setNSigmaPositionMatch(double nsigma) {
         MAXNSIGMAPOSITIONMATCH = nsigma;
     }
 
-    /** Disable setting the PID of an Ecal cluster. */
+    /**
+     * Disable setting the PID of an Ecal cluster.
+     */
     public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
     }
-    
+
     public void setClusterParamFileName(String input) {
         clusterParamFileName = input;
     }
 
     /**
-     * Updates the magnetic field parameters to match the appropriate values for the current detector settings.
+     * Updates the magnetic field parameters to match the appropriate values for
+     * the current detector settings.
      */
     @Override
     protected void detectorChanged(Detector detector) {
 
-        BeamEnergyCollection beamEnergyCollection = 
-                this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        BeamEnergyCollection beamEnergyCollection
+                = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
         beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
 
         if (clusterParamFileName == null) {
-            if (beamEnergy > 2)
+            if (beamEnergy > 2) {
                 setClusterParamFileName("ClusterParameterization2016.dat");
-            else
+            } else {
                 setClusterParamFileName("ClusterParameterization2015.dat");
+            }
         }
 
         matcher = new TrackClusterMatcher(clusterParamFileName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
-        matcher.setBeamEnergy(beamEnergy); 
+        matcher.setBeamEnergy(beamEnergy);
         matcher.setBFieldMap(detector.getFieldMap());
 
         // Set the magnetic field parameters to the appropriate values.
@@ -394,52 +432,53 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
-        
-        if (cuts == null)
+
+        if (cuts == null) {
             cuts = new StandardCuts(beamEnergy);
-        else
+        } else {
             cuts.changeBeamEnergy(beamEnergy);
+        }
     }
-    
+
     public void setMaxMatchChisq(double input) {
         cuts.setMaxMatchChisq(input);
     }
-    
-    
+
     public void setMaxElectronP(double input) {
         cuts.setMaxElectronP(input);
     }
-    
+
     public void setMaxMatchDt(double input) {
         cuts.setMaxMatchDt(input);
     }
-    
+
     public void setTrackClusterTimeOffset(double input) {
         cuts.setTrackClusterTimeOffset(input);
     }
-    
+
     protected abstract List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles);
 
     /**
-     * Generates reconstructed V0 candidate particles and vertices from sets of positrons and electrons. Implementing
-     * methods should place the reconstructed vertices and candidate particles into the appropriate class variable lists
-     * in <code>ReconParticleDriver
+     * Generates reconstructed V0 candidate particles and vertices from sets of
+     * positrons and electrons. Implementing methods should place the
+     * reconstructed vertices and candidate particles into the appropriate class
+     * variable lists in <code>ReconParticleDriver
      * </code>.
      *
      * @param electrons - The list of electrons.
      * @param positrons - The list of positrons.
      */
     protected abstract void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons);
-    
 
     /**
-     * Create the set of final state particles from the event tracks and clusters. Clusters will be matched with tracks
-     * when this is possible.
+     * Create the set of final state particles from the event tracks and
+     * clusters. Clusters will be matched with tracks when this is possible.
      *
      * @param clusters - The list of event clusters.
      * @param trackCollections - The list of event tracks.
-     * @return Returns a <code>List</code> collection containing all of the <code>ReconstructedParticle</code> objects
-     *         generated from the argument data.
+     * @return Returns a <code>List</code> collection containing all of the
+     * <code>ReconstructedParticle</code> objects generated from the argument
+     * data.
      */
     protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters,
             List<List<Track>> trackCollections) {
@@ -498,47 +537,47 @@ public abstract class ReconParticleDriver extends Driver {
                 for (Cluster cluster : clusters) {
                     double clusTime = ClusterUtilities.getSeedHitTime(cluster);
                     double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
-                    
-                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()){
+
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()) {
                         if (debug) {
                             System.out.println("Failed cluster-track deltaT!");
                             System.out.println(clusTime + "  " + trkT + "  " + cuts.getTrackClusterTimeOffset() + ">" + cuts.getMaxMatchDt());
                         }
                         continue;
                     }
-                    
+
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
                     //before calculating nsigma.  Default is don't use corrections.  
                     Cluster originalCluster = cluster;
-                    if(useCorrectedClusterPositionsForMatching){
+                    if (useCorrectedClusterPositionsForMatching) {
                         cluster = new BaseCluster(cluster);
                         double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
                     }
-                    
+
                     // normalized distance between this cluster and track:
                     final double thisNSigma = matcher.getNSigmaPosition(cluster, particle);
                     if (enableTrackClusterMatchPlots) {
-                        if (TrackUtils.getTrackStateAtECal(track) != null)
+                        if (TrackUtils.getTrackStateAtECal(track) != null) {
                             matcher.isMatch(cluster, track);
+                        }
                     }
 
                     // ignore if matching quality doesn't make the cut:
-                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH){
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH) {
                         if (debug) {
                             System.out.println("Failed cluster-track NSigma Cut!");
-                            System.out.println("match NSigma = "+thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH );
+                            System.out.println("match NSigma = " + thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH);
                         }
                         continue;
                     }
-                        
 
                     // ignore if we already found a cluster that's a better match:
                     if (thisNSigma > smallestNSigma) {
                         if (debug) {
                             System.out.println("Already found a better match than this!");
-                            System.out.println("match NSigma = "+thisNSigma + "; smallest NSigma =  " + smallestNSigma );
+                            System.out.println("match NSigma = " + thisNSigma + "; smallest NSigma =  " + smallestNSigma);
                         }
                         continue;
                     }
@@ -564,8 +603,9 @@ public abstract class ReconParticleDriver extends Driver {
                     // propogate pid to the cluster:
                     final int pid = particle.getParticleIDUsed().getPDG();
                     if (Math.abs(pid) == 11) {
-                        if (!disablePID)
+                        if (!disablePID) {
                             ((BaseCluster) matchedCluster).setParticleId(pid);
+                        }
                     }
 
                     // unmatched clusters will (later) be used to create photon particles:
@@ -588,8 +628,9 @@ public abstract class ReconParticleDriver extends Driver {
 
             int pid = particle.getParticleIDUsed().getPDG();
             if (Math.abs(pid) != 11) {
-                if (!disablePID)
+                if (!disablePID) {
                     ((BaseCluster) unmatchedCluster).setParticleId(pid);
+                }
             }
 
             // Add the cluster to the particle.
@@ -603,14 +644,16 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         // Apply the corrections to the Ecal clusters using track information, if available
-        for (Cluster cluster : clusters) {
-            if (cluster.getParticleId() != 0) {
-                if (clusterToTrack.containsKey(cluster)) {
-                    Track matchedT = clusterToTrack.get(cluster);
-                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
-                } else {
-                    ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+        if (applyClusterCorrections) {
+            for (Cluster cluster : clusters) {
+                if (cluster.getParticleId() != 0) {
+                    if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
+                        Track matchedT = clusterToTrack.get(cluster);
+                        double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                    } else {
+                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                    }
                 }
             }
         }
@@ -632,14 +675,14 @@ public abstract class ReconParticleDriver extends Driver {
             }
             HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
-        
+
             // recalculate track-cluster matching n_sigma using corrected cluster positions
             // if that option is selected
-            if(!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching){
+            if (!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching) {
                 double goodnessPID_corrected = matcher.getNSigmaPosition(particle.getClusters().get(0), particle);
                 ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
             }
-            
+
         }
 
         // Return the list of reconstructed particles.
@@ -647,8 +690,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Prints a message as per <code>System.out.println</code> to the output stream if the verbose debug output option
-     * is enabled.
+     * Prints a message as per <code>System.out.println</code> to the output
+     * stream if the verbose debug output option is enabled.
      *
      * @param debugMessage - The message to print.
      */
@@ -660,8 +703,9 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Processes the track and cluster collections in the event into reconstructed particles and V0 candidate particles
-     * and vertices. These reconstructed particles are then stored in the event.
+     * Processes the track and cluster collections in the event into
+     * reconstructed particles and V0 candidate particles and vertices. These
+     * reconstructed particles are then stored in the event.
      *
      * @param event - The event to process.
      */
@@ -694,7 +738,7 @@ public abstract class ReconParticleDriver extends Driver {
         if (trackCollectionNames != null) {
             for (String collectionName : trackCollectionNames) {
                 if (event.hasCollection(Track.class, collectionName)) {
-                         // VERBOSE :: Output the number of clusters in the event.
+                    // VERBOSE :: Output the number of clusters in the event.
                     printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
                     trackCollections.add(event.get(Track.class, collectionName));
                 }
@@ -706,7 +750,7 @@ public abstract class ReconParticleDriver extends Driver {
                 trackCollections.add(new ArrayList<Track>(0));
             }
         }
-        
+
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         hitToStrips = TrackUtils.getHitToStripsTable(event);
 
@@ -746,15 +790,16 @@ public abstract class ReconParticleDriver extends Driver {
         // Form V0 candidate particles and vertices from the electron
         // and positron reconstructed particles.
         findVertices(electrons, positrons);
-        
+
         List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
         // VERBOSE :: Output the number of reconstructed particles.
         printDebug("Final State Particles :: " + goodFinalStateParticles.size());
         // Add the final state ReconstructedParticles to the event
         event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
         for (ReconstructedParticle ele : goodFinalStateParticles) {
-            if (electrons.contains(ele))
+            if (electrons.contains(ele)) {
                 electrons.remove(ele);
+            }
         }
         event.put(OtherElectronsColName, electrons, ReconstructedParticle.class, 0);
 
@@ -788,7 +833,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Sets the LCIO collection names to their default values if they are not already defined.
+     * Sets the LCIO collection names to their default values if they are not
+     * already defined.
      */
     @Override
     protected void startOfData() {
@@ -824,12 +870,12 @@ public abstract class ReconParticleDriver extends Driver {
 
     @Override
     protected void endOfData() {
-        if (enableTrackClusterMatchPlots)
+        if (enableTrackClusterMatchPlots) {
             matcher.saveHistograms();
+        }
     }
 
-    
-    public void setSnapToEdge(boolean val){
+    public void setSnapToEdge(boolean val) {
         this.matcher.setSnapToEdge(val);
     }
 }
