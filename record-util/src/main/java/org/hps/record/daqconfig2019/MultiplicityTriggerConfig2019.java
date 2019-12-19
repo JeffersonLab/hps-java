@@ -3,6 +3,7 @@ package org.hps.record.daqconfig2019;
 /**
  * Class <clode>MultiplicityTriggerConfig2019</code> holds the configuration data
  * for a multiplicity trigger
+ * 
  * @author Tongtong Cao <caot@jlab.org>
  *
  */
@@ -19,7 +20,7 @@ public class MultiplicityTriggerConfig2019 extends AbstractConfig2019<AbstractCo
     /**
      * Creates a new <code>MultiplicityTrigger2019</code> object.
      */
-    MultiplicityTriggerConfig2019() {
+    public MultiplicityTriggerConfig2019() {
         // Instantiate the base object.
         super(7);
         

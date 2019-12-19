@@ -20,7 +20,7 @@ public class SinglesTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2
     /**
      * Creates a new <code>SinglesTriggerConfig</code> object.
      */
-    SinglesTriggerConfig2019() {
+    public SinglesTriggerConfig2019() {
         // Instantiate the base object.
         super(9);
         

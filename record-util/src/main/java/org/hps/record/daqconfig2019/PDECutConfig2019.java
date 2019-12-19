@@ -18,7 +18,7 @@ public class PDECutConfig2019 extends AbstractConfig2019<Double> {
     /**
      * Instantiates a new <code>PDECutConfig2019</code> object.
      */
-    PDECutConfig2019() { super(4); }
+    public PDECutConfig2019() { super(4); }
     
     /**
      * Gets PDE parameter C0.

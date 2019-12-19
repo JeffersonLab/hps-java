@@ -7,7 +7,8 @@ package org.hps.record.daqconfig2019;
  * equation. These values may also be set by classes within the same
  * package.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
+ * Code is developed referring to org.hps.record.daqconfig.ESBCutConfig by Kyle McCarty
+ * 
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class ESBCutConfig2019 extends AbstractConfig2019<Double> {
@@ -17,7 +18,7 @@ public class ESBCutConfig2019 extends AbstractConfig2019<Double> {
     /**
      * Instantiates a new <code>ESBCutConfig</code> object.
      */
-    ESBCutConfig2019() { super(2); }
+    public ESBCutConfig2019() { super(2); }
     
     /**
      * Gets the lower bound of the cut.

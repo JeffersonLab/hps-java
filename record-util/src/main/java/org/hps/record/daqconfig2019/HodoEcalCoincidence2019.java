@@ -13,5 +13,5 @@ public class HodoEcalCoincidence2019 extends AbstractConfig2019<Double> {
     /**
      * Instantiates a new <code>HodoEcalCoincidence2019</code> object.
      */
-    HodoEcalCoincidence2019() { super(1); }    
+    public HodoEcalCoincidence2019() { super(1); }    
 }

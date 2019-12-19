@@ -23,7 +23,7 @@ public class FEETriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019<
     /**
      * Creates a new <code>FEETriggerConfig2019</code> object.
      */
-    FEETriggerConfig2019() {
+    public FEETriggerConfig2019() {
         // Instantiate the base object.
         super(10);
         

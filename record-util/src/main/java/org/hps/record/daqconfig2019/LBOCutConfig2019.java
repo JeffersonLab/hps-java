@@ -6,7 +6,8 @@ package org.hps.record.daqconfig2019;
  * It provides the means to access this value and, for package classes,
  * set it.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
+ * Code is developed referring to org.hps.record.daqconfig.LBOCutConfig by Kyle McCarty
+ * 
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class LBOCutConfig2019 extends AbstractConfig2019<Double> {
@@ -15,7 +16,7 @@ public class LBOCutConfig2019 extends AbstractConfig2019<Double> {
     /**
      * Instantiates a new <code>LBOCutConfig</code> object.
      */
-    LBOCutConfig2019() { super(1); }
+    public LBOCutConfig2019() { super(1); }
     
     /**
      * Gets the lower bound of the cut.

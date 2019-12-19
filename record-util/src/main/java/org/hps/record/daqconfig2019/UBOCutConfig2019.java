@@ -6,7 +6,8 @@ package org.hps.record.daqconfig2019;
  * It provides the means to access this value and, for package classes,
  * set it.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
+ * Code is developed referring to org.hps.record.daqconfig.UBOCutConfig by Kyle McCarty
+ * 
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class UBOCutConfig2019 extends AbstractConfig2019<Double> {
@@ -15,7 +16,7 @@ public class UBOCutConfig2019 extends AbstractConfig2019<Double> {
     /**
      * Instantiates a new <code>UBOCutConfig</code> object.
      */
-    UBOCutConfig2019() { super(1); }
+    public UBOCutConfig2019() { super(1); }
     
     /**
      * Gets the upper bound of the cut.

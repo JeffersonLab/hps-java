@@ -17,7 +17,7 @@ public class FEEPrecaleConfig2019 extends AbstractConfig2019<Double>{
     /**
      * Instantiates a new <code>FEEPrecaleConfig2019</code> object.
      */
-    FEEPrecaleConfig2019() { super(3); }
+    public FEEPrecaleConfig2019() { super(3); }
     
     /**
      * Gets minimum of prescale region.

@@ -19,7 +19,7 @@ public class PairTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019
     /**
      * Creates a new <code>PairTriggerConfig</code> object.
      */
-    PairTriggerConfig2019() {
+    public PairTriggerConfig2019() {
         // Instantiate the superclass.
         super(8);
         

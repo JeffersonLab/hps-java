@@ -6,7 +6,8 @@ package org.hps.record.daqconfig2019;
  * a lower bound. It provides the means to access these values and, for
  * package classes, set them.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
+ * Code is developed referring to org.hps.record.daqconfig.ULBCutConfig by Kyle McCarty
+ * 
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class ULBCutConfig2019 extends AbstractConfig2019<Double> {
@@ -16,7 +17,7 @@ public class ULBCutConfig2019 extends AbstractConfig2019<Double> {
     /**
      * Instantiates a new <code>ULBCutConfig</code> object.
      */
-    ULBCutConfig2019() { super(2); }
+    public ULBCutConfig2019() { super(2); }
     
     /**
      * Gets the lower bound of the cut.
