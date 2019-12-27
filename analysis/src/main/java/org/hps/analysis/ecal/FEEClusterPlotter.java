@@ -34,6 +34,7 @@ public class FEEClusterPlotter extends Driver {
     IPlotter plotter;
     IAnalysisFactory fac = aida.analysisFactory();
     private String inputCollection = "EcalClusters";
+    protected boolean isMC = false;
 
     public void setInputCollection(final String inputCollection) {
         this.inputCollection = inputCollection;
@@ -69,6 +70,16 @@ public class FEEClusterPlotter extends Driver {
         this.maxHistoE = maxHistoE;
     }
 
+    /**
+     * Sets the condition of whether the data is Monte Carlo or not. False by
+     * default.
+     * 
+     * @param isMC
+     */
+    public void setIsMC(boolean state) {
+        isMC = state;
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
 
@@ -79,13 +90,13 @@ public class FEEClusterPlotter extends Driver {
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             aida.histogram1D(getHistoName(cc), 200, minHistoE, maxHistoE);
         }
-        
-        //Create a 1D histo to hold the time
-        aida.histogram1D("seedTime",400,0,200);
-        aida.histogram1D("seedTimeTop",400,0,200);
-        aida.histogram1D("seedTimeBot",400,0,200);
-        //Create a 2D histo to hold the number of entries in each 1D histogram
-        aida.histogram2D("numberOfHits",47,-23.5,23.5,11,-5.5,5.5);
+
+        // Create a 1D histo to hold the time
+        aida.histogram1D("seedTime", 400, 0, 200);
+        aida.histogram1D("seedTimeTop", 400, 0, 200);
+        aida.histogram1D("seedTimeBot", 400, 0, 200);
+        // Create a 2D histo to hold the number of entries in each 1D histogram
+        aida.histogram2D("numberOfHits", 47, -23.5, 23.5, 11, -5.5, 5.5);
 
     }
 
@@ -136,8 +147,8 @@ public class FEEClusterPlotter extends Driver {
     }
 
     /**
-     * Set the hit cut value for hits in cluster
-     * This cut is used in 2016 running (not 2015)
+     * Set the hit cut value for hits in cluster This cut is used in 2016 running
+     * (not 2015)
      * 
      * @param hitCut
      */
@@ -146,8 +157,8 @@ public class FEEClusterPlotter extends Driver {
     }
 
     /**
-     * Set the hit cut value for hits in cluster
-     * This cut is used in 2016 running (not 2015)
+     * Set the hit cut value for hits in cluster This cut is used in 2016 running
+     * (not 2015)
      * 
      * @param hitCut
      */
@@ -157,22 +168,23 @@ public class FEEClusterPlotter extends Driver {
 
     public void process(EventHeader event) {
         aida.tree().cd("/");
-
         // only keep singles triggers:
-        if (!event.hasCollection(GenericObject.class, "TriggerBank"))
-            throw new Driver.NextEventException();
         boolean isSingles = false;
-        isSingles=true;
-       /* for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) {
-            if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG))
-                continue;
-            TIData tid = new TIData(gob);
-            if (tid.isSingle0Trigger() || tid.isSingle1Trigger()) {
-                isSingles = true;
-                break;
+        if (isMC) {
+            isSingles = true;
+        } else {
+            if (!event.hasCollection(GenericObject.class, "TriggerBank")) {
+                throw new Driver.NextEventException();
             }
-        }*/
 
+            /*
+             * for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) { if
+             * (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG)) continue; TIData tid =
+             * new TIData(gob); if (tid.isSingle0Trigger() || tid.isSingle1Trigger()) {
+             * isSingles = true; break; } }
+             */
+            isSingles = true;
+        }
         if (isSingles) {
             List<Cluster> clusters = event.get(Cluster.class, inputCollection);
             for (Cluster clus : clusters) {
@@ -183,9 +195,13 @@ public class FEEClusterPlotter extends Driver {
                 double clusE = clus.getEnergy();
                 double time = seed.getTime();
 
+               
+
                 aida.histogram1D("seedTime").fill(time);
-                if (findChannel(seed).getY()>0) aida.histogram1D("seedTimeTop").fill(time);
-                else aida.histogram1D("seedTimeBot").fill(time);
+                if (findChannel(seed).getY() > 0)
+                    aida.histogram1D("seedTimeTop").fill(time);
+                else
+                    aida.histogram1D("seedTimeBot").fill(time);
 
                 // in 2015, not hit count cut used at all
                 if (useHitCut) {
@@ -198,13 +214,13 @@ public class FEEClusterPlotter extends Driver {
                             && seedE > seedCut && time > minTime && time < maxTime && hits.size() > (hitCut)) {
 
                         EcalChannel cc = findChannel(seed);
-                        aida.histogram2D("numberOfHits").fill(cc.getX(),cc.getY());
+                        aida.histogram2D("numberOfHits").fill(cc.getX(), cc.getY());
                         aida.histogram1D(getHistoName(cc)).fill(clusE);
                     }
                 } else {
                     if ((seedE / clusE > 0.6) && seedE > seedCut && time > minTime && time < maxTime) {
                         EcalChannel cc = findChannel(seed);
-                        aida.histogram2D("numberOfHits").fill(cc.getX(),cc.getY());
+                        aida.histogram2D("numberOfHits").fill(cc.getX(), cc.getY());
                         aida.histogram1D(getHistoName(cc)).fill(clusE);
                     }
                 }
