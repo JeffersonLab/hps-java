@@ -19,10 +19,10 @@ public class FEEFilterDriver extends EventReconFilter {
     }
 
     // Set min seed energy value, default to 2015 run
-    private double seedCut = 0; // = 0.4
+    private double seedCut = 1.2; // = 0.4
 
     // set min cluster energy value, default to 2015 run
-    private double clusterCut = 0.6;
+    private double clusterCut = 2.0;
 
     // minimum number of hits per cluster
     private int minHits = 0; // = 3;

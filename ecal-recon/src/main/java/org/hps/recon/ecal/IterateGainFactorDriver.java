@@ -18,8 +18,9 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * This driver reads in a hit collection and outputs a new hit collection with energies that have been multiplied by an
- * improved gain correction factor. This is primarily used for the elastic energy calibration.
+ * This driver reads in a hit collection and outputs a new hit collection with
+ * energies that have been multiplied by an improved gain correction factor.
+ * This is primarily used for the elastic energy calibration.
  *
  * @author Holly Szumila-Vance
  */
@@ -32,7 +33,8 @@ public class IterateGainFactorDriver extends Driver {
     /**
      * Set the input collection name (source).
      *
-     * @param inputCollectionName the input collection name
+     * @param inputCollectionName
+     *            the input collection name
      */
     private String inputCollectionName = "EcalCalHits";
 
@@ -43,7 +45,8 @@ public class IterateGainFactorDriver extends Driver {
     /**
      * Set the output collection name (target).
      *
-     * @param outputCollectionName the output collection name
+     * @param outputCollectionName
+     *            the output collection name
      */
     private String outputCollectionName = "IterHits1";
 
@@ -64,17 +67,19 @@ public class IterateGainFactorDriver extends Driver {
     }
 
     /**
-     * Read in a text file that has multiplicative factors on the original gain values. These correction factors can be
-     * multiplied directly onto the energy of the reconstructed hits and saved to a new list.
+     * Read in a text file that has multiplicative factors on the original gain
+     * values. These correction factors can be multiplied directly onto the energy
+     * of the reconstructed hits and saved to a new list.
      */
     private Map<Integer, Double> gainFileGains = new HashMap<Integer, Double>();
     public String gainFileName = null;
 
     private void readGainFile() {
-        if (isGainFileRead==true) return;
+        if (isGainFileRead == true)
+            return;
         gainFileGains.clear();
-        System.out.println("read the file");
-        // System.out.println("Reading ECal Gain Factors from:  "+gainFileName);
+        // System.out.println("read the file");
+        System.out.println("Reading ECal Gain Factors from:  " + gainFileName);
         File file = new File(gainFileName);
         try {
             FileReader reader = new FileReader(file);
@@ -113,9 +118,11 @@ public class IterateGainFactorDriver extends Driver {
     }
 
     /**
-     * Copy hits to a new collection (list) while multiplying the energies by the new gain factors.
+     * Copy hits to a new collection (list) while multiplying the energies by the
+     * new gain factors.
      *
-     * @param hits the input hit list
+     * @param hits
+     *            the input hit list
      * @return the output hit collection with gain corrected energies
      */
     public List<CalorimeterHit> iterateHits(final List<CalorimeterHit> hits) {
@@ -126,7 +133,6 @@ public class IterateGainFactorDriver extends Driver {
             double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
             CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
             newHits.add(newHit);
-
         }
         return newHits;
     }
@@ -134,11 +140,11 @@ public class IterateGainFactorDriver extends Driver {
     /**
      * Process an event, copying the input collection to the output collection.
      *
-     * @param event the LCSim event
+     * @param event
+     *            the LCSim event
      */
     @Override
     public void process(final EventHeader event) {
-     
 
         // Check if output collection already exists in event which is an error.
         if (event.hasItem(outputCollectionName)) {
@@ -147,6 +153,7 @@ public class IterateGainFactorDriver extends Driver {
 
         // Get the input collection.
         if (event.hasCollection(CalorimeterHit.class, inputCollectionName)) {
+
             final List<CalorimeterHit> inputHitCollection = event.get(CalorimeterHit.class, inputCollectionName);
 
             // Iterate the gain correction coefficient on each hit.
@@ -181,7 +188,8 @@ public class IterateGainFactorDriver extends Driver {
     /**
      * Convert physical ID to gain value.
      *
-     * @param cellID (long)
+     * @param cellID
+     *            (long)
      * @return channel constants (EcalChannelConstants)
      */
     public EcalChannelConstants findChannel(long cellID) {
