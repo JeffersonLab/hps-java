@@ -28,10 +28,12 @@ public class FieldMap extends FieldOverlay {
     private double[] X, Y, Z;
     private double dX, dY, dZ;
     private Vec offsets; // Offset of the map coordinates from the HPS coordinates
+    private boolean uniform;
 
-    public FieldMap(String FileName, String type, double xOffset, double yOffset, double zOffset) throws IOException {
+    public FieldMap(String FileName, String type, boolean uniform, double xOffset, double yOffset, double zOffset) throws IOException {
         // The offsets are in HPS coordinates and come from HPSDipoleFieldMap3D
 
+        this.uniform = uniform; // To allow testing the effects of fitting with a uniform field
         if (type == "binary") { // This is far faster than scanning the text file (and the file is ~1/3 the size)!
             FileInputStream ifile = new FileInputStream(FileName);
             BufferedInputStream bis = new BufferedInputStream(ifile); // This buffering is essential!
@@ -126,9 +128,14 @@ public class FieldMap extends FieldOverlay {
         offsets = new Vec(xOffset, yOffset, zOffset);
         offsets.print("field map offsets");
     }
-
+    
     Vec getField(Vec r) { // Interpolate the 3D field map
-        Vec rHPS = new Vec(r.v[0], -r.v[2], r.v[1]); // Converting from Kalman coordinates to HPS coordinates
+        Vec rHPS;
+        if (uniform) {
+            rHPS = new Vec(0., 0., 505.57);
+        } else {
+            rHPS = new Vec(r.v[0], -r.v[2], r.v[1]); // Converting from Kalman coordinates to HPS coordinates
+        }
         Vec rMag = rHPS.dif(offsets); // Converting to magnet coordinates
         // rMag.print("rMag original");
         int iX = (int) Math.floor((rMag.v[0] - X[0]) / dX);
@@ -174,8 +181,10 @@ public class FieldMap extends FieldOverlay {
         // new Vec(-Bxc,Bzc,Byc).print("B on grid");
         
         // This transforms the field from the HPS global coordinates to Kalman global coordinates
+        if (uniform) {
+            return new Vec(0.,0.,-By); // constant field
+        }
         return new Vec(Bx, Bz, -By); // correct HPS field
-        //return new Vec(0.,0.,0.519); // constant field
         // return new Vec(-Bx, -Bz, +By); // reversed field
     }
 

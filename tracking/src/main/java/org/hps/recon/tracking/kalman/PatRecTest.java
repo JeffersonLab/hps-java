@@ -38,7 +38,7 @@ public class PatRecTest {
         String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\209acm2_5kg_corrected_unfolded_scaled_1.04545_v4.bin";
         FieldMap fM = null;
         try {
-            fM = new FieldMap(mapFile, mapType, 21.17, 0., 457.2);
+            fM = new FieldMap(mapFile, mapType, true, 21.17, 0., 457.2);       // for fitting tracks
         } catch (IOException e) {
             System.out.format("Could not open or read the field map %s\n", mapFile);
             return;

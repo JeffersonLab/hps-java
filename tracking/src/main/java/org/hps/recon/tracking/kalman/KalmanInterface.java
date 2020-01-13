@@ -53,6 +53,7 @@ public class KalmanInterface {
     private ArrayList<KalHit> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
+    private static boolean uniformB;
     public boolean verbose;
     double svtAngle;
     private HelixPlaneIntersect hpi;
@@ -87,7 +88,14 @@ public class KalmanInterface {
         // Standard field map for running in hps-java
         //System.out.format("Accessing HPS field map for position %8.3f %8.3f %8.3f\n", kalPos.v[0], kalPos.v[1], kalPos.v[2]);
         double[] hpsPos = { kalPos.v[0], -1.0 * kalPos.v[2], kalPos.v[1] };
+        if (uniformB) {
+            hpsPos[0] = 0.;
+            hpsPos[1] = 0.;
+            hpsPos[2] = 505.57;
+        }
+ 
         double[] hpsField = hpsFm.getField(hpsPos);
+        if (uniformB) return new Vec(0., 0., -1.0 * hpsField[1]);
         return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
     }
 
@@ -98,12 +106,13 @@ public class KalmanInterface {
 
     // Constructor with no argument defaults to verbose being turned off
     public KalmanInterface() {
-        this(false);
+        this(false, false);
     }
 
-    public KalmanInterface(boolean verbose) {
+    public KalmanInterface(boolean verbose, boolean uniformB) {
         System.out.format("Entering the KalmanInterface constructor with verbose=%b\n",verbose);
         this.verbose = verbose;
+        KalmanInterface.uniformB = uniformB;
         hpi = new HelixPlaneIntersect();
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();

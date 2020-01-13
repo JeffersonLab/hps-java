@@ -46,6 +46,7 @@ public class KalmanPatRecDriver extends Driver {
     private org.lcsim.geometry.FieldMap fm;
     private KalmanInterface KI;
     private boolean verbose = false;
+    private boolean uniformB = true;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
@@ -77,6 +78,11 @@ public class KalmanPatRecDriver extends Driver {
     public void setVerbose(boolean input) {
         verbose = input;
     }
+    
+    public void setUniformB(boolean input) {
+        uniformB = input;
+        System.out.format("KalmanPatRecDriver: the B field will be assumed uniform.\n");
+    }
 
     public void setMaterialManager(MaterialSupervisor mm) {
         _materialManager = mm;
@@ -98,6 +104,8 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram1D("Kalman track hit residual", 100, -0.2, 0.2);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman track Momentum", 100, 0., 5.);
+        aida.histogram1D("Kalman track drho",100,-10.,10.);
+        aida.histogram1D("Kalman track dz",100,-10.,10.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
         for (int lyr=2; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Kalman track hit residual in layer %d",lyr), 100, -0.2, 0.2);
@@ -130,10 +138,12 @@ public class KalmanPatRecDriver extends Driver {
         TrackUtils.getBField(det).magnitude();
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface(verbose);
+        KI = new KalmanInterface(verbose, uniformB);
         KI.createSiModules(detPlanes, fm);
         
         decoder = det.getSubdetector("Tracker").getIDDecoder();
+        
+        System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
     }
 
     @Override
@@ -170,6 +180,8 @@ public class KalmanPatRecDriver extends Driver {
                 double[] momentum = kTk.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
                 aida.histogram1D("Kalman track Momentum").fill(pMag);
+                aida.histogram1D("Kalman track drho").fill(kTk.originHelixParms()[0]);
+                aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);

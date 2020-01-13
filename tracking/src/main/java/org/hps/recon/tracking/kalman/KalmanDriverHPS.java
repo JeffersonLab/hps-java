@@ -51,6 +51,7 @@ public class KalmanDriverHPS extends Driver {
     private KalmanInterface KI;
     private double bField;
     private boolean verbose = false;
+    private boolean uniformB = false;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
@@ -80,6 +81,11 @@ public class KalmanDriverHPS extends Driver {
 
     public void setVerbose(boolean input) {
         verbose = input;
+    }
+    
+    public void setUniformB(boolean input) {
+        uniformB = input;
+        System.out.format("KalmanDriver: the B field will be assumed uniform.\n");
     }
 
     public void setMaterialManager(MaterialSupervisor mm) {
@@ -165,8 +171,10 @@ public class KalmanDriverHPS extends Driver {
         bField = TrackUtils.getBField(det).magnitude();
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface(this.verbose);
+        KI = new KalmanInterface(this.verbose, this.uniformB);
         KI.createSiModules(detPlanes, fm);
+        
+        System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);
     }
 
     private void printGBLkinks(RelationalTable GBLtoKinks, Track GBLtrack) {

@@ -49,8 +49,10 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         String mapType = "binary";
         String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
         FieldMap fM = null;
+        FieldMap fMg = null;
         try {
-            fM = new FieldMap(mapFile, mapType, 21.17, 0., 457.2);
+            fM = new FieldMap(mapFile, mapType, true, 21.17, 0., 457.2);
+            fMg = new FieldMap(mapFile, mapType, false, 21.17, 0., 457.2);     // for generating tracks
         } catch (IOException e) {
             System.out.format("Could not open or read the field map %s\n", mapFile);
             return;
@@ -185,7 +187,9 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         Bpivot.print("magnetic field at the initial origin");
         for (int pln = 0; pln < SiModules.size(); pln++) {
             Vec bf = fM.getField(new Vec(xdet[pln], ydet[pln], zdet[pln]));
-            System.out.format("B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
+            System.out.format("Kalman fitting B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
+            bf = fMg.getField(new Vec(xdet[pln], ydet[pln], zdet[pln]));
+            System.out.format("MC generator B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
         }
         double Phi = 91. * Math.PI / 180.;
         double Theta = 88. * Math.PI / 180.;
@@ -205,7 +209,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         Vec helixMCtrue = null;
         Vec momentum = new Vec(p * initialDirection.v[0], p * initialDirection.v[1], p * initialDirection.v[2]);
         momentum.print("initial helix momentum");
-        Helix TkInitial = new Helix(Q, helixOrigin, momentum, helixOrigin, fM, rnd);
+        Helix TkInitial = new Helix(Q, helixOrigin, momentum, helixOrigin, fMg, rnd);
         drho = TkInitial.p.v[0];
         phi0 = TkInitial.p.v[1];
         K = TkInitial.p.v[2];
@@ -233,7 +237,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         printWriter.format("set xlabel 'X'\n");
         printWriter.format("set ylabel 'Y'\n");
         printWriter.format("$runga << EOD\n");
-        RungeKutta4 r4 = new RungeKutta4(Q, 1., fM);
+        RungeKutta4 r4 = new RungeKutta4(Q, 1., fMg);
         Vec r0 = TkInitial.atPhiGlobal(0.);
         Vec p0 = TkInitial.getMomGlobal(0.);
         for (int step = 0; step < 50; step++) {
@@ -361,8 +365,8 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
         }
         Vec p1 = new Vec(3);
         HelixPlaneIntersect hpi1 = new HelixPlaneIntersect();
-        Vec pivotBegin = hpi1.rkIntersect(si1.p, TkInitial.atPhiGlobal(0.), TkInitial.getMomGlobal(0.), Q, fM, p1);
-        Helix helixBegin = new Helix(Q, pivotBegin, p1, pivotBegin, fM, rnd);
+        Vec pivotBegin = hpi1.rkIntersect(si1.p, TkInitial.atPhiGlobal(0.), TkInitial.getMomGlobal(0.), Q, fMg, p1);
+        Helix helixBegin = new Helix(Q, pivotBegin, p1, pivotBegin, fMg, rnd);
 
         Vec[] helixSaved = new Vec[SiModules.size()];
         Vec[] pivotSaved = new Vec[SiModules.size()];
@@ -396,7 +400,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 Vec rscat = new Vec(3);
                 Vec pInt = new Vec(3);
                 if (rungeKutta) {
-                    rscat = hpi.rkIntersect(thisSi.p, Tk.atPhiGlobal(0.), Tk.getMomGlobal(0.), Q, fM, pInt);
+                    rscat = hpi.rkIntersect(thisSi.p, Tk.atPhiGlobal(0.), Tk.getMomGlobal(0.), Q, fMg, pInt);
                 } else {
                     rscat = Tk.atPhiGlobal(phiInt);
                     pInt = Tk.getMomGlobal(phiInt);
@@ -595,7 +599,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
 
             helixMCtrue = helixSaved[frstLyr];
             Vec pivotOnAxis = new Vec(0., location[frstLyr], 0.);
-            Vec Bpiv = fM.getField(pivotOnAxis);
+            Vec Bpiv = fMg.getField(pivotOnAxis);
             double alpha = 1.0e12 / (2.99793e8 * Bpiv.mag());
             Vec helixTrueTrans = StateVector.pivotTransform(pivotOnAxis, helixMCtrue, pivotSaved[frstLyr], alpha, 0.);
             Vec gErrVec = initialHelixGuess.dif(helixTrueTrans);
@@ -672,7 +676,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 initialCovariance.M[3][3] = (dzSigma * dzSigma);
                 initialCovariance.M[4][4] = (tanlSigma * tanlSigma);
 
-                Vec Bf0 = fM.getField(helixOrigin);
+                Vec Bf0 = fMg.getField(helixOrigin);
                 if (verbose) {
                     initialHelixGuess.print("initial helix guess");
                     System.out.format("True helix: %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho, phi0, K, dz, tanl);
