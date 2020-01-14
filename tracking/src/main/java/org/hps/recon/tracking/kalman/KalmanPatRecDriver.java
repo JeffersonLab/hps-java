@@ -46,7 +46,7 @@ public class KalmanPatRecDriver extends Driver {
     private org.lcsim.geometry.FieldMap fm;
     private KalmanInterface KI;
     private boolean verbose = false;
-    private boolean uniformB = true;
+    private boolean uniformB = false;
     private String outputSeedTrackCollectionName = "KalmanSeedTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
