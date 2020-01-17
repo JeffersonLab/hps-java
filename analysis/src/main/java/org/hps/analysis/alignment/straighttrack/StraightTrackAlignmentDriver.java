@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import static org.hps.analysis.alignment.straighttrack.FitTracks.GEN_ROTMAT;
-import static org.hps.analysis.alignment.straighttrack.FitTracks.debug;
 import org.hps.analysis.alignment.straighttrack.vertex.StraightLineVertexFitter;
 import org.hps.analysis.alignment.straighttrack.vertex.Track;
 import org.hps.analysis.alignment.straighttrack.vertex.Vertex;
@@ -99,8 +98,8 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
-    boolean beamConstrain = true;
-    int nEventsToAlign = 5000;
+    boolean beamConstrain = false;
+    int nEventsToAlign = 100000;
     int bottomIter;
     int topIter;
     int NITER = 7;
@@ -143,6 +142,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        setupSensors(event);
         // Will use calorimeter clusters to define the road in which we search for hits.
         List<Cluster> clusters = null;
         if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
@@ -191,7 +191,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 double[] cPos = c.getPosition();
                 Point3D P1 = new Point3D(cPos[0], cPos[1], cPos[2]);
                 //let's get some SVT strip clusters...
-                setupSensors(event);
+
 //                // Get the list of fitted hits from the event
 //                List<LCRelation> fittedHits = event.get(LCRelation.class,
 //                        "SVTFittedRawTrackerHits");
@@ -285,14 +285,16 @@ public class StraightTrackAlignmentDriver extends Driver {
                     Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
                     hits.add(h);
                     // if we have an aligned plane, use it
-                    if (alignedDetectorPlanesInFit.containsKey(s)) {
-                        planes.add(alignedDetectorPlanesInFit.get(s));
-                    } else {
-                        planes.add(detectorPlanesInFit.get(s));
-                    }
+                    //20200117 not sure what's going on here...
+                    // let's simplify things.
+//                    if (alignedDetectorPlanesInFit.containsKey(s)) {
+//                        planes.add(alignedDetectorPlanesInFit.get(s));
+//                    } else {
+                    planes.add(detectorPlanesInFit.get(s));
+//                    }
                 }
-                // require at least 8 hits for fit
-                int minHitsToFit = isTop ? 8 : 9;  // only 10101 has a working layer 4...
+                // require at least 8 hits for fit in top, 10 in bottom (for early runs), 9 in bottom in later runs due to missing layer 4
+                int minHitsToFit = isTop ? 8 : 10;  // only 10101 has a working layer 4...
                 if (hits.size() >= minHitsToFit) {
                     aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
@@ -372,7 +374,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                                     if (alignit) {
                                         topEventsToAlign.add(hits);
                                     }
-                                    topTracks.add(new Track(fit));
+//                                    topTracks.add(new Track(fit));
                                     topAndBottomTracks.add(new Track(fit));
                                 } else {
                                     if (bottomPlanes == null) {
@@ -382,7 +384,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                                     if (alignit) {
                                         bottomEventsToAlign.add(hits);
                                     }
-                                    bottomTracks.add(new Track(fit));
+//                                    bottomTracks.add(new Track(fit));
                                     topAndBottomTracks.add(new Track(fit));
                                 }
                             }
@@ -457,15 +459,15 @@ public class StraightTrackAlignmentDriver extends Driver {
             }
         }
         //let's try to vertex some tracks...
-
-        if (topTracks.size() >= nTracksToVertex) {
-            vertexEm(topTracks, "top");
-            topTracks.clear();
-        }
-        if (bottomTracks.size() >= nTracksToVertex) {
-            vertexEm(bottomTracks, "bottom");
-            bottomTracks.clear();
-        }
+        // same side tracks aren't really very useful...
+//        if (topTracks.size() >= nTracksToVertex) {
+//            vertexEm(topTracks, "top");
+//            topTracks.clear();
+//        }
+//        if (bottomTracks.size() >= nTracksToVertex) {
+//            vertexEm(bottomTracks, "bottom");
+//            bottomTracks.clear();
+//        }
         if (topAndBottomTracks.size() >= nTracksToVertex) {
             vertexEm(topAndBottomTracks, "topAndBottom");
             topAndBottomTracks.clear();
@@ -520,6 +522,7 @@ public class StraightTrackAlignmentDriver extends Driver {
      * @param events The events represented as a list of Hits
      */
     public void alignit(List<DetectorPlane> planes, List<List<Hit>> events, boolean isTop, int iter) {
+        boolean debug = false;
         String path = isTop ? "top alignment " : "bottom alignment ";
         aida.tree().mkdirs(path + iter);
         aida.tree().cd(path + iter);
@@ -587,7 +590,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 for (int j = 0; j < NN; ++j) { //loop over all the detector planes
                     int NPR = nprs[j];
                     if (NPR > 0) {  // found a detector plane which we want to align
-                        if (debug()) {
+                        if (debug) {
                             System.out.println("J " + (j + 1) + " NPR " + NPR);
                         }
                         DetectorPlane p = planes.get(j);
@@ -809,6 +812,7 @@ public class StraightTrackAlignmentDriver extends Driver {
      */
     public double[] unbiasedResidual(TrackFit fit, DetectorPlane dp, Hit h, double[] A0, double[] B0) {
         double resid = 9999.;
+        boolean debug = false;
         Matrix rot = dp.rot();
         Matrix[] uvwg = new Matrix[3];
         double[][] UVW = {{1., 0., 0.}, {0., 1., 0.}, {0., 0., 1.}};
@@ -818,15 +822,15 @@ public class StraightTrackAlignmentDriver extends Driver {
         double[] B = {PAR[2], PAR[3], B0[2]};
         Matrix b = new Matrix(B, 1);
         for (int j = 0; j < 3; ++j) {
-//                    if (debug()) {
+//                    if (debug) {
 //                        System.out.println("  CALLING VMATR");
 //                    }
             Matrix uvw = new Matrix(UVW[j], 3);
-            if (debug()) {
+            if (debug) {
                 System.out.println("  UVW(" + (j + 1) + ") " + uvw.get(0, 0) + " " + uvw.get(1, 0) + " " + uvw.get(2, 0));
             }
             uvwg[j] = rot.transpose().times(uvw);
-            if (debug()) {
+            if (debug) {
                 System.out.println("UVWG(" + (j + 1) + ") " + uvwg[j].get(0, 0) + " " + uvwg[j].get(1, 0) + " " + uvwg[j].get(2, 0) + " ");
             }
 //                    System.out.println("j "+j);
@@ -834,7 +838,7 @@ public class StraightTrackAlignmentDriver extends Driver {
 //                    b.print(6,4);
             BUVW[j] = b.times(uvwg[j]).get(0, 0);
         }
-        if (debug()) {
+        if (debug) {
             System.out.println("   BUVW " + BUVW[0] + " " + BUVW[1] + " " + BUVW[2]);
         }
         ImpactPoint ip = FitTracks.GET_IMPACT(A, B, rot, dp.r0(), uvwg[2], BUVW[2]);

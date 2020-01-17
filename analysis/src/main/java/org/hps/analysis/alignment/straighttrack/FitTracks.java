@@ -16,7 +16,7 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  *
- * @author ngraf
+ * @author Norman A. Graf
  */
 public class FitTracks {
 

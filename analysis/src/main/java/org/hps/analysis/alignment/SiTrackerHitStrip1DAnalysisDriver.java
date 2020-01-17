@@ -74,10 +74,10 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
             }
             Hep3Vector clusterPos = getPosition(hits, ((SiSensor) hits.get(0).getDetectorElement()).getReadoutElectrodes(ChargeCarrier.HOLE));
             System.out.println("recalculated cluster position " + clusterPos);
-            aida.cloud1D(moduleName +" cluster dx "+hits.size()+" hits").fill(stripPos[0] - clusterPos.x());
-            aida.cloud1D(moduleName +" cluster dy "+hits.size()+" hits").fill(stripPos[1] - clusterPos.y());
-            aida.cloud1D(moduleName +" cluster dz "+hits.size()+" hits").fill(stripPos[2] - clusterPos.z());
-            
+            aida.cloud1D(moduleName + " cluster dx " + hits.size() + " hits").fill(stripPos[0] - clusterPos.x());
+            aida.cloud1D(moduleName + " cluster dy " + hits.size() + " hits").fill(stripPos[1] - clusterPos.y());
+            aida.cloud1D(moduleName + " cluster dz " + hits.size() + " hits").fill(stripPos[2] - clusterPos.z());
+
 //            
 //            if (!hitsPerModuleMap.containsKey(moduleName)) {
 //                hitsPerModuleMap.put(moduleName, new ArrayList<SiTrackerHitStrip1D>());
