@@ -129,8 +129,8 @@
                  the ADC readout window. The old version can be converted by
                  selecting a readout window equal to (readoutLatency - 63).
               -->
-            <readoutOffset>37</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
-            <readoutWindow>100</readoutWindow>              <!-- Units of 4 ns clock-cycles. -->
+            <readoutOffset>13</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutWindow>50</readoutWindow>              <!-- Units of 4 ns clock-cycles. -->
             <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
             <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
             <integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
