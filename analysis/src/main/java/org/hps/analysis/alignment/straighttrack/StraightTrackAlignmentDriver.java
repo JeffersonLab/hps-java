@@ -98,8 +98,8 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
-    boolean beamConstrain = false;
-    int nEventsToAlign = 100000;
+    boolean beamConstrain = true;
+    int nEventsToAlign = 250000;
     int bottomIter;
     int topIter;
     int NITER = 7;
