@@ -56,24 +56,36 @@ public class HpsThinSiSensor extends HpsSiSensor {
     @Override
     public void initialize() {
 
+        // Get the transformation that will be used to place the electrodes on 
+        // the face of the sensor. 
         Transform3D electrodesTransform = this.getElectrodesTransform();
 
-        // Set the number of readout and sense electrodes.
-        final SiStrips readoutElectrodes = new ThinSiStrips(ChargeCarrier.HOLE, getReadoutStripPitch(), this,
-                electrodesTransform);
-        final SiStrips senseElectrodes = new ThinSiStrips(ChargeCarrier.HOLE, getSenseStripPitch(),
-                this.getNumberOfSenseStrips(), this, electrodesTransform);
+        // Column pitch is the length of the sensor divided by 2.
+        double stripLength = this.getStripLength()/2; 
 
-        final double readoutCapacitance = this.getStripLength() > this.longSensorLengthThreshold ? this.readoutLongStripCapacitanceSlope
-                : this.readoutStripCapacitanceSlope;
-        final double senseCapacitance = this.getStripLength() > this.longSensorLengthThreshold ? this.senseLongStripCapacitanceSlope
-                : this.senseStripCapacitanceSlope;
+        // Set the number of readout and sense electrodes.
+        final SiPixels readoutElectrodes = new SiPixels(ChargeCarrier.HOLE, 
+                           getReadoutStripPitch(), // Strip pitch = 55 um
+                           stripLength,            // Column pitch 
+                           this, 
+                           electrodesTransform     // Parent to local transform
+                           );   
+       
+        // TODO: Investigate whether this needs to be defined or if it can be 
+        //       set to null.  
+        final SiPixels senseElectrodes = new SiPixels(ChargeCarrier.HOLE, 
+                           getReadoutStripPitch(), // Strip pitch = 55 um
+                           stripLength,            // Column pitch 
+                           this, 
+                           electrodesTransform     // Parent to local transform
+                           );   
 
         // Set the strip capacitance.
-        readoutElectrodes.setCapacitanceIntercept(this.readoutStripCapacitanceIntercept);
-        readoutElectrodes.setCapacitanceSlope(readoutCapacitance);
-        senseElectrodes.setCapacitanceIntercept(this.senseStripCapacitanceIntercept);
-        senseElectrodes.setCapacitanceSlope(senseCapacitance);
+        double readoutCapacitance = this.readoutStripCapacitanceIntercept + readoutStripCapacitanceSlope*stripLength; 
+        double senseCapacitance = this.senseStripCapacitanceIntercept + senseStripCapacitanceSlope*stripLength; 
+        readoutElectrodes.setCapacitance(readoutCapacitance);
+
+        senseElectrodes.setCapacitance(senseCapacitance);
 
         // Set sense and readout electrodes.
         this.setSenseElectrodes(senseElectrodes);
