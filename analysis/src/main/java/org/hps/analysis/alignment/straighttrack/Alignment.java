@@ -424,7 +424,7 @@ public class Alignment {
                 int jj = j + 1;
 //                System.out.println("i "+i+" j "+j+" j*(j+1) "+(j*(j+1)/2));
 //                System.out.println("COV[j * (j + 1)/2] = COV("+(j * (j + 1)/2 )+")= "+COV[j * (j + 1) / 2]);
-                System.out.println("PAR " + (i + 1) + ": " + PARC[i] + "+/- " + sqrt(COV[jj * (jj + 1) / 2 - 1]));
+                System.out.println("PAR " + (i + 1) + ": " + PARC[i] + " +/- " + sqrt(COV[jj * (jj + 1) / 2 - 1]));
             } else {
                 System.out.println("PAR " + (i + 1) + " fixed");
             }
