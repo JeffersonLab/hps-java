@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for pass 2 reconstruction of 
-             the 2015 Engineering Run data. 
+      @brief Steering file that will be used for pass 2 reconstruction of the 2015 Engineering Run data. 
       @author <a href="mailto:meeg@slac.stanford.edu">Sho Uemura</a>
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
@@ -33,7 +32,6 @@
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-            <outputSeedTrackCollectionName>KalmanSeedTracks</outputSeedTrackCollectionName>
         </driver>
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>

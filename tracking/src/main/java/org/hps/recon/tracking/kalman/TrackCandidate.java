@@ -9,10 +9,12 @@ public class TrackCandidate {
     double chi2f, chi2s;
     int nHits;
     int nTaken;
+    int mxShared;
     boolean filtered;
     boolean smoothed;
 
-    TrackCandidate() {
+    TrackCandidate(int mxShared) {
+        this.mxShared = mxShared;
         filtered = false;
         smoothed = false;
         nHits = 0;
@@ -22,6 +24,26 @@ public class TrackCandidate {
         hits = new ArrayList<KalHit>(12);
     }
 
+    void removeHit(KalHit hit) {
+        MeasurementSite siteR = null;
+        SiModule mod = hit.module;
+        for (MeasurementSite site : sites) {
+            if (site.m == mod) {
+                siteR = site;
+                if (chi2s > 0.) chi2s = chi2s - site.chi2inc;
+                if (chi2f > 0.) chi2f = chi2f - site.chi2inc;
+            }
+        }
+        if (siteR == null) {
+            System.out.format("TrackCandidate.removeHit error: MeasurementSite is missing for layer %d\n", mod.Layer);
+        } else {
+            siteR.hitID = -1;
+            sites.remove(siteR);
+        }
+        hits.remove(hit);
+        nHits--;
+    }
+    
     boolean reFit(boolean verbose) {
 
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering.\n");
@@ -30,6 +52,12 @@ public class TrackCandidate {
         sH.C.scale(1000.*chi2s); // Blow up the initial covariance matrix to avoid double counting measurements
         SiModule prevMod = null;
         chi2f = 0.;
+        nTaken = 0;
+        nHits = 0;
+        int nStereo = 0;
+        filtered = false;
+        smoothed = false;
+        boolean failure = false;
         for (int idx = 0; idx < sites.size(); idx++) { // Redo all the filter steps
             MeasurementSite currentSite = sites.get(idx);
             currentSite.predicted = false;
@@ -39,26 +67,71 @@ public class TrackCandidate {
             currentSite.aP = null;
             currentSite.aF = null;
             currentSite.aS = null;
+            currentSite.hitID = -1;  // Allow hit reselection
 
-            if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, false, false, false, verbose) < 0) {
-                if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction!!\n");
+            boolean allowSharing = nTaken < mxShared;
+            boolean pickupHits = true;
+            boolean checkBounds = false;
+            if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, verbose) < 0) {
+                if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d!!\n",currentSite.m.Layer);
+                if (nStereo > 2 && nHits > 4) {
+                    currentSite.hitID = 0;
+                    failure = true;
+                    break;
+                }
+                if (verbose) System.out.format("TrackCandidate.reFit: aboart refit, nHits=%d, nStereo=%d\n", nHits, nStereo);
                 return false;
             }
             if (!currentSite.filter()) {
-                if (verbose) System.out.format("TrackCandidate.reFit: failed to filter!!\n");
+                if (verbose) System.out.format("TrackCandidate.reFit: failed to filter at layer %d!!\n",currentSite.m.Layer);
+                if (nStereo > 2 && nHits > 4) {
+                    currentSite.hitID = 0;
+                    failure = true;
+                    break;
+                }
+                if (verbose) System.out.format("TrackCandidate.reFit: aboart refit, nHits=%d, nStereo=%d\n", nHits, nStereo);
                 return false;
             }
 
             // if (verbose) currentSite.print("iterating filtering");
-            chi2f += Math.max(currentSite.chi2inc,0.);
+            if (currentSite.hitID >= 0) {
+                chi2f += Math.max(currentSite.chi2inc,0.);
+                nHits++;
+                if (currentSite.m.isStereo) nStereo++;
+                if (currentSite.m.hits.get(currentSite.hitID).tracks.size() > 0) nTaken++;
+                if (verbose) {
+                    System.out.format("TrackCandidate.refit: adding hit %d from layer %d, detector %d, chi2inc=%10.4f\n",
+                            currentSite.hitID,currentSite.m.Layer,currentSite.m.detector,currentSite.chi2inc);
+                }
+            }
             sH = currentSite.aF;
             prevMod = currentSite.m;
         }
+        if (nStereo < 3 || nHits < 5) {
+            if (verbose) System.out.format("TrackCandidate.reFit: not enough hits included in fit.  nHits=%d, nStereo=%d\n", nHits, nStereo);
+            return false;
+        }
+        if (failure) {
+            ArrayList<MeasurementSite> sitesToRemove = new ArrayList<MeasurementSite>();
+            for (MeasurementSite site : sites) {
+                if (site.aP == null || site.aF == null) {
+                    sitesToRemove.add(site);
+                }
+            }
+            for (MeasurementSite site : sitesToRemove) {
+                if (verbose) System.out.format("TrackCandidate.refit: removing site at layer %d detector %d\n", site.m.Layer, site.m.detector);
+                sites.remove(site);
+            }
+        }
         if (verbose) System.out.format("TrackCandidate.reFit: Fit chi^2 after filtering = %12.4e\n", chi2f);
+        filtered = true;
         chi2s = 0.;
         MeasurementSite nextSite = null;
         for (int idx = sites.size() - 1; idx >= 0; idx--) {
             MeasurementSite currentSite = sites.get(idx);
+            if (currentSite.aF == null || currentSite.hitID < 0) continue;
+            if (verbose) System.out.format("TrackCandidate.reFit: smoothing site at layer %d detector %d\n", 
+                    currentSite.m.Layer, currentSite.m.detector);
             if (nextSite == null) {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
@@ -67,34 +140,40 @@ public class TrackCandidate {
             }
             chi2s += Math.max(currentSite.chi2inc,0.);
 
-            // if (verbose) {
-            // currentSite.print("iterating smoothing");
-            // }
+            //if (verbose) {
+            //    currentSite.print("iterating smoothing");
+            //}
             nextSite = currentSite;
         }
         if (verbose) System.out.format("TrackCandidate.reFit: Fit chi^2 after smoothing = %12.4e\n", chi2s); 
-
+        smoothed = true;
         return true;       
     }
     
     void print(String s, boolean shrt) {
         System.out.format("TrackCandidate %s, nHits=%d, nShared=%d, chi2f=%10.6f, chi2s=%10.6f\n", s, nHits, nTaken, chi2f, chi2s);
-        MeasurementSite site0 = sites.get(0);
-        if (site0 != null) {
-            int lyr = site0.m.Layer;
-            StateVector aS = site0.aS;
-            if (aS == null) aS = site0.aF;
-            if (aS != null) {
-                Vec p = aS.a;
-                double edrho = Math.sqrt(aS.C.M[0][0]);
-                double ephi0 = Math.sqrt(aS.C.M[1][1]);
-                double eK = Math.sqrt(aS.C.M[2][2]);
-                double eZ0 = Math.sqrt(aS.C.M[3][3]);
-                double etanl = Math.sqrt(aS.C.M[4][4]);
-                System.out.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
-                        p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
+        MeasurementSite site0 = null;
+        for (MeasurementSite site : sites) {
+            if ((site.aS != null || site.aF != null) && site.hitID >= 0) {
+                site0 = site;
+                break;
             }
         }
+        if (site0 == null) {
+            System.out.format("    No hits or smoothed site found!\n");
+            return;
+        }
+        int lyr = site0.m.Layer;
+        StateVector aS = site0.aS;
+        if (aS == null) aS = site0.aF;
+        Vec p = aS.a;
+        double edrho = Math.sqrt(aS.C.M[0][0]);
+        double ephi0 = Math.sqrt(aS.C.M[1][1]);
+        double eK = Math.sqrt(aS.C.M[2][2]);
+        double eZ0 = Math.sqrt(aS.C.M[3][3]);
+        double etanl = Math.sqrt(aS.C.M[4][4]);
+        System.out.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
+                p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
         System.out.format("   %d Hits: ", hits.size());
         for (KalHit ht : hits) { ht.print("short"); }
         if (shrt) {
@@ -104,6 +183,11 @@ public class TrackCandidate {
             for (MeasurementSite site : sites) {
                 SiModule m = site.m;
                 StateVector aF = site.aF;
+                if (aF == null) {
+                    System.out.format("    Layer %d, detector %d, the filtered state vector is missing\n", site.m.Layer, site.m.detector);
+                    site.print("messed up site");
+                    continue;
+                }
                 double phiF = aF.planeIntersect(m.p);
                 if (Double.isNaN(phiF)) { phiF = 0.; }
                 double vPred = site.h(aF, site.m, phiF);

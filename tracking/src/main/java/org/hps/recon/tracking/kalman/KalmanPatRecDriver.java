@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,16 +25,22 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import hep.physics.vec.Hep3Vector;
+
 import org.lcsim.geometry.IDDecoder;
 
 // $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
@@ -47,7 +54,7 @@ public class KalmanPatRecDriver extends Driver {
     private KalmanInterface KI;
     private boolean verbose = false;
     private boolean uniformB = false;
-    private String outputSeedTrackCollectionName = "KalmanSeedTracks";
+    private String trackCollectionName = "GBLTracks";
     private String outputFullTrackCollectionName = "KalmanFullTracks";
     public AIDA aida;
     private String outputPlots = "KalmanTestPlots.root";
@@ -59,16 +66,8 @@ public class KalmanPatRecDriver extends Driver {
         outputPlots = input;
     }
 
-    public String getOutputSeedTrackCollectionName() {
-        return outputSeedTrackCollectionName;
-    }
-
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
-    }
-
-    public void setOutputSeedTrackCollectionName(String input) {
-        outputSeedTrackCollectionName = input;
     }
 
     public void setOutputFullTrackCollectionName(String input) {
@@ -99,21 +98,49 @@ public class KalmanPatRecDriver extends Driver {
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
+        aida.histogram1D("Kalman Track Chi2, 12 hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track simple Chi2, 12 hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track Chi2 with 12 good hits", 50, 0., 100.);
+        aida.histogram2D("number tracks Kalman vs GBL", 20, 0., 5., 20, 0., 5.);
+        aida.histogram1D("helix chi-squared at origin", 100, 0., 25.);
+        aida.histogram1D("GBL track chi^2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
+        aida.histogram1D("GBL number tracks", 10, 0., 10.);
         aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
-        aida.histogram1D("Kalman track hit residual", 100, -0.2, 0.2);
+        aida.histogram1D("Kalman track hit residual, sigmas", 100, -5., 5.);
+        aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
+        aida.histogram1D("Kalman hit true error over uncertainty", 100, -5., 5.);
         aida.histogram1D("Kalman track Momentum", 100, 0., 5.);
-        aida.histogram1D("Kalman track drho",100,-10.,10.);
-        aida.histogram1D("Kalman track dz",100,-10.,10.);
+        aida.histogram1D("dRho", 100, -5., 5.);
+        aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
+        aida.histogram1D("z0", 100, -2., 2.);
+        aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
+        aida.histogram1D("pt inverse", 100, -1.2, 1.2);
+        aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
+        aida.histogram1D("pt inverse error, sigmas", 100, -5., 5.);
+        aida.histogram1D("tanLambda", 100, -0.3, 0.3);
+        aida.histogram1D("tanLambda true", 100, -0.3, 0.3);
+        aida.histogram1D("tanLambda error, sigmas", 100, -5., 5.);
+        aida.histogram1D("phi0 true", 100, -0.3, 0.3);
+        aida.histogram1D("phi0", 100, -0.3, 0.3);
+        aida.histogram1D("phi0 error, sigmas", 100, -5., 5.);
+        aida.histogram1D("Kalman track drho",100,-5.,5.);
+        aida.histogram1D("Kalman track dz",100,-2.,2.);
+        aida.histogram1D("Kalman track number MC particles",10,0.,10.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
+        aida.histogram1D("GBL d0", 100, -5., 5.);
+        aida.histogram1D("GBL z0", 100, -2., 2.);
+        aida.histogram1D("GBL pt inverse", 100, -1.2, 1.1);
+        aida.histogram1D("GBL pt inverse, sigmas", 100, -5., 5.);
         for (int lyr=2; lyr<14; ++lyr) {
-            aida.histogram1D(String.format("Kalman track hit residual in layer %d",lyr), 100, -0.2, 0.2);
-            aida.histogram1D(String.format("Kalman true error in layer %d",lyr), 100, -0.2, 0.2);
-            aida.histogram1D(String.format("Kalman layer %d chi^2 contribution", lyr), 100, 0., 20.);
+            aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
+            aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
+            aida.histogram1D(String.format("Layers/Kalman true error in layer %d",lyr), 100, -0.2, 0.2);
+            aida.histogram1D(String.format("Layers/Kalman layer %d chi^2 contribution", lyr), 100, 0., 20.);
             if (lyr<13) {
-                aida.histogram1D(String.format("Kalman kink in xy, layer %d", lyr),100, -0.001, .001);
-                aida.histogram1D(String.format("Kalman kink in zy, layer %d", lyr),100, -0.0025, .0025);
+                aida.histogram1D(String.format("Layers/Kalman kink in xy, layer %d", lyr),100, -0.001, .001);
+                aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", lyr),100, -0.0025, .0025);
             }
         }
         nTracks = 0;
@@ -162,6 +189,20 @@ public class KalmanPatRecDriver extends Driver {
             return;
         }
 
+        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations)
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                    rawtomc.add(relation.getFrom(), relation.getTo());
+        }
+
+        List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        if (rawhits == null) {
+            System.out.format("KalmanPatRecDriver.process: the raw hits collection is missing\n");
+            return;
+        }
+        
         List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
         List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
         nTracks = 0;
@@ -174,7 +215,10 @@ public class KalmanPatRecDriver extends Driver {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
                 nTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
-                if (kTk.nHits < 12) continue;
+                if (kTk.nHits == 12) {
+                    aida.histogram1D("Kalman Track Chi2, 12 hits").fill(kTk.chi2);
+                    aida.histogram1D("Kalman Track simple Chi2, 12 hits").fill(kTk.chi2prime());
+                }
                 
                 aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
                 double[] momentum = kTk.originP();
@@ -195,6 +239,8 @@ public class KalmanPatRecDriver extends Driver {
                     gblStripClusterDataRelations.add(new BaseLCRelation(KalmanTrackHPS, clstr));
                 }
                 // Histogram residuals of hits in layers with no hits on the track and with hits
+                ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
+                ArrayList<Integer> mcCnt= new ArrayList<Integer>();
                 for (MeasurementSite site : kTk.SiteList) {
                     if (verbose) site.print(String.format("track %d", kTk.ID));
                     StateVector aS = site.aS;
@@ -214,19 +260,125 @@ public class KalmanPatRecDriver extends Driver {
                                 nHitsOnTracks[mod.Layer]++;
                                 double resid = mod.hits.get(site.hitID).v - rLoc.v[1];
                                 aida.histogram1D("Kalman track hit residual").fill(resid);
-                                aida.histogram1D(String.format("Kalman track hit residual in layer %d",mod.Layer)).fill(resid);
-                                aida.histogram1D(String.format("Kalman layer %d chi^2 contribution", mod.Layer)).fill(site.chi2inc);
+                                aida.histogram1D("Kalman track hit residual, sigmas").fill(resid/Math.sqrt(site.aS.R));
+                                aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",mod.Layer)).fill(resid);
+                                aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",mod.Layer)).fill(resid/Math.sqrt(site.aS.R));
+                                aida.histogram1D(String.format("Layers/Kalman layer %d chi^2 contribution", mod.Layer)).fill(site.chi2inc);
                                 if (mod.Layer<13) {
-                                    aida.histogram1D(String.format("Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
-                                    aida.histogram1D(String.format("Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
+                                    aida.histogram1D(String.format("Layers/Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
+                                    aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
                                 }  
+                                TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                                List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                                for (RawTrackerHit rawHit : rawHits) {
+                                    Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                                    for (SimTrackerHit simHit : simHits) {
+                                        MCParticle mcp = simHit.getMCParticle();
+                                        if (mcParts.contains(mcp)) {
+                                            int id = mcParts.indexOf(mcp);
+                                            mcCnt.set(id, mcCnt.get(id)+1);
+                                        } else {
+                                            mcParts.add(mcp);
+                                            mcCnt.add(1);
+                                        }
+                                    }
+                                }                               
                             }
                         }
                     }
                 }
+                aida.histogram1D("Kalman track number MC particles").fill(mcParts.size());
+                // Which MC particle is the best match?
+                int idBest = -1;
+                int nMatch = 0;
+                for (int id=0; id<mcCnt.size(); ++id) {
+                    if (mcCnt.get(id) > nMatch) {
+                        nMatch = mcCnt.get(id);
+                        idBest = id;
+                    }
+                }
+                MCParticle mcBest = null;
+                if (idBest > -1) {
+                    mcBest = mcParts.get(idBest); 
+                    Hep3Vector pVec = mcBest.getMomentum();
+                    Hep3Vector rVec = mcBest.getOrigin();
+                    double ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
+                    double ptInvTrue = mcBest.getCharge()/ptTrue;
+                    //double [] pKal = kTk.originP();
+                    double [] hParams = kTk.originHelixParms();
+                    double ptInv = hParams[2];
+                    double tanLambda = -hParams[4];
+                    double tanLambdaTrue = pVec.y()/ptTrue;
+                    double phi0True = Math.atan2(pVec.x(), pVec.z());
+                    double phi0 = -hParams[1];
+                    double phi0Err = kTk.helixErr(1);
+                    double ptInvErr = kTk.helixErr(2);
+                    double tanLambdaErr = kTk.helixErr(4);
+                    double z0 = -hParams[3];
+                    double z0True = rVec.y();
+                    double z0Err = kTk.helixErr(3);
+                    double dRho = hParams[0];
+                    double dRhoErr = kTk.helixErr(0);
+                    Vec apTrue = new Vec(0.,-phi0True,ptInvTrue,-z0True,-tanLambdaTrue);
+                    Vec ap = new Vec(5,hParams);
+                    SquareMatrix Cov = new SquareMatrix(5,kTk.originCovariance());
+                    SquareMatrix CovInv = Cov.invert();
+                    Vec helixDiff = ap.dif(apTrue);
+                    double chi2Helix = helixDiff.dot(helixDiff.leftMultiply(CovInv));
+                    aida.histogram1D("helix chi-squared at origin").fill(chi2Helix);
+                    aida.histogram1D("dRho").fill(dRho);
+                    aida.histogram1D("dRho error, sigmas").fill(dRho/dRhoErr);
+                    aida.histogram1D("z0").fill(z0);
+                    aida.histogram1D("z0 error, sigmas").fill((z0-z0True)/z0Err);
+                    aida.histogram1D("phi0 true").fill(phi0True);
+                    aida.histogram1D("phi0").fill(phi0);
+                    aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
+                    aida.histogram1D("pt inverse").fill(ptInv);
+                    aida.histogram1D("pt inverse error, percent").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
+                    aida.histogram1D("pt inverse error, sigmas").fill((ptInv-ptInvTrue)/ptInvErr);
+                    aida.histogram1D("tanLambda").fill(tanLambda);
+                    aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
+                    aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
+                }
             }
         }
         aida.histogram1D("Kalman number of tracks").fill(nTracks);
+        
+        if (event.hasCollection(Track.class, trackCollectionName)) {
+            List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+            int nGBL = tracksGBL.size();
+            aida.histogram2D("number tracks Kalman vs GBL").fill(nTracks, nGBL);
+            aida.histogram1D("GBL number tracks").fill(nGBL);
+            double c = 2.99793e8; // Speed of light in m/s
+            double conFac = 1.0e12 / c;
+            Vec Bfield = KalmanInterface.getField(new Vec(0.,505.57,0.), fm); // Field at the instrument center
+            double B = Bfield.mag();
+            double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
+            for (Track tkrGBL : tracksGBL) {
+                aida.histogram1D("GBL track chi^2").fill(tkrGBL.getChi2());
+                List<TrackState> stLst = tkrGBL.getTrackStates();
+                for (TrackState st : stLst) {
+                    if (st.getLocation() == TrackState.AtIP) {
+                        double d0 = st.getParameter(0);
+                        aida.histogram1D("GBL d0").fill(d0);
+                        double z0 = st.getParameter(3);
+                        aida.histogram1D("GBL z0").fill(z0);
+                        double Omega = st.getOmega();
+                        double ptInvGBL = -alpha * Omega;
+                        aida.histogram1D("GBL pt inverse").fill(ptInvGBL);
+                        double [] covGBL = st.getCovMatrix();
+                        double omegaErr = Math.sqrt(covGBL[5]);
+                        aida.histogram1D("GBL pt inverse, sigmas").fill(Omega/omegaErr);
+                        //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
+                        //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
+                        //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);
+                        //System.out.format("z0=%10.5f +- %10.5f\n", z0, Math.sqrt(covGBL[9]));
+                        //System.out.format("tanL=%10.5f +- %10.5f\n", st.getParameter(4), Math.sqrt(covGBL[14]));
+                        break;
+                    }
+                }
+            }
+        }
         
         String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
         if (nPlotted < 40) {
@@ -235,7 +387,15 @@ public class KalmanPatRecDriver extends Driver {
         }
         
         //simScatters(event);
-        simHitRes(event);
+        double maxTruErr = simHitRes(event);
+        if (maxTruErr < 0.02) {
+            for (KalmanPatRecHPS kPat : kPatList) {
+                for (KalTrack kTk : kPat.TkrList) {
+                    if (kTk.nHits < 12) continue;                    
+                    aida.histogram1D("Kalman Track Chi2 with 12 good hits").fill(kTk.chi2);                    
+                }
+            }
+        }
         
         KI.clearInterface();
         if (verbose) System.out.format("\n KalmanPatRecDriver.process: Done with event %d\n", evtNumb);
@@ -247,12 +407,12 @@ public class KalmanPatRecDriver extends Driver {
     }
 
     // Make histograms of the MC hit resolution
-    private void simHitRes(EventHeader event) {
+    private double simHitRes(EventHeader event) {
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         List<TrackerHit> stripHits = event.get(TrackerHit.class, stripHitInputCollectionName);
         
-        if (stripHits == null) return;
+        if (stripHits == null) return 999.;
 
         // Make a mapping from sensor to hits
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitSensorMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
@@ -272,7 +432,7 @@ public class KalmanPatRecDriver extends Driver {
         String MCHitInputCollectionName = "TrackerHits";
         List<SimTrackerHit> MChits = event.get(SimTrackerHit.class, MCHitInputCollectionName);
         
-        if (MChits == null) return;
+        if (MChits == null) return 999.;
 
         // Make a map from MC particle to the hit in the layer
         Map<Integer, ArrayList<SimTrackerHit>> hitMCparticleMap = new HashMap<Integer, ArrayList<SimTrackerHit>>();
@@ -292,6 +452,7 @@ public class KalmanPatRecDriver extends Driver {
         }
         //System.out.format("KalmanPatRecDriver.simHitRes: found both hit collections in event %d\n", event.getEventNumber());
         
+        double maxErr = 0.;
         ArrayList<SiModule> SiMlist = KI.getSiModuleList();
         Map<SiModule, SiStripPlane> moduleMap = KI.getModuleMap();
         for (SiModule siMod : SiMlist) {
@@ -307,6 +468,7 @@ public class KalmanPatRecDriver extends Driver {
                 //tkrHit.print("Tracker hit position");
                 //SiTrackerHitStrip1D global = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
                 SiTrackerHitStrip1D localHit = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                double du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
                 //Vec globalHPS = new Vec(3,global.getPosition());
                 Vec localHPS = new Vec(3,localHit.getPosition());
                 //globalHPS.print("simulated hit in HPS global system");
@@ -326,12 +488,15 @@ public class KalmanPatRecDriver extends Driver {
                     //kalMClocal.print("true hit Kal local position");
                     //hitLocal.print("sim hit Kal local position");
                     double hitError = hitLocal.v[1] - kalMClocal.v[1];
+                    if (Math.abs(hitError) > maxErr) maxErr = Math.abs(hitError);
                     aida.histogram1D("Kalman hit true error").fill(hitError);
-                    aida.histogram1D(String.format("Kalman true error in layer %d",layer)).fill(hitError);
+                    aida.histogram1D("Kalman hit true error over uncertainty").fill(hitError/du);
+                    aida.histogram1D(String.format("Layers/Kalman true error in layer %d",layer)).fill(hitError);
                     aida.histogram1D("MC hit z in local system (should be zero)").fill(kalMClocal.v[2]);
                 }
             }
         }
+        return maxErr;
     }
     // Find the MC true scattering angles at tracker layers
     // Note, this doesn't work, because the MC true momentum saved is neither the incoming nor outgoing momentum but rather

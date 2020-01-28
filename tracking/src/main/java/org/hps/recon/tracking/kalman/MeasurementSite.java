@@ -82,6 +82,7 @@ class MeasurementSite {
     }
 
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
+        if (aP == null || aF == null) return -999.;
         Vec p1 = aP.getMom(0.);
         double t1 = Math.atan2(p1.v[0], p1.v[1]);
         Vec p2 = aF.getMom(0.);
@@ -90,6 +91,7 @@ class MeasurementSite {
     }
 
     double scatZ() { // scattering angle in the z,y plane for the filtered state vector
+        if (aP == null || aF == null) return -999.;
         Vec p1 = aP.getMom(0.);
         double t1 = Math.atan2(p1.v[2], p1.v[1]);
         Vec p2 = aF.getMom(0.);
@@ -247,7 +249,7 @@ class MeasurementSite {
                     //    continue;
                     //}
                     double residual = m.hits.get(i).v - aP.mPred;
-                    if (verbose2) { System.out.format("    Unused hit, residual=%10.5f, cut=%10.5f\n", residual, mxResid); }
+                    if (verbose2) { System.out.format("  MeasurementSite.makePrediction: Found unused hit, residual=%10.5f, cut=%10.5f\n", residual, mxResid); }
                     if (Math.abs(residual) < minResid) {
                         theHit = i;
                         minResid = Math.abs(residual);
@@ -257,7 +259,7 @@ class MeasurementSite {
                 if (theHit < 0 && sharingOK) {
                     for (int i = 0; i < nHits; i++) {
                         double residual = m.hits.get(i).v - aP.mPred;
-                        if (verbose2) { System.out.format("    Used hit, residual=%10.5f, cut=%10.5f\n", residual, mxResidShare); }
+                        if (verbose2) { System.out.format("  MeasurementSite.makePrediction: Found used hit, residual=%10.5f, cut=%10.5f\n", residual, mxResidShare); }
                         if (Math.abs(residual) < minResid2) {
                             theHit = i;
                             minResid2 = Math.abs(residual);
@@ -295,13 +297,14 @@ class MeasurementSite {
                 chi2inc = aP.r * aP.r / aP.R;
                 double cutVal = Math.abs(aP.r / m.hits.get(theHit).sigma);
                 if (verbose2) {
-                    System.out.format("    Lyr %d det %d: hit added with residual=%10.5f, cov=%10.5f, chi2inc=%10.5f, %10.5f<%10.5f?\n",
-                            m.Layer, m.detector, aP.r, aP.R, chi2inc, cutVal, cut);
+                    System.out.format("  MeasurementSite.makePrediction: Lyr %d det %d: do we add hit with residual=%10.5f, err=%10.5f, chi2inc=%10.5f, %10.5f<%10.5f?\n",
+                            m.Layer, m.detector, aP.r, Math.sqrt(aP.R), chi2inc, cutVal, cut);
                 }
 
-                if (cutVal < cut || hitNumber >= 0) { // Use the hit no matter what if it was handed to us
+                if ((!Double.isNaN(chi2inc) && cutVal < cut) || hitNumber >= 0) { // Use the hit no matter what if it was handed to us
                     hitID = theHit;
                     returnFlag = 1;
+                    if (verbose2) System.out.format("  MeasurementSite.makePrediction: adding hit number %d\n", hitID);
                 } else {
                     chi2inc = 0.;
                 }
@@ -340,8 +343,9 @@ class MeasurementSite {
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
             if (verbose) {
-                System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists. Site=%d\n", thisSite);
-                aF.print("missing plane");
+                System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists at layer %d detector %d\n", m.Layer, m.detector);
+                aP.a.print("predicted helix parameters");
+                aF.a.print("Filtered helix parameters");
                 m.p.print("for the intersection");
             }
             return false;

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
@@ -28,6 +29,8 @@ import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
@@ -35,6 +38,7 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.LCIOParameters.ParameterName;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.IDDecoder;
@@ -96,6 +100,7 @@ public class KalmanInterface {
  
         double[] hpsField = hpsFm.getField(hpsPos);
         if (uniformB) return new Vec(0., 0., -1.0 * hpsField[1]);
+        //if (uniformB) return new Vec(0., 0., 0.5319090951929661);
         return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
     }
 
@@ -124,6 +129,10 @@ public class KalmanInterface {
         SeedTrackLayers.add(3);
         SeedTrackLayers.add(4);
         SeedTrackLayers.add(5);
+        
+        if (uniformB) {
+            System.out.format("KalmanInterface WARNING: the magnetic field is set to a uniform value.\n");
+        }
         
         // Transformation from HPS SVT tracking coordinates to Kalman global coordinates
         double[][] HpsSvtToKalmanVals = { { 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 } };
@@ -823,7 +832,32 @@ public class KalmanInterface {
         }
         if (hitsFilled > 0) success = true;
         if (verbose) System.out.format("KalmanInterface.fillAllMeasurements: %d hits were filled into Si Modules\n", hitsFilled);
-
+        
+        // Add MC truth information to each hit if it is available
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+    
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
+                    rawtomc.add(relation.getFrom(), relation.getTo());
+            }
+            for (SiModule mod : SiMlist) {
+                for (Measurement hit : mod.hits) {
+                    hit.tksMC = new ArrayList<Integer>();
+                    TrackerHit hpsHit = getHpsHit(hit);
+                    List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        for (SimTrackerHit simHit : simHits) {
+                            if (hit.rGlobal == null) hit.rGlobal = vectorGlbToKalman(simHit.getPosition());
+                            MCParticle mcp = simHit.getMCParticle();
+                            hit.tksMC.add(mcp.hashCode());
+                        }
+                    }
+                }
+            }
+        }                               
         return success;
     }
 
@@ -1011,6 +1045,7 @@ public class KalmanInterface {
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
             }
+            if (verbose) System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, verbose);
             outList.add(kPat);
         }
@@ -1019,6 +1054,7 @@ public class KalmanInterface {
     
     // This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
     public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalmanPatRecHPS> patRecList) {
+        
         PrintWriter printWriter3 = null;
         int eventNumber = event.getEventNumber();
         String fn = String.format("%shelix3_%d.gp", path, eventNumber);
@@ -1037,6 +1073,16 @@ public class KalmanInterface {
         printWriter3.format("set title 'Event Number %d'\n", eventNumber);
         printWriter3.format("set xlabel 'X'\n");
         printWriter3.format("set ylabel 'Y'\n");
+        double vPos = 0.9;
+        for (KalmanPatRecHPS patRec : patRecList) {
+            for (KalTrack tkr : patRec.TkrList) {
+                double [] a = tkr.originHelixParms();
+                String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f", 
+                        patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
+                printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
+                vPos = vPos - 0.03;
+            }
+        }
         for (KalmanPatRecHPS patRec : patRecList) {
             for (KalTrack tkr : patRec.TkrList) {
                 printWriter3.format("$tkr%d_%d << EOD\n", tkr.ID, patRec.topBottom);

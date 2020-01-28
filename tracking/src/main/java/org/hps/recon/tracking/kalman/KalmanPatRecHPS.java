@@ -162,9 +162,9 @@ public class KalmanPatRecHPS {
         dRhoMax[0] = 15.;   // Maximum dRho at target plane for seed
         dRhoMax[1] = 25.;
         chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
-        chi2mx1[1] = 16.0;  
+        chi2mx1[1] = 12.0;  
         chi2mx2[0] = 50.0;  // Maximum chi**2/#hits for a substandard track
-        chi2mx2[1] = 100.;
+        chi2mx2[1] = 9999.;
         minHits1[0] = 8;    // Minimum number of hits for a good track
         minHits1[1] = 6;
         minHits2[0] = 6;    // Minimum number of hits for a substandard track
@@ -173,8 +173,8 @@ public class KalmanPatRecHPS {
         mxChi2Inc[1] = 20.;
         mxResid[0] = 150.;   // Maximum residual, in units of detector resolution, for picking up a hit
         mxResid[1] = 200.;
-        minUnique = 3;      // Minimum number of unused hits on a seed
-        mxResidShare = 6.;  // Maximum residual, in units of detector resolution, for a hit to be shared
+        minUnique = 3;       // Minimum number of unused hits on a seed
+        mxResidShare = 10.;  // Maximum residual, in units of detector resolution, for a hit to be shared
         mxChi2double = 6.;
         minStereo = 3;      // Minimum number of stereo hits
         minAxial = 2;       // Minimum number of axial hits
@@ -383,10 +383,39 @@ public class KalmanPatRecHPS {
                         continue;
                     }
                     if (candidateTrack.chi2f / (double) candidateTrack.nHits > chi2mx2[trial]) {
-                        if (verbose) {
-                            System.out.format("KalmanPatRecHPS: Filtering to layer 0 has too large chi^2. Skip to the next seed.\n");
+                        // See if the chi^2 will be okay if just one hit is removed
+                        boolean removedHit = false;
+                        if (candidateTrack.sites.size() > 1) {
+                            MeasurementSite siteR = null;
+                            for (MeasurementSite site : candidateTrack.sites) {
+                                if ((candidateTrack.chi2f - site.chi2inc)/(double) candidateTrack.nHits < chi2mx2[trial]) {
+                                    siteR = site;
+                                    break;
+                                }
+                            }
+                            if (siteR != null) {
+                                KalHit hitR = null;
+                                for (KalHit hit : candidateTrack.hits) {
+                                    if (hit.module == siteR.m) {
+                                        hitR = hit;
+                                        break;
+                                    }
+                                }
+                                if (hitR != null) {
+                                    candidateTrack.removeHit(hitR);           
+                                    System.out.format("KalmanPatRecHPS event %d, removing hit from layer %d detector %d\n", eventNumber, siteR.m.Layer, siteR.m.detector);
+                                    removedHit = true;
+                                } else {
+                                    System.out.format("KalmanPatRecHPS error: missing hit in layer %d detector %d\n", siteR.m.Layer, siteR.m.detector);
+                                }
+                            }
                         }
-                        continue;
+                        if (!removedHit) {
+                            if (verbose) {
+                                System.out.format("KalmanPatRecHPS: Filtering to layer 0 has too large chi^2. Skip to the next seed.\n");
+                            }
+                            continue;
+                        }
                     }
 
                     // Iterate the fit, starting from near the target and going toward the calorimeter
@@ -443,7 +472,10 @@ public class KalmanPatRecHPS {
                             Vec afC = candidateTrack.sites.get(candidateTrack.sites.size() - 1).aF.helixErrors();
                             afF.print("KalmanPatRecHPS helix parameters at final filtered site");
                             afC.print("KalmanPatRecHPS helix parameter errors");
-                            startSite = candidateTrack.sites.get(0);
+                            startSite = null;
+                            for (MeasurementSite site : candidateTrack.sites) {
+                                if (site.aS != null) startSite = site;
+                            }
                             if (startSite != null) {
                                 startSite.aS.a.print("KalmanPatRecHPS helix parameters at the final smoothed site");
                                 startSite.aS.helixErrors().print("KalmanPatRecHPS helix parameter errors:");
@@ -549,7 +581,7 @@ public class KalmanPatRecHPS {
                             if (m.isStereo) nStereo++;
                         }
                     }
-                    if (nShared < 2 && nHits >= minHits2[trial] && nStereo > 3 && nHits - nStereo > 1) {
+                    if (nShared <= mxShared && nHits >= minHits2[trial] && nStereo >= minStereo && nHits - nStereo >= minAxial) {
                         for (MeasurementSite site : tkr.SiteList) {
                             if (site.hitID < 0) { continue; }
                             site.m.hits.get(site.hitID).tracks.add(tkr); // Mark the hits as used
@@ -667,7 +699,7 @@ public class KalmanPatRecHPS {
     // Remove the worst hit from lousy tracks
     private boolean removeBadHits(TrackCandidate tkr) {
         
-        if (tkr.chi2s < chi2mx1[1]) return false;
+        if (tkr.chi2s/(double) tkr.nHits < chi2mx1[1]) return false;
         if (tkr.nHits <= minHits1[1]) return false;
         
         double mxChi2 = 0.;
@@ -714,7 +746,7 @@ public class KalmanPatRecHPS {
             int trial // trial level, for selecting cuts
     ) {
 
-        TrackCandidate tmpTrack = new TrackCandidate();
+        TrackCandidate tmpTrack = new TrackCandidate(mxShared);
         for (KalHit hit : hits) {
             if (hit.hit.tracks.size() > 0) { tmpTrack.nTaken++; }
             tmpTrack.hits.add(hit);

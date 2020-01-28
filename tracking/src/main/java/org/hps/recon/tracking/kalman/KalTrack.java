@@ -37,7 +37,19 @@ public class KalTrack {
         eventNumber = evtNumb;
         // Make a new list of sites in case somebody modifies the one referred to on input
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
-        for (MeasurementSite site : SiteList) { this.SiteList.add(site); }
+        for (MeasurementSite site : SiteList) { 
+            if (site.hitID >= 0 && site.aS != null) this.SiteList.add(site); 
+            if (site.hitID >=0 && site.aS == null) {
+                System.out.format("KalTrack error event %d: site is missing smoothed state vector for layer %d detector %d\n", 
+                        eventNumber, site.m.Layer, site.m.detector);
+                site.print("bad site");
+                continue;
+            }
+        }
+        if (this.SiteList.size() < 5) {
+            System.out.format("KalTrack error: not enough hits on the candidate track\n");
+            for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
+        }
         Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
         this.nHits = nHits;
         this.chi2 = chi2;
@@ -64,29 +76,33 @@ public class KalTrack {
         lyrMap = new HashMap<Integer, MeasurementSite>();
         // Fill the maps
         for (MeasurementSite site : this.SiteList) {
-            double phiS = site.aS.planeIntersect(site.m.p);
+            StateVector sV = null;
+            if (site.smoothed) sV = site.aS;
+            else sV = site.aP;
+            double phiS = sV.planeIntersect(site.m.p);
             if (Double.isNaN(phiS)) { phiS = 0.; }
-            interceptVects.put(site, site.aS.toGlobal(site.aS.atPhi(phiS)));
-            interceptMomVects.put(site, site.aS.Rot.inverseRotate(site.aS.getMom(phiS)));
+            interceptVects.put(site, sV.toGlobal(sV.atPhi(phiS)));
+            interceptMomVects.put(site, sV.Rot.inverseRotate(sV.getMom(phiS)));
             lyrMap.put(site.m.Layer, site);
         }
     }
 
     // Find the change in smoothed helix angle in XY between one layer and the next
     public double scatX(int layer) {
-        if (!lyrMap.containsKey(layer)) { return -999.; }
+        if (!lyrMap.containsKey(layer)) return -999.;
         int lyrNxt = layer + 1;
-        while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
-        if (lyrNxt > 13) { return -999.; }
+        while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) lyrNxt++;
+        if (lyrNxt > 13) return -999.; 
 
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
+        if (s1.aS == null || s2.aS == null) return -999.;
         double phiS1 = s1.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS1)) { return -999.; }
+        if (Double.isNaN(phiS1)) return -999.;
         Vec p1 = s1.aS.getMom(phiS1);
         double t1 = Math.atan2(p1.v[0], p1.v[1]);
         double phiS2 = s2.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS2)) { return -999.; }
+        if (Double.isNaN(phiS2)) return -999.;
         Vec p2 = s2.aS.getMom(phiS2);
         double t2 = Math.atan2(p2.v[0], p2.v[1]);
         return t1 - t2;
@@ -94,18 +110,19 @@ public class KalTrack {
 
     // Find the change in smoothed helix angle in ZY between one layer and the next
     public double scatZ(int layer) {
-        if (!lyrMap.containsKey(layer)) { return -999.; }
+        if (!lyrMap.containsKey(layer)) return -999.;
         int lyrNxt = layer + 1;
-        while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) { lyrNxt++; }
-        if (lyrNxt > 13) { return -999.; }
+        while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) lyrNxt++;
+        if (lyrNxt > 13) return -999.;
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
+        if (s1.aS == null || s2.aS == null) return -999.;
         double phiS1 = s1.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS1)) { return -999.; }
+        if (Double.isNaN(phiS1)) return -999.;
         Vec p1 = s1.aS.Rot.inverseRotate(s1.aS.getMom(phiS1));
         double t1 = Math.atan2(p1.v[2], p1.v[1]);
         double phiS2 = s2.aS.planeIntersect(s2.m.p);
-        if (Double.isNaN(phiS2)) { return -999.; }
+        if (Double.isNaN(phiS2)) return -999.;
         Vec p2 = s2.aS.Rot.inverseRotate(s2.aS.getMom(phiS2));
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
@@ -114,6 +131,7 @@ public class KalTrack {
     public double chi2prime() { // Alternative calculation of the fit chi^2, considering only residuals divided by the hit sigma
         double c2 = 0.;
         for (MeasurementSite S : SiteList) {
+            if (S.aS == null) continue;
             double phiS = S.aS.planeIntersect(S.m.p);
             if (Double.isNaN(phiS)) { phiS = 0.; }
             double vpred = S.h(S.aS, S.m, phiS);
@@ -412,6 +430,7 @@ public class KalTrack {
         }
         if (numAdded > 0) {
             for (MeasurementSite site : newSites) {
+                System.out.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d\n", eventNumber, site.hitID, site.m.Layer, site.m.detector);
                 SiteList.add(site);
             }
             sortSites(true);
@@ -420,7 +439,7 @@ public class KalTrack {
         return numAdded;
     }
         
-    // re-fit the track using its existing hits
+    // re-fit the track 
     public boolean fit(int nIterations, boolean verbose) {
         double chi2s = 0.;
         for (int iteration = 0; iteration < nIterations; iteration++) {
@@ -441,8 +460,11 @@ public class KalTrack {
                 currentSite.aP = null;
                 currentSite.aF = null;
                 currentSite.aS = null;
-
-                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, false, false, false, verbose) < 0) {
+                
+                boolean allowSharing = false;
+                boolean pickupHits = false;
+                boolean checkBounds = false;
+                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, verbose) < 0) {
                     if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!\n", eventNumber, ID, iteration);
                     return false;
                 }
@@ -453,10 +475,12 @@ public class KalTrack {
 
                 // if (verbose) currentSite.print("iterating filtering");
                 chi2f += Math.max(currentSite.chi2inc,0.);
+
                 sH = currentSite.aF;
                 prevMod = currentSite.m;
             }
             if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f); }
+            
             chi2s = 0.;
             MeasurementSite nextSite = null;
             for (int idx = SiteList.size() - 1; idx >= 0; idx--) {
@@ -480,8 +504,7 @@ public class KalTrack {
         return true;
     }
 
-    // Derivative matrix for propagating the covariance of the helix parameters to a
-    // covariance of momentum
+    // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
     private double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];
         double K = Math.abs(a.v[2]);
