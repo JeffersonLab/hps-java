@@ -228,6 +228,7 @@ public class DetectorBuilder {
                 DetectorPlane dp = new DetectorPlane(id++, prodrot, origin.v(), SIGS);
                 dp.setName(stripPlaneName);
                 dp.setUVWR(uDir, vDir, normal, origin);
+                dp.setAngles(hpsAngles);
                 planes.add(dp);
                 planeMap.put(plane.getName(), dp);
             }
@@ -239,7 +240,7 @@ public class DetectorBuilder {
 
     }
 
-    private double[] findZBounds(Hep3Vector origin, Hep3Vector width, Hep3Vector height) {
+    public static double[] findZBounds(Hep3Vector origin, Hep3Vector width, Hep3Vector height) {
         Hep3Vector[] corners = new Hep3Vector[4];
         double zmin = 999.;
         double zmax = -999;

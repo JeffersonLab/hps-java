@@ -1,7 +1,9 @@
 package org.hps.analysis.alignment.straighttrack;
 
 import Jama.Matrix;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 import java.util.Arrays;
 
 /**
@@ -16,10 +18,11 @@ public class DetectorPlane {
     private double[] _rot = new double[9]; // rotation matrix local -> global
     private double[] _r0 = new double[3]; //detector origin in global coordinates (mm)
     private double[] _sigs = new double[2]; //detector resolutions in v and w (mm)
+    private double[] _angles = new double[3]; //angles alpha, beta and gamma rotating from HPS to these coordinates
     private Offset _offset; // possible offsets in position and rotation
 
-    private Hep3Vector _u; // measured direction (~y)
-    private Hep3Vector _v; // unmeasured direction (~x)
+    private Hep3Vector _u; // measured direction half-dimension (~y)
+    private Hep3Vector _v; // unmeasured direction half-dimension(~x)
     private Hep3Vector _w; // normal to the plane (~z)
     private Hep3Vector _r; // point on the plane
 
@@ -123,6 +126,14 @@ public class DetectorPlane {
         _r = V0;
     }
 
+    public void setAngles(double[] angles) {
+        System.arraycopy(angles, 0, _angles, 0, 3);
+    }
+
+    public double[] rotationAngles() {
+        return _angles;
+    }
+
     public Hep3Vector u() {
         return _u;
     }
@@ -163,10 +174,45 @@ public class DetectorPlane {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer("DetectorPlane " + _name + " " + _id + " : ");
-        sb.append("rot : " + Arrays.toString(_rotMat.getRowPackedCopy()));
-        sb.append(" r0  : " + Arrays.toString(_r0));
-        sb.append(" sigs: " + Arrays.toString(_sigs));
+        StringBuffer sb = new StringBuffer("DetectorPlane " + _name + " " + _id + " : \n");
+        sb.append(" pos  : " + Arrays.toString(_r0)+"\n");
+        sb.append(" angles: " + Arrays.toString(_angles)+"\n");
+        sb.append(" normal: "+_w+" \n");
+        sb.append(" sigs: " + Arrays.toString(_sigs)+"\n");
+        sb.append(" rot : " + Arrays.toString(_rotMat.getRowPackedCopy())+"\n");
         return sb.toString();
+    }
+    
+    
+    public Hep3Vector globalToLocal(Hep3Vector global)
+    {
+        System.out.println("input global: " +global);
+        Matrix tmp = new Matrix(3,1);
+        double[] tg = VecOp.sub(global,_r).v();
+        for(int i=0; i<3; ++i)
+        {
+            tmp.set(i,0, tg[i]);
+        }
+        System.out.println("translated global: "+tmp);
+//        Matrix g2l = _rotMat.inverse();
+//        System.out.println("local "+g2l.times(tmp));
+        System.out.println("local "+_rotMat.times(tmp));
+        return null;
+    }
+    
+    public Hep3Vector localToGlobal(Hep3Vector local)
+    {
+        System.out.println("input local: " +local);
+        Matrix tmp = new Matrix(3,1);
+        for(int i=0; i<3; ++i)
+        {
+            tmp.set(i,0, local.v()[i]);
+        }
+        Matrix l2g = _rotMat.inverse();
+        Matrix localRotated = l2g.times(tmp);
+        System.out.println("rotated local "+localRotated);
+        Hep3Vector global = VecOp.add(_r,new BasicHep3Vector(localRotated.get(0,0), localRotated.get(1,0),localRotated.get(2,0))) ;
+        System.out.println(global);
+        return null;
     }
 }
