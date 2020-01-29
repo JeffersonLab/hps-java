@@ -64,7 +64,7 @@ public class HpsThinSiSensor extends HpsSiSensor {
         double stripLength = this.getStripLength()/2; 
 
         // Set the number of readout and sense electrodes.
-        final SiPixels readoutElectrodes = new SiPixels(ChargeCarrier.HOLE, 
+        final SiStriplets readoutElectrodes = new SiStriplets(ChargeCarrier.HOLE, 
                            getReadoutStripPitch(), // Strip pitch = 55 um
                            stripLength,            // Column pitch 
                            this, 
@@ -73,7 +73,7 @@ public class HpsThinSiSensor extends HpsSiSensor {
        
         // TODO: Investigate whether this needs to be defined or if it can be 
         //       set to null.  
-        final SiPixels senseElectrodes = new SiPixels(ChargeCarrier.HOLE, 
+        final SiStriplets senseElectrodes = new SiStriplets(ChargeCarrier.HOLE, 
                            getReadoutStripPitch(), // Strip pitch = 55 um
                            stripLength,            // Column pitch 
                            this, 
