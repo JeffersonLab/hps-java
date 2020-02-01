@@ -198,12 +198,6 @@ public class DetectorBuilder {
                 Rotation xyVecRot = new Rotation(vX, vY, vXprime, vYprime);
                 double[] hpsAngles = xyVecRot.getAngles(RotationOrder.XYZ, RotationConvention.VECTOR_OPERATOR);
 //                if (_debug) {
-                System.out.println(" " + stripPlaneName);
-                System.out.println("   origin: " + origin);
-                System.out.println("   normal: " + normal);
-                System.out.println("   uDir: " + uDir);
-                System.out.println("   vDir: " + vDir);
-                System.out.println("   Apache commons angles: " + Arrays.toString(hpsAngles));
                 Matrix[] mats = new Matrix[3];
                 double[][] RW = new double[3][9];
                 for (int j = 0; j < 3; ++j) {
@@ -224,12 +218,21 @@ public class DetectorBuilder {
                 double[] bounds = findZBounds(origin, VecOp.mult(width, vDir), VecOp.mult(height, uDir));
                 double zmin = bounds[0];
                 double zmax = bounds[1];
-                System.out.println("zmin " + zmin + " zmax " + zmax);
+                if (_debug) {
+                    System.out.println(" " + stripPlaneName);
+                    System.out.println("   origin: " + origin);
+                    System.out.println("   normal: " + normal);
+                    System.out.println("   uDir: " + uDir);
+                    System.out.println("   vDir: " + vDir);
+                    System.out.println("   Apache commons angles: " + Arrays.toString(hpsAngles));
+                    System.out.println("zmin " + zmin + " zmax " + zmax);
+                }
                 DetectorPlane dp = new DetectorPlane(id++, prodrot, origin.v(), SIGS);
                 dp.setName(stripPlaneName);
                 dp.setUVWR(uDir, vDir, normal, origin);
                 dp.setAngles(hpsAngles);
                 planes.add(dp);
+                System.out.println("  " + dp);
                 planeMap.put(plane.getName(), dp);
             }
             trackerMap.put(s, planes);
@@ -254,7 +257,7 @@ public class DetectorBuilder {
         corners[3] = VecOp.sub(edge, height);
 
         for (int i = 0; i < 4; ++i) {
-            System.out.println("corner " + i + " : " + corners[i]);
+            //System.out.println("corner " + i + " : " + corners[i]);
             if (corners[i].z() > zmax) {
                 zmax = corners[i].z();
             }
@@ -262,7 +265,7 @@ public class DetectorBuilder {
                 zmin = corners[i].z();
             }
         }
-        System.out.println("zmin " + zmin + " zmax " + zmax);
+        //System.out.println("zmin " + zmin + " zmax " + zmax);
         return new double[]{zmin, zmax};
     }
 

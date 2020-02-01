@@ -46,7 +46,7 @@ import org.lcsim.util.aida.AIDA;
 public class StraightTrackAlignmentDriver extends Driver {
 
     private int _numberOfEventsWritten = 0;
-    boolean _debug = true;
+    boolean _debug = false;
     DetectorBuilder _db;
     double _minClusterEnergy = 3.5;
 
@@ -99,7 +99,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     Hit beamAtWire = null;
 
     boolean beamConstrain = true;
-    int nEventsToAlign = 250000;
+    int nEventsToAlign = 5000;
     int bottomIter;
     int topIter;
     int NITER = 7;
@@ -792,8 +792,8 @@ public class StraightTrackAlignmentDriver extends Driver {
             // get the unbiased residual for the missing hit
             double[] resid = unbiasedResidual(fit, missingPlane, missingHit, A0, B0);
             aida.histogram1D(topOrBottom + "unbiased residual " + missingPlane.id(), 100, -1.0, 1.0).fill(resid[1]);
-            aida.histogram2D(topOrBottom + "unbiased x vs residual " + missingPlane.id(), 300, -200, 100, 100, -1.0, 1.0).fill(resid[0], resid[1]);
-            aida.histogram1D(topOrBottom + "unbiased x " + missingPlane.id(), 300, -200, 100).fill(resid[0]);
+//            aida.histogram2D(topOrBottom + "unbiased x vs residual " + missingPlane.id(), 300, -200, 100, 100, -1.0, 1.0).fill(resid[0], resid[1]);
+//            aida.histogram1D(topOrBottom + "unbiased x " + missingPlane.id(), 300, -200, 100).fill(resid[0]);
         }
         aida.tree().cd("..");
     }
