@@ -98,6 +98,8 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
+    boolean _isMC = true;
+
     boolean beamConstrain = true;
     int nEventsToAlign = 5000;
     int bottomIter;
@@ -116,10 +118,16 @@ public class StraightTrackAlignmentDriver extends Driver {
     int nTracksToVertex = 50;
     double target_x = -68.0;
     double target_y = 0.;
-    double target_z = -(672.71 - 583.44) * 25.4;
+    double target_z = -(672.71 - 583.44) * 25.4; // -2267.458
+
     double maxChisq = 200.;
 
     protected void detectorChanged(Detector detector) {
+        if (_isMC) {
+            target_x = -65.0;
+            target_y = 0.;
+            target_z = -2267;
+        }
         _db = new DetectorBuilder(detector);
         // set up the DetectorPlanes at the 2H02 wire
         double[] beamSpot = {target_x, target_y, target_z};  // start with this...
@@ -849,6 +857,11 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     public void setNumberOfTracksToVertex(int i) {
         nTracksToVertex = i;
+    }
+    
+    public void setIsMC(boolean b)
+    {
+        _isMC = b;
     }
 
     public void setTargetX(double d) {

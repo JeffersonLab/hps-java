@@ -1,11 +1,23 @@
 package org.hps.analysis.alignment.straighttrack;
 
 import Jama.Matrix;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +57,8 @@ public class DetectorBuilder {
     Map<String, DetectorPlane> planeMap = new HashMap<String, DetectorPlane>();
 
     MaterialSupervisor materialManager;
+
+    String _detectorName;
 
     Boolean _drawDetector = true;
 
@@ -145,12 +159,89 @@ public class DetectorBuilder {
         _det = manager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
         System.out.println(_det.getName());
         setup();
+        _detectorName = detectorName;
     }
 
     public DetectorBuilder(Detector detector) {
         _det = detector;
         System.out.println(_det.getName());
         setup();
+        _detectorName = detector.getDetectorName();
+    }
+
+    public DetectorBuilder(Path path) {
+        int oIndex = 2;
+        int uIndex = 8;
+        int vIndex = 14;
+        int wIndex = 20;
+        int aIndex = 26;
+        boolean debug = true;
+        List<String> lines = null;
+        try {
+            lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            Logger.getLogger(DetectorBuilder.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
+        for (String line : lines) {
+            System.out.println(line);
+            String[] s = line.split("\\s+");
+            int id = Integer.valueOf(s[0]);
+            String stripPlaneName = s[1];
+            double[] hpsAngles = arrayFromStrings(s, aIndex);
+            Hep3Vector origin = hep3vectorFromStrings(s, oIndex);
+            Hep3Vector uDir = hep3vectorFromStrings(s, uIndex);
+            Hep3Vector vDir = hep3vectorFromStrings(s, vIndex);
+            Hep3Vector normal = hep3vectorFromStrings(s, wIndex);
+            double width = Double.valueOf(s[32]);
+            double height = Double.valueOf(s[33]);
+            double zmin = Double.valueOf(s[34]);
+            double zmax = Double.valueOf(s[35]);
+            if (debug) {
+                System.out.println(" " + stripPlaneName);
+                System.out.println("   origin: " + origin);
+                System.out.println("   normal: " + normal);
+                System.out.println("   uDir: " + uDir);
+                System.out.println("   vDir: " + vDir);
+                System.out.println("   Apache commons angles: " + Arrays.toString(hpsAngles));
+                System.out.println("zmin " + zmin + " zmax " + zmax);
+            }
+            DetectorPlane dp = new DetectorPlane(id++, matrixFromAngles(hpsAngles), origin.v(), SIGS);
+            dp.setName(stripPlaneName);
+            dp.setUVWR(uDir, vDir, normal, origin);
+            dp.setDimensions(width, height, zmin, zmax);
+            dp.setAngles(hpsAngles);
+            planes.add(dp);
+            System.out.println("  " + dp);
+            //planeMap.put(plane.getName(), dp);
+
+        }
+
+    }
+
+    private Matrix matrixFromAngles(double[] hpsAngles) {
+        Matrix[] mats = new Matrix[3];
+        double[][] RW = new double[3][9];
+        for (int j = 0; j < 3; ++j) {
+            double angl = hpsAngles[j];
+            mats[j] = GEN_ROTMAT(angl, j);
+            GEN_ROTMAT(angl, j, RW[j]);
+            if (_debug) {
+                System.out.println("Rotation matrix for axis " + (j + 1) + " angle " + angl);
+            }
+            if (_debug) {
+                mats[j].print(6, 4);
+            }
+        }
+        return PROD_ROT(mats[0], mats[1], mats[2]);
+    }
+
+    private double[] arrayFromStrings(String[] s, int index) {
+        return new double[]{Double.valueOf(s[index + 2]), Double.valueOf(s[index + 3]), Double.valueOf(s[index + 4])};
+    }
+
+    private Hep3Vector hep3vectorFromStrings(String[] s, int index) {
+        return new BasicHep3Vector(Double.valueOf(s[index + 2]), Double.valueOf(s[index + 3]), Double.valueOf(s[index + 4]));
     }
 
     private void setup() {
@@ -230,6 +321,7 @@ public class DetectorBuilder {
                 DetectorPlane dp = new DetectorPlane(id++, prodrot, origin.v(), SIGS);
                 dp.setName(stripPlaneName);
                 dp.setUVWR(uDir, vDir, normal, origin);
+                dp.setDimensions(width, height, zmin, zmax);
                 dp.setAngles(hpsAngles);
                 planes.add(dp);
                 System.out.println("  " + dp);
@@ -532,5 +624,37 @@ public class DetectorBuilder {
 
         db.drawDetector();
 
+    }
+
+    public void archiveIt(String suffix) throws Exception {
+        for (Tracker t : Tracker.values()) {
+            String s = t.trackerName();
+            System.out.println("Archiving " + _detectorName + " " + s + " : ");
+            FileOutputStream fos = new FileOutputStream(_detectorName + "_" + s + "_" + myDate() + "_" + suffix + ".txt");
+            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "Cp850"));
+            List<DetectorPlane> planes = getTracker(s);
+            for (DetectorPlane p : planes) {
+                StringBuffer sb = new StringBuffer(p.id() + " " + p.name() + " ");
+                sb.append("o ( " + p.origin().x() + " " + p.origin().y() + " " + p.origin().z() + " ) ");
+                sb.append("u ( " + p.u().x() + " " + p.u().y() + " " + p.u().z() + " ) ");
+                sb.append("v ( " + p.v().x() + " " + p.v().y() + " " + p.v().z() + " ) ");
+                sb.append("w ( " + p.normal().x() + " " + p.normal().y() + " " + p.normal().z() + " ) ");
+                sb.append("a ( " + p.rotationAngles()[0] + " " + p.rotationAngles()[1] + " " + p.rotationAngles()[2] + " ) ");
+                sb.append(p.width() + " " + p.height() + " " + p.zmin() + " " + p.zmax() + " \n");
+                w.write(sb.toString());
+            }
+            w.flush();
+            w.close();
+        }
+    }
+
+    static private String myDate() {
+        Calendar cal = new GregorianCalendar();
+        Date date = new Date();
+        cal.setTime(date);
+        DecimalFormat formatter = new DecimalFormat("00");
+        String day = formatter.format(cal.get(Calendar.DAY_OF_MONTH));
+        String month = formatter.format(cal.get(Calendar.MONTH) + 1);
+        return cal.get(Calendar.YEAR) + month + day;
     }
 }

@@ -1,13 +1,9 @@
 package org.hps.analysis.alignment.straighttrack;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import junit.framework.TestCase;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -15,7 +11,7 @@ import static org.junit.Assert.*;
  */
 public class DetectorBuilderTest extends TestCase {
 
-    public void testIt() {
+    public void testIt() throws Exception {
         DetectorBuilder db = new DetectorBuilder("HPS-PhysicsRun2019-v1-4pt5_fieldOff");
 
         List<DetectorPlane> planes = db.getTracker("topSlot");
@@ -24,7 +20,13 @@ public class DetectorBuilderTest extends TestCase {
             System.out.println("");
         }
 
-        db.drawDetector();
+        //db.drawDetector();
+        db.archiveIt("test");
+
+        // try building detector from file...
+        Path path = Paths.get("HPS-PhysicsRun2019-v1-4pt5_fieldOff_bottomHole_20200203_test.txt");
+        DetectorBuilder fileDb = new DetectorBuilder(path);
+//        fileDb.archiveIt("fromFile");
     }
 
 }

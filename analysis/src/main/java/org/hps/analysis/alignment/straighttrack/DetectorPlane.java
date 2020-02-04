@@ -26,6 +26,11 @@ public class DetectorPlane {
     private Hep3Vector _w; // normal to the plane (~z)
     private Hep3Vector _r; // point on the plane
 
+    private double _width;
+    private double _height;
+    private double _zmin;
+    private double _zmax;
+
     public DetectorPlane(int id, Matrix m, double[] pos, double[] s) {
         this(id, m, pos, s, null);
         addOffset();
@@ -81,6 +86,13 @@ public class DetectorPlane {
 
     public void addOffset(Offset o) {
         _offset = o;
+    }
+
+    public void setDimensions(double width, double height, double zmin, double zmax) {
+        _width = width;
+        _height = height;
+        _zmin = zmin;
+        _zmax = zmax;
     }
 
     public void setUpdatedRotation(double[] rot) {
@@ -150,6 +162,22 @@ public class DetectorPlane {
         return _r;
     }
 
+    public double width() {
+        return _width;
+    }
+
+    public double height() {
+        return _height;
+    }
+
+    public double zmin() {
+        return _zmin;
+    }
+
+    public double zmax() {
+        return _zmax;
+    }
+
     private void addOffset() {
         double[] a = new double[3];
         int[] MASK = new int[6];
@@ -175,43 +203,38 @@ public class DetectorPlane {
 
     public String toString() {
         StringBuffer sb = new StringBuffer("DetectorPlane " + _name + " " + _id + " : \n");
-        sb.append(" pos  : " + Arrays.toString(_r0)+"\n");
-        sb.append(" angles: " + Arrays.toString(_angles)+"\n");
-        sb.append(" normal: "+_w+" \n");
-        sb.append(" sigs: " + Arrays.toString(_sigs)+"\n");
-        sb.append(" rot : " + Arrays.toString(_rotMat.getRowPackedCopy())+"\n");
+        sb.append(" pos  : " + Arrays.toString(_r0) + "\n");
+        sb.append(" angles: " + Arrays.toString(_angles) + "\n");
+        sb.append(" normal: " + _w + " \n");
+        sb.append(" sigs: " + Arrays.toString(_sigs) + "\n");
+        sb.append(" rot : " + Arrays.toString(_rotMat.getRowPackedCopy()) + "\n");
         return sb.toString();
     }
-    
-    
-    public Hep3Vector globalToLocal(Hep3Vector global)
-    {
-        System.out.println("input global: " +global);
-        Matrix tmp = new Matrix(3,1);
-        double[] tg = VecOp.sub(global,_r).v();
-        for(int i=0; i<3; ++i)
-        {
-            tmp.set(i,0, tg[i]);
+
+    public Hep3Vector globalToLocal(Hep3Vector global) {
+        System.out.println("input global: " + global);
+        Matrix tmp = new Matrix(3, 1);
+        double[] tg = VecOp.sub(global, _r).v();
+        for (int i = 0; i < 3; ++i) {
+            tmp.set(i, 0, tg[i]);
         }
-        System.out.println("translated global: "+tmp);
+        System.out.println("translated global: " + tmp);
 //        Matrix g2l = _rotMat.inverse();
 //        System.out.println("local "+g2l.times(tmp));
-        System.out.println("local "+_rotMat.times(tmp));
+        System.out.println("local " + _rotMat.times(tmp));
         return null;
     }
-    
-    public Hep3Vector localToGlobal(Hep3Vector local)
-    {
-        System.out.println("input local: " +local);
-        Matrix tmp = new Matrix(3,1);
-        for(int i=0; i<3; ++i)
-        {
-            tmp.set(i,0, local.v()[i]);
+
+    public Hep3Vector localToGlobal(Hep3Vector local) {
+        System.out.println("input local: " + local);
+        Matrix tmp = new Matrix(3, 1);
+        for (int i = 0; i < 3; ++i) {
+            tmp.set(i, 0, local.v()[i]);
         }
         Matrix l2g = _rotMat.inverse();
         Matrix localRotated = l2g.times(tmp);
-        System.out.println("rotated local "+localRotated);
-        Hep3Vector global = VecOp.add(_r,new BasicHep3Vector(localRotated.get(0,0), localRotated.get(1,0),localRotated.get(2,0))) ;
+        System.out.println("rotated local " + localRotated);
+        Hep3Vector global = VecOp.add(_r, new BasicHep3Vector(localRotated.get(0, 0), localRotated.get(1, 0), localRotated.get(2, 0)));
         System.out.println(global);
         return null;
     }
