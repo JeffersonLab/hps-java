@@ -170,21 +170,26 @@ public class DetectorBuilder {
     }
 
     public DetectorBuilder(Path path) {
+        sensorNameMap.put("topHole", topHoleNames);
+        sensorNameMap.put("bottomHole", bottomHoleNames);
+        sensorNameMap.put("topSlot", topSlotNames);
+        sensorNameMap.put("bottomSlot", bottomSlotNames);
         int oIndex = 2;
         int uIndex = 8;
         int vIndex = 14;
         int wIndex = 20;
         int aIndex = 26;
-        boolean debug = true;
         List<String> lines = null;
         try {
             lines = Files.readAllLines(path, StandardCharsets.UTF_8);
         } catch (IOException ex) {
             Logger.getLogger(DetectorBuilder.class.getName()).log(Level.SEVERE, null, ex);
         }
-        List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
+        //List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
         for (String line : lines) {
-            System.out.println(line);
+            if (_debug) {
+                System.out.println(line);
+            }
             String[] s = line.split("\\s+");
             int id = Integer.valueOf(s[0]);
             String stripPlaneName = s[1];
@@ -197,7 +202,7 @@ public class DetectorBuilder {
             double height = Double.valueOf(s[33]);
             double zmin = Double.valueOf(s[34]);
             double zmax = Double.valueOf(s[35]);
-            if (debug) {
+            if (_debug) {
                 System.out.println(" " + stripPlaneName);
                 System.out.println("   origin: " + origin);
                 System.out.println("   normal: " + normal);
@@ -211,10 +216,30 @@ public class DetectorBuilder {
             dp.setUVWR(uDir, vDir, normal, origin);
             dp.setDimensions(width, height, zmin, zmax);
             dp.setAngles(hpsAngles);
-            planes.add(dp);
-            System.out.println("  " + dp);
-            //planeMap.put(plane.getName(), dp);
-
+            //planes.add(dp);
+            if (_debug) {
+                System.out.println("  " + dp);
+            }
+            planeMap.put(dp.name(), dp);
+        }
+        if (_debug) {
+            System.out.println("Populated planemap with " + planeMap.size() + " planes");
+        }
+        for (Tracker t : Tracker.values()) {
+            String s = t.trackerName();
+            if (_debug) {
+                System.out.println("building " + s + " : ");
+            }
+            String[] stripNames = sensorNameMap.get(s);
+            List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
+            int id = 1;
+            for (String stripPlaneName : stripNames) {
+                planes.add(planeMap.get(stripPlaneName));
+            }
+            trackerMap.put(s, planes);
+            if (_debug) {
+                System.out.println("TrackerMap " + s + " has " + planes.size() + " planes");
+            }
         }
 
     }
@@ -255,7 +280,9 @@ public class DetectorBuilder {
         for (ScatteringDetectorVolume vol : materialManager.getMaterialVolumes()) {
             SiStripPlane plane = (SiStripPlane) vol;
             stripPlaneNameMap.put(plane.getName(), plane);
-            System.out.println(plane.getName());
+            if (_debug) {
+                System.out.println(plane.getName());
+            }
         }
 
         for (Tracker t : Tracker.values()) {
@@ -269,7 +296,9 @@ public class DetectorBuilder {
             for (String stripPlaneName : stripNames) {
 
                 SiStripPlane plane = stripPlaneNameMap.get(stripPlaneName);
-                System.out.println(stripPlaneName);
+                if (_debug) {
+                    System.out.println(stripPlaneName);
+                }
                 Hep3Vector origin = CoordinateTransformations.transformVectorToDetector(plane.origin());
 
                 Hep3Vector normal = CoordinateTransformations.transformVectorToDetector(plane.normal());
@@ -297,8 +326,7 @@ public class DetectorBuilder {
                     GEN_ROTMAT(angl, j, RW[j]);
                     if (_debug) {
                         System.out.println("Rotation matrix for axis " + (j + 1) + " angle " + angl);
-                    }
-                    if (_debug) {
+
                         mats[j].print(6, 4);
                     }
                 }
@@ -324,7 +352,9 @@ public class DetectorBuilder {
                 dp.setDimensions(width, height, zmin, zmax);
                 dp.setAngles(hpsAngles);
                 planes.add(dp);
-                System.out.println("  " + dp);
+                if (_debug) {
+                    System.out.println("  " + dp);
+                }
                 planeMap.put(plane.getName(), dp);
             }
             trackerMap.put(s, planes);
@@ -332,7 +362,9 @@ public class DetectorBuilder {
                 System.out.println("");
             }
         }
-
+        if (_debug) {
+            System.out.println("Populated planemap with " + planeMap.size() + " planes");
+        }
     }
 
     public static double[] findZBounds(Hep3Vector origin, Hep3Vector width, Hep3Vector height) {
@@ -374,6 +406,7 @@ public class DetectorBuilder {
     }
 
     private void drawDetector(Detector det) {
+        //TODO provide this functionality working from the planemap
         boolean debug = false;
         List<MaterialSupervisor.ScatteringDetectorVolume> stripPlanes = materialManager.getMaterialVolumes();
         //TODO replace these lists with a helper class.
@@ -626,12 +659,19 @@ public class DetectorBuilder {
 
     }
 
+    public Map<String, DetectorPlane> planeMap() {
+        return planeMap;
+    }
+
     public void archiveIt(String suffix) throws Exception {
+        //TODO just work from the complete set of planes in planemap...
+        FileOutputStream fos = new FileOutputStream(_detectorName + "_" + myDate() + "_" + suffix + ".txt");
+        Writer w = new BufferedWriter(new OutputStreamWriter(fos, "Cp850"));
         for (Tracker t : Tracker.values()) {
             String s = t.trackerName();
-            System.out.println("Archiving " + _detectorName + " " + s + " : ");
-            FileOutputStream fos = new FileOutputStream(_detectorName + "_" + s + "_" + myDate() + "_" + suffix + ".txt");
-            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "Cp850"));
+            if (_debug) {
+                System.out.println("Archiving " + _detectorName + " " + s + " : ");
+            }
             List<DetectorPlane> planes = getTracker(s);
             for (DetectorPlane p : planes) {
                 StringBuffer sb = new StringBuffer(p.id() + " " + p.name() + " ");
@@ -643,9 +683,9 @@ public class DetectorBuilder {
                 sb.append(p.width() + " " + p.height() + " " + p.zmin() + " " + p.zmax() + " \n");
                 w.write(sb.toString());
             }
-            w.flush();
-            w.close();
         }
+        w.flush();
+        w.close();
     }
 
     static private String myDate() {

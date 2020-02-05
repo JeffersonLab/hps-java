@@ -128,6 +128,7 @@ public class DetectorPlane {
 //        System.out.println("updating DetectorPlane " + _id + " position");
 //        System.out.println("old position " + Arrays.toString(_r0));
         System.arraycopy(r0, 0, _r0, 0, 3);
+        _r = new BasicHep3Vector(_r0);
 //        System.out.println("new position " + Arrays.toString(_r0));
     }
 

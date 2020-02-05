@@ -15,7 +15,7 @@ public class StraightTrackAlignmentDriverTest extends TestCase {
     public void testIt() throws Exception {
         FileCache cache = new FileCache();
         int nEvents = -1;
-        boolean isMC = true;
+        boolean isMC = false;
         String fileName = "hps_010101.evio.00000_skim.slcio";
 //        String fileName = "hps_010101.evio.00000_skimBottomReReco_FieldOff_9Events.slcio";
 //        String fileName = "mu-_1.056GeV_slic-3.1.5_geant4-v9r6p1_QGSP_BERT_HPS-EngRun2015-Nominal-v1_fieldOff_++_reco.slcio";

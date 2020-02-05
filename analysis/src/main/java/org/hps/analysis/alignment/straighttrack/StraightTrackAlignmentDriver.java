@@ -2,19 +2,29 @@ package org.hps.analysis.alignment.straighttrack;
 
 import Jama.Matrix;
 import hep.physics.vec.Hep3Vector;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import static java.lang.Math.PI;
 //import java.io.BufferedWriter;
 //import java.io.FileOutputStream;
 //import java.io.OutputStreamWriter;
 //import java.io.Writer;
 import static java.lang.Math.abs;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.hps.analysis.alignment.straighttrack.FitTracks.GEN_ROTMAT;
 import org.hps.analysis.alignment.straighttrack.vertex.StraightLineVertexFitter;
 import org.hps.analysis.alignment.straighttrack.vertex.Track;
@@ -48,6 +58,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     private int _numberOfEventsWritten = 0;
     boolean _debug = false;
     DetectorBuilder _db;
+    String _detectorName;
     double _minClusterEnergy = 3.5;
 
     private AIDA aida = AIDA.defaultInstance();
@@ -98,10 +109,10 @@ public class StraightTrackAlignmentDriver extends Driver {
     DetectorPlane yPlaneAtWire = null;
     Hit beamAtWire = null;
 
-    boolean _isMC = true;
+    boolean _isMC = false;
 
     boolean beamConstrain = true;
-    int nEventsToAlign = 5000;
+    int nEventsToAlign = 250000;
     int bottomIter;
     int topIter;
     int NITER = 7;
@@ -110,6 +121,10 @@ public class StraightTrackAlignmentDriver extends Driver {
     List<List<Hit>> topEventsToAlign = new ArrayList<>();
     List<DetectorPlane> topPlanes = null;//new ArrayList<DetectorPlane>();
     Map<String, DetectorPlane> alignedDetectorPlanesInFit = new LinkedHashMap<>();
+    // container to hold the current best values of the detector planes
+    // this will be update after every alignment.
+    Map<String, DetectorPlane> planeMap = new HashMap<String, DetectorPlane>();
+
 
     // try some vertexing here...
     List<Track> topTracks = new ArrayList<Track>();
@@ -129,6 +144,7 @@ public class StraightTrackAlignmentDriver extends Driver {
             target_z = -2267;
         }
         _db = new DetectorBuilder(detector);
+        planeMap.putAll(_db.planeMap());
         // set up the DetectorPlanes at the 2H02 wire
         double[] beamSpot = {target_x, target_y, target_z};  // start with this...
         double[] sigs = {0.050, 0.00}; // pick 50um for beam spot at wire
@@ -137,6 +153,7 @@ public class StraightTrackAlignmentDriver extends Driver {
         double[] u = {0., 0.};
         double[] wt = {1. / (sigs[0] * sigs[0]), 0., 0.};
         beamAtWire = new Hit(u, wt);
+        _detectorName = detector.getDetectorName();
 
         //_db.drawDetector();
 //        try {
@@ -642,6 +659,35 @@ public class StraightTrackAlignmentDriver extends Driver {
         System.out.println("After alignment...");
         for (DetectorPlane p : planes) {
             System.out.println(p);
+            planeMap.replace(p.name(), p);
+        }
+        // let's archive this...
+        // Note that we always write out the full detector...
+        System.out.println("archiving "+path+ "iteration "+iter);
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(_detectorName + "_" + myDate() + "_" + (isTop ? "topAlignment" : "bottomAlignment_") + nEventsToAlign + "EventsIteration_" + iter + ".txt");
+            Writer w = new BufferedWriter(new OutputStreamWriter(fos));
+            for (DetectorBuilder.Tracker t : DetectorBuilder.Tracker.values()) {
+                String[] sensorNames = _db.getTrackerSensorNames(t.trackerName());
+                for(String sensor : sensorNames)
+                {
+                    DetectorPlane p = planeMap.get(sensor);
+                    StringBuffer sb = new StringBuffer(p.id() + " " + p.name() + " ");
+                    sb.append("o ( " + p.origin().x() + " " + p.origin().y() + " " + p.origin().z() + " ) ");
+                    sb.append("u ( " + p.u().x() + " " + p.u().y() + " " + p.u().z() + " ) ");
+                    sb.append("v ( " + p.v().x() + " " + p.v().y() + " " + p.v().z() + " ) ");
+                    sb.append("w ( " + p.normal().x() + " " + p.normal().y() + " " + p.normal().z() + " ) ");
+                    sb.append("a ( " + p.rotationAngles()[0] + " " + p.rotationAngles()[1] + " " + p.rotationAngles()[2] + " ) ");
+                    sb.append(p.width() + " " + p.height() + " " + p.zmin() + " " + p.zmax() + " \n");
+                    w.write(sb.toString());
+                }
+            }
+            w.flush();
+            w.close();
+
+        } catch (Exception ex) {
+            Logger.getLogger(StraightTrackAlignmentDriver.class.getName()).log(Level.SEVERE, null, ex);
         }
         // see if the unbiased residuals improve...
         aida.tree().mkdirs("after");
@@ -858,9 +904,8 @@ public class StraightTrackAlignmentDriver extends Driver {
     public void setNumberOfTracksToVertex(int i) {
         nTracksToVertex = i;
     }
-    
-    public void setIsMC(boolean b)
-    {
+
+    public void setIsMC(boolean b) {
         _isMC = b;
     }
 
@@ -894,5 +939,15 @@ public class StraightTrackAlignmentDriver extends Driver {
 
     public void setDoAlignment(boolean b) {
         alignit = b;
+    }
+
+    static private String myDate() {
+        Calendar cal = new GregorianCalendar();
+        Date date = new Date();
+        cal.setTime(date);
+        DecimalFormat formatter = new DecimalFormat("00");
+        String day = formatter.format(cal.get(Calendar.DAY_OF_MONTH));
+        String month = formatter.format(cal.get(Calendar.MONTH) + 1);
+        return cal.get(Calendar.YEAR) + month + day;
     }
 }

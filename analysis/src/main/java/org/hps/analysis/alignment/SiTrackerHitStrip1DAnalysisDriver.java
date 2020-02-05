@@ -1,5 +1,6 @@
 package org.hps.analysis.alignment;
 
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.SiliconResolutionModel;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
@@ -37,6 +39,7 @@ import org.lcsim.util.aida.AIDA;
 public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
+    private boolean debug = false;
     //Collection Strings
     private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
     String rawTrackerHitCollectionName = "SVTRawTrackerHits";
@@ -59,24 +62,45 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
         aida.histogram1D("number of strip clusters in the event", 100, 0., 200.).fill(nStripHits);
         // lets partition the strip clusters into each module
         Map<String, List<SiTrackerHitStrip1D>> hitsPerModuleMap = new HashMap<>();
-        System.out.println("found " + stripClusters.size() + " strip clusters");
+        if (debug) {
+            System.out.println("found " + stripClusters.size() + " strip clusters");
+        }
         for (TrackerHit thit : stripClusters) {
             double[] stripPos = thit.getPosition();
             List<RawTrackerHit> hits = thit.getRawHits();
             String moduleName = ((RawTrackerHit) hits.get(0)).getDetectorElement().getName();
-            System.out.println(" Strip Cluster at " + Arrays.toString(thit.getPosition()) + " has " + hits.size() + " strip hits");
-            for (RawTrackerHit hit : hits) {
-                SiSensor sensor = (SiSensor) hit.getDetectorElement();
-                SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
-                System.out.println(Arrays.toString(hit.getPosition()));
 
-                System.out.println(hit.getDetectorElement().getGeometry().getPosition());
-            }
+            // get the transformation from global to local
+            ITransform3D g2lXform = ((RawTrackerHit) thit.getRawHits().get(0)).getDetectorElement().getGeometry().getGlobalToLocal();
+//            for (RawTrackerHit hit : hits) {
+////                SiSensor sensor = (SiSensor) hit.getDetectorElement();
+////                SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+////                if (debug) {
+//                    System.out.println(Arrays.toString(hit.getPosition()));
+//                    System.out.println(hit.getDetectorElement().getGeometry().getPosition());
+////                }
+//                //g2lXform = hit.getDetectorElement().getGeometry().getGlobalToLocal();
+//            }
             Hep3Vector clusterPos = getPosition(hits, ((SiSensor) hits.get(0).getDetectorElement()).getReadoutElectrodes(ChargeCarrier.HOLE));
-            System.out.println("recalculated cluster position " + clusterPos);
-            aida.cloud1D(moduleName + " cluster dx " + hits.size() + " hits").fill(stripPos[0] - clusterPos.x());
-            aida.cloud1D(moduleName + " cluster dy " + hits.size() + " hits").fill(stripPos[1] - clusterPos.y());
-            aida.cloud1D(moduleName + " cluster dz " + hits.size() + " hits").fill(stripPos[2] - clusterPos.z());
+            if (debug) {
+                System.out.println(" Strip Cluster at " + Arrays.toString(thit.getPosition()) + " has " + hits.size() + " strip hits");
+                System.out.println("recalculated cluster position " + clusterPos);
+            }
+            aida.cloud1D(moduleName + " cluster size").fill(hits.size());
+            //let's look at local coordinates...
+            // get the hit's position in global coordinates..
+            Hep3Vector globalPos = new BasicHep3Vector(stripPos);
+            Hep3Vector localPos = g2lXform.transformed(globalPos);
+            double lupos = ((RawTrackerHit) thit.getRawHits().get(0)).getDetectorElement().getGeometry().getGlobalToLocal().transformed(new BasicHep3Vector(thit.getPosition())).x();
+            double u = localPos.x();
+            if (hits.size() < 4) {
+                aida.cloud1D(moduleName + " cluster dx " + hits.size() + " hits").fill(stripPos[0] - clusterPos.x());
+                aida.cloud1D(moduleName + " cluster dy " + hits.size() + " hits").fill(stripPos[1] - clusterPos.y());
+                aida.cloud1D(moduleName + " cluster dz " + hits.size() + " hits").fill(stripPos[2] - clusterPos.z());
+                aida.histogram1D(moduleName + " u position " + hits.size(), 2560, -19.2, 19.2).fill(u);
+                aida.histogram1D(moduleName + " u position modulo 0.06 " + hits.size(), 100, -0.06, 0.06).fill(u % 0.06);
+                aida.histogram2D(moduleName + " u position modulo 0.06 vs u" + hits.size(), 640, -19.2, 19.2, 100, -0.06, 0.06).fill(u, u % 0.06);
+            }
 
 //            
 //            if (!hitsPerModuleMap.containsKey(moduleName)) {
@@ -137,13 +161,13 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
 
     //from StripMaker
     private Hep3Vector getPosition(List<RawTrackerHit> cluster, SiSensorElectrodes electrodes) {
-        boolean _debug = true;
+        boolean _debug = false;
         SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
         // Sensor simulation needed to correct for Lorentz drift
         SiSensorSim _simulation = new CDFSiSensorSim();
         SiTrackerIdentifierHelper _sid_helper;
 
-// Number of strips beyond which charge is averaged on center strips
+        // Number of strips beyond which charge is averaged on center strips
         int _max_noaverage_nstrips = 4;
 
         //cng

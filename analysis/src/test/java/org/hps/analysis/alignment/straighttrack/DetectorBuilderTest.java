@@ -14,17 +14,17 @@ public class DetectorBuilderTest extends TestCase {
     public void testIt() throws Exception {
         DetectorBuilder db = new DetectorBuilder("HPS-PhysicsRun2019-v1-4pt5_fieldOff");
 
-        List<DetectorPlane> planes = db.getTracker("topSlot");
-        for (DetectorPlane p : planes) {
-            System.out.println(p);
-            System.out.println("");
-        }
+//        List<DetectorPlane> planes = db.getTracker("topSlot");
+//        for (DetectorPlane p : planes) {
+//            System.out.println(p);
+//            System.out.println("");
+//        }
 
         //db.drawDetector();
         db.archiveIt("test");
 
         // try building detector from file...
-        Path path = Paths.get("HPS-PhysicsRun2019-v1-4pt5_fieldOff_bottomHole_20200203_test.txt");
+        Path path = Paths.get("HPS-PhysicsRun2019-v1-4pt5_fieldOff_20200204_test.txt");
         DetectorBuilder fileDb = new DetectorBuilder(path);
 //        fileDb.archiveIt("fromFile");
     }
