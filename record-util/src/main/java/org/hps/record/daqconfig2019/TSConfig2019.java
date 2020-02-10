@@ -11,6 +11,27 @@ import java.io.PrintStream;
 
 public class TSConfig2019 extends IDAQConfig2019 {
     // Store TS prescale setting
+    public static final int Single0Top = 0;
+    public static final int Single1Top = 1;
+    public static final int Single2Top = 2;
+    public static final int Single3Top = 3;
+    public static final int Single0Bot = 4;
+    public static final int Single1Bot = 5;
+    public static final int Single2Bot = 6;
+    public static final int Single3Bot = 7;
+    public static final int Pair0 = 8;
+    public static final int Pair1 = 9;
+    public static final int Pair2 = 10;
+    public static final int Pair3 = 11;
+    public static final int LED = 12;
+    public static final int Cosmic = 13;
+    public static final int Hodoscope = 14;
+    public static final int Pulser = 15;
+    public static final int Multiplicity0 = 16;
+    public static final int Multiplicity1 = 17;
+    public static final int FEETop = 18;
+    public static final int FEEBot = 19;
+    
     private int[] tsPrescales = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     
     @Override
