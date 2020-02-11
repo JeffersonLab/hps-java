@@ -186,6 +186,9 @@ public class DetectorBuilder {
             Logger.getLogger(DetectorBuilder.class.getName()).log(Level.SEVERE, null, ex);
         }
         //List<DetectorPlane> planes = new ArrayList<DetectorPlane>();
+        // first line is the detector name
+        _detectorName = lines.remove(0);
+        // rest is plane data (get it?)
         for (String line : lines) {
             if (_debug) {
                 System.out.println(line);
@@ -667,6 +670,7 @@ public class DetectorBuilder {
         //TODO just work from the complete set of planes in planemap...
         FileOutputStream fos = new FileOutputStream(_detectorName + "_" + myDate() + "_" + suffix + ".txt");
         Writer w = new BufferedWriter(new OutputStreamWriter(fos, "Cp850"));
+        w.write(_detectorName + "\n");
         for (Tracker t : Tracker.values()) {
             String s = t.trackerName();
             if (_debug) {

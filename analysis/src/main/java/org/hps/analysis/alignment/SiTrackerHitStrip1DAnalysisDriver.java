@@ -1,12 +1,18 @@
 package org.hps.analysis.alignment;
 
+import Jama.Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hps.analysis.alignment.straighttrack.DetectorBuilder;
+import org.hps.analysis.alignment.straighttrack.DetectorPlane;
+import org.hps.analysis.alignment.straighttrack.Hit;
 import org.hps.recon.tracking.DefaultSiliconResolutionModel;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.SiliconResolutionModel;
@@ -26,6 +32,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.CDFSiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.SiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -44,6 +51,57 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
     private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
     String rawTrackerHitCollectionName = "SVTRawTrackerHits";
     Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+    Map<String, Integer> moduleFlipMap = new HashMap<>();
+
+    DetectorBuilder _alignedDetector;
+    DetectorBuilder _defaultDetector;
+
+    protected void detectorChanged(Detector detector) {
+        Path path = Paths.get("D:/work/hps/analysis/physrun2019/alignment/fieldOff/20200203/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt");
+        _alignedDetector = new DetectorBuilder(path);
+        _defaultDetector = new DetectorBuilder(detector);
+
+        moduleFlipMap.put("module_L1b_halfmodule_axial_sensor0", -1);
+        moduleFlipMap.put("module_L1b_halfmodule_stereo_sensor0", 1);
+        moduleFlipMap.put("module_L1t_halfmodule_axial_sensor0", 1);
+        moduleFlipMap.put("module_L1t_halfmodule_stereo_sensor0", -1);
+        moduleFlipMap.put("module_L2b_halfmodule_axial_sensor0", -1);
+        moduleFlipMap.put("module_L2b_halfmodule_stereo_sensor0", 1);
+        moduleFlipMap.put("module_L2t_halfmodule_axial_sensor0", 1);
+        moduleFlipMap.put("module_L2t_halfmodule_stereo_sensor0", -1);
+        moduleFlipMap.put("module_L3b_halfmodule_axial_sensor0", -1);
+        moduleFlipMap.put("module_L3b_halfmodule_stereo_sensor0", 1);
+        moduleFlipMap.put("module_L3t_halfmodule_axial_sensor0", 1);
+        moduleFlipMap.put("module_L3t_halfmodule_stereo_sensor0", -1);
+        moduleFlipMap.put("module_L4b_halfmodule_axial_sensor0", -1);
+        moduleFlipMap.put("module_L4b_halfmodule_stereo_sensor0", 1);
+        moduleFlipMap.put("module_L4t_halfmodule_axial_sensor0", 1);
+        moduleFlipMap.put("module_L4t_halfmodule_stereo_sensor0", -1);
+        moduleFlipMap.put("module_L5b_halfmodule_axial_hole_sensor0", -1);
+        moduleFlipMap.put("module_L5b_halfmodule_axial_slot_sensor0", -1); //?
+        moduleFlipMap.put("module_L5b_halfmodule_stereo_hole_sensor0", 1);
+        moduleFlipMap.put("module_L5b_halfmodule_stereo_slot_sensor0", 1);
+        moduleFlipMap.put("module_L5t_halfmodule_axial_hole_sensor0", 1);
+        moduleFlipMap.put("module_L5t_halfmodule_axial_slot_sensor0", 1);
+        moduleFlipMap.put("module_L5t_halfmodule_stereo_hole_sensor0", -1);
+        moduleFlipMap.put("module_L5t_halfmodule_stereo_slot_sensor0", -1);
+        moduleFlipMap.put("module_L6b_halfmodule_axial_hole_sensor0", -1);
+        moduleFlipMap.put("module_L6b_halfmodule_axial_slot_sensor0", -1);
+        moduleFlipMap.put("module_L6b_halfmodule_stereo_hole_sensor0", 1);
+        moduleFlipMap.put("module_L6b_halfmodule_stereo_slot_sensor0", 1);
+        moduleFlipMap.put("module_L6t_halfmodule_axial_hole_sensor0", 1);
+        moduleFlipMap.put("module_L6t_halfmodule_axial_slot_sensor0", 1);
+        moduleFlipMap.put("module_L6t_halfmodule_stereo_hole_sensor0", -1);
+        moduleFlipMap.put("module_L6t_halfmodule_stereo_slot_sensor0", -1);
+        moduleFlipMap.put("module_L7b_halfmodule_axial_hole_sensor0", -1);
+        moduleFlipMap.put("module_L7b_halfmodule_axial_slot_sensor0", -1);
+        moduleFlipMap.put("module_L7b_halfmodule_stereo_hole_sensor0", 1);
+        moduleFlipMap.put("module_L7b_halfmodule_stereo_slot_sensor0", 1);
+        moduleFlipMap.put("module_L7t_halfmodule_axial_hole_sensor0", 1);
+        moduleFlipMap.put("module_L7t_halfmodule_axial_slot_sensor0", 1);
+        moduleFlipMap.put("module_L7t_halfmodule_stereo_hole_sensor0", 1);
+        moduleFlipMap.put("module_L7t_halfmodule_stereo_slot_sensor0", 1);
+    }
 
     protected void process(EventHeader event) {
 
@@ -69,7 +127,10 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
             double[] stripPos = thit.getPosition();
             List<RawTrackerHit> hits = thit.getRawHits();
             String moduleName = ((RawTrackerHit) hits.get(0)).getDetectorElement().getName();
+            // Get the DetectorPlane for this sensor...
+            Hit planeHitLocalPos = makeHit(_defaultDetector.planeMap().get(moduleName), stripPos, 0.006);
 
+            //
             // get the transformation from global to local
             ITransform3D g2lXform = ((RawTrackerHit) thit.getRawHits().get(0)).getDetectorElement().getGeometry().getGlobalToLocal();
 //            for (RawTrackerHit hit : hits) {
@@ -93,13 +154,17 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
             Hep3Vector localPos = g2lXform.transformed(globalPos);
             double lupos = ((RawTrackerHit) thit.getRawHits().get(0)).getDetectorElement().getGeometry().getGlobalToLocal().transformed(new BasicHep3Vector(thit.getPosition())).x();
             double u = localPos.x();
+            double uPlane = planeHitLocalPos.uvm()[0];
+            double du = u - moduleFlipMap.get(moduleName)*uPlane;
             if (hits.size() < 4) {
-                aida.cloud1D(moduleName + " cluster dx " + hits.size() + " hits").fill(stripPos[0] - clusterPos.x());
-                aida.cloud1D(moduleName + " cluster dy " + hits.size() + " hits").fill(stripPos[1] - clusterPos.y());
-                aida.cloud1D(moduleName + " cluster dz " + hits.size() + " hits").fill(stripPos[2] - clusterPos.z());
-                aida.histogram1D(moduleName + " u position " + hits.size(), 2560, -19.2, 19.2).fill(u);
-                aida.histogram1D(moduleName + " u position modulo 0.06 " + hits.size(), 100, -0.06, 0.06).fill(u % 0.06);
-                aida.histogram2D(moduleName + " u position modulo 0.06 vs u" + hits.size(), 640, -19.2, 19.2, 100, -0.06, 0.06).fill(u, u % 0.06);
+ //               aida.cloud2D(moduleName + " " + hits.size() + "u vs du").fill(u, du);
+                aida.cloud1D(moduleName +  " du").fill(du);
+//                aida.cloud1D(moduleName + " cluster dx " + hits.size() + " hits").fill(stripPos[0] - clusterPos.x());
+//                aida.cloud1D(moduleName + " cluster dy " + hits.size() + " hits").fill(stripPos[1] - clusterPos.y());
+//                aida.cloud1D(moduleName + " cluster dz " + hits.size() + " hits").fill(stripPos[2] - clusterPos.z());
+//                aida.histogram1D(moduleName + " u position " + hits.size(), 2560, -19.2, 19.2).fill(u);
+//                aida.histogram1D(moduleName + " u position modulo 0.06 " + hits.size(), 100, -0.06, 0.06).fill(u % 0.06);
+//                aida.histogram2D(moduleName + " u position modulo 0.06 vs u" + hits.size(), 640, -19.2, 19.2, 100, -0.06, 0.06).fill(u, u % 0.06);
             }
 
 //            
@@ -222,6 +287,15 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
         Hep3Vector position = _res_model.weightedAveragePosition(signals, positions);
 
         if (_debug) {
+            if (signals.size() == 2) {
+                StringBuffer sb = new StringBuffer(" 2 strip cluster: ");
+                for (int i = 0; i < signals.size(); ++i) {
+                    sb.append(positions.get(i).x() + " " + signals.get(i) + " ");
+                }
+                System.out.println(sb.toString() + " " + position.x());
+            }
+        }
+        if (_debug) {
             System.out.println(this.getClass().getSimpleName() + " charge weighted position " + position.toString() + " (before trans)");
         }
         electrodes.getParentToLocal().inverse().transform(position);
@@ -246,6 +320,35 @@ public class SiTrackerHitStrip1DAnalysisDriver extends Driver {
 
         return ((SiSensor) electrodes.getDetectorElement()).getGeometry().getLocalToGlobal().transformed(position);
         // return electrodes.getLocalToGlobal().transformed(position);
+    }
+
+    /**
+     * Given a DetectorPlane and a global position, return a hit in local
+     * coordinates
+     *
+     * @param p
+     * @param pos
+     * @return
+     */
+    public Hit makeHit(DetectorPlane p, double[] pos, double du) {
+        Matrix R = p.rot();
+        double[] r0 = p.r0();
+        Matrix diff = new Matrix(3, 1);
+        for (int i = 0; i < 3; ++i) {
+            diff.set(i, 0, pos[i] - r0[i]);
+        }
+//        diff.print(6, 4);
+//        System.out.println("pos " + Arrays.toString(pos));
+//        System.out.println("r0  " + Arrays.toString(r0));
+        Matrix local = R.times(diff);
+//        local.print(6, 4);
+        double[] u = new double[2];  // 2dim for u and v measurement 
+        double[] wt = new double[3]; // lower diag cov matrix
+        double[] sigs = p.sigs();
+        u[0] = local.get(0, 0);
+        wt[0] = 1 / (du * du); //(sigs[0] * sigs[0]);
+
+        return new Hit(u, wt);
     }
 
 }

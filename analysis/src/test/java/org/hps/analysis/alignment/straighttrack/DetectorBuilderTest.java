@@ -12,7 +12,7 @@ import junit.framework.TestCase;
 public class DetectorBuilderTest extends TestCase {
 
     public void testIt() throws Exception {
-        DetectorBuilder db = new DetectorBuilder("HPS-PhysicsRun2019-v1-4pt5_fieldOff");
+        DetectorBuilder db = new DetectorBuilder("HPS-PhysicsRun2019-v1-4pt5");
 
 //        List<DetectorPlane> planes = db.getTracker("topSlot");
 //        for (DetectorPlane p : planes) {
@@ -24,9 +24,9 @@ public class DetectorBuilderTest extends TestCase {
         db.archiveIt("test");
 
         // try building detector from file...
-        Path path = Paths.get("HPS-PhysicsRun2019-v1-4pt5_fieldOff_20200204_test.txt");
+        Path path = Paths.get("HPS-PhysicsRun2019-v1-4pt5_20200211_test.txt");
         DetectorBuilder fileDb = new DetectorBuilder(path);
-//        fileDb.archiveIt("fromFile");
+        fileDb.archiveIt("fromFile");
     }
 
 }
