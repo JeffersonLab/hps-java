@@ -85,8 +85,7 @@ class SeedTrack {
         this.yOrigin = yOrigin;
         hits = new ArrayList<KalHit>(hitList.size());
         for (KalHit hit : hitList) {
-            KalHit tmpHit = new KalHit(hit.module, hit.hit);
-            hits.add(tmpHit);
+            hits.add(hit);
         }
 
         // Fit a straight line in the non-bending plane and a parabola in the bending
@@ -381,23 +380,6 @@ class SeedTrack {
             } else {
                 return -1;
             }
-            /*  // This more complex version is not always consistent and results in some java errors
-            if (Math.abs(diff) > minDistXZ) {
-                if (diff > 0.) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            } else { // The distances aren't very different, so use curvature to break the tie
-                double K1 = Math.abs(t1.helixParams().v[2]);
-                double K2 = Math.abs(t2.helixParams().v[2]);
-                if (K1 > K2) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
-            */
         }
     };
 

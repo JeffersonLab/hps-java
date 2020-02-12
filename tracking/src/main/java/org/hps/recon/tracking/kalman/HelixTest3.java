@@ -460,7 +460,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
                 double m1 = rDet.v[1] + smear;
                 hRes.entry(smear);
                 if (verbose) { System.out.format("       Measurement 1= %10.7f,  Truth=%10.7f\n", m1, rDet.v[1]); }
-                Measurement thisM1 = new Measurement(m1, resolution, rscat, rDet.v[1]);
+                Measurement thisM1 = new Measurement(m1, resolution, 0., rscat, rDet.v[1]);
                 thisSi.addMeasurement(thisM1);
 
                 if (icm + 1 < SiModules.size()) {

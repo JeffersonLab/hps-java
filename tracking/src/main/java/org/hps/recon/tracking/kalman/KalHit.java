@@ -1,13 +1,17 @@
 package org.hps.recon.tracking.kalman;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 
 public class KalHit {
     SiModule module;
     Measurement hit;
+    ArrayList<TrackCandidate> tkrCandidates;
+    
     KalHit(SiModule module, Measurement hit) {
         this.module = module;
         this.hit = hit;
+        tkrCandidates = new ArrayList<TrackCandidate>();
     }
     
     boolean isStereo() {
@@ -17,9 +21,17 @@ public class KalHit {
         int ntks = hit.tracks.size();
         if (s=="short") {
             int idx = module.hits.indexOf(hit);
-            System.out.format(" (%d %d %d %d) ", module.Layer, module.detector, idx, ntks);
+            if (module.isStereo) {
+                System.out.format(" {%d %d %d %d %5.1f} ", module.Layer, module.detector, idx, ntks, hit.time);
+            } else {
+                System.out.format(" (%d %d %d %d %5.1f) ", module.Layer, module.detector, idx, ntks, hit.time);
+            }
         } else {
-            System.out.format("Hit %s in layer %d, detector %d, value=%10.5f, #tkrs=%d\n", s, module.Layer, module.detector, hit.v, ntks);
+            System.out.format("Hit %s in layer %d, detector %d, hit %d, value=%10.5f, #tkrs=%d, candidate chi2=", s, module.Layer, module.detector, module.hits.indexOf(hit), hit.v, ntks);
+            for (TrackCandidate cnd : tkrCandidates) {
+                System.out.format(" (%7.3f %d)", cnd.chi2s, cnd.hashCode());
+            }
+            System.out.format("\n");
         }
     }
     

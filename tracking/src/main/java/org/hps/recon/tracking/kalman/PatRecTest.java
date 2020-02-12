@@ -18,9 +18,9 @@ public class PatRecTest {
     public PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 2;              // The number of test eventNumbers to generate for pattern recognition and fitting
-        int mxPlot = 1;                // Maximum number of single event plots
-        int [] eventToPrint = {1,1};  // Range of events to print in detail and plot as an event display
+        int nTrials = 100;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int mxPlot = 20;                // Maximum number of single event plots
+        int [] eventToPrint = {1,20};  // Range of events to print in detail and plot as an event display
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
@@ -131,7 +131,7 @@ public class PatRecTest {
 
         int nLayers = 14; // Layer 0 not yet implemented here
         double resolution = 0.006; // SSD point resolution, in mm
-        double hitEfficiency = 0.97;
+        double hitEfficiency = 0.98;
         double[] location = new double[nLayers];
         double[] xdet = new double[SiModules.size()];
         double[] ydet = new double[SiModules.size()];
@@ -292,10 +292,10 @@ public class PatRecTest {
                     int nstrips = (int) ((thisSi.yExtent[1] - thisSi.yExtent[0]) / dy);
                     for (int i = 1; i < nstrips - 1; i++) {
                         double ys = thisSi.yExtent[0] + i * dy;
-                        double occ = 0.0002 + 0.01 * Math.exp(-(thisSi.yExtent[1] - ys) / a);
+                        double occ = 0.0002 + 0.005 * Math.exp(-(thisSi.yExtent[1] - ys) / a);
                         if (rnd.nextDouble() < occ) {
                             Vec pntGlobal = thisSi.toGlobal(new Vec(0., ys, 0.));
-                            Measurement ms = new Measurement(ys, resolution, pntGlobal, 999.);
+                            Measurement ms = new Measurement(ys, resolution, 0., pntGlobal, 999.);
                             thisSi.addMeasurement(ms);
                         }
                     }
@@ -389,7 +389,7 @@ public class PatRecTest {
                             md.addMC(ih);
                             if (verbose) { System.out.format("Overlapping with hit at v=%8.4f\n", md.v); }
                         } else {
-                            Measurement thisM1 = new Measurement(m1, resolution, rscat, rDet.v[1]);
+                            Measurement thisM1 = new Measurement(m1, resolution, 0., rscat, rDet.v[1]);
                             thisM1.addMC(ih);
                             thisSi.addMeasurement(thisM1);
                             if (verbose) { System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size()); }
@@ -464,6 +464,14 @@ public class PatRecTest {
                 printWriter3.format("set title 'Event Number %d'\n", eventNumber);
                 printWriter3.format("set xlabel 'X'\n");
                 printWriter3.format("set ylabel 'Y'\n");
+                double vPos = 0.9;
+                for (KalTrack tkr : patRec.TkrList) {
+                    double [] a = tkr.originHelixParms();
+                    String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f", 
+                            patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
+                    printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
+                    vPos = vPos - 0.03;
+                }
                 for (KalTrack tkr : patRec.TkrList) {
                     printWriter3.format("$tkr%d << EOD\n", tkr.ID);
                     for (MeasurementSite site : tkr.SiteList) {

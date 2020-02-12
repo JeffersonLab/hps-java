@@ -61,6 +61,8 @@ public class KalmanPatRecDriver extends Driver {
     private int nPlotted;
     private int nTracks;
     private int[] nHitsOnTracks;
+    private RelationalTable hitToStrips;
+    private RelationalTable hitToRotated;
 
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
@@ -128,11 +130,15 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram1D("Kalman track drho",100,-5.,5.);
         aida.histogram1D("Kalman track dz",100,-2.,2.);
         aida.histogram1D("Kalman track number MC particles",10,0.,10.);
+        aida.histogram1D("Kalman number of wrong hits on track",12,0.,12.);
+        aida.histogram1D("GBL track number MC particles",10,0.,10.);
+        aida.histogram1D("GBL number of wrong hits on track",12,0.,12.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
         aida.histogram1D("GBL d0", 100, -5., 5.);
         aida.histogram1D("GBL z0", 100, -2., 2.);
         aida.histogram1D("GBL pt inverse", 100, -1.2, 1.1);
         aida.histogram1D("GBL pt inverse, sigmas", 100, -5., 5.);
+        aida.histogram1D("Kalman good track time range (ns)", 100, 0., 100.);
         for (int lyr=2; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
@@ -188,7 +194,10 @@ public class KalmanPatRecDriver extends Driver {
             System.out.println("KalmanPatRecDriver.process: null returned by KalmanPatRec.");
             return;
         }
-
+        
+        hitToStrips = TrackUtils.getHitToStripsTable(event);
+        hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
             List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
@@ -268,6 +277,9 @@ public class KalmanPatRecDriver extends Driver {
                                     aida.histogram1D(String.format("Layers/Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
                                     aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
                                 }  
+                                if (kTk.nHits > 9 && kTk.chi2 < 30.) {
+                                    aida.histogram1D("Kalman good track time range (ns)").fill(kTk.tMax - kTk.tMin);
+                                }
                                 TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                                 List<RawTrackerHit> rawHits = hpsHit.getRawHits();
                                 for (RawTrackerHit rawHit : rawHits) {
@@ -297,6 +309,26 @@ public class KalmanPatRecDriver extends Driver {
                         idBest = id;
                     }
                 }
+                int nBad = 0;
+                for (MeasurementSite site : kTk.SiteList) {
+                    SiModule mod = site.m;
+                    TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                    List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        boolean goodHit = false;
+                        for (SimTrackerHit simHit : simHits) {
+                            MCParticle mcp = simHit.getMCParticle();
+                            int id = mcParts.indexOf(mcp);
+                            if (id == idBest) {
+                                goodHit = true;
+                                break;
+                            }                          
+                        }
+                        if (!goodHit) nBad++;
+                    }                               
+                }
+                aida.histogram1D("Kalman number of wrong hits on track").fill(nBad);
                 MCParticle mcBest = null;
                 if (idBest > -1) {
                     mcBest = mcParts.get(idBest); 
@@ -377,6 +409,53 @@ public class KalmanPatRecDriver extends Driver {
                         break;
                     }
                 }
+                ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
+                ArrayList<Integer> mcCnt= new ArrayList<Integer>();
+                List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
+                for (TrackerHit hit1D : hitsOnTrack) {
+                    List<RawTrackerHit> rawHits = hit1D.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        for (SimTrackerHit simHit : simHits) {
+                            MCParticle mcp = simHit.getMCParticle();
+                            if (mcParts.contains(mcp)) {
+                                int id = mcParts.indexOf(mcp);
+                                mcCnt.set(id, mcCnt.get(id)+1);
+                            } else {
+                                mcParts.add(mcp);
+                                mcCnt.add(1);
+                            }
+                        }
+                    }               
+                }
+                aida.histogram1D("GBL track number MC particles").fill(mcParts.size());
+                // Which MC particle is the best match?
+                int idBest = -1;
+                int nMatch = 0;
+                for (int id=0; id<mcCnt.size(); ++id) {
+                    if (mcCnt.get(id) > nMatch) {
+                        nMatch = mcCnt.get(id);
+                        idBest = id;
+                    }
+                }
+                int nBad = 0;
+                for (TrackerHit hit1D : hitsOnTrack) {
+                    List<RawTrackerHit> rawHits = hit1D.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        boolean goodHit = false;
+                        for (SimTrackerHit simHit : simHits) {
+                            MCParticle mcp = simHit.getMCParticle();
+                            int id = mcParts.indexOf(mcp);
+                            if (id == idBest) {
+                                goodHit = true;
+                                break;
+                            }                          
+                        }
+                        if (!goodHit) nBad++;
+                    }                               
+                }
+                aida.histogram1D("GBL number of wrong hits on track").fill(nBad);
             }
         }
         

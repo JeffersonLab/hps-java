@@ -31,6 +31,9 @@ public class KalTrack {
     private double[][] Cp;
     public double Bmag;
     private Vec tB;
+    private double time;
+    double tMin;
+    double tMax;
 
     KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
@@ -75,6 +78,9 @@ public class KalTrack {
         interceptMomVects = new HashMap<MeasurementSite, Vec>();
         lyrMap = new HashMap<Integer, MeasurementSite>();
         // Fill the maps
+        time = 0.;
+        tMin = 9.9e9;
+        tMax = -9.9e9;
         for (MeasurementSite site : this.SiteList) {
             StateVector sV = null;
             if (site.smoothed) sV = site.aS;
@@ -84,9 +90,17 @@ public class KalTrack {
             interceptVects.put(site, sV.toGlobal(sV.atPhi(phiS)));
             interceptMomVects.put(site, sV.Rot.inverseRotate(sV.getMom(phiS)));
             lyrMap.put(site.m.Layer, site);
+            time += site.m.hits.get(site.hitID).time;
+            tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
+            tMax = Math.max(tMax,  site.m.hits.get(site.hitID).time);
         }
+        time = time/(double)SiteList.size();
     }
 
+    public double getTime() {
+        return time;
+    }
+    
     // Find the change in smoothed helix angle in XY between one layer and the next
     public double scatX(int layer) {
         if (!lyrMap.containsKey(layer)) return -999.;
@@ -145,7 +159,7 @@ public class KalTrack {
     }
 
     public void print(String s) {
-        System.out.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f\n", s, eventNumber, ID, nHits, chi2);
+        System.out.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax);
         if (propagated) {
             System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             helixAtOrigin.print("helix for a pivot at the origin");
@@ -164,6 +178,7 @@ public class KalTrack {
             System.out.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
                     site.chi2inc, site.scatX(), site.scatZ(), site.arcLength, hitID);
             if (hitID < 0) continue;
+            System.out.format(", t=%5.1f", site.m.hits.get(site.hitID).time);
             if (m.hits.get(hitID).tksMC != null) {
                 System.out.format("  MC tracks: ");
                 for (int iMC : m.hits.get(hitID).tksMC) {
@@ -352,22 +367,11 @@ public class KalTrack {
 
     // Figure out which measurement site on this track points to a given detector module
     public int whichSite(SiModule module) {
-        int Layer = module.Layer;
-        int idx;
-        if (!module.isStereo) {
-            idx = 2 * Layer;
-        } else {
-            idx = 2 * Layer + 1;
-        }
-        int idm = idx;
-        do {
-            if (idx < SiteList.size() - 1) {
-                idx++;
-            } else {
-                idx = 0;
+        for (MeasurementSite site : SiteList) {
+            if (site.m == module) {
+                return SiteList.indexOf(site);
             }
-            if (SiteList.get(idx).m == module) return idx;
-        } while (idx != idm);
+        }
         return -1;
     }
 
@@ -377,7 +381,7 @@ public class KalTrack {
     }
 
     // Try to add missing hits to the track
-    public int addHits(ArrayList<SiModule> data, double mxResid, double mxChi2inc, boolean verbose) {
+    public int addHits(ArrayList<SiModule> data, double mxResid, double mxChi2inc, double mxTdif, boolean verbose) {
         int numAdded  = 0;
         int numLayers = 14;
         if (nHits == numLayers) return numAdded;
@@ -411,17 +415,23 @@ public class KalTrack {
                 if (verbose) System.out.format("KalTrack.addHits: looking for hits on layer %d\n", lyr);
                 for (SiModule module : moduleList.get(lyr)) {
                     MeasurementSite newSite = new MeasurementSite(lyr, module, mxResid, 0.);
-                    int rF = newSite.makePrediction(site.aF, site.m, -1, false, true, false, verbose);
+                    double [] tRange = {tMax - mxTdif, tMin + mxTdif}; 
+                    int rF = newSite.makePrediction(site.aF, site.m, -1, false, true, false, tRange, verbose);
                     if (rF == 1) {
                         if (verbose) System.out.format("KalTrack.addHits: predicted chi2inc=%8.3f\n",newSite.chi2inc);
-                        if (newSite.filter()) {
-                            if (verbose) System.out.format("KalTrack.addHits: event %d track %d filtered chi2inc=%8.3f\n",eventNumber,ID,newSite.chi2inc);
-                            if (newSite.chi2inc < mxChi2inc) {
-                                if (verbose) System.out.format("KalTrack.addHits: event %d added hit with chi2inc<%8.3f to layer %d\n",eventNumber,mxChi2inc,module.Layer);
-                                newSites.add(newSite);
-                                numAdded++;
-                                site = newSite;
-                                break;
+                        if (newSite.chi2inc < mxChi2inc) {
+                            if (newSite.filter(verbose)) {
+                                if (verbose) System.out.format("KalTrack.addHits: event %d track %d filtered chi2inc=%8.3f\n",eventNumber,ID,newSite.chi2inc);
+                                if (newSite.chi2inc < mxChi2inc) {
+                                    if (verbose) System.out.format("KalTrack.addHits: event %d added hit with chi2inc<%8.3f to layer %d\n",eventNumber,newSite.chi2inc,module.Layer);
+                                    newSites.add(newSite);
+                                    numAdded++;
+                                    site = newSite;
+                                    double hitTime = newSite.m.hits.get(newSite.hitID).time;
+                                    if (hitTime > tMax) tMax = hitTime;
+                                    else if (hitTime < tMin) tMin = hitTime;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -430,7 +440,7 @@ public class KalTrack {
         }
         if (numAdded > 0) {
             for (MeasurementSite site : newSites) {
-                System.out.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d\n", eventNumber, site.hitID, site.m.Layer, site.m.detector);
+                if (verbose) System.out.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d\n", eventNumber, site.hitID, site.m.Layer, site.m.detector);
                 SiteList.add(site);
             }
             sortSites(true);
@@ -464,11 +474,12 @@ public class KalTrack {
                 boolean allowSharing = false;
                 boolean pickupHits = false;
                 boolean checkBounds = false;
-                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, verbose) < 0) {
+                double [] tRange = {-999., 999.};
+                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, verbose) < 0) {
                     if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!\n", eventNumber, ID, iteration);
                     return false;
                 }
-                if (!currentSite.filter()) {
+                if (!currentSite.filter(verbose)) {
                     if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to filter!!\n", eventNumber, ID, iteration);
                     return false;
                 }
@@ -489,7 +500,7 @@ public class KalTrack {
                     currentSite.aS = currentSite.aF.copy();
                     currentSite.smoothed = true;
                 } else {
-                    currentSite.smooth(nextSite);
+                    currentSite.smooth(nextSite, verbose);
                 }
                 chi2s += Math.max(currentSite.chi2inc,0.);
 
@@ -534,20 +545,12 @@ public class KalTrack {
     // Comparator function for sorting tracks by quality
     static Comparator<KalTrack> TkrComparator = new Comparator<KalTrack>() {
         public int compare(KalTrack t1, KalTrack t2) {
-            double chi1 = t1.chi2 / t1.nHits;
-            double chi2 = t2.chi2 / t2.nHits;
-            if (Math.abs(chi1 - chi2) > 0.5 || t1.nHits == t2.nHits) {
-                if (chi1 < chi2) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+            double chi1 = t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.);
+            double chi2 = t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.);
+            if (chi1 < chi2) {
+                return -1;
             } else {
-                if (t1.nHits > t2.nHits) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+                return +1;
             }
         }
     };

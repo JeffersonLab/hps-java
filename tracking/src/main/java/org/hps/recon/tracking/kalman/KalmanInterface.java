@@ -696,7 +696,7 @@ public class KalmanInterface {
                     globalY.print("globalY");
                     System.out.format("     Adding measurement %10.5f to layer %d, module %d\n", umeas, module.Layer, module.detector);
                 }
-                Measurement m = new Measurement(umeas, du, rGlobal, rLocal.v[1]);
+                Measurement m = new Measurement(umeas, du, 0., rGlobal, rLocal.v[1]);
                 //rGlobal.print("new global hit location");
 
                 module.addMeasurement(m);
@@ -799,6 +799,7 @@ public class KalmanInterface {
                 
                 double umeas = localHit.getPosition()[0];
                 double du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
+                double time = localHit.getTime();
 
                 // If HPS measured coordinate axis is opposite to Kalman measured coordinate axis
                 // This really should not happen, as the Kalman axis is copied directly from the hps geometry.
@@ -823,7 +824,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du);
+                Measurement m = new Measurement(umeas, du, time);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
@@ -852,7 +853,7 @@ public class KalmanInterface {
                         for (SimTrackerHit simHit : simHits) {
                             if (hit.rGlobal == null) hit.rGlobal = vectorGlbToKalman(simHit.getPosition());
                             MCParticle mcp = simHit.getMCParticle();
-                            hit.tksMC.add(mcp.hashCode());
+                            if (!hit.tksMC.contains(mcp.hashCode())) hit.tksMC.add(mcp.hashCode());
                         }
                     }
                 }
@@ -923,7 +924,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du);
+                Measurement m = new Measurement(umeas, du, 0.);
 
                 KalHit hitPair = new KalHit(mod,m);
                 trackHitsKalman.add(hitPair);
@@ -1045,8 +1046,8 @@ public class KalmanInterface {
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
             }
-            if (verbose) System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, verbose);
+            System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, event.getEventNumber()==17002);
             outList.add(kPat);
         }
         return outList;
