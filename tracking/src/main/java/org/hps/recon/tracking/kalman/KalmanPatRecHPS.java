@@ -163,7 +163,7 @@ public class KalmanPatRecHPS {
         // The index is the iteration number.
         // The second iteration generally will have looser cuts.
 
-        nIterations = 2;    // Number of Kalman filter iterations per track
+        nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
         kMax[0] = 3.0;      // Maximum curvature for seed
         kMax[1] = 6.0;      
         tanlMax[0] = 0.08;  // Maximum tan(lambda) for seed

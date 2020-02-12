@@ -60,9 +60,11 @@ public class KalmanPatRecDriver extends Driver {
     private String outputPlots = "KalmanTestPlots.root";
     private int nPlotted;
     private int nTracks;
+    private int nEvents;
     private int[] nHitsOnTracks;
     private RelationalTable hitToStrips;
     private RelationalTable hitToRotated;
+    private double executionTime;
 
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
@@ -96,8 +98,10 @@ public class KalmanPatRecDriver extends Driver {
         if (aida == null) aida = AIDA.defaultInstance();
         aida.tree().cd("/");
         nPlotted = 0;
+        nEvents = 0;
 
         // arguments to histogram1D: name, nbins, min, max
+        aida.histogram1D("Kalman pattern recognition time", 100, 0., 500.);
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Chi2, 12 hits", 50, 0., 100.);
@@ -189,7 +193,14 @@ public class KalmanPatRecDriver extends Driver {
         }
         int evtNumb = event.getEventNumber();
 
+        long startTime = System.nanoTime();
         ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event, decoder);
+        long endTime = System.nanoTime();
+        double runTime = (double)(endTime - startTime)/1000000.;
+        executionTime += runTime;
+        nEvents++;
+        System.out.format("KalmanPatRecDriver.process: run time for pattern recognition at event %d is %12.7f milliseconds\n", evtNumb, runTime);
+        aida.histogram1D("Kalman pattern recognition time").fill(runTime);
         if (kPatList == null) {
             System.out.println("KalmanPatRecDriver.process: null returned by KalmanPatRec.");
             return;
@@ -214,7 +225,7 @@ public class KalmanPatRecDriver extends Driver {
         
         List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
         List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
-        nTracks = 0;
+        int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
                 System.out.println("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker.\n");
@@ -222,7 +233,8 @@ public class KalmanPatRecDriver extends Driver {
             }
             for (KalTrack kTk : kPat.TkrList) {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
-                nTracks++;
+                
+                nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
                 if (kTk.nHits == 12) {
                     aida.histogram1D("Kalman Track Chi2, 12 hits").fill(kTk.chi2);
@@ -314,9 +326,9 @@ public class KalmanPatRecDriver extends Driver {
                     SiModule mod = site.m;
                     TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                     List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                    boolean goodHit = false;
                     for (RawTrackerHit rawHit : rawHits) {
                         Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
-                        boolean goodHit = false;
                         for (SimTrackerHit simHit : simHits) {
                             MCParticle mcp = simHit.getMCParticle();
                             int id = mcParts.indexOf(mcp);
@@ -325,8 +337,8 @@ public class KalmanPatRecDriver extends Driver {
                                 break;
                             }                          
                         }
-                        if (!goodHit) nBad++;
-                    }                               
+                    }    
+                    if (!goodHit) nBad++;
                 }
                 aida.histogram1D("Kalman number of wrong hits on track").fill(nBad);
                 MCParticle mcBest = null;
@@ -374,12 +386,13 @@ public class KalmanPatRecDriver extends Driver {
                 }
             }
         }
-        aida.histogram1D("Kalman number of tracks").fill(nTracks);
+        aida.histogram1D("Kalman number of tracks").fill(nKalTracks);
+        nTracks += nKalTracks;
         
         if (event.hasCollection(Track.class, trackCollectionName)) {
             List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
             int nGBL = tracksGBL.size();
-            aida.histogram2D("number tracks Kalman vs GBL").fill(nTracks, nGBL);
+            aida.histogram2D("number tracks Kalman vs GBL").fill(nKalTracks, nGBL);
             aida.histogram1D("GBL number tracks").fill(nGBL);
             double c = 2.99793e8; // Speed of light in m/s
             double conFac = 1.0e12 / c;
@@ -441,9 +454,9 @@ public class KalmanPatRecDriver extends Driver {
                 int nBad = 0;
                 for (TrackerHit hit1D : hitsOnTrack) {
                     List<RawTrackerHit> rawHits = hit1D.getRawHits();
+                    boolean goodHit = false;
                     for (RawTrackerHit rawHit : rawHits) {
                         Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
-                        boolean goodHit = false;
                         for (SimTrackerHit simHit : simHits) {
                             MCParticle mcp = simHit.getMCParticle();
                             int id = mcParts.indexOf(mcp);
@@ -452,8 +465,8 @@ public class KalmanPatRecDriver extends Driver {
                                 break;
                             }                          
                         }
-                        if (!goodHit) nBad++;
-                    }                               
+                    }  
+                    if (!goodHit) nBad++;
                 }
                 aida.histogram1D("GBL number of wrong hits on track").fill(nBad);
             }
@@ -683,6 +696,8 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void endOfData() {
+        System.out.format("KalmanPatRecDrive.endOfData: total pattern recognition execution time=%12.4f ms for %d events and %d tracks.\n", 
+                executionTime, nEvents, nTracks);
         System.out.println("Individual layer efficiencies:");
         for (int lyr=0; lyr<14; lyr++) {
             double effic = (double)nHitsOnTracks[lyr]/(double)nTracks;
