@@ -7,14 +7,11 @@ import java.util.logging.Logger;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.svt.SvtConditions;
-import org.hps.detector.svt.SvtDetectorSetup;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
-import org.lcsim.geometry.Detector;
 import org.lcsim.util.cache.FileCache;
 
 /**
@@ -27,12 +24,7 @@ public class SvtEvioReaderTest extends TestCase {
 
     // Initialize the logger
     protected static Logger LOGGER = Logger.getLogger(SvtEvioReaderTest.class.getPackage().getName());
-   
-    /**
-     * Name of SVT subdetector.
-     */
-    public static final String SVT_SUBDETECTOR_NAME = "Tracker";
-
+    
     public void testSvtEvioReaderTest() throws Exception { 
 
         // Get the EVIO file that will be used to test the reader
@@ -50,18 +42,7 @@ public class SvtEvioReaderTest extends TestCase {
 
         // Setup the database conditions 
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        conditionsManager.setDetector("HPS-PhysicsRun2016-Pass2", 8500); 
-
-        // Get the detector.
-        final Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
-
-        // Get all SVT conditions.
-        final SvtConditions conditions = conditionsManager.getCachedConditions(SvtConditions.class, "svt_conditions")
-                .getCachedData();
-
-        // Load the SVT conditions onto detector.
-        final SvtDetectorSetup loader = new SvtDetectorSetup("Tracker");
-        loader.loadDefault(detector.getSubdetector(SVT_SUBDETECTOR_NAME), conditions);
+        conditionsManager.setDetector("HPS-Proposal2014-v9-2pt2", 2000); 
 
         // Instantiate the event builder
         LCSimEventBuilder eventBuilder = new LCSimEngRunEventBuilder(); 
