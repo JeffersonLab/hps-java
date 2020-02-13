@@ -8,6 +8,8 @@ import org.hps.conditions.hodoscope.HodoscopeConditions;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
 import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
 
+import org.hps.recon.ecal.HodoRawConverter;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -19,6 +21,8 @@ import hep.aida.ref.rootwriter.RootFileStore;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
@@ -42,12 +46,15 @@ public class HodoscopePlots extends Driver {
     // To import database conditions
     private HodoscopeConditions hodoConditions = null;
 
+    // HodoRawConverter has some methods that we want to use here
+    private HodoRawConverter converter = null;
+
     HodoUtils utils = new HodoUtils();
 
     // Plotting
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Raw FADC");
+    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("FADC");
     private IPlotterFactory plotFacthitEnergies = analysisFactory.createPlotterFactory("Hit Energies");
     private IPlotterFactory plotFactTileEnergies = analysisFactory.createPlotterFactory("Tile Energies");
     private IHistogramFactory histogramFactory = null;
@@ -68,6 +75,9 @@ public class HodoscopePlots extends Driver {
 
     private static Map<String, IHistogram1D> fADC_Spectrum_Top = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> fADC_Spectrum_Bot = new HashMap<String, IHistogram1D>();
+
+    private static Map<String, IHistogram1D> fADC_Spectrum_Top_lvl2 = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> fADC_Spectrum_Bot_lvl2 = new HashMap<String, IHistogram1D>();
 
     private static Map<String, IHistogram1D> tileEnergy = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> tileEnergy2 = new HashMap<String, IHistogram1D>();
@@ -114,6 +124,8 @@ public class HodoscopePlots extends Driver {
         utils = new HodoUtils();
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
 
+        converter = new HodoRawConverter();
+
         tree = AIDA.defaultInstance().tree();
         tree.cd("/");// aida.tree().cd("/");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
@@ -126,6 +138,12 @@ public class HodoscopePlots extends Driver {
 
         plotters.put("Bot FADC Spectra", plotterFactory.create("Bot FADC Spectra"));
         plotters.get("Bot FADC Spectra").createRegions(4, 4);
+
+        plotters.put("Top FADC lvl2", plotterFactory.create("Top FADC lvl2"));
+        plotters.get("Top FADC lvl2").createRegions(4, 4);
+
+        plotters.put("Bot FADC lvl2", plotterFactory.create("Bot FADC lvl2"));
+        plotters.get("Bot FADC lvl2").createRegions(4, 4);
 
         plotters.put("Hit Energies", plotFacthitEnergies.create("Hit Energies"));
         plotters.get("Hit Energies").createRegions(8, 4);
@@ -148,6 +166,12 @@ public class HodoscopePlots extends Driver {
 
             plotters.get("Top FADC Spectra").region(ich).plot(fADC_Spectrum_Top.get(String.format("Top fADC %d", ich)));
             plotters.get("Bot FADC Spectra").region(ich).plot(fADC_Spectrum_Bot.get(String.format("Bot fADC %d", ich)));
+
+            fADC_Spectrum_Top_lvl2.put(String.format("Top fADC %d", ich), histogramFactory.createHistogram1D(String.format("Top fADC %d", ich), 33, -0.5, 32.5));
+            fADC_Spectrum_Bot_lvl2.put(String.format("Bot fADC %d", ich), histogramFactory.createHistogram1D(String.format("Bot fADC %d", ich), 33, -0.5, 32.5));
+
+            plotters.get("Top FADC lvl2").region(ich).plot(fADC_Spectrum_Top_lvl2.get(String.format("Top fADC %d", ich)));
+            plotters.get("Bot FADC lvl2").region(ich).plot(fADC_Spectrum_Bot_lvl2.get(String.format("Bot fADC %d", ich)));
         }
 
         for (HodoscopeChannel cur_ch : hodoConditions.getChannels()) {
@@ -301,33 +325,6 @@ public class HodoscopePlots extends Driver {
         if (!event.hasCollection(RawTrackerHit.class, rawCollectionName)) {
             return;
         }
-        // Get RawTrackerHit collection from event.
-        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawCollectionName);
-
-        ////
-        // ========== fADC plots ===========
-        for (RawTrackerHit cur_hit : rawHits) {
-
-            short[] adc_Values = cur_hit.getADCValues();
-
-            long cellID = cur_hit.getCellID();
-
-            int PMT_ch = hodoConditions.getChannels().findGeometric(cellID).getChannel();
-            int iy = hodoConditions.getChannels().findGeometric(cellID).getIY();
-
-            //hodoConditions
-            //System.out.println("iY = " + iy + "    PMT_ch = " + PMT_ch);
-            if (iy == 1) {
-                for (int is = 0; is < adc_Values.length; is++) {
-                    fADC_Spectrum_Top.get(String.format("Top fADC %d", PMT_ch)).fill(is, adc_Values[is]);
-                }
-            } else if (iy == -1) {
-                for (int is = 0; is < adc_Values.length; is++) {
-                    fADC_Spectrum_Bot.get(String.format("Bot fADC %d", PMT_ch)).fill(is, adc_Values[is]);
-                }
-            }
-
-        }
 
         // =================== Hodo Hit 'Energies' =====================
         // Get all of the collections you need //
@@ -381,6 +378,8 @@ public class HodoscopePlots extends Driver {
             }
         }
 
+        ArrayList<HodoUtils.HodoTileIdentifier> lvl2_hits = new ArrayList();
+
         for (Map.Entry<HodoUtils.HodoTileIdentifier, Double> cur_tile : m_tile_Energies.entrySet()) {
 
             HodoUtils.HodoTileIdentifier cur_tile_id = cur_tile.getKey();
@@ -426,6 +425,46 @@ public class HodoscopePlots extends Driver {
 
                 if (hasRightCluster) {
                     tileEnergy3.get(tileHistName).fill(cur_tile.getValue());
+                    lvl2_hits.add(cur_tile_id);
+                }
+            }
+
+        }
+
+        // Get RawTrackerHit collection from event.
+        List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, rawCollectionName);
+
+        ////
+        // ========== fADC plots ===========
+        for (RawTrackerHit cur_hit : rawHits) {
+
+            short[] adc_Values = cur_hit.getADCValues();
+
+            long cellID = cur_hit.getCellID();
+
+            int PMT_ch = hodoConditions.getChannels().findGeometric(cellID).getChannel();
+            int iy = hodoConditions.getChannels().findGeometric(cellID).getIY();
+
+            HodoUtils.HodoTileIdentifier cur_tile_identifier = utils.new HodoTileIdentifier(hodoConditions.getChannels().findGeometric(cellID).getIX(), hodoConditions.getChannels().findGeometric(cellID).getIY(),
+                    hodoConditions.getChannels().findGeometric(cellID).getLayer());
+
+            boolean islvl2hit = lvl2_hits.contains(cur_tile_identifier);
+
+            //hodoConditions
+            //System.out.println("iY = " + iy + "    PMT_ch = " + PMT_ch);
+            if (iy == 1) {
+                for (int is = 0; is < adc_Values.length; is++) {
+                    fADC_Spectrum_Top.get(String.format("Top fADC %d", PMT_ch)).fill(is, adc_Values[is]);
+                    if (islvl2hit) {
+                        fADC_Spectrum_Top_lvl2.get(String.format("Top fADC %d", PMT_ch)).fill(is, adc_Values[is]);
+                    }
+                }
+            } else if (iy == -1) {
+                for (int is = 0; is < adc_Values.length; is++) {
+                    fADC_Spectrum_Bot.get(String.format("Bot fADC %d", PMT_ch)).fill(is, adc_Values[is]);
+                    if (islvl2hit) {
+                        fADC_Spectrum_Bot_lvl2.get(String.format("Bot fADC %d", PMT_ch)).fill(is, adc_Values[is]);
+                    }
                 }
             }
 
@@ -492,6 +531,8 @@ public class HodoscopePlots extends Driver {
 
         m_hit_Energies.clear();
         m_tile_Energies.clear();
+
+        lvl2_hits.clear();
 
         //  loop through the tile hits 
         /// get the layer/top/bottom and the tile number 
