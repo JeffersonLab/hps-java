@@ -59,6 +59,11 @@ public class GBLOutputDriver extends Driver {
         outputPlots = fname;
     }
 
+    public void setTrackCollectionName(String val) {
+        trackCollectionName=val;
+    }
+        
+
     @Override
     protected void detectorChanged(Detector detector) {
         if (aidaGBL == null)
