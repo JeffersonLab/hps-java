@@ -1,7 +1,7 @@
 package org.hps.recon.tracking.kalman;
 
 import java.io.File;
-
+import java.net.URL;
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -10,6 +10,7 @@ import org.hps.recon.tracking.RawTrackerHitFitterDriver;
 //import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
+import org.lcsim.util.cache.FileCache;
 //import org.lcsim.util.loop.LCIODriver;
 import org.lcsim.util.loop.LCSimLoop;
 
@@ -20,16 +21,31 @@ public class KalmanInterfaceTest extends TestCase {
     private final int nEvents = -1;
     static final String testOutput = "KalmanTest_" + testInput;
     static final String aidaOutput = "target/test-output/KalmanTestPlots.aida";
+    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
+    protected FileCache cache;
+    protected URL testURL;
 
     public void testKalman() throws Exception {
-        File lcioInputFile = new File(testInput);
+
+        File inputFile = null;
+        if (testURLBase == null) {
+            inputFile = new File(testInput);
+        } else {
+            URL testURL = new URL(testURLBase + "/" + testInput);
+            cache = new FileCache();
+            inputFile = cache.getCachedFile(testURL);
+        }
+        
         //File outputFile = new TestOutputFile(testOutput);
 
         //final DatabaseConditionsManager manager = new DatabaseConditionsManager();
         //manager.addConditionsListener(new SvtDetectorSetup());
 
         LCSimLoop loop2 = new LCSimLoop();
-        loop2.setLCIORecordSource(lcioInputFile);
+        loop2.setLCIORecordSource(inputFile);
+
+        final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+        manager.addConditionsListener(new SvtDetectorSetup());
 
         RawTrackerHitSensorSetup rthss = new RawTrackerHitSensorSetup();
         String[] readoutColl = { "SVTRawTrackerHits" };
@@ -50,7 +66,7 @@ public class KalmanInterfaceTest extends TestCase {
         org.hps.recon.tracking.DataTrackerHitDriver dthd = new org.hps.recon.tracking.DataTrackerHitDriver();
         dthd.setNeighborDeltaT(8.0);
         loop2.add(dthd);
-
+        
         KalmanDriverHPS kdhps = new KalmanDriverHPS();
         kdhps.setOutputPlotsFilename(aidaOutput);
         loop2.add(kdhps);
