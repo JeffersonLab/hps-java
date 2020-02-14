@@ -31,16 +31,20 @@ import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+import hep.aida.IManagedObject;
+import hep.aida.IBaseHistogram;
+
 
 /**
  * Make post-GBL plots needed for alignment.
  *
  * @author Miriam Diamond <mdiamond@slac.stanford.edu>
+ * @author Alessandra Filippi <filippi@to.infn.it>
  */
 public class GBLOutputDriver extends Driver {
 
-    public AIDA aida;
-    private String outputPlots = "GBLplots.root";
+    private AIDA aidaGBL; // era public 
+    private String outputPlots = "GBLplots_ali.root";
     private String trackCollectionName = "GBLTracks";
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
@@ -57,10 +61,11 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        if (aida == null)
-            aida = AIDA.defaultInstance();
+        if (aidaGBL == null)
+            aidaGBL = AIDA.defaultInstance();
 
-        aida.tree().cd("/");
+        aidaGBL.tree().cd("/");
+
         for (HpsSiSensor s : detector.getDetectorElement().findDescendants(HpsSiSensor.class)) {
             if (s.getName().startsWith("module_") && s.getName().endsWith("sensor0")) {
                 sensors.add(s);
@@ -107,10 +112,11 @@ public class GBLOutputDriver extends Driver {
                     if (debug)
                         System.out.printf("adding sensor %d \n", i);
                 }
-
+                
                 if (debug && sensor == null)
                     System.out.printf("TrackerHit null sensor %s \n", hit.toString());
                 i++;
+                
             }
             doBasicGBLtrack(trk);
             doGBLresiduals(trk, sensorHits);
@@ -125,8 +131,8 @@ public class GBLOutputDriver extends Driver {
             double phi = kink.getDoubleVal(index);
             float lambda = kink.getFloatVal(index);
 
-            aida.histogram1D("lambda_kink_" + sensor.getName()).fill(lambda);
-            aida.histogram1D("phi_kink_" + sensor.getName()).fill(phi);
+            aidaGBL.histogram1D("lambda_kink_" + sensor.getName()).fill(lambda);
+            aidaGBL.histogram1D("phi_kink_" + sensor.getName()).fill(phi);
         }
 
     }
@@ -143,7 +149,7 @@ public class GBLOutputDriver extends Driver {
             ITransform3D trans = sensor.getGeometry().getGlobalToLocal();
             trans.rotate(diff);
 
-            aida.histogram1D("residual_before_GBL_" + sensor.getName()).fill(diff.x());
+            aidaGBL.histogram1D("residual_before_GBL_" + sensor.getName()).fill(diff.x());
             if (debug)
                 System.out.printf("MdiffSensor %s \n", diff.toString());
 
@@ -157,23 +163,36 @@ public class GBLOutputDriver extends Driver {
         if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
             isTop = "top";
         }
-        aida.histogram1D("d0_" + isTop).fill(trackState.getD0());
-        aida.histogram1D("z0_" + isTop).fill(trackState.getZ0());
-        aida.histogram1D("p_" + isTop).fill(new BasicHep3Vector(trackState.getMomentum()).magnitude());
+        aidaGBL.histogram1D("d0_" + isTop).fill(trackState.getD0());
+        aidaGBL.histogram1D("z0_" + isTop).fill(trackState.getZ0());
+        aidaGBL.histogram1D("p_" + isTop).fill(new BasicHep3Vector(trackState.getMomentum()).magnitude());
 
         Hep3Vector beamspot = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState, 0));
         if (debug)
             System.out.printf("beamspot %s transformed %s \n", beamspot.toString());
-        aida.histogram1D("beamspot_x_" + isTop).fill(beamspot.x());
-        aida.histogram1D("beamspot_y_" + isTop).fill(beamspot.y());
+        aidaGBL.histogram1D("beamspot_x_" + isTop).fill(beamspot.x());
+        aidaGBL.histogram1D("beamspot_y_" + isTop).fill(beamspot.y());
     }
 
     private void doGBLresiduals(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits) {
-
+        
         for (HpsSiSensor sensor : sensorHits.keySet()) {
             ITransform3D trans = sensor.getGeometry().getGlobalToLocal();
 
-            // position predicted on track
+            // position of hit (track crossing the sensor before GBL extrapolation)
+            // the hit information available on each sensor is meaningful only along the measurement direction,
+            // Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
+            // instead: extract the information of the hit of the track at the sensor position before GBL
+            TrackState trackState = trk.getTrackStates().get(0);
+            Hep3Vector hitTrackPos = TrackStateUtils.getLocationAtSensor(trackState, sensor, bfield);
+            Hep3Vector hitTrackPosSensor = new BasicHep3Vector(hitTrackPos.v());
+            trans.transform(hitTrackPosSensor);
+            // after the transformation x and y in the sensor frame are reversed
+            aidaGBL.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitTrackPosSensor.y(), hitTrackPosSensor.x());
+            //aidaGBL.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitPos.y(), hitPos.x());
+            //aidaGBL.histogram2D("hit y vs x lab-frame " + sensor.getName()).fill(hitPos.y(), hitPos.x());
+
+            // position predicted on track after GBL
             Hep3Vector extrapPos = null;
             Hep3Vector extrapPosSensor = null;
             extrapPos = TrackUtils.extrapolateTrackPositionToSensor(trk, sensor, sensors, bfield);
@@ -181,21 +200,23 @@ public class GBLOutputDriver extends Driver {
                 return;
             extrapPosSensor = new BasicHep3Vector(extrapPos.v());
             trans.transform(extrapPosSensor);
-            //aida.histogram2D("residual after GBL vs u predicted " + sensor.getName()).fill(extrapPosSensor.x(), res);
-            aida.histogram2D("predicted_v_vs_u_sensor-frame_" + sensor.getName()).fill(extrapPosSensor.x(), extrapPosSensor.y());
-
-            // position of hit
+            //aidaGBL.histogram2D("residual after GBL vs u predicted " + sensor.getName()).fill(extrapPosSensor.x(), res);
+            aidaGBL.histogram2D("predicted_u_vs_v_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
+            // select track charge
+            if(trk.getCharge()>0) {
+                aidaGBL.histogram2D("predicted_u_vs_v_pos_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
+            }else if(trk.getCharge()<0) {
+                aidaGBL.histogram2D("predicted_u_vs_v_neg_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
+            }
+            
+            // post-GBL residual
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
             Hep3Vector hitPosSensor = new BasicHep3Vector(hitPos.v());
             trans.transform(hitPosSensor);
-            aida.histogram2D("hit_v_vs_u_sensor-frame_" + sensor.getName()).fill(hitPosSensor.y(), hitPosSensor.x());
-            //aida.histogram2D("hit y vs x lab-frame " + sensor.getName()).fill(hitPos.y(), hitPos.x());
-
-            // post-GBL residual
             Hep3Vector resSensor = VecOp.sub(hitPosSensor, extrapPosSensor);
-            aida.histogram2D("residual_after_GBL_vs_v_predicted_" + sensor.getName()).fill(extrapPosSensor.y(), resSensor.x());
-            aida.histogram2D("residual_after_GBL_vs_u_hit_" + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
-            aida.histogram1D("residual_after_GBL_" + sensor.getName()).fill(resSensor.x());
+            aidaGBL.histogram2D("residual_after_GBL_vs_v_predicted_" + sensor.getName()).fill(extrapPosSensor.y(), resSensor.x());
+            aidaGBL.histogram2D("residual_after_GBL_vs_u_hit_" + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
+            aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName()).fill(resSensor.x());
 
             if (debug) {
                 System.out.printf("hitPos %s  hitPosSensor %s \n", hitPos.toString(), hitPosSensor.toString());
@@ -216,55 +237,81 @@ public class GBLOutputDriver extends Driver {
     }
 
     private void setupPlots() {
+        
         for (SiSensor sensor : sensors) {
 
             HpsSiSensor sens = (HpsSiSensor) sensor.getGeometry().getDetectorElement();
-            double xmax = 1.0;
+            double xmax = 0.1;
             int l = (sens.getLayerNumber() + 1) / 2;
-            if (l > 1)
-                xmax = 0.01 + (l - 1) * 0.6;
-            aida.histogram1D("residual_before_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            if (l > 1) xmax = 0.05 + (l - 1) * 0.08;
+            aidaGBL.histogram1D("residual_before_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
 
             xmax = 0.05;
-            if (l == 6)
+            if (l >= 6)
                 xmax = 0.01;
-            aida.histogram1D("residual_after_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
 
-            aida.histogram2D("residual_after_GBL_vs_u_hit_" + sensor.getName(), 100, -20.0, 20.0, 100, -0.04, 0.04);
-            //aida.histogram2D("residual after GBL vs u predicted " + sensor.getName(), 100,-20.0,20.0,100,-0.04,0.04);
-            aida.histogram2D("residual_after_GBL_vs_v_predicted_" + sensor.getName(), 100, -55.0, 55.0, 100, -0.04, 0.04);
-            //aida.histogram2D("hit y vs x lab-frame " + sensor.getName(), 100,-50.0,50.0,100,-20,20);
-            aida.histogram2D("hit_v_vs_u_sensor-frame_" + sensor.getName(), 100, -50.0, 50.0, 100, -20, 20);
-            aida.histogram2D("predicted_v_vs_u_sensor-frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
-
-            xmax = 0.006;
-            if (l == 6) {
+            aidaGBL.histogram2D("residual_after_GBL_vs_u_hit_" + sensor.getName(), 100, -20.0, 20.0, 100, -0.04, 0.04);
+            aidaGBL.histogram2D("residual_after_GBL_vs_v_predicted_" + sensor.getName(), 100, -55.0, 55.0, 100, -0.04, 0.04);
+            aidaGBL.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60.0, 60.0, 100, -25, 25);
+            aidaGBL.histogram2D("predicted_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+            aidaGBL.histogram2D("predicted_u_vs_v_pos_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+            aidaGBL.histogram2D("predicted_u_vs_v_neg_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+            
+            xmax = 0.0006;
+            if(l==1){
+                xmax = 0.0002;
+            }else if(l==2){
+                xmax = 0.0005;
+            }else if(l==3 || l==4){
+                xmax = 0.0006;
+            }else if(l >= 5) {
                 if (sens.isBottomLayer() && sens.isAxial())
-                    xmax = 0.002;
+                    xmax = 0.001;
                 if (sens.isTopLayer() && !sens.isAxial())
-                    xmax = 0.002;
+                    xmax = 0.001;
             }
-            aida.histogram1D("lambda_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
-            aida.histogram1D("phi_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("lambda_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("phi_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
         }
 
-        aida.histogram1D("d0_top", 50, -2.0, 2.0);
-        aida.histogram1D("z0_top", 50, -1.3, 1.3);
-        aida.histogram1D("p_top", 150, 0, 3);
-        aida.histogram1D("beamspot_x_top", 50, -3, 3);
-        aida.histogram1D("beamspot_y_top", 50, -3, 3);
-
-        aida.histogram1D("d0_bottom", 50, -2.0, 2.0);
-        aida.histogram1D("z0_bottom", 50, -1.3, 1.3);
-        aida.histogram1D("p_bottom", 150, 0, 3);
-        aida.histogram1D("beamspot_x_bottom", 50, -3, 3);
-        aida.histogram1D("beamspot_y_bottom", 50, -3, 3);
+        aidaGBL.histogram1D("d0_top", 50, -2.0, 2.0);
+        aidaGBL.histogram1D("z0_top", 50, -1.3, 1.3);
+        aidaGBL.histogram1D("beamspot_x_top", 50, -3, 3);
+        aidaGBL.histogram1D("beamspot_y_top", 50, -3, 3);
+        aidaGBL.histogram1D("d0_bottom", 50, -2.0, 2.0);
+        aidaGBL.histogram1D("z0_bottom", 50, -1.3, 1.3);
+        if(bfield > 1.03 && bfield < 1.04){ // 2019 bfield: 1.03 T
+            aidaGBL.histogram1D("p_top", 150, 0., 6.);
+            aidaGBL.histogram1D("p_bottom", 150, 0., 6.);
+        }else if(bfield > 0.5 && bfield < 0.6){ // 2016 bfield: 0.523 T
+            aidaGBL.histogram1D("p_top", 150, 0., 3.);
+            aidaGBL.histogram1D("p_bottom", 150, 0., 3.);
+        }else if(bfield <0.25){ // 2015 bfield: 0.24 T
+            aidaGBL.histogram1D("p_top", 150, 0., 2.);
+            aidaGBL.histogram1D("p_bottom", 150, 0., 2.);
+        }
+        aidaGBL.histogram1D("beamspot_x_bottom", 50, -3, 3);
+        aidaGBL.histogram1D("beamspot_y_bottom", 50, -3, 3);
     }
 
     public void endOfData() {
         if (outputPlots != null) {
             try {
-                aida.saveAs(outputPlots);
+                aidaGBL.saveAs(outputPlots);
+                // remove all GBL histograms from heap after they have been written on output file
+                String[] type = aidaGBL.tree().listObjectNames("/",true);
+                for (int i=0; i<type.length; i++){
+                    // strip the trailing / from the object name and check if any else
+                    String namtyp = type[i].substring(1);
+                    if(namtyp.contains("/")) {
+                        continue;
+                    }else{
+                        IManagedObject obj = aidaGBL.tree().find(namtyp);
+                        if (obj instanceof IBaseHistogram) aidaGBL.tree().rm(obj.name()) ;
+                    }
+                }
+
             } catch (IOException ex) {
                 Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, null, ex);
             }
