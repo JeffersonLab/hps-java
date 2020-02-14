@@ -110,22 +110,26 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram2D("number tracks Kalman vs GBL", 20, 0., 5., 20, 0., 5.);
         aida.histogram1D("helix chi-squared at origin", 100, 0., 25.);
         aida.histogram1D("GBL track chi^2", 50, 0., 100.);
+        aida.histogram1D("GBL 12-hit track chi^2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
         aida.histogram1D("GBL number tracks", 10, 0., 10.);
         aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
         aida.histogram1D("Kalman track hit residual, sigmas", 100, -5., 5.);
+        aida.histogram1D("Kalman track hit residual >= 10 hits, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman hit true error over uncertainty", 100, -5., 5.);
         aida.histogram1D("Kalman track Momentum", 100, 0., 5.);
+        aida.histogram1D("GBL momentum", 100, 0., 5.);
         aida.histogram1D("dRho", 100, -5., 5.);
         aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
         aida.histogram1D("z0", 100, -2., 2.);
         aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
-        aida.histogram1D("pt inverse", 100, -1.2, 1.2);
+        aida.histogram1D("pt inverse", 100, -2.5, 2.5);
         aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
         aida.histogram1D("pt inverse error, sigmas", 100, -5., 5.);
         aida.histogram1D("tanLambda", 100, -0.3, 0.3);
+        aida.histogram1D("GBL tanLambda", 100, -0.3, 0.3);
         aida.histogram1D("tanLambda true", 100, -0.3, 0.3);
         aida.histogram1D("tanLambda error, sigmas", 100, -5., 5.);
         aida.histogram1D("phi0 true", 100, -0.3, 0.3);
@@ -135,14 +139,16 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram1D("Kalman track dz",100,-2.,2.);
         aida.histogram1D("Kalman track number MC particles",10,0.,10.);
         aida.histogram1D("Kalman number of wrong hits on track",12,0.,12.);
+        aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits", 12, 0., 12.);
         aida.histogram1D("GBL track number MC particles",10,0.,10.);
         aida.histogram1D("GBL number of wrong hits on track",12,0.,12.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
         aida.histogram1D("GBL d0", 100, -5., 5.);
         aida.histogram1D("GBL z0", 100, -2., 2.);
-        aida.histogram1D("GBL pt inverse", 100, -1.2, 1.1);
+        aida.histogram1D("GBL pt inverse", 100, -2.5, 2.5);
         aida.histogram1D("GBL pt inverse, sigmas", 100, -5., 5.);
-        aida.histogram1D("Kalman good track time range (ns)", 100, 0., 100.);
+        aida.histogram1D("Kalman track time range (ns)", 100, 0., 100.);
+        aida.histogram1D("GBL number of hits",20,0.,20.);
         for (int lyr=2; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
@@ -247,6 +253,7 @@ public class KalmanPatRecDriver extends Driver {
                 aida.histogram1D("Kalman track Momentum").fill(pMag);
                 aida.histogram1D("Kalman track drho").fill(kTk.originHelixParms()[0]);
                 aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
+                aida.histogram1D("Kalman track time range (ns)").fill(kTk.tMax - kTk.tMin);
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 outputFullTracks.add(KalmanTrackHPS);
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
@@ -280,6 +287,7 @@ public class KalmanPatRecDriver extends Driver {
                             } else {
                                 nHitsOnTracks[mod.Layer]++;
                                 double resid = mod.hits.get(site.hitID).v - rLoc.v[1];
+                                if (kTk.nHits >= 10) aida.histogram1D("Kalman track hit residual >= 10 hits, sigmas").fill(resid/Math.sqrt(site.aS.R));
                                 aida.histogram1D("Kalman track hit residual").fill(resid);
                                 aida.histogram1D("Kalman track hit residual, sigmas").fill(resid/Math.sqrt(site.aS.R));
                                 aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",mod.Layer)).fill(resid);
@@ -288,10 +296,7 @@ public class KalmanPatRecDriver extends Driver {
                                 if (mod.Layer<13) {
                                     aida.histogram1D(String.format("Layers/Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
                                     aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
-                                }  
-                                if (kTk.nHits > 9 && kTk.chi2 < 30.) {
-                                    aida.histogram1D("Kalman good track time range (ns)").fill(kTk.tMax - kTk.tMin);
-                                }
+                                }                                  
                                 TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                                 List<RawTrackerHit> rawHits = hpsHit.getRawHits();
                                 for (RawTrackerHit rawHit : rawHits) {
@@ -341,6 +346,7 @@ public class KalmanPatRecDriver extends Driver {
                     if (!goodHit) nBad++;
                 }
                 aida.histogram1D("Kalman number of wrong hits on track").fill(nBad);
+                if (kTk.nHits >= 10) aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits").fill(nBad);
                 MCParticle mcBest = null;
                 if (idBest > -1) {
                     mcBest = mcParts.get(idBest); 
@@ -413,7 +419,11 @@ public class KalmanPatRecDriver extends Driver {
                         aida.histogram1D("GBL pt inverse").fill(ptInvGBL);
                         double [] covGBL = st.getCovMatrix();
                         double omegaErr = Math.sqrt(covGBL[5]);
+                        double tanLambdaGBL = st.getTanLambda();
+                        aida.histogram1D("GBL tanLambda").fill(tanLambdaGBL);
                         aida.histogram1D("GBL pt inverse, sigmas").fill(Omega/omegaErr);
+                        double pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
+                        aida.histogram1D("GBL momentum").fill(pMag);
                         //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
                         //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
                         //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);
@@ -425,6 +435,9 @@ public class KalmanPatRecDriver extends Driver {
                 ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
                 List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
+                int nGBLhits = hitsOnTrack.size();
+                if (nGBLhits == 12) aida.histogram1D("GBL 12-hit track chi^2").fill(tkrGBL.getChi2());
+                aida.histogram1D("GBL number of hits").fill(nGBLhits);
                 for (TrackerHit hit1D : hitsOnTrack) {
                     List<RawTrackerHit> rawHits = hit1D.getRawHits();
                     for (RawTrackerHit rawHit : rawHits) {
@@ -475,6 +488,7 @@ public class KalmanPatRecDriver extends Driver {
         String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
         if (nPlotted < 40) {
             KI.plotKalmanEvent(path, event, kPatList);
+            KI.plotGBLtracks(path, event);
             nPlotted++;
         }
         
