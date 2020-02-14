@@ -201,7 +201,7 @@ public class KalmanPatRecDriver extends Driver {
         }
         aida.histogram1D("Kalman number of tracks").fill(nTracks);
         
-        String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
+        String path = "./";
         if (nPlotted < 40) {
             KI.plotKalmanEvent(path, event, kPatList);
             nPlotted++;
