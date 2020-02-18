@@ -1053,19 +1053,87 @@ public class KalmanInterface {
         return outList;
     }
     
+    public void plotGBLtracks(String path, EventHeader event) {
+        
+        String trackCollectionName = "GBLTracks";
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            System.out.format("KalmanInterface.plotGBLtracks: the track collection %s is missing. Abort.\n",trackCollectionName);
+            return;
+        }
+        String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+        if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
+            System.out.format("KalmanInterface.plotGBLtracks: the hit collection %s is missing. Abort.\n",stripHitInputCollectionName);
+            return;
+        }
+        
+        PrintWriter printWriter3 = null;
+        int eventNumber = event.getEventNumber();
+        String fn = String.format("%sGBLhelix_%d.gp", path, eventNumber);
+        System.out.format("KalmanInterface.plotGBLtracks: Outputting single GBL event plot to file %s\n", fn);
+        File file3 = new File(fn);
+        file3.getParentFile().mkdirs();
+        try {
+            printWriter3 = new PrintWriter(file3);
+        } catch (FileNotFoundException e1) {
+            System.out.format("KalmanInterface.plotGBLtracks: could not create the gnuplot output file %s", fn);
+            e1.printStackTrace();
+            return;
+        }
+        // printWriter3.format("set xrange [-500.:1500]\n");
+        // printWriter3.format("set yrange [-1000.:1000.]\n");
+        printWriter3.format("set title 'GBL Event Number %d'\n", eventNumber);
+        printWriter3.format("set xlabel 'X'\n");
+        printWriter3.format("set ylabel 'Y'\n");
+       
+
+        List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+
+        for (Track tkr : tracksGBL) {
+            printWriter3.format("$tkp%d << EOD\n", tracksGBL.indexOf(tkr));
+            List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
+            for (TrackerHit ht : hitsOnTrack) {                
+                double [] pnt = ht.getPosition();
+                printWriter3.format(" %10.6f %10.6f %10.6f\n", pnt[0], pnt[2], -pnt[1]);
+            }
+            printWriter3.format("EOD\n");
+        }
+        
+        List<TrackerHit> stripHits = event.get(TrackerHit.class, stripHitInputCollectionName);
+        printWriter3.format("$pnts << EOD\n");
+        unUsedHits: for (TrackerHit ht : stripHits) {
+            for (Track tkr : tracksGBL) {
+                List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
+                for (TrackerHit ht2 : hitsOnTrack) {
+                    if (ht2 == ht) continue unUsedHits;
+                }
+            }
+            double [] pnt = ht.getPosition();
+            printWriter3.format(" %10.6f %10.6f %10.6f\n", pnt[0], pnt[2], -pnt[1]);
+        }
+        printWriter3.format("EOD\n");
+        
+        printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
+        for (Track tkr : tracksGBL) {
+            printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tracksGBL.indexOf(tkr));
+        }
+        printWriter3.format("\n");
+        printWriter3.close();
+    }
     // This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
     public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalmanPatRecHPS> patRecList) {
         
         PrintWriter printWriter3 = null;
         int eventNumber = event.getEventNumber();
         String fn = String.format("%shelix3_%d.gp", path, eventNumber);
-        System.out.format("KalmanPatRecDriver.plotKalmanEvent: Outputting single event plot to file %s\n", fn);
+        System.out.format("KalmanInterface.plotKalmanEvent: Outputting single event plot to file %s\n", fn);
         File file3 = new File(fn);
         file3.getParentFile().mkdirs();
         try {
             printWriter3 = new PrintWriter(file3);
         } catch (FileNotFoundException e1) {
-            System.out.format("KalmanPatRecDriver.plotKalmanEvent: could not create the gnuplot output file %s", fn);
+            System.out.format("KalmanInterface.plotKalmanEvent: could not create the gnuplot output file %s", fn);
             e1.printStackTrace();
             return;
         }
@@ -1078,8 +1146,8 @@ public class KalmanInterface {
         for (KalmanPatRecHPS patRec : patRecList) {
             for (KalTrack tkr : patRec.TkrList) {
                 double [] a = tkr.originHelixParms();
-                String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f", 
-                        patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
+                String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f t=%6.1f", 
+                        patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4], tkr.getTime());
                 printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
                 vPos = vPos - 0.03;
             }
