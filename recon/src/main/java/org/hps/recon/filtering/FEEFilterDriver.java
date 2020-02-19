@@ -22,7 +22,7 @@ public class FEEFilterDriver extends EventReconFilter {
 
     // set min cluster energy value, default to 2015 run
     private double clusterCut = 2.0;
-    private double clusterCutThr = 0.2; //clusters less than this are ignored
+    private double clusterCutThr = 0.4; //clusters less than this are ignored
 
     // minimum number of hits per cluster
     private int minHits = 0; // = 3;
@@ -53,8 +53,8 @@ public class FEEFilterDriver extends EventReconFilter {
 
         // don't drop any events with EPICS data:
         // (could also do this via event tag=31)
-        final EpicsData data = EpicsData.read(event);
-        if (data != null) return;
+    //    final EpicsData data = EpicsData.read(event);
+    //    if (data != null) return;
 
         incrementEventProcessed();
 
@@ -92,7 +92,7 @@ public class FEEFilterDriver extends EventReconFilter {
 
             // keep events with a cluster over 600 MeV with seed over 400 MeV (for 2015 running).
             // keep events with cluster over 1.2 GeV and seed over 650 MeV for 2016 running.
-            // keep events with a single cluster over 2.0 GeV and seed over 1.2 GeV for 2019 running, and with no other clusters (threshold = 0.2 GeV)
+            // keep events with a single cluster over 2.0 GeV and seed over 1.2 GeV for 2019 running, and with no other clusters (threshold = 0.4 GeV)
             if (cc.getEnergy() > clusterCut && ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > seedCut && cc.getCalorimeterHits().size() >= minHits) {
                 nGood++;
                 if (nGood>=2) break;
