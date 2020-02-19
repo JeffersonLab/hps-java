@@ -66,8 +66,22 @@ public class KalmanPatRecDriver extends Driver {
     private RelationalTable hitToRotated;
     private double executionTime;
 
+    //Path to store gnu plots
+    //Should be removed
+    private String outputGnuPlotDir = "./";
+    private boolean doGnuPlots = false;
+    
+
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
+    }
+
+    public void setOutputGnuPlotDir(String input) { 
+        outputGnuPlotDir = input;
+    }
+
+    public void setDoGnuPlots(boolean input) {
+        doGnuPlots = input;
     }
 
     public String getOutputFullTrackCollectionName() {
@@ -484,11 +498,10 @@ public class KalmanPatRecDriver extends Driver {
                 aida.histogram1D("GBL number of wrong hits on track").fill(nBad);
             }
         }
-        
-        String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
+       
         if (nPlotted < 40) {
-            KI.plotKalmanEvent(path, event, kPatList);
-            KI.plotGBLtracks(path, event);
+            KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
+            KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;
         }
         
