@@ -48,10 +48,11 @@ public class FEEClusterPlotter extends Driver {
 
     // Set min energy in histo
     private double minHistoE = 0.5;
+    private double minHistoEseed = 0.5;
 
     // Set max energy in histo
     private double maxHistoE = 1.3;
-
+    private double maxHistoEseed = 1.3;
     /**
      * Set the minimum histogram energy
      * 
@@ -71,6 +72,26 @@ public class FEEClusterPlotter extends Driver {
     }
 
     /**
+     * Set the minimum histogram energy
+     * 
+     * @param minHistoE
+     */
+    public void setMinHistoEseed(double minHistoEseed) {
+        this.minHistoEseed = minHistoEseed;
+    }
+
+    /**
+     * Set the maximum histogram energy
+     * 
+     * @param maxHistoE
+     */
+    public void setMaxHistoEseed(double maxHistoEseed) {
+        this.maxHistoEseed = maxHistoEseed;
+    }
+
+    
+    
+    /**
      * Sets the condition of whether the data is Monte Carlo or not. False by
      * default.
      * 
@@ -89,6 +110,7 @@ public class FEEClusterPlotter extends Driver {
         aida.tree().cd("/");
         for (EcalChannel cc : ecalConditions.getChannelCollection()) {
             aida.histogram1D(getHistoName(cc), 200, minHistoE, maxHistoE);
+            aida.histogram1D(getHistoName(cc)+"_seed", 200, minHistoEseed, maxHistoEseed);
         }
 
         // Create a 1D histo to hold the time
@@ -222,6 +244,7 @@ public class FEEClusterPlotter extends Driver {
                         EcalChannel cc = findChannel(seed);
                         aida.histogram2D("numberOfHits").fill(cc.getX(), cc.getY());
                         aida.histogram1D(getHistoName(cc)).fill(clusE);
+                        aida.histogram1D(getHistoName(cc)+"_seed").fill(seedE);
                     }
                 }
             }

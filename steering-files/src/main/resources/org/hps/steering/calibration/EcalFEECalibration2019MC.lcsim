@@ -28,6 +28,8 @@
            <maxTime>100</maxTime>
            <minHistoE>0.5</minHistoE>
            <maxHistoE>6.0</maxHistoE>
+           <minHistoEseed>0.5</minHistoEseed>
+           <maxHistoEseed>6.0</maxHistoEseed>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
            <ignoreCollections>EcalCalHits EcalClusters</ignoreCollections>
