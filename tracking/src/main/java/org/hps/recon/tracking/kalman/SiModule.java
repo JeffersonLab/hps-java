@@ -26,6 +26,12 @@ public class SiModule {
     org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
+    boolean verbose = false;
+
+    void setVerbose(boolean input) { 
+        verbose = input;
+    }
+
     public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0
@@ -39,12 +45,17 @@ public class SiModule {
 
     public SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector) {
-        System.out.format("SiModule constructor called with layer = %d, detector module = %d, y=%8.2f\n", Layer, detector, p.X().v[1]);
-        p.print("of SiModule");
+        
+        if (verbose) { 
+            System.out.format("SiModule constructor called with layer = %d, detector module = %d, y=%8.2f\n", Layer, detector, p.X().v[1]);
+            p.print("of SiModule");
+        }
         Vec BOnAxis = KalmanInterface.getField(new Vec(0.,p.X().v[1],0.), Bfield);
         Vec BatCenter = KalmanInterface.getField(p.X(), Bfield);
-        BOnAxis.print("B field on axis");
-        BatCenter.print("B at detector center");
+        if (verbose) {
+            BOnAxis.print("B field on axis");
+            BatCenter.print("B at detector center");
+        }
         this.Layer = Layer;
         this.detector = detector;
         this.Bfield = Bfield;

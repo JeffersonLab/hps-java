@@ -32,11 +32,13 @@ public class KalTrack {
     public double Bmag;
     private Vec tB;
     private double time;
+    private boolean verbose;
     double tMin;
     double tMax;
 
     KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
+        verbose = false;
         eventNumber = evtNumb;
         // Make a new list of sites in case somebody modifies the one referred to on input
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
@@ -49,14 +51,16 @@ public class KalTrack {
                 continue;
             }
         }
-        if (this.SiteList.size() < 5) {
-            System.out.format("KalTrack error: not enough hits on the candidate track\n");
-            for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
-        }
         Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
         this.nHits = nHits;
         this.chi2 = chi2;
         ID = tkID;
+        if (this.SiteList.size() < 5) {
+            System.out.format("KalTrack error: not enough hits ("+SiteList.size()+") on the candidate track (ID::"+ID+") for event "+eventNumber+" \n" );
+            if (verbose) {
+                for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
+            }
+        }
         helixAtOrigin = null;
         propagated = false;
         originCov = new SquareMatrix(5);
