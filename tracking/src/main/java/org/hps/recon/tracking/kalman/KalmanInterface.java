@@ -58,7 +58,8 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     private static boolean uniformB;
-    public boolean verbose;
+    public boolean verbose = false;
+    public int verboseLevel = 0;
     double svtAngle;
     private HelixPlaneIntersect hpi;
     Random rnd;
@@ -109,13 +110,20 @@ public class KalmanInterface {
         SeedTrackLayers = input;
     }
 
+    public void setVerboseLevel(int input) {
+        verboseLevel = input;
+    }
+
     // Constructor with no argument defaults to verbose being turned off
     public KalmanInterface() {
         this(false, false);
     }
 
     public KalmanInterface(boolean verbose, boolean uniformB) {
-        System.out.format("Entering the KalmanInterface constructor with verbose=%b\n",verbose);
+        
+        if (verbose) {
+            System.out.format("Entering the KalmanInterface constructor\n");
+        }
         this.verbose = verbose;
         KalmanInterface.uniformB = uniformB;
         hpi = new HelixPlaneIntersect();
@@ -578,7 +586,9 @@ public class KalmanInterface {
 
     // Method to create one Kalman SiModule object for each silicon-strip detector
     public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
-        System.out.format("Entering KalmanInterface.creasteSiModules\n");
+        if (verbose && verboseLevel > 1) {
+            System.out.format("Entering KalmanInterface.creasteSiModules\n");
+        }
         SiMlist.clear();
 
         for (SiStripPlane inputPlane : inputPlanes) {
@@ -1046,7 +1056,9 @@ public class KalmanInterface {
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
             }
-            System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
+            if (verbose) {
+                System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
+            }
             KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, event.getEventNumber()==17002);
             outList.add(kPat);
         }

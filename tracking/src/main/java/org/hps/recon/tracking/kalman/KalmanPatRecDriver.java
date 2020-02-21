@@ -95,7 +95,7 @@ public class KalmanPatRecDriver extends Driver {
     public void setVerbose(boolean input) {
         verbose = input;
     }
-    
+
     public void setUniformB(boolean input) {
         uniformB = input;
         System.out.format("KalmanPatRecDriver: the B field will be assumed uniform.\n");
@@ -219,7 +219,7 @@ public class KalmanPatRecDriver extends Driver {
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
         nEvents++;
-        System.out.format("KalmanPatRecDriver.process: run time for pattern recognition at event %d is %12.7f milliseconds\n", evtNumb, runTime);
+        Logger.getLogger(KalmanPatRecDriver.class.getName()).log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         aida.histogram1D("Kalman pattern recognition time").fill(runTime);
         if (kPatList == null) {
             System.out.println("KalmanPatRecDriver.process: null returned by KalmanPatRec.");
@@ -499,7 +499,7 @@ public class KalmanPatRecDriver extends Driver {
             }
         }
        
-        if (nPlotted < 40) {
+        if (doGnuPlots && nPlotted < 40) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
             KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;
@@ -725,10 +725,12 @@ public class KalmanPatRecDriver extends Driver {
     public void endOfData() {
         System.out.format("KalmanPatRecDrive.endOfData: total pattern recognition execution time=%12.4f ms for %d events and %d tracks.\n", 
                 executionTime, nEvents, nTracks);
-        System.out.println("Individual layer efficiencies:");
-        for (int lyr=0; lyr<14; lyr++) {
-            double effic = (double)nHitsOnTracks[lyr]/(double)nTracks;
-            System.out.format("   Layer %d, hit efficiency = %9.3f\n", lyr, effic);
+        if (verbose) {
+            System.out.println("Individual layer efficiencies:");
+            for (int lyr=0; lyr<14; lyr++) {
+                double effic = (double)nHitsOnTracks[lyr]/(double)nTracks;
+                System.out.format("   Layer %d, hit efficiency = %9.3f\n", lyr, effic);
+            }
         }
         if (outputPlots != null) {
             try {

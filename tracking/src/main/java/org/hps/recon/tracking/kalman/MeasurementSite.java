@@ -23,12 +23,14 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     private boolean verbose;
+    private int verboseLevel;
     double B;
 
     // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
     // will never have a hit and thus will be handled the same as physical layers that lack hits
-
+    
     void print(String s) {
+
         if (m.Layer < 0) {
             System.out.format("\n****Dump of dummy measurement site %d %s;  ", thisSite, s);
         } else {
@@ -79,6 +81,7 @@ class MeasurementSite {
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
         verbose = false;
+        verboseLevel = 0 ;
     }
 
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
@@ -459,7 +462,9 @@ class MeasurementSite {
                 continue; // don't add a hit that was just removed
             }
             Measurement hit = m.hits.get(hitidx);
-            hit.print("to try");
+            if (verbose) {
+                hit.print("to try");
+            }
             for (KalTrack tkOther: hit.tracks) {
                 if (tkOther != tkr) continue hitList; // ignore already used hits
             }
@@ -490,9 +495,11 @@ class MeasurementSite {
                 if (filter()) {
                     if (verbose) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
                     if (chi2inc < cut) {
-                        System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
-                        hit.print("short");
-                        System.out.format("\n");
+                        if (verbose) {
+                            System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
+                            hit.print("short");
+                            System.out.format("\n");
+                        }
                         return m.hits.get(hitID);
                     } else {
                         hitID = -1;
