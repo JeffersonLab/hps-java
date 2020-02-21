@@ -342,22 +342,27 @@ public class KalmanPatRecDriver extends Driver {
                 }
                 int nBad = 0;
                 for (MeasurementSite site : kTk.SiteList) {
-                    SiModule mod = site.m;
-                    TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
-                    List<RawTrackerHit> rawHits = hpsHit.getRawHits();
-                    boolean goodHit = false;
-                    for (RawTrackerHit rawHit : rawHits) {
-                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
-                        for (SimTrackerHit simHit : simHits) {
-                            MCParticle mcp = simHit.getMCParticle();
-                            int id = mcParts.indexOf(mcp);
-                            if (id == idBest) {
-                                goodHit = true;
-                                break;
-                            }                          
+                    if (site.hitID < 0) {
+                        System.out.format("KalmanPatRecDriver:: Measurement Site has hitID < 0");
+                    }
+                    else {
+                        SiModule mod = site.m;
+                        TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                        List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                        boolean goodHit = false;
+                        for (RawTrackerHit rawHit : rawHits) {
+                            Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                            for (SimTrackerHit simHit : simHits) {
+                                MCParticle mcp = simHit.getMCParticle();
+                                int id = mcParts.indexOf(mcp);
+                                if (id == idBest) {
+                                    goodHit = true;
+                                    break;
+                                }
+                            }
                         }
-                    }    
-                    if (!goodHit) nBad++;
+                        if (!goodHit) nBad++;
+                    }
                 }
                 aida.histogram1D("Kalman number of wrong hits on track").fill(nBad);
                 if (kTk.nHits >= 10) aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits").fill(nBad);
