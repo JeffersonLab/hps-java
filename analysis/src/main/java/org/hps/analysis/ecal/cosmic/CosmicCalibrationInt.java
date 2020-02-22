@@ -34,12 +34,14 @@ public class CosmicCalibrationInt extends Driver {
     private int NWIN = MAXP - MINP;
     // threshold in mV (2.5mV in 2015)
     private double THR = 3.00;// for 2016
+    private double THRLow = 2.00;// for 2016
     // 0 is strict requires 2 hits vertically, 1 is loose requiring 1 hit vertically
     private int cutType = 0;
 
     private int pedestal[][];
     private int pulse[][];
     private int trigger[][];
+    private int triggerLow[][];
     private float signal[][];
     private Map<Point, RawTrackerHit> hitMap;
     // ///////////////////
@@ -51,7 +53,7 @@ public class CosmicCalibrationInt extends Driver {
     // number of 4ns time samples in the measured spectrum
     private int NSAMP = 100;
     // conversion from FADC to mV
-    private double ADC2V = 0.25;
+    private double ADC2V = 0.244;
 
     AIDA aida = AIDA.defaultInstance();
 
@@ -82,6 +84,7 @@ public class CosmicCalibrationInt extends Driver {
         pedestal = new int[NX][NY];
         pulse = new int[NX][NY];
         trigger = new int[NX][NY];
+        triggerLow = new int[NX][NY];
         signal = new float[NX][NY];
         hitMap = new LinkedHashMap<Point, RawTrackerHit>();
 
@@ -94,8 +97,24 @@ public class CosmicCalibrationInt extends Driver {
         for (int jx = 0; jx < NX; jx++) {
             for (int jy = 0; jy < NY; jy++) {
                 if (!ishole(jx, jy)) {
-                    String titleID = String.format("Cry_%d_%d", jx, jy);
+                    String titleID;
+                    //create different histograms for different selections
+
+                    titleID = String.format("Cry_sel1_%d_%d", jx, jy);
                     aida.histogram1D(titleID, 80, 5, 70);
+
+                    titleID = String.format("Cry_sel2_%d_%d", jx, jy);
+                    aida.histogram1D(titleID, 80, 5, 70);
+
+                    titleID = String.format("Cry_sel3_%d_%d", jx, jy);
+                    aida.histogram1D(titleID, 80, 5, 70);
+
+                    titleID = String.format("Cry_sel4_%d_%d", jx, jy);
+                    aida.histogram1D(titleID, 80, 5, 70);
+
+                    titleID = String.format("Cry_sel5_%d_%d", jx, jy);
+                    aida.histogram1D(titleID, 80, 5, 70);
+
                 } // end !ishole
             } // end jy iteration
         } // end jx iteration
@@ -103,8 +122,7 @@ public class CosmicCalibrationInt extends Driver {
 
     // read in channels, store in arrays
     public void process(EventHeader event) {
-        if (!event.hasCollection(RawTrackerHit.class, "EcalReadoutHits"))
-            throw new Driver.NextEventException();
+        if (!event.hasCollection(RawTrackerHit.class, "EcalReadoutHits")) throw new Driver.NextEventException();
         List<RawTrackerHit> hitList = event.get(RawTrackerHit.class, "EcalReadoutHits");
 
         // Put all raw hits into a hash map with ix,iy array position
@@ -117,11 +135,9 @@ public class CosmicCalibrationInt extends Driver {
             // crystals are stored in array of 0-45,0-9 with numbering starting at bottom
             // left of Ecal (-23,-5)
             int xx = ix + 23;
-            if (xx > 23)
-                xx -= 1;
+            if (xx > 23) xx -= 1;
             int yy = iy + 5;
-            if (yy > 5)
-                yy -= 1;
+            if (yy > 5) yy -= 1;
 
             Point hitIndex = new Point(xx, yy);
             hitMap.put(hitIndex, hit);
@@ -134,6 +150,7 @@ public class CosmicCalibrationInt extends Driver {
             // loop over crystal x
             for (int ix = 0; ix < NX; ix++) {
                 trigger[ix][iy] = 0;
+                triggerLow[ix][iy] = 0;
                 pedestal[ix][iy] = 0;
                 pulse[ix][iy] = 0;
                 signal[ix][iy] = 0;
@@ -165,6 +182,9 @@ public class CosmicCalibrationInt extends Driver {
                         if (peak > THR) {
                             trigger[ix][iy] = trigger[ix][iy] + 1;
                         }
+                        if (peak > THRLow) {
+                            triggerLow[ix][iy] = triggerLow[ix][iy] + 1;
+                        }
                         pulse[ix][iy] += adc;
                     } // end loop over time samples
                     signal[ix][iy] = (float) ((pulse[ix][iy] - pedestal[ix][iy]) * ADC2V);
@@ -178,11 +198,30 @@ public class CosmicCalibrationInt extends Driver {
             for (int ix = 0; ix < NX; ix++) {
                 if (!ishole(ix, iy)) {
 
-                    if (selectCrystal(ix, iy) && (signal[ix][iy] > 0)) {
-
-                        String titleID = String.format("Cry_%d_%d", ix, iy);
+                    if (selectCrystal1(ix, iy) && (signal[ix][iy] > 0)) {
+                        String titleID = String.format("Cry_sel1_%d_%d", ix, iy);
                         aida.histogram1D(titleID).fill(signal[ix][iy]);
                     }
+
+                    if (selectCrystal2(ix, iy) && (signal[ix][iy] > 0)) {
+                        String titleID = String.format("Cry_sel2_%d_%d", ix, iy);
+                        aida.histogram1D(titleID).fill(signal[ix][iy]);
+                    }
+
+                    if (selectCrystal3(ix, iy) && (signal[ix][iy] > 0)) {
+                        String titleID = String.format("Cry_sel3_%d_%d", ix, iy);
+                        aida.histogram1D(titleID).fill(signal[ix][iy]);
+                    }
+
+                    if (selectCrystal4(ix, iy) && (signal[ix][iy] > 0)) {
+                        String titleID = String.format("Cry_sel4_%d_%d", ix, iy);
+                        aida.histogram1D(titleID).fill(signal[ix][iy]);
+                    } /*
+                      
+                      if (selectCrystal5(ix, iy) && (signal[ix][iy] > 0)) {
+                         String titleID = String.format("Cry_sel5_%d_%d", ix, iy);
+                         aida.histogram1D(titleID).fill(signal[ix][iy]);
+                      }*/
                 }
             }
         }
@@ -194,42 +233,504 @@ public class CosmicCalibrationInt extends Driver {
     // select iy + 2 if y==0 or y==5 or isHole(ix,iy-1)
     // select iy -2 if y==4 or y==9 or isHole(ix,iy+1)
 
-    boolean selectCrystal(int x, int y) {
+    boolean selectCrystal1(int x, int y) {
         boolean ret = true;
 
-        if (x > 0 && !ishole(x - 1, y)) {
-            if (trigger[x - 1][y] > 0)
-                return false;
-        }
-        if (x < (NX - 1) && !ishole(x + 1, y)) {
-            if (trigger[x + 1][y] > 0)
-                return false;
-        }
-
-        if ((y > 0) && !ishole(x, y - 1) && y != 5) {
-            if (trigger[x][y - 1] == 0)
-                return false;
-        }
-        if (y < (NY - 1) && !ishole(x, y + 1) && y != 4) {
-            if (trigger[x][y + 1] == 0)
-                return false;
-        }
-        if ((y == 0) || (y == 5) || ishole(x, y - 1)) {
-            if (trigger[x][y + 2] == 0)
-                return false;
-        }
-        if ((y == 4) || (y == 9) || ishole(x, y + 1)) {
-            if (trigger[x][y - 2] == 0)
-                return false;
-        }
-
-        if (trigger[x][y] == 0) {
+        //dead (-15,-2)--->(8,3)
+        if ((x == 8) && (y == 3)) {
             return false;
+        }
+        //the one below the dead: require y-1 and y+2, exclude (x-1,y) and (x+1,y)
+        else if ((x == 8) && (y == 2)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][1]==0) return false; //require the one below
+            if (trigger[x][4]==0) return false; //require the one at y+2
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y);
+            return ret;
+        }
+        //the one on top of the dead: require y-2 and y-3, exclude (x-1,y-1) and (x+1,y-1) and (x-1,y) and (x+1,y)
+        else if ((x == 8) && (y == 4)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-2]==0) return false; //require the one at y-2
+            if (trigger[x][y-3]==0) return false; //require the one at y-3
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y);
+            if (trigger[x+1][y-1]>0) return false; //exclude (x+1,y-1)
+            if (trigger[x-1][y-1]>0) return false; //exclude (x-1,y-1);     
+            return ret;
+        }
+        
+        //(5,-2)-->(27,3) has a very low gain
+        //the one on bottom
+        else if ((x == 27) && (y == 2)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y+2]==0) return false; //require the one at y+2
+            if (trigger[x][y-1]==0) return false; //require the one at y-1
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y);
+            if (trigger[x+1][y+1]>0) return false; //exclude (x+1,y+1)
+            if (trigger[x-1][y+1]>0) return false; //exclude (x-1,y+1);
+            return ret;
+        }
+        //the one on top
+        else if ((x == 27) && (y == 4)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-2]==0) return false; //require the one at y-2
+            if (trigger[x][y-3]==0) return false; //require the one at y-3
+            if (trigger[x+1][y-1]>0) return false; //exclude (x+1,y-1)
+            if (trigger[x-1][y-1]>0) return false; //exclude (x-1,y-1);
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y-1)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y-1);
+            return ret;
+        }
+        
+        //(7,-3) --> (29,2) has a low amplitude
+        //the one on toptop - require y=3 and y=1
+        else if ((x == 29) && (y == 4)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-1]==0) return false; //require the one on y-1
+            if (trigger[x][y-3]==0) return false; //require the one on y-3
+            if (trigger[x+1][y]>0) return false; //exclude the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //exclude the one on LEFT
+            if (trigger[x+1][y-1]>0) return false; //exclude the one on RIGHT
+            if (trigger[x-1][y-1]>0) return false; //exclude the one on LEFT
+            return ret;
+        }
+        //the one on top
+        else if ((x == 29) && (y == 3)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y+1]==0) return false; //require the one on TOP
+            if (trigger[x][y-2]==0) return false; //require the one on y-2
+            if (trigger[x+1][y]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //require the one on LEFT
+            if (trigger[x+1][y-1]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y-1]>0) return false; //require the one on LEFT
+            return ret;
+        }
+        //the one on bottom
+        else if ((x == 29) && (y == 1)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-1]==0) return false; //require the one on BOTTOM
+            if (trigger[x][y+2]==0) return false; //require the one on TOP
+            if (trigger[x+1][y]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //require the one on LEFT
+            if (trigger[x+1][y+1]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y+1]>0) return false; //require the one on LEFT
+            return ret;
+        }
+        //the one on bottom-bottom
+        else if ((x == 29) && (y == 0)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y+1]==0) return false; //require the one on BOTTOM
+            if (trigger[x][y+3]==0) return false; //require the one on TOP 
+            if (trigger[x+1][y]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //require the one on LEFT
+            if (trigger[x+1][y+1]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y+1]>0) return false; //require the one on LEFT
+            return ret;
+        }
+
+        else {
+            if (x > 0 && !ishole(x - 1, y)) {
+                if (trigger[x - 1][y] > 0) return false;
+            }
+            if (x < (NX - 1) && !ishole(x + 1, y)) {
+                if (trigger[x + 1][y] > 0) return false;
+            }
+
+            if ((y > 0) && !ishole(x, y - 1) && y != 5) {
+                if (trigger[x][y - 1] == 0) return false;
+            }
+            if (y < (NY - 1) && !ishole(x, y + 1) && y != 4) {
+                if (trigger[x][y + 1] == 0) return false;
+            }
+            if ((y == 0) || (y == 5) || ishole(x, y - 1)) {
+                if (trigger[x][y + 2] == 0) return false;
+            }
+            if ((y == 4) || (y == 9) || ishole(x, y + 1)) {
+                if (trigger[x][y - 2] == 0) return false;
+            }
+
+            if (trigger[x][y] == 0) {
+                return false;
+            }
+        }
+        return ret;
+    }
+
+    // Original selection:
+    // no x+1, x-1
+    // select y+1, y-1
+    // select iy + 2 if y==0 or y==5 or isHole(ix,iy-1)
+    // select iy -2 if y==4 or y==9 or isHole(ix,iy+1)
+
+    boolean selectCrystal2(int x, int y) {
+        boolean ret = true;
+
+        //dead (-15,-2)--->(8,3)
+        if ((x == 8) && (y == 3)) {
+            return false;
+        }
+        //the one below the dead: require y-1 and y+2, exclude (x-1,y) and (x+1,y)
+        else if ((x == 8) && (y == 2)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][1]==0) return false; //require the one below
+            if (trigger[x][4]==0) return false; //require the one at y+2
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y);
+            return ret;
+        }
+        //the one on top of the dead: require y-2 and y-3, exclude (x-1,y-1) and (x+1,y-1) and (x-1,y) and (x+1,y)
+        else if ((x == 8) && (y == 4)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-2]==0) return false; //require the one at y-2
+            if (trigger[x][y-3]==0) return false; //require the one at y-3
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y);
+            if (trigger[x+1][y-1]>0) return false; //exclude (x+1,y-1)
+            if (trigger[x-1][y-1]>0) return false; //exclude (x-1,y-1);     
+            return ret;
+        }
+        
+        //(5,-2)-->(27,3) has a very low gain
+        //the one on bottom
+        else if ((x == 27) && (y == 2)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y+2]==0) return false; //require the one at y+2
+            if (trigger[x][y-1]==0) return false; //require the one at y-1
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y);
+            if (trigger[x+1][y+1]>0) return false; //exclude (x+1,y+1)
+            if (trigger[x-1][y+1]>0) return false; //exclude (x-1,y+1);
+            return ret;
+        }
+        //the one on top
+        else if ((x == 27) && (y == 4)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-2]==0) return false; //require the one at y-2
+            if (trigger[x][y-3]==0) return false; //require the one at y-3
+            if (trigger[x+1][y-1]>0) return false; //exclude (x+1,y-1)
+            if (trigger[x-1][y-1]>0) return false; //exclude (x-1,y-1);
+            if (trigger[x+1][y]>0) return false; //exclude (x+1,y-1)
+            if (trigger[x-1][y]>0) return false; //exclude (x-1,y-1);
+            return ret;
+        }
+        
+        //(7,-3) --> (29,2) has a low amplitude
+        //the one on toptop - require y=3 and y=1
+        else if ((x == 29) && (y == 4)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-1]==0) return false; //require the one on y-1
+            if (trigger[x][y-3]==0) return false; //require the one on y-3
+            if (trigger[x+1][y]>0) return false; //exclude the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //exclude the one on LEFT
+            if (trigger[x+1][y-1]>0) return false; //exclude the one on RIGHT
+            if (trigger[x-1][y-1]>0) return false; //exclude the one on LEFT
+            return ret;
+        }
+        //the one on top
+        else if ((x == 29) && (y == 3)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y+1]==0) return false; //require the one on TOP
+            if (trigger[x][y-2]==0) return false; //require the one on y-2
+            if (trigger[x+1][y]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //require the one on LEFT
+            if (trigger[x+1][y-1]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y-1]>0) return false; //require the one on LEFT
+            return ret;
+        }
+        //the one on bottom
+        else if ((x == 29) && (y == 1)) {
+            if (triggerLow[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y-1]==0) return false; //require the one on BOTTOM
+            if (trigger[x][y+2]==0) return false; //require the one on TOP
+            if (trigger[x+1][y]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //require the one on LEFT
+            if (trigger[x+1][y+1]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y+1]>0) return false; //require the one on LEFT
+            return ret;
+        }
+        //the one on bottom-bottom
+        else if ((x == 29) && (y == 0)) {
+            if (trigger[x][y] == 0) return false; //require that crystal
+            if (trigger[x][y+1]==0) return false; //require the one on BOTTOM
+            if (trigger[x][y+3]==0) return false; //require the one on TOP 
+            if (trigger[x+1][y]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y]>0) return false; //require the one on LEFT
+            if (trigger[x+1][y+1]>0) return false; //require the one on RIGHT
+            if (trigger[x-1][y+1]>0) return false; //require the one on LEFT
+            return ret;
+        }
+
+        else {
+            if (x > 0 && !ishole(x - 1, y)) {
+                if (trigger[x - 1][y] > 0) return false;
+            }
+            if (x < (NX - 1) && !ishole(x + 1, y)) {
+                if (trigger[x + 1][y] > 0) return false;
+            }
+
+            if ((y > 0) && !ishole(x, y - 1) && y != 5) {
+                if (trigger[x][y - 1] == 0) return false;
+            }
+            if (y < (NY - 1) && !ishole(x, y + 1) && y != 4) {
+                if (trigger[x][y + 1] == 0) return false;
+            }
+            if ((y == 0) || (y == 5) || ishole(x, y - 1)) {
+                if (trigger[x][y + 2] == 0) return false;
+            }
+            if ((y == 4) || (y == 9) || ishole(x, y + 1)) {
+                if (trigger[x][y - 2] == 0) return false;
+            }
+
+            if (triggerLow[x][y] < 2) {
+                return false;
+            }
+        }
+        return ret;
+    }
+
+    // Selection 3:
+    // no x+1, x-1 
+    // if X==0, no (x+1,y+1) and (x+1,y-1) when possilbe
+    // if X==(NX-1), no (x-1,y+1) and (x-1,y-1) when possilbe
+    // require the crystal with the lower threshold
+    // select at least other 3 crystals in the same column
+    boolean selectCrystal3(int x, int y) {
+        boolean ret = true;
+        int nY = 0;
+        //crystal itself must be present
+        if (triggerLow[x][y] == 0) return false;
+
+        //no (x-1,y) if (x-1,y) exists
+        if (x > 0 && !ishole(x - 1, y)) {
+            if (trigger[x - 1][y] > 0) return false;
+        }
+
+        //no (x+1,y) if (x+1,y) exists
+        if (x < (NX - 1) && !ishole(x + 1, y)) {
+            if (trigger[x + 1][y] > 0) return false;
+        }
+
+        //case x==0: also require no x+1,y+1 and no y+1,y-1
+        if (x == 0) {
+            if (y == 0) {
+                if (trigger[x + 1][y + 1] > 0) return false;
+            } else if (y == (NY - 1)) {
+                if (trigger[x + 1][y - 1] > 0) return false;
+            } else {
+                if ((trigger[x + 1][y + 1] > 0) || (trigger[x + 1][y - 1] > 0)) return false;
+            }
+        }
+
+        //case x==(NX-1): also require no x-1,y+1 and no x-1,y-1
+        if (x == (NX - 1)) {
+            if (y == 0) {
+                if (trigger[x - 1][y + 1] > 0) return false;
+            } else if (y == (NY - 1)) {
+                if (trigger[x - 1][y - 1] > 0) return false;
+            } else {
+                if ((trigger[x - 1][y + 1] > 0) || (trigger[x - 1][y - 1] > 0)) return false;
+            }
+        }
+
+        //count crystals in the same column
+        for (int iy = 0; iy < NY; iy++) {
+            if (y == iy) continue;
+            if (ishole(x, iy)) continue;
+            if (trigger[x][iy] > 0) nY++;
+        }
+
+        if (nY < 3) return false;
+        return ret;
+    }
+
+    // Selection 4:
+    // no x+1, x-1 
+    // if X==0, no (x+1,y+1) and (x+1,y-1) when possilbe
+    // if X==(NX-1), no (x-1,y+1) and (x-1,y-1) when possilbe
+    // require the crystal with the lower threshold
+    // select at least other 4 crystals in the same column, only 3 if hole
+    boolean selectCrystal4(int x, int y) {
+        boolean ret = true;
+        int nY = 0;
+        //crystal itself
+        if (triggerLow[x][y] == 0) return false;
+
+        //no (x-1,y) if (x-1,y) exists
+        if (x > 0 && !ishole(x - 1, y)) {
+            if (trigger[x - 1][y] > 0) return false;
+        }
+
+        //no (x+1,y) if (x+1,y) exists
+        if (x < (NX - 1) && !ishole(x + 1, y)) {
+            if (trigger[x + 1][y] > 0) return false;
+        }
+
+        //case x==0: also require no x+1,y+1 and no y+1,y-1
+        if (x == 0) {
+            if (y == 0) {
+                if (trigger[x + 1][y + 1] > 0) return false;
+            } else if (y == (NY - 1)) {
+                if (trigger[x + 1][y - 1] > 0) return false;
+            } else {
+                if ((trigger[x + 1][y + 1] > 0) || (trigger[x + 1][y - 1] > 0)) return false;
+            }
+        }
+
+        //case x==(NX-1): also require no x-1,y+1 and no x-1,y-1
+        if (x == (NX - 1)) {
+            if (y == 0) {
+                if (trigger[x - 1][y + 1] > 0) return false;
+            } else if (y == (NY - 1)) {
+                if (trigger[x - 1][y - 1] > 0) return false;
+            } else {
+                if ((trigger[x - 1][y + 1] > 0) || (trigger[x - 1][y - 1] > 0)) return false;
+            }
+        }
+
+        //count crystals in the same column
+        for (int iy = 0; iy < NY; iy++) {
+            if (y == iy) continue;
+            if (ishole(x, iy)) continue;
+            if (trigger[x][iy] > 0) nY++;
+        }
+
+        if (ishole(x, 4)) {
+            if (nY < 3) return false;
+        } else {
+            if (nY < 4) return false;
         }
 
         return ret;
-
     }
+
+    /*
+    // Selection 2:
+    // no x+1, x-1
+    // require the crystal 
+    // select at least other 3 crystals in the same column
+    boolean selectCrystal2(int x, int y) {
+        boolean ret = true;
+        int nY = 0;
+        //crystal itself
+        if (trigger[x][y] == 0) return false;
+    
+        //no x-1
+        if (x > 0 && !ishole(x - 1, y)) {
+            if (trigger[x - 1][y] > 0) return false;
+        }
+    
+        //no x+1
+        if (x < (NX - 1) && !ishole(x + 1, y)) {
+            if (trigger[x + 1][y] > 0) return false;
+        }
+    
+        for (int iy = 0; iy < NY; iy++) {
+            if (y == iy) continue;
+            if (ishole(x, iy)) continue;
+            if (trigger[x][iy] > 0) nY++;
+        }
+    
+        if (nY < 3) return false;
+        return ret;
+    }
+    
+    // Selection 3:
+    // no x+1, x-1
+    // ignore the crystal itself
+    // select at least other 3 crystals in the same column 
+    boolean selectCrystal3(int x, int y) {
+        boolean ret = true;
+        int nY = 0;
+    
+        //no x-1
+        if (x > 0 && !ishole(x - 1, y)) {
+            if (trigger[x - 1][y] > 0) return false;
+        }
+    
+        //no x+1
+        if (x < (NX - 1) && !ishole(x + 1, y)) {
+            if (trigger[x + 1][y] > 0) return false;
+        }
+    
+        for (int iy = 0; iy < NY; iy++) {
+            if (y == iy) continue;
+            if (ishole(x, iy)) continue;
+            if (trigger[x][iy] > 0) nY++;
+        }
+    
+        if (nY < 3) return false;
+        return ret;
+    }
+    
+    // Selection 4:
+    // no x+1, x-1
+    // select the crystal itelf
+    // select at least other 3 crystals in the same column (only 2 if column has hole) 
+    boolean selectCrystal4(int x, int y) {
+        boolean ret = true;
+        int nY = 0;
+    
+        //crystal itself
+        if (trigger[x][y] == 0) return false;
+    
+        //no x-1
+        if (x > 0 && !ishole(x - 1, y)) {
+            if (trigger[x - 1][y] > 0) return false;
+        }
+    
+        //no x+1
+        if (x < (NX - 1) && !ishole(x + 1, y)) {
+            if (trigger[x + 1][y] > 0) return false;
+        }
+    
+        for (int iy = 0; iy < NY; iy++) {
+            if (y == iy) continue;
+            if (ishole(x, iy)) continue;
+            if (trigger[x][iy] > 0) nY++;
+        }
+    
+        if (ishole(x, 4)) {
+            if (nY < 2) return false;
+        } else {
+            if (nY < 3) return false;
+        }
+        return ret;
+    }
+    
+    // Selection 5:
+    // no x+1, x-1
+    // ignore the crystal itelf
+    // select at least 3 crystals in the same column (only 2 if column has hole) 
+    boolean selectCrystal5(int x, int y) {
+        boolean ret = true;
+        int nY = 0;
+    
+        //no x-1
+        if (x > 0 && !ishole(x - 1, y)) {
+            if (trigger[x - 1][y] > 0) return false;
+        }
+    
+        //no x+1
+        if (x < (NX - 1) && !ishole(x + 1, y)) {
+            if (trigger[x + 1][y] > 0) return false;
+        }
+    
+        for (int iy = 0; iy < NY; iy++) {
+            if (y == iy) continue;
+            if (ishole(x, iy)) continue;
+            if (trigger[x][iy] > 0) nY++;
+        }
+    
+        if (ishole(x, 4)) {
+            if (nY < 2) return false;
+        } else {
+            if (nY < 3) return false;
+        }
+        return ret;
+    }*/
 
     boolean ishole(int x, int y) {
         return (x > 12 && x < 22 && y > 3 && y < 6);
