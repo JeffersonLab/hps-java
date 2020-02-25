@@ -141,4 +141,12 @@ class Vec { // N-vector for the Kalman filter
         return new Vec(N, R);
     }
 
+    boolean isNaN() {
+        for (int i = 0; i<N; i++) {
+            if (Double.isNaN(v[i])) {
+                return true;                
+            }
+        }
+        return false;
+    }
 }

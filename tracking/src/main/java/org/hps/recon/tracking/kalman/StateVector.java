@@ -479,9 +479,9 @@ class StateVector {
         double Q = Math.signum(a.v[2]);
 
         Vec pInt = new Vec(3);
+
         Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the origin
                                                                                     // plane
-
         Vec helixAtIntersect = pTOa(pInt, 0., 0., Q);
         Vec helixAtOrigin = pivotTransform(new Vec(0., 0., 0.), helixAtIntersect, Xplane, alpha, 0.);
         if (verbose) {
@@ -537,7 +537,6 @@ class StateVector {
             for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", Math.sqrt(newCovariance.M[i][i])); }
             System.out.println("\n");
         }
-
         return helixAtOrigin;
     }
 

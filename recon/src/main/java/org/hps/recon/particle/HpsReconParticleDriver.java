@@ -376,12 +376,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 if (TrackType.isGBL(positron.getType()) != TrackType.isGBL(electron.getType())) {
                     continue;
                 }
-                // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
-                // This is dumb so I took it out. - Matt Solt
-                /*if ((positron.getType() & electron.getType() & 0x1f) == 0) {
-                 continue;
-                 }*/
-
+                
                 // Make V0 candidates
                 this.makeV0Candidates(electron, positron);
             }
@@ -572,9 +567,14 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      *
      */
     private void makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) {
-        boolean eleIsTop = (electron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] > 0);
-        boolean posIsTop = (positron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] > 0);
-
+        
+        //boolean eleIsTop = (electron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] > 0);
+        //boolean posIsTop = (positron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] > 0);
+        
+        //This eleIsTop/posIsTop logic is valid for all track types [both Helix+GBL and Kalman]
+        boolean eleIsTop = (electron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0);
+        boolean posIsTop = (positron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0);
+        
         if ((eleIsTop == posIsTop) && (!makeConversionCols)) {
             return;
         }
