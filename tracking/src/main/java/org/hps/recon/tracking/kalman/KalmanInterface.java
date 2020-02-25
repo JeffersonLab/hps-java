@@ -413,6 +413,10 @@ public class KalmanInterface {
             System.out.format("KalmanInterface.createTrack: Kalman track is incomplete.\n");
             return null;
         }
+        if (kT.covNaN()) {
+            System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix");
+            return null;
+        }
         kT.sortSites(true);
         int prevID = 0;
         int dummyCounter = -1;

@@ -719,7 +719,7 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         // VERBOSE :: Note that a new event is being read.
-        printDebug("\nProcessing Event...");
+        printDebug("\nProcessing Event..." + event.getEventNumber());
 
         // Get the list of Ecal clusters from an event.
         List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
@@ -737,6 +737,7 @@ public abstract class ReconParticleDriver extends Driver {
         List<List<Track>> trackCollections = new ArrayList<List<Track>>();
         if (trackCollectionNames != null) {
             for (String collectionName : trackCollectionNames) {
+                printDebug("CollectionName ::" + collectionName);
                 if (event.hasCollection(Track.class, collectionName)) {
                     // VERBOSE :: Output the number of clusters in the event.
                     printDebug("Tracks :: " + event.get(Track.class, collectionName).size());

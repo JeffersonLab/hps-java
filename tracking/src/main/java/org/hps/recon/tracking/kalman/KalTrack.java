@@ -296,7 +296,7 @@ public class KalTrack {
         // be introduced, TBD
         double XL = 0.; // innerSite.XL / Math.abs(ct);
         helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
-
+        
         // Find the position and momentum of the particle near the origin, including
         // covariance
         Vec XonHelix = StateVector.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
@@ -350,6 +350,11 @@ public class KalTrack {
         return originCov.M.clone();
     }
 
+    public boolean covNaN() { 
+        if (!propagated) {originHelix();}
+        return originCov.isNaN();
+    }
+    
     public double[] originHelixParms() {
         if (propagated) return helixAtOrigin.v.clone();
         else return null;

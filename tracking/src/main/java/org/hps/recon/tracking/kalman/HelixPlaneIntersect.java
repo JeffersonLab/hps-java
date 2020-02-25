@@ -83,6 +83,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         double phiInt = planeIntersect(helix, X1local, alpha, pLocal); // helix intersection
         if (Double.isNaN(phiInt)) {
             System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
+            //X0.print("HelixPlaneInterstect:rkIntersect-no interstection error");
             return X0;
         }
         //System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);

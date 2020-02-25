@@ -276,7 +276,8 @@ public class KalmanPatRecDriver extends Driver {
                 
                 //Here is where the tracks to be persisted are formed
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
-                outputFullTracks.add(KalmanTrackHPS);
+                if (KalmanTrackHPS != null)
+                    outputFullTracks.add(KalmanTrackHPS);
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
                 if (verbose) {
                     for (GBLStripClusterData clstr : clstrs) {
