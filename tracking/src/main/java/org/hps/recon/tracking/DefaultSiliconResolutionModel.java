@@ -6,6 +6,7 @@ import java.util.Map;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
+import org.lcsim.detector.tracker.silicon.SiStriplets;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -39,11 +40,22 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
             measured_resolution = sense_pitch * _fiveClusterErr;
         }
 
+        System.out.println("DefaultSiliconResolutionModel::getMeasuredResolution : Measured resolution: " + measured_resolution); 
         return measured_resolution;
     }
 
+    // TODO: Given that all of the hits associated with a cluster will 
+    //       have the same strip lenght, looping over all hits and finding the
+    //       one with the longest length is uncessary.  Also, for now, the 
+    //       instance where we have hits from an SiStriplets object needs to 
+    //       be handled differently because it does not inherit from SiStrips.  
+    //       To clean this up, the getStripLength method should be added to 
+    //       SiSensorElectrodes.  This would elimininate the need for casting. 
     public double getUnmeasuredResolution(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes, Map<FittedRawTrackerHit, Integer> strip_map) {
         // Get length of longest strip in hit
+
+        if (electrodes instanceof SiStriplets) return ((SiStriplets) electrodes).getStripLength(strip_map.get(cluster.get(0))); 
+
         double hit_length = 0;
         for (FittedRawTrackerHit hit : cluster) {
             hit_length = Math.max(hit_length, ((SiStrips) electrodes).getStripLength(strip_map.get(hit)));
