@@ -1,13 +1,15 @@
 package org.lcsim.detector.tracker.silicon; 
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
+
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
 
-
 /**
  * Class describing striplet electrodes of a silicon sensor. This class extends
- * {@link SiPixels} but overrides the calculation of the strip ID and constructs
- * 1D strip hits instead of 2D pixel hits. 
+ * {@link SiPixels} but overrides the calculation of the strip ID and provides 
+ * methods needed to create 1D strip hits. 
  *
  * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
@@ -39,5 +41,36 @@ public class SiStriplets extends SiPixels {
         return id;
     }
 
+    
+    @Override 
+    public int getRowNumber(int cellID) {
+        
+        int row = (getColumnNumber(cellID) == 0) ? cellID : (getColumnNumber(cellID) + 1)*getNCells(0) - cellID;
+        
+        return row;      
+    }
+
+    @Override
+    public int getColumnNumber(int cellID) {
+        return (int) Math.floor(cellID/getNCells(0));  
+    }
+
+    public Hep3Vector getStripCenter(int cellID) { 
+
+        //System.out.println("SiStriplets::getStripCenter : Cell ID: " + cellID); 
+        //System.out.println("SiStriplets::getStripCenter : Row: " + getRowNumber(cellID));  
+        double u = _row_offset - getRowNumber(cellID)*_row_pitch; 
+        //System.out.println("SiStriplets::getStripCenter : u: " + u);
+
+        double v = getColumnNumber(cellID)*_col_pitch - _col_offset; 
+        //System.out.println("SiStriplets::getStripCenter : v: " + v);
+
+        return new BasicHep3Vector(u, v, 0.0); 
+    }
+
+    public double getStripLength(int cellID) {
+        return _col_pitch; 
+    }
+    
 }
 
