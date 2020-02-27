@@ -414,7 +414,7 @@ public class KalmanInterface {
             return null;
         }
         if (kT.covNaN()) {
-            System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix");
+            System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix. \n");
             return null;
         }
         kT.sortSites(true);
