@@ -213,7 +213,16 @@ public class KalmanPatRecHPS {
         // Keep only those pointing more-or-less back to the origin and not too curved
         // Sort the list first by curvature, then by drho
         for (int trial = 0; trial < nTries; trial++) {
-            if (verbose) { System.out.format("\nKalmanPatRecHPS: start of pass %d through the algorithm.\n", trial); }
+            if (verbose) System.out.format("\nKalmanPatRecHPS: start of pass %d through the algorithm.\n", trial);
+            
+            // Remove references from the hits to the track candidates of the previous iteration
+            if (trial != 0) {
+                for (int lyr = 0; lyr < numLayers; lyr++) {
+                    for (KalHit ht : lyrHits.get(lyr)) {
+                        ht.tkrCandidates.clear();
+                    }
+                }
+            }
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
             for (int[] list : lyrList) {
                 int nLyrs = list.length;
@@ -253,11 +262,11 @@ public class KalmanPatRecHPS {
                                         tmax = Math.max(tmax, ht.hit.time);
                                     }
                                     if (tmax - tmin > mxTdif) {
-                                        if (verbose) {
-                                            System.out.format("KalmanPatRecHPS: skipping seed with tdif=%8.2f\n Hits:  ", tmax-tmin);
-                                            for (KalHit ht : hitList) ht.print("short");
-                                            System.out.format("\n");
-                                        }
+                                        //if (verbose) {
+                                        //    System.out.format("KalmanPatRecHPS: skipping seed with tdif=%8.2f\n Hits:  ", tmax-tmin);
+                                        //    for (KalHit ht : hitList) ht.print("short");
+                                        //    System.out.format("\n");
+                                        //}
                                         continue;
                                     }
                                     SeedTrack seed = new SeedTrack(hitList, yOrigin, false);
@@ -570,7 +579,7 @@ public class KalmanPatRecHPS {
                                             candidateList.remove(candidateTrack);
                                             for (KalHit ht : candidateTrack.hits) {
                                                 Set<TrackCandidate> tksToRemove = new HashSet<TrackCandidate>();
-                                                for (TrackCandidate otherCand : ht.tkrCandidates) {
+                                                for (TrackCandidate otherCand : ht.tkrCandidates) {  // Note: this candidate is not yet marked in the KalHits, see below
                                                     if (otherCand.nTaken >= mxShared | !otherCand.good) {
                                                         tksToRemove.add(otherCand);
                                                         if (verbose) {
@@ -608,6 +617,14 @@ public class KalmanPatRecHPS {
                 }
                 System.out.format("KalmanPatRecHPS for event %d, completed loop over seeds for iteration%d. %d good track candidates.\n", 
                         eventNumber, trial, nGood);
+                System.out.format("KalmanPatRecHPS: list of KalTracks already stored:\n");
+                for (KalTrack tkr : TkrList) { 
+                    System.out.format("  KalmanPatRecHPS: list of sites on KalTrack track %d: ", tkr.ID);
+                    for (MeasurementSite site : tkr.SiteList) {
+                        System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                    }
+                    System.out.format("\n");
+                }
             }
             // Eliminate from the list all track candidates that are not good
             ArrayList<TrackCandidate> tkToRemove = new ArrayList<TrackCandidate>();
@@ -664,7 +681,7 @@ public class KalmanPatRecHPS {
                                 }
                             }
                             for (TrackCandidate tkr : tkrToRemove) {
-                                if (verbose) System.out.format("KalmanPatRecHPS: hit %d removed from track %d on layer %d detector %d\n", 
+                                if (verbose) System.out.format("KalmanPatRecHPS: hit %d removed from track candidate %d on layer %d detector %d\n", 
                                             hit.module.hits.indexOf(hit.hit), candidateList.indexOf(tkr), hit.module.Layer, hit.module.detector);
                                 tkr.removeHit(hit);
                             }
@@ -731,10 +748,31 @@ public class KalmanPatRecHPS {
                 if (!tkrCand.good) continue;
                 if (storeTrack(tkID, tkrCand)) tkID++;
             }
+            if (verbose) {
+                System.out.format("KalmanPatRecHPS: list of stored tracks after iteration %d:\n", trial);
+                for (KalTrack tkr : TkrList) { 
+                    System.out.format("  KalmanPatRecHPS: list of sites on KalTrack track %d: ", tkr.ID);
+                    for (MeasurementSite site : tkr.SiteList) {
+                        System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                    }
+                    System.out.format("\n");
+                }
+            }
         } // Next global iteration, using looser criteria
 
         // Sort the tracks by quality
         Collections.sort(TkrList, KalTrack.TkrComparator);
+
+        if (verbose) {
+            System.out.format("KalmanPatRecHPS: list of sorted KalTracks before removing shared hits:\n");
+            for (KalTrack tkr : TkrList) { 
+                System.out.format("  KalmanPatRecHPS: list of sites on KalTrack track %d: ", tkr.ID);
+                for (MeasurementSite site : tkr.SiteList) {
+                    System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                }
+                System.out.format("\n");
+            }
+        }
         
         // Remove shared hits unless the hit is very close to two tracks
         ArrayList<KalTrack> changedTracks = new ArrayList<KalTrack>();
@@ -808,6 +846,13 @@ public class KalmanPatRecHPS {
         ArrayList<KalTrack> allTks = new ArrayList<KalTrack>(TkrList.size());
         for (KalTrack tkr : TkrList) {
             allTks.add(tkr); 
+            if (verbose) {
+                System.out.format("KalmanPatRecHPS: list of sites on KalTrack track %d: ", tkr.ID);
+                for (MeasurementSite site : tkr.SiteList) {
+                    System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                }
+                System.out.format("\n");
+            }
         }
         for (int itkr = allTks.size()-1; itkr >= 0; --itkr) {
             KalTrack tkr = allTks.get(itkr);
@@ -1068,7 +1113,7 @@ public class KalmanPatRecHPS {
             if (verbose) System.out.format("KalmanPatRecHPS.storeTrack: throwing away redundant track %d\n", tkID);
             return false;
         } 
-        for (MeasurementSite site : tkrCand.sites) {
+        for (MeasurementSite site : tkr.SiteList) {
             int theHit = site.hitID;
             if (theHit < 0) continue;
             site.m.hits.get(theHit).tracks.add(tkr); // Mark the hits as used
@@ -1076,6 +1121,11 @@ public class KalmanPatRecHPS {
         if (verbose) {
             System.out.format("KalmanPatRecHPS.storeTrack: Adding track %d with %d hits and smoothed chi^2=%10.5f\n",
                     tkID, tkrCand.hits.size(), tkrCand.chi2s);
+            System.out.format(" Complete list of sites on this track: ");
+            for (MeasurementSite site : tkr.SiteList) {
+                System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+            }
+            System.out.format("\n");
         }
         tkrCand.kalTkrID = tkID;
         TkrList.add(tkr);
