@@ -63,7 +63,7 @@ public class KalmanInterface {
     double svtAngle;
     private HelixPlaneIntersect hpi;
     Random rnd;
-
+    
     // Get the HPS tracker hit corresponding to a Kalman hit
     public TrackerHit getHpsHit(Measurement km) {
         return hitMap.get(km);
@@ -417,6 +417,7 @@ public class KalmanInterface {
             System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix. \n");
             return null;
         }
+        
         kT.sortSites(true);
         int prevID = 0;
         int dummyCounter = -1;
@@ -458,8 +459,11 @@ public class KalmanInterface {
 
             if (i == 0) {
                 loc = TrackState.AtFirstHit;
-            } else if (i == kT.SiteList.size() - 1) loc = TrackState.AtLastHit;
-
+            } else if (i == kT.SiteList.size() - 1) 
+                loc = TrackState.AtLastHit;
+            
+            //Do not add the missing layer track states yet. TODO!
+            /*
             if (storeTrackStates) {
                 for (int k = 1; k < lay - prevID; k++) {
                     // uses new lcsim constructor
@@ -469,15 +473,16 @@ public class KalmanInterface {
                 }
                 prevID = lay;
             }
-
+            */
+            
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
                 if (ts != null) newTrack.getTrackStates().add(ts);
             }
         }
-
-        // TODO: get track params at ECal
-
+        
+        //TODO Ecal extrapolation should be done here [ Currently is done in the PatRecDriver ]
+        
         // other track properties
         newTrack.setChisq(kT.chi2);
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());

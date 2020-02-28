@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
@@ -30,6 +31,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
@@ -208,6 +210,8 @@ public class KalmanPatRecDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         List<Track> outputFullTracks = new ArrayList<Track>();
+        List<TrackData> trackDataCollection = new ArrayList<TrackData>();
+        List<LCRelation> trackDataRelations = new ArrayList<LCRelation>();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
             System.out.println("KalmanPatRecDriver.process:" + stripHitInputCollectionName + " does not exist; skipping event");
@@ -276,18 +280,43 @@ public class KalmanPatRecDriver extends Driver {
                 
                 //Here is where the tracks to be persisted are formed
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
-                if (KalmanTrackHPS != null)
-                    outputFullTracks.add(KalmanTrackHPS);
+                if (KalmanTrackHPS == null)
+                    continue;
+                
+                outputFullTracks.add(KalmanTrackHPS);
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
                 if (verbose) {
                     for (GBLStripClusterData clstr : clstrs) {
                         KI.printGBLStripClusterData(clstr);
                     }
                 }
+                
+                //Ecal extrapolation - For the moment done here, but should be moved inside the KalmanInterface (the field map needs to be passed to the KI once)
+                BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(KalmanTrackHPS,fm);
+                KalmanTrackHPS.getTrackStates().add(ts_ecal);
+                
                 allClstrs.addAll(clstrs);
                 for (GBLStripClusterData clstr : clstrs) {
                     gblStripClusterDataRelations.add(new BaseLCRelation(KalmanTrackHPS, clstr));
                 }
+                
+                //Set top by default
+                int trackerVolume = 0;
+                //if tanLamda<0 set bottom
+                if (KalmanTrackHPS.getTrackStates().get(0).getTanLambda() < 0)
+                    trackerVolume = 1;
+                
+                //TODO: compute isolations
+                double qualityArray[] = new double[1];
+                qualityArray[0]= -1;
+                
+                
+                //Add the Track Data 
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray);
+                trackDataCollection.add(KFtrackData);
+                trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
+                
+
                 
                 if (doDebugPlots) {
                     // Histogram residuals of hits in layers with no hits on the track and with hits
@@ -549,6 +578,8 @@ public class KalmanPatRecDriver extends Driver {
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
         event.put("GBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
         event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations,  LCRelation.class, flag);
+        event.put("KFTrackData",trackDataCollection, TrackData.class,0);
+        event.put("KFTrackDataRelations",trackDataRelations,LCRelation.class,0);
     }
 
     // Make histograms of the MC hit resolution
