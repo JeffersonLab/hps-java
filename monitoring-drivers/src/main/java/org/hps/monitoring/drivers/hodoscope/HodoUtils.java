@@ -12,7 +12,7 @@ public class HodoUtils {
         initStaff();
     }
 
-    public final double hodo_t_max = 64.;
+    public final double hodo_t_max = 64.; 
     public final double hodo_t_min = 2.;
 
     public final double hodotileECut = 200.;

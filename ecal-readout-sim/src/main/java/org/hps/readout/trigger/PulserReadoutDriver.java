@@ -49,10 +49,10 @@ public class PulserReadoutDriver extends TriggerDriver {
     
     /**
      * Sets the rate of the pulser. It will trigger every
-     * <code>clockCycles</code> events.
+     * <code>clockCycles</code> events, where two events is a clock cycle.
      * @param clockCycles - The rate of the pulser in events.
      */
     public void setPulserRate(int clockCycles) {
-        pulserRate = clockCycles * 4;
+        pulserRate = clockCycles * 2;
     }
 }

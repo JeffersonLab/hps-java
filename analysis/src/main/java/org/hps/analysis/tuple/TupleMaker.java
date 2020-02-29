@@ -169,8 +169,6 @@ public abstract class TupleMaker extends Driver {
         bfield = TrackUtils.getBField(detector).magnitude();
         bFieldMap = detector.getFieldMap();
 
-        bFieldMap = detector.getFieldMap();
-
         if (Double.isNaN(ebeam)) {
             try {
                 BeamEnergy.BeamEnergyCollection beamEnergyCollection = this.getConditionsManager()
