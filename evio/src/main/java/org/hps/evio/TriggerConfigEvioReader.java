@@ -9,7 +9,7 @@ import org.hps.record.daqconfig.EvioDAQParser;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
-import org.hps.record.daqconfig.EvioDAQParser2019;
+import org.hps.record.daqconfig2019.EvioDAQParser2019;
 
 /*
  * Search for a configuration bank in EvioEvent, and, if found, create an instance of
@@ -75,7 +75,7 @@ public class TriggerConfigEvioReader {
                     continue;
                 int crate = bank.getHeader().getTag();
                 for (BaseStructure subBank : bank.getChildrenList()) {
-                    if (subBank.getHeader().getTag() == EvioDAQParser.BANK_TAG) {
+                    if (subBank.getHeader().getTag() == EvioDAQParser2019.BANK_TAG) {
                         if (subBank.getStringData() == null) {
                             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
                                     "JEVIO can't parse DAQ Config bank.  Event Number "
