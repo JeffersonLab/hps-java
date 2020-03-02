@@ -1,17 +1,18 @@
 package org.hps.recon.tracking.kalman;
 
-import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 public class KalHit {
     SiModule module;
     Measurement hit;
-    ArrayList<TrackCandidate> tkrCandidates;
+    Set<TrackCandidate> tkrCandidates;
     
     KalHit(SiModule module, Measurement hit) {
         this.module = module;
         this.hit = hit;
-        tkrCandidates = new ArrayList<TrackCandidate>();
+        tkrCandidates = new HashSet<TrackCandidate>();
     }
     
     boolean isStereo() {

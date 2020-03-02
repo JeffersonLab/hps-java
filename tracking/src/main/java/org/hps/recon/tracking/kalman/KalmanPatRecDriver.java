@@ -383,6 +383,8 @@ public class KalmanPatRecDriver extends Driver {
                     for (MeasurementSite site : kTk.SiteList) {
                         if (site.hitID < 0) {
                             System.out.format("KalmanPatRecDriver:: Measurement Site has hitID < 0");
+                            kTk.print("with bad site");
+                            site.print("bad one");
                         }
                         else {
                             SiModule mod = site.m;
