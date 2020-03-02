@@ -1045,9 +1045,9 @@ public class KalmanInterface {
                     SiModule SiM = SiMoccupied.get(i);
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
+                System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, event.getEventNumber()==17002);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, (event.getEventNumber()==-99));
             outList.add(kPat);
         }
         return outList;

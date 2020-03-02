@@ -50,8 +50,11 @@ public class KalTrack {
             }
         }
         if (this.SiteList.size() < 5) {
-            System.out.format("KalTrack error: not enough hits on the candidate track\n");
-            for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
+            System.out.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID);
+            for (MeasurementSite site : SiteList) {
+                System.out.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
+            }
+            System.out.format("\n");
         }
         Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
         this.nHits = nHits;
@@ -177,7 +180,10 @@ public class KalTrack {
             int hitID = site.hitID;
             System.out.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
                     site.chi2inc, site.scatX(), site.scatZ(), site.arcLength, hitID);
-            if (hitID < 0) continue;
+            if (hitID < 0) {
+                System.out.format("\n");
+                continue;
+            }
             System.out.format(", t=%5.1f", site.m.hits.get(site.hitID).time);
             if (m.hits.get(hitID).tksMC != null) {
                 System.out.format("  MC tracks: ");
@@ -389,6 +395,14 @@ public class KalTrack {
         
         sortSites(true);
 
+        if (verbose) {
+            System.out.format("KalTrac.addHits: initial list of sites: ");
+            for (MeasurementSite site : SiteList) {
+                System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+            }
+            System.out.format("\n");
+        }
+        
         ArrayList<ArrayList<SiModule>> moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
         for (int lyr = 0; lyr < numLayers; lyr++) {
             ArrayList<SiModule> modules = new ArrayList<SiModule>();
@@ -444,6 +458,15 @@ public class KalTrack {
                 SiteList.add(site);
             }
             sortSites(true);
+            if (verbose) {
+                System.out.format("KalTrack.addHits: final list of sites: ");
+                for (MeasurementSite site : SiteList) {
+                    System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                }
+                System.out.format("\n");
+            }
+        } else if (verbose) {
+            System.out.format("KalTrack.addHits: no hits added in event %d to track %d\n", eventNumber, ID);
         }
 
         return numAdded;

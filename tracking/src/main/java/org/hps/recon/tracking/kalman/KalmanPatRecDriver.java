@@ -205,7 +205,7 @@ public class KalmanPatRecDriver extends Driver {
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
         nEvents++;
-        System.out.format("KalmanPatRecDriver.process: run time for pattern recognition at event %d is %12.7f milliseconds\n", evtNumb, runTime);
+        if (verbose) System.out.format("KalmanPatRecDriver.process: run time for pattern recognition at event %d is %12.7f milliseconds\n", evtNumb, runTime);
         aida.histogram1D("Kalman pattern recognition time").fill(runTime);
         if (kPatList == null) {
             System.out.println("KalmanPatRecDriver.process: null returned by KalmanPatRec.");
@@ -329,6 +329,11 @@ public class KalmanPatRecDriver extends Driver {
                 int nBad = 0;
                 for (MeasurementSite site : kTk.SiteList) {
                     SiModule mod = site.m;
+                    if (site.hitID < 0) {
+                        System.out.format("KalmanPatRecDriver: site on layer %d is missing its hit.\n", site.m.Layer);
+                        kTk.print("with bad site");
+                        site.print("bad one");
+                    }
                     TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                     List<RawTrackerHit> rawHits = hpsHit.getRawHits();
                     boolean goodHit = false;
