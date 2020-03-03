@@ -3,11 +3,22 @@ package org.hps.analysis.wab;
 import static java.lang.Math.abs;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.detector.DetectorElementStore;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierDictionary;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -24,6 +35,9 @@ public class StripWABCandidates extends Driver {
     private int _nHitsOnTrack = 5;
     private int _nReconstructedParticles = 2;
     private AIDA aida = AIDA.defaultInstance();
+
+    RelationalTable hitToStrips;
+    RelationalTable hitToRotated;
 
     private int _numberOfEventsWritten = 0;
 
@@ -53,6 +67,7 @@ public class StripWABCandidates extends Driver {
                 double eEnergy = electron.getEnergy();
                 double eMomentum = electron.getMomentum().magnitude();
                 Cluster eClus = electron.getClusters().get(0);
+                double eClusEnergy = eClus.getEnergy();
                 boolean electronIsFiducial = isFiducial(ClusterUtilities.findSeedHit(eClus));
                 double eTime = ClusterUtilities.getSeedHitTime(eClus);
                 Track t = electron.getTracks().get(0);
@@ -65,7 +80,11 @@ public class StripWABCandidates extends Driver {
                 aida.histogram1D("Electron + Photon cluster Esum", 100, 0., 3.0).fill(eSum);
                 aida.histogram1D("Electron momentum + photon Energy", 100, 0., 3.0).fill(eMomentum + pEnergy);
                 aida.histogram1D("Electron energy", 100, 0., 3.0).fill(eEnergy);
+                aida.histogram1D("Electron cluster energy", 100, 0., 3.0).fill(eClusEnergy);
                 aida.histogram1D("Electron momentum", 100, 0., 3.0).fill(eMomentum);
+                aida.histogram1D("Electron eOverP",100, 0., 2.0).fill(eEnergy / eMomentum);
+                aida.histogram2D("Electron eOverP vs P",100, 0., 3.0,100, 0.,2.).fill(eMomentum, eEnergy / eMomentum);
+                aida.histogram2D("Electron momentum vs Electron energy", 100, 0., 3.0, 100, 0., 3.0).fill(eMomentum, eEnergy);
                 aida.histogram1D("Photon Energy", 100, 0., 3.0).fill(pEnergy);
                 aida.histogram2D("Electron energy vs Photon energy", 100, 0., 3.0, 100, 0., 3.0).fill(eEnergy, pEnergy);
                 aida.histogram2D("Electron momentum vs Photon energy", 100, 0., 3.0, 100, 0., 3.0).fill(eMomentum, pEnergy);
@@ -77,7 +96,14 @@ public class StripWABCandidates extends Driver {
                 {
                     if (abs(eTime - pTime) < 2.) {
                         if (eClus.getPosition()[1] * pClus.getPosition()[1] < 0.) {
+                            // have good candidates
+                            // let's setup up a few things for more detailed analyses
+                            setupSensors(event);
+                            hitToStrips = TrackUtils.getHitToStripsTable(event);
+                            hitToRotated = TrackUtils.getHitToRotatedTable(event);
+                            analyzeHitlayers(electron);
                             aida.histogram1D("Final " + nHits + " hits Electron momentum + photon Energy", 100, 0., 3.0).fill(eMomentum + pEnergy);
+                            aida.histogram1D("Final " + nHits + " hits Electron Energy + photon Energy", 100, 0., 3.0).fill(eEnergy + pEnergy);
                             // Passed all cuts, let's write this event
                             skipEvent = false;
                             //Are we also requiring both clusters to be fiducial?
@@ -94,9 +120,11 @@ public class StripWABCandidates extends Driver {
                             }
                             if (electronIsFiducial && photonIsFiducial) {
                                 aida.histogram1D("Fiducial " + nHits + " hits Electron momentum + Fiducial photon Energy", 100, 0., 3.0).fill(eMomentum + pEnergy);
+                                aida.histogram1D("Fiducial " + nHits + " hits Electron energy + Fiducial photon Energy", 100, 0., 3.0).fill(eEnergy + pEnergy);
                             }
                             if (photonIsFiducial) {
                                 aida.histogram1D("Final " + nHits + " hits Electron momentum + Fiducial photon Energy", 100, 0., 3.0).fill(eMomentum + pEnergy);
+                                aida.histogram1D("Final " + nHits + " hits Electron Energy + Fiducial photon Energy", 100, 0., 3.0).fill(eEnergy + pEnergy);
                             }
                         }
                     }
@@ -196,6 +224,80 @@ public class StripWABCandidates extends Driver {
 
         // If all checks fail, the cluster is in the fiducial region.
         return true;
+    }
+
+    private void analyzeHitlayers(ReconstructedParticle rp) {
+        Track t = rp.getTracks().get(0);
+        String topOrBottom = isTopTrack(t) ? " top " : " bottom ";
+        double p = rp.getMomentum().magnitude();
+        int nHits = t.getTrackerHits().size();
+        aida.histogram1D(topOrBottom + " track number of hits", 10, 0., 10.).fill(nHits);
+//        System.out.println("Track has " + nHits + " hits");
+
+        for (TrackerHit hit : TrackUtils.getStripHits(t, hitToStrips, hitToRotated)) {
+            List rthList = hit.getRawHits();
+            int layerNumber = ((RawTrackerHit) rthList.get(0)).getLayerNumber();
+            aida.histogram1D(topOrBottom + " " + nHits + " track hit layer number", 20, 0., 20.).fill(layerNumber);
+//            System.out.println(" hit in layer " + layerNumber);
+            aida.histogram2D(topOrBottom + " " + nHits + "-hit Track hit layer number vs track momentum", 14, 0.5, 14.5, 100, 0., 2.).fill(layerNumber, p);
+        }
+    }
+
+    private boolean isTopTrack(Track t) {
+        List<TrackerHit> hits = t.getTrackerHits();
+        int n[] = {0, 0};
+        int nHits = hits.size();
+        for (TrackerHit h : hits) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+            if (sensor.isTopLayer()) {
+                n[0] += 1;
+            } else {
+                n[1] += 1;
+            }
+        }
+        if (n[0] == nHits && n[1] == 0) {
+            return true;
+        }
+        if (n[1] == nHits && n[0] == 0) {
+            return false;
+        }
+        throw new RuntimeException("mixed top and bottom hits on same track");
+
+    }
+
+    private void setupSensors(EventHeader event) {
+        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+        // Get the ID dictionary and field information.
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        int fieldIdx = dict.getFieldIndex("side");
+        int sideIdx = dict.getFieldIndex("strip");
+        for (RawTrackerHit hit : rawTrackerHits) {
+            // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
+            IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+            expId.setValue(fieldIdx, 0);
+            expId.setValue(sideIdx, 0);
+            IIdentifier strippedId = dict.pack(expId);
+            // Find the sensor DetectorElement.
+            List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
+            if (des == null || des.size() == 0) {
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            } else if (des.size() == 1) {
+                hit.setDetectorElement((SiSensor) des.get(0));
+            } else {
+                // Use first sensor found, which should work unless there are sensors with duplicate IDs.
+                for (IDetectorElement de : des) {
+                    if (de instanceof SiSensor) {
+                        hit.setDetectorElement((SiSensor) de);
+                        break;
+                    }
+                }
+            }
+            // No sensor was found.
+            if (hit.getDetectorElement() == null) {
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            }
+        }
     }
 
     @Override
