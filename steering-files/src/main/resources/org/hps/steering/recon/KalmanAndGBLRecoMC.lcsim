@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that runs the Kalman and GBL reconstruction pipeline
+      @brief Steering file that runs the Kalman and GBL reconstruction pipeline from LCIOs. Only Final State particles and vertices are going to be formed again.
       @author <a href="mailto:pbutti@slac.stanford.edu">PF</a>
     -->
     <execute>
@@ -10,8 +10,8 @@
         <driver name="RfFitter"/>
         <driver name="PreCleanupDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>
-        <driver name="RawTrackerHitFitterDriver" />
-        <driver name="TrackerHitDriver"/>
+        <!-- <driver name="RawTrackerHitFitterDriver" /> -->
+        <!-- <driver name="TrackerHitDriver"/> -->
         <!-- <driver name="HelicalTrackHitDriver"/> -->
         <driver name="KalmanPatRecDriver"/> 
         <!-- <driver name="GBLRefitterDriver" /> -->
@@ -44,7 +44,7 @@
 
 <!--                   <collectionNames> FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices HelicalTrackHits HelicalTrackHitRelations MatchedTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations StripClusterer_SiTrackerHitStrip1D TrackResiduals TrackResidualsRelations</collectionNames> -->
 
-<collectionNames> FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates StripClusterer_SiTrackerHitStrip1D BeamspotConstrainedV0Vertices </collectionNames>
+<collectionNames> FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices </collectionNames>
 
 
        
