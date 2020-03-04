@@ -299,14 +299,18 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
         // Get the sensor associated with this sample
         HpsSiSensor sensor = this.getSensor(data);
         
-        // Use the channel number to create the cell ID
-        long cellID = sensor.makeChannelID(channel);
+        if (sensor != null) {
+            // Use the channel number to create the cell ID
+            long cellID = sensor.makeChannelID(channel);
+            
+            // Set the hit time.  For now this will be zero
+            int hitTime = 0;
         
-        // Set the hit time.  For now this will be zero
-        int hitTime = 0;
-    
-        // Create and return a RawTrackerHit
-        return new BaseRawTrackerHit(hitTime, cellID, SvtEvioUtils.getSamples(data), null, sensor);
+            // Create and return a RawTrackerHit
+            return new BaseRawTrackerHit(hitTime, cellID, SvtEvioUtils.getSamples(data), null, sensor);
+        }else {
+            return(null);
+        }
     }
 
 }
