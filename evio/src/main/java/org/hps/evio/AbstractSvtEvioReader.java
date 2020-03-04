@@ -309,6 +309,7 @@ public abstract class AbstractSvtEvioReader extends EvioReader {
             // Create and return a RawTrackerHit
             return new BaseRawTrackerHit(hitTime, cellID, SvtEvioUtils.getSamples(data), null, sensor);
         }else {
+            LOGGER.warning("makeHit: Bad sensor codes in hit evio data: " + data.toString());
             return(null);
         }
     }
