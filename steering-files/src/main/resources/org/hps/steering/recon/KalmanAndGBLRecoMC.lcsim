@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml_ version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
       @brief Steering file that runs the Kalman and GBL reconstruction pipeline
@@ -19,7 +19,7 @@
         <driver name="TrackTruthMatching_KF" />
         <driver name="ReconParticleDriver_Kalman" />  
         <driver name="TrackTruthMatching_GBL" />
-        <!-- <driver name="ReconParticleDriver_GBL" /> -->
+        <driver name="ReconParticleDriver_GBL" />
         <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
     </execute>    
@@ -125,6 +125,8 @@
         </driver> 
 
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+          <ptCut>0.3</ptCut>
+          <nMinHits>8</nMinHits>
           </driver>
           
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
