@@ -118,49 +118,69 @@ public class TrackToMCParticleRelationsDriver extends Driver {
         List<Track>      truthTrackCollection          =  new ArrayList<Track>();
                 
         for (Track track : trackCollection) {
+
+            if (debug) {
+                        System.out.println("-----PRINTING TRACK------- " + trackCollectionName);
+                        System.out.println(trackCollectionName+" Track:");
+                        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", trk_htf.dca(), trk_htf.z0(), trk_htf.R(), trk_htf.phi0(), trk_htf.slope());
+            }
+            
             //Truth Matching tool
             TrackTruthMatching ttm = new TrackTruthMatching(track, rawtomc, allsimhits, kalmanTracks);
             if (ttm != null) {
                 MCParticle mcp = ttm.getMCParticle();
-                trackToMCParticleRelations.add(new BaseLCRelation(track,mcp));
                 
-                //Hep3Vector origin = new BasicHep3Vector(0.,0.,0.);
-                HelicalTrackFit mcp_htf  = TrackUtils.getHTF(mcp,bfield);
-                HelicalTrackFit trk_htf  = TrackUtils.getHTF(track);
-                
-                if (debug) {
-                    System.out.println("--------------------");
-                    System.out.println(trackCollectionName+" Track:");
-                    System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", trk_htf.dca(), trk_htf.z0(), trk_htf.R(), trk_htf.phi0(), trk_htf.slope());
-                    System.out.printf("Nhits = %d \n",ttm.getNHits());
-                    System.out.printf("NGoodHits = %d  purity = %f\n",ttm.getNGoodHits(),ttm.getPurity());
+                if (mcp != null) {
+                    trackToMCParticleRelations.add(new BaseLCRelation(track,mcp));
                     
-                }
-                BaseTrack truth_trk  = new BaseTrack();
-                truth_trk.setTrackParameters(mcp_htf.parameters(),bfield);
-                truth_trk.getTrackStates().clear();
-                double[] ref = new double[] { 0., 0., 0. };
-                SymmetricMatrix cov = new SymmetricMatrix(5);
-                TrackState stateIP = new BaseTrackState(mcp_htf.parameters(),ref,cov.asPackedArray(true),TrackState.AtIP,bfield);
-                truth_trk.getTrackStates().add(stateIP);
-                truth_trk.setChisq(-1);
-                truth_trk.setNDF(-1);
-                truth_trk.setFitSuccess(false);
-                truth_trk.setRefPointIsDCA(true);
-                truth_trk.setTrackType(-1);
-                truthTrackCollection.add(truth_trk);
-                trackToTruthTrackRelations.add(new BaseLCRelation(track,truth_trk));
+                    //Hep3Vector origin = new BasicHep3Vector(0.,0.,0.);
+                    HelicalTrackFit mcp_htf  = TrackUtils.getHTF(mcp,bfield);
+                    HelicalTrackFit trk_htf  = TrackUtils.getHTF(track);
                 
-
-                if (debug) {
-                    double d0    = truth_trk.getTrackStates().get(0).getD0();
-                    double z0    = truth_trk.getTrackStates().get(0).getZ0();
-                    double C     = truth_trk.getTrackStates().get(0).getOmega();
-                    double phi   = truth_trk.getTrackStates().get(0).getPhi();
-                    double slope = truth_trk.getTrackStates().get(0).getTanLambda();
-                    System.out.printf("TruthTrack \n");
-                    System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", d0, z0, 1./C, phi, slope);
-                    System.out.println("--------------------");
+                    if (debug) {
+                        System.out.println("--------------------");
+                        System.out.println(trackCollectionName+" Track:");
+                        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", trk_htf.dca(), trk_htf.z0(), trk_htf.R(), trk_htf.phi0(), trk_htf.slope());
+                        System.out.printf("Nhits = %d \n",ttm.getNHits());
+                        System.out.printf("NGoodHits = %d  purity = %f\n",ttm.getNGoodHits(),ttm.getPurity());
+                        
+                    }
+                    BaseTrack truth_trk  = new BaseTrack();
+                    truth_trk.setTrackParameters(mcp_htf.parameters(),bfield);
+                    truth_trk.getTrackStates().clear();
+                    double[] ref = new double[] { 0., 0., 0. };
+                    SymmetricMatrix cov = new SymmetricMatrix(5);
+                    TrackState stateIP = new BaseTrackState(mcp_htf.parameters(),ref,cov.asPackedArray(true),TrackState.AtIP,bfield);
+                    truth_trk.getTrackStates().add(stateIP);
+                    truth_trk.setChisq(-1);
+                    truth_trk.setNDF(-1);
+                    truth_trk.setFitSuccess(false);
+                    truth_trk.setRefPointIsDCA(true);
+                    truth_trk.setTrackType(-1);
+                    truthTrackCollection.add(truth_trk);
+                    trackToTruthTrackRelations.add(new BaseLCRelation(track,truth_trk));
+                    
+                    
+                    if (debug) {
+                        double d0    = truth_trk.getTrackStates().get(0).getD0();
+                        double z0    = truth_trk.getTrackStates().get(0).getZ0();
+                        double C     = truth_trk.getTrackStates().get(0).getOmega();
+                        double phi   = truth_trk.getTrackStates().get(0).getPhi();
+                        double slope = truth_trk.getTrackStates().get(0).getTanLambda();
+                        System.out.printf("TruthTrack \n");
+                        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", d0, z0, 1./C, phi, slope);
+                        System.out.printf("MCParticle  \n");
+                        Hep3Vector pVec = mcp.getMomentum();
+                        System.out.printf("ptTrue = %f \n", Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z()));
+                        double mom_param = 2.99792458e-04;
+                        double trkMom = trk_htf.R() * bfield * mom_param;
+                        System.out.printf("pt = %f \n", trkMom);
+                        
+                        System.out.println("--------------------");
+                    }
+                }//mcp not null
+                else {
+                    System.out.printf("PF::FakeTrack");
                 }
             } //ttm not null
             else {

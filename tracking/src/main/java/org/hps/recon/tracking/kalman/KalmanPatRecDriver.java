@@ -67,11 +67,15 @@ public class KalmanPatRecDriver extends Driver {
     private RelationalTable hitToStrips;
     private RelationalTable hitToRotated;
     private double executionTime;
+    private double bfield;
 
     //Path to store gnu plots
     //Should be removed
     private String outputGnuPlotDir = "./";
     private boolean doDebugPlots = false;
+
+    //Pattern Reco cuts 
+    private double ptCut = 0.3; //GeV
     
 
     public void setOutputPlotsFilename(String input) {
@@ -195,8 +199,11 @@ public class KalmanPatRecDriver extends Driver {
         for (ScatteringDetectorVolume vol : materialVols) {
             detPlanes.add((SiStripPlane) (vol));
         }
-
+        
         TrackUtils.getBField(det).magnitude();
+        Hep3Vector fieldInTracker = TrackUtils.getBField(det);
+        this.bfield = Math.abs(fieldInTracker.y());
+        
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         KI = new KalmanInterface(verbose, uniformB);
@@ -281,6 +288,13 @@ public class KalmanPatRecDriver extends Driver {
                 //Here is where the tracks to be persisted are formed
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
                 if (KalmanTrackHPS == null)
+                    continue;
+                
+                //pT cut 
+                double momentum_param = 2.99792458e-04;
+                double pt = Math.abs((1 / KalmanTrackHPS.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
+                
+                if (pt < ptCut)
                     continue;
                 
                 outputFullTracks.add(KalmanTrackHPS);
