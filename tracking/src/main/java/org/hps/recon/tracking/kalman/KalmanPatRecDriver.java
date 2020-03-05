@@ -75,9 +75,18 @@ public class KalmanPatRecDriver extends Driver {
     private boolean doDebugPlots = false;
 
     //Pattern Reco cuts 
-    private double ptCut = 0.3; //GeV
+    private double ptCut    = 0.3; //GeV
+    private double nMinHits = 8;  
     
 
+    public void setPtCut(double val) {
+        ptCut = val;
+    }
+    
+    public void setNMinHits(double val) {
+        nMinHits = val;
+    }
+    
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
     }
@@ -295,6 +304,9 @@ public class KalmanPatRecDriver extends Driver {
                 double pt = Math.abs((1 / KalmanTrackHPS.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
                 
                 if (pt < ptCut)
+                    continue;
+                
+                if (KalmanTrackHPS.getTrackerHits().size() < nMinHits)
                     continue;
                 
                 outputFullTracks.add(KalmanTrackHPS);
