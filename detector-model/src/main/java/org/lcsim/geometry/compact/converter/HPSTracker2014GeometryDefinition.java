@@ -2019,6 +2019,7 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
 
         // makeHalfModuleComponentHybrid(halfModule);
 
+        halfModule.printSurveyPos();
     }
 
     protected void makeLongHalfModuleComponentKapton(BaseModule mother) {

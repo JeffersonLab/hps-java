@@ -102,7 +102,8 @@ public final class SvtDetectorSetupTest extends TestCase {
         conditionsManager.addConditionsListener(new SvtDetectorSetup());
         
         // Set the detector and run number we are interested in using.
-        conditionsManager.setDetector("HPS-PhysicsRun2019-v1-4pt5", 2000000);
+//        conditionsManager.setDetector("HPS-PhysicsRun2019-v1-4pt5", 2000000);
+        conditionsManager.setDetector("HPS-PhysicsRun2019-v1-4pt5_fieldOff_aligned", 10101);
 
         // Get the detector.
         final Detector detector = conditionsManager.getCachedConditions(Detector.class, "compact.xml").getCachedData();
