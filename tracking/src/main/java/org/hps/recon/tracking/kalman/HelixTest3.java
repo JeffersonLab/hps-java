@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 //This is for testing only and is not part of the Kalman fitting code
-public class HelixTest3 { // Program for testing the Kalman fitting code
+class HelixTest3 { // Program for testing the Kalman fitting code
 
     // Coordinate system:
     // z is the B field direction, downward in lab coordinates
@@ -20,7 +20,7 @@ public class HelixTest3 { // Program for testing the Kalman fitting code
 
     Random rnd;
 
-    public HelixTest3(String path) {
+    HelixTest3(String path) {
 
         // Control parameters
         // Units are Tesla, GeV, mm

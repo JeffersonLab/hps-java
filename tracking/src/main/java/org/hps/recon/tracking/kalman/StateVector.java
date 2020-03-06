@@ -338,7 +338,7 @@ class StateVector {
         // return new Vec(x, y, z);
     }
 
-    public static Vec atPhi(Vec X0, Vec a, double phi, double alpha) {
+    static Vec atPhi(Vec X0, Vec a, double phi, double alpha) {
         double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * Math.cos(a.v[1]) - (alpha / a.v[2]) * Math.cos(a.v[1] + phi);
         double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (alpha / a.v[2]) * Math.sin(a.v[1] + phi);
         double z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
@@ -351,7 +351,7 @@ class StateVector {
         return getMom(phi, a);
     }
 
-    public static Vec getMom(double phi, Vec a) {
+    static Vec getMom(double phi, Vec a) {
         double px = -Math.sin(a.v[1] + phi) / Math.abs(a.v[2]);
         double py = Math.cos(a.v[1] + phi) / Math.abs(a.v[2]);
         double pz = a.v[4] / Math.abs(a.v[2]);
@@ -450,7 +450,7 @@ class StateVector {
     }
 
     // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
-    public Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
+    Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
 
         //boolean verbose = false; // !!!!!!!!!!
 
@@ -479,8 +479,7 @@ class StateVector {
         double Q = Math.signum(a.v[2]);
 
         Vec pInt = new Vec(3);
-        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the origin
-                                                                                    // plane
+        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the origin plane
 
         Vec helixAtIntersect = pTOa(pInt, 0., 0., Q);
         Vec helixAtOrigin = pivotTransform(new Vec(0., 0., 0.), helixAtIntersect, Xplane, alpha, 0.);

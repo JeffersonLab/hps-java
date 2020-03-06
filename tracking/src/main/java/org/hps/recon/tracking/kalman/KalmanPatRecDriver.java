@@ -65,6 +65,24 @@ public class KalmanPatRecDriver extends Driver {
     private RelationalTable hitToStrips;
     private RelationalTable hitToRotated;
     private double executionTime;
+    private KalmanParams kPar;
+    
+    // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
+    private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
+    private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
+    private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
+    private double maxZ0;              // Maximum dz (or Z0) at the target plane for a seed and the final track
+    private double maxChi2;            // Maximum Kalman chi^2 per hit for a track candidate
+    private int minHits;               // Minimum number of hits on a track
+    private int minStereo;             // Minimum number of stereo hits on a track
+    private int maxSharedHits;         // Maximum number of hits on a track that are shared with another track
+    private double maxTimeRange;       // Maximum time range in ns spanned by all the hits on a track
+    private double maxTanLambda;       // Maximum tan(lambda) for a track seed
+    private double maxResidual;        // Maximum residual in units of SSD resolution to add a hit to a track candidate
+    private double maxChi2Inc;         // Maximum increment in chi^2 to add a hit to an already completed track
+    private double minChi2IncBad;      // Minimum increment in chi^2 to remove a hit from an already completed track
+    private double maxResidShare;      // Maximum residual in units of detector resolution for a shared hit
+    private double maxChi2IncShare;    // Maximum increment in chi^2 for a hit shared with another track
 
     public void setOutputPlotsFilename(String input) {
         outputPlots = input;
@@ -181,10 +199,66 @@ public class KalmanPatRecDriver extends Driver {
         TrackUtils.getBField(det).magnitude();
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
+        // Instantiate the interface to the Kalman-Filter code and set up the geometry
         KI = new KalmanInterface(verbose, uniformB);
         KI.createSiModules(detPlanes, fm);
         
         decoder = det.getSubdetector("Tracker").getIDDecoder();
+        
+        // Change Kalman parameters per settings supplied by the steering file
+        // We assume that if not set by the steering file, then the parameters will have the Java default values for the primitives
+        // Note that all of the parameters have defaults hard coded in KalmanParams.java
+        kPar = KI.getKalmanParams();
+        if (numKalmanIteration != 0) kPar.setIterations(numKalmanIteration);
+        if (maxPtInverse != 0.0) kPar.setMaxK(maxPtInverse);
+        if (maxD0 != 0.0) kPar.setMaxdRho(maxD0);
+        if (maxZ0 != 0.0) kPar.setMaxdZ(maxZ0);
+        if (maxChi2 != 0.0) kPar.setMaxChi2(maxChi2);
+        if (minHits != 0) kPar.setMinHits(minHits);
+        if (minStereo != 0) kPar.setMinStereo(minStereo);
+        if (maxSharedHits != 0) kPar.setMaxShared(maxSharedHits);
+        if (maxTimeRange != 0.0) kPar.setMaxTimeRange(maxTimeRange);
+        if (maxTanLambda != 0.0) kPar.setMaxTanL(maxTanLambda);
+        if (maxResidual != 0.0) kPar.setMxResid(maxResidual);
+        if (maxChi2Inc != 0.0) kPar.setMxChi2Inc(maxChi2Inc);
+        if (minChi2IncBad != 0.0) kPar.setMinChi2IncBad(minChi2IncBad);
+        if (maxResidShare != 0.0) kPar.setMxResidShare(maxResidShare);
+        if (maxChi2IncShare != 0.0) kPar.setMxChi2double(maxChi2IncShare);
+        
+        // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
+        // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
+        // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
+        kPar.clrStrategies();
+        int[] list0 = {6, 7, 8, 9, 10};
+        int[] list1 = {4, 5, 6, 7, 8};
+        int[] list2 = {5, 6, 8, 9, 10};
+        int[] list3 = {5, 6, 7, 8, 10};
+        int[] list4 = { 3, 6, 8, 9, 10 };
+        int[] list5 = { 4, 5, 8, 9, 10 };
+        int[] list6 = { 4, 6, 7, 8, 9 };
+        int[] list7 = { 4, 6, 7, 9, 10 };
+        int[] list8 = { 2, 5, 8, 9, 12};
+        int[] list9 = { 8, 10, 11, 12, 13};
+        int[] list10 = {6, 9, 10, 11, 12};
+        int[] list11 = {6, 7, 9, 10, 12};
+        int[] list12 = {2, 3, 4, 5, 6};
+        int[] list13 = {2, 4, 5, 6, 7};
+        int[] list14 = {6, 7, 8, 10, 11};
+        kPar.addStrategy(list0);
+        kPar.addStrategy(list1);
+        kPar.addStrategy(list2);
+        kPar.addStrategy(list3);
+        kPar.addStrategy(list4);
+        kPar.addStrategy(list5);
+        kPar.addStrategy(list6);
+        kPar.addStrategy(list7);
+        kPar.addStrategy(list8);
+        kPar.addStrategy(list9);
+        kPar.addStrategy(list10);
+        kPar.addStrategy(list11);
+        kPar.addStrategy(list12);
+        kPar.addStrategy(list13);
+        kPar.addStrategy(list14);
         
         System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
     }
@@ -239,6 +313,13 @@ public class KalmanPatRecDriver extends Driver {
             }
             for (KalTrack kTk : kPat.TkrList) {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
+                double [][] covar = kTk.originCovariance();
+                for (int ix=0; ix<5; ++ix) {
+                    for (int iy=0; iy<5; ++iy) {
+                        if (Double.isNaN(covar[ix][iy])) System.out.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d\n",
+                                event.getEventNumber(), ix, iy, kTk.ID);
+                    }
+                }
                 
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
@@ -491,7 +572,7 @@ public class KalmanPatRecDriver extends Driver {
         }
         
         String path = "C:\\Users\\Robert\\Desktop\\Kalman\\";
-        if (nPlotted < 40) {
+        if (nPlotted < 20) {
             KI.plotKalmanEvent(path, event, kPatList);
             KI.plotGBLtracks(path, event);
             nPlotted++;
@@ -720,7 +801,7 @@ public class KalmanPatRecDriver extends Driver {
         System.out.println("Individual layer efficiencies:");
         for (int lyr=0; lyr<14; lyr++) {
             double effic = (double)nHitsOnTracks[lyr]/(double)nTracks;
-            System.out.format("   Layer %d, hit efficiency = %9.3f\n", lyr, effic);
+            //System.out.format("   Layer %d, hit efficiency = %9.3f\n", lyr, effic);
         }
         if (outputPlots != null) {
             try {
@@ -730,5 +811,52 @@ public class KalmanPatRecDriver extends Driver {
                 Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    // Methods to set Kalman parameters from within the steering file
+    public void setNumKalmanIteration(int numKalmanIteration) {
+        this.numKalmanIteration = numKalmanIteration;
+    }
+    public void setMaxPtInverse(double maxPtInverse) {
+        this.maxPtInverse = maxPtInverse;
+    }
+    public void setMaxD0(double maxD0) {
+        this.maxD0 = maxD0;
+    }
+    public void setMaxZ0(double maxZ0) {
+        this.maxZ0 = maxZ0;
+    }
+    public void setMaxChi2(double maxChi2) {
+        this.maxChi2 = maxChi2;
+    }
+    public void setMinHits(int minHits) {
+        this.minHits = minHits;
+    }
+    public void setMinStereo(int minStereo) {
+        this.minStereo = minStereo;
+    }
+    public void setMaxSharedHits(int maxSharedHits) {
+        this.maxSharedHits = maxSharedHits;
+    }
+    public void setMaxTimeRange(double maxTimeRange) {
+        this.maxTimeRange = maxTimeRange;
+    }
+    public void setMaxTanLambda(double maxTanLambda) {
+        this.maxTanLambda = maxTanLambda;
+    }
+    public void setMaxResidual(double maxResidual) {
+        this.maxResidual = maxResidual;
+    }
+    public void setMaxChi2Inc(double maxChi2Inc) {
+        this.maxChi2Inc = maxChi2Inc;
+    }
+    public void setMinChi2IncBad(double minChi2IncBad) {
+        this.minChi2IncBad = minChi2IncBad;
+    }
+    public void setMaxResidShare(double maxResidShare) {
+        this.maxResidShare = maxResidShare;
+    }
+    public void setMaxChi2IncShare(double maxChi2IncShare) {
+        this.maxChi2IncShare = maxChi2IncShare;
     }
 }

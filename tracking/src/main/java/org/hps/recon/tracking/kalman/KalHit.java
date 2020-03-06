@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-public class KalHit {
+class KalHit {
     SiModule module;
     Measurement hit;
     Set<TrackCandidate> tkrCandidates;
