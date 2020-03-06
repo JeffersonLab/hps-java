@@ -2,7 +2,7 @@ package org.hps.recon.tracking.kalman;
 
 //package kalman;
 
-public class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
+class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
     // and a parabola in the bending plane
 
     private SquareMatrix C; // Covariance matrix of solution
@@ -10,7 +10,7 @@ public class LinearHelixFit { // Simultaneous fit of axial and stereo measuremen
     private double chi2;
     private double[] vpred;
 
-    public LinearHelixFit(int N, double[] y, double[] v, double[] s, double[][] delta, double[][] R2, boolean verbose) {
+    LinearHelixFit(int N, double[] y, double[] v, double[] s, double[][] delta, double[][] R2, boolean verbose) {
         // N = number of measurement points (detector layers) to fit. This must be no less than 5, with at least 2 axial and 2 stereo
         // y = nominal location of each measurement plane along the beam axis
         // v = measurement value in the detector coordinate system, perpendicular to the strips

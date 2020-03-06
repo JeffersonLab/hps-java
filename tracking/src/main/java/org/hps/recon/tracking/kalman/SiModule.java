@@ -6,7 +6,7 @@ import java.util.Iterator;
 //import org.lcsim.geometry.FieldMap;
 
 // Description of a single silicon-strip module, and a container for its hits
-public class SiModule {
+class SiModule {
     int Layer; // Tracker layer number, or a negative integer for a dummy layer added just for stepping in a
                // non-uniform field
     int detector; // Detector number within the layer
@@ -32,18 +32,18 @@ public class SiModule {
         verbose = input;
     }
 
-    public SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
+    SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0
         this(Layer, p, stereo != 0.0, width, height, thickness, Bfield, 0);
     }
 
-    public SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
+    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
             org.lcsim.geometry.FieldMap Bfield) {
         this(Layer, p, isStereo, width, height, thickness, Bfield, 0);
     }
 
-    public SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
+    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector) {
         
         if (verbose) { 
@@ -74,7 +74,7 @@ public class SiModule {
         hits = new ArrayList<Measurement>();
     }
 
-    public void print(String s) {
+    void print(String s) {
         System.out.format(
                 "Si module %s, Layer=%2d, Detector=%2d, stereo=%b, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
                 s, Layer, detector, isStereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
@@ -97,11 +97,11 @@ public class SiModule {
     }
 
     // Delete all the existing hits
-    public void reset() {
+    void reset() {
         hits = new ArrayList<Measurement>();
     }
 
-    public void addMeasurement(Measurement m) {
+    void addMeasurement(Measurement m) {
         if (hits.size() == 0) hits.add(m);
         else {
             boolean added = false;

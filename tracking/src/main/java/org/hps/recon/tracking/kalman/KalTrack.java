@@ -29,7 +29,7 @@ public class KalTrack {
     public double alpha;
     private double[][] Cx;
     private double[][] Cp;
-    public double Bmag;
+    double Bmag;
     private Vec tB;
     private double time;
     private boolean verbose;
@@ -309,7 +309,23 @@ public class KalTrack {
         // be introduced, TBD
         double XL = 0.; // innerSite.XL / Math.abs(ct);
         helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
-        
+        if (Double.isNaN(originCov.M[0][0])) return false;
+        SquareMatrix Cinv = originCov.invert();
+        for (int i=0; i<5; ++i) {
+            if (Cinv.M[i][i] == 0.0) {  // The covariance matrix was singular
+                System.out.format("KalTrack.originHelix: the track %d covariance matrix is singular!\n", ID);
+                originCov.print("singular");
+                helixAtOrigin.print("singular");
+                for (int k=0; k<5; ++k) {
+                    for (int m=0; m<k; ++m) {
+                        originCov.M[k][m] = 0.;
+                        originCov.M[m][k] = 0.;
+                    }
+                }
+                break;
+            }
+        }
+
         // Find the position and momentum of the particle near the origin, including
         // covariance
         Vec XonHelix = StateVector.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
@@ -551,6 +567,7 @@ public class KalTrack {
             if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s); }
         }
         this.chi2 = chi2s;
+        propagated = false;
         return true;
     }
 

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 
-public class TrackCandidate {
+class TrackCandidate {
     int ID;
     private Map<Measurement, KalHit> hitMap;
     ArrayList<MeasurementSite> sites;

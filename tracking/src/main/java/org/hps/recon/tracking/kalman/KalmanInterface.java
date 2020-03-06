@@ -62,6 +62,7 @@ public class KalmanInterface {
     public int verboseLevel = 0;
     double svtAngle;
     private HelixPlaneIntersect hpi;
+    KalmanParams kPar;
     Random rnd;
     
     // Get the HPS tracker hit corresponding to a Kalman hit
@@ -166,8 +167,15 @@ public class KalmanInterface {
         long rndSeed = -3263009337738135404L;
         rnd = new Random();
         rnd.setSeed(rndSeed);
+        
+        kPar = new KalmanParams();
     }
 
+    // Return the reference to the parameter setting code for the driver to use
+    public KalmanParams getKalmanParams() {
+        return kPar;
+    }
+    
     // Transformation from HPS global coordinates to Kalman global coordinates
     public static Vec vectorGlbToKalman(double[] HPSvec) { 
         Vec kalVec = new Vec(HPSvec[0], HPSvec[2], -HPSvec[1]);
@@ -1069,7 +1077,7 @@ public class KalmanInterface {
                 }
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, false);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar, false);
             outList.add(kPat);
         }
         return outList;
