@@ -52,7 +52,7 @@ public class HpsMcFitterTest extends TestCase
         System.out.println("Running from: " + Paths.get("").toAbsolutePath());
 //        String fileName = "http://www.lcsim.org/test/hps-java/singleFullEnergyElectrons_SLIC-v05-00-00_Geant4-v10-01-02_QGSP_BERT_HPS-EngRun2015-Nominal-v2-fieldmap_minINteractions_recon.slcio";
 //        String fileName = "http://www.lcsim.org/test/hps-java/e-_1.056GeV_SLIC-v05-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-EngRun2015-Nominal-v2-fieldmap_recon.slcio";
-        String fileName = "C:/hps_data/MC/e-_1.02776GeV_SLIC-v05-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-EngRun2015-Nominal-v4-4-fieldmap_50k_nomsc_recon.slcio";
+        String fileName = "http://www.lcsim.org/test/hps-java/e-_1.02776GeV_SLIC-v05-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-EngRun2015-Nominal-v4-4-fieldmap_50k_nomsc_recon.slcio";
         FileCache cache = new FileCache();
         int nEvents = 1;
         LCSimLoop loop = new LCSimLoop();

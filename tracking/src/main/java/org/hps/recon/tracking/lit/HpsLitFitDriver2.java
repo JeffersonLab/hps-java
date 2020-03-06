@@ -271,8 +271,9 @@ public class HpsLitFitDriver2 extends Driver {
 //                        CbmLitTrack detTrack = fit(mcPropagatedDetPlaneHits);
 //                        compare(detTrack, parIn, "detTrack");
                         CbmLitTrack zTrack = fitIt(mcPropagatedZPlaneHits);
+                        System.out.println("zTrack "+zTrack);
+                        //extrapolate to zero, compare to MC, create residuals and pulls
                         compare(zTrack, parIn, "zTrack");
-                        //TODO extrapolate to zero, compare to MC, create residuals and pulls
                     }
                 } // end of loop over MCParticles
             }  // end of check on six hits
@@ -297,8 +298,10 @@ public class HpsLitFitDriver2 extends Driver {
         CbmLitTrackParam tAtOrigin = new CbmLitTrackParam();
         // find z where we should compare
         double z = mcp.GetZ();
-        // extrapolate our track to the is z position
-        _extrap.Extrapolate(tp1, tAtOrigin, z, null);
+        // extrapolate our track to this z position
+        // transport matrix
+        double[] F = new double[25];
+        _extrap.Extrapolate(tp1, tAtOrigin, z, F);
         System.out.println("MC parameters             : " + mcp);
         System.out.println("track parameters at origin: " + tAtOrigin);
         double[] mcStateVector = mcp.GetStateVector();
@@ -313,7 +316,7 @@ public class HpsLitFitDriver2 extends Driver {
         }
         double chisq = track.GetChi2();
         int ndf = track.GetNDF();
-        aida.cloud1D("Chisq").fill(chisq);
+        aida.histogram1D("Chisq", 100, 0., 25.).fill(chisq);
         aida.cloud1D("Chisq Probability").fill(ChisqProb.gammq(ndf, chisq));
         aida.cloud1D("Momentum").fill(abs(1. / tStateVector[4]));
         _tree.cd("/");
@@ -405,6 +408,9 @@ public class HpsLitFitDriver2 extends Driver {
         System.out.println("zPlane fit downstream: " + status);
         System.out.println(track);
         System.out.println(track.GetParamLast());
+        //fit upstream
+        //need to reset the covariance matrix so we don't overfit...
+        track.GetParamLast().SetCovMatrix(defaultStartParams.GetCovMatrix());
         status = _fitter.Fit(track, false);
         System.out.println("zPlane fit upstream: " + status);
         System.out.println(track);

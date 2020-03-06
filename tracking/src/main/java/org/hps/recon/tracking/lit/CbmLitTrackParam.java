@@ -26,13 +26,13 @@ public class CbmLitTrackParam {
     }
 
     public CbmLitTrackParam(double[] pos, double[] mom, int sign) {
-        SetX(pos[0]);
-        SetY(pos[1]);
-        SetZ(pos[2]);
-        SetTx(mom[0] / mom[2]);
-        SetTy(mom[1] / mom[2]);
+        SetX(pos[0]); // x
+        SetY(pos[1]); // y
+        SetZ(pos[2]); // z
+        SetTx(mom[0] / mom[2]); // px/pz
+        SetTy(mom[1] / mom[2]); // py/pz
         double mag = sqrt(mom[0] * mom[0] + mom[1] * mom[1] + mom[2] * mom[2]);
-        SetQp(sign / mag);
+        SetQp(sign / mag); // q/p
         double p = (abs(fQp) != 0.) ? 1. / abs(fQp) : 1.e20;
         double pz = sqrt(p * p / (fTx * fTx + fTy * fTy + 1));
         double px = fTx * pz;
