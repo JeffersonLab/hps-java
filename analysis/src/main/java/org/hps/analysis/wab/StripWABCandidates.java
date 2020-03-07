@@ -14,6 +14,7 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
@@ -41,12 +42,21 @@ public class StripWABCandidates extends Driver {
 
     private int _numberOfEventsWritten = 0;
 
+    boolean isMC;
+
     protected void process(EventHeader event) {
         boolean skipEvent = true;
         // get the ReconstructedParticles in this event
         List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
         // now add in the FEE candidates
         rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+
+        // any MC information?
+        isMC = event.hasCollection(MCParticle.class, "MCParticle");
+        List<MCParticle> mcParts = null;
+        if (isMC) {
+            mcParts = event.get(MCParticle.class, "MCParticle");
+        }
 
         // get the electron and photon
         // for now start with only 2 ReconstructedParticles in the event...
