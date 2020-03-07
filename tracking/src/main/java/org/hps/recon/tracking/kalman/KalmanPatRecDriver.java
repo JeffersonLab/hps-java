@@ -145,7 +145,7 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
         aida.histogram1D("pt inverse", 100, -2.5, 2.5);
         aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
-        aida.histogram1D("pt inverse error, sigmas", 100, -5., 5.);
+        aida.histogram1D("pt inverse error, sigmas >= 10 hits", 100, -5., 5.);
         aida.histogram1D("tanLambda", 100, -0.3, 0.3);
         aida.histogram1D("GBL tanLambda", 100, -0.3, 0.3);
         aida.histogram1D("tanLambda true", 100, -0.3, 0.3);
@@ -471,7 +471,9 @@ public class KalmanPatRecDriver extends Driver {
                     aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
                     aida.histogram1D("pt inverse").fill(ptInv);
                     aida.histogram1D("pt inverse error, percent").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
-                    aida.histogram1D("pt inverse error, sigmas").fill((ptInv-ptInvTrue)/ptInvErr);
+                    if (kTk.nHits >= 10) {
+                        aida.histogram1D("pt inverse error, sigmas >= 10 hits").fill((ptInv-ptInvTrue)/ptInvErr);
+                    }
                     aida.histogram1D("tanLambda").fill(tanLambda);
                     aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
                     aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
@@ -493,31 +495,7 @@ public class KalmanPatRecDriver extends Driver {
             double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
             for (Track tkrGBL : tracksGBL) {
                 aida.histogram1D("GBL track chi^2").fill(tkrGBL.getChi2());
-                List<TrackState> stLst = tkrGBL.getTrackStates();
-                for (TrackState st : stLst) {
-                    if (st.getLocation() == TrackState.AtIP) {
-                        double d0 = st.getParameter(0);
-                        aida.histogram1D("GBL d0").fill(d0);
-                        double z0 = st.getParameter(3);
-                        aida.histogram1D("GBL z0").fill(z0);
-                        double Omega = st.getOmega();
-                        double ptInvGBL = -alpha * Omega;
-                        aida.histogram1D("GBL pt inverse").fill(ptInvGBL);
-                        double [] covGBL = st.getCovMatrix();
-                        double omegaErr = Math.sqrt(covGBL[5]);
-                        double tanLambdaGBL = st.getTanLambda();
-                        aida.histogram1D("GBL tanLambda").fill(tanLambdaGBL);
-                        aida.histogram1D("GBL pt inverse, sigmas").fill(Omega/omegaErr);
-                        double pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
-                        aida.histogram1D("GBL momentum").fill(pMag);
-                        //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
-                        //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
-                        //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);
-                        //System.out.format("z0=%10.5f +- %10.5f\n", z0, Math.sqrt(covGBL[9]));
-                        //System.out.format("tanL=%10.5f +- %10.5f\n", st.getParameter(4), Math.sqrt(covGBL[14]));
-                        break;
-                    }
-                }
+
                 ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
                 List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
@@ -568,6 +546,42 @@ public class KalmanPatRecDriver extends Driver {
                     if (!goodHit) nBad++;
                 }
                 aida.histogram1D("GBL number of wrong hits on track").fill(nBad);
+                MCParticle mcBest = null;
+                double ptInvTrue = 1.;
+                if (idBest > -1) {
+                    mcBest = mcParts.get(idBest); 
+                    Hep3Vector pVec = mcBest.getMomentum();
+                    Hep3Vector rVec = mcBest.getOrigin();
+                    double ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
+                    ptInvTrue = mcBest.getCharge()/ptTrue;
+                }
+                List<TrackState> stLst = tkrGBL.getTrackStates();
+                for (TrackState st : stLst) {
+                    if (st.getLocation() == TrackState.AtIP) {
+                        double d0 = st.getParameter(0);
+                        aida.histogram1D("GBL d0").fill(d0);
+                        double z0 = st.getParameter(3);
+                        aida.histogram1D("GBL z0").fill(z0);
+                        double Omega = st.getOmega();
+                        double ptInvGBL = -alpha * Omega;
+                        aida.histogram1D("GBL pt inverse").fill(ptInvGBL);
+                        double [] covGBL = st.getCovMatrix();
+                        double ptInvErr = -alpha * Math.sqrt(covGBL[5]);
+                        double tanLambdaGBL = st.getTanLambda();
+                        aida.histogram1D("GBL tanLambda").fill(tanLambdaGBL);
+                        if (mcBest != null) {
+                            aida.histogram1D("GBL pt inverse, sigmas").fill((ptInvGBL-ptInvTrue)/ptInvErr);
+                        }
+                        double pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
+                        aida.histogram1D("GBL momentum").fill(pMag);
+                        //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
+                        //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
+                        //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);
+                        //System.out.format("z0=%10.5f +- %10.5f\n", z0, Math.sqrt(covGBL[9]));
+                        //System.out.format("tanL=%10.5f +- %10.5f\n", st.getParameter(4), Math.sqrt(covGBL[14]));
+                        break;
+                    }
+                }
             }
         }
         
