@@ -429,7 +429,10 @@ public class KalmanInterface {
         double[] globalParams = kT.originHelixParms();
         double c = 2.99793e8; // Speed of light in m/s
         double conFac = 1.0e12 / c;
-        Vec Bfield = KalmanInterface.getField(new Vec(0.,0.,0.), kT.SiteList.get(0).m.Bfield); // Field at the origin
+        // Field at the origin => For 2016 this is ~ 0.430612 T
+        //Vec Bfield = KalmanInterface.getField(new Vec(0.,0.,0.), kT.SiteList.get(0).m.Bfield); 
+        //In the center of SVT => For 2016 this is ~ 0.52340 T
+        Vec Bfield = KalmanInterface.getField(new Vec(0.,500.,0.), kT.SiteList.get(0).m.Bfield);
         double B = Bfield.mag();
         double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
         double[] newParams = getLCSimParams(globalParams, alpha);

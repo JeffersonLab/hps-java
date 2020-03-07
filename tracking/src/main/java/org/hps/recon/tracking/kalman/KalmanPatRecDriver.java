@@ -67,8 +67,7 @@ public class KalmanPatRecDriver extends Driver {
     private RelationalTable hitToStrips;
     private RelationalTable hitToRotated;
     private double executionTime;
-    private double bfield;
-
+    
     //Path to store gnu plots
     //Should be removed
     private String outputGnuPlotDir = "./";
@@ -155,6 +154,7 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram1D("z0", 100, -2., 2.);
         aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
         aida.histogram1D("pt inverse", 100, -2.5, 2.5);
+        aida.histogram1D("pt inverse True", 100, -2.5, 2.5);
         aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
         aida.histogram1D("pt inverse error, sigmas", 100, -5., 5.);
         aida.histogram1D("tanLambda", 100, -0.3, 0.3);
@@ -208,10 +208,6 @@ public class KalmanPatRecDriver extends Driver {
         for (ScatteringDetectorVolume vol : materialVols) {
             detPlanes.add((SiStripPlane) (vol));
         }
-        
-        TrackUtils.getBField(det).magnitude();
-        Hep3Vector fieldInTracker = TrackUtils.getBField(det);
-        this.bfield = Math.abs(fieldInTracker.y());
         
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
@@ -300,8 +296,9 @@ public class KalmanPatRecDriver extends Driver {
                     continue;
                 
                 //pT cut 
-                double momentum_param = 2.99792458e-04;
-                double pt = Math.abs((1 / KalmanTrackHPS.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
+                double [] hParams_check = kTk.originHelixParms();
+                double ptInv_check = hParams_check[2];
+                double pt = Math.abs(1./ptInv_check);
                 
                 if (pt < ptCut)
                     continue;
@@ -471,6 +468,7 @@ public class KalmanPatRecDriver extends Driver {
                         aida.histogram1D("phi0").fill(phi0);
                         aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
                         aida.histogram1D("pt inverse").fill(ptInv);
+                        aida.histogram1D("pt inverse True").fill(ptInvTrue);
                         aida.histogram1D("pt inverse error, percent").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
                         aida.histogram1D("pt inverse error, sigmas").fill((ptInv-ptInvTrue)/ptInvErr);
                         aida.histogram1D("tanLambda").fill(tanLambda);
