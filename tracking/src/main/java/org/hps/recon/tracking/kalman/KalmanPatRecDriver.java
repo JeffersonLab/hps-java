@@ -367,12 +367,6 @@ public class KalmanPatRecDriver extends Driver {
                 double ptInv_check = hParams_check[2];
                 double pt = Math.abs(1./ptInv_check);
                 
-                if (pt < ptCut)
-                    continue;
-                
-                if (KalmanTrackHPS.getTrackerHits().size() < nMinHits)
-                    continue;
-                
                 outputFullTracks.add(KalmanTrackHPS);
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
                 if (verbose) {
@@ -561,8 +555,6 @@ public class KalmanPatRecDriver extends Driver {
                 double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
                 for (Track tkrGBL : tracksGBL) {
                     aida.histogram1D("GBL track chi^2").fill(tkrGBL.getChi2());
-                    List<TrackState> stLst = tkrGBL.getTrackStates();
-                    
                     ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                     ArrayList<Integer> mcCnt= new ArrayList<Integer>();
                     List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);

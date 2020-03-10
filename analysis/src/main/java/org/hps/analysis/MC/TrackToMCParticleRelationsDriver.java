@@ -116,14 +116,8 @@ public class TrackToMCParticleRelationsDriver extends Driver {
         //Truth Tracks and Relations
         List<LCRelation> trackToTruthTrackRelations    =  new ArrayList<LCRelation>();
         List<Track>      truthTrackCollection          =  new ArrayList<Track>();
-                
+        
         for (Track track : trackCollection) {
-
-            if (debug) {
-                        System.out.println("-----PRINTING TRACK------- " + trackCollectionName);
-                        System.out.println(trackCollectionName+" Track:");
-                        System.out.printf("d0 %f z0 %f R %f phi %f lambda %s\n", trk_htf.dca(), trk_htf.z0(), trk_htf.R(), trk_htf.phi0(), trk_htf.slope());
-            }
             
             //Truth Matching tool
             TrackTruthMatching ttm = new TrackTruthMatching(track, rawtomc, allsimhits, kalmanTracks);
