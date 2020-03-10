@@ -159,7 +159,7 @@ public class KalmanPatRecDriver extends Driver {
         aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
         aida.histogram1D("pt inverse", 100, -2.5, 2.5);
         aida.histogram1D("pt inverse True", 100, -2.5, 2.5);
-        aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
+        aida.histogram1D("pt inverse error, percent >= 10 hits", 100, -50., 50.);
         aida.histogram1D("pt inverse error, sigmas >= 10 hits", 100, -5., 5.);
         aida.histogram1D("tanLambda", 100, -0.3, 0.3);
         aida.histogram1D("GBL tanLambda", 100, -0.3, 0.3);
@@ -363,9 +363,9 @@ public class KalmanPatRecDriver extends Driver {
                     continue;
                 
                 //pT cut 
-                double [] hParams_check = kTk.originHelixParms();
-                double ptInv_check = hParams_check[2];
-                double pt = Math.abs(1./ptInv_check);
+                //double [] hParams_check = kTk.originHelixParms();
+                //double ptInv_check = hParams_check[2];
+                //double pt = Math.abs(1./ptInv_check);
                 
                 outputFullTracks.add(KalmanTrackHPS);
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
@@ -530,8 +530,10 @@ public class KalmanPatRecDriver extends Driver {
                         aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
                         aida.histogram1D("pt inverse").fill(ptInv);
                         aida.histogram1D("pt inverse True").fill(ptInvTrue);
-                        aida.histogram1D("pt inverse error, percent").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
-                        aida.histogram1D("pt inverse error, sigmas").fill((ptInv-ptInvTrue)/ptInvErr);
+                        if (kTk.nHits >= 10) {
+                            aida.histogram1D("pt inverse error, percent >= 10 hits").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
+                            aida.histogram1D("pt inverse error, sigmas >= 10 hits").fill((ptInv-ptInvTrue)/ptInvErr);
+                        }
                         aida.histogram1D("tanLambda").fill(tanLambda);
                         aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
                         aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
@@ -610,7 +612,7 @@ public class KalmanPatRecDriver extends Driver {
                     if (idBest > -1) {
                         mcBest = mcParts.get(idBest); 
                         Hep3Vector pVec = mcBest.getMomentum();
-                        Hep3Vector rVec = mcBest.getOrigin();
+                        //Hep3Vector rVec = mcBest.getOrigin();
                         double ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
                         ptInvTrue = mcBest.getCharge()/ptTrue;
                     }
@@ -741,7 +743,7 @@ public class KalmanPatRecDriver extends Driver {
                 SiTrackerHitStrip1D localHit = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
                 double du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
                 //Vec globalHPS = new Vec(3,global.getPosition());
-                Vec localHPS = new Vec(3,localHit.getPosition());
+                //Vec localHPS = new Vec(3,localHit.getPosition());
                 //globalHPS.print("simulated hit in HPS global system");
                 //localHPS.print("simulated hit in HPS local system");
                 
@@ -768,77 +770,6 @@ public class KalmanPatRecDriver extends Driver {
             }
         }
         return maxErr;
-    }
-    // Find the MC true scattering angles at tracker layers
-    // Note, this doesn't work, because the MC true momentum saved is neither the incoming nor outgoing momentum but rather
-    // some average of the two.
-    private void simScatters(EventHeader event) {
-        String stripHitInputCollectionName = "TrackerHits";
-        List<SimTrackerHit> striphits = event.get(SimTrackerHit.class, stripHitInputCollectionName);
-        if (striphits == null) return;
-        
-        // Make a map from MC particle to the hit in the layer
-        Map<Integer, ArrayList<SimTrackerHit>> hitMCparticleMap = new HashMap<Integer, ArrayList<SimTrackerHit>>();
-        for (SimTrackerHit hit1D : striphits) {
-            decoder.setID(hit1D.getCellID());
-            int Layer = decoder.getValue("layer") + 1;
-            //int Module = decoder.getValue("module");
-            //MCParticle MCpart = hit1D.getMCParticle();
-            ArrayList<SimTrackerHit> partInLayer = null;
-            if (hitMCparticleMap.containsKey(Layer)) {
-                partInLayer = hitMCparticleMap.get(Layer);
-            } else {
-                partInLayer = new ArrayList<SimTrackerHit>();
-            }
-            partInLayer.add(hit1D);
-            hitMCparticleMap.put(Layer,partInLayer);
-        }
-        
-        // Now analyze each MC hit, except those in the first and last layers
-        for (int Layer=2; Layer<11; ++Layer) {
-            if (hitMCparticleMap.containsKey(Layer) && hitMCparticleMap.containsKey(Layer-1)) {
-                hit2Loop :
-                for (SimTrackerHit hit2 : hitMCparticleMap.get(Layer)) {
-                    MCParticle MCP2 = hit2.getMCParticle();
-                    double Q2 = MCP2.getCharge();
-                    Vec p2 = KalmanInterface.vectorGlbToKalman(hit2.getMomentum());
-                    for (SimTrackerHit hit1 : hitMCparticleMap.get(Layer-1)) {
-                        Vec p1 = KalmanInterface.vectorGlbToKalman(hit2.getMomentum());  // reverse direction
-                        MCParticle MCP1 = hit1.getMCParticle();
-                        double Q1 = MCP1.getCharge();
-                        double ratio = p2.mag()/p1.mag();
-                        if (ratio > 0.98 && ratio <= 1.02 && Q1*Q2 > 0. && MCP1.equals(MCP2)) {
-                            // Integrate through the B field from the previous layer to this layer to get the momentum
-                            // before scattering. I'm assuming that the MC hit gives the momentum following the scatter.
-                            // The integration distance is approximated to be the straight line distance, which should get
-                            // pretty close for momenta of interest.
-                            double dx = 1.0;
-                            RungeKutta4 rk4 = new RungeKutta4(Q1, dx, fm);
-                            Vec xStart = KalmanInterface.vectorGlbToKalman(hit1.getPosition());
-                            Vec xEnd = KalmanInterface.vectorGlbToKalman(hit2.getPosition());
-                            double straightDistance = xEnd.dif(xStart).mag();
-                            double[] r= rk4.integrate(xStart, p1, straightDistance-dx);
-                            dx = dx/100.0;
-                            rk4 = new RungeKutta4(Q1, dx, fm);
-                            straightDistance = xEnd.dif(new Vec(r[0],r[1],r[2])).mag();
-                            r = rk4.integrate(new Vec(r[0],r[1],r[2]),  new Vec(r[3],r[4],r[5]), straightDistance-dx);
-                            
-                            Vec newPos = new Vec(r[0], r[1], r[2]);
-                            Vec newMom = new Vec(r[3], r[4], r[5]);
-                            System.out.format("KalmanPatRecDriver.simScatters: trial match at layer %d\n", Layer);
-                            xEnd.print("MC point on layer");
-                            newPos.print("integrated point near layer");
-                            p2.print("MC momentum at layer");
-                            newMom.print("integrated momentum near layer");
-                            double ctScat = p2.dot(newMom)/p2.mag()/newMom.mag();
-                            double angle = Math.acos(ctScat);
-                            System.out.format("  Angle between incoming and outgoing momenta=%10.6f\n", angle);
-                            continue hit2Loop;
-                        }
-                    }
-                }
-            }
-        }    
     }
     
     void printKalmanKinks(KalTrack tkr) {
