@@ -31,7 +31,6 @@ class SiModule {
     void setVerbose(boolean input) { 
         verbose = input;
     }
-
     SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0

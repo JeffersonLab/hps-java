@@ -464,7 +464,6 @@ class MeasurementSite {
             }
             Measurement hit = m.hits.get(hitidx);
             if (verbose) hit.print("to try");
-
             for (KalTrack tkOther: hit.tracks) {
                 if (tkOther != tkr) continue hitList; // ignore already used hits
             }
