@@ -232,7 +232,7 @@ public class HodoRawConverterDriver extends Driver {
                     cl_layer = ArrayUtils.add(cl_layer, hit_ilayer);
                     cl_Energy = ArrayUtils.add(cl_Energy, this_hit.getRawEnergy());
                     cl_Time = ArrayUtils.add(cl_Time, this_hit.getTime());
-                    cl_detid = ArrayUtils.add(cl_detid, this_hit.getDetectorElement().getIdentifier().getValue());
+                    cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
 
                     continue;
                 }
@@ -264,7 +264,7 @@ public class HodoRawConverterDriver extends Driver {
                         cl_ix = ArrayUtils.add(cl_ix, hit_ix);
                         cl_iy = ArrayUtils.add(cl_iy, hit_iy);
                         cl_layer = ArrayUtils.add(cl_layer, hit_ilayer);
-                        cl_detid = ArrayUtils.add(cl_detid, this_hit.getDetectorElement().getIdentifier().getValue());
+                        cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
 
                         double energy = HodoConstants.cl_Esum_scale * (this_hit.getRawEnergy() + that_hit.getRawEnergy()) / 2.;
 
@@ -286,7 +286,7 @@ public class HodoRawConverterDriver extends Driver {
                     cl_layer = ArrayUtils.add(cl_layer, hit_ilayer);
                     cl_Energy = ArrayUtils.add(cl_Energy, this_hit.getRawEnergy());
                     cl_Time = ArrayUtils.add(cl_Time, this_hit.getTime());
-                    cl_detid = ArrayUtils.add(cl_detid, this_hit.getDetectorElement().getIdentifier().getValue());
+                    cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
                 }
 
             }
