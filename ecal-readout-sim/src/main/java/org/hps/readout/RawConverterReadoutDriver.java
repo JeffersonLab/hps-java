@@ -25,6 +25,7 @@ import org.lcsim.lcio.LCIOConstants;
  * functionality.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Tongtong Cao <caot@jlab.org>
  */
 public abstract class RawConverterReadoutDriver extends ReadoutDriver {
     /**
@@ -204,6 +205,15 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      */
     public void setNumberSamplesBefore(int samples) {
         getConverter().setNumberSamplesBefore(4 * samples);
+    }
+    
+    /**
+     * Sets factor of unit conversion for returned value of the method 
+     * <code>AbstractBaseRawConverter::adcToEnergy()</code>.
+     * @param factor of unit conversion
+     */
+    public void setFactorUnitConversion(double factor) {
+        getConverter().setFactorUnitConversion(factor);
     }
     
     /**

@@ -226,8 +226,9 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     /**
      * Stores the minimum length of that must pass before a new hit
      * may be integrated on a given channel.
+     * Unit: clock-cycle
      */
-    private static final int CHANNEL_INTEGRATION_DEADTIME = 32;
+    private static final int CHANNEL_INTEGRATION_DEADTIME = 8;
     /**
      * Defines the total time range around the trigger time in which
      * hits are output into the readout LCIO file. The trigger time
@@ -259,6 +260,20 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * to the their corresponding simulated output hit.
      */
     private LCIOCollection<LCRelation> truthRelationsCollectionParams;
+    
+    /**
+     * Flag to point out that new integration could be started at a sample 
+     * between <code>CHANNEL_INTEGRATION_DEADTIME</code> and <code>numSamplesAfter</code>  
+     * for the case <CHANNEL_INTEGRATION_DEADTIME> is less than <code>numSamplesAfter</code> 
+     */
+    private Map<Long, Boolean> flagStartNewIntegration = new HashMap<>();
+    
+    /**
+     * Since new integration could happen between <code>CHANNEL_INTEGRATION_DEADTIME</code> and <code>numSamplesAfter</code>, 
+     * integration time needs to be assigned as parameter of <code>ReadoutDataManager.addData()</code>.
+     * Global displacement is 0 for dependency. 
+     */
+    private double integrationTime = Double.NaN;
     
     
     // ==============================================================
@@ -439,6 +454,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     private void readHits(List<RawCalorimeterHit> newHits, List<LCRelation> newTruthRelations) {
         // Perform hit integration as needed for each subdetector
         // channel in the buffer map.
+        boolean flagReuse = false;
         for(Long cellID : voltageBufferMap.keySet()) {
             // Get the preamplifier pulse buffer for the channel.
             DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
@@ -524,46 +540,206 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             // If the integration sum is defined, then pulse
             // integration is ongoing.
             if(sum != null) {
-                // If the current time is less then the total
-                // integration period, the current sample should
-                // be added to the total sum.
-                if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) {
-                    channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
-                    
-                    // Add the new ADC sample.
-                    channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
-                    
-                    // Add the new truth information, if trigger
-                    // path truth output is enabled.
-                    if(writeTriggerTruth) {
-                        channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
-                    }
-                }
-                
-                // If integration is complete, a hit may be added
-                // to data manager.
-                else if(channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {
-                    // Add a new calorimeter hit.
-                    RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum, 64 * channelIntegrationTimeMap.get(cellID));
-                    newHits.add(newHit);
-                    
-                    // Add the truth relations for this hit, if
-                    // trigger path truth is enabled.
-                    if(writeTriggerTruth) {
-                        Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
-                        for(SimCalorimeterHit truthHit : truthHits) {
-                            newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                // Three cases are treated separataly
+                // Case 1: CHANNEL_INTEGRATION_DEADTIME > numSamplesAfter
+                // Case 2: CHANNEL_INTEGRATION_DEADTIME == numSamplesAfter 
+                // Case 3: CHANNEL_INTEGRATION_DEADTIME < numSamplesAfter
+                if(CHANNEL_INTEGRATION_DEADTIME > numSamplesAfter) { // Case 1
+                    //Continue integration until NSA
+                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) { 
+                        channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+
+                        // Add the new ADC sample.
+                        channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+
+                        // Add the new truth information, if trigger
+                        // path truth output is enabled.
+                        if (writeTriggerTruth) {
+                            channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
                         }
                     }
-                }
-                
-                
-                // A channel may only start integrating once per
-                // 32 ns period. Do not clear the channel for
-                // integration until that time has passed.
-                else if(channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME <= readoutCounter - 1) {
-                    channelIntegrationSumMap.remove(cellID);
-                }
+
+                    // If integration is complete, a hit may be added
+                    // to data manager.
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
+                        // Add a new calorimeter hit.
+                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
+                                64 * channelIntegrationTimeMap.get(cellID));
+                        newHits.add(newHit);
+                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+                        // Add the truth relations for this hit, if
+                        // trigger path truth is enabled.
+                        if (writeTriggerTruth) {
+                            Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
+                            for (SimCalorimeterHit truthHit : truthHits) {
+                                newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                            }
+                        }
+                    }
+
+                    // Do not clear the channel for integration until  deadtime has passed.
+                    else if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME <= readoutCounter
+                            - 1) { // No new integration until over deadtime
+                        channelIntegrationSumMap.remove(cellID);
+                    }
+                } // Case 1 ends
+                else if(CHANNEL_INTEGRATION_DEADTIME == numSamplesAfter){ // Case 2
+                    // Continue integration until NSA
+                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) {
+                        channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+
+                        // Add the new ADC sample.
+                        channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+
+                        // Add the new truth information, if trigger
+                        // path truth output is enabled.
+                        if (writeTriggerTruth) {
+                            channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
+                        }
+                    }  
+                    // If integration is complete, a hit may be added
+                    // to data manager.
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
+                        // Add a new calorimeter hit.
+                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
+                                64 * channelIntegrationTimeMap.get(cellID));
+                        newHits.add(newHit);
+                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+
+                        // Add the truth relations for this hit, if
+                        // trigger path truth is enabled.
+                        if (writeTriggerTruth) {
+                            Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
+                            for (SimCalorimeterHit truthHit : truthHits) {
+                                newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                            }
+                        }
+                        channelIntegrationSumMap.remove(cellID);
+                    }
+                } // Case 2 ends
+                else { // Case 3
+                    if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME >= readoutCounter) {
+                        // Continue integration until CHANNEL_INTEGRATION_DEADTIME
+                        channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+
+                        // Add the new ADC sample.
+                        channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+
+                        // Add the new truth information, if trigger
+                        // path truth output is enabled.
+                        if (writeTriggerTruth) {
+                            channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
+                        }
+                        
+                        // If sample at the end of deadtime is less than threshold, new integration could be started from next sample
+                        if(channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME == readoutCounter && pedestalSubtractedValue <= integrationThreshold)                            
+                            flagStartNewIntegration.put(cellID, true);                           
+                    }  
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) {
+                        if(flagStartNewIntegration.get(cellID) == true) { // Flag for previous sample is true
+                            if(pedestalSubtractedValue <= integrationThreshold) { // If sample is less than threshold, then do not start new integration
+                                channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+
+                                // Add the new ADC sample.
+                                channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+
+                                // Add the new truth information, if trigger
+                                // path truth output is enabled.
+                                if (writeTriggerTruth) {
+                                    channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
+                                }                                
+                            }
+                            else { // if sample is larger than threshold, a hit is added into data manager and start new integration
+                                // Add a new calorimeter hit.
+                                RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
+                                        64 * channelIntegrationTimeMap.get(cellID));
+                                newHits.add(newHit);
+                                integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+
+                                // Add the truth relations for this hit, if
+                                // trigger path truth is enabled.
+                                if (writeTriggerTruth) {
+                                    Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
+                                    for (SimCalorimeterHit truthHit : truthHits) {
+                                        newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                                    }
+                                }                                                                
+            
+                                //Start new integration
+                                channelIntegrationTimeMap.put(cellID, readoutCounter);
+                                flagStartNewIntegration.put(cellID, false);
+                                
+                                // Integrate the ADC values for a number of
+                                // samples defined by NSB from before threshold
+                                // crossing. Note that this stops one sample
+                                // before the current sample. This current sample
+                                // is handled in the subsequent code block.
+                                int sumBefore = 0;
+                                for(int i = 0; i < numSamplesBefore; i++) {
+                                    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
+                                }
+                                
+                                // This will represent the total integral sum at
+                                // the current point in time. Store it in the sum
+                                // buffer so that it may be incremented later as
+                                // additional samples are read.
+                                channelIntegrationSumMap.put(cellID, sumBefore);
+                                
+                                // Collect and store truth information for trigger
+                                // path hits.
+                                channelIntegrationADCMap.put(cellID, new ArrayList<Integer>());
+                                
+                                // Get the truth information in the
+                                // integration samples for this channel.
+                                Set<SimCalorimeterHit> truthHits = new HashSet<SimCalorimeterHit>();
+                                for(int i = 0; i < numSamplesBefore + 4; i++) {
+                                    channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(-(numSamplesBefore - i)));
+                                    truthHits.addAll(truthBufferMap.get(cellID).getValue(-(numSamplesBefore - i)));
+                                }
+                                
+                                // Store all the truth hits that occurred in
+                                // the truth buffer in the integration period
+                                // for this channel as well. These will be
+                                // passed through the chain to allow for the
+                                // accessing of truth information during the
+                                // trigger simulation.
+                                channelIntegrationTruthMap.put(cellID, truthHits);                                                                    
+                            }                                                          
+                        }
+                        else { // Flag for previous sample is false
+                            channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+
+                            // Add the new ADC sample.
+                            channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
+
+                            // Add the new truth information, if trigger
+                            // path truth output is enabled.
+                            if (writeTriggerTruth) {
+                                channelIntegrationTruthMap.get(cellID).addAll(truthBufferMap.get(cellID).getValue(0));
+                            }
+                            if(pedestalSubtractedValue <= integrationThreshold)
+                                flagStartNewIntegration.put(cellID, true);                                                       
+                        }  
+                    }
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {//If reach NSA + 1, hit is added into data manager, and flag is set as false
+                        // Add a new calorimeter hit.
+                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
+                                64 * channelIntegrationTimeMap.get(cellID));
+                        newHits.add(newHit);
+                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+
+                        // Add the truth relations for this hit, if
+                        // trigger path truth is enabled.
+                        if (writeTriggerTruth) {
+                            Set<SimCalorimeterHit> truthHits = channelIntegrationTruthMap.get(cellID);
+                            for (SimCalorimeterHit truthHit : truthHits) {
+                                newTruthRelations.add(new BaseLCRelation(newHit, truthHit));
+                            }
+                        }
+                        channelIntegrationSumMap.remove(cellID);
+                        flagStartNewIntegration.put(cellID, false);
+                    }
+                } // Case 3 ends                 
             }
             
             // Step to the next entry in the voltage buffer.
@@ -578,9 +754,11 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
         
         // Write the trigger path output data to the readout data
         // manager. Truth data is optional.
-        ReadoutDataManager.addData(outputHitCollectionName, newHits, RawCalorimeterHit.class);
+        
+    
+        ReadoutDataManager.addData(outputHitCollectionName, integrationTime, newHits, RawCalorimeterHit.class);
         if(writeTriggerTruth) {
-            ReadoutDataManager.addData(triggerTruthRelationsCollectionName, newTruthRelations, LCRelation.class);
+            ReadoutDataManager.addData(triggerTruthRelationsCollectionName, integrationTime, newTruthRelations, LCRelation.class);
         }
     }
     
@@ -1196,6 +1374,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(getPedestalConditions(cellID))));
             
             truthBufferMap.get(cellID).stepForward();
+            
+            flagStartNewIntegration.put(cellID, false);
         }
     }
     
