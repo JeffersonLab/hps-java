@@ -57,8 +57,8 @@ public class KalmanParams {
         minHits1[1] = 6;
         mxChi2Inc = 2.;  // Maximum increment to the chi^2 to add a hit to a completed track 
         minChi2IncBad = 10.; // Threshold for removing a bad hit from a track candidate
-        mxResid[0] = 150.;  // Maximum residual, in units of detector resolution, for picking up a hit
-        mxResid[1] = 200.;
+        mxResid[0] = 50.;  // Maximum residual, in units of detector resolution, for picking up a hit
+        mxResid[1] = 100.;
         mxResidShare = 10.; // Maximum residual, in units of detector resolution, for a hit to be shared
         mxChi2double = 6.;  // Maximum chi^2 increment to keep a shared hit
         minStereo[0] = 4;
