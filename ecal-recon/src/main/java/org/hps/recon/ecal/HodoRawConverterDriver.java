@@ -69,9 +69,6 @@ public class HodoRawConverterDriver extends Driver {
     @Override
     public void detectorChanged(Detector detector) {
 
-//        System.out.println("==== The Detector Name is " + detector.getDetectorName());
-//        System.out.println("==== The DetectorElement Name is " + detector.getDetectorElement().getName() );
-//        System.out.println("==== The Detector SubDetector hit collection name " + detector.getSubdetector("Hodoscope").getHitsCollectionName() );
         // Hodo conditions object.
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
 
@@ -90,32 +87,6 @@ public class HodoRawConverterDriver extends Driver {
             flags += 1 << LCIOConstants.RCHBIT_TIME; // store hit time
             flags += 1 << LCIOConstants.RCHBIT_LONG; // store hit position; this flag has no effect for RawCalorimeterHits
 
-            // =========== The CalorimeterHit Object is not a perfect collection for storing hodo hit
-            // =========== since it doesn't provide ready methods for getting, ix, iy, layer, hole
-            // =========== therefore Hodo hits will be stored in a genertic object.
-            // === There will be 6 genericCollections for ix, iy, layer, hole, Energy and time.
-            // === All these collections will have same size, which is the number of all hits.
-            // === i-th value of each collection shows the corresponding value of the i-th hit
-//            int[] hit_ix = new int[]{};           // This array contains ix of hits
-//            int[] hit_iy = new int[]{};           // THis array contains iy of hits
-//            int[] hit_layer = new int[]{};        // THis array contains layer of hits
-//            int[] hit_hole = new int[]{};         // THis array contains the hole of hits           
-//            double[] hit_Energy = new double[]{}; // THis array contains the energy of hits
-//            double[] hit_Time = new double[]{};   // THis array contains the Time of hits
-//            int[] hit_detid = new int[]{};         // THis array contains the detector id of hits
-
-            // ======== Defining GenericObjects for Hodo Hit components, ix, it etc
-//            SimpleGenericObject generic_ix = new SimpleGenericObject();
-//            SimpleGenericObject generic_iy = new SimpleGenericObject();
-//            SimpleGenericObject generic_layer = new SimpleGenericObject();
-//            SimpleGenericObject generic_hole = new SimpleGenericObject();
-//            SimpleGenericObject generic_energy = new SimpleGenericObject();
-//            SimpleGenericObject generic_time = new SimpleGenericObject();
-//            SimpleGenericObject generic_detid = new SimpleGenericObject();
-            // ====== In order to write generic object in the file, 1st we should add generic objects
-            // ====== in the List, so we will add above genericObjects into the list below
-//            List<SimpleGenericObject> hodo_hit_list = new ArrayList();
-
             // ======= Getting list of Mode1 hits from the event ======
             List<RawTrackerHit> hits = event.get(RawTrackerHit.class, rawCollectionName);
 
@@ -127,70 +98,29 @@ public class HodoRawConverterDriver extends Driver {
 
                 double ped = converter.getPedestal(event, cellID);
 
-//                int[] hodo_identifiers = converter.getHodoIdentifiers(cellID);
-
-//                int dEId = (int) hit.getDetectorElement().getIdentifier().getValue();
-
-                //System.out.println("HodoRawConverter:: dEId = "+dEId);
                 //System.out.println(Arrays.toString(hodo_identifiers));
                 // ====== Get Number of Threshold Crossings ==========
+
                 ArrayList<Integer> thr_crosings = converter.FindThresholdCrossings(hit, ped);
 
-                //System.out.println("# of thr crossings = " + thr_crosings.size());
                 // ===== For now we will calculate coarse time, which is the threshold crossing sample time.
                 // ===== Later will implement the mode7 time
                 ArrayList<CalorimeterHit> hits_in_this_channel = converter.getCaloHits(hit, thr_crosings, ped);
                 
-                // Propagate the detector element information to these found_hits.
+                // Propagate the detector element information to these found_hits so it can be used later.
                 for(CalorimeterHit found_hit: hits_in_this_channel) {
                     found_hit.setDetectorElement(hit.getDetectorElement());
                 }
-
-//                int n_hit_in_this_channel = hits_in_this_channel.size();
-//
-//                // ===== Loop over all hits for this channel, and fill corresponding arrays for ix, iy etc
-//                for (int ind_cur_hit = 0; ind_cur_hit < n_hit_in_this_channel; ind_cur_hit++) {
-//                    double energy = hits_in_this_channel.get(ind_cur_hit).getRawEnergy();
-//                    double time = hits_in_this_channel.get(ind_cur_hit).getTime();
-//
-//                    hit_ix = ArrayUtils.add(hit_ix, hodo_identifiers[0]);
-//                    hit_iy = ArrayUtils.add(hit_iy, hodo_identifiers[1]);
-//                    hit_layer = ArrayUtils.add(hit_layer, hodo_identifiers[2]);
-//                    hit_hole = ArrayUtils.add(hit_hole, hodo_identifiers[3]);
-//                    hit_Energy = ArrayUtils.add(hit_Energy, energy);
-//                    hit_Time = ArrayUtils.add(hit_Time, time);
-//                    hit_detid = ArrayUtils.add(hit_detid, dEId);
-//                }
 
                 hodoHits.addAll(hits_in_this_channel);
 
             }
 
-            // ====== Adding hodo hits to as a Calorimeter hit to the event, however we might later drop this
-            // ====== sinc this is doesn't provide more infoarmation that exists in the "HodoGenericHits" collection
+            // ====== Adding hodo hits to as a Calorimeter hit to the event.
             event.put(hodoCollectionName, hodoHits, CalorimeterHit.class, flags, hodoReadoutName);
 
-//            generic_ix.setIntValues(hit_ix);
-//            generic_iy.setIntValues(hit_iy);
-//            generic_layer.setIntValues(hit_layer);
-//            generic_hole.setIntValues(hit_hole);
-//            generic_energy.setDoubleValues(hit_Energy);
-//            generic_time.setDoubleValues(hit_Time);
-//            generic_detid.setIntValues(hit_detid);
-//
-//            hodo_hit_list.add(generic_ix);
-//            hodo_hit_list.add(generic_iy);
-//            hodo_hit_list.add(generic_layer);
-//            hodo_hit_list.add(generic_hole);
-//            hodo_hit_list.add(generic_energy);
-//            hodo_hit_list.add(generic_time);
-//            hodo_hit_list.add(generic_detid);
-
-            // Writing HodoHit data into the event
-//            event.put("HodoGenericHits", hodo_hit_list, SimpleGenericObject.class, 0);
-
             //== == == == == == == == == == == == == == == == == == == == == == 
-            //  Now start to do a clustering, which is combining hits together ftom hits
+            //  Now start to do a clustering, which is combining hits together from hits
             //  that are from the same time, but are in opposite holes. They should also be 
             //  in time coincidence
             // =========== The EVENT::Cluster  Object is not a perfect collection for storing hodo clusters
@@ -213,8 +143,6 @@ public class HodoRawConverterDriver extends Driver {
             SimpleGenericObject generic_cl_time = new SimpleGenericObject();
             SimpleGenericObject generic_cl_detid = new SimpleGenericObject();
             ArrayList<Integer> paired = new ArrayList<Integer>();
-
-//            int n_hits = hit_ix.length;
 
             for (int i = 0; i < hodoHits.size(); i++) {
 
