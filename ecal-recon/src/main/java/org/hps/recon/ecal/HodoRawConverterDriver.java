@@ -127,9 +127,9 @@ public class HodoRawConverterDriver extends Driver {
 
                 double ped = converter.getPedestal(event, cellID);
 
-                int[] hodo_identifiers = converter.getHodoIdentifiers(cellID);
+//                int[] hodo_identifiers = converter.getHodoIdentifiers(cellID);
 
-                int dEId = (int) hit.getDetectorElement().getIdentifier().getValue();
+//                int dEId = (int) hit.getDetectorElement().getIdentifier().getValue();
 
                 //System.out.println("HodoRawConverter:: dEId = "+dEId);
                 //System.out.println(Arrays.toString(hodo_identifiers));
@@ -140,6 +140,11 @@ public class HodoRawConverterDriver extends Driver {
                 // ===== For now we will calculate coarse time, which is the threshold crossing sample time.
                 // ===== Later will implement the mode7 time
                 ArrayList<CalorimeterHit> hits_in_this_channel = converter.getCaloHits(hit, thr_crosings, ped);
+                
+                // Propagate the detector element information to these found_hits.
+                for(CalorimeterHit found_hit: hits_in_this_channel) {
+                    found_hit.setDetectorElement(hit.getDetectorElement());
+                }
 
 //                int n_hit_in_this_channel = hits_in_this_channel.size();
 //
@@ -218,6 +223,7 @@ public class HodoRawConverterDriver extends Driver {
                     continue;
 
                 CalorimeterHit this_hit = hodoHits.get(i);
+               
                 // ====== These tiles are readout with a single PMT channel, and therefore for these 
                 // ====== tiles cluster and the hit are identical 
                 int hit_ix = this_hit.getIdentifierFieldValue("ix");
