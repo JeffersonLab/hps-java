@@ -1,4 +1,4 @@
-package org.hps.readout.hodoscope;
+package org.hps.readout.util;
 
 public class HodoscopePattern {
     /**

@@ -18,6 +18,7 @@ import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.readout.util.HodoscopePattern;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
