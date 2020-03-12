@@ -126,9 +126,9 @@ class KalmanPatRecPlots {
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
+        int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) continue;
-            int nKalTracks = 0;
             for (KalTrack kTk : kPat.TkrList) {
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
@@ -284,110 +284,110 @@ class KalmanPatRecPlots {
                     aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
                     aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
                 }
-            }
+            }  // Loop over Kalman tracks
+        } // Loop over SVT trackers (top/bottom)
         
-            aida.histogram1D("Kalman number of tracks").fill(nKalTracks);
-            if (event.hasCollection(Track.class, trackCollectionName)) {
-                List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
-                int nGBL = tracksGBL.size();
-                aida.histogram2D("number tracks Kalman vs GBL").fill(nKalTracks, nGBL);
-                aida.histogram1D("GBL number tracks").fill(nGBL);
-                double c = 2.99793e8; // Speed of light in m/s
-                double conFac = 1.0e12 / c;
-                Vec Bfield = KalmanInterface.getField(new Vec(0.,505.57,0.), fm); // Field at the instrument center
-                double B = Bfield.mag();
-                double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
-                for (Track tkrGBL : tracksGBL) {
-                    aida.histogram1D("GBL track chi^2").fill(tkrGBL.getChi2());
-                    ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
-                    ArrayList<Integer> mcCnt= new ArrayList<Integer>();
-                    List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
-                    int nGBLhits = hitsOnTrack.size();
-                    if (nGBLhits == 12) aida.histogram1D("GBL 12-hit track chi^2").fill(tkrGBL.getChi2());
-                    aida.histogram1D("GBL number of hits").fill(nGBLhits);
-                    for (TrackerHit hit1D : hitsOnTrack) {
-                        List<RawTrackerHit> rawHits = hit1D.getRawHits();
-                        for (RawTrackerHit rawHit : rawHits) {
-                            Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
-                            for (SimTrackerHit simHit : simHits) {
-                                MCParticle mcp = simHit.getMCParticle();
-                                if (mcParts.contains(mcp)) {
-                                    int id = mcParts.indexOf(mcp);
-                                    mcCnt.set(id, mcCnt.get(id)+1);
-                                } else {
-                                    mcParts.add(mcp);
-                                    mcCnt.add(1);
-                                }
-                            }//simHits
-                        }//rawHits               
-                    }//hitsOnTrack
-                    aida.histogram1D("GBL track number MC particles").fill(mcParts.size());
-                    // Which MC particle is the best match?
-                    int idBest = -1;
-                    int nMatch = 0;
-                    for (int id=0; id<mcCnt.size(); ++id) {
-                        if (mcCnt.get(id) > nMatch) {
-                            nMatch = mcCnt.get(id);
-                            idBest = id;
-                        }
-                    }
-                    int nBad = 0;
-                    for (TrackerHit hit1D : hitsOnTrack) {
-                        List<RawTrackerHit> rawHits = hit1D.getRawHits();
-                        boolean goodHit = false;
-                        for (RawTrackerHit rawHit : rawHits) {
-                            Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
-                            for (SimTrackerHit simHit : simHits) {
-                                MCParticle mcp = simHit.getMCParticle();
+        aida.histogram1D("Kalman number of tracks").fill(nKalTracks);
+        if (event.hasCollection(Track.class, trackCollectionName)) {
+            List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+            int nGBL = tracksGBL.size();
+            aida.histogram2D("number tracks Kalman vs GBL").fill(nKalTracks, nGBL);
+            aida.histogram1D("GBL number tracks").fill(nGBL);
+            double c = 2.99793e8; // Speed of light in m/s
+            double conFac = 1.0e12 / c;
+            Vec Bfield = KalmanInterface.getField(new Vec(0.,505.57,0.), fm); // Field at the instrument center
+            double B = Bfield.mag();
+            double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
+            for (Track tkrGBL : tracksGBL) {
+                aida.histogram1D("GBL track chi^2").fill(tkrGBL.getChi2());
+                ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
+                ArrayList<Integer> mcCnt= new ArrayList<Integer>();
+                List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
+                int nGBLhits = hitsOnTrack.size();
+                if (nGBLhits == 12) aida.histogram1D("GBL 12-hit track chi^2").fill(tkrGBL.getChi2());
+                aida.histogram1D("GBL number of hits").fill(nGBLhits);
+                for (TrackerHit hit1D : hitsOnTrack) {
+                    List<RawTrackerHit> rawHits = hit1D.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        for (SimTrackerHit simHit : simHits) {
+                            MCParticle mcp = simHit.getMCParticle();
+                            if (mcParts.contains(mcp)) {
                                 int id = mcParts.indexOf(mcp);
-                                if (id == idBest) {
-                                    goodHit = true;
-                                    break;
-                                }                          
+                                mcCnt.set(id, mcCnt.get(id)+1);
+                            } else {
+                                mcParts.add(mcp);
+                                mcCnt.add(1);
                             }
-                        }  
-                        if (!goodHit) nBad++;
+                        }//simHits
+                    }//rawHits               
+                }//hitsOnTrack
+                aida.histogram1D("GBL track number MC particles").fill(mcParts.size());
+                // Which MC particle is the best match?
+                int idBest = -1;
+                int nMatch = 0;
+                for (int id=0; id<mcCnt.size(); ++id) {
+                    if (mcCnt.get(id) > nMatch) {
+                        nMatch = mcCnt.get(id);
+                        idBest = id;
                     }
-                    aida.histogram1D("GBL number of wrong hits on track").fill(nBad);
-                    MCParticle mcBest = null;
-                    double ptInvTrue = 1.;
-                    if (idBest > -1) {
-                        mcBest = mcParts.get(idBest); 
-                        Hep3Vector pVec = mcBest.getMomentum();
-                        //Hep3Vector rVec = mcBest.getOrigin();
-                        double ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
-                        ptInvTrue = mcBest.getCharge()/ptTrue;
-                    }
-                    List<TrackState> stLst = tkrGBL.getTrackStates();
-                    for (TrackState st : stLst) {
-                        if (st.getLocation() == TrackState.AtIP) {
-                            double d0 = st.getParameter(0);
-                            aida.histogram1D("GBL d0").fill(d0);
-                            double z0 = st.getParameter(3);
-                            aida.histogram1D("GBL z0").fill(z0);
-                            double Omega = st.getOmega();
-                            double ptInvGBL = -alpha * Omega;
-                            aida.histogram1D("GBL pt inverse").fill(ptInvGBL);
-                            double [] covGBL = st.getCovMatrix();
-                            double ptInvErr = -alpha * Math.sqrt(covGBL[5]);
-                            double tanLambdaGBL = st.getTanLambda();
-                            aida.histogram1D("GBL tanLambda").fill(tanLambdaGBL);
-                            if (mcBest != null) {
-                                aida.histogram1D("GBL pt inverse, sigmas").fill((ptInvGBL-ptInvTrue)/ptInvErr);
-                            }
-                            double pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
-                            aida.histogram1D("GBL momentum").fill(pMag);
-                            //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
-                            //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
-                            //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);
-                            //System.out.format("z0=%10.5f +- %10.5f\n", z0, Math.sqrt(covGBL[9]));
-                            //System.out.format("tanL=%10.5f +- %10.5f\n", st.getParameter(4), Math.sqrt(covGBL[14]));
-                            break;
-                        } // Track State at IP
-                    }//loop on track states
-                } //loop on GBL Tracks
-            } //check if event has GBLTracks
-        }// do debug plots
+                }
+                int nBad = 0;
+                for (TrackerHit hit1D : hitsOnTrack) {
+                    List<RawTrackerHit> rawHits = hit1D.getRawHits();
+                    boolean goodHit = false;
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        for (SimTrackerHit simHit : simHits) {
+                            MCParticle mcp = simHit.getMCParticle();
+                            int id = mcParts.indexOf(mcp);
+                            if (id == idBest) {
+                                goodHit = true;
+                                break;
+                            }                          
+                        }
+                    }  
+                    if (!goodHit) nBad++;
+                }
+                aida.histogram1D("GBL number of wrong hits on track").fill(nBad);
+                MCParticle mcBest = null;
+                double ptInvTrue = 1.;
+                if (idBest > -1) {
+                    mcBest = mcParts.get(idBest); 
+                    Hep3Vector pVec = mcBest.getMomentum();
+                    //Hep3Vector rVec = mcBest.getOrigin();
+                    double ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
+                    ptInvTrue = mcBest.getCharge()/ptTrue;
+                }
+                List<TrackState> stLst = tkrGBL.getTrackStates();
+                for (TrackState st : stLst) {
+                    if (st.getLocation() == TrackState.AtIP) {
+                        double d0 = st.getParameter(0);
+                        aida.histogram1D("GBL d0").fill(d0);
+                        double z0 = st.getParameter(3);
+                        aida.histogram1D("GBL z0").fill(z0);
+                        double Omega = st.getOmega();
+                        double ptInvGBL = -alpha * Omega;
+                        aida.histogram1D("GBL pt inverse").fill(ptInvGBL);
+                        double [] covGBL = st.getCovMatrix();
+                        double ptInvErr = -alpha * Math.sqrt(covGBL[5]);
+                        double tanLambdaGBL = st.getTanLambda();
+                        aida.histogram1D("GBL tanLambda").fill(tanLambdaGBL);
+                        if (mcBest != null) {
+                            aida.histogram1D("GBL pt inverse, sigmas").fill((ptInvGBL-ptInvTrue)/ptInvErr);
+                        }
+                        double pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
+                        aida.histogram1D("GBL momentum").fill(pMag);
+                        //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
+                        //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
+                        //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);
+                        //System.out.format("z0=%10.5f +- %10.5f\n", z0, Math.sqrt(covGBL[9]));
+                        //System.out.format("tanL=%10.5f +- %10.5f\n", st.getParameter(4), Math.sqrt(covGBL[14]));
+                        break;
+                    } // Track State at IP
+                }//loop on track states
+            } //loop on GBL Tracks
+        } //check if event has GBLTracks
         
         if (nPlotted < numEvtPlots) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
