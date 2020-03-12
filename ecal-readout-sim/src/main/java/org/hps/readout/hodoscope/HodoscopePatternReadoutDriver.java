@@ -59,12 +59,12 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     /**
      * Hodoscope FADC hit cut
      */
-    private double fADCHitThreshold = 1;
+    private double fADCHitThreshold = 1.0;
 
     /**
      * Hodoscope tilt/cluster hit cut
      */
-    private double hodoHitThreshold = 200;
+    private double hodoHitThreshold = 200.0;
 
     /**
      * Gain factor for raw energy (self-defined unit) of FADC hits
@@ -74,13 +74,13 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     /**
      * Persistent time for hodoscope FADC hit in unit of ns
      */
-    private double persistentTime = 60;
+    private double persistentTime = 60.0;
 
     /**
      * Time for hodoscope FADC hits earlier to enter the trigger system than Ecal
      * with unit of ns
      */
-    private double timeEarlierThanEcal = 20;
+    private double timeEarlierThanEcal = 20.0;
 
     /**
      * The length of time by which objects produced by this driver are shifted due
@@ -88,7 +88,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
      * automatically. Hodo FADC hits enter the trigger system earlier than Ecal hits
      * by <code>timeEarlierThanEcal</code>
      */
-    private double localTimeDisplacement = 0;
+    private double localTimeDisplacement = 0.0;
 
     /**
      * According to setup in database, index for hodoscope layers are expressed as
@@ -124,7 +124,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
         // To build current hodo patterns, FADC hits between localTime - (persistentTime
         // - timeEarlierThanEcal) and localTime + timeEarlierThanEcal + 4 are used.
         Collection<CalorimeterHit> fadcHits = ReadoutDataManager.getData(
-                localTime - (persistentTime - timeEarlierThanEcal), localTime + timeEarlierThanEcal + 4,
+                localTime - (persistentTime - timeEarlierThanEcal), localTime + timeEarlierThanEcal + 4.0,
                 inputCollectionName, CalorimeterHit.class);
 
         // Increment the local time.
@@ -173,39 +173,61 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
         //Hodoscope patterns for all layers   
         //Order of list: TopLayer1, TopLayer2, BotLayer1, BotLayer2
         List<HodoscopePattern> hodoPatterns = new ArrayList<>(4);
+        
+        // Flag to determine if a pattern list at the current clock-cycle is added into data manager
+        boolean flag = false;
 
         for (int i = 0; i < 4; i++) {
             HodoscopePattern pattern = new HodoscopePattern();
 
             Map<Point, Double> maxEnergyMap = maxEnergyMapForLayerMap.get(layerList.get(i));
 
-            if (maxEnergyMap.get(xHolePointList.get(0)) > hodoHitThreshold)
+            if (maxEnergyMap.get(xHolePointList.get(0)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_1, true);
-            if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold)
+                flag = true;
+            }
+            if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_2, true);
-            if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold)
+                flag = true;
+            }
+            if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_3, true);
-            if (maxEnergyMap.get(xHolePointList.get(5)) + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold)
+                flag = true;
+            }
+            if (maxEnergyMap.get(xHolePointList.get(5)) + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_4, true);
-            if (maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold)
+                flag = true;
+            }
+            if (maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_5, true);
+                flag = true;
+            }
             if (maxEnergyMap.get(xHolePointList.get(0)) + maxEnergyMap.get(xHolePointList.get(1))
-                    + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold)
+                    + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_12, true);
+                flag = true;
+            }
             if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2)) + maxEnergyMap.get(xHolePointList.get(3))
-                    + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold)
+                    + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_23, true);
+                flag = true;
+            }
             if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4)) + maxEnergyMap.get(xHolePointList.get(5))
-                    + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold)
+                    + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_34, true);
+                flag = true;
+            }
             if (maxEnergyMap.get(xHolePointList.get(5)) + maxEnergyMap.get(xHolePointList.get(6))
-                    + maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold)
+                    + maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_45, true);
+                flag = true;
+            }
 
             hodoPatterns.add(pattern);
         }
         
-        ReadoutDataManager.addData(outputCollectionName, hodoPatterns, HodoscopePattern.class);
+        // At leaset there is a hodo tilt/cluster hit in any layer, then the pattern list is added into data manager
+        if(flag == true) ReadoutDataManager.addData(outputCollectionName, hodoPatterns, HodoscopePattern.class);
     }
 
     @Override
@@ -218,7 +240,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
 
         // Instantiate the GTP cluster collection with the readout
         // data manager.
-        localTimeDisplacement = timeEarlierThanEcal + 4;
+        localTimeDisplacement = timeEarlierThanEcal + 4.0;
         addDependency(inputCollectionName);
         ReadoutDataManager.registerCollection(patternCollectionParams, false);
 

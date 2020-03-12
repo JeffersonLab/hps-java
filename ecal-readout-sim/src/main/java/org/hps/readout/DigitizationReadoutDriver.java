@@ -145,6 +145,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * Defines the number of integration samples that should be
      * included in the pulse integral from after the sample that
      * exceeds the integration threshold.
+     * Threshold-crossing sample is part of NSA.
      */
     private int numSamplesAfter = 25;
     /**
@@ -293,7 +294,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
         
         // Calculate the correct time offset. This is a function of
         // the integration samples and the output delay.
-        localTimeOffset = (4 * numSamplesAfter) + 4;
+        // Threshold-crossing sample is part of NSA.
+        localTimeOffset = 4 * numSamplesAfter;
         
         // Validate that a real mode was selected.
         if(mode != 1 && mode != 3 && mode != 7) {
@@ -454,7 +456,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     private void readHits(List<RawCalorimeterHit> newHits, List<LCRelation> newTruthRelations) {
         // Perform hit integration as needed for each subdetector
         // channel in the buffer map.
-        boolean flagReuse = false;
         for(Long cellID : voltageBufferMap.keySet()) {
             // Get the preamplifier pulse buffer for the channel.
             DoubleRingBuffer voltageBuffer = voltageBufferMap.get(cellID);
@@ -496,18 +497,16 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             // integration should be initiated.
             if(sum == null && pedestalSubtractedValue > integrationThreshold) {
                 // Store the current local time in units of
-                // events (2 ns). This will indicate when the
+                // events (4 ns). This will indicate when the
                 // integration started and, in turn, should end.
                 channelIntegrationTimeMap.put(cellID, readoutCounter);
                 
                 // Integrate the ADC values for a number of
-                // samples defined by NSB from before threshold
-                // crossing. Note that this stops one sample
-                // before the current sample. This current sample
-                // is handled in the subsequent code block.
+                // samples defined by NSB and threshold
+                // crossing sample. 
                 int sumBefore = 0;
-                for(int i = 0; i < numSamplesBefore; i++) {
-                    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
+                for(int i = 0; i <= numSamplesBefore; i++) {
+                    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i));
                 }
                 
                 // This will represent the total integral sum at
@@ -545,8 +544,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                 // Case 2: CHANNEL_INTEGRATION_DEADTIME == numSamplesAfter 
                 // Case 3: CHANNEL_INTEGRATION_DEADTIME < numSamplesAfter
                 if(CHANNEL_INTEGRATION_DEADTIME > numSamplesAfter) { // Case 1
-                    //Continue integration until NSA
-                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) { 
+                    //Continue integration until NSA, the threshold-crossing sample has been added before.
+                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) { 
                         channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
 
                         // Add the new ADC sample.
@@ -561,12 +560,13 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
 
                     // If integration is complete, a hit may be added
                     // to data manager.
-                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
                         // Add a new calorimeter hit.
                         RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                 64 * channelIntegrationTimeMap.get(cellID));
                         newHits.add(newHit);
-                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+                        // Cycle-clock for events is 2 ns, while cycle-clock for samples is 4 ns                        
+                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4 + 2;
                         // Add the truth relations for this hit, if
                         // trigger path truth is enabled.
                         if (writeTriggerTruth) {
@@ -578,14 +578,15 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                     }
 
                     // Do not clear the channel for integration until  deadtime has passed.
-                    else if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME <= readoutCounter
+                    // The threshold-crossing sample counts as the first sample in the deadtime.
+                    else if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME - 1 <= readoutCounter
                             - 1) { // No new integration until over deadtime
                         channelIntegrationSumMap.remove(cellID);
                     }
                 } // Case 1 ends
                 else if(CHANNEL_INTEGRATION_DEADTIME == numSamplesAfter){ // Case 2
-                    // Continue integration until NSA
-                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) {
+                    // Continue integration until NSA, the threshold-crossing sample has been added before.
+                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) {
                         channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
 
                         // Add the new ADC sample.
@@ -599,12 +600,13 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                     }  
                     // If integration is complete, a hit may be added
                     // to data manager.
-                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
                         // Add a new calorimeter hit.
                         RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                 64 * channelIntegrationTimeMap.get(cellID));
                         newHits.add(newHit);
-                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+                        // Cycle-clock for events is 2 ns, while cycle-clock for samples is 4 ns 
+                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4 + 2;
 
                         // Add the truth relations for this hit, if
                         // trigger path truth is enabled.
@@ -618,7 +620,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                     }
                 } // Case 2 ends
                 else { // Case 3
-                    if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME >= readoutCounter) {
+                    if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME - 1 >= readoutCounter) {
                         // Continue integration until CHANNEL_INTEGRATION_DEADTIME
                         channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
 
@@ -635,7 +637,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                         if(channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME == readoutCounter && pedestalSubtractedValue <= integrationThreshold)                            
                             flagStartNewIntegration.put(cellID, true);                           
                     }  
-                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter >= readoutCounter) {
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) {
                         if(flagStartNewIntegration.get(cellID) == true) { // Flag for previous sample is true
                             if(pedestalSubtractedValue <= integrationThreshold) { // If sample is less than threshold, then do not start new integration
                                 channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
@@ -654,7 +656,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                                 RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                         64 * channelIntegrationTimeMap.get(cellID));
                                 newHits.add(newHit);
-                                integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+                                integrationTime = channelIntegrationTimeMap.get(cellID) * 4 + 2;
 
                                 // Add the truth relations for this hit, if
                                 // trigger path truth is enabled.
@@ -675,8 +677,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                                 // before the current sample. This current sample
                                 // is handled in the subsequent code block.
                                 int sumBefore = 0;
-                                for(int i = 0; i < numSamplesBefore; i++) {
-                                    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i - 1));
+                                for(int i = 0; i <= numSamplesBefore; i++) {
+                                    sumBefore += adcBuffer.getValue(-(numSamplesBefore - i));
                                 }
                                 
                                 // This will represent the total integral sum at
@@ -721,12 +723,12 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                                 flagStartNewIntegration.put(cellID, true);                                                       
                         }  
                     }
-                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter == readoutCounter - 1) {//If reach NSA + 1, hit is added into data manager, and flag is set as false
+                    else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 == readoutCounter - 1) {//If reach NSA + 1, hit is added into data manager, and flag is set as false
                         // Add a new calorimeter hit.
                         RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                 64 * channelIntegrationTimeMap.get(cellID));
                         newHits.add(newHit);
-                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4;
+                        integrationTime = channelIntegrationTimeMap.get(cellID) * 4 + 2;
 
                         // Add the truth relations for this hit, if
                         // trigger path truth is enabled.
