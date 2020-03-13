@@ -24,7 +24,7 @@ class SeedTrack {
     private Vec sol; // Fitted polynomial coefficients
     private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
-    public double yOrigin;
+    double yOrigin;
     double chi2;
     private static Plane p0; // x,z plane at y=0
     private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting

@@ -43,17 +43,25 @@ public class TrackTruthMatching {
     private List<Integer> trackerlayerhitlist = new ArrayList<Integer>();
     
     /**
-     * Creates a new instance of TrackAnalysis
+     * Creates a new instance of TrackAnalysis. If the track is Kalman do not multiply the hits by 2
      * @return 
      */
     
     public TrackTruthMatching(Track trk, RelationalTable rawtomc, List<SimTrackerHit> allsimhits) {
-        doAnalysis(trk, rawtomc, allsimhits);
+        doAnalysis(trk,rawtomc,allsimhits,false);
     }
-
-    private void doAnalysis(Track trk, RelationalTable rawtomc, List<SimTrackerHit> allsimhits){
+    
+    public TrackTruthMatching(Track trk, RelationalTable rawtomc, List<SimTrackerHit> allsimhits, boolean isKalman) {
+        doAnalysis(trk, rawtomc, allsimhits, isKalman);
+    }
+    
+    private void doAnalysis(Track trk, RelationalTable rawtomc, List<SimTrackerHit> allsimhits, boolean isKalman){
         //  Get the number of hits on the track
-        _nhits = trk.getTrackerHits().size()*2;
+        _nhits = trk.getTrackerHits().size();
+        
+        if (!isKalman)
+            _nhits = _nhits*2;
+        
         _isTop = trk.getTrackStates().get(0).getTanLambda() > 0;
 
         for (TrackerHit hit : trk.getTrackerHits()) {
@@ -267,4 +275,5 @@ public class TrackTruthMatching {
     public Set<SimTrackerHit> getHitListNotMatched() {
         return _hitListNotMatched;
     }
+    
 }

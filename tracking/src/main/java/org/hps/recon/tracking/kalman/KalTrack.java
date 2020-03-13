@@ -29,14 +29,16 @@ public class KalTrack {
     public double alpha;
     private double[][] Cx;
     private double[][] Cp;
-    public double Bmag;
+    double Bmag;
     private Vec tB;
     private double time;
+    private boolean verbose;
     double tMin;
     double tMax;
 
     KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
+        verbose = false;
         eventNumber = evtNumb;
         // Make a new list of sites in case somebody modifies the one referred to on input
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
@@ -49,14 +51,26 @@ public class KalTrack {
                 continue;
             }
         }
-        if (this.SiteList.size() < 5) {
-            System.out.format("KalTrack error: not enough hits on the candidate track\n");
-            for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
+        if (verbose) {
+            if (this.SiteList.size() < 5) {
+                System.out.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID);
+                for (MeasurementSite site : SiteList) {
+                    System.out.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
+                }
+                System.out.format("\n");
+            }
         }
+        
         Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
         this.nHits = nHits;
         this.chi2 = chi2;
         ID = tkID;
+        if (this.SiteList.size() < 5) {
+            System.out.format("KalTrack error: not enough hits ("+SiteList.size()+") on the candidate track (ID::"+ID+") for event "+eventNumber+" \n" );
+            if (verbose) {
+                for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
+            }
+        }
         helixAtOrigin = null;
         propagated = false;
         originCov = new SquareMatrix(5);
@@ -177,7 +191,10 @@ public class KalTrack {
             int hitID = site.hitID;
             System.out.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
                     site.chi2inc, site.scatX(), site.scatZ(), site.arcLength, hitID);
-            if (hitID < 0) continue;
+            if (hitID < 0) {
+                System.out.format("\n");
+                continue;
+            }
             System.out.format(", t=%5.1f", site.m.hits.get(site.hitID).time);
             if (m.hits.get(hitID).tksMC != null) {
                 System.out.format("  MC tracks: ");
@@ -292,6 +309,22 @@ public class KalTrack {
         // be introduced, TBD
         double XL = 0.; // innerSite.XL / Math.abs(ct);
         helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
+        if (Double.isNaN(originCov.M[0][0])) return false;
+        SquareMatrix Cinv = originCov.invert();
+        for (int i=0; i<5; ++i) {
+            if (Cinv.M[i][i] == 0.0) {  // The covariance matrix was singular
+                System.out.format("KalTrack.originHelix: the track %d covariance matrix is singular!\n", ID);
+                originCov.print("singular");
+                helixAtOrigin.print("singular");
+                for (int k=0; k<5; ++k) {
+                    for (int m=0; m<k; ++m) {
+                        originCov.M[k][m] = 0.;
+                        originCov.M[m][k] = 0.;
+                    }
+                }
+                break;
+            }
+        }
 
         // Find the position and momentum of the particle near the origin, including
         // covariance
@@ -346,6 +379,11 @@ public class KalTrack {
         return originCov.M.clone();
     }
 
+    public boolean covNaN() { 
+        if (!propagated) {originHelix();}
+        return originCov.isNaN();
+    }
+    
     public double[] originHelixParms() {
         if (propagated) return helixAtOrigin.v.clone();
         else return null;
@@ -389,6 +427,14 @@ public class KalTrack {
         
         sortSites(true);
 
+        if (verbose) {
+            System.out.format("KalTrac.addHits: initial list of sites: ");
+            for (MeasurementSite site : SiteList) {
+                System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+            }
+            System.out.format("\n");
+        }
+        
         ArrayList<ArrayList<SiModule>> moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
         for (int lyr = 0; lyr < numLayers; lyr++) {
             ArrayList<SiModule> modules = new ArrayList<SiModule>();
@@ -444,6 +490,15 @@ public class KalTrack {
                 SiteList.add(site);
             }
             sortSites(true);
+            if (verbose) {
+                System.out.format("KalTrack.addHits: final list of sites: ");
+                for (MeasurementSite site : SiteList) {
+                    System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                }
+                System.out.format("\n");
+            }
+        } else if (verbose) {
+            System.out.format("KalTrack.addHits: no hits added in event %d to track %d\n", eventNumber, ID);
         }
 
         return numAdded;
@@ -512,6 +567,7 @@ public class KalTrack {
             if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s); }
         }
         this.chi2 = chi2s;
+        propagated = false;
         return true;
     }
 

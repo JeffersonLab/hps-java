@@ -223,7 +223,7 @@ public final class TrackDataDriver extends Driver {
                         track.getTrackStates().add(stateEcal);
                 }
 
-                // Extrapolate the track to the face of the Ecal and get the TrackState
+                // Extrapolate the track to the face of the Hodoscope and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
                     TrackState stateHodo1 = TrackUtils.getTrackExtrapAtHodoRK(track, bFieldMap, 1);
                     if (stateHodo1 != null)

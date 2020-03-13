@@ -7,7 +7,7 @@ import java.util.Iterator;
 //then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
 //back to layer 0. The code assumes that the SiModules hold all the hits to be fit and only those hits.
 //No pattern recognition is done; no hits are dropped.
-public class KalmanTrackFit2 {
+class KalmanTrackFit2 {
 
     ArrayList<MeasurementSite> sites;
     int initialSite;
@@ -17,7 +17,7 @@ public class KalmanTrackFit2 {
     boolean success;
     KalTrack tkr;
 
-    public KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
+    KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
             int start, // Starting point in the list
             int nIterations, // Number of fit iterations requested
             Vec pivot, // Pivot point for the starting "guess" helix
