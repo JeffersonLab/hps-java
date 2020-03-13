@@ -3,6 +3,7 @@ package org.hps.recon.tracking.kalman;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +27,8 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.aida.AIDA;
 
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogramFactory;
 import hep.physics.vec.Hep3Vector;
 
 // Histograms and plots for Kalman Filter pattern recognition development
@@ -43,6 +46,11 @@ class KalmanPatRecPlots {
     private RelationalTable hitToStrips;
     private RelationalTable hitToRotated;
     private int numEvtPlots;
+    private IHistogram1D hp, hnh;
+    private IHistogram1D hpf, hnhf;
+    private IHistogramFactory hf;
+    int nMCtracks;
+    int nMCtracksFound;
 
     KalmanPatRecPlots(boolean verbose, KalmanInterface KI, IDDecoder decoder, int numEvtPlots, org.lcsim.geometry.FieldMap fm) {
         this.verbose = verbose;
@@ -55,6 +63,8 @@ class KalmanPatRecPlots {
         aida.tree().cd("/");
         nPlotted = 0;
         nEvents = 0;
+        nMCtracks = 0;
+        nMCtracksFound = 0;
         
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman pattern recognition time", 100, 0., 500.);
@@ -116,6 +126,11 @@ class KalmanPatRecPlots {
                 aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", lyr),100, -0.0025, .0025);
             }
         }
+        hf = aida.histogramFactory();
+        hp = aida.histogram1D("MC particle momentum",40,0.,4.);
+        hpf = aida.histogram1D("MC particle momentum, found",40,0.,4.);
+        hnh = aida.histogram1D("MC number hits",15,0.,15.);
+        hnhf = aida.histogram1D("MC number hits, found",15,0.,15.);
     }
     
     void process(EventHeader event, double runTime, ArrayList<KalmanPatRecHPS> kPatList, RelationalTable rawtomc) {
@@ -211,29 +226,22 @@ class KalmanPatRecPlots {
                 }
                 int nBad = 0;
                 for (MeasurementSite site : kTk.SiteList) {
-                    if (site.hitID < 0) {
-                        System.out.format("KalmanPatRecDriver:: Measurement Site has hitID < 0 in event %d\n",event.getEventNumber());
-                        kTk.print("with bad site");
-                        site.print("bad one");
-                    }
-                    else {
-                        SiModule mod = site.m;
-                        TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
-                        List<RawTrackerHit> rawHits = hpsHit.getRawHits();
-                        boolean goodHit = false;
-                        for (RawTrackerHit rawHit : rawHits) {
-                            Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
-                            for (SimTrackerHit simHit : simHits) {
-                                MCParticle mcp = simHit.getMCParticle();
-                                int id = mcParts.indexOf(mcp);
-                                if (id == idBest) {
-                                    goodHit = true;
-                                    break;
-                                }
+                    SiModule mod = site.m;
+                    TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                    List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                    boolean goodHit = false;
+                    for (RawTrackerHit rawHit : rawHits) {
+                        Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                        for (SimTrackerHit simHit : simHits) {
+                            MCParticle mcp = simHit.getMCParticle();
+                            int id = mcParts.indexOf(mcp);
+                            if (id == idBest) {
+                                goodHit = true;
+                                break;
                             }
                         }
-                        if (!goodHit) nBad++;
                     }
+                    if (!goodHit) nBad++;
                 }
                 aida.histogram1D("Kalman number of wrong hits on track").fill(nBad);
             
@@ -288,6 +296,123 @@ class KalmanPatRecPlots {
         } // Loop over SVT trackers (top/bottom)
         
         aida.histogram1D("Kalman number of tracks").fill(nKalTracks);
+        
+        // Tracking efficiency analysis
+        // Form MC "tracks" from collections of sim hits
+        List<SimTrackerHit> striphits = event.get(SimTrackerHit.class, "TrackerHits");
+        List<TrackerHit> reconHits = event.get(TrackerHit.class, "StripClusterer_SiTrackerHitStrip1D");
+        
+        // Make a mapping from sim hits to recon hits
+        Map<SimTrackerHit, TrackerHit> hitTohitMap = new HashMap<SimTrackerHit, TrackerHit>();
+        for (TrackerHit hpsHit : reconHits) {
+            List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+            for (RawTrackerHit rawHit : rawHits) {
+                Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                for (SimTrackerHit simHit : simHits) {
+                    hitTohitMap.put(simHit, hpsHit);
+                }
+            }
+        }
+        
+        // Make a mapping from MCparticle to recon hits (assume 1 sim hit cannot contribute to more than one recon hit)
+        Map<MCParticle, Set<TrackerHit>> hitMcpMap = new HashMap<MCParticle, Set<TrackerHit>>();
+        Set<MCParticle> mcParticles = new HashSet<MCParticle>();
+        for (SimTrackerHit hit1D : striphits) {
+            if (!hitTohitMap.containsKey(hit1D)) continue;
+            MCParticle mCP = hit1D.getMCParticle();
+            mcParticles.add(mCP);
+            Set<TrackerHit> hitsOnMcp = null;
+            if (hitMcpMap.containsKey(mCP)) {
+                hitsOnMcp = hitMcpMap.get(mCP);
+            } else {
+                hitsOnMcp = new HashSet<TrackerHit>();
+            }
+            hitsOnMcp.add(hitTohitMap.get(hit1D));
+            hitMcpMap.put(mCP, hitsOnMcp);
+        }
+               
+        // Make a list of recon hits for each Kalman track
+        Map<KalTrack, Set<TrackerHit>> hitKalMap = new HashMap<KalTrack, Set<TrackerHit>>(nKalTracks);
+        for (KalmanPatRecHPS kPat : kPatList) {
+            if (kPat == null) continue;
+            for (KalTrack kTk : kPat.TkrList) {
+                Set<TrackerHit> hitsOnTk = new HashSet<TrackerHit>();
+                for (MeasurementSite site : kTk.SiteList) {
+                    SiModule mod = site.m;
+                    TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                    hitsOnTk.add(hpsHit);
+                }
+                hitKalMap.put(kTk, hitsOnTk);
+            }
+        }
+        if (verbose) {
+            System.out.format("KalmanPatRecPlots: MC track vs Kaltrack matching for event %d\n", event.getEventNumber());
+            for (KalmanPatRecHPS kPat : kPatList) {
+                if (kPat == null) continue;
+                for (KalTrack kTk : kPat.TkrList) {
+                    System.out.format("  Kaltrack %d with %d hits: [", kTk.ID, kTk.nHits);
+                    for (TrackerHit hpsHt : hitKalMap.get(kTk)) {
+                        int ID = reconHits.indexOf(hpsHt);
+                        System.out.format("%d,", ID);
+                    }
+                    System.out.format("]\n");
+                }           
+            }
+        }
+        for (MCParticle mCP : mcParticles) {
+            Set<TrackerHit> mcHitList = hitMcpMap.get(mCP);
+            if (verbose) {
+                System.out.format("  MC particle of type %d, Q=%6.1f, p=%8.2f: [", mCP.getPDGID(), mCP.getCharge(), mCP.getMomentum().magnitude());
+                for (TrackerHit hpsHt : mcHitList) {
+                    int ID = reconHits.indexOf(hpsHt);
+                    System.out.format("%d,", ID);
+                }
+                System.out.format("]\n");
+            }
+            int nHits = Math.min(mcHitList.size(), 12);
+            if (nHits < 6) continue;          
+            KalTrack tkBest = null;
+            int nMost = 0;
+            for (KalmanPatRecHPS kPat : kPatList) {
+                if (kPat == null) continue;
+                for (KalTrack kTk : kPat.TkrList) {
+                    Set<TrackerHit> kalHitList = hitKalMap.get(kTk);
+                    Set<TrackerHit> intersection = new HashSet<TrackerHit>(mcHitList);
+                    intersection.retainAll(kalHitList);
+                    if (verbose) {
+                        System.out.format("      Intersection with track %d: [", kTk.ID);
+                        for (TrackerHit hpsHt : intersection) {
+                            int ID = reconHits.indexOf(hpsHt);
+                            System.out.format("%d,", ID);
+                        }
+                        System.out.format("]\n");
+                    }
+                    if (intersection.size() > nMost) {
+                        nMost = intersection.size();
+                        tkBest = kTk;
+                    }
+                }               
+            }
+            if (verbose) {
+                System.out.format(" MC match to KalTrack=%b\n",tkBest != null);
+                if (tkBest != null) System.out.format("        The best track is %d with %d matching hits\n",tkBest.ID,nMost);
+            }
+            double fracFnd = (double)nMost/(double)nHits;
+            boolean success = (nMost >= 6 && fracFnd > 0.5 && nMost >= tkBest.nHits-2);
+            Hep3Vector p = mCP.getMomentum();
+            hp.fill(p.magnitude());            
+            if (success) hpf.fill(p.magnitude());
+            if (p.magnitude() > 0.7) {
+                if (nHits >= 10) {
+                    nMCtracks++;
+                    if (success) nMCtracksFound++;
+                }
+                hnh.fill(nHits);
+                if (success) hnhf.fill(nHits);
+            }
+        }
+        
+        // Analysis of helix+GBL tracks, for comparison
         if (event.hasCollection(Track.class, trackCollectionName)) {
             List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
             int nGBL = tracksGBL.size();
@@ -500,9 +625,12 @@ class KalmanPatRecPlots {
     }
     
     void output() {
-        if (verbose) {
-            System.out.println("Individual layer efficiencies:");
-        }
+        hf.divide("Kalman track efficiency vs momentum", hpf, hp);
+        hf.divide("Kalman track efficiency vs number hits", hnhf, hnh);
+        double trackEfficiency = (double)nMCtracksFound/(double)nMCtracks;
+        int nMiss = nMCtracks - nMCtracksFound;
+        double err = Math.sqrt((double)nMiss) / (double)nMCtracks;
+        System.out.format("KalmanPatRecPlots: the track efficiency for p>0.7 GeV and >= 10 sim hits is %9.3f+-%9.3f\n", trackEfficiency, err);
         try {
             System.out.format("Outputting the aida histograms now for %d events to file %s\n", nEvents, outputFileName);
             aida.saveAs(outputFileName);
