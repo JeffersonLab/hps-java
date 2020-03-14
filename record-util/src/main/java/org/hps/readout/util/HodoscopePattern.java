@@ -29,14 +29,24 @@ public class HodoscopePattern {
     }
     
     /**
-     * Set status for a hit
-     * @param parameter: index of a hit
-     * @param returns status of a hit: true or false
+     * Set status for a FADC hit
+     * @param parameter: index of a FADC hit
+     * @param returns status of a FADC hit: true or false
      * 
      */
     public void setHitStatus(int index, boolean status) {
         if(index >= pattern.length) throw new IllegalArgumentException("Error: Invalid index");
         pattern[index] = status;        
+    }
+    
+    /**
+     * get status for a FADC hit
+     * @param parameter: index of a FADC hit
+     * 
+     */
+    public boolean getHitStatus(int index) {
+        if(index >= pattern.length) throw new IllegalArgumentException("Error: Invalid index");
+        return pattern[index];        
     }
     
     @Override
