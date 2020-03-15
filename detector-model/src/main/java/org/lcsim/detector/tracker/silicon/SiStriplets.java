@@ -57,9 +57,10 @@ public class SiStriplets extends SiPixels {
 
     public Hep3Vector getStripCenter(int cellID) { 
 
+        //System.out.println("SiStriplets::getStripCenter : Row Offset: " + _row_offset); 
         //System.out.println("SiStriplets::getStripCenter : Cell ID: " + cellID); 
         //System.out.println("SiStriplets::getStripCenter : Row: " + getRowNumber(cellID));  
-        double u = _row_offset - getRowNumber(cellID)*_row_pitch; 
+        double u = getRowNumber(cellID)*_row_pitch - _row_offset;   
         //System.out.println("SiStriplets::getStripCenter : u: " + u);
 
         double v = getColumnNumber(cellID)*_col_pitch - _col_offset; 
