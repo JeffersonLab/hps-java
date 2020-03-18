@@ -19,7 +19,7 @@ import org.lcsim.util.test.TestUtil;
  *
  * @author Norman A. Graf
  */
-public class WabSelectMCEventsDriverTest extends TestCase {
+public class SelectMCEventsDriverTest extends TestCase {
 
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
     static final String testFileName = "wab_1_SLIC-v06-00-00_QGSP_BERT_HPS-PhysicsRun2019-v1-4pt5.slcio";
@@ -39,7 +39,7 @@ public class WabSelectMCEventsDriverTest extends TestCase {
         LCSimLoop loop = new LCSimLoop();
         loop.setLCIORecordSource(lcioInputFile);
 
-        WabSelectMCEventsDriver wabSelect = new WabSelectMCEventsDriver();
+        SelectMCEventsDriver wabSelect = new SelectMCEventsDriver();
         loop.add(wabSelect);
         loop.loop(nEvents);
         loop.dispose();

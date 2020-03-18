@@ -9,10 +9,12 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.util.Driver;
 
 /**
+ * Primarily intended to select single track events for tracking studies such as
+ * FEE and unconverted WABs. Could also be used for Moller selection.
  *
  * @author Norman A. Graf
  */
-public class WabSelectMCEventsDriver extends Driver {
+public class SelectMCEventsDriver extends Driver {
 
     private boolean _selectAllLayers = false;
     private int _requireNLayers = 14;
@@ -59,6 +61,21 @@ public class WabSelectMCEventsDriver extends Driver {
             _numberOfEventsSelected++;
         }
 
+    }
+    
+    public void setSelectTopLayerHits(boolean b)
+    {
+        _selectTopHits = b;
+    }
+    
+    public void setSelectBottomLayerHits(boolean b)
+    {
+        _selectBottomHits = b;
+    }
+    
+    public void setSelectMinNumberOfHitLayers(int n)
+    {
+        _requireNLayers = n;
     }
 
     protected void endOfData() {
