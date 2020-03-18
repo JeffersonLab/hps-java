@@ -32,8 +32,6 @@ public class SelectMCEventsDriver extends Driver {
             if (hit.getDetectorElement() instanceof HpsSiSensor) {
                 HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
                 String sensorName = hit.getDetectorElement().getName();
-                System.out.println(hit.getLayerNumber());
-                System.out.println(sensorName);
                 if (sensorName.contains("t_")) {
                     topLayers.add(sensor.getLayerNumber());
                 } else {
@@ -52,8 +50,8 @@ public class SelectMCEventsDriver extends Driver {
                 skipEvent = false;
             }
         }
-        System.out.println("Number of top hits: " + topLayers.size());
-        System.out.println("Number of bottom hits: " + bottomLayers.size());
+//        System.out.println("Number of top hits: " + topLayers.size());
+//        System.out.println("Number of bottom hits: " + bottomLayers.size());
         _numberOfEventsProcessed++;
         if (skipEvent) {
             throw new Driver.NextEventException();
