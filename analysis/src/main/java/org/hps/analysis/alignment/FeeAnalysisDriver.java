@@ -35,7 +35,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class FeeAnalysisDriver extends Driver {
 
-    boolean debug = false;
+    boolean debug = true;
     private AIDA aida = AIDA.defaultInstance();
 
     private final String finalStateParticlesColName = "FinalStateParticles";
@@ -96,6 +96,8 @@ public class FeeAnalysisDriver extends Driver {
             return;
         }
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
+        // now add in the FEE candidates
+        rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
         setupSensors(event);
         for (ReconstructedParticle rp : rpList) {
             if (!TrackType.isGBL(rp.getType())) {

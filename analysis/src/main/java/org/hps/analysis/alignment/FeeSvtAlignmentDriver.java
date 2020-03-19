@@ -125,7 +125,7 @@ public class FeeSvtAlignmentDriver extends Driver {
         // modify for 2016 run
         if (event.getRunNumber() > 7000) {
             _beamEnergy = 2.306;
-            seedCut = 0.;
+            seedCut = 1.2;
             clusterCut = 0.2;
             ctMin = 55.;
             ctMax = 61.;
@@ -206,6 +206,8 @@ public class FeeSvtAlignmentDriver extends Driver {
                     aida.cloud1D("clusterSeedHit energy").fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
                     aida.cloud1D("cluster nHits").fill(c.getCalorimeterHits().size());
                     aida.cloud2D("clusterSeedHit energy vs p").fill(p, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.cloud2D("clusterSeedHit energy vs nHits").fill(c.getCalorimeterHits().size(), ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    
                     aida.cloud2D("cluster nHits vs p").fill(p, c.getCalorimeterHits().size());
                     aida.cloud2D("cluster time vs p").fill(p, ClusterUtilities.getSeedHitTime(c));
                 }
