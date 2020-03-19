@@ -33,7 +33,10 @@ public class LCSimPhys2019EventBuilder extends LCSimEngRunEventBuilder {
         svtReader = new Phys2019SvtEvioReader(); 
         vtpReader = new VTPEvioReader();
         tsReader = new TSEvioReader();
-        
+
+        // in 2019 the RF signal changed crates relative to previous runs:
+        ecalReader.setRfBankTag(0x27);
+
         svtEventFlagger = null;  
     }
     
