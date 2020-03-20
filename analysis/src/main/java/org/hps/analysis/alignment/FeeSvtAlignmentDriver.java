@@ -203,13 +203,13 @@ public class FeeSvtAlignmentDriver extends Driver {
                 boolean isFiducial = isFiducial(seedHit);
                 // debug diagnostics to set cuts
                 if (debug) {
-                    aida.cloud1D("clusterSeedHit energy").fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
-                    aida.cloud1D("cluster nHits").fill(c.getCalorimeterHits().size());
-                    aida.cloud2D("clusterSeedHit energy vs p").fill(p, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
-                    aida.cloud2D("clusterSeedHit energy vs nHits").fill(c.getCalorimeterHits().size(), ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.histogram1D("clusterSeedHit energy", 100, 0., 2.0).fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.histogram1D("cluster nHits", 20, 0.5, 20.5).fill(c.getCalorimeterHits().size());
+                    aida.histogram2D("clusterSeedHit energy vs p", 100, 0., 3.0, 100, 0., 2.0).fill(p, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.histogram2D("clusterSeedHit energy vs nHits", 20, 0.5, 20.5, 100, 0., 2.0).fill(c.getCalorimeterHits().size(), ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
                     
-                    aida.cloud2D("cluster nHits vs p").fill(p, c.getCalorimeterHits().size());
-                    aida.cloud2D("cluster time vs p").fill(p, ClusterUtilities.getSeedHitTime(c));
+                    aida.histogram2D("cluster nHits vs p", 100, 0., 3.0, 20, 0.5, 20.5).fill(p, c.getCalorimeterHits().size());
+                    aida.histogram2D("cluster time vs p", 100, 0., 3.0,100, 48., 68.).fill(p, ClusterUtilities.getSeedHitTime(c));
                 }
                 double ct = ClusterUtilities.getSeedHitTime(c);
                 if (c.getEnergy() > clusterCut
@@ -244,14 +244,14 @@ public class FeeSvtAlignmentDriver extends Driver {
                         aida.histogram1D("Track momentum" + topOrBottom, 100, 0., 3.0).fill(p);
                         aida.histogram1D("Track deDx" + topOrBottom, 100, 0.00004, 0.00013).fill(t.getdEdx());
                         aida.histogram1D("Track theta" + topOrBottom, 100, 0.010, 0.160).fill(theta);
-                        aida.cloud2D("Track theta vs p" + topOrBottom).fill(theta, p);
+                        aida.histogram2D("Track theta vs p" + topOrBottom, 100, 0., 0.2, 100, 0., 3.0).fill(theta, p);
                         aida.histogram1D("rp x0" + topOrBottom, 100, -0.20, 0.20).fill(TrackUtils.getX0(t));
                         aida.histogram1D("rp y0" + topOrBottom, 100, -2.0, 2.0).fill(TrackUtils.getY0(t));
-                        aida.histogram1D("rp z0" + topOrBottom, 100, -0.5, 0.5).fill(TrackUtils.getZ0(t));
+                        aida.histogram1D("rp z0" + topOrBottom, 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
                     }
                     double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
                     if (debug) {
-                        aida.cloud1D("track data time").fill(trackDataTime);
+                        aida.histogram1D("track data time", 100, -10., 10.).fill(trackDataTime);
                     }
                     if (isTopTrack(t)) {
                         if (nHits == 5) {
@@ -270,16 +270,16 @@ public class FeeSvtAlignmentDriver extends Driver {
                                 aida.histogram2D("Fee 6-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
                             }
                             aida.histogram1D("Fee top 6-hit track d0", 100, -2.0, 2.0).fill(d0);
-                            aida.profile1D("Fee top 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
-                            aida.histogram2D("Fee top 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                            aida.profile1D("Fee top 6-hit track p vs d0 profile", 100, 2.1, 2.5).fill(p1mom.magnitude(), d0);
+                            aida.histogram2D("Fee top 6-hit track p vs d0", 100, 2.1, 2.5, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
                             aida.histogram1D("Fee top 6-hit track z0", 100, -0.6, 0.6).fill(z0);
                             aida.profile1D("Fee top 6-hit track thetaY vs z0 profile", 10, 0.024, 0.054).fill(thetaY, z0);
                             aida.histogram2D("Fee top 6-hit track thetaY vs z0", 100, 0.015, 0.055, 100, -0.6, 0.6).fill(thetaY, z0);
-                            aida.cloud1D("Top Track theta").fill(theta);
-                            aida.cloud2D("Top Track theta vs p").fill(theta, p);
-                            aida.cloud1D("Top rp x0").fill(TrackUtils.getX0(t));
-                            aida.cloud1D("Top rp y0").fill(TrackUtils.getY0(t));
-                            aida.cloud1D("Top rp z0").fill(TrackUtils.getZ0(t));
+                            aida.histogram1D("Top Track theta", 100, 0., 0.2).fill(theta);
+                            aida.histogram2D("Top Track theta vs p", 100, 0., 0.2, 100, 0., 3.0).fill(theta, p);
+                            aida.histogram1D("Top rp x0",100, -0.2, 0.2).fill(TrackUtils.getX0(t));
+                            aida.histogram1D("Top rp y0", 100, -3., 3).fill(TrackUtils.getY0(t));
+                            aida.histogram1D("Top rp z0",100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
                             double[] strips = stripClusterSizes(t);
                             // let's cut real hard here, require 2-strip clusters in all four first layers
                             boolean keepit = true;
@@ -312,16 +312,16 @@ public class FeeSvtAlignmentDriver extends Driver {
                                 aida.histogram2D("Fee 6-hit track single cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
                             }
                             aida.histogram1D("Fee bottom 6-hit track d0", 100, -2.0, 2.0).fill(d0);
-                            aida.profile1D("Fee bottom 6-hit track p vs d0 profile", 100, 0.75, 1.25).fill(p1mom.magnitude(), d0);
-                            aida.histogram2D("Fee bottom 6-hit track p vs d0", 100, 0.75, 1.25, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
+                            aida.profile1D("Fee bottom 6-hit track p vs d0 profile", 100, 2.1, 2.5).fill(p1mom.magnitude(), d0);
+                            aida.histogram2D("Fee bottom 6-hit track p vs d0", 100, 2.1, 2.5, 100, -2.0, 2.0).fill(p1mom.magnitude(), d0);
                             aida.histogram1D("Fee bottom 6-hit track z0", 100, -0.6, 0.6).fill(z0);
                             aida.profile1D("Fee bottom 6-hit track thetaY vs z0 profile", 10, -0.054, -0.024).fill(thetaY, z0);
                             aida.histogram2D("Fee bottom 6-hit track thetaY vs z0", 100, -0.055, -0.015, 100, -0.6, 0.6).fill(thetaY, z0);
-                            aida.cloud1D("Bottom Track theta").fill(theta);
-                            aida.cloud2D("Bottom Track theta vs p").fill(theta, p);
-                            aida.cloud1D("Bottom rp x0").fill(TrackUtils.getX0(t));
-                            aida.cloud1D("Bottom rp y0").fill(TrackUtils.getY0(t));
-                            aida.cloud1D("Bottom rp z0").fill(TrackUtils.getZ0(t));
+                            aida.histogram1D("Bottom Track theta", 100, 0., 0.2).fill(theta);
+                            aida.histogram2D("Bottom Track theta vs p", 100, 0., 0.2, 100, 0., 3.0).fill(theta, p);
+                            aida.histogram1D("Bottom rp x0",100, -0.2, 0.2).fill(TrackUtils.getX0(t));
+                            aida.histogram1D("Bottom rp y0", 100, -3., 3).fill(TrackUtils.getY0(t));
+                            aida.histogram1D("Bottom rp z0",100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
                             double[] strips = stripClusterSizes(t);
                             // let's cut real hard here, require 2-strip clusters in all four first layers
                             boolean keepit = true;
