@@ -77,9 +77,19 @@
             <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
         </driver>
         
-        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
-        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
-  
+        <!-- Hodo reconstruction drivers -->
+
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
+           <useRunningPedestal>true</useRunningPedestal>
+           <tETAllChannels>12</tETAllChannels>
+           <logLevel>CONFIG</logLevel>
+        </driver>
+
+	
         <!-- Driver to reject "bad" events -->
         <!-- Not yet implemented for 2019
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 

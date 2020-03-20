@@ -1390,7 +1390,7 @@ public class TrackUtils {
         return hitList;
     }
 
-    private static class LayerComparator implements Comparator<TrackerHit> {
+    public static class LayerComparator implements Comparator<TrackerHit> {
 
         @Override
         public int compare(TrackerHit o1, TrackerHit o2) {
