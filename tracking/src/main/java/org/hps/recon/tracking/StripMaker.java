@@ -99,7 +99,6 @@ public class StripMaker {
         // Get hits for this sensor
         IReadout ro = sensor.getReadout();
         List<FittedRawTrackerHit> hps_hits = ro.getHits(FittedRawTrackerHit.class);
-        if (debug_) System.out.println("StripMaker::makeHits : Total number of fitted hits: " + hps_hits.size()); 
 
         Map<SiSensorElectrodes, List<FittedRawTrackerHit>> electrode_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
         Map<SiSensorElectrodes, List<FittedRawTrackerHit>> thin_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
