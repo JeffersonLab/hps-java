@@ -58,11 +58,13 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     private static boolean uniformB;
-    public boolean verbose;
+    public boolean verbose = false;
+    public int verboseLevel = 0;
     double svtAngle;
     private HelixPlaneIntersect hpi;
+    KalmanParams kPar;
     Random rnd;
-
+    
     // Get the HPS tracker hit corresponding to a Kalman hit
     public TrackerHit getHpsHit(Measurement km) {
         return hitMap.get(km);
@@ -109,13 +111,20 @@ public class KalmanInterface {
         SeedTrackLayers = input;
     }
 
+    public void setVerboseLevel(int input) {
+        verboseLevel = input;
+    }
+
     // Constructor with no argument defaults to verbose being turned off
     public KalmanInterface() {
         this(false, false);
     }
 
     public KalmanInterface(boolean verbose, boolean uniformB) {
-        System.out.format("Entering the KalmanInterface constructor with verbose=%b\n",verbose);
+        
+        if (verbose) {
+            System.out.format("Entering the KalmanInterface constructor\n");
+        }
         this.verbose = verbose;
         KalmanInterface.uniformB = uniformB;
         hpi = new HelixPlaneIntersect();
@@ -158,8 +167,15 @@ public class KalmanInterface {
         long rndSeed = -3263009337738135404L;
         rnd = new Random();
         rnd.setSeed(rndSeed);
+        
+        kPar = new KalmanParams();
     }
 
+    // Return the reference to the parameter setting code for the driver to use
+    public KalmanParams getKalmanParams() {
+        return kPar;
+    }
+    
     // Transformation from HPS global coordinates to Kalman global coordinates
     public static Vec vectorGlbToKalman(double[] HPSvec) { 
         Vec kalVec = new Vec(HPSvec[0], HPSvec[2], -HPSvec[1]);
@@ -405,6 +421,11 @@ public class KalmanInterface {
             System.out.format("KalmanInterface.createTrack: Kalman track is incomplete.\n");
             return null;
         }
+        if (kT.covNaN()) {
+            System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix. \n");
+            return null;
+        }
+        
         kT.sortSites(true);
         int prevID = 0;
         int dummyCounter = -1;
@@ -416,7 +437,10 @@ public class KalmanInterface {
         double[] globalParams = kT.originHelixParms();
         double c = 2.99793e8; // Speed of light in m/s
         double conFac = 1.0e12 / c;
-        Vec Bfield = KalmanInterface.getField(new Vec(0.,0.,0.), kT.SiteList.get(0).m.Bfield); // Field at the origin
+        // Field at the origin => For 2016 this is ~ 0.430612 T
+        //Vec Bfield = KalmanInterface.getField(new Vec(0.,0.,0.), kT.SiteList.get(0).m.Bfield); 
+        //In the center of SVT => For 2016 this is ~ 0.52340 T
+        Vec Bfield = KalmanInterface.getField(new Vec(0.,500.,0.), kT.SiteList.get(0).m.Bfield);
         double B = Bfield.mag();
         double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
         double[] newParams = getLCSimParams(globalParams, alpha);
@@ -446,8 +470,11 @@ public class KalmanInterface {
 
             if (i == 0) {
                 loc = TrackState.AtFirstHit;
-            } else if (i == kT.SiteList.size() - 1) loc = TrackState.AtLastHit;
-
+            } else if (i == kT.SiteList.size() - 1) 
+                loc = TrackState.AtLastHit;
+            
+            //Do not add the missing layer track states yet. TODO!
+            /*
             if (storeTrackStates) {
                 for (int k = 1; k < lay - prevID; k++) {
                     // uses new lcsim constructor
@@ -457,15 +484,16 @@ public class KalmanInterface {
                 }
                 prevID = lay;
             }
-
+            */
+            
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
                 if (ts != null) newTrack.getTrackStates().add(ts);
             }
         }
-
-        // TODO: get track params at ECal
-
+        
+        //TODO Ecal extrapolation should be done here [ Currently is done in the PatRecDriver ]
+        
         // other track properties
         newTrack.setChisq(kT.chi2);
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
@@ -578,7 +606,9 @@ public class KalmanInterface {
 
     // Method to create one Kalman SiModule object for each silicon-strip detector
     public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
-        System.out.format("Entering KalmanInterface.creasteSiModules\n");
+        if (verbose && verboseLevel > 1) {
+            System.out.format("Entering KalmanInterface.creasteSiModules\n");
+        }
         SiMlist.clear();
 
         for (SiStripPlane inputPlane : inputPlanes) {
@@ -1045,9 +1075,9 @@ public class KalmanInterface {
                     SiModule SiM = SiMoccupied.get(i);
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
+                System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, event.getEventNumber()==17002);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar, false);
             outList.add(kPat);
         }
         return outList;

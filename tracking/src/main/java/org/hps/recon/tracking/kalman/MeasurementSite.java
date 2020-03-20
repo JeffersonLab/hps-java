@@ -23,12 +23,14 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     private boolean verbose;
+    private int verboseLevel;
     double B;
 
     // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
     // will never have a hit and thus will be handled the same as physical layers that lack hits
-
+    
     void print(String s) {
+
         if (m.Layer < 0) {
             System.out.format("\n****Dump of dummy measurement site %d %s;  ", thisSite, s);
         } else {
@@ -79,6 +81,7 @@ class MeasurementSite {
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
         verbose = false;
+        verboseLevel = 0 ;
     }
 
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
@@ -144,9 +147,10 @@ class MeasurementSite {
 
         // Check whether the intersection is within the bounds of the detector, with some margin
         // If not, then the pattern recognition may look in another detector in the layer
+        // Don't do the check if the hit number is already specified
         double tol = 1.0; // Tolerance on the check, in mm
         Vec rLocal = null;
-        if (checkBounds) {
+        if (checkBounds && hitNumber < 0) {
             Vec rGlobal = pS.toGlobal(X0); // Transform from field coordinates to global coordinates
             rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
             if (rLocal.v[0] < m.xExtent[0] - tol || rLocal.v[0] > m.xExtent[1] + tol) { return -2; }
@@ -258,7 +262,7 @@ class MeasurementSite {
                         //    continue;
                         //}
                         double residual = m.hits.get(i).v - aP.mPred;
-                        if (verbose2) {
+                        if (verbose) {
                             double ctv = residual/m.hits.get(i).sigma;
                             System.out.format("  MeasurementSite.makePrediction: Found unused hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, mxResid); 
                         }
@@ -271,7 +275,7 @@ class MeasurementSite {
                     if (theHit < 0 && sharingOK) {  // Look for good shared hits
                         for (int i = 0; i < nHits; i++) {
                             double residual = m.hits.get(i).v - aP.mPred;
-                            if (verbose2) {                         
+                            if (verbose) {                         
                                 double ctv = residual/m.hits.get(i).sigma;
                                 System.out.format("  MeasurementSite.makePrediction: Found used hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, mxResid); 
                             }
@@ -313,8 +317,8 @@ class MeasurementSite {
                 chi2inc = aP.r * aP.r / aP.R;
                 double cutVal = Math.abs(aP.r / m.hits.get(theHit).sigma);
                 if (verbose2) {
-                    System.out.format("  MeasurementSite.makePrediction: Lyr %d det %d: do we add hit with residual=%10.5f, err=%10.5f, chi2inc=%10.5f, %10.5f<%10.5f?\n",
-                            m.Layer, m.detector, aP.r, Math.sqrt(aP.R), chi2inc, cutVal, cut);
+                    System.out.format("  MeasurementSite.makePrediction: Lyr %d det %d: do we add hit with residual=%10.5f, err=%10.5f, chi2inc=%10.5f, %10.5f<%10.5f?, t=%8.2f\n",
+                            m.Layer, m.detector, aP.r, Math.sqrt(aP.R), chi2inc, cutVal, cut, m.hits.get(theHit).time);
                 }
 
                 if (hitNumber >= 0) { // Use the hit no matter what if it was handed to us
@@ -369,7 +373,7 @@ class MeasurementSite {
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
-            if (verbose) {
+            if (verbose2) {
                 System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists at layer %d detector %d\n", m.Layer, m.detector);
                 aP.a.print("predicted helix parameters");
                 aF.a.print("Filtered helix parameters");
@@ -402,7 +406,7 @@ class MeasurementSite {
 
         //System.out.format("MeasurmentSite.filter: R=%10.8f\n", aF.R);
         if (aF.R < 0) {
-            if (verbose) { System.out.format("MeasurementSite.filter: covariance of residual %12.4e is negative\n", aF.R); }
+            if (verbose2) { System.out.format("MeasurementSite.filter: covariance of residual %12.4e is negative\n", aF.R); }
             aF.R = V;
         }
 
@@ -459,7 +463,7 @@ class MeasurementSite {
                 continue; // don't add a hit that was just removed
             }
             Measurement hit = m.hits.get(hitidx);
-            hit.print("to try");
+            if (verbose) hit.print("to try");
             for (KalTrack tkOther: hit.tracks) {
                 if (tkOther != tkr) continue hitList; // ignore already used hits
             }
@@ -490,9 +494,11 @@ class MeasurementSite {
                 if (filter()) {
                     if (verbose) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
                     if (chi2inc < cut) {
-                        System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
-                        hit.print("short");
-                        System.out.format("\n");
+                        if (verbose) {
+                            System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
+                            hit.print("short");
+                            System.out.format("\n");
+                        }
                         return m.hits.get(hitID);
                     } else {
                         hitID = -1;

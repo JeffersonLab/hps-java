@@ -82,7 +82,10 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         // Note: this call to planeIntersect fills in X0 and a
         double phiInt = planeIntersect(helix, X1local, alpha, pLocal); // helix intersection
         if (Double.isNaN(phiInt)) {
-            System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
+            //System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
+            pInt.v[0] = P0.v[0];
+            pInt.v[1] = P0.v[1];
+            pInt.v[2] = P0.v[2];
             return X0;
         }
         //System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
@@ -116,8 +119,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         // a: vector of 5 helix parameters
         // alpha: 10^12/c/B
 
-        // Take as a starting guess the solution for the case that the plane orientation
-        // is exactly y-hat.
+        // Take as a starting guess the solution for the case that the plane orientation is exactly y-hat.
         // System.out.format("HelixPlaneIntersection:planeIntersect, alpha=%f10.5\n", alpha);
         this.alpha = alpha;
         double arg = (a.v[2] / alpha) * ((a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (p.X().v[1] - pivot.v[1]));

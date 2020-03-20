@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.Random;
 
 //This is for testing only and is not part of the Kalman fitting code
-public class PatRecTest {
+class PatRecTest {
 
     Random rnd;
 
-    public PatRecTest(String path) {
+    PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
         int nTrials = 100;              // The number of test eventNumbers to generate for pattern recognition and fitting
@@ -32,6 +32,9 @@ public class PatRecTest {
         rnd = new Random();
         rnd.setSeed(rndSeed);
 
+        // Set pattern recognition parameters
+        KalmanParams kPar = new KalmanParams();
+        
         // Definition of the magnetic field
         String mapType = "binary";
         //String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.bin";
@@ -444,7 +447,7 @@ public class PatRecTest {
             }
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
-            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, verbose);
+            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar, verbose);
             if (nPlot < mxPlot && verbose) {
                 nPlot++;
                 PrintWriter printWriter3 = null;

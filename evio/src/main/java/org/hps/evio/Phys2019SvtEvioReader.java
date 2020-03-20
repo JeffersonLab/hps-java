@@ -171,7 +171,11 @@ public class Phys2019SvtEvioReader extends AbstractSvtEvioReader {
         List< int[] > multiSamples = extractMultiSamples(0, data);
 
         for (int[] samples : multiSamples) { 
-            rawHits.add(this.makeHit(samples)); 
+//            rawHits.add(this.makeHit(samples)); 
+            RawTrackerHit hit = this.makeHit(samples);
+            if (hit != null) {
+                rawHits.add(hit); 
+            }
         }
 
         return rawHits;

@@ -31,6 +31,16 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         }
     }
 
+    boolean isNaN() {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (Double.isNaN(M[i][j]))
+                    return true;
+            }
+        }
+        return false;
+    }
+    
     SquareMatrix multiply(SquareMatrix M2) { // Standard matrix multiplication
         SquareMatrix Mp = new SquareMatrix(N);
         for (int i = 0; i < N; i++) {
