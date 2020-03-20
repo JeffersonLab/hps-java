@@ -14,7 +14,7 @@
         <driver name="TrackerHitsEcalOutputDriver"/>
         
         <!-- SVT Readout Drivers -->
-        <!--<driver name="SVTReadoutDriver" />-->
+        <driver name="SVTReadoutDriver" />
         
         <!-- Hodoscope Readout Simulation Drivers -->
         <driver name="HodoscopePreprocessingDriver"/>
@@ -104,13 +104,12 @@
             The SVT driver. Works just like before. Documentation is left to
             the SVT group.
         -->
-	<!--
         <driver name="SVTReadoutDriver" type="org.hps.readout.svt.SVTReadoutDriver">
             <enablePileupCut>false</enablePileupCut>
             <useTimingConditions>true</useTimingConditions>
             <addNoise>true</addNoise>
         </driver>
-      -->     
+           
         <!--
              The calorimeter readout driver handles conversion of SLIC truth
              hits into voltage pulses and ultimately into ADC counts every 4 ns
