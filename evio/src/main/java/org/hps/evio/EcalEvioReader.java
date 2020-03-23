@@ -256,6 +256,42 @@ public class EcalEvioReader extends EvioReader {
                 }
 
                 if (id == null) {
+                    //
+                    // FIXME:
+                    //
+                    // The original detector decision in makeHits above is attempting
+                    // to make it at the crate level.  Below it's generating
+                    // FADCGenericHit objects for any FADC channel that's not an ECAL
+                    // channel but shares an FADC crate with ECAL.
+                    //
+                    // The real crate number was also converted above to a "virtual"
+                    // crate number (1 or 2), but only if it's an ECAL FADC crate.
+                    //
+                    // In 2015 and later we had cosmic trigger PMTs in the same crate
+                    // (and slot) as the calorimeter.  Cosmic software uses virtual
+                    // crate number, since that's what this class delivered.
+                    //
+                    // Starting in 2019, the RF FADC (in unshared slot 13) is now in
+                    // the same crate as ECAL.  RF software uses real crate number,
+                    // since that's what they previuosly received.
+                    // 
+                    // Note, HODO FADC hits are also converted here, but not used.
+                    //
+                    // Some options include, in order of goodness:
+                    // 1. restructure this reader (and maybe the HODO one too, or merge)
+                    //    (and put PMT/RF crate/slot/channel in conditions database)
+                    // 2. hack back to real crate number here for the RF (slot 13) only
+                    // 3. hack downstream software to know about 2 types of crate numbers
+                    //
+                    // This is option #2:
+                    if (slot==13) {
+                        if (crate==1) {
+                            crate = topBankTag;
+                        }
+                        else if (crate==2) {
+                            crate = botBankTag;
+                        }
+                    }
                     // TODO: We *should* have something here that makes sure the we don't also store all the Hodoscope hits.
                     // OR we should simply parse the GenericHits elsewhere.
                     // 

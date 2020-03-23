@@ -18,7 +18,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.1-SNAPSHOT</lcsimVersion>
+    <lcsimVersion>4.2-SNAPSHOT</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
@@ -35,17 +35,17 @@
   <distributionManagement>
     <site>
       <id>lcsim-site</id>
-      <url>dav:http://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
+      <url>dav:https://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
     </site>
     <repository>
       <id>lcsim-repo-releases</id>
       <name>LCSIM Releases maven repository</name>
-      <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>
     </repository>
     <snapshotRepository>
       <id>lcsim-repo-snapshots</id>
       <name>LCSIM Snapshots maven repository</name>
-      <url>http://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -53,7 +53,7 @@
     <repository>
       <id>maven-central-repo</id>
       <name>Maven repository</name>
-      <url>http://repo1.maven.org/maven2/</url>
+      <url>https://repo1.maven.org/maven2/</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -64,17 +64,17 @@
     <repository>
       <id>freehep-repo-public</id>
       <name>FreeHEP</name>
-      <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
     </repository>
     <repository>
       <id>srs-repo-public</id>
       <name>SRS</name>
-      <url>http://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/groups/srs-maven2-public/</url>
     </repository>
     <repository>
       <id>lcsim-repo-public</id>
       <name>LCSim</name>
-      <url>http://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
     </repository>
     <repository>
       <id>jlab-coda-repo-public</id>
@@ -99,7 +99,7 @@
     <pluginRepository>
       <id>freehep-maven-plugin-repo</id>
       <name>Freehep Plugin Repository</name>
-      <url>http://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/groups/freehep-maven2-public/</url>
     </pluginRepository>
   </pluginRepositories>
   

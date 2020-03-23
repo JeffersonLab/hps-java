@@ -15,8 +15,8 @@
         <!--<driver name="EcalRunningPedestal"/>-->
         <driver name="EcalRawConverter" />
         <driver name="HitTimeSmear"/>
-        <driver name="ReconClusterer" />
-        <driver name="CopyCluster" />
+        <!--<driver name="ReconClusterer" />-->
+        <!--driver name="CopyCluster" />-->
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -98,7 +98,7 @@
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>true</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 
-            <tsCorrectionScale>164.5</tsCorrectionScale>    
+            <tsCorrectionScale>171.</tsCorrectionScale>
             <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
             <correctTimeOffset>true</correctTimeOffset>   
             <!--per sensor shift...set false becasue it's not in readout sim-->       
@@ -157,7 +157,7 @@
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>43</trackClusterTimeOffset>
+            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
@@ -166,8 +166,11 @@
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
-        </driver>         
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        </driver>
+	<driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
+          <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+          <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
+        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>

@@ -267,7 +267,10 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
             if (!this.isValidSampleSet(samples)) continue;
         
             // Create raw hits and add them to the list of raw hits
-            rawHits.add(this.makeHit(samples));
+            RawTrackerHit hit = this.makeHit(samples);
+            if (hit != null) {
+                rawHits.add(hit);
+            }
         }
 
         //System.out.println("[ SvtEvioReader ][ processMultiSamples ]: Got " 

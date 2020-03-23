@@ -1,6 +1,7 @@
 package org.hps.recon.tracking;
 
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.BasicHep3Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,9 @@ import org.lcsim.util.Driver;
  *
  * @author Omar Moreno, UCSC
  * @author Sho Uemura, SLAC
+ * @author PF, SLAC
  */
+
 public final class TrackDataDriver extends Driver {
 
     /**
@@ -52,7 +55,7 @@ public final class TrackDataDriver extends Driver {
      * Collection name of TrackResidualData objects
      */
     private static final String TRK_RESIDUALS_COL_NAME = "TrackResiduals";
-
+    
     /**
      * Collection name of LCRelations between a Track and TrackResidualsData
      * objects.
@@ -85,7 +88,6 @@ public final class TrackDataDriver extends Driver {
         bFieldMap = detector.getFieldMap();
         bField = TrackUtils.getBField(detector).magnitude();
         sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
-
     }
 
     /**
@@ -221,7 +223,7 @@ public final class TrackDataDriver extends Driver {
                         track.getTrackStates().add(stateEcal);
                 }
 
-                // Extrapolate the track to the face of the Ecal and get the TrackState
+                // Extrapolate the track to the face of the Hodoscope and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
                     TrackState stateHodo1 = TrackUtils.getTrackExtrapAtHodoRK(track, bFieldMap, 1);
                     if (stateHodo1 != null)
@@ -254,9 +256,18 @@ public final class TrackDataDriver extends Driver {
                 double qualityArray[] = new double[isolations.length];
                 for (int i = 0; i < isolations.length; i++)
                     qualityArray[i] = isolations[i] == null ? -99999999.0 : isolations[i];
-
+                
+                //Get the track momentum and convert it into detector frame and float values
+                Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+                momentum = CoordinateTransformations.transformVectorToDetector(momentum);
+                
+                float[] momentum_f = new float[3];
+                momentum_f[0] = (float) momentum.x();
+                momentum_f[1] = (float) momentum.y();
+                momentum_f[2] = (float) momentum.z();
+                
                 // Create a new TrackData object and add it to the event
-                TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray);
+                TrackData trackData = new TrackData(trackerVolume, trackTime, qualityArray,momentum_f);
                 trackDataCollection.add(trackData);
                 trackDataRelations.add(new BaseLCRelation(trackData, track));
 
