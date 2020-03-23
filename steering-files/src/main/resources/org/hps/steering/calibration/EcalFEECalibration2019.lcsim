@@ -1,9 +1,10 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
      <execute>
+        <driver name="FEEfilter"/>
+        <driver name="CorrectGainRunDependence"/>
         <driver name="IterateGains"/>
         <driver name="ReconClusterer"/>
-        <driver name="FEEfilter"/>
         <driver name="FEEPlotter"/>
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>        
@@ -11,14 +12,20 @@
      <drivers>
         <driver name="FEEfilter" type="org.hps.recon.filtering.FEEFilterDriver">
         </driver>
-        <driver name="IterateGains" type="org.hps.recon.ecal.IterateGainFactorDriver">
+        <driver name="CorrectGainRunDependence" type="org.hps.recon.ecal.CorrectGainRunDependenceDriver">
            <inputCollectionName>EcalCalHits</inputCollectionName>
            <outputCollectionName>EcalHitsIter1</outputCollectionName>
+           <slopeFile>ecalSlopes.txt</slopeFile>
+           <runMin>10115</runMin>
+        </driver>
+        <driver name="IterateGains" type="org.hps.recon.ecal.IterateGainFactorDriver">
+           <inputCollectionName>EcalHitsIter1</inputCollectionName>
+           <outputCollectionName>EcalHitsIter2</outputCollectionName>
            <gainFile>ecalGains.txt</gainFile>
         </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
            <outputClusterCollectionName>EcalClustersIter1</outputClusterCollectionName>
-           <inputHitCollectionName>EcalHitsIter1</inputHitCollectionName>
+           <inputHitCollectionName>EcalHitsIter2</inputHitCollectionName>
         </driver>
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
            <inputCollection>EcalClustersIter1</inputCollection>
