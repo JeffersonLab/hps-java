@@ -314,12 +314,15 @@ public class KalmanInterface {
         BaseTrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
         
         // Set phi to be the angle through which the helix turns to reach the SSD plane
+        //PF::Do not use a different definition wrt GBL
+        //ts.setPhi(phiInt3);
         // Set the reference point (normally defaulted to the origin) to be the intersection point, in HPS tracking coordinates
-        ts.setPhi(phiInt3);
         ts.setReferencePoint(vectorKalmanToTrk(sv.toGlobal(newPivot)));
+        //Compute and store the momentum in the track state
+        double [] momtm = ts.computeMomentum(sv.B);
+        
         if (verbose && ts != null) {
             System.out.format("KalmanInterface.createTrackState: location=%d layer=%d detector=%d\n", ts.getLocation(), ms.m.Layer, ms.m.detector);
-            double [] momtm = ts.computeMomentum(sv.B);
             double [] refpt= ts.getReferencePoint();
             System.out.format("  p=%9.4f %9.4f %9.4f, ref=%9.4f %9.4f %9.4f\n", momtm[0], momtm[1], momtm[2], refpt[0], refpt[1], refpt[2]);
             System.out.format("  phi=%10.6f  tan(lambda)=%10.6f\n", ts.getPhi(), ts.getTanLambda());
@@ -473,8 +476,6 @@ public class KalmanInterface {
             } else if (i == kT.SiteList.size() - 1) 
                 loc = TrackState.AtLastHit;
             
-            //Do not add the missing layer track states yet. TODO!
-            /*
             if (storeTrackStates) {
                 for (int k = 1; k < lay - prevID; k++) {
                     // uses new lcsim constructor
@@ -484,8 +485,7 @@ public class KalmanInterface {
                 }
                 prevID = lay;
             }
-            */
-            
+                        
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
                 if (ts != null) newTrack.getTrackStates().add(ts);
