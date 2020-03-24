@@ -15,6 +15,17 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
+/**
+ * <code>PairsTrigger2019ReadoutDriver</code> simulates an HPS pairs trigger
+ * for 2019 MC. It takes in clusters produced by the
+ * {@link org.hps.readout.ecal.updated.GTPClusterReadoutDriver
+ * GTPClusterReadoutDriver}, and perform the necessary trigger
+ * logic on them. If a trigger is detected, it is sent to the readout data
+ * manager so that a triggered readout event may be written.
+ * 
+ * @author Tongtong Cao <caot@jlab.org>
+ */
+
 public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
     
     // ==================================================================

@@ -17,6 +17,17 @@ import org.hps.readout.util.HodoscopePattern;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
+/**
+ * <code>SinglesTrigger2019ReadoutDriver</code> simulates an HPS singles trigger
+ * for 2019 MC. It takes in clusters produced by the
+ * {@link org.hps.readout.ecal.updated.GTPClusterReadoutDriver
+ * GTPClusterReadoutDriver} and hodoscope patterns produced by the
+ * {@link HodoscopePatternReadoutDriver}, and perform the necessary trigger
+ * logic on them. If a trigger is detected, it is sent to the readout data
+ * manager so that a triggered readout event may be written.
+ * 
+ * @author Tongtong Cao <caot@jlab.org>
+ */
 public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     // ==============================================================
     // ==== LCIO Collections ========================================
