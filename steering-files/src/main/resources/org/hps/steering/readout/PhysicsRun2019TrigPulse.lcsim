@@ -19,14 +19,14 @@
         <!-- Hodoscope Readout Simulation Drivers -->
         <driver name="HodoscopePreprocessingDriver"/>
         <driver name="HodoscopeDigitizationDriver"/>
+
         
         <!-- Calorimeter Readout Simulation Drivers -->
         <driver name="EcalDigitizationDriver"/>
-        <driver name="EcalRawConverterDriver"/>
-        <driver name="GTPReadoutDriver"/>
+ 
         
         <!-- Trigger Simulation -->
-        <driver name="PairsTrigger"/>
+        <driver name="PulseTrigger"/>
         
         <!-- LCIO Output and Data Management Driver -->
         <driver name="ReadoutManagerDriver"/>
@@ -108,7 +108,7 @@
             <useTimingConditions>true</useTimingConditions>
             <addNoise>true</addNoise>
         </driver>
-
+  
         <!--
              The calorimeter readout driver handles conversion of SLIC truth
              hits into voltage pulses and ultimately into ADC counts every 4 ns
@@ -174,71 +174,6 @@
                 level. Otherwise, this should be left off.
             -->
             <writeTriggerPathTruth>false</writeTriggerPathTruth>
-        </driver>
-        
-        <!--
-             The raw converter handles the conversion of simulated ADC pulses from
-             the calorimeter readout driver into proper hits that can be used for
-             triggering.
-             
-             Note that it allows for these hits to be written to LCIO if desired,
-             though by default they are not persisted. This is generally unneeded,
-             since the clusterer will automatically output the hits which appear in
-             GTP clusters if cluster output is enabled.
-          -->
-        <driver name="EcalRawConverterDriver" type="org.hps.readout.ecal.updated.EcalRawConverterReadoutDriver">
-		    <!--
-				Define the LCIO collection names. The input collection should
-				come from the digitization driver.
-			-->
-			<inputCollectionName>EcalRawHits</inputCollectionName>
-			<outputCollectionName>EcalCorrectedHits</outputCollectionName>
-		    
-            <!--
-                NSA and NSB must match the digitization driver settings.
-            -->
-            <numberSamplesAfter>23</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
-            <numberSamplesBefore>3</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
-            
-            <!--
-                Outputs all the trigger-level hits within the readout window.
-                This is not generally necessary outside of specialized
-                circumstances. Note that all readout hits associated with GTP
-                clusters will automatically be included if GTP clusters are
-                persisted.
-            -->
-            <persistent>false</persistent>
-        </driver>
-        
-        <!--
-             The GTP clusterer creates clusters from converted calorimeter hits
-             for use in the trigger. It take two parametesr: the clustering
-             window, which specifies the number of clock-cycles in which a seed
-             hit candidate must be a spatiotemporal maximum, and seed energy
-             threshold, which specifies how much energy a seed hit candidate
-             must have in order to be used.
-             
-             The GTP clusterer is able to be persisted into LCIO. If persisted,
-             it will output all of the clusters in the readout window range
-             (either specified manually as with the truth drivers or using the
-             default readout window and trigger offset of the manager). It will
-             also output all of the hits contained in each cluster into the
-             output file as well.
-          -->
-        <driver name="GTPReadoutDriver" type="org.hps.readout.ecal.updated.GTPClusterReadoutDriver">
-            <!-- Units of 4 ns clock-cycles. -->
-            <clusterWindow>4</clusterWindow>
-            <!-- Units of GeV. -->
-            <seedEnergyThreshold>0.050</seedEnergyThreshold>
-            
-            <!--
-                Specifies whether GTP clusters should be persisted in the
-                output LCIO data. This should generally be false for production
-                running to save space, but can be useful for some analyses, as
-                the exact trigger-time clusters are not otherwise recoverable
-                after readout.
-            -->
-            <persistent>false</persistent>
         </driver>
         
         <!--
@@ -312,34 +247,9 @@
                 level. Otherwise, this should be left off.
             -->
             <writeTriggerPathTruth>false</writeTriggerPathTruth>
-        </driver>        
+        </driver>
         
-        <driver name="PairsTrigger" type="org.hps.readout.trigger2019.PairsTrigger2019ReadoutDriver">
-            <inputCollectionName>EcalClustersGTP</inputCollectionName>
-            
-            <!-- Units of 2 ns beam bunches. -->
-            <deadTime>15</deadTime> 
-            
-            <!-- Units of cluster hits. -->
-            <minHitCount>2</minHitCount>
-            <!-- Units of 4 ns clock-cycles. -->
-            <pairCoincidence>3</pairCoincidence>
-            <!-- Units of GeV. -->
-            <clusterEnergyLow>0.30</clusterEnergyLow>
-            <!-- Units of GeV. -->
-            <clusterEnergyHigh>3.000</clusterEnergyHigh>
-            <!-- Units of GeV. -->
-            <energySumLow>1.200</energySumLow>
-            <!-- Units of GeV. -->
-            <energySumHigh>4.000</energySumHigh>
-            <!-- Units of GeV. -->
-            <energyDifferenceHigh>2.2</energyDifferenceHigh>
-            <!-- Units of degrees. -->
-            <coplanarityHigh>40</coplanarityHigh>
-            <!-- Units of GeV / mm. -->
-            <energySlopeParamF>0.0055</energySlopeParamF>
-            <!-- Units of GeV. -->
-            <energySlopeLow>0.700</energySlopeLow>
+        <driver name="PulseTrigger" type="org.hps.readout.trigger.PulserReadoutDriver">
         </driver>
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
