@@ -128,9 +128,7 @@
             <clusterTimeCut>100.0</clusterTimeCut>
             <maxDt>100.0</maxDt>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-	        <checkThinSensor>True</checkThinSensor>
-	        <vThin>7.0</vThin>
-        </driver>
+	    </driver>
         
 
         <!-- 
