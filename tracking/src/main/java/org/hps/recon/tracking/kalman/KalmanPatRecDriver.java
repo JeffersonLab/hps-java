@@ -48,6 +48,7 @@ public class KalmanPatRecDriver extends Driver {
     private double executionTime;
     private KalmanParams kPar;
     private KalmanPatRecPlots kPlot;
+    private Logger logger;
     
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
     private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
@@ -94,6 +95,9 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector det) {
+        logger = Logger.getLogger(KalmanPatRecDriver.class.getName());
+        verbose = (logger.getLevel()==Level.FINE);
+        
         _materialManager = new MaterialSupervisor();
         _materialManager.buildModel(det);
 
@@ -108,7 +112,7 @@ public class KalmanPatRecDriver extends Driver {
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
-        KI = new KalmanInterface(verbose, uniformB);
+        KI = new KalmanInterface(uniformB);
         KI.createSiModules(detPlanes, fm);
         
         decoder = det.getSubdetector("Tracker").getIDDecoder();
@@ -192,11 +196,11 @@ public class KalmanPatRecDriver extends Driver {
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
         nEvents++;
-        Logger.getLogger(KalmanPatRecDriver.class.getName()).log(Level.FINE,
+        logger.log(Level.FINE,
                 "KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
 
         if (kPatList == null) {
-            System.out.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d\n", evtNumb);
+            logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
             return;
         }
         
@@ -211,7 +215,7 @@ public class KalmanPatRecDriver extends Driver {
 
         List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         if (rawhits == null) {
-            System.out.format("KalmanPatRecDriver.process: the raw hits collection is missing\n");
+            logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
             return;
         }
         
@@ -220,7 +224,7 @@ public class KalmanPatRecDriver extends Driver {
         int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
-                System.out.format("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker for event %d.\n", evtNumb);
+                logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker for event %d.", evtNumb));
                 return;
             }
             for (KalTrack kTk : kPat.TkrList) {
@@ -229,7 +233,7 @@ public class KalmanPatRecDriver extends Driver {
                 for (int ix=0; ix<5; ++ix) {
                     for (int iy=0; iy<5; ++iy) {
                         if (Double.isNaN(covar[ix][iy])) {
-                            System.out.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d\n",evtNumb,ix,iy,kTk.ID);
+                            logger.log(Level.WARNING, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d",evtNumb,ix,iy,kTk.ID));
                         }
                     }
                 }                
@@ -282,7 +286,7 @@ public class KalmanPatRecDriver extends Driver {
         if (kPlot != null) kPlot.process(event, runTime, kPatList, rawtomc);
         
         KI.clearInterface();
-        if (verbose) System.out.format("\n KalmanPatRecDriver.process: Done with event %d\n", evtNumb);
+        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);

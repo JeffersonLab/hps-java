@@ -4,6 +4,8 @@ package org.hps.recon.tracking.kalman;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class TrackCandidate {
     int ID;
@@ -21,8 +23,10 @@ class TrackCandidate {
     boolean good;
     int kalTkrID;
     int eventNumber;
+    private Logger logger;
 
     TrackCandidate(int IDset, ArrayList<KalHit> seedHits, int mxShared, double mxTdif, Map<Measurement, KalHit> hitMap, int event) {
+        logger = Logger.getLogger(TrackCandidate.class.getName());
         ID = IDset;
         eventNumber = event;
         this.mxShared = mxShared;
@@ -83,7 +87,8 @@ class TrackCandidate {
             }
         }
         if (siteR == null) {
-            System.out.format("TrackCandidate.removeHit error in event %d: MeasurementSite is missing for layer %d\n", eventNumber, mod.Layer);
+            logger.log(Level.WARNING, String.format("TrackCandidate.removeHit error in event %d: MeasurementSite is missing for layer %d\n", 
+                    eventNumber, mod.Layer));
         } else {
             siteR.hitID = -1;
             sites.remove(siteR);
@@ -108,7 +113,8 @@ class TrackCandidate {
         if (nstr < 3 || nax < 2) good = false;
     }
     
-    boolean reFit(boolean verbose) {
+    boolean reFit() {
+        boolean verbose = (logger.getLevel()==Level.FINER);
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
 
         boolean failure = false;
@@ -147,7 +153,7 @@ class TrackCandidate {
                 boolean allowSharing = nTaken < mxShared;
                 boolean checkBounds = false;
                 double [] tRange = {tMax - mxTdif, tMin + mxTdif}; 
-                int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, verbose);
+                int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange);
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {
@@ -162,7 +168,7 @@ class TrackCandidate {
                     tMin = Math.min(tMin, currentSite.m.hits.get(currentSite.hitID).time);
                     tMax = Math.max(tMax, currentSite.m.hits.get(currentSite.hitID).time);
                 }
-                if (!currentSite.filter(verbose)) {
+                if (!currentSite.filter()) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to filter at layer %d in event %d!\n",currentSite.m.Layer, eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {
                         currentSite.hitID = 0;
@@ -232,7 +238,7 @@ class TrackCandidate {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
             } else {
-                currentSite.smooth(nextSite, verbose);
+                currentSite.smooth(nextSite);
             }
             chi2s += Math.max(currentSite.chi2inc,0.);
 
@@ -247,11 +253,16 @@ class TrackCandidate {
     }
     
     void print(String s, boolean shrt) {
+        System.out.format("%s", this.toString(s, shrt));
+    }
+    
+    String toString(String s, boolean shrt) {
+        String str;
         if (good) {
-            System.out.format("%d Good TrackCandidate %s for event %d, nHits=%d, nShared=%d, chi2f=%10.6f, chi2s=%10.6f, t=%5.1f to %5.1f\n", 
+            str = String.format("%d Good TrackCandidate %s for event %d, nHits=%d, nShared=%d, chi2f=%10.6f, chi2s=%10.6f, t=%5.1f to %5.1f\n", 
                     ID, s, eventNumber, hits.size(), nTaken, chi2f, chi2s, tMin, tMax);
         } else {
-            System.out.format("%d Bad TrackCandidate %s for event %d, nHits=%d, nShared=%d, chi2f=%10.6f, chi2s=%10.6f, t=%5.1f to %5.1f\n", 
+            str = String.format("%d Bad TrackCandidate %s for event %d, nHits=%d, nShared=%d, chi2f=%10.6f, chi2s=%10.6f, t=%5.1f to %5.1f\n", 
                     ID, s, eventNumber, hits.size(), nTaken, chi2f, chi2s, tMin, tMax);
         }
         MeasurementSite site0 = null;
@@ -262,8 +273,8 @@ class TrackCandidate {
             }
         }
         if (site0 == null) {
-            System.out.format("    No hits or smoothed or filtered site found!\n");
-            return;
+            str = str + "    No hits or smoothed or filtered site found!\n";
+            return str;
         }
         int lyr = site0.m.Layer;
         StateVector aS = site0.aS;
@@ -274,19 +285,19 @@ class TrackCandidate {
         double eK = Math.sqrt(aS.C.M[2][2]);
         double eZ0 = Math.sqrt(aS.C.M[3][3]);
         double etanl = Math.sqrt(aS.C.M[4][4]);
-        System.out.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
+        str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
-        System.out.format("   %d Hits: ", hits.size());
+        str=str+String.format("   %d Hits: ", hits.size());
         for (KalHit ht : hits) ht.print("short");
         if (shrt) {
-            System.out.format("\n");
-            System.out.format("   Site list: ");
+            str = str + "\n";
+            str=str+String.format("   Site list: ");
             for (MeasurementSite site : sites) {
-                System.out.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
+                str=str+String.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
             }
-            System.out.format("\n");
+            str = str + "\n";
         } else {
-            System.out.format("   Site list:\n");
+            str=str+String.format("   Site list:\n");
             for (MeasurementSite site : sites) {
                 SiModule m = site.m;
                 StateVector aF = null;
@@ -297,8 +308,8 @@ class TrackCandidate {
                     aF = site.aS;
                 }
                 if (aF == null) {
-                    System.out.format("    Layer %d, detector %d, the filtered state vector is missing\n", site.m.Layer, site.m.detector);
-                    site.print("messed up site");
+                    str=str+String.format("    Layer %d, detector %d, the filtered state vector is missing\n", site.m.Layer, site.m.detector);
+                    str = str + site.toString("messed up site");
                     continue;
                 }
                 double phiF = aF.planeIntersect(m.p);
@@ -308,15 +319,16 @@ class TrackCandidate {
                 double resid;
                 if (site.hitID < 0) resid = 99.;
                 else resid = vPred - m.hits.get(site.hitID).v;
-                System.out.format("   %d Lyr=%d det=%d %s Hit=%d stereo=%b  chi2inc=%10.6f, resid=%10.6f, vPred=%10.6f; Hits: ", 
+                str=str+String.format("   %d Lyr=%d det=%d %s Hit=%d stereo=%b  chi2inc=%10.6f, resid=%10.6f, vPred=%10.6f; Hits: ", 
                         cnt, m.Layer, m.detector, S, site.hitID, m.isStereo, site.chi2inc, resid, vPred);
                 for (Measurement hit : m.hits) {
-                    if (hit.vTrue == 999.) System.out.format(" (v=%10.6f #tks=%d),", hit.v, hit.tracks.size());
-                    else System.out.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());                   
+                    if (hit.vTrue == 999.) str=str+String.format(" (v=%10.6f #tks=%d),", hit.v, hit.tracks.size());
+                    else str=str+String.format(" v=%10.6f #tks=%d,", hit.v, hit.tracks.size());                   
                 }
-                System.out.format("\n");
+                str = str + "\n";
             }
         }
+        return str;
     }
     
     // Comparator function for sorting track candidates by quality

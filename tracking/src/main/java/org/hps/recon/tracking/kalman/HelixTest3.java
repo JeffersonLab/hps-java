@@ -690,7 +690,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             if (verbose) { initialCovariance.print("initial covariance guess"); }
             // Run the Kalman fit
             KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
-                    initialHelixGuess, initialCovariance, fM, verbose);
+                    initialHelixGuess, initialCovariance, fM);
             if (!kF.success) { continue; }
             KalTrack KalmanTrack = kF.tkr;
             KalmanTrack.originHelix();

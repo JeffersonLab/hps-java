@@ -1,5 +1,8 @@
 package org.hps.recon.tracking.kalman;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly arbitrary plane
     // Coordinates: the beam is ~ in the y direction
     // the B field is ~ along the +z direction
@@ -124,8 +127,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         this.alpha = alpha;
         double arg = (a.v[2] / alpha) * ((a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (p.X().v[1] - pivot.v[1]));
         double phi0 = -a.v[1] + Math.asin(arg);
-        // if (verbose) System.out.format(" StateVector.planeIntersect: arg=%10.7f,
-        // phi=%10.7f\n", arg, phi0);
+        // System.out.format(" StateVector.planeIntersect: arg=%10.7f, phi=%10.7f\n", arg, phi0);
         this.a = a;
         this.X0 = pivot;
         this.p = p;
@@ -150,7 +152,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         int MAXIT = 100;
 
         if (xGuess <= x1 || xGuess >= x2) {
-            System.out.format("HelixPlaneIntersect.rtsafe: initial guess needs to be bracketed\n");
+            Logger.getLogger(HelixPlaneIntersect.class.getName()).log(Level.WARNING,"rtsafe: initial guess needs to be bracketed.");
             return xGuess;
         }
         fl = S(x1);
@@ -158,7 +160,8 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         int nTry = 0;
         while (fl*fh > 0.0) {
             if (nTry == 5) {
-                //System.out.format("HelixPlaneIntersect.rtsafe: root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f, x1=%12.5f x2=%12.5f xGuess=%12.5f\n", fl, fh, alpha, x1, x2, xGuess);
+                Logger.getLogger(HelixPlaneIntersect.class.getName()).log(Level.FINE,String.format("Root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f, x1=%12.5f x2=%12.5f xGuess=%12.5f", 
+                        fl, fh, alpha, x1, x2, xGuess));
                 return xGuess;
             }
             x1 -= 0.1;
@@ -208,7 +211,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
                 xh = rts;
             }
         }
-        System.out.format("ZeroFind.rtsafe: maximum number of iterations exceeded.\n");
+        Logger.getLogger(HelixPlaneIntersect.class.getName()).log(Level.WARNING,"rtsafe: maximum number of iterations exceeded.");
         return rts;
     }
 

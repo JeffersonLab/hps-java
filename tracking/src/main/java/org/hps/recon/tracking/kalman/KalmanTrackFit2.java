@@ -2,6 +2,8 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //Driver program for executing a Kalman fit.  This version starts at layer N, filters to layer 0,
 //then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
@@ -16,6 +18,7 @@ class KalmanTrackFit2 {
                          // sites)
     boolean success;
     KalTrack tkr;
+    private Logger logger;
 
     KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
             int start, // Starting point in the list
@@ -23,8 +26,10 @@ class KalmanTrackFit2 {
             Vec pivot, // Pivot point for the starting "guess" helix
             Vec helixParams, // 5 helix parameters for the starting "guess" helix
             SquareMatrix C, // Full covariance matrix for the starting "guess" helix
-            org.lcsim.geometry.FieldMap fM, boolean verbose) {
+            org.lcsim.geometry.FieldMap fM) {
 
+        logger = Logger.getLogger(KalmanTrackFit2.class.getName());
+        boolean verbose = logger.getLevel() == Level.FINER;
         success = true;
         tkr = null;
 
@@ -32,7 +37,7 @@ class KalmanTrackFit2 {
         Vec Bfield = KalmanInterface.getField(pivot, fM);
         double B = Bfield.mag();
         Vec t = Bfield.unitVec(B);
-        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, false);
+        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot);
 
         if (verbose) {
             System.out.format("KalmanTrackFit2: begin Kalman fit, start=%d, number iterations=%d\n", start, nIterations);

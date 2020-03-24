@@ -1,6 +1,8 @@
 package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // Parameters used by the Kalman-Filter pattern recognition and fitting
 public class KalmanParams {
@@ -123,141 +125,141 @@ public class KalmanParams {
     
     public void setIterations(int N) {
         if (N < 1) {
-            System.out.format("KalmanParams: %d iterations not allowed\n", N);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("%d iterations not allowed.", N));
             return;
         }
-        System.out.format("KalmanParams: setting the number of Kalman Filter iterations to %d\n", N);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the number of Kalman Filter iterations to %d.", N));
         nIterations = N;
     }
     
     public void setMxChi2Inc(double mxC) {
         if (mxC <= 1.) {
-            System.out.format("KalmanParams: maximum chi^2 increment must be at least unity. %8.2f not valid\n", mxC);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Maximum chi^2 increment must be at least unity. %8.2f not valid.", mxC));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum chi^2 increment to add a hit to a track to %8.2f\n", mxC);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Maximum chi^2 increment to add a hit to a track to %8.2f.", mxC));
         mxChi2Inc = mxC;
     }
     
     public void setMxChi2double(double mxDb) {
         if (mxDb <= 0.) {
-            System.out.format("KalmanParams: maximum chi^2 increment of shared hit of %8.2f not allowed\n", mxDb);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Maximum chi^2 increment of shared hit of %8.2f not allowed.", mxDb));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum chi^2 increment of shared hit to %8.2f sigma\n", mxDb);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum chi^2 increment of shared hit to %8.2f sigma.", mxDb));
         mxChi2double = mxDb;  
     }
     
     public void setMinChi2IncBad(double mnB) {
         if (mnB <= 3.0) {
-            System.out.format("KalmanParams: minimum chi^2 increment to remove a bad hit must be at least 3. %8.2f not valid\n", mnB);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Minimum chi^2 increment to remove a bad hit must be at least 3. %8.2f not valid.", mnB));
             return;
         }
-        System.out.format("KalmanParams: setting the minimum chi^2 increment to remove a bad hit to %8.2f\n", mnB);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the minimum chi^2 increment to remove a bad hit to %8.2f.", mnB));
         minChi2IncBad = mnB;        
     }
     
     public void setMxResidShare(double mxSh) {
         if (mxSh <= 0.) {
-            System.out.format("KalmanParams: maximum residual of shared hit of %8.2f not allowed\n", mxSh);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Maximum residual of shared hit of %8.2f not allowed.", mxSh));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum residual for a shared hit to %8.2f sigma\n", mxSh);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum residual for a shared hit to %8.2f sigma.", mxSh));
         mxResidShare = mxSh;  
     }
     
     public void setMaxK(double kMx) {
         if (kMx <= 0.) {
-            System.out.format("KalmanParams: max 1/pt of %8.2f not allowed\n", kMx);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Max 1/pt of %8.2f not allowed.", kMx));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum 1/pt to %8.2f\n", kMx);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum 1/pt to %8.2f.", kMx));
         kMax[1] = kMx;
         kMax[0] = Math.min(kMax[0], 0.6*kMx);
     }
     
     public void setMxResid(double mxR) {
         if (mxR <= 1.) {
-            System.out.format("KalmanParams: max resid of %8.2f not allowed\n", mxR);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Max resid of %8.2f not allowed.", mxR));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum residual to pick up hits to %8.2f sigma\n", mxR);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum residual to pick up hits to %8.2f sigma.", mxR));
         mxResid[1] = mxR;
         mxResid[0] = Math.min(mxResid[0], 0.5*mxR);
     }
     
     public void setMaxTanL(double tlMx) {
         if (tlMx <= 0.) {
-            System.out.format("KalmanParams: max seed tan(lambda) of %8.2f not allowed\n", tlMx);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Max seed tan(lambda) of %8.2f not allowed.", tlMx));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum seed tan(lambda) to %8.2f\n", tlMx);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum seed tan(lambda) to %8.2f.", tlMx));
         tanlMax[1] = tlMx;
         tanlMax[0] = Math.min(tanlMax[0], 0.8*tlMx);
     }
     
     public void setMaxdRho(double dMx) {
         if (dMx <= 0.0) {
-            System.out.format("KalmanParams: max dRho of %8.2f not allowed\n", dMx);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Max dRho of %8.2f not allowed.", dMx));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum dRho to %8.2f mm\n", dMx);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum dRho to %8.2f mm.", dMx));
         dRhoMax[1] = dMx;
         dRhoMax[0] = Math.min(dRhoMax[0], 0.6*dMx);
     }
     
     public void setMaxdZ(double zMx) {
         if (zMx <= 0.0) {
-            System.out.format("KalmanParams: max dZ of %8.2f not allowed\n", zMx);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Max dZ of %8.2f not allowed.", zMx));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum dz to %8.2f mm\n", zMx);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum dz to %8.2f mm.", zMx));
         dzMax[1] = zMx;
         dzMax[0] = Math.min(dzMax[0], 0.6*zMx);
     }
     
     public void setMaxChi2(double xMx) {
         if (xMx <= 0.) {
-            System.out.format("KalmanParams: max chi2 of %8.2f not allowed\n", xMx);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Max chi2 of %8.2f not allowed.", xMx));
             return;
         }
-        System.out.format("KalmanParams: setting the maximum chi^2/hit to %8.2f\n", xMx);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum chi^2/hit to %8.2f.", xMx));
         chi2mx1[1] = xMx;
         chi2mx1[0] = Math.min(chi2mx1[0], 0.6*xMx);
     }
     
     public void setMinHits(int minH) {
         if (minH < 5) {
-            System.out.format("KalmanParams: minimum number of hits = %d not allowed\n", minH);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
             return;
         }
-        System.out.format("KalmanParams: setting the minimum number of hits to %d\n", minH);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the minimum number of hits to %d.", minH));
         minHits1[1] = minH;
         minHits1[0] = Math.max(minHits1[0], minH+1);
     }
     
     public void setMinStereo(int minS) {
         if (minS < 3) {
-            System.out.format("KalmanParams: minimum number of stereo hits = %d not allowed\n", minS);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("Minimum number of stereo hits = %d not allowed.", minS));
             return;
         }
-        System.out.format("KalmanParams: setting the minimum number of stereo hits to %d\n", minS);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the minimum number of stereo hits to %d.", minS));
         minStereo[1] = minS;
         minStereo[0] = Math.max(minStereo[0], minS+1);
     }
     
     public void setMaxShared(int mxSh) {
-        System.out.format("KalmanParams: setting the maximum number of shared hits to %d\n", mxSh);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum number of shared hits to %d.", mxSh));
         mxShared = mxSh;
     }
     
     public void setMaxTimeRange(double mxT) {
-        System.out.format("KalmanParams: setting the maximum time range for hits on a track to %8.2f ns\n", mxT);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum time range for hits on a track to %8.2f ns.", mxT));
         mxTdif = mxT;
     }
     
     public void clrStrategies() {
-        System.out.format("KalmanParams: clearing all lists of search strategies.\n");
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Clearing all lists of search strategies.."));
         lyrList[0].clear();
         lyrList[1].clear();
     }
@@ -295,8 +297,8 @@ public class KalmanParams {
             }
         }
         if (nAxial != 2 || nStereo != 3) {
-            System.out.format("KalmanParams.addStrategy: invalid search strategy for topBottom=%d: %d %d %d %d %d\n", 
-                    topBottom, list[0],list[1],list[2],list[3],list[4]);
+            Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("addStrategy: Invalid search strategy for topBottom=%d: %d %d %d %d %d", 
+                    topBottom, list[0],list[1],list[2],list[3],list[4]));
             return false;
         }
         for (int [] oldList : lyrList[topBottom]) {
@@ -305,12 +307,12 @@ public class KalmanParams {
                 if (oldList[i] == list[i]) nMatch++;
             }
             if (nMatch == 5) {
-                System.out.format("KalmanParams.addStrategy: strategy %d %d %d %d %d is already in the list\n", list[0],list[1],list[2],list[3],list[4]);
+                Logger.getLogger(KalmanParams.class.getName()).log(Level.WARNING,String.format("addStrategy: strategy %d %d %d %d %d is already in the list", list[0],list[1],list[2],list[3],list[4]));
                 return false;
             }
         }
-        System.out.format("KalmanParams.addStrategy: adding search strategy %d %d %d %d %d for topBottom=%d\n", 
-                list[0],list[1],list[2],list[3],list[4],topBottom);
+        Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("addStrategy: adding search strategy %d %d %d %d %d for topBottom=%d", 
+                list[0],list[1],list[2],list[3],list[4],topBottom));
         lyrList[topBottom].add(list);
         return true;
     }

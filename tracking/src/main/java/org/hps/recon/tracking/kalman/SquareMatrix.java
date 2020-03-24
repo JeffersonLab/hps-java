@@ -134,13 +134,19 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
     }
 
     void print(String s) {
-        System.out.format("Printout of matrix %s  %d\n", s, N);
+        System.out.format("%s",this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str;
+        str = String.format("Printout of matrix %s  %d\n", s, N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                System.out.format("  %12.4e", M[i][j]);
+                str=str+String.format("  %12.4e", M[i][j]);
             }
-            System.out.format("\n");
+            str=str+String.format("\n");
         }
+        return str;
     }
 
     SquareMatrix copy() {

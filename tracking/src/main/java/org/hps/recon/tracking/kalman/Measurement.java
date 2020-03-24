@@ -47,4 +47,17 @@ class Measurement { // Holds a single silicon-strip measurement (single-sided), 
         }
         if (rGlobal != null) rGlobal.print("global location from MC truth"); 
     }
+    
+    String toString(String s) {
+        String str = String.format("Measurement %s: Measurement value=%10.5f+-%8.6f;  MC truth=%10.5f; t=%8.3f", s, v, sigma, vTrue, time);
+        if (tracks.size() == 0) {
+            str = str + String.format("  Not on any track.\n");
+        } else {
+            str = str + String.format("  Tracks: ");
+            for (KalTrack tk : tracks) str = str + String.format(" %d ", tk.ID);
+            str = str + String.format("\n");
+        }
+        if (rGlobal != null) str = str + rGlobal.toString("global location from MC truth"); 
+        return str;
+    }
 }

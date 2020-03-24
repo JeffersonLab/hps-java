@@ -1,5 +1,8 @@
 package org.hps.recon.tracking.kalman;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 //State vector (projected, filtered, or smoothed) for the Kalman filter
 class StateVector {
 
@@ -14,25 +17,27 @@ class StateVector {
     double mPred; // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r; // Predicted, filtered, or smoothed residual at site kLow
     double R; // Covariance of residual
-    boolean verbose;
+    private boolean verbose;
     SquareMatrix F; // Propagator matrix to propagate from this site to the next site
     double B; // Field magnitude
     double alpha; // Conversion from 1/K to radius R
     private HelixPlaneIntersect hpi;
     private double c;
+    private Logger logger;
 
     // Constructor for the initial state vector used to start the Kalman filter.
-    StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin, boolean verbose) {
+    StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin) {
         // Here tB is the B field direction, while B is the magnitude
-        if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
-        this.verbose = verbose;
+        logger = Logger.getLogger(StateVector.class.getName());
+        logger.log(Level.FINEST, "StateVector: constructing an initial state vector\n");
+        verbose = logger.getLevel()==Level.FINEST;
         a = helixParams.copy();
         X0 = pivot.copy();
         this.origin = origin.copy();
         this.B = B;
         c = 2.99793e8; // Speed of light in m/s
         alpha = 1.0e12 / (c * B); // Convert from pt in GeV to curvature in mm
-        if (verbose) System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
+        logger.log(Level.FINEST, String.format("Creating state vector with alpha=%12.4e\n", alpha));
         kLow = site;
         kUp = kLow;
         C = Cov.copy();
@@ -44,14 +49,15 @@ class StateVector {
     }
 
     // Constructor for a new blank state vector with a new B field
-    StateVector(int site, double B, Vec tB, Vec origin, boolean verbose) {
-        // System.out.format("Creating state vector with alpha=%12.4e\n", alpha);
+    StateVector(int site, double B, Vec tB, Vec origin) {
+        logger = Logger.getLogger(StateVector.class.getName());
+        verbose = logger.getLevel()==Level.FINEST;
+        logger.log(Level.FINEST, String.format("Creating state vector with alpha=%12.4e\n", alpha));
         kLow = site;
         c = 2.99793e8; // Speed of light in m/s
         alpha = 1000.0 * 1.0e9 / (c * B); // Convert from pt in GeV to curvature in mm
         this.B = B;
         hpi = new HelixPlaneIntersect();
-        this.verbose = verbose;
         this.origin = origin.copy();
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec u = yhat.cross(tB).unitVec();
@@ -60,14 +66,15 @@ class StateVector {
     }
 
     // Constructor for a new completely blank state vector
-    StateVector(int site, boolean verbose) {
+    StateVector(int site) {
         kLow = site;
-        this.verbose = verbose;
+        logger = Logger.getLogger(StateVector.class.getName());
+        verbose = logger.getLevel()==Level.FINEST;
     }
 
     // Deep copy of the state vector
     StateVector copy() {
-        StateVector q = new StateVector(kLow, verbose);
+        StateVector q = new StateVector(kLow);
         q.B = B;
         q.c = c;
         q.alpha = alpha;
@@ -87,24 +94,29 @@ class StateVector {
 
     // Debug printout of the state vector
     void print(String s) {
-        System.out.format(">>>Dump of state vector %s %d  %d, B=%10.7f Tesla\n", s, kUp, kLow, B);
-        origin.print("origin of local field coordinates");
-        Rot.print("from global to field coordinates");
-        X0.print("pivot point in local field coordinates");
-        this.toGlobal(X0).print("pivot point in global coordinates");
-        a.print("helix parameters");
-        helixErrors().print("helix parameter errors");
-        C.print("for the helix covariance");
-        if (F != null) F.print("for the propagator");
+        System.out.format("%s", this.toString(s));
+    }
+        
+    String toString(String s) {
+        String str = String.format(">>>Dump of state vector %s %d  %d, B=%10.7f Tesla\n", s, kUp, kLow, B);
+        str = str + origin.toString("origin of local field coordinates") + "\n";
+        str = str + Rot.toString("from global to field coordinates");
+        str = str + X0.toString("pivot point in local field coordinates")+"\n";
+        str = str + this.toGlobal(X0).toString("pivot point in global coordinates")+"\n";
+        str = str + a.toString("helix parameters")+"\n";
+        str = str + helixErrors().toString("helix parameter errors");
+        str = str + C.toString("for the helix covariance");
+        if (F != null) str = str + F.toString("for the propagator");
         double sigmas;
         if (R > 0.) {
             sigmas = r / Math.sqrt(R);
         } else {
             sigmas = 0.;
         }
-        System.out.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r, R,
+        str = str + String.format("Predicted measurement=%10.6f, residual=%10.7f, covariance of residual=%12.4e, std. devs. = %12.4e\n", mPred, r, R,
                 sigmas);
-        System.out.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
+        str = str + String.format("End of dump of state vector %s %d  %d<<<\n", s, kUp, kLow);
+        return str;
     }
 
     // Create a predicted state vector by propagating a given helix to a measurement site
@@ -117,7 +129,7 @@ class StateVector {
         // originPrime = origin of the detector coordinates at the new site in global coordinates
 
         // This constructs a new blank state vector with pivot and helix parameters undefined as yet
-        StateVector aPrime = new StateVector(newSite, B, t, originPrime, verbose);
+        StateVector aPrime = new StateVector(newSite, B, t, originPrime);
         aPrime.kUp = kUp;
         aPrime.X0 = pivot; // pivot before helix rotation, in coordinate system of the previous site
 
@@ -202,11 +214,11 @@ class StateVector {
         SquareMatrix Ctot;
         if (XL == 0.) {
             Ctot = this.C;
-            if (verbose) { System.out.format("StateVector.predict: XL=%9.6f\n", XL); }
+            logger.log(Level.FINEST, String.format("StateVector.predict: XL=%9.6f", XL));
         } else {
             double momentum = (1.0 / a.v[2]) * Math.sqrt(1.0 + a.v[4] * a.v[4]);
             double sigmaMS = projMSangle(momentum, XL);
-            if (verbose) { System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS); }
+            logger.log(Level.FINEST, String.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e", momentum, XL, sigmaMS));
             Ctot = this.C.sum(this.getQ(sigmaMS));
         }
 
@@ -292,7 +304,6 @@ class StateVector {
 
     // Modify the state vector by removing the hit information
     void inverseFilter(Vec H, double V) {
-
         double denom = -V + H.dot(H.leftMultiply(C));
         Vec Kstar = H.leftMultiply(C).scale(1.0 / denom); // Kalman gain matrix
         if (verbose) {
@@ -308,10 +319,8 @@ class StateVector {
 
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
-        if (verbose) {
-            System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp,
-                    snS.kLow, snS.kUp, snP.kLow, snP.kUp);
-        }
+        logger.log(Level.FINEST, String.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d", kLow, kUp,
+                    snS.kLow, snS.kUp, snP.kLow, snP.kUp));
         StateVector sS = this.copy();
 
         SquareMatrix CnInv = snP.C.invert();
@@ -443,16 +452,12 @@ class StateVector {
 
         // xC = pivot.v[0] + (aP[0]+alpha/aP[2])*Math.cos(aP[1]);
         // yC = pivot.v[1] + (aP[0]+alpha/aP[2])*Math.sin(aP[1]);
-        // if (verbose) System.out.format("pivotTransform new center=%13.10f,
-        // %13.10f\n", xC, yC);
 
         return new Vec(5, aP);
     }
 
     // Propagate a helix by Runge-Kutta itegration to an x,z plane containing the origin.
     Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
-
-        //boolean verbose = false; // !!!!!!!!!!
 
         Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), fM);
         double Bmag = B.mag();
@@ -462,14 +467,10 @@ class StateVector {
         Vec uB = yhat.cross(tB).unitVec();
         Vec vB = tB.cross(uB);
         RotMatrix originRot = new RotMatrix(uB, vB, tB); // Rotation from the global system into the B-field system at
-                                                         // the origin
-        Plane originPlane = new Plane(new Vec(0., 0., 0.), originRot.rotate(new Vec(0., 1., 0.))); // Plane in the
-                                                                                                   // B-field coordinate
-                                                                                                   // system at the
-                                                                                                   // origin
-
-        // Point and momentum on the helix in the B-field system near the first tracking
-        // layer
+        
+        // Plane in the B-field coordinate system at the origin
+        Plane originPlane = new Plane(new Vec(0., 0., 0.), originRot.rotate(new Vec(0., 1., 0.))); 
+        // Point and momentum on the helix in the B-field system near the first tracking layer
         Vec xLocal = atPhi(0.);
         Vec pLocal = getMom(0.);
 

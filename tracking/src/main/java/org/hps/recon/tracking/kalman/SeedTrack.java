@@ -36,25 +36,31 @@ class SeedTrack {
     }
 
     void print(String s) {
+        System.out.format("%s", this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str;
         if (success) {
-            System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
-            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
-            hParm.print("helix parameters rotated into magnetic field frame");
-            System.out.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
+            str = String.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
+            str=str+String.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
+            str=str+hParm.toString("helix parameters rotated into magnetic field frame")+"\n";
+            str=str+String.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
             double yP = 0.;
             double[] pivot = { 0., yP, 0. };
             double[] a = this.pivotTransform(pivot);
-            System.out.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", yP, a[0], a[1], a[2],
+            str=str+String.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", yP, a[0], a[1], a[2],
                     a[3], a[4]);
-            System.out.format("  seed track hits:");
-            for (int j = 0; j < hits.size(); j++) { System.out.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v); }
-            System.out.format("\n");
+            str=str+String.format("  seed track hits:");
+            for (int j = 0; j < hits.size(); j++) str=str+String.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v);
+            str=str+"\n";
             Vec pInt = planeIntersection(p0);
-            System.out.format("  Distance from origin in X,Z at y=0 is %10.5f\n", pInt.mag());
-            C.print("  seed track covariance");
+            str=str+String.format("  Distance from origin in X,Z at y=0 is %10.5f\n", pInt.mag());
+            str = str + C.toString("  seed track covariance");
         } else {
-            System.out.format("Seed track %s fit unsuccessful.\n", s);
+            str = String.format("Seed track %s fit unsuccessful.\n", s);
         }
+        return str;
     }
 
     // Older interface

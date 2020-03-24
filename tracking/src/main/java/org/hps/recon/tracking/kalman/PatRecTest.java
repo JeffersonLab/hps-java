@@ -447,7 +447,7 @@ class PatRecTest {
             }
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
-            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar, verbose);
+            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
             if (nPlot < mxPlot && verbose) {
                 nPlot++;
                 PrintWriter printWriter3 = null;

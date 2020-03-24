@@ -171,7 +171,7 @@ public class KalmanDriverHPS extends Driver {
         bField = TrackUtils.getBField(det).magnitude();
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface(this.verbose, this.uniformB);
+        KI = new KalmanInterface(this.uniformB);
         KI.createSiModules(detPlanes, fm);
         
         System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);
