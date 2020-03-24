@@ -52,7 +52,7 @@
             <logLevel>CONFIG</logLevel>
         </driver>
 
-        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver" />
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
         </driver>
         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
 
