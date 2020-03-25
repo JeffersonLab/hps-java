@@ -38,7 +38,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 /**
@@ -600,8 +599,8 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
 
     private HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
 
-        SiTrackerHitStrip1D local = h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-        SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+        SiTrackerHitStrip1D local = (SiTrackerHitStrip1D) h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+        SiTrackerHitStrip1D global = (SiTrackerHitStrip1D) h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
 
         ITransform3D trans = local.getLocalToGlobal();
         Hep3Vector org = trans.transformed(_orgloc);
