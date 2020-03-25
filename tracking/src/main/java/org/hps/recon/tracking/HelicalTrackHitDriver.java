@@ -233,14 +233,47 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
         // Loop over the input collection names we want to make hits out of
         // ...for HPS, probably this is just a single one...
         for (String _colname : this._colnames) {
+            
+            List<SiTrackerHit> hitlist = new ArrayList<>();
+            List<TrackerHit> trk_hitlist = null;
+            
+            //First try to get the SiTracker hits. If that fails get them as TrackerHit and form the SiTrackerHitStrip1D
+
+            //Check if SiTrackerHit collection named _colname is in the event
             if (!event.hasCollection(SiTrackerHit.class, _colname)) {
                 if (_debug) {
                     System.out.println("Event: " + event.getRunNumber() + " does not contain the collection " + _colname);
+                    System.out.println("Will try to get it as TrackerHit");
                 }
-                continue;
+                //Check if TrackerHit collection named _colname is in the event
+                if (!event.hasCollection(TrackerHit.class, _colname)) {
+                    if (_debug) {
+                        System.out.println("Collection " + _colname + " doesn't exist in event");
+                    }
+                    //If not let event go
+                    continue;
+                }
+                //If found the TrackerHit Collection with name _colname, form the SiTrackerHitStrip1D list
+                else { 
+                    trk_hitlist = event.get(TrackerHit.class,_colname);
+                    for (TrackerHit trkhit : trk_hitlist) {
+                        SiTrackerHitStrip1D hits1d  = new SiTrackerHitStrip1D(trkhit,TrackerHitType.CoordinateSystem.GLOBAL);
+                        if (hits1d == null)  {
+                            System.out.println("Failed formation of SiTrackerHitStrip1D");
+                            continue;
+                        }
+                        else {
+                            hitlist.add(hits1d);
+                        }
+                    } //trk_hitlist loop
+                }// found TrackerHit Collection
+            }//Couldn't find the SiTrackerHit Collection
+            
+            else {
+                // Get the list of SiTrackerHits for this collection
+                hitlist = event.get(SiTrackerHit.class, _colname);
             }
-            // Get the list of SiTrackerHits for this collection
-            List<SiTrackerHit> hitlist = event.get(SiTrackerHit.class, _colname);
+            
             if (_debug) {
                 System.out.printf("%s: found %d SiTrackerHits\n", this.getClass().getSimpleName(), hitlist.size());
             }
