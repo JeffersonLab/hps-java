@@ -56,8 +56,6 @@ public class SiTrackerHitStrip1D extends org.lcsim.recon.tracking.digitization.s
             
             maxHitLength = Math.max( maxHitLength, hitLength );
             
-//            System.out.println("Strip length: "+((SiStrips)getReadoutElectrodes()).
-//                    getStripLength(getIdentifierHelper().getElectrodeValue(raw_hit.getIdentifier())));
         }
         
         System.out.println("SiTrackerHitStrip1D::getHitLength : Hit length: " + maxHitLength);
