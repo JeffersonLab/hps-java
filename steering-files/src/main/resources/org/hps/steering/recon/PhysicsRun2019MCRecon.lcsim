@@ -22,21 +22,21 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-    
+        
+        <driver name="KalmanPatRecDriver"/>
+
         <!-- Track finding and fitting using seed tracker. --> 
-        <!-- <driver name="TrackReconSeed123Conf4Extd56"/>
+        <driver name="TrackReconSeed123Conf4Extd56"/>
         <driver name="TrackReconSeed123Conf5Extd46"/>
 	    <driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
         <driver name="TrackReconSeed235Conf6Extd147"/>
-        <driver name="TrackReconSeed234Conf6Extd157"/> --> 
          
-        <!-- 
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
-        <driver name="ReconParticleDriver" /> --> 
+        <driver name="ReconParticleDriver" /> 
         
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
@@ -129,7 +129,9 @@
             <maxDt>100.0</maxDt>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
 	    </driver>
-        
+
+        <!-- Kalman Filter --> 
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver" />
 
         <!-- 
              SVT Track finding and fitting. 
@@ -194,16 +196,18 @@
         <!-- --> 
 
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
+        
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+        
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <beamPositionX> -0.224 </beamPositionX>
+            <beamPositionX> 0 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
-            <beamPositionY> -0.08 </beamPositionY>
+            <beamPositionY> 0 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>43</trackClusterTimeOffset>
+            <trackClusterTimeOffset>1000</trackClusterTimeOffset>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
         </driver>         
