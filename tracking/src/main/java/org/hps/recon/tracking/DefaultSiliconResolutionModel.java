@@ -40,7 +40,7 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
             measured_resolution = sense_pitch * _fiveClusterErr;
         }
 
-        System.out.println("DefaultSiliconResolutionModel::getMeasuredResolution : Measured resolution: " + measured_resolution); 
+        //System.out.println("DefaultSiliconResolutionModel::getMeasuredResolution : Measured resolution: " + measured_resolution); 
         return measured_resolution;
     }
 
