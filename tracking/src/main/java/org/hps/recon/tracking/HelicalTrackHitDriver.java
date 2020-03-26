@@ -278,54 +278,57 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             }
             Map<HelicalTrackStrip, SiTrackerHitStrip1D> stripmap = new LinkedHashMap<HelicalTrackStrip, SiTrackerHitStrip1D>();
             for (SiTrackerHit hit : hitlist) {
-                if (hit instanceof SiTrackerHitStrip1D) {
+                //if (hit instanceof SiTrackerHitStrip1D) {
+                // Cast the hit as a 1D strip hit and find the
+                // identifier for the detector/layer combo
+                //PF::This fails!!
+                //SiTrackerHitStrip1D h = (SiTrackerHitStrip1D) hit;
+                
+                SiTrackerHitStrip1D h = new SiTrackerHitStrip1D(hit);
 
-                    // Cast the hit as a 1D strip hit and find the
-                    // identifier for the detector/layer combo
-                    SiTrackerHitStrip1D h = (SiTrackerHitStrip1D) hit;
-                    if (clusterAmplitudeCut > 0 && h.getdEdx() / DopedSilicon.ENERGY_EHPAIR < clusterAmplitudeCut) {
-                        continue;
-                    }
-                    if (_clusterTimeCut > 0 && Math.abs(h.getTime()) > _clusterTimeCut) {
-                        continue;
-                    }
-
-                    // Create a HelicalTrackStrip for this hit
-                    HelicalTrackStrip strip = makeDigiStrip(h);
-                    if (hittomc != null) {
-                        for (RawTrackerHit rth : h.getRawHits()) {
-                            for (Object simHit : hittomc.allFrom(rth)) {
-                                strip.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
-                            }
+                if (clusterAmplitudeCut > 0 && h.getdEdx() / DopedSilicon.ENERGY_EHPAIR < clusterAmplitudeCut) {
+                    continue;
+                }
+                if (_clusterTimeCut > 0 && Math.abs(h.getTime()) > _clusterTimeCut) {
+                    continue;
+                }
+                
+                // Create a HelicalTrackStrip for this hit
+                HelicalTrackStrip strip = makeDigiStrip(h);
+                if (hittomc != null) {
+                    for (RawTrackerHit rth : h.getRawHits()) {
+                        for (Object simHit : hittomc.allFrom(rth)) {
+                            strip.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
                         }
-                    }
-
-                    // Map a reference back to the hit needed to create
-                    // the stereo hit LC relations
-                    stripmap.put(strip, h);
-                    if (_debug) {
-                        System.out.printf("%s: added strip org %s layer %d\n", this.getClass().getSimpleName(), strip.origin().toString(), strip.layer());
-                    }
-
-                    if (_saveAxialHits)//                           
-                    {
-
-                        HelicalTrack2DHit haxial = makeDigiAxialHit(h);
-                        axialhits.add(haxial);
-                        if (hittomc != null) {
-                            List<RawTrackerHit> rl = haxial.getRawHits();
-                            for (RawTrackerHit rth : rl)
-                                for (Object simHit : hittomc.allFrom(rth))
-                                    haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
-                        }
-                        axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
-                        
                     }
                 }
+                
+                // Map a reference back to the hit needed to create
+                // the stereo hit LC relations
+                stripmap.put(strip, h);
+                if (_debug) {
+                    System.out.printf("%s: added strip org %s layer %d\n", this.getClass().getSimpleName(), strip.origin().toString(), strip.layer());
+                }
+                
+                if (_saveAxialHits)//                           
+                {
+                    
+                    HelicalTrack2DHit haxial = makeDigiAxialHit(h);
+                    axialhits.add(haxial);
+                    if (hittomc != null) {
+                        List<RawTrackerHit> rl = haxial.getRawHits();
+                        for (RawTrackerHit rth : rl)
+                            for (Object simHit : hittomc.allFrom(rth))
+                                haxial.addMCParticle(((SimTrackerHit) simHit).getMCParticle());
+                    }
+                    axialmcrelations.add(new MyLCRelation(haxial, haxial.getMCParticles()));
+                    
+                }
+                //}//instance 
             }
-
+            
             Map<SiSensor, List<HelicalTrackStrip>> striplistmap = makeStripListMap(stripmap);
-
+            
             if (_debug) {
                 System.out.printf("%s: Associate  %d strips to their sensors before pairing\n", this.getClass().getSimpleName(), stripmap.size());
                 System.out.printf("%s: Form stereo hits based on %d stereo layers:\n", this.getClass().getSimpleName(), stereoLayers.size());
@@ -335,7 +338,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 }
                 System.out.printf("%s: Create crosses\n", this.getClass().getSimpleName());
             }
-
+            
             List<HelicalTrackCross> helicalTrackCrosses = findCrosses(striplistmap);
             RelationalTable hittostrip = makeHitToStripTable(helicalTrackCrosses, stripmap);
             // hole-slot combo crosses: only used if allowHoleSlotCombo=true
@@ -470,18 +473,21 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
             if (stereoLayer.getAxialSensor().isTopLayer()) {
                 if (_debug) {
                     System.out.printf("%s: make hits for top\n", this.getClass().getSimpleName());
+                    if (striplistmap.get(stereoLayer.getAxialSensor()) != null && striplistmap.get(stereoLayer.getStereoSensor()) != null) 
+                        System.out.printf("PF::size striplist map axial: %d  size striplist map stereo: %d \n", striplistmap.get(stereoLayer.getAxialSensor()).size(), striplistmap.get(stereoLayer.getStereoSensor()).size());
                 }
-
                 newCrosses = _crosser.MakeHits(striplistmap.get(stereoLayer.getAxialSensor()), striplistmap.get(stereoLayer.getStereoSensor())); //===> } else if (stereoPair.getDetectorVolume() == detectorVolume.Bottom) {
             } else if (stereoLayer.getAxialSensor().isBottomLayer()) {
                 if (_debug) {
                     System.out.printf("%s: make hits for bottom\n", this.getClass().getSimpleName());
+                    if (striplistmap.get(stereoLayer.getAxialSensor()) != null && striplistmap.get(stereoLayer.getStereoSensor()) != null) 
+                        System.out.printf("PF::size striplist map axial: %d  size striplist map stereo: %d \n", striplistmap.get(stereoLayer.getAxialSensor()).size(), striplistmap.get(stereoLayer.getStereoSensor()).size());
                 }
                 newCrosses = _crosser.MakeHits(striplistmap.get(stereoLayer.getStereoSensor()), striplistmap.get(stereoLayer.getAxialSensor()));
             } else {
                 throw new RuntimeException("stereo pair is neither top nor bottom");
             }
-
+            
             if (newCrosses != null) {
                 for (Iterator<HelicalTrackCross> iter = newCrosses.listIterator(); iter.hasNext();) {
                     HelicalTrackCross cross = iter.next();
@@ -598,9 +604,14 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     }
 
     private HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
+        
+        //PF::this fails
+        //SiTrackerHitStrip1D local = (SiTrackerHitStrip1D) h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+        //SiTrackerHitStrip1D global = (SiTrackerHitStrip1D) h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
 
-        SiTrackerHitStrip1D local = (SiTrackerHitStrip1D) h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-        SiTrackerHitStrip1D global = (SiTrackerHitStrip1D) h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+        SiTrackerHitStrip1D local = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR));
+        SiTrackerHitStrip1D global =  new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL));
+
 
         ITransform3D trans = local.getLocalToGlobal();
         Hep3Vector org = trans.transformed(_orgloc);
