@@ -22,22 +22,26 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-        
-        <driver name="KalmanPatRecDriver"/>
-
+    
         <!-- Track finding and fitting using seed tracker. --> 
-        <driver name="TrackReconSeed123Conf4Extd56"/>
+        
+        <driver name="TrackReconSeed123Conf4Extd56"/>    
         <driver name="TrackReconSeed123Conf5Extd46"/>
-	    <driver name="TrackReconSeed567Conf4Extd123"/>
-        <driver name="TrackReconSeed456Conf3Extd127"/>
-        <driver name="TrackReconSeed356Conf7Extd124"/>
-        <driver name="TrackReconSeed235Conf6Extd147"/>
-         
+	    <driver name="TrackReconSeed567Conf4Extd123"/> 
+        <driver name="TrackReconSeed456Conf3Extd127"/> 
+        <driver name="TrackReconSeed356Conf7Extd124"/>  
+        <driver name="TrackReconSeed235Conf6Extd147"/>  
+        
+        <!-- <driver name="TrackReconSeed234Conf6Extd157"/> -->
+        
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
-        <driver name="ReconParticleDriver" /> 
-        
+        <driver name="KalmanPatRecDriver"/> 
+        <driver name="TrackTruthMatching_KF" />
+        <driver name="TrackTruthMatching_GBL" /> 
+        <driver name="ReconParticleDriver" />
+        <driver name="ReconParticleDriver_Kalman" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     
@@ -129,9 +133,7 @@
             <maxDt>100.0</maxDt>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
 	    </driver>
-
-        <!-- Kalman Filter --> 
-        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver" />
+        
 
         <!-- 
              SVT Track finding and fitting. 
@@ -185,7 +187,7 @@
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
 
-        <driver name="TrackReconSeed234Conf6Extd157_4hit" type="org.hps.recon.tracking.TrackerReconDriver">
+        <driver name="TrackReconSeed234Conf6Extd157" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s234_c5_e157</trackCollectionName>
             <strategyResource>HPS_s234_c5_e167_4hit.xml</strategyResource>
             <debug>false</debug>
@@ -196,23 +198,66 @@
         <!-- --> 
 
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
-        
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
-        
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
             <beamPositionX> 0 </beamPositionX>
-            <beamSigmaX> 0.125 </beamSigmaX>
+            <beamSigmaX> 0.05 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
-            <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>1000</trackClusterTimeOffset>
+            <beamSigmaY> 0.02 </beamSigmaY>
+            <beamPositionZ> -7.5 </beamPositionZ>
+            <trackClusterTimeOffset>28</trackClusterTimeOffset>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
+            <requireClustersForV0>false</requireClustersForV0>
         </driver>         
+
+
+        <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <beamPositionX> 0  </beamPositionX>
+            <beamSigmaX> 0.05 </beamSigmaX>
+            <beamPositionY> 0 </beamPositionY>
+            <beamSigmaY> 0.02 </beamSigmaY>
+            <beamPositionZ> -7.5 </beamPositionZ>
+            <trackClusterTimeOffset>28</trackClusterTimeOffset>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <minVertexChisqProb> 0.0 </minVertexChisqProb>
+            <requireClustersForV0>false</requireClustersForV0>
+            
+        </driver>         
+
+
+
+
+
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
-        
+
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <!--<doDebugPlots>false</doDebugPlots>-->
+            <verbose>false</verbose>
+          </driver>
+          
+          <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
+          <trackCollectionName>KalmanFullTracks</trackCollectionName>
+          <kalmanTracks>true</kalmanTracks>
+          <debug>false</debug>
+        </driver>
+
+        <driver name="TrackTruthMatching_GBL" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
+          <trackCollectionName>GBLTracks</trackCollectionName>
+          <kalmanTracks>false</kalmanTracks>
+          <debug>false</debug>
+        </driver>
+
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
