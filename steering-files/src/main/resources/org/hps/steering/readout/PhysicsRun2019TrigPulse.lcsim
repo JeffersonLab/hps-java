@@ -248,8 +248,16 @@
             -->
             <writeTriggerPathTruth>false</writeTriggerPathTruth>
         </driver>
-        
-        <driver name="PulseTrigger" type="org.hps.readout.trigger.PulserReadoutDriver">
+
+        <driver name="PulseTrigger"
+		type="org.hps.readout.trigger.PulserReadoutDriver">
+
+	  <!-- Sets the rate of the pulser. It will trigger every
+	       $argument clocok-cycles, where two events is a clock
+	       cycle
+	  -->
+          <pulserRate>125</pulserRate>
+
         </driver>
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
