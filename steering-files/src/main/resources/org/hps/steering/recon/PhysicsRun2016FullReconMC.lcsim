@@ -15,8 +15,8 @@
         <!--<driver name="EcalRunningPedestal"/>-->
         <driver name="EcalRawConverter" />
         <driver name="HitTimeSmear"/>
-        <!--<driver name="ReconClusterer" />-->
-        <!--driver name="CopyCluster" />-->
+        <driver name="ReconClusterer" />
+	<driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
