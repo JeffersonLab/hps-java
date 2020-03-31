@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.BasicHep3Vector;
+
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackData;
@@ -269,9 +273,18 @@ public class KalmanPatRecDriver extends Driver {
                 //TODO: compute isolations
                 double qualityArray[] = new double[1];
                 qualityArray[0]= -1;
+
+                //Get the track momentum and convert it into detector frame and float values
+                Hep3Vector momentum = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(0).getMomentum());
+                momentum = CoordinateTransformations.transformVectorToDetector(momentum);
+                
+                float[] momentum_f = new float[3];
+                momentum_f[0] = (float) momentum.x();
+                momentum_f[1] = (float) momentum.y();
+                momentum_f[2] = (float) momentum.z();
                                 
                 //Add the Track Data 
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray);
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
             } // end of loop on tracks

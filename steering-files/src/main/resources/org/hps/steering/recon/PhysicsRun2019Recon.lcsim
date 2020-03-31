@@ -204,9 +204,7 @@
             <!--<maxDt>16.0</maxDt>-->
             <maxDt>100.0</maxDt>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-	    <checkThinSensor>True</checkThinSensor>
-	    <vThin>7.0</vThin>
-        </driver>
+	    </driver>
         <!-- SVT Track finding -->
         <driver name="TrackReconSeed123Conf4Extd56" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>

@@ -13,6 +13,7 @@ import org.lcsim.geometry.Detector;
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  * @author Nathan Baltzell <baltzell@jlab.org>
  * @author Holly Szumila <hvanc001@odu.edu>
+ * @author Tongtong Cao <caot@jlab.org>
  */
 public abstract class AbstractBaseRawConverter {
     /**
@@ -33,6 +34,16 @@ public abstract class AbstractBaseRawConverter {
      * window. This must be a multiple of 4 ns.
      */
     private int nsa = Integer.MIN_VALUE;
+    
+    /**
+     * Factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
+     * For Ecal, unit of hit energy is GeV, so the factor = <code>EcalUtils.MeV</code>.
+     * For hodo, unit of hit energy is self-defined for hodo FADC hits. 
+     * Conversion from self-defined-unit/ADC to MeV/ADC for true hits 
+     * is taken into account in <code>HodoscopeDigitizationReadoutDriver</code> 
+     * by <code>factorGainConversion</code>. Here, factor = 1 for hodo.    
+     */
+    private double factorUnitConversion = EcalUtils.MeV;
     
     /**
      * Gets the number of samples that are included in the pulse
@@ -57,6 +68,14 @@ public abstract class AbstractBaseRawConverter {
             throw new RuntimeException("Error: NSB is not defined. Value must be set in steering file.");
         }
         return nsb;
+    }
+    
+    /**
+     * Gets factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
+     * @return Returns factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
+     */
+    public double getFactorUnitConversion() {
+        return factorUnitConversion;
     }
     
     /**
@@ -90,6 +109,18 @@ public abstract class AbstractBaseRawConverter {
     }
     
     /**
+     * Sets factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
+     * @param factor of unit conversion for returned value of the method <code>adcToEnergy()</code>
+     * @throws IllegalArgumentException Occurs if an invalid factor is given.
+     */
+    public void setFactorUnitConversion(double factor) {
+        if(factor == EcalUtils.MeV || (int)factor == 1) factorUnitConversion = factor; 
+        else {
+            throw new IllegalArgumentException("Factor of unit conversion for returned value of the method AbstractBaseRawConverter::adcToEnergy() must be " + EcalUtils.MeV + " or 1.");
+        }        
+    }
+    
+    /**
      * Updates any detector-dependent parameters or functionality
      * used by the converter.
      * @param detector - The detector object representing the new
@@ -105,7 +136,7 @@ public abstract class AbstractBaseRawConverter {
      * @return Returns the ADC value in units of GeV.
      */
     protected double adcToEnergy(double adcValue, long channelID) {
-        return getGain(channelID) * adcValue * EcalUtils.MeV;
+        return getGain(channelID) * adcValue * factorUnitConversion;
     }
     
     /**

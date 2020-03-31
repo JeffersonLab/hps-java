@@ -56,7 +56,7 @@ class KalmanPatRecHPS {
         // This is needed because one layer can have multiple SiModules
         // Also make a list of Si modules with hits in each layer
         int numLayers = 14;
-        int firstLayer = 2; // (2 for pre-2019 data)
+        int firstLayer = 0; // (2 for pre-2019 data)
         lyrHits = new ArrayList<ArrayList<KalHit>>(numLayers);
         moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
         for (int lyr = 0; lyr < numLayers; lyr++) {

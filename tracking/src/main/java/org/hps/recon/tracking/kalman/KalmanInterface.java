@@ -609,6 +609,11 @@ public class KalmanInterface {
         if (verbose && verboseLevel > 1) {
             System.out.format("Entering KalmanInterface.creasteSiModules\n");
         }
+        
+        //2016 => 12 planes, 2019 => 14 planes
+        int nPlanes = inputPlanes.size();
+        //System.out.printf("PF::nPlanes::%d", nPlanes);
+        
         SiMlist.clear();
 
         for (SiStripPlane inputPlane : inputPlanes) {
@@ -650,11 +655,19 @@ public class KalmanInterface {
                 System.out.printf("    Building with Kalman plane: point %s normal %s \n",
                         new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(tK.v).toString());
             }
-            Plane p = new Plane(pointOnPlaneTransformed, tK, uK, vK);
-            int kalLayer = temp.getLayerNumber()+1;  // Include new layer-0, layers go from 0 to 13!!
+            Plane p =new Plane(pointOnPlaneTransformed, tK, uK, vK);
+            
+            //Indexing valid for 2016 detector
+            int kalLayer = temp.getLayerNumber()+1;  
+            
+            //Indexing valid for 2019 detector -> Include new layer-0, layers go from 0 to 13!!
+            if (nPlanes == 40) {
+                kalLayer = temp.getLayerNumber()-1;
+            }
+            
             int detector = temp.getModuleNumber();
             if (kalLayer > 13) {
-                System.out.format("***KalmanInterface.createSiModules Warning: Kalman layer %d out of range.***\n", kalLayer);
+                System.out.format("***KalmanInterface.createSiModules Warning: Kalman layer %d , tempLayer = %d out of range.***\n", kalLayer,temp.getLayerNumber());
             }
             SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), inputPlane.getWidth(), inputPlane.getLength(),
                     inputPlane.getThickness(), fm, detector);
@@ -767,7 +780,6 @@ public class KalmanInterface {
         int hitsFilled = 0;
         for (int modIndex = 0; modIndex < SiMlist.size(); ++modIndex) {
             SiModule module = SiMlist.get(modIndex);
-
             SiStripPlane plane = moduleMap.get(module);
             if (!hitSensorMap.containsKey(plane.getSensor())) continue;
             ArrayList<TrackerHit> hitsInSensor = hitSensorMap.get(plane.getSensor());
@@ -1069,7 +1081,7 @@ public class KalmanInterface {
                 if (!SiM.hits.isEmpty()) SiMoccupied.add(SiM);
             }
             Collections.sort(SiMoccupied, new SortByLayer());
-
+            
             if (verbose) {
                 for (int i = 0; i < SiMoccupied.size(); i++) {
                     SiModule SiM = SiMoccupied.get(i);
