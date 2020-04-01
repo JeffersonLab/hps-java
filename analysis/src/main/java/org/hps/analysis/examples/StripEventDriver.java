@@ -27,8 +27,7 @@ import org.lcsim.util.Driver;
  *
  * @version $Id:
  */
-public class StripEventDriver extends Driver
-{
+public class StripEventDriver extends Driver {
 
     String _triggerType = "all";//allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
 
@@ -48,24 +47,24 @@ public class StripEventDriver extends Driver
 
     private String _clusterCollectionName = "EcalClusters";
 
+    private String _trackCollectionName = "MatchedTracks";
     private boolean _selectAllLayers = false;
     private int _requireNLayers = 12;
     private boolean _selectTopHits = false;
     private boolean _selectBottomHits = false;
 
     @Override
-    protected void process(EventHeader event)
-    {
+    protected void process(EventHeader event) {
         boolean skipEvent = false;
         int nTracks = 0;
 
         if (!matchTrigger(event)) {
             skipEvent = true;
         } else {
-            if (event.hasCollection(Track.class, "MatchedTracks")) {
-                nTracks = event.get(Track.class, "MatchedTracks").size();
+            if (event.hasCollection(Track.class, _trackCollectionName)) {
+                nTracks = event.get(Track.class, _trackCollectionName).size();
                 if (nTracks >= _minNumberOfTracks && nTracks <= _maxNumberOfTracks) {
-                    List<Track> tracks = event.get(Track.class, "MatchedTracks");
+                    List<Track> tracks = event.get(Track.class, _trackCollectionName);
                     for (Track t : tracks) {
                         int nhits = t.getTrackerHits().size();
                         if (nhits < _minNumberOfHitsOnTrack) {
@@ -169,98 +168,83 @@ public class StripEventDriver extends Driver
     }
 
     @Override
-    protected void endOfData()
-    {
+    protected void endOfData() {
         System.out.println("Wrote " + _numberOfEventsWritten + " events");
     }
 
-    public void setMinNumberOfTracks(int nTracks)
-    {
+    public void setTrackCollectionName(String s) {
+        _trackCollectionName = s;
+    }
+
+    public void setMinNumberOfTracks(int nTracks) {
         _minNumberOfTracks = nTracks;
     }
 
-    public void setMaxNumberOfTracks(int nTracks)
-    {
+    public void setMaxNumberOfTracks(int nTracks) {
         _maxNumberOfTracks = nTracks;
     }
 
-    public void setMinNumberOfHitsOnTrack(int nHits)
-    {
+    public void setMinNumberOfHitsOnTrack(int nHits) {
         _minNumberOfHitsOnTrack = nHits;
     }
 
-    public void setMinNumberOfUnconstrainedV0Vertices(int nVertices)
-    {
+    public void setMinNumberOfUnconstrainedV0Vertices(int nVertices) {
         _minNumberOfUnconstrainedV0Vertices = nVertices;
     }
 
-    public void setMinNumberOfStripHits(int n)
-    {
+    public void setMinNumberOfStripHits(int n) {
         _minNumberOfStripHits = n;
     }
 
-    public void setMaxNumberOfStripHits(int n)
-    {
+    public void setMaxNumberOfStripHits(int n) {
         _maxNumberOfStripHits = n;
     }
 
-    public void setMinNumberOfClusters(int n)
-    {
+    public void setMinNumberOfClusters(int n) {
         _minNumberOfClusters = n;
     }
 
-    public void setMaxNumberOfClusters(int n)
-    {
+    public void setMaxNumberOfClusters(int n) {
         _maxNumberOfClusters = n;
     }
 
-    public void setMinClusterEnergy(double e)
-    {
+    public void setMinClusterEnergy(double e) {
         _minClusterEnergy = e;
     }
 
-    public void setMaxClusterEnergy(double e)
-    {
+    public void setMaxClusterEnergy(double e) {
         _maxClusterEnergy = e;
     }
 
-    public void setClusterCollectionName(String s)
-    {
+    public void setClusterCollectionName(String s) {
         _clusterCollectionName = s;
     }
 
-    public void setSelectTopHits(boolean b)
-    {
+    public void setSelectTopHits(boolean b) {
         _selectTopHits = b;
     }
 
-    public void setSelectBottomHits(boolean b)
-    {
+    public void setSelectBottomHits(boolean b) {
         _selectBottomHits = b;
     }
 
-    public void setSelectTopClusters(boolean b)
-    {
+    public void setSelectTopClusters(boolean b) {
         _selectTopClusters = b;
     }
 
-    public void setSelectBottomClusters(boolean b)
-    {
+    public void setSelectBottomClusters(boolean b) {
         _selectBottomClusters = b;
     }
 
-    public void setSelectAllLayers(boolean b)
-    {
+    public void setSelectAllLayers(boolean b) {
         _selectAllLayers = b;
     }
 
-    public void setSelectNumberOfLayers(int i)
-    {
+    public void setSelectNumberOfLayers(int i) {
         _requireNLayers = i;
     }
 
-    private void setupSensors(EventHeader event)
-    {
+    private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
         // Get the ID dictionary and field information.
@@ -295,13 +279,11 @@ public class StripEventDriver extends Driver
         }
     }
 
-    public void setTriggerType(String type)
-    {
+    public void setTriggerType(String type) {
         _triggerType = type;
     }
 
-    public boolean matchTriggerType(TIData triggerData)
-    {
+    public boolean matchTriggerType(TIData triggerData) {
         if (_triggerType.contentEquals("") || _triggerType.contentEquals("all")) {
             return true;
         }
@@ -324,8 +306,7 @@ public class StripEventDriver extends Driver
 
     }
 
-    public boolean matchTrigger(EventHeader event)
-    {
+    public boolean matchTrigger(EventHeader event) {
         boolean match = true;
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
