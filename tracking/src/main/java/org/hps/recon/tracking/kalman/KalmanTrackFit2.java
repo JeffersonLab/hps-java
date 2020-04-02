@@ -264,7 +264,8 @@ class KalmanTrackFit2 {
 
         finalSite = sites.size() - 1;
 
-        tkr = new KalTrack(evtNumb, 0, nHits, sites, chi2s); // Store the fit information as a KalTrack object
+        ArrayList<Double> yScat = new ArrayList<Double>(); 
+        tkr = new KalTrack(evtNumb, 0, nHits, sites, chi2s, yScat); // Store the fit information as a KalTrack object
         for (MeasurementSite site : sites) { // Mark the hits as used
             for (Measurement hit : site.m.hits) { // Should be only a single hit (this is not a pattern recognition routine)
                 hit.tracks.add(tkr);

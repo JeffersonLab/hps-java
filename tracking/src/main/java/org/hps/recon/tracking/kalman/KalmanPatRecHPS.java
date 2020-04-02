@@ -37,6 +37,7 @@ class KalmanPatRecHPS {
     private ArrayList<ArrayList<KalHit>> lyrHits;
     private ArrayList<ArrayList<SiModule>> moduleList;
     private Map<Measurement, KalHit> hitMap;
+    private ArrayList<Double> yScat;
 
     private int eventNumber;
     private boolean verbose;
@@ -77,6 +78,13 @@ class KalmanPatRecHPS {
                 hitMap.put(m, hit);
             }
             if (thisSi.hits.size() > 0) moduleList.get(thisSi.Layer).add(thisSi);
+        }
+        yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
+        for (int lyr = 0; lyr < numLayers; lyr++) {
+            if (moduleList.get(lyr).size() > 0) {
+                SiModule thisSi = moduleList.get(lyr).get(0);
+                yScat.add(thisSi.p.X().v[1]);
+            }
         }
         if (verbose) {
             for (ArrayList<KalHit> LL : lyrHits) {
@@ -1161,7 +1169,7 @@ class KalmanPatRecHPS {
             return false;
         }
         
-        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.hits.size(), tkrCand.sites, tkrCand.chi2s);
+        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.hits.size(), tkrCand.sites, tkrCand.chi2s, yScat);
         boolean redundant = false;
         for (KalTrack oldTkr : TkrList) {
             if (tkr.equals(oldTkr)) {

@@ -28,6 +28,7 @@ public class KalTrack {
     private SquareMatrix originCov;
     private Vec originPoint;
     private Vec originMomentum;
+    private ArrayList<Double> yScat;
     public double alpha;
     private double[][] Cx;
     private double[][] Cp;
@@ -38,10 +39,10 @@ public class KalTrack {
     double tMax;
     private Logger logger;
 
-    KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
+    KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2, ArrayList<Double> yScat) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
-        
+        this.yScat = yScat;
         logger = Logger.getLogger(KalTrack.class.getName());
         
         // Make a new list of sites in case somebody modifies the one referred to on input
@@ -306,16 +307,11 @@ public class KalTrack {
             logger.log(Level.WARNING, String.format("KalTrack.originHelix: event %d inner site is not smoothed.\n", eventNumber));
             return false;
         }
+        
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
-        //Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
-        //double ct = pMom.unitVec().dot(innerSite.m.p.T());
-
-        // XL has to be set to zero below to get the correct result for the covariance,
-        // as the Kalman filter has already accounted for scattering in the first layer.
-        // However, if there was no hit in the first layer, then the scattering should
-        // be introduced, TBD
-        double XL = 0.; // innerSite.XL / Math.abs(ct);
-        helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
+        double XL = innerSite.m.thickness/innerSite.radLen;
+        Plane originPlane = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.)); 
+        helixAtOrigin = innerSite.aS.propagateRungeKutta(originPlane, innerSite.m.Bfield, originCov, yScat, XL);
         if (Double.isNaN(originCov.M[0][0])) return false;
         SquareMatrix Cinv = originCov.invert();
         for (int i=0; i<5; ++i) {
