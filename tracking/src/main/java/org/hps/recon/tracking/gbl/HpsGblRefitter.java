@@ -262,35 +262,44 @@ public class HpsGblRefitter {
 
             // go to next point
             s += step;
-
+            
         } // strips
-
+        
         // create the trajectory
-        GblTrajectory traj = new GblTrajectory(listOfPoints); // ,seedLabel, clSeed);
+        GblTrajectory traj = null;
+        
+        try {
+            traj = new GblTrajectory(listOfPoints); // ,seedLabel, clSeed);
+            
+            
+            if (!traj.isValid()) {
+                System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
+                return null; // 1;//INVALIDTRAJ;
+            }
 
-        if (!traj.isValid()) {
-            System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
-            return null; // 1;//INVALIDTRAJ;
+            // print the trajectory
+            if (debug) {
+                System.out.println("%%%% Gbl Trajectory ");
+                traj.printTrajectory(1);
+                traj.printData();
+                traj.printPoints(4);
+            }
+            // fit trajectory
+            double[] dVals = new double[2];
+            int[] iVals = new int[1];
+            traj.fit(dVals, iVals, "");
+            LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
+
+            FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
+            fittedTraj.setPathLengthMap(pathLengthMap);
+            fittedTraj.setSensorMap(sensorMap);
+
+            return fittedTraj;
         }
-
-        // print the trajectory
-        if (debug) {
-            System.out.println("%%%% Gbl Trajectory ");
-            traj.printTrajectory(1);
-            traj.printData();
-            traj.printPoints(4);
+        catch (RuntimeException e) {
+            System.out.println("HpsGblFitter: Invalid GblTrajectory -> skip"); 
+            return null;
         }
-        // fit trajectory
-        double[] dVals = new double[2];
-        int[] iVals = new int[1];
-        traj.fit(dVals, iVals, "");
-        LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
-
-        FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
-        fittedTraj.setPathLengthMap(pathLengthMap);
-        fittedTraj.setSensorMap(sensorMap);
-
-        return fittedTraj;
     }
 
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
