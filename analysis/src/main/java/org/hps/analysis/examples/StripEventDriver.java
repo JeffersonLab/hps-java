@@ -52,12 +52,20 @@ public class StripEventDriver extends Driver {
     private int _requireNLayers = 12;
     private boolean _selectTopHits = false;
     private boolean _selectBottomHits = false;
+    
+    private boolean _skipMonsterEvents = false;
+    private int _maxSvtRawTrackerHits= Integer.MAX_VALUE;
 
     @Override
     protected void process(EventHeader event) {
         boolean skipEvent = false;
         int nTracks = 0;
 
+        if (_skipMonsterEvents) {
+            if (event.get(RawTrackerHit.class, "SVTRawTrackerHits").size() > _maxSvtRawTrackerHits) {
+                return;
+            }
+        }
         if (!matchTrigger(event)) {
             skipEvent = true;
         } else {
@@ -242,6 +250,16 @@ public class StripEventDriver extends Driver {
 
     public void setSelectNumberOfLayers(int i) {
         _requireNLayers = i;
+    }
+    
+    public void setMaxSvtRawTrackerHits(int i)
+    {
+        _maxSvtRawTrackerHits = i;
+    }
+    
+    public void setSkipMonsterEvents(boolean b)
+    {
+        _skipMonsterEvents = b;
     }
 
     private void setupSensors(EventHeader event) {
