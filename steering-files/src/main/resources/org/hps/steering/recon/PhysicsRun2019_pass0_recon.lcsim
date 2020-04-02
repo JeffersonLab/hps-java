@@ -348,6 +348,7 @@
             <applyClusterCorrections>false</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <debug>false</debug>
+            <makeMollerCols>false</makeMollerCols>
         </driver>  
 
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
@@ -377,6 +378,7 @@
             <applyClusterCorrections>false</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <debug>false</debug>
+	    <makeMollerCols>false</makeMollerCols>
         </driver>  
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
