@@ -71,7 +71,9 @@ public class KalmanPatRecDriver extends Driver {
     private double maxChi2IncShare;    // Maximum increment in chi^2 for a hit shared with another track
     private int numEvtPlots;           // Number of event displays to plot (gnuplot files)
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
-
+    private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
+                                       // (protection against monster events) 
+    
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
     }
@@ -95,7 +97,11 @@ public class KalmanPatRecDriver extends Driver {
 
     public void setTrackCollectionName(String input) {
     }
-
+    
+    public void setSiHitsLimit(int input) {
+        siHitsLimit = input;
+    }
+    
     @Override
     public void detectorChanged(Detector det) {
         _materialManager = new MaterialSupervisor();
@@ -113,6 +119,7 @@ public class KalmanPatRecDriver extends Driver {
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
         KI = new KalmanInterface(verbose, uniformB);
+        KI.setSiHitsLimit(siHitsLimit);
         KI.createSiModules(detPlanes, fm);
         
         decoder = det.getSubdetector("Tracker").getIDDecoder();

@@ -58,12 +58,21 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     private static boolean uniformB;
+    private int _siHitsLimit = -1;
     public boolean verbose = false;
     public int verboseLevel = 0;
     double svtAngle;
     private HelixPlaneIntersect hpi;
     KalmanParams kPar;
     Random rnd;
+    
+    public void setSiHitsLimit(int limit) {
+        _siHitsLimit = limit;
+    }
+    
+    public int getSiHitsLimit() {
+        return _siHitsLimit;
+    }
     
     // Get the HPS tracker hit corresponding to a Kalman hit
     public TrackerHit getHpsHit(Measurement km) {
@@ -685,6 +694,9 @@ public class KalmanInterface {
         
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "TrackerHits";
+        if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName))
+            return false;
+                    
         List<SimTrackerHit> striphits = event.get(SimTrackerHit.class, stripHitInputCollectionName);
 
         // Make a mapping from (Layer,Module) to hits
@@ -761,6 +773,11 @@ public class KalmanInterface {
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
+        
+        if (_siHitsLimit > 0 && striphits.size() > _siHitsLimit) {
+            System.out.println("KalmanInterface::Skip event with " + stripHitInputCollectionName + " > " + String.valueOf(_siHitsLimit));
+            return false;
+        }
 
         // Make a mapping from sensor to hits
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitSensorMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
@@ -1062,7 +1079,7 @@ public class KalmanInterface {
         if (!fillAllMeasurements(event)) {
             System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d; try sim hits\n",event.getEventNumber());
             if (!fillAllSimHits(event, decoder)) {
-                System.out.format("KalmanInterface.KalmanPatRec: failed to fill SVT hits for event %d.\n",event.getEventNumber());
+                System.out.format("KalmanInterface.KalmanPatRec: failed to fill sim SVT hits for event %d.\n",event.getEventNumber());
                 return null;
             }
         }
@@ -1089,7 +1106,7 @@ public class KalmanInterface {
                 }
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar, false);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar, verbose);
             outList.add(kPat);
         }
         return outList;
