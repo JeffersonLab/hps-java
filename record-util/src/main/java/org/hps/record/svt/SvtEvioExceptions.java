@@ -25,11 +25,19 @@ public class SvtEvioExceptions {
             super(message);
         }
 
+        /**
+         * Add constructor that takes an {@link EvioHeaderError} instance
+         * @param error The header error that occurred
+         */
+        public SvtEvioHeaderException(EvioHeaderError error) {
+            super(error.getType().name() + ": " + error.getMessage() + '\n' + error.getDebugString());
+        }
+
         public SvtEvioHeaderException(SvtEvioHeaderException e) {
             super(e);
         }
     }
-
+    
     public static class SvtEvioHeaderSyncErrorException extends SvtEvioHeaderException {
 
         public SvtEvioHeaderSyncErrorException(String message) {

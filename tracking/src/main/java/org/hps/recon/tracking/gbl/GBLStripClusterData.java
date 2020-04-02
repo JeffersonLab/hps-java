@@ -17,9 +17,17 @@ public class GBLStripClusterData implements GenericObject {
      * Interface enumerator to access the correct data
      */
     public static class GBLINT {
-
+        
+        //Millepede ID + Volume will identify the sensor where the strip cluster data is located
+        
+        //The millepede ID
         public static final int ID = 0;
-        public static final int BANK_INT_SIZE = 1;
+        //Top or bottom (0 if top volume, 1 if bottom volume)
+        public static final int VOL = 1;
+        //Is it a scatterOnly stripCluster
+        public static final int SCAT_ONLY = 2;
+        
+        public static final int BANK_INT_SIZE = 3;
     }
 
     public static class GBLDOUBLE {
@@ -77,19 +85,50 @@ public class GBLStripClusterData implements GenericObject {
     }
 
     /**
-     * @param val set track id to val
+     * @param val set gbl strip cluster id to val
      */
     public void setId(int val) {
         bank_int[GBLINT.ID] = val;
     }
 
     /**
-     * @return track id for this object
+     * @return get gbl strip cluster id for this object
      */
     public int getId() {
         return this.getIntVal(GBLINT.ID);
     }
 
+    /**
+     * @param val set volume to val
+     */
+    public void setVolume(int val) {
+        bank_int[GBLINT.VOL] = val;
+    }
+    
+    /** 
+     * @return volume for this object
+     */
+    
+    public int getVolume() {
+        return this.getIntVal(GBLINT.VOL);
+    }
+
+    
+    /**
+     * @param val set scatterOnly to val
+     */
+    public void setScatterOnly(int val) {
+        bank_int[GBLINT.SCAT_ONLY] = val;
+    }
+    
+    /** 
+     * @return volume for this object
+     */
+    
+    public int getScatterOnly() {
+        return this.getIntVal(GBLINT.SCAT_ONLY);
+    }
+    
     /**
      * Set path length to this strip cluster
      * 

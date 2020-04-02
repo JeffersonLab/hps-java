@@ -59,9 +59,9 @@ public class EcalClusterPlots extends Driver {
         // Setup plots.
         aida.tree().cd("/");
         clusterCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection
-                + " : Cluster Count per Event", 10, -0.5, 9.5);
+                + " : Cluster Count per Event", 20, -0.5, 19.5);
         clusterSizePlot = aida.histogram1D(detector.getDetectorName() + " : " + inputCollection + " : Cluster Size",
-                10, -0.5, 9.5);
+                20, -0.5, 19.5);
 
         // Create the plotter regions.
         plotter.createRegions(1, 2);

@@ -32,6 +32,7 @@ import org.hps.util.RK4integrator;
 import org.lcsim.constants.Constants;
 
 import static org.lcsim.constants.Constants.fieldConversion;
+import org.lcsim.detector.DetectorElement;
 
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.solids.Box;
@@ -75,7 +76,6 @@ import org.lcsim.util.swim.Trajectory;
  *
  * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-
 public class TrackUtils {
 
     /**
@@ -121,7 +121,6 @@ public class TrackUtils {
     //        Hep3Vector startPos = TrackStateUtils.getLocationAtSensor(ts, sensor1, bfieldY);
     //        return extrapolateTrackPositionToSensorRK(ts, sens2, startPos, fM);
     //    }
-
     /**
      * Extrapolate track to a position along the x-axis. Turn the track into a
      * helix object in order to use HelixUtils.
@@ -204,8 +203,8 @@ public class TrackUtils {
         //System.out.println("Orig  :  d0 = " + params[HelicalTrackFit.dcaIndex] + "; phi0 = " + params[HelicalTrackFit.phi0Index] + "; curvature = " + params[HelicalTrackFit.curvatureIndex] + "; z0 = " + params[HelicalTrackFit.z0Index] + "; slope = " + params[HelicalTrackFit.slopeIndex]);
 
         //ok, now shift these to the new reference frame, recalculating the new perigee parameters        
-        double[] oldReferencePoint = { point.x(), point.y(), 0 };
-        double[] newReferencePoint = { 0, 0, 0 };
+        double[] oldReferencePoint = {point.x(), point.y(), 0};
+        double[] newReferencePoint = {0, 0, 0};
 
         //System.out.println("MC origin : x = " + point.x() + "; y = " + point.y() + ";  z = " + point.z());
         double[] newParameters = getParametersAtNewRefPoint(newReferencePoint, oldReferencePoint, params);
@@ -609,14 +608,64 @@ public class TrackUtils {
 
     public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, double stepSize) {
         BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtLast(trk);
-        if (ts != null) {
+        if (ts != null)
             return getTrackExtrapAtEcalRK(ts, fM, stepSize);
-        }
         return null;
     }
 
     public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM) {
         return getTrackExtrapAtEcalRK(trk, fM, 0);
+    }
+
+    /**
+     * Get track extrapolation to hodoscope layers
+     *
+     */
+    public static BaseTrackState getTrackExtrapAtHodoRK(TrackState ts, FieldMap fM, int hodoLayer) {
+        return getTrackExtrapAtHodoRK(ts, fM, 0, hodoLayer);
+    }
+
+    public static BaseTrackState getTrackExtrapAtHodoRK(TrackState ts, FieldMap fM, double stepSize, int hodoLayer) {
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
+        double distZHodo = BeamlineConstants.HODO_L1_ZPOS;
+        int hodoTrackStateIndex = 0;
+        if (hodoLayer == 2)
+            distZHodo = BeamlineConstants.HODO_L2_ZPOS; //            hodoTrackStateIndex = 7;
+        double distanceZ = distZHodo - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        double charge = -1.0 * Math.signum(getR(ts));
+
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
+
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != distZHodo) {
+            Hep3Vector mom = RKresults.getSecondElement();
+            double dz = distZHodo - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        bts.setReferencePoint(finalPos.v());
+        bts.setLocation(hodoTrackStateIndex);
+        return bts;
+    }
+
+    public static BaseTrackState getTrackExtrapAtHodoRK(Track trk, FieldMap fM, double stepSize, int hodoLayer) {
+        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtLast(trk);
+        if (ts != null)
+            return getTrackExtrapAtHodoRK(ts, fM, stepSize, hodoLayer);
+        return null;
+    }
+
+    public static BaseTrackState getTrackExtrapAtHodoRK(Track trk, FieldMap fM, int hodoLayer) {
+        return getTrackExtrapAtHodoRK(trk, fM, 0, hodoLayer);
     }
 
     /**
@@ -879,7 +928,7 @@ public class TrackUtils {
     }
 
     public static int[] getHitsInTopBottom(Track track) {
-        int n[] = { 0, 0 };
+        int n[] = {0, 0};
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
         for (TrackerHit hit : hitsOnTrack) {
             HelicalTrackHit hth = (HelicalTrackHit) hit;
@@ -1042,7 +1091,7 @@ public class TrackUtils {
     }
 
     public static int passTrackSelections(Track track, List<Track> tracklist, EventQuality.Quality trk_quality) {
-        int cuts[] = { 0 };
+        int cuts[] = {0};
         if (trk_quality.compareTo(Quality.NONE) != 0) {
             if (track.getTrackStates().get(0).getMomentum()[0] < EventQuality.instance().getCutValue(EventQuality.Cut.PZ, trk_quality))
                 cut(cuts, EventQuality.Cut.PZ);
@@ -1137,8 +1186,8 @@ public class TrackUtils {
         if (track.getClass().isInstance(SeedTrack.class))
             return ((SeedTrack) track).getSeedCandidate().getHelix();
         else {
-            double[] chisq = { track.getChi2(), 0 };
-            int[] ndf = { track.getNDF(), 0 };
+            double[] chisq = {track.getChi2(), 0};
+            int[] ndf = {track.getNDF(), 0};
             TrackState ts = track.getTrackStates().get(0);
             double par[] = ts.getParameters();
             SymmetricMatrix cov = new SymmetricMatrix(5, ts.getCovMatrix(), true);
@@ -1218,15 +1267,15 @@ public class TrackUtils {
         // first make the HelicalTrackFit Object
         double[] covArray = trkState.getCovMatrix();
         SymmetricMatrix cov = new SymmetricMatrix(5, covArray, true);
-        double[] chisq = { track.getChi2(), 0 };
-        int[] ndf = { track.getNDF(), 0 };
+        double[] chisq = {track.getChi2(), 0};
+        int[] ndf = {track.getNDF(), 0};
         Map<HelicalTrackHit, Double> smap = new HashMap<>(); // just leave these
         // empty
         Map<HelicalTrackHit, MultipleScatter> msmap = new HashMap<>();// just
         // leave
         // these
         // empty
-        double[] pars = { trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda() };
+        double[] pars = {trkState.getD0(), trkState.getPhi(), trkState.getOmega(), trkState.getZ0(), trkState.getTanLambda()};
         HelicalTrackFit htf = new HelicalTrackFit(pars, cov, chisq, ndf, smap, msmap);
         // now get the hits and make them helicaltrackhits
         List<TrackerHit> rth = track.getTrackerHits();
@@ -1262,10 +1311,11 @@ public class TrackUtils {
 
     private static Pair<EventHeader, RelationalTable> hitToStripsCache = null;
 
-    public static RelationalTable getHitToStripsTable(EventHeader event) {
+    public static RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
         if (hitToStripsCache == null || hitToStripsCache.getFirst() != event) {
             RelationalTable hitToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+            //List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+            List<LCRelation> hitrelations = event.get(LCRelation.class, HelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : hitrelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                     hitToStrips.add(relation.getFrom(), relation.getTo());
@@ -1273,10 +1323,14 @@ public class TrackUtils {
         }
         return hitToStripsCache.getSecond();
     }
+    
+    public static RelationalTable getHitToStripsTable(EventHeader event) {
+        return getHitToStripsTable(event,"HelicalTrackHitRelations");
+    }
 
     private static Pair<EventHeader, RelationalTable> hitToRotatedCache = null;
 
-    public static RelationalTable getHitToRotatedTable(EventHeader event) {
+    public static RelationalTable getHitToRotatedTable(EventHeader event, String RotatedHelicalTrackHitRelationsCollectionName) {
         //        if (hitToRotatedCache != null)
         //            System.out.println("getHitToRotatedTable:  Already have a hitToRotatedCache");
         //        if (hitToRotatedCache != null && hitToRotatedCache.getFirst() == event)
@@ -1285,16 +1339,20 @@ public class TrackUtils {
         if (hitToRotatedCache == null || hitToRotatedCache.getFirst() != event) {
             //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+            //List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+            List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : rotaterelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                     //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
                     hitToRotated.add(relation.getFrom(), relation.getTo());
-                }
             hitToRotatedCache = new Pair<EventHeader, RelationalTable>(event, hitToRotated);
         }
         //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
         return hitToRotatedCache.getSecond();
+    }
+    
+    public static RelationalTable getHitToRotatedTable(EventHeader event) {
+        return getHitToRotatedTable(event, "RotatedHelicalTrackHitRelations");
     }
 
     public static double getTrackTime(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
@@ -1320,9 +1378,8 @@ public class TrackUtils {
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
-        for (TrackerHit hit : track.getTrackerHits()) {
+        for (TrackerHit hit : track.getTrackerHits())
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
-        }
 
         return hits;
     }
@@ -1333,7 +1390,7 @@ public class TrackUtils {
         return hitList;
     }
 
-    private static class LayerComparator implements Comparator<TrackerHit> {
+    public static class LayerComparator implements Comparator<TrackerHit> {
 
         @Override
         public int compare(TrackerHit o1, TrackerHit o2) {
@@ -1471,7 +1528,7 @@ public class TrackUtils {
     }
 
     public static Double[] getIsolations(Track trk, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        return getIsolations(trk, hitToStrips, hitToRotated, 6);
+        return getIsolations(trk, hitToStrips, hitToRotated, 7);
     }
 
     /**
@@ -1671,6 +1728,20 @@ public class TrackUtils {
         return getTrackStateAtLocation(trk, TrackState.AtCalorimeter);
     }
 
+    public static TrackState getTrackStateAtHodoL1(Track trk) {
+        for (TrackState state : trk.getTrackStates())
+            if (state.getReferencePoint()[0] == BeamlineConstants.HODO_L1_ZPOS)
+                return state;
+        return null;
+    }
+
+    public static TrackState getTrackStateAtHodoL2(Track trk) {
+        for (TrackState state : trk.getTrackStates())
+            if (state.getReferencePoint()[0] == BeamlineConstants.HODO_L2_ZPOS)
+                return state;
+        return null;
+    }
+
     public static Hep3Vector getBField(Detector detector) {
         return detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0));
     }
@@ -1741,4 +1812,48 @@ public class TrackUtils {
         }
         return electrodes.getGlobalToLocal().transformed(trkpos);
     }
+    
+     /**
+     *
+     */
+    public static boolean detectorElementContainsPoint(Hep3Vector trackPosition, DetectorElement sensor,double tolerance) {
+        boolean debug = false;
+        
+        ITransform3D localToGlobal = sensor.getGeometry().getLocalToGlobal();
+
+        Box sensorSolid = (Box) sensor.getGeometry().getLogicalVolume().getSolid();
+        Polygon3D sensorFace = sensorSolid.getFacesNormalTo(new BasicHep3Vector(0, 0, 1)).get(0);
+
+        List<Point3D> vertices = new ArrayList<Point3D>();
+        for (Point3D vertex : sensorFace.getVertices()) {
+            localToGlobal.transform(vertex);
+            vertices.add(new Point3D(vertex.x(), vertex.y(), trackPosition.z()));
+        }
+
+        Point3D trackPositionPoint = new Point3D(trackPosition);
+        Polygon3D transformedSensorFace;
+        try {
+            transformedSensorFace = new Polygon3D(vertices);
+        } catch (RuntimeException ex) {
+            return false;
+        }
+
+        if (debug) {
+            System.out.println("sensorContainsTrack:  Vertex 1 Position: " + vertices.get(0).toString());
+            System.out.println("sensorContainsTrack:  Vertex 2 Position: " + vertices.get(1).toString());
+            System.out.println("sensorContainsTrack:  Vertex 3 Position: " + vertices.get(2).toString());
+            System.out.println("sensorContainsTrack:  Vertex 4 Position: " + vertices.get(3).toString());
+            System.out.println("sensorContainsTrack:  Track Position: " + trackPositionPoint.toString());
+
+            System.out.printf("Track-to-vertex Position: %f \n", GeomOp3D.distanceBetween(trackPositionPoint, transformedSensorFace));
+        }
+        double distance=GeomOp3D.distanceBetween(trackPositionPoint, transformedSensorFace);
+        return (Math.abs(distance) < tolerance);
+        //return GeomOp3D.intersects(trackPositionPoint, transformedSensorFace);
+    }
+    
+    public static boolean detectorElementContainsPoint(Hep3Vector trackPosition, DetectorElement sensor){
+        return detectorElementContainsPoint( trackPosition,  sensor,0.0);
+    }
+    
 }

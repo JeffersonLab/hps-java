@@ -2,7 +2,7 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2016-Pass2" />
-    <generator name="lcsim" version="1.0" file="/afs/slac.stanford.edu/u/ey/ngraf/git/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2/compact.xml" checksum="2355829838" />
+    <generator name="lcsim" version="1.0" file="/work/slac/hps-java/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2/compact.xml" checksum="2957538520" />
     <author name="NONE" />
     <comment>HPS detector for 2016 Physics Run with correctly unfolded 2.3GeV field Uses SVT mechanical survey, SVT opening angle corrections plus millepede internal alignment. Global +1 mm shift in y Correction on top and bottom Layers 1-3 opening angle Millepede internal alignment (iterations: 3-4-5TB tu + 2TB tu + 3-4TB tu + 3-4TB rw +1-6TB tu + 3-4TB tu+rw) Corresponds to version #31</comment>
   </header>
@@ -17,6 +17,15 @@
       <idfield signed="false" label="strip" length="12" start="34" />
     </idspec>
     <idspec name="TrackerHits" length="46">
+      <idfield signed="false" label="system" length="6" start="0" />
+      <idfield signed="false" label="barrel" length="3" start="6" />
+      <idfield signed="false" label="layer" length="4" start="9" />
+      <idfield signed="false" label="module" length="12" start="13" />
+      <idfield signed="false" label="sensor" length="1" start="25" />
+      <idfield signed="true" label="side" length="2" start="32" />
+      <idfield signed="false" label="strip" length="12" start="34" />
+    </idspec>
+    <idspec name="TrackerHits_Inactive" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
       <idfield signed="false" label="layer" length="4" start="9" />
@@ -44,6 +53,9 @@
   <sensitive_detectors>
     <tracker name="Tracker" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits">
       <idspecref ref="TrackerHits" />
+    </tracker>
+    <tracker name="TrackerHits_Inactive_det" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHits_Inactive">
+      <idspecref ref="TrackerHits_Inactive" />
     </tracker>
     <tracker name="ECalScoring" ecut="0.0" eunit="MeV" verbose="0" hits_collection="TrackerHitsECal">
       <idspecref ref="TrackerHitsECal" />
@@ -2281,6 +2293,7 @@
           <rotationref ref="module_L1b_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L1b_halfmodule_axial_lamination_volume">
@@ -2342,6 +2355,7 @@
           <rotationref ref="module_L1b_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L1b_halfmodule_stereo_lamination_volume">
@@ -2403,6 +2417,7 @@
           <rotationref ref="module_L1t_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L1t_halfmodule_axial_lamination_volume">
@@ -2464,6 +2479,7 @@
           <rotationref ref="module_L1t_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L1t_halfmodule_stereo_lamination_volume">
@@ -2525,6 +2541,7 @@
           <rotationref ref="module_L2b_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L2b_halfmodule_axial_lamination_volume">
@@ -2586,6 +2603,7 @@
           <rotationref ref="module_L2b_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L2b_halfmodule_stereo_lamination_volume">
@@ -2647,6 +2665,7 @@
           <rotationref ref="module_L2t_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L2t_halfmodule_axial_lamination_volume">
@@ -2708,6 +2727,7 @@
           <rotationref ref="module_L2t_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L2t_halfmodule_stereo_lamination_volume">
@@ -2769,6 +2789,7 @@
           <rotationref ref="module_L3b_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L3b_halfmodule_axial_lamination_volume">
@@ -2830,6 +2851,7 @@
           <rotationref ref="module_L3b_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L3b_halfmodule_stereo_lamination_volume">
@@ -2891,6 +2913,7 @@
           <rotationref ref="module_L3t_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L3t_halfmodule_axial_lamination_volume">
@@ -2952,6 +2975,7 @@
           <rotationref ref="module_L3t_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L3t_halfmodule_stereo_lamination_volume">
@@ -3013,6 +3037,7 @@
           <rotationref ref="module_L4b_halfmodule_axial_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4b_halfmodule_axial_hole_lamination_volume">
@@ -3052,6 +3077,7 @@
           <rotationref ref="module_L4b_halfmodule_axial_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4b_halfmodule_axial_slot_lamination_volume">
@@ -3091,6 +3117,7 @@
           <rotationref ref="module_L4b_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4b_halfmodule_stereo_hole_lamination_volume">
@@ -3130,6 +3157,7 @@
           <rotationref ref="module_L4b_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4b_halfmodule_stereo_slot_lamination_volume">
@@ -3169,6 +3197,7 @@
           <rotationref ref="module_L4t_halfmodule_axial_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4t_halfmodule_axial_hole_lamination_volume">
@@ -3208,6 +3237,7 @@
           <rotationref ref="module_L4t_halfmodule_axial_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4t_halfmodule_axial_slot_lamination_volume">
@@ -3247,6 +3277,7 @@
           <rotationref ref="module_L4t_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4t_halfmodule_stereo_hole_lamination_volume">
@@ -3286,6 +3317,7 @@
           <rotationref ref="module_L4t_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L4t_halfmodule_stereo_slot_lamination_volume">
@@ -3325,6 +3357,7 @@
           <rotationref ref="module_L5b_halfmodule_axial_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5b_halfmodule_axial_hole_lamination_volume">
@@ -3364,6 +3397,7 @@
           <rotationref ref="module_L5b_halfmodule_axial_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5b_halfmodule_axial_slot_lamination_volume">
@@ -3403,6 +3437,7 @@
           <rotationref ref="module_L5b_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5b_halfmodule_stereo_hole_lamination_volume">
@@ -3442,6 +3477,7 @@
           <rotationref ref="module_L5b_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5b_halfmodule_stereo_slot_lamination_volume">
@@ -3481,6 +3517,7 @@
           <rotationref ref="module_L5t_halfmodule_axial_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5t_halfmodule_axial_hole_lamination_volume">
@@ -3520,6 +3557,7 @@
           <rotationref ref="module_L5t_halfmodule_axial_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5t_halfmodule_axial_slot_lamination_volume">
@@ -3559,6 +3597,7 @@
           <rotationref ref="module_L5t_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5t_halfmodule_stereo_hole_lamination_volume">
@@ -3598,6 +3637,7 @@
           <rotationref ref="module_L5t_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L5t_halfmodule_stereo_slot_lamination_volume">
@@ -3637,6 +3677,7 @@
           <rotationref ref="module_L6b_halfmodule_axial_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6b_halfmodule_axial_hole_lamination_volume">
@@ -3676,6 +3717,7 @@
           <rotationref ref="module_L6b_halfmodule_axial_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6b_halfmodule_axial_slot_lamination_volume">
@@ -3715,6 +3757,7 @@
           <rotationref ref="module_L6b_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6b_halfmodule_stereo_hole_lamination_volume">
@@ -3754,6 +3797,7 @@
           <rotationref ref="module_L6b_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6b_halfmodule_stereo_slot_lamination_volume">
@@ -3793,6 +3837,7 @@
           <rotationref ref="module_L6t_halfmodule_axial_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6t_halfmodule_axial_hole_lamination_volume">
@@ -3832,6 +3877,7 @@
           <rotationref ref="module_L6t_halfmodule_axial_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6t_halfmodule_axial_slot_lamination_volume">
@@ -3871,6 +3917,7 @@
           <rotationref ref="module_L6t_halfmodule_stereo_hole_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6t_halfmodule_stereo_hole_lamination_volume">
@@ -3910,6 +3957,7 @@
           <rotationref ref="module_L6t_halfmodule_stereo_slot_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
+        <sdref ref="TrackerHits_Inactive_det" />
         <visref ref="SensorVis" />
       </volume>
       <volume name="module_L6t_halfmodule_stereo_slot_lamination_volume">

@@ -48,12 +48,12 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     /**
      * EVIO processor for extracting EPICS data.
      */
-    private final EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
+    protected final EpicsEvioProcessor epicsProcessor = new EpicsEvioProcessor();
 
     /**
      * EVIO processor for extracting scaler data.
      */
-    private final ScalersEvioProcessor scalerProcessor = new ScalersEvioProcessor();
+    protected final ScalersEvioProcessor scalerProcessor = new ScalersEvioProcessor();
 
     /**
      * Writes event flags describing the SVT state.
@@ -63,7 +63,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     /**
      * Reads trigger config.
      */
-    private TriggerConfigEvioReader triggerConfigReader = null;
+    protected TriggerConfigEvioReader triggerConfigReader = null;
 
     /**
      * Modulus of TI timestamp offset (units of nanoseconds).
@@ -102,7 +102,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
     public void conditionsChanged(final ConditionsEvent conditionsEvent) {
 
         super.conditionsChanged(conditionsEvent);
-        svtEventFlagger.initialize();
+        if(svtEventFlagger !=null) svtEventFlagger.initialize();
 
         // Set TI time offset from run database.
         currentTiTimeOffset = Long.valueOf(0);
@@ -183,7 +183,7 @@ public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error reading VTP bank", e);
         }
-
+        
         // Make SVT RawTrackerHits.
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);

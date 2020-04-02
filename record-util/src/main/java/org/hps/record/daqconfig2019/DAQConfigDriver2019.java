@@ -1,0 +1,258 @@
+package org.hps.record.daqconfig2019;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.lcsim.event.EventHeader;
+import org.lcsim.util.Driver;
+
+/**
+ * Class <code>DAQConfigDriver2019</code> is responsible for accessing the 2019
+ * DAQ configuration settings, and then passing them to the associated
+ * class <code>ConfigurationManager2019</code> so that they can be accessed
+ * by other classes.<br/>
+ * <br/>
+ * The driver may accomplish this by two means. By default, it will
+ * check each event for an <code>EvioDAQParser2019</code> object which
+ * contains all of the DAQ configuration information and pass this to
+ * the <code>ConfigurationManager2019</code>. It will continue to update
+ * the <code>ConfigurationManager2019</code> during the run if new parser
+ * objects appear, and can thusly account for changing DAQ conditions.
+ * <br/><br/>
+ * The driver may also be set to read a DAQ configuration from text
+ * files containing the DAQ configuration bank information. To enable
+ * this mode, the parameter <code>readDataFiles</code> must be set to
+ * <code>true</code> and the parameters <code>runNumber</code> and also
+ * <code>filepath</code> must be defined. <code>runNumber</code> defines
+ * the run number of the configuration to be loaded and the parameter
+ * <code>filepath</code> defines the location of the data file repository.
+ * <br/><br/>
+ * This driver must be included in the driver chain if any other drivers
+ * in the chain rely on <code>ConfigurationManager2019</code>, as it can
+ * not be initialized otherwise.
+ * 
+ * Code is developed referring to org.hps.record.daqconfig.DAQConfigDriver by Kyle McCarty
+ *
+ * @author Tongtong Cao <caot@jlab.org>
+ * @see ConfigurationManager2019
+ */
+public class DAQConfigDriver2019 extends Driver {
+    private int runNumber = -1;
+    private String filepath = null;
+    private boolean firstEvent = true;
+    private boolean readDataFiles = false;
+    private File[] dataFiles = new File[2];
+    private int[] crateNumber = { 37, 39 };
+    
+    /**
+     * Verifies the parameter <code>filepath</code> for the data file
+     * repository and checks that appropriate data files exist for the
+     * requested run number if the driver is set to read from data files.
+     * Otherwise, this does nothing.
+     */
+    @Override
+    public void startOfData() {
+        // Check whether to use stored data files or the EvIO data stream
+        // as the source of the DAQ settings. Nothing needs to be done
+        // in the latter case.
+        if(readDataFiles) {
+            // The user must define a data file prefix and repository
+            // location for this option to be used.
+            if(filepath == null) {
+                throw new NullPointerException("DAQ settings repository filepath must be defined.");
+            } 
+            if(runNumber == -1) {
+                throw new NullPointerException("Run number must be defined.");
+            }
+            
+            // Verify that the repository actually exist.
+            File repository = new File(filepath);
+            if(!repository.exists() || !repository.isDirectory()) {
+                throw new IllegalArgumentException("Repository location \"" + filepath + "\" must be an existing directory.");
+            }
+            
+            // Define the data file objects.
+            for(int i = 0; i < dataFiles.length; i++) {
+                try {
+                    dataFiles[i] = new File(repository.getCanonicalPath() + "/" + runNumber + "_" + crateNumber[i] + ".txt");
+                } catch(IOException e) {
+                    throw new RuntimeException("Error resolving absolute repository filepath.");
+                }
+            }
+            
+            // Verify that the data files actually exist.
+            for(File dataFile : dataFiles) {
+                if(!dataFile.exists() || !dataFile.canRead()) {
+                    throw new IllegalArgumentException("Data file \"" + dataFile.getName() + "\" does not exist or can not be read.");
+                }
+            }
+        }
+    }
+    
+    /**
+     * Checks an event for the DAQ configuration banks and passes them
+     * to the <code>ConfigurationManager2019</code> if the driver is set to
+     * read from the EvIO data stream. Otherwise, this will parse the
+     * data files on the first event and then do nothing.
+     * @param event - The current LCIO event.
+     */
+    @Override
+    public void process(EventHeader event) {
+        // If this is the first event and data files are to be read,
+        // import the data files and generate the DAQ information.
+        if(firstEvent && readDataFiles) {
+            // Get the data files in the form of a data array.
+            String[][] data;
+            try { data = getDataFileArrays(dataFiles); }
+            catch(IOException e) {
+                throw new RuntimeException("An error occurred when processing the data files.");
+            }
+            
+            // Instantiate an EvIO DAQ parser and feed it the data.
+            EvioDAQParser2019 daqConfig = new EvioDAQParser2019();
+            for(int i = 0; i < dataFiles.length; i++) {
+                daqConfig.parse(crateNumber[i], runNumber, data[i]);
+            }
+            
+            // Update the configuration manager.
+            ConfigurationManager2019.updateConfiguration(daqConfig);
+        }
+        
+        // Check if a trigger configuration bank exists.
+        if(!readDataFiles && event.hasCollection(EvioDAQParser2019.class, "TriggerConfig")) {
+            // Get the trigger configuration bank. There should only be
+            // one in the list.
+            List<EvioDAQParser2019> configList = event.get(EvioDAQParser2019.class, "TriggerConfig");
+            EvioDAQParser2019 daqConfig = configList.get(0);
+            
+            // Get the DAQ configuration and update it with the new
+            // configuration object.
+            ConfigurationManager2019.updateConfiguration(daqConfig);
+        }
+        
+        // Note that it is no longer the first event.
+        firstEvent = false;
+    }
+    
+    /**
+     * Converts DAQ configuration data files into an array of strings
+     * where each array entry represents a line in the configuration
+     * file. The first array index of the returned object corresponds
+     * to the file, and the second array index corresponds to the line.
+     * @param dataFiles - An array of <code>File</code> objects pointing
+     * to the data files that are to be converted. These are expected
+     * to be plain text files.
+     * @return Returns a two-dimensional array of <code>String</code>
+     * objects where the first array index corresponds to the object
+     * of the same index in the <code>File</code> array and the second
+     * array index corresponds to the lines in the file referenced by
+     * the <code>File</code> object.
+     * @throws IOException Occurs if there is an issue with accessing
+     * or reading the objects in the objects referred to by the files
+     * pointed to in the <code>dataFiles</code> array.
+     */
+    private static final String[][] getDataFileArrays(File[] dataFiles) throws IOException {
+        // Create file readers to process the data files.
+        FileReader[] fr = new FileReader[dataFiles.length];
+        BufferedReader[] reader = new BufferedReader[dataFiles.length];
+        for(int i = 0; i < dataFiles.length; i++) {
+            fr[i] = new FileReader(dataFiles[i]);
+            reader[i] = new BufferedReader(fr[i]);
+        }
+        
+        // Convert the reader streams into line-delimited strings.
+        String[][] data = getDataFileArrays(reader);
+        
+        // Close the readers.
+        for(int i = 0; i < dataFiles.length; i++) {
+            reader[i].close();
+            fr[i].close();
+        }
+        
+        // Return the data array.
+        return data;
+    }
+    
+    /**
+     * Converts DAQ configuration data streams into an array of strings
+     * where each array entry represents a line in the configuration
+     * file. The first array index of the returned object corresponds
+     * to the stream, and the second array index corresponds to the line.
+     * @param reader - An array of <code>BufferedReader</code> objects
+     * containing DAQ trigger configuration crate data.
+     * @return Returns a two-dimensional array of <code>String</code>
+     * objects where the first array index corresponds to the object
+     * of the same index in the <code>BufferedReader</code> array and
+     * the second array index corresponds to the lines in the stream
+     * referenced by the <code>BufferedReader</code> object.
+     * @throws IOException Occurs if there is an issue with reading
+     * data stream.
+     */
+    protected static final String[][] getDataFileArrays(BufferedReader[] reader) throws IOException {
+        // Generate String arrays where each entry in the array is
+        // a line from the data file.
+        String[][] data = new String[reader.length][0];
+        for(int i = 0; i < reader.length; i++) {
+            // Create a list to hold the raw strings.
+            List<String> rawData = new ArrayList<String>();
+            
+            // Add each line from the current data file to the list
+            // as a single entry.
+            String curLine = null;
+            while((curLine = reader[i].readLine()) != null) {
+                rawData.add(curLine);
+            }
+            
+            // Convert the list into a String array.
+            data[i] = rawData.toArray(new String[rawData.size()]);
+        }
+        
+        // Return the data array.
+        return data;
+    }
+    
+    /**
+     * Gets the run number that the DAQConfigDriver is set to use. This
+     * will be <code>-1</code> in the event that the driver reads from
+     * an EvIO file.
+     * @return Returns the run number as an <code>int</code> primitive.
+     * Will return <code>-1</code> if the driver is set to read from an
+     * EvIO file.
+     */
+    protected final int getRunNumber() { return runNumber; }
+    
+    /**
+     * Sets the run number of the DAQ configuration being processed.
+     * This is only used when reading from data files.
+     * @param run - The run number of the data files to be used.
+     */
+    public void setRunNumber(int run) {
+        runNumber = run;
+    }
+    
+    /**
+     * Sets the location of the DAQ configuration data files. This is
+     * only used when reading from the data files.
+     * @param filepath - The file path of the data file repository.
+     */
+    public void setDataFileRepository(String filepath) {
+        this.filepath = filepath;
+    }
+    
+    /**
+     * Sets whether or not to read the DAQ configuration directly from
+     * the EvIO data stream or whether to read the configuration from
+     * data files. Parameters <code>runNumber</code> and <code>filepath</code>
+     * must also be defined if this is set to <code>true</code>.
+     * @param state - <code>true</code> indicates that the configuration
+     * should be read from data files, and <code>false</code> that it
+     * should be read from the EvIO stream.
+     */
+    public void setReadDataFiles(boolean state) {
+        readDataFiles = state;
+    }
+}

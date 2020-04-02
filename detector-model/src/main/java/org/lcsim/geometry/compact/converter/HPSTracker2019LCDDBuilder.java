@@ -10,6 +10,7 @@ import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.UCh
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.UChannelL46Top;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.UChannelL46TopPlate;
 import org.lcsim.geometry.compact.converter.HPSTracker2019GeometryDefinition.ShortModuleBundle;
+import org.lcsim.geometry.compact.converter.HPSTracker2019GeometryDefinition.ShortModuleBundleOneSensor;
 import org.lcsim.geometry.compact.converter.HPSTracker2019GeometryDefinition.UChannelL14Bottom;
 import org.lcsim.geometry.compact.converter.HPSTracker2019GeometryDefinition.UChannelL14BottomPlate;
 import org.lcsim.geometry.compact.converter.HPSTracker2019GeometryDefinition.UChannelL14Top;
@@ -189,10 +190,12 @@ public class HPSTracker2019LCDDBuilder extends HPSTracker2014v1LCDDBuilder {
      * @param mother - mother LCDD geometry object
      */
     protected void addModule(BaseModuleBundle bundle, LCDDSurveyVolume mother) {
-        if (bundle instanceof TestRunModuleBundle) {
-            addTestRunModule((TestRunModuleBundle) bundle, mother);
+        if (bundle instanceof ShortModuleBundleOneSensor) {
+            addShortModuleOneSensor((ShortModuleBundleOneSensor) bundle, mother);
         } else if (bundle instanceof ShortModuleBundle) {
             addShortModule((ShortModuleBundle) bundle, mother);
+        } else if (bundle instanceof TestRunModuleBundle) {
+            addTestRunModule((TestRunModuleBundle) bundle, mother);
         } else if (bundle instanceof LongModuleBundle) {
             addLongModule((LongModuleBundle) bundle, mother);
         } else {
@@ -221,6 +224,23 @@ public class HPSTracker2019LCDDBuilder extends HPSTracker2014v1LCDDBuilder {
             addLongHalfModule(bundle.halfModuleStereoHole, lcddM);
         if (bundle.halfModuleStereoSlot != null)
             addLongHalfModule(bundle.halfModuleStereoSlot, lcddM);
+    }
+    
+    protected void addShortModuleOneSensor(ShortModuleBundleOneSensor bundle, LCDDSurveyVolume mother) {
+        LCDDSurveyVolume lcddM = new LCDDGhostSurveyVolume(bundle.module, mother);
+        // LCDDSurveyVolume lcddM = new LCDDSurveyVolume(bundle.module, lcdd,
+        // mother);
+        add(lcddM);
+        if (bundle.halfModuleAxial != null)
+            addLongHalfModule(bundle.halfModuleAxial, lcddM);
+        //if (bundle.halfModuleAxialSlot != null)
+        //    addLongHalfModule(bundle.halfModuleAxialSlot, lcddM);
+        if (bundle.coldBlock != null)
+            add(new LCDDSurveyVolume(bundle.coldBlock, lcdd, lcddM));
+        if (bundle.halfModuleStereo != null)
+            addLongHalfModule(bundle.halfModuleStereo, lcddM);
+        //if (bundle.halfModuleStereoSlot != null)
+        //    addLongHalfModule(bundle.halfModuleStereoSlot, lcddM);
     }
 
     /**
