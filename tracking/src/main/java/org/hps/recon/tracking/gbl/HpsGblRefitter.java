@@ -297,6 +297,7 @@ public class HpsGblRefitter {
             return fittedTraj;
         }
         catch (RuntimeException e) {
+            e.printStackTrace();
             System.out.println("HpsGblFitter: Invalid GblTrajectory -> skip"); 
             return null;
         }
