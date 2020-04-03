@@ -885,7 +885,12 @@ class KalmanPatRecHPS {
             if (removeIt) {
                 TkrList.remove(tkr);
                 for (MeasurementSite site : tkr.SiteList) {
-                    site.m.hits.get(site.hitID).tracks.remove(tkr);
+                    if (site.hitID!=-1) {
+                        site.m.hits.get(site.hitID).tracks.remove(tkr);
+                    }
+                    else {
+                        System.out.format("KalmanPatRecHPS: Removing track from measurement site with hitID=-1. Skipping removal.");
+                    }
                     site.hitID = -1;
                 }
                 continue;
