@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.datacat.Site;
+import org.hps.util.Pair;
+
 // Track followed and fitted by the Kalman filter
 public class KalTrack {
     public int ID;
@@ -567,6 +570,34 @@ public class KalTrack {
         return true;
     }
 
+    // Returns the unbiased residual for the track at a given layer, together with the variance on that residual
+    Pair<Double,Double> unbiasedResidual(int layer) {
+        double resid = -999.;
+        double varResid = -999.;               
+        Vec aStar = null;
+        for (MeasurementSite site : SiteList) {
+            if (site.m.Layer == layer) {               
+                if (site.hitID >= 0) {
+                    double sigma = site.m.hits.get(site.hitID).sigma;
+                    SquareMatrix Cstar = new SquareMatrix(5);
+                    aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
+                    HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+                    Plane pTrans = site.m.p.toLocal(site.aS.Rot, site.aS.origin);
+                    double phiInt = hpi.planeIntersect(aStar, site.aS.X0, site.aS.alpha, pTrans);
+                    if (!Double.isNaN(phiInt)) {
+                        Vec intPnt = StateVector.atPhi(site.aS.X0, aStar, phiInt, site.aS.alpha);
+                        Vec globalInt = site.aS.toGlobal(intPnt);
+                        Vec localInt = site.m.toLocal(globalInt);
+                        resid = site.m.hits.get(site.hitID).v - localInt.v[1];
+                        varResid = sigma*sigma + site.H.dot(site.H.leftMultiply(Cstar));
+                        break;
+                    }
+                }
+            }
+        }        
+        return new Pair<Double,Double>(resid, varResid);
+    }
+    
     // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
     private double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];

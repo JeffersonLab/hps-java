@@ -10,6 +10,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.hps.util.Pair;
+
 //This is for testing only and is not part of the Kalman fitting code
 class HelixTest3 { // Program for testing the Kalman fitting code
 
@@ -25,7 +27,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 1000; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -271,6 +273,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         printWriter.close();
 
         // Test the helix propagation code
+        /*
         SquareMatrix startCov = new SquareMatrix(5);
         startCov.M[0][0] = drhoSigma*drhoSigma;
         startCov.M[1][1] = phi0Sigma*phi0Sigma;
@@ -331,6 +334,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         hdK.plot(path + "dKProp.gp", true, "gaus", " ");
         hdZ.plot(path + "dZProp.gp", true, "gaus", " ");
         hdTanl.plot(path + "dTanlProp.gp", true, "gaus", " ");
+        */
         
         Vec zhat = null;
         Vec uhat = null;
@@ -404,12 +408,16 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram[] hResidS4 = new Histogram[nLayers];
         Histogram[] hResidX = new Histogram[nLayers];
         Histogram[] hResidZ = new Histogram[nLayers];
+        Histogram[] hUnbias = new Histogram[nLayers];
+        Histogram[] hUnbiasSig = new Histogram[nLayers];
         for (int i = 0; i < nLayers; i++) {
             hResidS0[i] = new Histogram(100, -10., 0.2, String.format("Smoothed fit residual for plane %d", i), "sigmas", "hits");
             hResidS2[i] = new Histogram(100, -0.02, 0.0004, String.format("Smoothed fit residual for plane %d", i), "mm", "hits");
             hResidS4[i] = new Histogram(100, -0.1, 0.002, String.format("Smoothed true residual for plane %d", i), "mm", "hits");
             hResidX[i] = new Histogram(100, -0.8, 0.016, String.format("True residual in global X for plane %d", i), "mm", "hits");
             hResidZ[i] = new Histogram(100, -0.1, 0.002, String.format("True residual in global Z for plane %d", i), "mm", "hits");
+            hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plant %d", i), "mm", "hits");
+            hUnbiasSig[i] = new Histogram(100, -10., 0.2, String.format("Unbiased residuals for layer %d", i), "sigmas", "hits");
         }
 
         Instant timestamp = Instant.now();
@@ -778,6 +786,14 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     }
                 }
             }
+            for (int layer=0; layer < nLayers; ++layer) {
+                Pair<Double, Double> resid = KalmanTrack.unbiasedResidual(layer);
+                if (resid.getSecondElement() > 0.) {
+                    double sigma = Math.sqrt(resid.getSecondElement());
+                    hUnbias[layer].entry(resid.getFirstElement());
+                    hUnbiasSig[layer].entry(resid.getFirstElement()/sigma);
+                }
+            }
             for (MeasurementSite site : KalmanTrack.interceptVects.keySet()) {
                 Vec loc = KalmanTrack.interceptVects.get(site);
                 SiModule siM = site.m;
@@ -989,6 +1005,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             hResidS4[i].plot(path + String.format("residS4_%d.gp", i), true, "gaus", " ");
             hResidX[i].plot(path + String.format("residX_%d.gp", i), true, "gaus", " ");
             hResidZ[i].plot(path + String.format("residZ_%d.gp", i), true, "gaus", " ");
+            hUnbias[i].plot(path + String.format("residUnbiased1_%d.gp", i), true, "gaus", " ");
+            hUnbiasSig[i].plot(path + String.format("residUnbiased2_%d.gp", i), true, "gaus", " ");
         }
     }
     /*

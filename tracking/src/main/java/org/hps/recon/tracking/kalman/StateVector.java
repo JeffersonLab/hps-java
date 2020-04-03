@@ -307,18 +307,24 @@ class StateVector {
     }
 
     // Modify the state vector by removing the hit information
-    void inverseFilter(Vec H, double V) {
+    Vec inverseFilter(Vec H, double V, SquareMatrix Cnew) {
         double denom = -V + H.dot(H.leftMultiply(C));
         Vec Kstar = H.leftMultiply(C).scale(1.0 / denom); // Kalman gain matrix
+
+        Vec aNew = a.sum(Kstar.scale(r));
+        SquareMatrix U = new SquareMatrix(5, 1.0);
+        SquareMatrix Cstar = (U.dif(Kstar.product(H))).multiply(C);
         if (verbose) {
             System.out.format("StateVector.inverseFilter: V=%12.4e,  denom=%12.4e\n", V, denom);
             Kstar.print("Kalman gain matrix in StateVector.inverseFilter");
             H.print("matrix H in StateVector.inverseFilter");
+            a.print("old helix");
+            aNew.print(" new helix in StateVector.inverseFilter");
+            C.print("old covariance");
+            Cnew.print(" new covariance in StateVector.inverseFilter");
         }
-
-        a = a.sum(Kstar.scale(r));
-        SquareMatrix U = new SquareMatrix(5, 1.0);
-        C = (U.dif(Kstar.product(H))).multiply(C);
+        Cnew.M = Cstar.M;
+        return aNew;
     }
 
     // Create a smoothed state vector from the filtered state vector

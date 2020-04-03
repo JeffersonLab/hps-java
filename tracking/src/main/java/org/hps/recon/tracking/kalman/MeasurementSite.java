@@ -312,7 +312,7 @@ class MeasurementSite {
                     System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
                 }
 
-                aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma + H.dot(H.leftMultiply(aP.C));
+                aP.R = m.hits.get(theHit).sigma * m.hits.get(theHit).sigma + H.dot(H.leftMultiply(aP.C));
                 if (verbose) {
                     H.print("H in MeasurementSite.makePrediction");
                     Vec H2 = new Vec(5, buildH(pS));
