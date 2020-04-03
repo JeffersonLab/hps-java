@@ -40,7 +40,7 @@ class KalmanPatRecHPS {
     private boolean verbose;
     private int nModules;
     private KalmanParams kPar;
-
+    
     KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, KalmanParams kPar, boolean verbose) {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         this.topBottom = topBottom;
@@ -122,7 +122,8 @@ class KalmanPatRecHPS {
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
             for (int[] list : kPar.lyrList[topBottom]) {
                 int nLyrs = list.length;
-                int originLyr = 2;
+                //PF::This value is OK for 2016, what about 2019 (probably should be 0) ?!!
+                int originLyr = 2;    
                 if (moduleList.get(list[originLyr]).size() == 0) continue;
                 SiModule m0 = moduleList.get(list[2]).get(0);
                 double yOrigin = m0.p.X().v[1];
@@ -169,19 +170,38 @@ class KalmanPatRecHPS {
                                     if (!seed.success) continue;
                                     // Cuts on the seed quality
                                     Vec hp = seed.helixParams();
+                                    Vec pInt = seed.planeIntersection(p0);
+                                    
                                     if (verbose) {
                                         System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f, tanl=%10.5f, dxz=%10.5f   ",
-                                                idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], hp.v[4], seed.planeIntersection(p0).mag());
+                                                          idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], hp.v[4], pInt.mag());
                                     }
+                                    
+                                    boolean seed_passes_cuts = false;
+                                    
                                     if (Math.abs(hp.v[2]) < kPar.kMax[trial]) {
                                         if (Math.abs(hp.v[4]) < kPar.tanlMax[trial]) {
-                                            Vec pInt = seed.planeIntersection(p0);
-                                            if (verbose) System.out.format("intersection with target plane= %9.3f %9.3f %9.3f", pInt.v[0],
-                                                    pInt.v[1], pInt.v[2]);
+                                            if (verbose) 
+                                                System.out.format("intersection with target plane= %9.3f %9.3f %9.3f \n", pInt.v[0],
+                                                                  pInt.v[1], pInt.v[2]);
                                             if (pInt.mag() < kPar.dRhoMax[trial]) {
-                                                if (Math.abs(pInt.v[2]) < kPar.dzMax[trial]) seedList.add(seed);
-                                            }
+                                                if (Math.abs(pInt.v[2]) < kPar.dzMax[trial]) 
+                                                    seed_passes_cuts = true;
+                                                //seedList.add(seed);
+                                            }//Check intersection with target plane
+                                        }//Check tanLambda
+                                    }//Check curvature
+                                    
+                                    //Good seed; check for duplicates
+                                    if (seed_passes_cuts) {
+                                        boolean reject_seed = false;
+                                        for (SeedTrack sel_seed : seedList) {
+                                            reject_seed = seed.isCompatibleTo(sel_seed,kPar.seedCompThr);
+                                            if (reject_seed)
+                                                break;
                                         }
+                                        if (!reject_seed)
+                                            seedList.add(seed);
                                     }
                                     if (verbose) System.out.format("\n");
                                 }
@@ -189,6 +209,14 @@ class KalmanPatRecHPS {
                         }
                     }
                 }
+                
+                if (verbose) {
+                    System.out.printf("KalmanPatRecHPS::SeedList size = %d \n", seedList.size());
+                    //for (SeedTrack seed : seedList) {
+                    //  seed.print("PF::Check Seed");
+                    //}
+                }
+                
                 // Sort all of the seeds by distance from origin in x,z plane
                 Collections.sort(seedList, SeedTrack.dRhoComparator);
                 if (verbose) {
@@ -889,13 +917,18 @@ class KalmanPatRecHPS {
                 if (verbose) System.out.format("KalmanPatRecHPS: removing KalTrack %d for bad fit!\n", tkr.ID);
                 TkrList.remove(tkr);
                 for (MeasurementSite site : tkr.SiteList) {
-                    site.m.hits.get(site.hitID).tracks.remove(tkr);
+                    if (site.hitID!=-1) {
+                        site.m.hits.get(site.hitID).tracks.remove(tkr);
+                    }
+                    else {
+                        System.out.format("KalmanPatRecHPS: Removing track from measurement site with hitID=-1. Skipping removal.");
+                    }
                     site.hitID = -1;
                 }
                 continue;
             }
         }
-
+        
         Collections.sort(TkrList, KalTrack.TkrComparator); // Sort tracks by quality
         if (verbose) {
             System.out.format("\n\n Printing the list of tracks found for event %d, top-bottom=%d:\n", eventNumber, topBottom);

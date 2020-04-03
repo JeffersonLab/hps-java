@@ -73,6 +73,7 @@ public class KalmanPatRecDriver extends Driver {
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
+    private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
     
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
@@ -100,6 +101,10 @@ public class KalmanPatRecDriver extends Driver {
     
     public void setSiHitsLimit(int input) {
         siHitsLimit = input;
+    }
+    
+    public void setSeedCompThr(double thr) {
+        seedCompThr = thr;
     }
     
     @Override
@@ -146,6 +151,7 @@ public class KalmanPatRecDriver extends Driver {
         if (minChi2IncBad != 0.0) kPar.setMinChi2IncBad(minChi2IncBad);
         if (maxResidShare != 0.0) kPar.setMxResidShare(maxResidShare);
         if (maxChi2IncShare != 0.0) kPar.setMxChi2double(maxChi2IncShare);
+        if (seedCompThr != 0.0) kPar.setSeedCompThr(seedCompThr);
         
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are

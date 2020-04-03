@@ -375,13 +375,32 @@ class SeedTrack {
             Vec pInt1 = t1.planeIntersection(p0);
             Vec pInt2 = t2.planeIntersection(p0);
             double diff = pInt1.mag() - pInt2.mag();
-            if (diff > 0.) {
+            
+            //if (Math.abs(diff) < 1e-8) {
+            //  System.out.println("SeedTrack::WARNING::Probably duplicate seed.");
+            //}
+            
+            if (diff >= 0.) {
                 return 1;
             } else {
                 return -1;
             }
         }
     };
+
+    //Check if two seeds are compatible given a certain relative threshold
+    boolean isCompatibleTo(SeedTrack st, double rel_eps) {
+        Vec st_hp = st.helixParams();
+        boolean compatible = true;
+        for (int i=0; i<5; i++) {
+            if (Math.abs((st_hp.v[i] - hParm.v[i])/hParm.v[i]) > rel_eps) {
+                compatible = false;
+                break;
+            }
+        }
+        return compatible;
+    }
+    
 
     Vec planeIntersection(Plane p) {
         double arg = (K / alpha) * ((drho + (alpha / K)) * Math.sin(phi0) - (p.X().v[1] - yOrigin));
