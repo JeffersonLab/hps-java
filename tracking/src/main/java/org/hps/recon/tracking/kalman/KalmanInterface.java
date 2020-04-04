@@ -505,9 +505,10 @@ public class KalmanInterface {
         
         // other track properties
         newTrack.setChisq(kT.chi2);
+        newTrack.setNDF(kT.SiteList.size() - 5);
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
-
+        
         return newTrack;
     }
 
