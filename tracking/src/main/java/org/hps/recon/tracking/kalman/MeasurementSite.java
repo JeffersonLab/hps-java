@@ -1,6 +1,8 @@
 package org.hps.recon.tracking.kalman;
 
 import java.util.Comparator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //Kalman fit measurement site, one for each silicon-strip detector with hits
 class MeasurementSite {
@@ -23,42 +25,49 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     private boolean verbose;
-    private int verboseLevel;
+    private Logger logger;
     double B;
 
     // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
     // will never have a hit and thus will be handled the same as physical layers that lack hits
     
     void print(String s) {
+        System.out.format("%s", this.toString(s));
+    }
 
+    String toString(String s) {
+        String str;
         if (m.Layer < 0) {
-            System.out.format("\n****Dump of dummy measurement site %d %s;  ", thisSite, s);
+            str = String.format("\n****Dump of dummy measurement site %d %s;  ", thisSite, s);
         } else {
-            System.out.format("\n****Dump of measurement site %d %s;  ", thisSite, s);
+            str = String.format("\n****Dump of measurement site %d %s;  ", thisSite, s);
         }
         if (smoothed) {
-            System.out.format("    This site has been smoothed\n");
+            str=str+"    This site has been smoothed\n";
         } else if (filtered) {
-            System.out.format("    This site has been filtered\n");
-        } else if (predicted) { System.out.format("    This site has been predicted\n"); }
-        System.out.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, mxResid);
-        m.print("for this site");
+            str=str+"    This site has been filtered\n";
+        } else if (predicted) { 
+            str=str+"    This site has been predicted\n"; 
+        }
+        str=str+String.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, mxResid);
+        str = str + m.toString("for this site");
         double B = KalmanInterface.getField(m.p.X(), m.Bfield).mag();
         Vec tB = KalmanInterface.getField(m.p.X(), m.Bfield).unitVec();
-        System.out.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
-        tB.print("magnetic field direction");
-        System.out.format("    chi^2 increment=%12.4e\n", chi2inc);
-        System.out.format("    x scattering angle=%10.8f, y scattering angle=%10.8f\n", scatX(), scatZ());
-        if (predicted) aP.print("predicted");
-        if (filtered) aF.print("filtered");
-        if (smoothed) aS.print("smoothed");
-        if (H != null) H.print("matrix of the transformation from state vector to measurement");
-        System.out.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
+        str=str+String.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
+        str = str + tB.toString("magnetic field direction") + "\n";
+        str=str+String.format("    chi^2 increment=%12.4e\n", chi2inc);
+        str=str+String.format("    x scattering angle=%10.8f, y scattering angle=%10.8f\n", scatX(), scatZ());
+        if (predicted) str = str + aP.toString("predicted");
+        if (filtered) str = str + aF.toString("filtered");
+        if (smoothed) str = str + aS.toString("smoothed");
+        if (H != null) str = str + H.toString("matrix of the transformation from state vector to measurement");
+        str=str+String.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
         if (m.Layer < 0) {
-            System.out.format("End of dump of dummy measurement site %d<<\n", thisSite);
+            str=str+String.format("End of dump of dummy measurement site %d<<\n", thisSite);
         } else {
-            System.out.format("End of dump of measurement site %d<<\n", thisSite);
+            str=str+String.format("End of dump of measurement site %d<<\n", thisSite);
         }
+        return str;
     }
 
     MeasurementSite(int thisSite, SiModule data, double mxResid, double mxResidShare) {
@@ -66,6 +75,7 @@ class MeasurementSite {
         this.mxResid = mxResid;
         this.mxResidShare = mxResidShare;
         this.m = data;
+        logger = Logger.getLogger(MeasurementSite.class.getName());
         hitID = -1;
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
@@ -80,8 +90,7 @@ class MeasurementSite {
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
-        verbose = false;
-        verboseLevel = 0 ;
+        verbose = (logger.getLevel()==Level.FINEST);
     }
 
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
@@ -113,16 +122,15 @@ class MeasurementSite {
 
     int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds) {
         double [] dT = {-1000., 1000.};
-        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, dT, false);
+        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, dT);
     }
 
-    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, boolean verbose2) { // Create predicted state vector by propagating from previous site
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange) { // Create predicted state vector by propagating from previous site
         // pS = state vector that we are predicting from
         // mPS = Si module that we are predicting from, if any
         // tRange = allowed time range [tmin,tmax] for picking up a hit
         // sharingOK = whether to allow sharing of a hit between multiple tracks
         // pickup = whether we are doing pattern recognition here and need to pick up hits to add to the track
-        verbose = pS.verbose;
         int returnFlag = 0;
         double phi = pS.planeIntersect(m.p);
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
@@ -243,6 +251,7 @@ class MeasurementSite {
         }
 
         // Loop over hits and find the one that is closest, unless the hit has been specified
+        boolean verbose2 = (logger.getLevel()==Level.FINER);
         int nHits = m.hits.size();
         if (nHits > 0) {
             double minResid = 999.;
@@ -303,7 +312,7 @@ class MeasurementSite {
                     System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
                 }
 
-                aP.R = m.hits.get(0).sigma * m.hits.get(0).sigma + H.dot(H.leftMultiply(aP.C));
+                aP.R = m.hits.get(theHit).sigma * m.hits.get(theHit).sigma + H.dot(H.leftMultiply(aP.C));
                 if (verbose) {
                     H.print("H in MeasurementSite.makePrediction");
                     Vec H2 = new Vec(5, buildH(pS));
@@ -347,12 +356,7 @@ class MeasurementSite {
         return returnFlag; // -2 for extrapolation not within detector, -1 for error, 1 for a hit was used, 0 no hit used
     }
 
-    boolean filter() {
-        return filter(false);
-    }
-    
-    boolean filter(boolean verbose2) { // Produce the filtered state vector for this site
-
+    boolean filter() { // Produce the filtered state vector for this site
         if (!predicted) {
             System.out.format("******MeasurementSite.filter: Warning, this site is not in the correct state!\n");
         }
@@ -372,6 +376,7 @@ class MeasurementSite {
 
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
+        boolean verbose2 = (logger.getLevel()==Level.FINER);
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
             if (verbose2) {
                 System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists at layer %d detector %d\n", m.Layer, m.detector);
@@ -422,8 +427,7 @@ class MeasurementSite {
     // Inverse Kalman filter: remove this site from the smoothed track fit
     boolean removeHit(boolean verbose) {
         if (!smoothed) {
-            System.out.format("******MeasurementSite.removeHit: Warning, this site is not in the correct state!\n");
-            // this.print("in the wrong state for hit removal");
+            logger.log(Level.WARNING, "******MeasurementSite.removeHit: Warning, this site is not in the correct state!");
             return false;
         }
         if (hitID < 0) { return false; }
@@ -448,7 +452,7 @@ class MeasurementSite {
 
     Measurement addHit(KalTrack tkr, double cut, double mxTdif, int oldID) {
         if (aP == null) {
-            System.out.format("******MeasurementSite.addHit: Warning, this site is not in the correct state!\n");
+            logger.log(Level.WARNING, "******MeasurementSite.addHit: Warning, this site is not in the correct state!");
             // this.print("in the wrong state for hit addition");
             return null;
         }
@@ -511,14 +515,9 @@ class MeasurementSite {
 
     // Produce the smoothed state vector for this site
     boolean smooth(MeasurementSite nS) {
-        return smooth(nS, false);
-    }
-    
-    boolean smooth(MeasurementSite nS, boolean verbose2) {
         // nS is the next site in the filtering chain (i.e. the previous site that was smoothed)
-
         if (!filtered) {
-            System.out.format("******MeasurementSite.smooth: Warning, this site is not in the correct state!\n");
+            logger.log(Level.WARNING, "******MeasurementSite.smooth: Warning, this site is not in the correct state!");
             return false;
         }        
 
@@ -530,7 +529,7 @@ class MeasurementSite {
         double phiS = aS.planeIntersect(m.p);
 
         if (Double.isNaN(phiS)) { // This should almost never happen!
-            if (verbose) System.out.format("MeasurementSite.smooth: no intersection of helix with the plane exists.\n");
+            logger.log(Level.FINE, "MeasurementSite.smooth: no intersection of helix with the plane exists.");
             return false;
         }
         this.aS.mPred = this.h(aS, m, phiS);
@@ -550,9 +549,8 @@ class MeasurementSite {
 
         this.chi2inc = (this.aS.r * this.aS.r) / this.aS.R;
 
-        if (verbose2) {
-            System.out.format("  MeasurementSite.smooth: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%8.5f\n", hit.v, aS.mPred, aS.r, Math.sqrt(aS.R), chi2inc);
-        }
+        logger.log(Level.FINEST, String.format("  MeasurementSite.smooth: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%8.5f", 
+                hit.v, aS.mPred, aS.r, Math.sqrt(aS.R), chi2inc));
         this.smoothed = true;
         return true;
     }
@@ -560,7 +558,7 @@ class MeasurementSite {
     double h(StateVector pS, SiModule siM) {// Predict the measurement for a helix passing through this plane
         double phi = pS.planeIntersect(siM.p);
         if (Double.isNaN(phi)) {
-            System.out.format("MeasurementSite.h: warning, no intersection of helix with the plane exists.\n");
+            logger.log(Level.FINE, "MeasurementSite.h: warning, no intersection of helix with the plane exists.");
             phi = 0.;
         }
         return h(pS, siM, phi);
@@ -584,7 +582,7 @@ class MeasurementSite {
         double phi = S.planeIntersect(m.p);
 
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low, but highly unlikely here.
-            if (verbose) System.out.format("MeasurementSite.buildH: no intersection of helix with the plane exists.\n");
+            logger.log(Level.FINE, "MeasurementSite.buildH: no intersection of helix with the plane exists.");
             return HH;
         }
         if (verbose) {

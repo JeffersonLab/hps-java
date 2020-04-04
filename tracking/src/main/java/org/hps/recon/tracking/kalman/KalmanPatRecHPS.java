@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.util.Pair;
 
@@ -35,17 +37,20 @@ class KalmanPatRecHPS {
     private ArrayList<ArrayList<KalHit>> lyrHits;
     private ArrayList<ArrayList<SiModule>> moduleList;
     private Map<Measurement, KalHit> hitMap;
+    private ArrayList<Double> yScat;
 
     private int eventNumber;
     private boolean verbose;
     private int nModules;
     private KalmanParams kPar;
-    
-    KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, KalmanParams kPar, boolean verbose) {
+    private Logger logger;
+
+    KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, KalmanParams kPar) {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
+        logger = Logger.getLogger(KalmanPatRecHPS.class.getName());
         this.topBottom = topBottom;
         this.eventNumber = eventNumber;
-        this.verbose = verbose;
+        this.verbose = (logger.getLevel()==Level.FINER);
         this.kPar = kPar;
 
         TkrList = new ArrayList<KalTrack>();
@@ -73,6 +78,13 @@ class KalmanPatRecHPS {
                 hitMap.put(m, hit);
             }
             if (thisSi.hits.size() > 0) moduleList.get(thisSi.Layer).add(thisSi);
+        }
+        yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
+        for (int lyr = 0; lyr < numLayers; lyr++) {
+            if (moduleList.get(lyr).size() > 0) {
+                SiModule thisSi = moduleList.get(lyr).get(0);
+                yScat.add(thisSi.p.X().v[1]);
+            }
         }
         if (verbose) {
             for (ArrayList<KalHit> LL : lyrHits) {
@@ -263,7 +275,7 @@ class KalmanPatRecHPS {
                     SquareMatrix CovGuess = seed.covariance();
                     CovGuess.scale(1000.);
                     // Create an state vector from the input seed to initialize the Kalman filter
-                    StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot, false);
+                    StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot);
                     TrackCandidate candidateTrack = new TrackCandidate(candID, seed.hits, kPar.mxShared, kPar.mxTdif, hitMap, eventNumber);
                     candID++;
                     filterTrack(candidateTrack, list[0], numLayers - 1, sI, trial, true, true);
@@ -449,7 +461,7 @@ class KalmanPatRecHPS {
                     // Check if the track can be improved by removing hits
                     if (removeBadHits(candidateTrack, trial)) {
                         if (verbose) System.out.format("KalmanPatRecHPS: Refit candidate track %d after removing a hit.\n", candidateTrack.ID);
-                        if (candidateTrack.reFit(verbose)) {
+                        if (candidateTrack.reFit()) {
                             if (verbose) candidateTrack.print("after refitting and smoothing", false);
                         } else {
                             candidateTrack.good = false;
@@ -990,7 +1002,7 @@ class KalmanPatRecHPS {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
             } else {
-                currentSite.smooth(nextSite, verbose);
+                currentSite.smooth(nextSite);
             }
             filteredTkr.chi2s += Math.max(currentSite.chi2inc, 0.);
 
@@ -1078,8 +1090,7 @@ class KalmanPatRecHPS {
                 int rF;
                 double [] tRange = {tkrCandidate.tMax - kPar.mxTdif, tkrCandidate.tMin + kPar.mxTdif}; 
                 if (prevSite == null) { // For first layer use the initializer state vector                   
-                    rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, imod < moduleList.get(lyr).size() - 1,
-                            tRange, verbose);
+                    rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, imod < moduleList.get(lyr).size() - 1,tRange);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
                         tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
@@ -1103,7 +1114,7 @@ class KalmanPatRecHPS {
                     }
                 } else {
                     rF = newSite.makePrediction(prevSite.aF, prevSite.m, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp,
-                            imod < moduleList.get(lyr).size() - 1, tRange, verbose);
+                            imod < moduleList.get(lyr).size() - 1, tRange);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
                         tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
@@ -1127,7 +1138,7 @@ class KalmanPatRecHPS {
                             tkrCandidate.ID, newSite.m.Layer, newSite.m.detector, newSite.hitID);
                 }
                 thisSite++;
-                if (!newSite.filter(verbose)) {
+                if (!newSite.filter()) {
                     if (verbose) System.out.format("KalmanPatRecHPS:filterTrack: Failed to filter at site %d, layer=%d.  Ignore remaining sites\n", thisSite, lyr);
                     needCleanup = true;
                     break layerLoop;
@@ -1196,7 +1207,7 @@ class KalmanPatRecHPS {
             return false;
         }
         
-        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.hits.size(), tkrCand.sites, tkrCand.chi2s);
+        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.hits.size(), tkrCand.sites, tkrCand.chi2s, yScat);
         boolean redundant = false;
         for (KalTrack oldTkr : TkrList) {
             if (tkr.equals(oldTkr)) {

@@ -2,6 +2,8 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //import org.lcsim.geometry.FieldMap;
 
@@ -26,11 +28,9 @@ class SiModule {
     org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
-    boolean verbose = false;
+    private boolean verbose;
+    private Logger logger;
 
-    void setVerbose(boolean input) { 
-        verbose = input;
-    }
     SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0
@@ -44,7 +44,8 @@ class SiModule {
 
     SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector) {
-        
+        logger = Logger.getLogger(SiModule.class.getName());
+        verbose = (logger.getLevel()==Level.FINE);
         if (verbose) { 
             System.out.format("SiModule constructor called with layer = %d, detector module = %d, y=%8.2f\n", Layer, detector, p.X().v[1]);
             p.print("of SiModule");
@@ -74,25 +75,30 @@ class SiModule {
     }
 
     void print(String s) {
-        System.out.format(
+        System.out.format("%s",this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str = String.format(
                 "Si module %s, Layer=%2d, Detector=%2d, stereo=%b, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
                 s, Layer, detector, isStereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         if (isStereo) {
-            System.out.format("This is a stereo detector layer");
+            str = str + String.format("This is a stereo detector layer");
         } else {
-            System.out.format("This is an axial detector layer");
+            str = str + String.format("This is an axial detector layer");
         }
-        p.X().print("origin of Si layer coordinates in the global system");
+        str = str + p.X().toString("origin of Si layer coordinates in the global system");
         Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
-        System.out.format("      At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n",Bf.mag(),tBf.v[0],tBf.v[1],tBf.v[2]);
-        R.print("from detector coordinates to global coordinates");
-        System.out.format("List of measurements for Si module %s:\n", s);
+        str = str + String.format("      At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n",Bf.mag(),tBf.v[0],tBf.v[1],tBf.v[2]);
+        str = str + R.toString("from detector coordinates to global coordinates");
+        str = str + String.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();
         while (itr.hasNext()) {
             Measurement m = itr.next();
-            m.print(" ");
+            str = str + m.toString(" ");
         }
+        return str;
     }
 
     // Delete all the existing hits

@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
@@ -59,12 +61,12 @@ public class KalmanInterface {
     private List<Integer> SeedTrackLayers = null;
     private static boolean uniformB;
     private int _siHitsLimit = -1;
-    public boolean verbose = false;
-    public int verboseLevel = 0;
+    private boolean verbose;
     double svtAngle;
     private HelixPlaneIntersect hpi;
     KalmanParams kPar;
     Random rnd;
+    private Logger logger;
     
     public void setSiHitsLimit(int limit) {
         _siHitsLimit = limit;
@@ -120,21 +122,18 @@ public class KalmanInterface {
         SeedTrackLayers = input;
     }
 
-    public void setVerboseLevel(int input) {
-        verboseLevel = input;
-    }
-
-    // Constructor with no argument defaults to verbose being turned off
+    // Constructor with no argument defaults to non-uniform field
     public KalmanInterface() {
-        this(false, false);
+        this(false);
     }
 
-    public KalmanInterface(boolean verbose, boolean uniformB) {
+    public KalmanInterface(boolean uniformB) {
         
+        logger = Logger.getLogger(KalmanInterface.class.getName());
+        verbose = logger.getLevel()==Level.FINE;
         if (verbose) {
             System.out.format("Entering the KalmanInterface constructor\n");
-        }
-        this.verbose = verbose;
+        } 
         KalmanInterface.uniformB = uniformB;
         hpi = new HelixPlaneIntersect();
         hitMap = new HashMap<Measurement, TrackerHit>();
@@ -149,7 +148,7 @@ public class KalmanInterface {
         SeedTrackLayers.add(5);
         
         if (uniformB) {
-            System.out.format("KalmanInterface WARNING: the magnetic field is set to a uniform value.\n");
+            logger.log(Level.INFO, "KalmanInterface WARNING: the magnetic field is set to a uniform value.");
         }
         
         // Transformation from HPS SVT tracking coordinates to Kalman global coordinates
@@ -430,17 +429,15 @@ public class KalmanInterface {
     // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null) {
-            System.out.format("KalmanInterface.createTrack: Kalman track is incomplete.\n");
+            logger.log(Level.WARNING, "KalmanInterface.createTrack: Kalman track is incomplete.");
             return null;
         }
         if (kT.covNaN()) {
-            System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix. \n");
+            logger.log(Level.INFO, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
             return null;
         }
         
         kT.sortSites(true);
-        int prevID = 0;
-        int dummyCounter = -1;
         BaseTrack newTrack = new BaseTrack();
         
         // Add trackstate at IP as first trackstate,
@@ -476,8 +473,8 @@ public class KalmanInterface {
             ts = null;
             int loc = TrackState.AtOther;
 
-            HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
-            int lay = hssd.getMillepedeId();
+            //HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
+            //int lay = hssd.getMillepedeId();
             // System.out.printf("ssp id %d \n", hssd.getMillepedeId());
 
             if (i == 0) {
@@ -616,7 +613,7 @@ public class KalmanInterface {
 
     // Method to create one Kalman SiModule object for each silicon-strip detector
     public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
-        if (verbose && verboseLevel > 1) {
+        if (verbose) {
             System.out.format("Entering KalmanInterface.creasteSiModules\n");
         }
         
@@ -742,8 +739,7 @@ public class KalmanInterface {
                 double umeas = rLocal.v[1] + rnd.nextGaussian()*du;
 
                 if (verbose) {
-                    System.out.format("\nKalmanInterface:fillAllSimHits %d, the measurement uncertainty is set to %10.7f\n", i,
-                            du);
+                    System.out.format("\nKalmanInterface:fillAllSimHits %d, the measurement uncertainty is set to %10.7f\n", i, du);
                     System.out.printf("Filling SiMod Layer %d, detector %d\n", module.Layer, module.detector);
                     module.p.print("Corresponding KalmanPlane");
                     Vec globalX = module.R.rotate(new Vec(1, 0, 0));
@@ -1035,7 +1031,7 @@ public class KalmanInterface {
         SquareMatrix cov = seed.covariance();
         cov.scale(1000.0);
 
-        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm, verbose);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm);
     }
 
     // Method to refit an existing track, using the track's helix parameters and covariance to initialize the Kalman Filter.
@@ -1060,7 +1056,7 @@ public class KalmanInterface {
         int startIndex = 0;
         if (verbose) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
         cov.scale(1000.0);
-        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, pivot, helixParams, cov, fm, verbose);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, pivot, helixParams, cov, fm);
     }
 
     // public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {
@@ -1107,7 +1103,7 @@ public class KalmanInterface {
                 }
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar, verbose);
+            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar);
             outList.add(kPat);
         }
         return outList;

@@ -8,6 +8,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.hps.datacat.Site;
+import org.hps.util.Pair;
 
 // Track followed and fitted by the Kalman filter
 public class KalTrack {
@@ -26,39 +31,42 @@ public class KalTrack {
     private SquareMatrix originCov;
     private Vec originPoint;
     private Vec originMomentum;
+    private ArrayList<Double> yScat;
     public double alpha;
     private double[][] Cx;
     private double[][] Cp;
     double Bmag;
     private Vec tB;
     private double time;
-    private boolean verbose;
     double tMin;
     double tMax;
+    private Logger logger;
 
-    KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2) {
+    KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2, ArrayList<Double> yScat) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
-        verbose = false;
         eventNumber = evtNumb;
+        this.yScat = yScat;
+        logger = Logger.getLogger(KalTrack.class.getName());
+        
         // Make a new list of sites in case somebody modifies the one referred to on input
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
         for (MeasurementSite site : SiteList) { 
             if (site.hitID >= 0 && site.aS != null) this.SiteList.add(site); 
             if (site.hitID >=0 && site.aS == null) {
-                System.out.format("KalTrack error event %d: site is missing smoothed state vector for layer %d detector %d\n", 
-                        eventNumber, site.m.Layer, site.m.detector);
-                site.print("bad site");
+                logger.log(Level.WARNING, String.format("KalTrack error event %d: site is missing smoothed state vector for layer %d detector %d\n", 
+                        eventNumber, site.m.Layer, site.m.detector));
+                logger.log(Level.WARNING, site.toString("bad site"));
                 continue;
             }
         }
-        if (verbose) {
-            if (this.SiteList.size() < 5) {
-                System.out.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID);
-                for (MeasurementSite site : SiteList) {
-                    System.out.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
-                }
-                System.out.format("\n");
+        if (this.SiteList.size() < 5) {
+            logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
+            String str="";
+            for (MeasurementSite site : SiteList) {
+                str = str + String.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
             }
+            str = str + "\n";
+            logger.log(Level.FINER,str);
         }
         
         Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
@@ -66,10 +74,8 @@ public class KalTrack {
         this.chi2 = chi2;
         ID = tkID;
         if (this.SiteList.size() < 5) {
-            System.out.format("KalTrack error: not enough hits ("+SiteList.size()+") on the candidate track (ID::"+ID+") for event "+eventNumber+" \n" );
-            if (verbose) {
-                for (MeasurementSite site : SiteList) site.print("in KalTrack input list");
-            }
+            logger.log(Level.WARNING, "KalTrack error: not enough hits ("+SiteList.size()+") on the candidate track (ID::"+ID+") for event "+eventNumber);
+            for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
         }
         helixAtOrigin = null;
         propagated = false;
@@ -108,7 +114,7 @@ public class KalTrack {
             tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
             tMax = Math.max(tMax,  site.m.hits.get(site.hitID).time);
         }
-        time = time/(double)SiteList.size();
+        time = time/(double)SiteList.size();        
     }
 
     public double getTime() {
@@ -173,44 +179,49 @@ public class KalTrack {
     }
 
     public void print(String s) {
-        System.out.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax);
+        System.out.format("%s", this.toString(s));    
+    }
+    
+    String toString(String s) {
+        String str = String.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax);
         if (propagated) {
-            System.out.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
-            helixAtOrigin.print("helix for a pivot at the origin");
-            originCov.print("covariance of helix parameters for a pivot at the origin");
-            originPoint.print("point on the helix closest to the origin");
+            str=str+String.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
+            str=str+helixAtOrigin.toString("helix for a pivot at the origin")+"\n";
+            str=str+originCov.toString("covariance of helix parameters for a pivot at the origin");
+            str=str+originPoint.toString("point on the helix closest to the origin")+"\n";
             SquareMatrix C1 = new SquareMatrix(3, Cx);
-            C1.print("covariance matrix for the point");
-            originMomentum.print("momentum of the particle at closest approach to the origin");
+            str=str+C1.toString("covariance matrix for the point");
+            str=str+originMomentum.toString("momentum of the particle at closest approach to the origin");
             SquareMatrix C2 = new SquareMatrix(3, Cp);
-            C2.print("covariance matrix for the momentum");
+            str=str+C2.toString("covariance matrix for the momentum");
         }
         for (int i = 0; i < SiteList.size(); i++) {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
             int hitID = site.hitID;
-            System.out.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
+            str=str+String.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
                     site.chi2inc, site.scatX(), site.scatZ(), site.arcLength, hitID);
             if (hitID < 0) {
-                System.out.format("\n");
+                str=str+"\n";
                 continue;
             }
-            System.out.format(", t=%5.1f", site.m.hits.get(site.hitID).time);
+            str=str+String.format(", t=%5.1f", site.m.hits.get(site.hitID).time);
             if (m.hits.get(hitID).tksMC != null) {
-                System.out.format("  MC tracks: ");
+                str=str+String.format("  MC tracks: ");
                 for (int iMC : m.hits.get(hitID).tksMC) {
-                    System.out.format(" %d ", iMC);
+                    str=str+String.format(" %d ", iMC);
                 }
-                System.out.format("\n");
+                str=str+"\n";
             }
             if (interceptVects.containsKey(site)) {
                 Vec interceptVec = interceptVects.get(site);
                 Vec interceptMomVec = interceptMomVects.get(site);
-                System.out.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, error=%9.5f \n", interceptVec.string(),
-                        interceptMomVec.string(), site.m.hits.get(hitID).v, site.aS.mPred, Math.sqrt(site.aS.R));
+                str=str+String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, error=%9.5f \n", interceptVec.toString(),
+                        interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, Math.sqrt(site.aS.R));
             }
         }
-        System.out.format("End of printing for KalTrack %s ID %d in event %d\n\n", s, ID, eventNumber);
+        str=str+String.format("End of printing for KalTrack %s ID %d in event %d\n\n", s, ID, eventNumber);
+        return str;
     }
 
     // Method to make simple yz plots of the track and the residuals. Note that in the yz plot of the track the hits are
@@ -292,28 +303,23 @@ public class KalTrack {
             }
         }
         if (innerSite == null) {
-            System.out.format("KalTrack.originHelix: event %d inner site not found.\n", eventNumber);
+            logger.log(Level.WARNING, String.format("KalTrack.originHelix: event %d inner site not found.\n", eventNumber));
             return false;
         }
         if (innerSite.aS == null) {
-            System.out.format("KalTrack.originHelix: event %d inner site is not smoothed.\n", eventNumber);
+            logger.log(Level.WARNING, String.format("KalTrack.originHelix: event %d inner site is not smoothed.\n", eventNumber));
             return false;
         }
+        
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
-        //Vec pMom = innerSite.aS.Rot.inverseRotate(innerSite.aS.getMom(0.));
-        //double ct = pMom.unitVec().dot(innerSite.m.p.T());
-
-        // XL has to be set to zero below to get the correct result for the covariance,
-        // as the Kalman filter has already accounted for scattering in the first layer.
-        // However, if there was no hit in the first layer, then the scattering should
-        // be introduced, TBD
-        double XL = 0.; // innerSite.XL / Math.abs(ct);
-        helixAtOrigin = innerSite.aS.propagateRungeKutta(innerSite.m.Bfield, originCov, XL);
+        double XL = innerSite.m.thickness/innerSite.radLen;
+        Plane originPlane = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.)); 
+        helixAtOrigin = innerSite.aS.propagateRungeKutta(originPlane, innerSite.m.Bfield, originCov, yScat, XL);
         if (Double.isNaN(originCov.M[0][0])) return false;
         SquareMatrix Cinv = originCov.invert();
         for (int i=0; i<5; ++i) {
             if (Cinv.M[i][i] == 0.0) {  // The covariance matrix was singular
-                System.out.format("KalTrack.originHelix: the track %d covariance matrix is singular!\n", ID);
+                logger.log(Level.WARNING, String.format("KalTrack.originHelix: the track %d covariance matrix is singular!\n", ID));
                 originCov.print("singular");
                 helixAtOrigin.print("singular");
                 for (int k=0; k<5; ++k) {
@@ -423,16 +429,16 @@ public class KalTrack {
         int numAdded  = 0;
         int numLayers = 14;
         if (nHits == numLayers) return numAdded;
-        if (verbose) System.out.format("KalTrack.addHits: trying to add hits to track %d\n", ID);
+        logger.log(Level.FINER, String.format("addHits: trying to add hits to track %d", ID));
         
         sortSites(true);
 
-        if (verbose) {
-            System.out.format("KalTrac.addHits: initial list of sites: ");
+        if (logger.getLevel()==Level.FINER) {
+            String str = String.format("KalTrac.addHits: initial list of sites: ");
             for (MeasurementSite site : SiteList) {
-                System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                str = str + String.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
             }
-            System.out.format("\n");
+            logger.log(Level.FINER, str);
         }
         
         ArrayList<ArrayList<SiModule>> moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
@@ -458,18 +464,18 @@ public class KalTrack {
             if (nxtIdx < 0) continue;
             MeasurementSite nxtSite = SiteList.get(nxtIdx);
             for (int lyr=site.m.Layer+1; lyr<nxtSite.m.Layer; ++lyr) {
-                if (verbose) System.out.format("KalTrack.addHits: looking for hits on layer %d\n", lyr);
+                logger.log(Level.FINER, String.format("KalTrack.addHits: looking for hits on layer %d", lyr));
                 for (SiModule module : moduleList.get(lyr)) {
                     MeasurementSite newSite = new MeasurementSite(lyr, module, mxResid, 0.);
                     double [] tRange = {tMax - mxTdif, tMin + mxTdif}; 
-                    int rF = newSite.makePrediction(site.aF, site.m, -1, false, true, false, tRange, verbose);
+                    int rF = newSite.makePrediction(site.aF, site.m, -1, false, true, false, tRange);
                     if (rF == 1) {
-                        if (verbose) System.out.format("KalTrack.addHits: predicted chi2inc=%8.3f\n",newSite.chi2inc);
+                        logger.log(Level.FINER, String.format("KalTrack.addHits: predicted chi2inc=%8.3f\n",newSite.chi2inc));
                         if (newSite.chi2inc < mxChi2inc) {
-                            if (newSite.filter(verbose)) {
-                                if (verbose) System.out.format("KalTrack.addHits: event %d track %d filtered chi2inc=%8.3f\n",eventNumber,ID,newSite.chi2inc);
+                            if (newSite.filter()) {
+                                logger.log(Level.FINER, String.format("KalTrack.addHits: event %d track %d filtered chi2inc=%8.3f",eventNumber,ID,newSite.chi2inc));
                                 if (newSite.chi2inc < mxChi2inc) {
-                                    if (verbose) System.out.format("KalTrack.addHits: event %d added hit with chi2inc<%8.3f to layer %d\n",eventNumber,newSite.chi2inc,module.Layer);
+                                    logger.log(Level.FINER, String.format("KalTrack.addHits: event %d added hit with chi2inc<%8.3f to layer %d",eventNumber,newSite.chi2inc,module.Layer));
                                     newSites.add(newSite);
                                     numAdded++;
                                     site = newSite;
@@ -486,19 +492,19 @@ public class KalTrack {
         }
         if (numAdded > 0) {
             for (MeasurementSite site : newSites) {
-                if (verbose) System.out.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d\n", eventNumber, site.hitID, site.m.Layer, site.m.detector);
+                logger.log(Level.FINE, String.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d", eventNumber, site.hitID, site.m.Layer, site.m.detector));
                 SiteList.add(site);
             }
             sortSites(true);
-            if (verbose) {
-                System.out.format("KalTrack.addHits: final list of sites: ");
+            if (logger.getLevel()==Level.FINER) {
+                String str = String.format("KalTrack.addHits: final list of sites: ");
                 for (MeasurementSite site : SiteList) {
-                    System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                    str = str + String.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
                 }
-                System.out.format("\n");
+                logger.log(Level.FINER, str);
             }
-        } else if (verbose) {
-            System.out.format("KalTrack.addHits: no hits added in event %d to track %d\n", eventNumber, ID);
+        } else {
+            logger.log(Level.FINE, String.format("KalTrack.addHits: no hits added in event %d to track %d", eventNumber, ID));
         }
 
         return numAdded;
@@ -508,10 +514,7 @@ public class KalTrack {
     public boolean fit(int nIterations, boolean verbose) {
         double chi2s = 0.;
         for (int iteration = 0; iteration < nIterations; iteration++) {
-            if (verbose) {
-                System.out.format("KalTrack.fit: starting filtering for iteration %d\n", iteration);
-                // sH.a.print("starting helix for iteration");
-            }
+            logger.log(Level.FINER, String.format("KalTrack.fit: starting filtering for iteration %d", iteration));
             StateVector sH = SiteList.get(0).aS;
             sH.C.scale(1000.*chi2); // Blow up the initial covariance matrix to avoid double counting measurements
             SiModule prevMod = null;
@@ -530,22 +533,21 @@ public class KalTrack {
                 boolean pickupHits = false;
                 boolean checkBounds = false;
                 double [] tRange = {-999., 999.};
-                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, verbose) < 0) {
-                    if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!\n", eventNumber, ID, iteration);
+                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange) < 0) {
+                    logger.log(Level.FINE, String.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!", eventNumber, ID, iteration));
                     return false;
                 }
-                if (!currentSite.filter(verbose)) {
-                    if (verbose) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to filter!!\n", eventNumber, ID, iteration);
+                if (!currentSite.filter()) {
+                    logger.log(Level.FINE, String.format("KalTrack.fit: event %d, track %d in iteration %d failed to filter!!", eventNumber, ID, iteration));
                     return false;
                 }
 
-                // if (verbose) currentSite.print("iterating filtering");
                 chi2f += Math.max(currentSite.chi2inc,0.);
 
                 sH = currentSite.aF;
                 prevMod = currentSite.m;
             }
-            if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f); }
+            logger.log(Level.FINER, String.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e", iteration, chi2f));
             
             chi2s = 0.;
             MeasurementSite nextSite = null;
@@ -555,22 +557,47 @@ public class KalTrack {
                     currentSite.aS = currentSite.aF.copy();
                     currentSite.smoothed = true;
                 } else {
-                    currentSite.smooth(nextSite, verbose);
+                    currentSite.smooth(nextSite);
                 }
                 chi2s += Math.max(currentSite.chi2inc,0.);
 
-                // if (verbose) {
-                // currentSite.print("iterating smoothing");
-                // }
                 nextSite = currentSite;
             }
-            if (verbose) { System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s); }
+            logger.log(Level.FINER, String.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e", iteration, chi2s));
         }
         this.chi2 = chi2s;
         propagated = false;
         return true;
     }
 
+    // Returns the unbiased residual for the track at a given layer, together with the variance on that residual
+    Pair<Double,Double> unbiasedResidual(int layer) {
+        double resid = -999.;
+        double varResid = -999.;               
+        Vec aStar = null;
+        for (MeasurementSite site : SiteList) {
+            if (site.m.Layer == layer) {               
+                if (site.hitID >= 0) {
+                    double sigma = site.m.hits.get(site.hitID).sigma;
+                    SquareMatrix Cstar = new SquareMatrix(5);
+                    aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
+                    HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+                    Plane pTrans = site.m.p.toLocal(site.aS.Rot, site.aS.origin);
+                    double phiInt = hpi.planeIntersect(aStar, site.aS.X0, site.aS.alpha, pTrans);
+                    if (!Double.isNaN(phiInt)) {
+                        Vec intPnt = StateVector.atPhi(site.aS.X0, aStar, phiInt, site.aS.alpha);
+                        Vec globalInt = site.aS.toGlobal(intPnt);
+                        Vec localInt = site.m.toLocal(globalInt);
+                        resid = site.m.hits.get(site.hitID).v - localInt.v[1];
+                        varResid = sigma*sigma + site.H.dot(site.H.leftMultiply(Cstar));
+                        break;
+                    }
+                }
+            }
+        }        
+        return new Pair<Double,Double>(resid, varResid);
+    }
+    
     // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
     private double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];
