@@ -13,6 +13,7 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackData;
+import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
@@ -75,6 +76,8 @@ public class KalmanPatRecDriver extends Driver {
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
+    private boolean addResiduals;      // If true add the hit-on-track residuals to the LCIO event
+    
     
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
@@ -106,6 +109,10 @@ public class KalmanPatRecDriver extends Driver {
     
     public void setSeedCompThr(double thr) {
         seedCompThr = thr;
+    }
+
+    public void setAddResiduals(boolean input) {
+        addResiduals = input;
     }
     
     @Override
@@ -200,12 +207,20 @@ public class KalmanPatRecDriver extends Driver {
         
         
         List<Track> outputFullTracks = new ArrayList<Track>();
+        
+        //For additional track information
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
         List<LCRelation> trackDataRelations = new ArrayList<LCRelation>();
+        
+        //For GBL Refitting
         List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
         List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
         
-        prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations);
+        //For hit-on-track residuals information
+        List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
+        List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
+       
+        prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
@@ -213,6 +228,11 @@ public class KalmanPatRecDriver extends Driver {
         event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
         event.put("KFTrackData",trackDataCollection, TrackData.class,0);
         event.put("KFTrackDataRelations",trackDataRelations,LCRelation.class,0);
+        
+        if (addResiduals) {
+            event.put("KFUnbiasRes", trackResiduals, TrackResidualsData.class,0);
+            event.put("KFUnbiasResRelations",trackResidualsRelations, LCRelation.class,0);
+        }
     }
     
     class SortByZ implements Comparator<Pair<double[], double[]>> {
@@ -222,16 +242,16 @@ public class KalmanPatRecDriver extends Driver {
             return (int) (o1.getSecondElement()[2] - o2.getSecondElement()[2]);
         }
     }
-
+    
     class SortByZ2 implements Comparator<TrackerHit> {
-
+        
         @Override
-        public int compare(TrackerHit o1, TrackerHit o2) {
+            public int compare(TrackerHit o1, TrackerHit o2) {
             return (int) (o1.getPosition()[2] - o2.getPosition()[2]);
         }
     }
 
-    private void prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations) {
+    private void prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -336,6 +356,30 @@ public class KalmanPatRecDriver extends Driver {
                 TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
+
+                //Add the TrackResiduas
+                
+                List<Integer> layers      = new ArrayList<Integer>();
+                List<Double> residuals    = new ArrayList<Double>();
+                List<Float> sigmas        = new ArrayList<Float>(); 
+                
+                for (int ilay = 0; ilay<14; ilay++) {
+                    Pair<Double,Double> res_and_sigma = kTk.unbiasedResidual(ilay);
+                    if (res_and_sigma.getSecondElement() > -1.)  {
+                        layers.add(ilay);
+                        residuals.add(res_and_sigma.getFirstElement());
+                        sigmas.add(res_and_sigma.getSecondElement().floatValue());
+                    }
+                }//Loop on layers
+                
+                TrackResidualsData resData = new TrackResidualsData(trackerVolume,layers,residuals,sigmas);
+                trackResiduals.add(resData);
+                trackResidualsRelations.add(new BaseLCRelation(resData,KalmanTrackHPS));
+                if (KalmanTrackHPS.getTrackerHits().size() != residuals.size()) {
+                    System.out.println("KalmanPatRecDriver::Residuals consistency check failed.");
+                    System.out.printf("Track has %d hits while I have %d residuals \n", KalmanTrackHPS.getTrackerHits().size(), residuals.size());
+                }
+                    
             } // end of loop on tracks
         } // end of loop on trackers
         

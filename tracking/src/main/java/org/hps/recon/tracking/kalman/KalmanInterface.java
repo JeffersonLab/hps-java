@@ -466,6 +466,7 @@ public class KalmanInterface {
             if (site.hitID < 0) continue;
             newTrack.addHit(getHpsHit(site.m.hits.get(site.hitID)));
         }
+        //System.out.printf("PF::Debug::newTrack site size %d \n",newTrack.getTrackerHits().size());
         
         // Get the track states at each layer
         for (int i = 0; i < kT.SiteList.size(); i++) {
@@ -482,6 +483,8 @@ public class KalmanInterface {
             } else if (i == kT.SiteList.size() - 1) 
                 loc = TrackState.AtLastHit;
             
+            /*
+              //DO Not att the missing layer track states yet.
             if (storeTrackStates) {
                 for (int k = 1; k < lay - prevID; k++) {
                     // uses new lcsim constructor
@@ -491,6 +494,7 @@ public class KalmanInterface {
                 }
                 prevID = lay;
             }
+            */
                         
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
