@@ -35,8 +35,10 @@ public class Strip2019FeeForAlignment extends Driver {
     private int _maxNumberOfTracks = 1;
     private int _minNumberOfHitsOnTrack = 5;
 
-    private boolean _skipMonsterEvents = false;
     private int _maxSvtRawTrackerHits = 250;
+
+    private boolean _skimTopTrack = true;
+    private boolean _skimBottomTrack = true;
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
@@ -57,11 +59,17 @@ public class Strip2019FeeForAlignment extends Driver {
                                     setupSensors(event);
                                     for (Track t : tracks) {
                                         int nhits = t.getTrackerHits().size();
-                                        String half = isTopTrack(t) ? "top" : "bottom";
+                                        boolean isTop = isTopTrack(t);
+                                        String half = isTop ? "top" : "bottom";
                                         aida.histogram1D(half + " number of hits on track", 10, 0., 10.).fill(nhits);
                                         //System.out.println("with "+nhits+" hits");
                                         if (nhits >= _minNumberOfHitsOnTrack) {
-                                            skipEvent = false;
+                                            if (_skimTopTrack && isTop) {
+                                                skipEvent = false;
+                                            }
+                                            if (_skimBottomTrack && !isTop) {
+                                                skipEvent = false;
+                                            }
                                             //System.out.println("good");
                                             aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                                             if (cluster.getPosition()[1] > 0.) {
@@ -143,6 +151,17 @@ public class Strip2019FeeForAlignment extends Driver {
             return false;
         }
         throw new RuntimeException("mixed top and bottom hits on same track");
+    }
 
+    public void setSkimBottomTrack(boolean b) {
+        _skimBottomTrack = b;
+    }
+
+    public void setSkimTopTrack(boolean b) {
+        _skimTopTrack = b;
+    }
+
+    public void setMinNumberOfHitsOnTrack(int i) {
+        _minNumberOfHitsOnTrack = i;
     }
 }
