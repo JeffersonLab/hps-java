@@ -2,6 +2,7 @@ package org.hps.analysis.alignment;
 
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -28,7 +29,7 @@ public class Strip2019FeeForAlignment extends Driver {
 
     int maxNClusters = 1;
     double _minClusterEnergy = 3.5;
-    double _minSeedHitEnergy = 0.;
+    double _minSeedHitEnergy = 3.0;
 
     private int _minNumberOfTracks = 1;
     private int _maxNumberOfTracks = 1;
@@ -48,22 +49,27 @@ public class Strip2019FeeForAlignment extends Driver {
                     if (cluster.getEnergy() > _minClusterEnergy) {
                         double seedEnergy = ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy();
                         if (seedEnergy > _minSeedHitEnergy) {
-                            List<Track> tracks = event.get(Track.class, "GBLTracks");
-                            int nTracks = tracks.size();
-                            //System.out.println(nTracks+" GBL tracks");
-                            if (nTracks >= _minNumberOfTracks && nTracks <= _maxNumberOfTracks) {
-                                setupSensors(event);
-                                for (Track t : tracks) {
-                                    int nhits = t.getTrackerHits().size();
-                                    String half = isTopTrack(t) ? "top" : "bottom";
-                                    aida.histogram1D(half + " number of hits on track", 10, 0., 10.).fill(nhits);
-                                    //System.out.println("with "+nhits+" hits");
-                                    if (nhits >= _minNumberOfHitsOnTrack) {
-                                        skipEvent = false;
-                                        //System.out.println("good");
-                                        aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
-                                        aida.histogram1D("Cluster energy", 100, 0., 7.).fill(cluster.getEnergy());
-                                        aida.histogram2D("Cluster energy vs seed energy", 50, 0.5, 4.0, 50, 3.0, 5.0).fill(seedEnergy, cluster.getEnergy());
+                            if (TriggerModule.inFiducialRegion(cluster)) {
+                                List<Track> tracks = event.get(Track.class, "GBLTracks");
+                                int nTracks = tracks.size();
+                                //System.out.println(nTracks+" GBL tracks");
+                                if (nTracks >= _minNumberOfTracks && nTracks <= _maxNumberOfTracks) {
+                                    setupSensors(event);
+                                    for (Track t : tracks) {
+                                        int nhits = t.getTrackerHits().size();
+                                        String half = isTopTrack(t) ? "top" : "bottom";
+                                        aida.histogram1D(half + " number of hits on track", 10, 0., 10.).fill(nhits);
+                                        //System.out.println("with "+nhits+" hits");
+                                        if (nhits >= _minNumberOfHitsOnTrack) {
+                                            skipEvent = false;
+                                            //System.out.println("good");
+                                            aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+                                            if (cluster.getPosition()[1] > 0.) {
+                                                aida.histogram1D("Top cluster energy ", 100, 3.5, 5.5).fill(cluster.getEnergy());
+                                            } else {
+                                                aida.histogram1D("Bottom cluster energy ", 100, 3.5, 5.5).fill(cluster.getEnergy());
+                                            }
+                                        }
                                     }
                                 }
                             }

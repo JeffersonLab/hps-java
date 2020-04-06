@@ -48,7 +48,13 @@ public class Fee2019OneTrackAnalysis extends Driver {
         rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
 
         // should have at most two RPS (one MatchedTrack and one GBL Track
-        if (rpList.size() > 2) {
+        if (rpList.size() != 2) {
+            return;
+        }
+        if (rpList.get(0).getParticleIDUsed().getPDG() != 11) {
+            return;
+        }
+        if (rpList.get(1).getParticleIDUsed().getPDG() != 11) {
             return;
         }
 
@@ -60,9 +66,13 @@ public class Fee2019OneTrackAnalysis extends Driver {
         setupSensors(event);
         for (ReconstructedParticle rp : rpList) {
             if (rp.getClusters().size() == 1) {
-                analyzeCluster(rp);
+                if (rp.getClusters().get(0) != null) {
+                    analyzeCluster(rp);
+                }
             }
-            analyzeTrack(rp);
+            if (rp.getTracks().get(0) != null) {
+                analyzeTrack(rp);
+            }
         }
 
     }
@@ -71,22 +81,52 @@ public class Fee2019OneTrackAnalysis extends Driver {
         Cluster c = rp.getClusters().get(0);
         double p = rp.getMomentum().magnitude();
         double e = rp.getEnergy();
-        if (c.getPosition()[1] > 0.) {
-            aida.histogram1D("Top cluster energy", 100, 3.0, 5.0).fill(c.getEnergy());
-        } else {
-            aida.histogram1D("Bottom cluster energy", 100, 3.0, 5.0).fill(c.getEnergy());
-        }
-        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
 
         CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+        double seedHitEnergy = ClusterUtilities.findSeedHit(c).getCorrectedEnergy();
         boolean isFiducial = isFiducial(seedHit);
+        String fid = isFiducial ? "fiducial" : "";
         // debug diagnostics to set cuts
 
-        aida.histogram1D("clusterSeedHit energy", 50, 0.5, 4.5).fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+        if (c.getPosition()[1] > 0.) {
+            aida.histogram1D("Top cluster energy", 100, 3.5, 5.5).fill(c.getEnergy());
+        } else {
+            aida.histogram1D("Bottom cluster energy", 100, 3.5, 5.5).fill(c.getEnergy());
+        }
+        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+        aida.histogram1D("clusterSeedHit energy", 50, 0.5, 4.5).fill(seedHitEnergy);
         aida.histogram1D("cluster nHits", 20, 0., 20.).fill(c.getCalorimeterHits().size());
-        aida.histogram2D("clusterSeedHit energy vs energy", 100, 3.5, 5.5, 50, 0.5, 4.5).fill(e, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+        aida.histogram2D("clusterSeedHit energy vs energy", 100, 3.5, 5.5, 50, 0.5, 4.5).fill(e, seedHitEnergy);
         aida.histogram2D("cluster nHits vs energy", 100, 3.5, 5.5, 20, 0., 20.).fill(e, c.getCalorimeterHits().size());
         aida.histogram2D("cluster time vs e", 100, 3.5, 5.5, 30, 30., 60.).fill(p, ClusterUtilities.getSeedHitTime(c));
+        if (isFiducial) {
+            if (c.getPosition()[1] > 0.) {
+                aida.histogram1D("Top cluster energy " + fid, 100, 3.5, 5.5).fill(c.getEnergy());
+            } else {
+                aida.histogram1D("Bottom cluster energy " + fid, 100, 3.5, 5.5).fill(c.getEnergy());
+            }
+            aida.histogram2D("Cluster x vs y " + fid, 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+            aida.histogram1D("clusterSeedHit energy " + fid, 50, 0.5, 4.5).fill(seedHitEnergy);
+            aida.histogram1D("cluster nHits " + fid, 20, 0., 20.).fill(c.getCalorimeterHits().size());
+            aida.histogram2D("clusterSeedHit energy vs energy " + fid, 100, 3.5, 5.5, 50, 0.5, 4.5).fill(e, seedHitEnergy);
+            aida.histogram2D("cluster nHits vs energy " + fid, 100, 3.5, 5.5, 20, 0., 20.).fill(e, c.getCalorimeterHits().size());
+            aida.histogram2D("cluster time vs e " + fid, 100, 3.5, 5.5, 30, 30., 60.).fill(p, ClusterUtilities.getSeedHitTime(c));
+
+            if (seedHitEnergy > 2.8) {
+                if (c.getPosition()[1] > 0.) {
+                    aida.histogram1D("Top cluster energy 2.8", 100, 3.5, 5.5).fill(c.getEnergy());
+                } else {
+                    aida.histogram1D("Bottom cluster energy 2.8", 100, 3.5, 5.5).fill(c.getEnergy());
+                }
+                if (seedHitEnergy > 3.0) {
+                    if (c.getPosition()[1] > 0.) {
+                        aida.histogram1D("Top cluster energy 3.0", 100, 3.5, 5.5).fill(c.getEnergy());
+                    } else {
+                        aida.histogram1D("Bottom cluster energy 3.0", 100, 3.5, 5.5).fill(c.getEnergy());
+                    }
+                }
+            }
+        }
     }
 
     void analyzeTrack(ReconstructedParticle rp) {
@@ -122,16 +162,16 @@ public class Fee2019OneTrackAnalysis extends Driver {
         aida.histogram1D("rp z0" + topOrBottom, 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
 
         //
-        aida.histogram1D("Track chisq per df" + topOrBottom+ " " + nHits+" hits", 100, 0., 50.).fill(chiSquared / ndf);
-        aida.histogram1D("Track chisq prob" + topOrBottom+ " " + nHits+" hits", 100, 0., 1.).fill(chisqProb);
-        aida.histogram1D("Track nHits" + topOrBottom+ " " + nHits+" hits", 7, 0.5, 7.5).fill(t.getTrackerHits().size());
-        aida.histogram1D("Track momentum" + topOrBottom+ " " + nHits+" hits", 100, 0., 10.0).fill(p);
-        aida.histogram1D("Track deDx" + topOrBottom+ " " + nHits+" hits", 100, 0.00004, 0.00013).fill(t.getdEdx());
-        aida.histogram1D("Track theta" + topOrBottom+ " " + nHits+" hits", 100, 0.010, 0.160).fill(theta);
-        aida.histogram2D("Track theta vs p" + topOrBottom+ " " + nHits+" hits", 100, 0.010, 0.160, 100, 0., 10.0).fill(theta, p);
-        aida.histogram1D("rp x0" + topOrBottom+ " " + nHits+" hits", 100, -0.50, 0.50).fill(TrackUtils.getX0(t));
-        aida.histogram1D("rp y0" + topOrBottom+ " " + nHits+" hits", 100, -5.0, 5.0).fill(TrackUtils.getY0(t));
-        aida.histogram1D("rp z0" + topOrBottom+ " " + nHits+" hits", 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
+        aida.histogram1D("Track chisq per df" + topOrBottom + " " + nHits + " hits", 100, 0., 50.).fill(chiSquared / ndf);
+        aida.histogram1D("Track chisq prob" + topOrBottom + " " + nHits + " hits", 100, 0., 1.).fill(chisqProb);
+        aida.histogram1D("Track nHits" + topOrBottom + " " + nHits + " hits", 7, 0.5, 7.5).fill(t.getTrackerHits().size());
+        aida.histogram1D("Track momentum" + topOrBottom + " " + nHits + " hits", 100, 0., 10.0).fill(p);
+        aida.histogram1D("Track deDx" + topOrBottom + " " + nHits + " hits", 100, 0.00004, 0.00013).fill(t.getdEdx());
+        aida.histogram1D("Track theta" + topOrBottom + " " + nHits + " hits", 100, 0.010, 0.160).fill(theta);
+        aida.histogram2D("Track theta vs p" + topOrBottom + " " + nHits + " hits", 100, 0.010, 0.160, 100, 0., 10.0).fill(theta, p);
+        aida.histogram1D("rp x0" + topOrBottom + " " + nHits + " hits", 100, -0.50, 0.50).fill(TrackUtils.getX0(t));
+        aida.histogram1D("rp y0" + topOrBottom + " " + nHits + " hits", 100, -5.0, 5.0).fill(TrackUtils.getY0(t));
+        aida.histogram1D("rp z0" + topOrBottom + " " + nHits + " hits", 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
 
         //
         aida.tree().cd("..");
