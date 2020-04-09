@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
@@ -51,6 +52,7 @@ class KalmanPatRecPlots {
     private IHistogramFactory hf;
     int nMCtracks;
     int nMCtracksFound;
+    private Efficiency pEff;
 
     KalmanPatRecPlots(boolean verbose, KalmanInterface KI, IDDecoder decoder, int numEvtPlots, org.lcsim.geometry.FieldMap fm) {
         this.verbose = verbose;
@@ -116,9 +118,11 @@ class KalmanPatRecPlots {
         aida.histogram1D("GBL pt inverse, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track time range (ns)", 100, 0., 100.);
         aida.histogram1D("GBL number of hits",20,0.,20.);
-        for (int lyr=2; lyr<14; ++lyr) {
+        for (int lyr=0; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
+            aida.histogram1D(String.format("Layers/Kalman track ubiased hit residual in layer %d",lyr), 100, -0.1, 0.1);
+            aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
             aida.histogram1D(String.format("Layers/Kalman true error in layer %d",lyr), 100, -0.2, 0.2);
             aida.histogram1D(String.format("Layers/Kalman layer %d chi^2 contribution", lyr), 100, 0., 20.);
             if (lyr<13) {
@@ -131,6 +135,7 @@ class KalmanPatRecPlots {
         hpf = aida.histogram1D("MC particle momentum, found",40,0.,4.);
         hnh = aida.histogram1D("MC number hits",15,0.,15.);
         hnhf = aida.histogram1D("MC number hits, found",15,0.,15.);
+        pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
     }
     
     void process(EventHeader event, double runTime, ArrayList<KalmanPatRecHPS> kPatList, RelationalTable rawtomc) {
@@ -194,7 +199,19 @@ class KalmanPatRecPlots {
                                 if (mod.Layer<13) {
                                     aida.histogram1D(String.format("Layers/Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
                                     aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
-                                }                                  
+                                }      
+                                Pair<Double, Double> residPr = kTk.unbiasedResidual(site.m.Layer);
+                                if (residPr.getSecondElement() > -999.) {
+                                    double variance = residPr.getSecondElement();
+                                    double sigma = Math.sqrt(variance);
+                                    double unbResid = residPr.getFirstElement();
+                                    aida.histogram1D(String.format("Layers/Kalman track ubiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
+                                    aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
+                                    if (variance < 0.) {
+                                        System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", 
+                                                            event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);
+                                    }
+                                }
                                 TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                                 List<RawTrackerHit> rawHits = hpsHit.getRawHits();
                                 for (RawTrackerHit rawHit : rawHits) {
@@ -400,6 +417,7 @@ class KalmanPatRecPlots {
             double fracFnd = (double)nMost/(double)nHits;
             boolean success = (nMost >= 6 && fracFnd > 0.5 && nMost >= tkBest.nHits-2);
             Hep3Vector p = mCP.getMomentum();
+            pEff.entry(p.magnitude(), success);
             hp.fill(p.magnitude());            
             if (success) hpf.fill(p.magnitude());
             if (p.magnitude() > 0.7) {
@@ -625,6 +643,7 @@ class KalmanPatRecPlots {
     }
     
     void output() {
+        pEff.plot("./effVSp.gp", false, "errors", " ");
         hf.divide("Kalman track efficiency vs momentum", hpf, hp);
         hf.divide("Kalman track efficiency vs number hits", hnhf, hnh);
         double trackEfficiency = (double)nMCtracksFound/(double)nMCtracks;
