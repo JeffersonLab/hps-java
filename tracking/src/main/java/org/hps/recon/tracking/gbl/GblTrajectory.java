@@ -4,9 +4,10 @@ package org.hps.recon.tracking.gbl;
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @author Norman A Graf
  * @version $Id:
- */
+o */
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.math3.util.Pair;
@@ -93,7 +94,9 @@ public class GblTrajectory {
     Vector externalPrecisions; // Precisions for external measurements of composed trajectory
     VVector theVector; // /< Vector of linear equation system
     BorderedBandMatrix theMatrix = new BorderedBandMatrix(); // /< (Bordered band) matrix of linear equation system
-
+    int skippedMeasLabel = -999;
+    boolean debug = false;
+    
     // /// Create new (simple) trajectory from list of points.
     // /**
     // * Curved trajectory in space (default) or without curvature (q/p) or in one
@@ -461,6 +464,53 @@ public class GblTrajectory {
         }
     }
 
+
+    void getResAndErr(int aData, boolean used, double [] results) {
+        
+        //residual, variance and down-weight
+        double[] residVarDW = new double[3];
+        List<Integer> indLocal = new ArrayList<Integer>();
+        List<Double> derLocal  = new ArrayList<Double>();
+        theData.get(aData).getResidual(residVarDW,indLocal,derLocal);
+        int numLocal = derLocal.size();
+        if (debug) {
+            System.out.printf("GblTrajectory::getResAndErr: %f %f %f \n", residVarDW[0], residVarDW[1],residVarDW[2]);
+            System.out.printf("aData: %d\n",aData);
+            System.out.printf("numLocal: %d\n",numLocal);
+        }
+        Vector aVec = new Vector(numLocal);
+        for (int j = 0; j<numLocal;j++) {
+            aVec.set(j,derLocal.get(j));
+        }
+        //compressed covariance matrix
+        Matrix aMat = theMatrix.getBlockMatrix(indLocal); 
+        
+        //Variance from track fit = aVecT * aMat * aVec;
+        Vector aMataVec = aMat.times(aVec);
+        Matrix aVecT   = aVec.transpose();
+        double aFitVar = (aVecT.times(aMataVec)).get(0,0);
+        //Account for down weighting of measurement in fit -  DW not implemented in this port yet
+        aFitVar*=residVarDW[2];
+        
+        //error of measurement 
+        double aMeasVar   = residVarDW[1];
+        double aMeasError = sqrt(aMeasVar);
+        double aResError  = -999.;
+        
+        if (used) 
+            //Error of (biased) residual
+            aResError = (aFitVar < aMeasVar ? sqrt(aMeasVar - aFitVar) : 0.);
+        else
+            //Error of (unbiased) residual
+            aResError = sqrt(aMeasVar + aFitVar);
+
+        //Return the results
+        results[0] = residVarDW[0];
+        results[1] = aMeasError;
+        results[2] = aResError;
+        results[3] = residVarDW[2];
+    }
+
     // / Get fit results at point.
     /**
      * Get corrections and covariance matrix for local track and additional parameters in forward or backward direction.
@@ -484,6 +534,75 @@ public class GblTrajectory {
         return 0;
     }
 
+    /// Get residuals from fit at point for measurement.
+    /** 
+     * Get (diagonalized) residual, error of measurement and residual and down-weighting  
+     * factor for measurement at point  
+     * 
+     * \param [in]  aLabel Label of point on trajectory
+     * \param [out] numData Number of data blocks from measurement at point
+     * \param [out] aResiduals Measurements-Predictions
+     * \param [out] aMeasErrors Errors of Measurements
+     * \param [out] aResErrors Errors of Residuals (including correlations from track fit)
+     * \param [out] aDownWeights Down-Weighting factors
+     * \return error code (non-zero if trajectory not fitted successfully)         
+     */
+    int getMeasResults(int aLabel, int numData[], List<Double> aResiduals,List<Double> aMeasErrors, List<Double> aResErrors, List<Double> aDownWeights) {
+        numData[0] = 0;
+        if (!fitOK)
+            return 1;
+        
+        //first data block with measurement
+        int firstData = measDataIndex.get(aLabel-1);
+        if (debug) {
+            System.out.printf("getMeasResults::firstData=%d\n", firstData);
+            System.out.printf("getMeasResults::measDataIndex.get(aLabel)=%d\n",measDataIndex.get(aLabel));
+        }
+        //number of data blocks
+        numData[0] = measDataIndex.get(aLabel) - firstData;
+        double results[] = new double[4];
+        for (int i=0; i<numData[0];i++) {
+            getResAndErr(firstData+i,(aLabel != skippedMeasLabel), results);
+            aResiduals.add(results[0]);
+            aMeasErrors.add(results[1]);
+            aResErrors.add(results[2]);
+            aDownWeights.add(results[3]);
+        }
+        return 1;
+    } 
+    
+
+    /// Get (kink) residuals from fit at point for scatterer.                                                                                                   
+    /**
+     * Get (diagonalized) residual, error of measurement and residual and down-weighting
+     * factor for scatterering kinks at point
+     *
+     * \param [out] numData Number of data blocks from scatterer at point
+     * \param [out] aResiduals (kink)Measurements-(kink)Predictions
+     * \param [out] aMeasErrors Errors of (kink)Measurements        
+     * \param [out] aResErrors Errors of Residuals (including correlations from track fit)   
+     * \param [out] aDownWeights Down-Weighting factors        
+     * \return error code (non-zero if trajectory not fitted successfully)
+     */
+
+    int getScatResults(int aLabel, int numData [], Vector aResiduals, Vector aMeasErrors, Vector aResErrors, Vector aDownWeights) {
+        numData[0] = 0 ;
+        if (!fitOK) 
+            return 1;
+        int firstData = scatDataIndex.get(aLabel-1);
+        numData[0] = scatDataIndex.get(aLabel) - firstData;
+        for (int i = 0; i < numData[0]; ++i) {
+            double results [] = new double[4];
+            getResAndErr(firstData + i, true, results);
+            aResiduals.set(i,results[0]);
+            aMeasErrors.set(i,results[1]);
+            aResErrors.set(i,results[2]);
+            aDownWeights.set(i,results[3]);
+        }
+        return 0;
+    }
+
+    
     // / Build linear equation system from data (blocks).
 
     void buildLinearEquationSystem() {
@@ -494,6 +613,10 @@ public class GblTrajectory {
         double aValue, aWeight;
         int nData = 0;
         for (GblData d : theData) {
+            //skipped (internal) measurement? 
+            //For the moment I don't check if it's a kink or a measurement. 
+            if (d.getLabel() == skippedMeasLabel)
+                continue;
             int size = d.getNumParameters();
             int[] indLocal = new int[size];
             double[] derLocal = new double[size];
@@ -625,13 +748,19 @@ public class GblTrajectory {
     }
 
     // / Perform fit of trajectory.
+
+    int fit (double[] retDVals, int[] retIVals, String optionList) {
+        int ierr = fit (retDVals,retIVals,optionList,-999);
+        return ierr;
+    }
+    
     /**
      * Optionally iterate for outlier down-weighting. \param [out] Chi2 Chi2 sum (corrected for down-weighting) \param
      * [out] Ndf Number of degrees of freedom \param [out] lostWeight Sum of weights lost due to down-weighting \param
      * [in] optionList Iterations for down-weighting (One character per iteration: t,h,c (or T,H,C) for Tukey, Huber or
      * Cauchy function) \return Error code (non zero value indicates failure of fit)
      */
-    int fit(double[] retDVals, int[] retIVals, String optionList) {
+    int fit(double[] retDVals, int[] retIVals, String optionList, int aLabel) {
         final double[] normChi2 = { 1.0, 0.8737, 0.9326, 0.8228 };
         String methodList = "TtHhCc";
 
@@ -642,6 +771,10 @@ public class GblTrajectory {
             return 10;
         }
         int aMethod = 0;
+
+        //Support for fitting and produce unbiased residuals
+        skippedMeasLabel = aLabel;
+        
         buildLinearEquationSystem();
         lostWeight = 0.;
         int ierr = 0;
@@ -657,6 +790,8 @@ public class GblTrajectory {
         Ndf = theData.size() - numParameters;
         Chi2 = 0.;
         for (int i = 0; i < theData.size(); ++i) {
+            if (theData.get(i).getLabel() == skippedMeasLabel)
+                continue;
             Chi2 += theData.get(i).getChi2();
         }
         Chi2 /= normChi2[aMethod];

@@ -17,6 +17,7 @@ public class GblData {
     double thePrecision; // /< Precision (1/sigma**2)
     double theDownWeight; // /< Down-weighting factor (0-1)
     double thePrediction; // /< Prediction from fit
+    
     List<Integer> theParameters = new ArrayList<Integer>(); // /< List of fit parameters (with non zero derivatives)
     List<Double> theDerivatives = new ArrayList<Double>(); // /< List of derivatives for fit
     List<Integer> globalLabels = new ArrayList<Integer>(); // /< Labels for global derivatives
@@ -36,6 +37,11 @@ public class GblData {
         thePrediction = 0.;
     }
 
+    
+    public int getLabel() {
+        return theLabel;
+    }
+    
     // / Add derivatives from measurement.
     /**
      * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters. \param [in] iRow Row index
