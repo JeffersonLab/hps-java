@@ -24,6 +24,7 @@ public class KalmanParams {
     int [] minStereo;
     int minAxial;
     double mxTdif;
+    double seedCompThr;           // Compatibility threshold for seedTracks helix parameters
     ArrayList<int[]> [] lyrList;
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     
@@ -68,6 +69,7 @@ public class KalmanParams {
         minAxial = 2;       // Minimum number of axial hits
         mxShared = 2;       // Maximum number of shared hits
         mxTdif = 30.;       // Maximum time difference of hits in a track
+        seedCompThr = -1;   // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
         
         // Load the default search strategies
         // Index 0 is for the bottom tracker (+z), 1 for the top (-z)
@@ -256,6 +258,14 @@ public class KalmanParams {
     public void setMaxTimeRange(double mxT) {
         Logger.getLogger(KalmanParams.class.getName()).log(Level.INFO,String.format("Setting the maximum time range for hits on a track to %8.2f ns.", mxT));
         mxTdif = mxT;
+    }
+
+    public void setSeedCompThr(double seedComp_Thr) {
+        
+        if (seedComp_Thr < 0)
+            return;
+        System.out.format("KalmanParams: setting the SeedTracks duplicate removal threshold to %f percent \n",seedComp_Thr*100.);
+        seedCompThr = seedComp_Thr;
     }
     
     public void clrStrategies() {

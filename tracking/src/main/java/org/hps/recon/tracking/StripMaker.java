@@ -17,6 +17,7 @@ import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
+import org.lcsim.detector.tracker.silicon.SiStriplets;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.ThinSiStrips;
 import org.lcsim.event.RawTrackerHit;
@@ -72,7 +73,6 @@ public class StripMaker {
 
     // Make hits for all sensors within a DetectorElement
     public List<SiTrackerHit> makeHits(IDetectorElement detector) {
-        System.out.println("makeHits(IDetectorElement): " + detector.getName());
         List<SiTrackerHit> hits = new ArrayList<SiTrackerHit>();
         List<SiSensor> sensors = detector.findDescendants(SiSensor.class);
 
@@ -102,8 +102,8 @@ public class StripMaker {
 
         Map<SiSensorElectrodes, List<FittedRawTrackerHit>> electrode_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
         Map<SiSensorElectrodes, List<FittedRawTrackerHit>> thin_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
-        if (_debug)
-            System.out.println(this.getClass().getSimpleName() + "::makeHits  looping over " + hps_hits.size() + " hits on sensor");
+        Map<SiSensorElectrodes, List<FittedRawTrackerHit>> stripletHits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>(); 
+
         for (FittedRawTrackerHit hps_hit : hps_hits) {
 
             // get id and create strip map, get electrodes.
@@ -115,13 +115,19 @@ public class StripMaker {
             // DetectorElementStore.getInstance().find(raw_hit.getIdentifier()).get(0).getName());
             ChargeCarrier carrier = ChargeCarrier.getCarrier(_sid_helper.getSideValue(id));
             SiSensorElectrodes electrodes = ((SiSensor) hps_hit.getRawTrackerHit().getDetectorElement()).getReadoutElectrodes(carrier);
-            if (!(electrodes instanceof SiStrips))
-                continue;
 
             if (electrodes instanceof ThinSiStrips) {
                 if (thin_hits.get(electrodes) == null)
                     thin_hits.put(electrodes, new ArrayList<FittedRawTrackerHit>());                    
                 thin_hits.get(electrodes).add(hps_hit);
+            } else if (electrodes instanceof SiStriplets) {
+
+                if (_debug) System.out.println("StripMaker::makeHits : Electrodes are of SiStriplets"); 
+                
+                if (stripletHits.get(electrodes) == null) stripletHits.put(electrodes, new ArrayList<FittedRawTrackerHit>()); 
+
+                stripletHits.get(electrodes).add(hps_hit);
+
             } else {
                 if (electrode_hits.get(electrodes) == null)
                     electrode_hits.put(electrodes, new ArrayList<FittedRawTrackerHit>());
@@ -133,6 +139,9 @@ public class StripMaker {
             hits.addAll(makeHits(sensor, (SiStrips) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
         for (Map.Entry entry : thin_hits.entrySet())
             hits.addAll(makeHits(sensor, (ThinSiStrips) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
+        for (Map.Entry entry : stripletHits.entrySet())
+            hits.addAll(makeHits(sensor, (SiStriplets) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
+
 
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor");
@@ -144,7 +153,7 @@ public class StripMaker {
         // Call the clustering algorithm to make clusters
         List<List<FittedRawTrackerHit>> cluster_list = _clustering.findClusters(hps_hits);
         if (_debug)
-            System.out.println(this.getClass().getSimpleName() + "::makeHits2 found clusters = " + cluster_list.size());
+            System.out.println(this.getClass().getSimpleName() + "::makeHits : Found clusters = " + cluster_list.size());
         // Create an empty list for the pixel hits to be formed from clusters
         List<SiTrackerHit> hits = new ArrayList<SiTrackerHit>();
 
@@ -160,7 +169,7 @@ public class StripMaker {
                 sensor.getReadout().addHit(hit);
             }
         if (_debug)
-            System.out.println(this.getClass().getSimpleName() + "::makeHits2 returning " + hits.size() + " hits ");
+            System.out.println(this.getClass().getSimpleName() + "::makeHits : Returning " + hits.size() + " hits ");
         return hits;
     }
 
@@ -173,10 +182,13 @@ public class StripMaker {
     }
 
     private SiTrackerHitStrip1D makeTrackerHit(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
-        if (_debug)
-            System.out.println(this.getClass().getSimpleName() + " makeTrackerHit ");
+        
         Hep3Vector position = getPosition(cluster, electrodes);
+        if (_debug) System.out.println("StripMaker::makeTrackerHit : Cluster position: " + position.toString()); 
+        
         SymmetricMatrix covariance = getCovariance(cluster, electrodes);
+        if (_debug) System.out.println("StripMaker::makeTrackerHit : Cluster covariance: " + covariance.toString()); 
+        
         double time = getTime(cluster);
         double energy = getEnergy(cluster);
         TrackerHitType type = new TrackerHitType(TrackerHitType.CoordinateSystem.GLOBAL, TrackerHitType.MeasurementType.STRIP_1D);
@@ -190,8 +202,7 @@ public class StripMaker {
     }
 
     private Hep3Vector getPosition(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
-        if (_debug)
-            System.out.println(this.getClass().getSimpleName() + " getPosition for cluster size " + cluster.size());
+        if (_debug) System.out.println("StripMaker::getPosition : Calculating position for cluster size " + cluster.size());
         List<Double> signals = new ArrayList<Double>();
         List<Hep3Vector> positions = new ArrayList<Hep3Vector>();
 
@@ -204,13 +215,15 @@ public class StripMaker {
                 positions.add(((ThinSiStrips) electrodes).getStripCenter(_strip_map.get(hit)));
 //                if (hit.getRawTrackerHit().getLayerNumber() < 4)
 //                    System.out.println("thinStripCenter is at " + ((ThinSiStrips) electrodes).getStripCenter(_strip_map.get(hit)).toString());
+            } else if (electrodes instanceof SiStriplets) {
+                Hep3Vector position = ((SiStriplets) electrodes).getStripCenter(_strip_map.get(hit));
+                if (_debug) System.out.println("StripMaker::getPosition : Position " + position.toString());
+                positions.add(position);
             } else {
                 positions.add(((SiStrips) electrodes).getStripCenter(_strip_map.get(hit)));
 //                if (hit.getRawTrackerHit().getLayerNumber() < 4)
 //                    System.out.println("stripCenter is at " + ((SiStrips) electrodes).getStripCenter(_strip_map.get(hit)).toString());
             }
-            if (_debug)
-                System.out.println(this.getClass().getSimpleName() + " Added hit with signal " + hit.getAmp() + " at strip center posiiton " + (((SiStrips) electrodes).getStripCenter(_strip_map.get(hit))));
         }
 
         // Average charge on central strips of longer clusters

@@ -422,6 +422,8 @@ public abstract class ReconParticleDriver extends Driver {
         matcher = new TrackClusterMatcher(clusterParamFileName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
         matcher.setBeamEnergy(beamEnergy);
+        if (trackCollectionNames.length > 0 )
+            matcher.setRootFileName("tracks_"+trackCollectionNames[0]+"_cluster_matching_plots.root");
         matcher.setBFieldMap(detector.getFieldMap());
 
         // Set the magnetic field parameters to the appropriate values.
@@ -432,7 +434,7 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
-
+                
         if (cuts == null) {
             cuts = new StandardCuts(beamEnergy);
         } else {

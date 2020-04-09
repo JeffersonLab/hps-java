@@ -8,13 +8,14 @@ import org.lcsim.event.GenericObject;
 /**
  * 
  * @author Omar Moreno <omoreno1@ucsc.edu>
+ * @author PF <pbutti@slac.stanford.edu>
  * @version $Id$
  * 
  */
 public class TrackResidualsData implements GenericObject {
-
-    List<Double> trackResidualsX = new ArrayList<Double>();
-    List<Float> trackResidualsY = new ArrayList<Float>();
+    
+    List<Double> residuals = new ArrayList<Double>();
+    List<Float>  sigmas    = new ArrayList<Float>();
     List<Integer> layers = new ArrayList<Integer>();
     
     /**
@@ -23,37 +24,29 @@ public class TrackResidualsData implements GenericObject {
      * @param trackerVolume : The SVT volume to which the track used to calculate
      *                        the residuals corresponds to.
      */
-    public TrackResidualsData(int trackerVolume, List<Integer> layers, List<Double> trackResidualsX, List<Float> trackResidualsY){
+    public TrackResidualsData(int trackerVolume, List<Integer> layers, List<Double> residuals, List<Float> sigmas){
         this.layers.addAll(layers);
         this.layers.add(trackerVolume);
-        this.trackResidualsX.addAll(trackResidualsX);
-        this.trackResidualsY.addAll(trackResidualsY);
+        this.residuals.addAll(residuals);
+        this.sigmas.addAll(sigmas);
     }
 
     /**
      * 
-     * @return tracker volume : 0 if top 1 if bottom
      */
-    public int getTrackerVolume(){
-        return layers.get(layers.size() - 1);
+    @Override
+    public double getDoubleVal(int index) {
+        return residuals.get(index);
     }
     
     /**
      * 
      */
     @Override
-    public double getDoubleVal(int index) {
-        return trackResidualsX.get(index);
-    }
-
-    /**
-     * 
-     */
-    @Override
     public float getFloatVal(int index) {
-        return trackResidualsY.get(index);
+        return sigmas.get(index);
     }
-
+    
     /**
      * 
      */
@@ -67,7 +60,7 @@ public class TrackResidualsData implements GenericObject {
      */
     @Override
     public int getNDouble() {
-        return trackResidualsX.size();
+        return residuals.size();
     }
 
     /**
@@ -75,7 +68,7 @@ public class TrackResidualsData implements GenericObject {
      */
     @Override
     public int getNFloat() {
-        return trackResidualsY.size();
+        return sigmas.size();
     }
 
     /**

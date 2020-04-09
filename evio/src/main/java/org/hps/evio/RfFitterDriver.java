@@ -9,6 +9,8 @@ import hep.aida.IFunction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.hps.recon.ecal.FADCGenericHit;
 import org.lcsim.event.EventHeader;
@@ -21,10 +23,16 @@ import org.lcsim.util.aida.AIDA;
  */
 public class RfFitterDriver extends Driver {
 
+    private static final Logger LOGGER = Logger.getLogger(RfFitterDriver.class.getPackage().getName());
+   
+    // FIXME:  move crate/slot/channel to conditions database
     private static final double NOISE = 2.0; // units = FADC
     private static final int CRATE = 46;
     private static final int SLOT = 13;
     private static final int CHANNELS[] = {0, 1};
+    private static final int CRATE2019 = 39;
+    private static final int SLOT2019 = 13;
+    private static final int CHANNELS2019[] = {0, 2};
     private static final double NSPERSAMPLE = 4;
 
     // boilerplate:
@@ -45,6 +53,8 @@ public class RfFitterDriver extends Driver {
 
         List<RfHit> rfHits = new ArrayList<RfHit>();
 
+        boolean is2016 = false;
+        boolean is2019 = false;
         boolean foundRf = false;
         double times[] = {-9999, -9999};
 
@@ -62,17 +72,38 @@ public class RfFitterDriver extends Driver {
                 }
 
                 // ignore hits not from proper RF signals based on crate/slot/channel:
-                if (hit.getCrate() != CRATE || hit.getSlot() != SLOT)
-                    continue;
-
-                for (int ii = 0; ii < CHANNELS.length; ii++) {
-                    if (hit.getChannel() == CHANNELS[ii]) {
-
-                        // we found a RF readout, fit it:
-                        foundRf = true;
-                        times[ii] = fitPulse(hit);
-
-                        break;
+                if (hit.getCrate()==CRATE && hit.getSlot()==SLOT) {
+                    for (int ii = 0; ii < CHANNELS.length; ii++) {
+                        if (hit.getChannel() == CHANNELS[ii]) {
+                            if (is2019) {
+                                LOGGER.log(Level.SEVERE, "Mixed 2019/2016 RF signals.");
+                                return;
+                            }
+                            else {
+                                // we found a RF readout, fit it:
+                                is2016 = true;
+                                foundRf = true;
+                                times[ii] = fitPulse(hit);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (hit.getCrate()==CRATE2019 && hit.getSlot()==SLOT2019) {
+                    for (int ii = 0; ii < CHANNELS2019.length; ii++) {
+                        if (hit.getChannel() == CHANNELS2019[ii]) {
+                            if (is2016) {
+                                LOGGER.log(Level.SEVERE, "Mixed 2019/2016 RF signals.");
+                                return;
+                            }
+                            else {
+                                // we found a RF readout, fit it:
+                                is2019 = true;
+                                foundRf = true;
+                                times[ii] = fitPulse(hit);
+                                break;
+                            }
+                        }
                     }
                 }
             }

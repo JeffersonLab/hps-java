@@ -21,8 +21,12 @@ public class TrackData implements GenericObject {
 
     public static final int L1_ISOLATION_INDEX = 0;
     public static final int L2_ISOLATION_INDEX = 1;
-    public static final int N_ISOLATIONS = 12;
+    public static final int N_ISOLATIONS = 14;  //Default
+    public static final int N_TRACK_PARAMS = 4;
     public static final int TRACK_TIME_INDEX = 0;
+    public static final int PX_INDEX = 1;
+    public static final int PY_INDEX = 2;
+    public static final int PZ_INDEX = 3;
     public static final int TRACK_VOLUME_INDEX = 0;
     public static final String TRACK_DATA_COLLECTION = "TrackData";
     public static final String TRACK_DATA_RELATION_COLLECTION = "TrackDataRelations";
@@ -36,12 +40,23 @@ public class TrackData implements GenericObject {
      */
     public TrackData() {
         doubles = new double[N_ISOLATIONS];
-        floats = new float[1];
+        floats = new float[N_TRACK_PARAMS];
         ints = new int[1];
     }
-
+    
     /**
-     * Constructor
+     * Constructor geometry-aware
+     */
+    
+    public TrackData(int NLAYERS) {
+        doubles = new double[NLAYERS*2];
+        floats = new float[N_TRACK_PARAMS];
+        ints = new int[1];
+    }
+        
+    //@depracated
+    /**
+     * Constructor 
      *
      * @param trackVolume : SVT volume associated with the track
      * @param trackTime : The track time
@@ -51,10 +66,26 @@ public class TrackData implements GenericObject {
     public TrackData(int trackVolume, float trackTime, double[] isolations) {
 
         this.doubles = isolations;
-        this.floats = new float[]{trackTime};
+        this.floats = new float[]{trackTime,0,0,0};
         this.ints = new int[]{trackVolume};
     }
 
+    /**
+     * Constructor 
+     *
+     * @param trackVolume : SVT volume associated with the track
+     * @param trackTime : The track time
+     * @param isolations : an array of doubles containing isolations for every
+     * sensor layer
+     * @param momentum   : an array of floats containing track momentum in the form (px,py,pz)
+     */
+    public TrackData(int trackVolume, float trackTime, double[] isolations, float[] momentum) {
+
+        this.doubles = isolations;
+        this.floats = new float[]{trackTime,momentum[0],momentum[1],momentum[2]};
+        this.ints = new int[]{trackVolume};
+    }
+        
     /**
      * Get isolation value for the hit in the given sensor layer.
      *
@@ -66,6 +97,19 @@ public class TrackData implements GenericObject {
      */
     public double getIsolation(int layer) {
         return doubles[layer];
+    }
+    
+    /** Get the track momentum 
+     * @return The stored track momentum components
+     */
+    public float[] getTrackMomentum() {
+        return new float[]{floats[PX_INDEX],floats[PY_INDEX],floats[PZ_INDEX]};
+    }
+        
+    public void setTrackMomentum(float[] momentum) {
+        floats[PX_INDEX] = momentum[0];
+        floats[PY_INDEX] = momentum[1];
+        floats[PZ_INDEX] = momentum[2];
     }
 
     /**

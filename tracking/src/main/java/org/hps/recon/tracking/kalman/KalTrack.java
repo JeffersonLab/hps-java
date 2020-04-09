@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.util.Pair;
 
 // Track followed and fitted by the Kalman filter
