@@ -28,7 +28,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Units are Tesla, GeV, mm
 
         int nTrials = 10000; // The number of test events to generate for fitting
-        int startLayer = 0; // Where to start the Kalman filtering
+        int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
         int nStereo = 4; // Number of stereo layers needed by the linear fit
@@ -614,10 +614,10 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             int nS = 0;
             int frstLyr = 0;
             ArrayList<int[]> hitList = new ArrayList<int[]>(nAxial + nStereo);
-            for (int i=0; i<SiModules.size(); ++i) {
-            //for (int i = SiModules.size() - 1; i >= 0; i--) {
+            //for (int i=0; i<SiModules.size(); ++i) {
+            for (int i = SiModules.size() - 1; i >= 0; i--) {
                 SiModule si = SiModules.get(i);
-                //if (si.Layer > startLayer) continue;
+                if (si.Layer > startLayer) continue;
                 if (si.hits.isEmpty()) continue;
                 if (nA < nAxial) {
                     if (!si.isStereo) {
@@ -626,7 +626,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                         ht[1] = 0;
                         hitList.add(ht);
                         nA++;
-                        //frstLyr = si.Layer;
+                        frstLyr = si.Layer;
                     }
                 } else {
                     if (nS >= nStereo) break;
@@ -638,7 +638,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                         ht[1] = 0;
                         hitList.add(ht);
                         nS++;
-                        //frstLyr = si.Layer;
+                        frstLyr = si.Layer;
                     }
                 } else {
                     if (nA >= nStereo) break;
