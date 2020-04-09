@@ -47,6 +47,22 @@ public class Fee2019OneTrackAnalysis extends Driver {
         // now add in the FEE candidates
         rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
 
+        boolean analyzeAllTracks = true;
+
+        if (analyzeAllTracks) {
+            if (rpList.size() > 0) {
+                setupSensors(event);
+                aida.tree().mkdirs("all tracks");
+                aida.tree().cd("all tracks");
+                for (ReconstructedParticle rp : rpList) {
+                    if (rp.getParticleIDUsed().getPDG() == 11 && rp.getTracks().get(0) != null) {
+                        analyzeTrack(rp);
+                    }
+                }
+                aida.tree().cd("..");
+            }
+        }
+
         // should have at most two RPS (one MatchedTrack and one GBL Track
         if (rpList.size() != 2) {
             return;
@@ -132,18 +148,25 @@ public class Fee2019OneTrackAnalysis extends Driver {
     void analyzeTrack(ReconstructedParticle rp) {
         boolean isGBL = TrackType.isGBL(rp.getType());
         String trackDir = isGBL ? "gbl" : "htf";
-
+        if(rp.getType()==1) trackDir = "kf";
         aida.tree().mkdirs(trackDir);
         aida.tree().cd(trackDir);
 
         Track t = rp.getTracks().get(0);
+
+        aida.cloud1D("ReconstructedParticle Type").fill(rp.getType());
+        aida.cloud1D("Track Type").fill(t.getType());
+
         //rotate into physiscs frame of reference
         Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
         double theta = Math.acos(rprot.z() / rprot.magnitude());
         double chiSquared = t.getChi2();
         int ndf = t.getNDF();
         double chi2Ndf = t.getChi2() / t.getNDF();
-        double chisqProb = ChisqProb.gammp(ndf, chiSquared);
+        double chisqProb = 1.;
+        if (ndf != 0) {
+            chisqProb = ChisqProb.gammp(ndf, chiSquared);
+        }
         int nHits = t.getTrackerHits().size();
         double dEdx = t.getdEdx();
         double e = rp.getEnergy();
