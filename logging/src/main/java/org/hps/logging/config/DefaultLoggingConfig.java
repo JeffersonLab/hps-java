@@ -11,12 +11,15 @@ import java.util.logging.LogManager;
  */
 public class DefaultLoggingConfig {
 
+    private static final String LOG_PROP = "logging.properties";
+
     /**
      * Class constructor which reads in a logging properties file from a classpath resource.
      */
     public DefaultLoggingConfig() {
-        InputStream inputStream = DefaultLoggingConfig.class.getResourceAsStream("logging.properties");
+        InputStream inputStream = DefaultLoggingConfig.class.getResourceAsStream(LOG_PROP);
         try {
+            System.out.println("Reading default logging config from " + LOG_PROP);
             LogManager.getLogManager().readConfiguration(inputStream);
         } catch (SecurityException | IOException e) {
             throw new RuntimeException("Initialization of default logging configuration failed.", e);
