@@ -1,12 +1,13 @@
 package org.hps.evio;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
-import org.hps.record.svt.SvtEvioUtils;
-import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioHeaderException;
 import org.hps.record.svt.SvtEvioExceptions.SvtEvioReaderException;
+import org.hps.record.svt.SvtEvioUtils;
+import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.util.Pair;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -21,6 +22,11 @@ import org.lcsim.geometry.Subdetector;
  */
 public class SvtEvioReader extends AbstractSvtEvioReader {
 
+    /**
+     * Initialize the logger.
+     */
+    private static Logger LOG = Logger.getLogger(SvtEvioReader.class.getPackage().getName());
+    
     // -----------------//
     // --- Constants ---//
     // -----------------//
@@ -108,8 +114,7 @@ public class SvtEvioReader extends AbstractSvtEvioReader {
         List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
         for (HpsSiSensor sensor : sensors) {
             Pair<Integer, Integer> daqPair = new Pair<Integer, Integer>(sensor.getFebID(), sensor.getFebHybridID());
-            System.out.println("[ SvtEvioReader ][ setupDaqMap ] FEB ID: " 
-                    + sensor.getFebID() + " Hybrid ID: " + sensor.getFebHybridID());
+            LOG.info("FEB ID: " + sensor.getFebID() + " Hybrid ID: " + sensor.getFebHybridID());
             daqPairToSensor.put(daqPair, sensor);
         }
         this.isDaqMapSetup = true;
