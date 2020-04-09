@@ -53,8 +53,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         FieldMap fM = null;
         FieldMap fMg = null;
         try {
-            fM = new FieldMap(mapFile, mapType, true, 21.17, 0., 457.2);
-            fMg = new FieldMap(mapFile, mapType, true, 21.17, 0., 457.2);     // for generating tracks
+            fM = new FieldMap(mapFile, mapType, false, 21.17, 0., 457.2);
+            fMg = new FieldMap(mapFile, mapType, false, 21.17, 0., 457.2);     // for generating tracks
         } catch (IOException e) {
             System.out.format("Could not open or read the field map %s\n", mapFile);
             return;
