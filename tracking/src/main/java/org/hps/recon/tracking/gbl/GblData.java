@@ -8,11 +8,18 @@ import org.hps.recon.tracking.gbl.matrix.VVector;
 
 /**
  * @author Norman A Graf
+ * @author PF
  * @version $Id:
  */
 public class GblData {
-
+    
+   
+    enum dataBlockType {
+        None, InternalMeasurement, InternalKink, ExternalSeed, ExternalMeasurement;
+    }
+    
     int theLabel; // /< Label (of measurements point)
+    dataBlockType theType; // /<Type of measurement
     double theValue; // /< Value (residual)
     double thePrecision; // /< Precision (1/sigma**2)
     double theDownWeight; // /< Down-weighting factor (0-1)
@@ -28,8 +35,9 @@ public class GblData {
      * \param [in] aLabel Label of corresponding point \param [in] aValue Value of (scalar) measurement \param [in]
      * aPrec Precision of (scalar) measurement
      */
-    GblData(int aLabel, double aValue, double aPrec) {
-
+    GblData(int aLabel, dataBlockType aType, double aValue, double aPrec) {
+        
+        theType  = aType;
         theLabel = aLabel;
         theValue = aValue;
         thePrecision = aPrec;
@@ -40,6 +48,10 @@ public class GblData {
     
     public int getLabel() {
         return theLabel;
+    }
+                                                
+    public dataBlockType getType() {
+        return theType;
     }
     
     // / Add derivatives from measurement.
@@ -199,6 +211,7 @@ public class GblData {
     // / Print data block.
     void printData() {
         System.out.println(" measurement at label " + theLabel + ": " + theValue + ", " + thePrecision);
+        System.out.println(" measurement type " + theType); 
         System.out.print("  param " + theParameters.size() + ":");
         for (int i = 0; i < theParameters.size(); ++i) {
             System.out.print(" " + theParameters.get(i));

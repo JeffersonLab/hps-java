@@ -158,6 +158,15 @@ public class GblTrajectory {
         numPoints.add(numAllPoints);
         construct(); // construct trajectory
     }
+    
+    //Return a copy of the single trajectory points
+    public List<GblPoint> getSingleTrajPoints() {
+        if (thePoints.size() > 0) {
+            List<GblPoint> singlePoints = new ArrayList<GblPoint>(thePoints.get(0));
+            return singlePoints;
+        }
+        return null;
+    }
 
     // / Retrieve validity of trajectory
     public boolean isValid() {
@@ -614,8 +623,7 @@ public class GblTrajectory {
         int nData = 0;
         for (GblData d : theData) {
             //skipped (internal) measurement? 
-            //For the moment I don't check if it's a kink or a measurement. 
-            if (d.getLabel() == skippedMeasLabel)
+            if (d.getLabel() == skippedMeasLabel && d.getType() == GblData.dataBlockType.InternalMeasurement)
                 continue;
             int size = d.getNumParameters();
             int[] indLocal = new int[size];
@@ -686,7 +694,7 @@ public class GblTrajectory {
 
                     for (int i = iOff; i < 5; ++i) {
                         if (aPrec.get(i) > 0.) {
-                            GblData aData = new GblData(nLabel, aMeas.get(i), aPrec.get(i));
+                            GblData aData = new GblData(nLabel, GblData.dataBlockType.InternalMeasurement, aMeas.get(i), aPrec.get(i));
                             aData.addDerivatives(i, labDer, matPDer, iOff, localDer, globalLab, globalDer, numLocals, transDer);
                             theData.add(aData);
                             nData++;
@@ -723,7 +731,7 @@ public class GblTrajectory {
                     for (int i = 0; i < nDim; ++i) {
                         int iDim = theDimension.get(i);
                         if (aPrec.get(iDim) > 0.) {
-                            GblData aData = new GblData(nLabel, aMeas.get(iDim), aPrec.get(iDim));
+                            GblData aData = new GblData(nLabel, GblData.dataBlockType.InternalKink, aMeas.get(iDim), aPrec.get(iDim));
                             aData.addDerivatives(iDim, labDer, matTDer, numLocals, transDer);
                             theData.add(aData);
                             nData++;
@@ -790,7 +798,7 @@ public class GblTrajectory {
         Ndf = theData.size() - numParameters;
         Chi2 = 0.;
         for (int i = 0; i < theData.size(); ++i) {
-            if (theData.get(i).getLabel() == skippedMeasLabel)
+            if (theData.get(i).getLabel() == skippedMeasLabel && theData.get(i).getType() == GblData.dataBlockType.InternalMeasurement)
                 continue;
             Chi2 += theData.get(i).getChi2();
         }
@@ -908,6 +916,10 @@ public class GblTrajectory {
         for (GblData data : theData) {
             data.printData();
         }
+    }
+    
+    int getNpointsOnTraj() {
+        return numAllPoints;
     }
 
 }

@@ -309,9 +309,11 @@ public class GBLexample1 {
                 traj.printTrajectory(1);
                 traj.printPoints(1);
             }
+            traj.printData();
             
             int numData[] = new int[1];
-            for (int ilabel=1; ilabel<listOfPoints.size(); ilabel++) {
+            System.out.printf("Example1::Size list Of Points %d %d\n",listOfPoints.size(),traj.getNpointsOnTraj());
+            for (int ilabel=1; ilabel<=listOfPoints.size(); ilabel++) {
                 //Check biased residual
                 List<Double> aResiduals   = new ArrayList<Double>();
                 List<Double> aMeasErrors  = new ArrayList<Double>();
@@ -322,27 +324,56 @@ public class GBLexample1 {
                     System.out.printf("Example1::measResults %d %d %f %f %f \n",ilabel, i, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
                 }
             }
-                       
+            
             //System.out.printf("%d %d %f %f %f %f",label,numData[1]);
             //Check unbiased residual
+            System.out.println("Checking unbiased residual => remove label 3: Internal Measurement");
             GblTrajectory traj_unbias = new GblTrajectory(listOfPoints);
             if (!traj.isValid()) {
                 System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
             }
             double[] dVals_u = new double[2];
             int [] iVals_u = new int[1];
-            int ulabel = 1;
+            //Remove point label 3
+            int ulabel = 3;
             traj.fit(dVals_u,iVals_u,"",ulabel);
             
-           
+            
             int numData_u[] = new int[1];
             List<Double> aResiduals_u   = new ArrayList<Double>();
             List<Double> aMeasErrors_u  = new ArrayList<Double>();
             List<Double> aResErrors_u   = new ArrayList<Double>();
             List<Double> aDownWeights_u = new ArrayList<Double>();
             
-            //traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);           
+            traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);           
+            for (int i_u=0; i_u<numData_u[0];i_u++) {
+                System.out.printf("Example1::measResults %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
+            }
             
+            System.out.println("Checking unbiased residual => remove label 4: Internal Kink");
+            ulabel = 4;
+            traj.fit(dVals_u,iVals_u,"",ulabel);
+            aResiduals_u.clear();
+            aMeasErrors_u.clear();
+            aResErrors_u.clear();
+            aDownWeights_u.clear();
+            
+            traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);
+            for (int i_u=0; i_u<numData_u[0];i_u++) {
+                System.out.printf("Example1::measResults %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
+            }
+
+            System.out.println("Checking biased residual again");
+            traj.fit(dVals_u,iVals_u,"");
+            aResiduals_u.clear();
+            aMeasErrors_u.clear();
+            aResErrors_u.clear();
+            aDownWeights_u.clear();
+            
+            traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);
+            for (int i_u=0; i_u<numData_u[0];i_u++) {
+                System.out.printf("Example1::measResults (b) %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
+            }
         }
         
         System.out.printf("Chi2Sum/NdfSum = %f\n",Chi2Sum/NdfSum);
