@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class GBLexample1 {
     
-    private int nTry = 10000;
+    private int nTry = 1000;
     private int nLayer = 10;
     private NormalDistribution norm = new NormalDistribution();
     private String outputPlots = "example1.root";
@@ -39,11 +39,18 @@ public class GBLexample1 {
         aida.histogram1D("clPar_fit_2",100,-1.2,1.2);
         aida.histogram1D("clPar_fit_3",100,-1,1);
         aida.histogram1D("clPar_fit_4",100,-2.5,2.5);
-
+        
+        aida.histogram1D("u_res_1",100,-2.5,2.5);
+        aida.histogram1D("b_res_1",100,-2.5,2.5);
         
     }
     
-    public void runExample() {
+    public void runExample(int inTry, int inLayer,boolean idebug) {
+        
+        nTry=inTry;
+        nLayer=inLayer;
+        debug = idebug;
+        
         setupPlots();
         System.out.println("Running GBL Example!");
         
@@ -133,7 +140,8 @@ public class GBLexample1 {
         for (int iTry = 1; iTry<=nTry; iTry+=1) {
             for (int i = 0; i<5; i+=1) {
                 
-                clPar.set(i, clErr.get(i)*norm.sample());
+                //clPar.set(i, clErr.get(i)*norm.sample());
+                clPar.set(i, clErr.get(i)*0.5);
                 //System.out.println("clPar " + i + " " + clPar.get(i));
                 aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
             }
@@ -208,7 +216,8 @@ public class GBLexample1 {
                 }
                 
                 for (int i=0; i<2; i+=1) {
-                    meas.set(i,meas.get(i)+measErr.get(i) * norm.sample());
+                    //meas.set(i,meas.get(i)+measErr.get(i) * norm.sample());
+                    meas.set(i,meas.get(i)+measErr.get(i) * 0.5);
                 }
                 
                 if (debug) {
@@ -248,7 +257,8 @@ public class GBLexample1 {
                     
                     //Only change the slopes
                     for (int i =0; i<2; i+=1) {
-                        double dslope = scatErr.get(i)*norm.sample();
+                        //double dslope = scatErr.get(i)*norm.sample();
+                        double dslope = scatErr.get(i)*0.5;
                         double slope  = clPar.get(i + 1);
                         double dslope_prec = scatErr.get(i) * scatErr.get(i);
                         double slope_prec = clCov.get(i+1, i+1);
@@ -293,7 +303,80 @@ public class GBLexample1 {
             aida.histogram1D("Chi2").fill(dVals[0]);
             aida.histogram1D("Ndf").fill(iVals[0]);
             aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
+            
+
+            if (debug) {
+                traj.printTrajectory(1);
+                traj.printPoints(1);
+            }
+            traj.printData();
+            
+            int numData[] = new int[1];
+            System.out.printf("Example1::Size list Of Points %d %d\n",listOfPoints.size(),traj.getNpointsOnTraj());
+            for (int ilabel=1; ilabel<=listOfPoints.size(); ilabel++) {
+                //Check biased residual
+                List<Double> aResiduals   = new ArrayList<Double>();
+                List<Double> aMeasErrors  = new ArrayList<Double>();
+                List<Double> aResErrors   = new ArrayList<Double>();
+                List<Double> aDownWeights = new ArrayList<Double>();
+                traj.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights);           
+                for (int i=0; i<numData[0];i++) {
+                    System.out.printf("Example1::measResults %d %d %f %f %f \n",ilabel, i, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
+                }
+            }
+            
+            //System.out.printf("%d %d %f %f %f %f",label,numData[1]);
+            //Check unbiased residual
+            System.out.println("Checking unbiased residual => remove label 3: Internal Measurement");
+            GblTrajectory traj_unbias = new GblTrajectory(listOfPoints);
+            if (!traj.isValid()) {
+                System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
+            }
+            double[] dVals_u = new double[2];
+            int [] iVals_u = new int[1];
+            //Remove point label 3
+            int ulabel = 3;
+            traj.fit(dVals_u,iVals_u,"",ulabel);
+            
+            
+            int numData_u[] = new int[1];
+            List<Double> aResiduals_u   = new ArrayList<Double>();
+            List<Double> aMeasErrors_u  = new ArrayList<Double>();
+            List<Double> aResErrors_u   = new ArrayList<Double>();
+            List<Double> aDownWeights_u = new ArrayList<Double>();
+            
+            traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);           
+            for (int i_u=0; i_u<numData_u[0];i_u++) {
+                System.out.printf("Example1::measResults %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
+            }
+            
+            System.out.println("Checking unbiased residual => remove label 4: Internal Kink");
+            ulabel = 4;
+            traj.fit(dVals_u,iVals_u,"",ulabel);
+            aResiduals_u.clear();
+            aMeasErrors_u.clear();
+            aResErrors_u.clear();
+            aDownWeights_u.clear();
+            
+            traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);
+            for (int i_u=0; i_u<numData_u[0];i_u++) {
+                System.out.printf("Example1::measResults %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
+            }
+
+            System.out.println("Checking biased residual again");
+            traj.fit(dVals_u,iVals_u,"");
+            aResiduals_u.clear();
+            aMeasErrors_u.clear();
+            aResErrors_u.clear();
+            aDownWeights_u.clear();
+            
+            traj.getMeasResults(ulabel,numData_u,aResiduals_u,aMeasErrors_u,aResErrors_u,aDownWeights_u);
+            for (int i_u=0; i_u<numData_u[0];i_u++) {
+                System.out.printf("Example1::measResults (b) %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
+            }
         }
+        
+        System.out.printf("Chi2Sum/NdfSum = %f\n",Chi2Sum/NdfSum);
         
         if (outputPlots != null) {
             try {
