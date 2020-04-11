@@ -167,7 +167,8 @@ public class StandardCuts {
         maxVertexClusterDt = 2.0;
         minVertexChisqProb = 0.00001;
         minMollerChisqProb = 0.00001;
-        maxTrackChisqProb = 0.00001;
+        //maxTrackChisqProb = 0.00001;
+        maxTrackChisqProb = 1.0;
         
         maxElectronPset = false;
         minMollerPset = false;
