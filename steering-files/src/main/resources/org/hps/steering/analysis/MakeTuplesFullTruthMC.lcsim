@@ -5,7 +5,7 @@
         <driver name="RawTrackerHitSensorSetup"/>   
         <driver name="TridentTuple"/>
         <!--<driver name="MollerTuple"/>-->
-        <!--<driver name="FEETuple"/>-->
+        <driver name="FEETuple"/>
         <driver name="FullTruthTuple"/>
     </execute>    
     <drivers>    
