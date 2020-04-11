@@ -90,7 +90,6 @@ class TrackCandidate {
             logger.log(Level.WARNING, String.format("TrackCandidate.removeHit error in event %d: MeasurementSite is missing for layer %d\n", 
                     eventNumber, mod.Layer));
         } else {
-            siteR.hitID = -1;
             sites.remove(siteR);
         }
         if (kalTkrID == -1) {
@@ -288,7 +287,7 @@ class TrackCandidate {
         str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
         str=str+String.format("   %d Hits: ", hits.size());
-        for (KalHit ht : hits) ht.print("short");
+        for (KalHit ht : hits) str = str + ht.toString("short");
         if (shrt) {
             str = str + "\n";
             str=str+String.format("   Site list: ");

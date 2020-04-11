@@ -562,9 +562,9 @@ public class KalmanDriverHPS extends Driver {
         List<Pair<double[], double[]>> MomsLocs = new ArrayList<Pair<double[], double[]>>();
         if (verbose)
             System.out.println("KalTrack intercepts and momenta:");
-        for (MeasurementSite site : trk.interceptVects.keySet()) {
-            Vec mom = trk.interceptMomVects.get(site);
-            Vec loc = trk.interceptVects.get(site);
+        for (MeasurementSite site : trk.interceptVects().keySet()) {
+            Vec mom = trk.interceptMomVects().get(site);
+            Vec loc = trk.interceptVects().get(site);
             double[] locTransformed = (KalmanInterface.KalmanToHpsSvt.rotate(loc)).v;
             double[] locTrans = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(locTransformed)).v();
             double[] momTransformed = (KalmanInterface.KalmanToHpsSvt.rotate(mom)).v;

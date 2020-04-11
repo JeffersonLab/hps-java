@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.tracking.TrackingReconstructionPlots;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -53,6 +52,7 @@ class KalmanPatRecPlots {
     int nMCtracks;
     int nMCtracksFound;
     private Efficiency pEff;
+    private Logger logger;
 
     KalmanPatRecPlots(boolean verbose, KalmanInterface KI, IDDecoder decoder, int numEvtPlots, org.lcsim.geometry.FieldMap fm) {
         this.verbose = verbose;
@@ -60,6 +60,7 @@ class KalmanPatRecPlots {
         this.decoder = decoder;
         this.fm = fm;
         this.numEvtPlots = numEvtPlots;
+        logger = Logger.getLogger(KalTrack.class.getName());
         
         if (aida == null) aida = AIDA.defaultInstance();
         aida.tree().cd("/");
@@ -243,6 +244,11 @@ class KalmanPatRecPlots {
                 }
                 int nBad = 0;
                 for (MeasurementSite site : kTk.SiteList) {
+                    if (site.hitID < 0) {
+                        logger.log(Level.WARNING, String.format("event %d, missing hit ID for track %d on layer %d, detector %d",
+                                event.getEventNumber(), kTk.ID, site.m.Layer, site.m.detector));
+                        continue;
+                    }
                     SiModule mod = site.m;
                     TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                     List<RawTrackerHit> rawHits = hpsHit.getRawHits();
@@ -356,6 +362,11 @@ class KalmanPatRecPlots {
                 Set<TrackerHit> hitsOnTk = new HashSet<TrackerHit>();
                 for (MeasurementSite site : kTk.SiteList) {
                     SiModule mod = site.m;
+                    if (site.hitID < 0) {
+                        logger.log(Level.WARNING, String.format("event %d, missing hit ID for track %d on layer %d, detector %d",
+                                event.getEventNumber(), kTk.ID, site.m.Layer, site.m.detector));
+                        continue;
+                    }
                     TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                     hitsOnTk.add(hpsHit);
                 }
@@ -654,7 +665,7 @@ class KalmanPatRecPlots {
             System.out.format("Outputting the aida histograms now for %d events to file %s\n", nEvents, outputFileName);
             aida.saveAs(outputFileName);
         } catch (IOException ex) {
-            Logger.getLogger(TrackingReconstructionPlots.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
     }
     

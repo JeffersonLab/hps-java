@@ -19,9 +19,11 @@ public class KalTrack {
     public double chi2;
 
     ArrayList<MeasurementSite> SiteList;
-    public Map<MeasurementSite, Vec> interceptVects;
-    public Map<MeasurementSite, Vec> interceptMomVects;
-    public Map<Integer, MeasurementSite> lyrMap;
+    // call the corresponding functions to create and access the following two maps
+    private Map<MeasurementSite, Vec> interceptVects;    
+    private Map<MeasurementSite, Vec> interceptMomVects;
+    Map<Integer, MeasurementSite> millipedeMap;
+    Map<Integer, MeasurementSite> lyrMap;
     public int eventNumber;
     private Vec helixAtOrigin;
     private boolean propagated;
@@ -40,7 +42,7 @@ public class KalTrack {
     double tMax;
     private Logger logger;
 
-    KalTrack(int evtNumb, int tkID, int nHits, ArrayList<MeasurementSite> SiteList, double chi2, ArrayList<Double> yScat) {
+    KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
         this.yScat = yScat;
@@ -68,8 +70,6 @@ public class KalTrack {
         }
         
         Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
-        this.nHits = nHits;
-        this.chi2 = chi2;
         ID = tkID;
         if (this.SiteList.size() < 5) {
             logger.log(Level.WARNING, "KalTrack error: not enough hits ("+SiteList.size()+") on the candidate track (ID::"+ID+") for event "+eventNumber);
@@ -91,36 +91,77 @@ public class KalTrack {
         double c = 2.99793e8; // Speed of light in m/s
         alpha = 1.0e12 / (c * Bmag); // Convert from pt in GeV to curvature in mm
         Cx = null;
-        Cp = null;
-        interceptVects = new HashMap<MeasurementSite, Vec>();
-        interceptMomVects = new HashMap<MeasurementSite, Vec>();
-        lyrMap = new HashMap<Integer, MeasurementSite>();
+        Cp = null;        
         // Fill the maps
         time = 0.;
         tMin = 9.9e9;
         tMax = -9.9e9;
+        this.chi2 = 0.;
+        this.nHits = this.SiteList.size();
         for (MeasurementSite site : this.SiteList) {
-            StateVector sV = null;
-            if (site.smoothed) sV = site.aS;
-            else sV = site.aP;
-            double phiS = sV.planeIntersect(site.m.p);
-            if (Double.isNaN(phiS)) { phiS = 0.; }
-            interceptVects.put(site, sV.toGlobal(sV.atPhi(phiS)));
-            interceptMomVects.put(site, sV.Rot.inverseRotate(sV.getMom(phiS)));
-            lyrMap.put(site.m.Layer, site);
             time += site.m.hits.get(site.hitID).time;
             tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
             tMax = Math.max(tMax,  site.m.hits.get(site.hitID).time);
+            this.chi2 += site.chi2inc;
         }
-        time = time/(double)SiteList.size();        
+        time = time/(double)SiteList.size(); 
+        lyrMap = null;
+        millipedeMap = null;
+        interceptVects = null;
+        interceptMomVects = null;
     }
 
     public double getTime() {
         return time;
     }
     
+    public Map<MeasurementSite, Vec> interceptVects() {
+        if (interceptVects == null) {
+            interceptVects = new HashMap<MeasurementSite, Vec>(nHits);
+            for (MeasurementSite site : this.SiteList) {
+                StateVector sV = null;
+                if (site.smoothed) sV = site.aS;
+                else sV = site.aP;
+                double phiS = sV.planeIntersect(site.m.p);
+                if (Double.isNaN(phiS)) phiS = 0.;
+                interceptVects.put(site, sV.toGlobal(sV.atPhi(phiS)));                
+            }
+        }
+        return interceptVects;
+    }
+    
+    public Map<MeasurementSite, Vec> interceptMomVects() {
+        if (interceptMomVects == null) {
+            interceptMomVects = new HashMap<MeasurementSite, Vec>();
+            for (MeasurementSite site : this.SiteList) {
+                StateVector sV = null;
+                if (site.smoothed) sV = site.aS;
+                else sV = site.aP;
+                double phiS = sV.planeIntersect(site.m.p);
+                if (Double.isNaN(phiS)) phiS = 0.;
+                interceptMomVects.put(site, sV.Rot.inverseRotate(sV.getMom(phiS)));
+            }
+        }
+        return interceptMomVects;
+    }
+    
+    private void makeLyrMap() {
+        lyrMap = new HashMap<Integer, MeasurementSite>(nHits);
+        for (MeasurementSite site : SiteList) {
+            lyrMap.put(site.m.Layer, site);
+        }
+    }
+    
+    private void makeMillipedeMap() {
+        millipedeMap = new HashMap<Integer, MeasurementSite>(nHits);
+        for (MeasurementSite site : SiteList) {
+            millipedeMap.put(site.m.millipedeID, site);
+        }
+    }
+    
     // Find the change in smoothed helix angle in XY between one layer and the next
     public double scatX(int layer) {
+        if (lyrMap == null) makeLyrMap();
         if (!lyrMap.containsKey(layer)) return -999.;
         int lyrNxt = layer + 1;
         while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) lyrNxt++;
@@ -142,6 +183,7 @@ public class KalTrack {
 
     // Find the change in smoothed helix angle in ZY between one layer and the next
     public double scatZ(int layer) {
+        if (lyrMap == null) makeLyrMap();
         if (!lyrMap.containsKey(layer)) return -999.;
         int lyrNxt = layer + 1;
         while (lyrNxt <= 13 && !lyrMap.containsKey(lyrNxt)) lyrNxt++;
@@ -176,6 +218,75 @@ public class KalTrack {
         return c2;
     }
 
+    public Pair<Double,Double> unbiasedResidualMillipede(int millipedeID) {
+        if (millipedeMap == null) makeMillipedeMap();
+        if (millipedeMap.containsKey(millipedeID)) {
+            return unbiasedResidual(millipedeMap.get(millipedeID));
+        } else {       
+            return new Pair<Double,Double>(-999., -999.);
+        }
+    }
+    
+    public Pair<Double,Double> unbiasedResidual(int layer) {
+        if (lyrMap == null) makeLyrMap();
+        if (lyrMap.containsKey(layer)) {
+            return unbiasedResidual(lyrMap.get(layer));
+        } else {       
+            return new Pair<Double,Double>(-999., -999.);
+        }
+    }   
+    
+    // Returns the unbiased residual for the track at a given layer, together with the variance on that residual
+    public Pair<Double,Double> unbiasedResidual(MeasurementSite site) {
+        double resid = -999.;
+        double varResid = -999.;               
+        Vec aStar = null;  
+        if (site.hitID >= 0) {
+            double sigma = site.m.hits.get(site.hitID).sigma;
+            SquareMatrix Cstar = new SquareMatrix(5);
+            aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
+            HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+            Plane pTrans = site.m.p.toLocal(site.aS.Rot, site.aS.origin);
+            double phiInt = hpi.planeIntersect(aStar, site.aS.X0, site.aS.alpha, pTrans);
+            if (!Double.isNaN(phiInt)) {
+                Vec intPnt = StateVector.atPhi(site.aS.X0, aStar, phiInt, site.aS.alpha);
+                Vec globalInt = site.aS.toGlobal(intPnt);
+                Vec localInt = site.m.toLocal(globalInt);
+                resid = site.m.hits.get(site.hitID).v - localInt.v[1];
+                varResid = sigma*sigma + site.H.dot(site.H.leftMultiply(Cstar));
+            }
+        }        
+        return new Pair<Double,Double>(resid, varResid);
+    }
+
+    public Pair<Double,Double> biasedResidual(int layer) {
+        if (lyrMap == null) makeLyrMap();
+        if (lyrMap.containsKey(layer)) {
+            return biasedResidual(lyrMap.get(layer));
+        } else {       
+            return new Pair<Double,Double>(-999., -999.);
+        }
+    }
+    
+    public Pair<Double,Double> biasedResidualMillipede(int millipedeID) {
+        if (millipedeMap == null) makeMillipedeMap();
+        if (millipedeMap.containsKey(millipedeID)) {
+            return biasedResidual(millipedeMap.get(millipedeID));
+        } else {       
+            return new Pair<Double,Double>(-999., -999.);
+        }
+    }
+    
+    public Pair<Double,Double> biasedResidual(MeasurementSite site) {
+        double resid = -999.;
+        double varResid = -999.;               
+        if (site.aS != null) {
+            resid = site.aS.r;
+            varResid = site.aS.R;
+        }
+        return new Pair<Double,Double>(resid, varResid);
+    }
+    
     public void print(String s) {
         System.out.format("%s", this.toString(s));    
     }
@@ -211,9 +322,9 @@ public class KalTrack {
                 }
                 str=str+"\n";
             }
-            if (interceptVects.containsKey(site)) {
-                Vec interceptVec = interceptVects.get(site);
-                Vec interceptMomVec = interceptMomVects.get(site);
+            if (interceptVects().containsKey(site)) {
+                Vec interceptVec = interceptVects().get(site);
+                Vec interceptMomVec = interceptMomVects().get(site);
                 str=str+String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, error=%9.5f \n", interceptVec.toString(),
                         interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, Math.sqrt(site.aS.R));
             }
@@ -409,6 +520,9 @@ public class KalTrack {
 
     // Figure out which measurement site on this track points to a given detector module
     public int whichSite(SiModule module) {
+        if (lyrMap != null) {
+            return SiteList.indexOf(lyrMap.get(module.Layer));
+        }
         for (MeasurementSite site : SiteList) {
             if (site.m == module) {
                 return SiteList.indexOf(site);
@@ -422,6 +536,42 @@ public class KalTrack {
         else Collections.sort(SiteList, MeasurementSite.SiteComparatorDn);
     }
 
+    public boolean removeHit(MeasurementSite site, double mxChi2Inc, double mxTdif) {
+        boolean exchange = false;
+        logger.log(Level.FINE, String.format("Event %d track %d remove hit %d on layer %d detector %d", 
+                eventNumber, ID, site.hitID, site.m.Layer, site.m.detector));
+        if (site.hitID < 0) {
+            logger.log(Level.WARNING, String.format("Event %d track %d is missing hitID on layer %d detector %d", 
+                    eventNumber, ID, site.m.Layer, site.m.detector));
+            return exchange;
+        }
+        if (site.m.hits.get(site.hitID).tracks.contains(this)) {
+            site.m.hits.get(site.hitID).tracks.remove(this);
+        } else {
+            logger.log(Level.WARNING, String.format("track %d is missing on hit %d track list in layer %d detector %d", 
+                    ID, site.hitID, site.m.Layer, site.m.detector));
+        }
+        chi2 -= site.chi2inc;
+        nHits--;
+        int oldID = site.hitID;
+        site.removeHit();
+        // Check whether there might be another hit available                                   
+        Measurement addedHit = site.addHit(this, mxChi2Inc, mxTdif, oldID);
+        if (addedHit != null) {
+            addedHit.tracks.add(this);
+            Measurement newHit = site.m.hits.get(site.hitID);
+            tMin = Math.min(tMin, newHit.time);
+            tMax = Math.max(tMax, newHit.time);
+            exchange = true;
+            nHits++;
+            logger.log(Level.FINE, String.format("Event %d track %d added hit %d on layer %d detector %d", 
+                    eventNumber, ID, site.hitID, site.m.Layer, site.m.detector));
+        } else {
+            SiteList.remove(site);
+        }
+        return exchange;
+    }
+    
     // Try to add missing hits to the track
     public int addHits(ArrayList<SiModule> data, double mxResid, double mxChi2inc, double mxTdif, boolean verbose) {
         int numAdded  = 0;
@@ -445,7 +595,7 @@ public class KalTrack {
             moduleList.add(modules);
         }
         for (SiModule thisSi : data) {
-            if (thisSi.hits.size() > 0) { moduleList.get(thisSi.Layer).add(thisSi); }
+            if (thisSi.hits.size() > 0) moduleList.get(thisSi.Layer).add(thisSi);
         }
         
         ArrayList<MeasurementSite> newSites = new ArrayList<MeasurementSite>();
@@ -461,7 +611,7 @@ public class KalTrack {
             }
             if (nxtIdx < 0) continue;
             MeasurementSite nxtSite = SiteList.get(nxtIdx);
-            for (int lyr=site.m.Layer+1; lyr<nxtSite.m.Layer; ++lyr) {
+            for (int lyr=site.m.Layer+1; lyr<nxtSite.m.Layer; ++lyr) { // Loop over hitless layers between two sites with hits
                 logger.log(Level.FINER, String.format("KalTrack.addHits: looking for hits on layer %d", lyr));
                 for (SiModule module : moduleList.get(lyr)) {
                     MeasurementSite newSite = new MeasurementSite(lyr, module, mxResid, 0.);
@@ -473,9 +623,11 @@ public class KalTrack {
                             if (newSite.filter()) {
                                 logger.log(Level.FINER, String.format("KalTrack.addHits: event %d track %d filtered chi2inc=%8.3f",eventNumber,ID,newSite.chi2inc));
                                 if (newSite.chi2inc < mxChi2inc) {
-                                    logger.log(Level.FINER, String.format("KalTrack.addHits: event %d added hit with chi2inc<%8.3f to layer %d",eventNumber,newSite.chi2inc,module.Layer));
+                                    logger.log(Level.FINE, String.format("KalTrack.addHits: event %d added hit %d with chi2inc<%8.3f to layer %d",
+                                            eventNumber, newSite.hitID, newSite.chi2inc, module.Layer));
                                     newSites.add(newSite);
                                     numAdded++;
+                                    nHits++;
                                     site = newSite;
                                     double hitTime = newSite.m.hits.get(newSite.hitID).time;
                                     if (hitTime > tMax) tMax = hitTime;
@@ -568,34 +720,6 @@ public class KalTrack {
         return true;
     }
 
-    // Returns the unbiased residual for the track at a given layer, together with the variance on that residual
-    Pair<Double,Double> unbiasedResidual(int layer) {
-        double resid = -999.;
-        double varResid = -999.;               
-        Vec aStar = null;
-        for (MeasurementSite site : SiteList) {
-            if (site.m.Layer == layer) {               
-                if (site.hitID >= 0) {
-                    double sigma = site.m.hits.get(site.hitID).sigma;
-                    SquareMatrix Cstar = new SquareMatrix(5);
-                    aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
-                    HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-                    Plane pTrans = site.m.p.toLocal(site.aS.Rot, site.aS.origin);
-                    double phiInt = hpi.planeIntersect(aStar, site.aS.X0, site.aS.alpha, pTrans);
-                    if (!Double.isNaN(phiInt)) {
-                        Vec intPnt = StateVector.atPhi(site.aS.X0, aStar, phiInt, site.aS.alpha);
-                        Vec globalInt = site.aS.toGlobal(intPnt);
-                        Vec localInt = site.m.toLocal(globalInt);
-                        resid = site.m.hits.get(site.hitID).v - localInt.v[1];
-                        varResid = sigma*sigma + site.H.dot(site.H.leftMultiply(Cstar));
-                        break;
-                    }
-                }
-            }
-        }        
-        return new Pair<Double,Double>(resid, varResid);
-    }
-    
     // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
     private double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];
@@ -611,8 +735,7 @@ public class KalTrack {
     }
 
     // Derivative matrix for propagating the covariance of the helix parameter to a
-    // covariance of the point of
-    // closest approach to the origin (i.e. at phi=0)
+    // covariance of the point of closest approach to the origin (i.e. at phi=0)
     private double[][] DxTOa(Vec a) {
         double[][] M = new double[3][5];
         M[0][0] = Math.cos(a.v[1]);

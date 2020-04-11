@@ -586,26 +586,22 @@ class KalmanPatRecHPS {
                     }
                     
                     // Here we have a good track candidate. Mark the hits in KalHit as used by this candidate.
-                    for (KalHit hit : candidateTrack.hits) {
-                        boolean foundIt = false;
-                        for (MeasurementSite site : candidateTrack.sites) {
-                            if (site.m == hit.module) {
-                                foundIt = true;
-                                break;
-                            }
-                        }
-                        if (!foundIt) {
-                            System.out.format("KalmanPatRecHPS event %d, missing site\n", eventNumber);
-                            hit.print("the hit");
-                            candidateTrack.print("the candidate", true);
-                            System.out.format("       Sites: ");
+                    if (candidateList.contains(candidateTrack)) {
+                        for (KalHit hit : candidateTrack.hits) {
+                            boolean foundIt = false;
                             for (MeasurementSite site : candidateTrack.sites) {
-                                System.out.format("(%d, %d, %d) ",site.m.Layer, site.m.detector, site.hitID);
+                                if (site.m == hit.module) {
+                                    foundIt = true;
+                                    break;
+                                }
                             }
-                            System.out.format("\n");
-                        }
-                        hit.tkrCandidates.add(candidateTrack);
-                    } 
+                            if (!foundIt) {
+                                logger.log(Level.WARNING, String.format("KalmanPatRecHPS event %d, missing site for candidate track", eventNumber));
+                            }
+                            //if (verbose) System.out.format("KalmanPatRecHPS: marking hit on layer %d of candidate %d\n", hit.module.Layer, candidateTrack.ID);
+                            hit.tkrCandidates.add(candidateTrack);
+                        } 
+                    }
                 } // Next seed in set
             } // Next set of seeds
             if (verbose) {
@@ -780,32 +776,30 @@ class KalmanPatRecHPS {
         }
         
         // Remove shared hits unless the hit is very close to two tracks
-        ArrayList<KalTrack> changedTracks = new ArrayList<KalTrack>();
         if (TkrList.size() > 0) {
             for (SiModule module : data) {
                 for (Measurement hit : module.hits) {
                     if (hit.tracks.size() > 1) {
                         int minIDX = 1000;
                         KalTrack bestTkr = null;
+                        ArrayList<KalTrack> tksToPrune = new ArrayList<KalTrack>(hit.tracks.size());
                         for (KalTrack tkr : hit.tracks) {
+                            tksToPrune.add(tkr); 
                             int idx = TkrList.indexOf(tkr);
                             if (idx < 0) {
-                                System.out.format("KalmanPatRecHPS: bad reference from hit to track. Track %d, Layer = %d\n", tkr.ID, module.Layer);
+                                logger.log(Level.WARNING,String.format("Bad reference from hit to track. Track %d, Layer = %d\n", tkr.ID, module.Layer));
                             } else {
                                 if (idx < minIDX) {
                                     minIDX = idx;
                                     bestTkr = tkr;
                                 }
                             }
-                        }
-                        Set<KalTrack> tkrsToRemove = new HashSet<KalTrack>();
-                        for (KalTrack tkr : hit.tracks) {
-                            if (tkr == bestTkr) { // Keep the hit on the best track
-                                continue;
-                            }
+                        }                       
+                        for (KalTrack tkr : tksToPrune){
+                            if (tkr == bestTkr) continue; // Keep the hit on the best track
                             int idx = tkr.whichSite(module);
                             if (idx < 0) {
-                                System.out.format("KalmanPatRecHPS: bad reference from hit to track. Track %d, Layer = %d\n", tkr.ID, module.Layer);
+                                logger.log(Level.WARNING,String.format("KalmanPatRecHPS: bad reference from module to site. Track %d, Layer = %d\n", tkr.ID, module.Layer));
                             } else {
                                 MeasurementSite site = tkr.SiteList.get(idx);
                                 if (verbose) {
@@ -813,44 +807,30 @@ class KalmanPatRecHPS {
                                             tkr.ID, module.Layer, site.chi2inc);
                                 }
                                 if (site.chi2inc > kPar.mxChi2double) {
-                                    changedTracks.add(tkr);
-                                    int oldID = site.hitID;
-                                    if (!site.smoothed) System.out.format("KalmanPatRecHPS: oops, why isn't this site smoothed?");
-                                    site.removeHit(verbose);
-                                    if (verbose) {
-                                        System.out.format("KalmanPatRecHPS: removing a hit from Track %d, Layer %d\n", tkr.ID, module.Layer);
-                                    }
-                                    // Check whether there might be another hit available                                   
-                                    Measurement addedHit = site.addHit(tkr, kPar.mxChi2Inc, kPar.mxTdif, oldID);
-                                    if (addedHit != null) {
-                                        addedHit.tracks.add(tkr);
-                                        Measurement newHit = site.m.hits.get(site.hitID);
-                                        tkr.tMin = Math.min(tkr.tMin, newHit.time);
-                                        tkr.tMax = Math.max(tkr.tMax, newHit.time);
+                                    if (!site.smoothed) logger.log(Level.WARNING,String.format("OOPS, why isn't this site smoothed at layer %d?",site.m.Layer));
+                                    if (tkr.removeHit(site, kPar.mxChi2Inc, kPar.mxTdif)) {
                                         if (verbose) {
-                                            System.out.format("KalmanPatRecHPS: added a hit after removing one for Track %d, Layer %d\n",
-                                                    tkr.ID, module.Layer);
+                                            System.out.format("KalmanPatRecHPS: added a hit after removing one for Track %d, Layer %d\n",tkr.ID, module.Layer);
                                         }
                                     } else {
-                                        tkr.SiteList.remove(site);
+                                        if (verbose) System.out.format("KalmanPatRecHPS: removing a hit from Track %d, Layer %d\n", tkr.ID, module.Layer);
                                     }
-                                    tkrsToRemove.add(tkr);
                                 }
                             }
-                        }
-                        for (KalTrack tkr : tkrsToRemove) {
-                            if (verbose) System.out.format("KalmanPatRecHPS: remove track %d from list of hit %d\n", tkr.ID, module.hits.indexOf(hit));
-                            hit.tracks.remove(tkr);
                         }
                     }
                 }
             }
         }
-        
-        // Refit the KalTracks
         ArrayList<KalTrack> allTks = new ArrayList<KalTrack>(TkrList.size());
         for (KalTrack tkr : TkrList) {
-            allTks.add(tkr); 
+            allTks.add(tkr);
+        }
+        
+        // Refit the KalTracks
+        Iterator<KalTrack> iter = allTks.iterator();
+        while (iter.hasNext()) {
+            KalTrack tkr = iter.next();
             if (verbose) {
                 System.out.format("KalmanPatRecHPS: list of sites on KalTrack track %d: ", tkr.ID);
                 for (MeasurementSite site : tkr.SiteList) {
@@ -858,9 +838,7 @@ class KalmanPatRecHPS {
                 }
                 System.out.format("\n");
             }
-        }
-        for (int itkr = allTks.size()-1; itkr >= 0; --itkr) {
-            KalTrack tkr = allTks.get(itkr);
+            
             // Try to add hits on layers with missing hits
             tkr.addHits(data, kPar.mxResid[1], kPar.mxChi2Inc, kPar.mxTdif, verbose);
             
@@ -899,11 +877,11 @@ class KalmanPatRecHPS {
                 for (MeasurementSite site : tkr.SiteList) {
                     if (site.hitID!=-1) {
                         site.m.hits.get(site.hitID).tracks.remove(tkr);
+                        site.removeHit();
                     }
                     else {
-                        System.out.format("KalmanPatRecHPS: Removing track from measurement site with hitID=-1. Skipping removal.");
+                        logger.log(Level.WARNING,"Removing track from measurement site with hitID=-1. Skipping removal.");
                     }
-                    site.hitID = -1;
                 }
                 continue;
             }
@@ -936,11 +914,11 @@ class KalmanPatRecHPS {
                 for (MeasurementSite site : tkr.SiteList) {
                     if (site.hitID!=-1) {
                         site.m.hits.get(site.hitID).tracks.remove(tkr);
+                        site.removeHit();
                     }
                     else {
                         System.out.format("KalmanPatRecHPS: Removing track from measurement site with hitID=-1. Skipping removal.");
                     }
-                    site.hitID = -1;
                 }
                 continue;
             }
@@ -1207,7 +1185,7 @@ class KalmanPatRecHPS {
             return false;
         }
         
-        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.hits.size(), tkrCand.sites, tkrCand.chi2s, yScat);
+        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.sites, yScat);
         boolean redundant = false;
         for (KalTrack oldTkr : TkrList) {
             if (tkr.equals(oldTkr)) {
@@ -1221,7 +1199,11 @@ class KalmanPatRecHPS {
         } 
         for (MeasurementSite site : tkr.SiteList) {
             int theHit = site.hitID;
-            if (theHit < 0) continue;
+            if (theHit < 0) {
+                logger.log(Level.WARNING, String.format("event %d track %d has hit missing on layer %d detector %d",
+                        tkr.eventNumber, tkr.ID, site.m.Layer, site.m.detector));
+                continue;
+            }
             site.m.hits.get(theHit).tracks.add(tkr); // Mark the hits as used
         }
         if (verbose) {
