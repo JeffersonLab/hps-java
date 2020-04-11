@@ -4,8 +4,8 @@
         <driver name="CleanupDriver"/>
         <driver name="RawTrackerHitSensorSetup"/>   
         <driver name="TridentTuple"/>
-        <!--<driver name="MollerTuple"/>-->
-        <!--<driver name="FEETuple"/>-->
+        <driver name="MollerTuple"/>
+        <driver name="FEETuple"/>
         <driver name="FullTruthTuple"/>
     </execute>    
     <drivers>    
@@ -18,19 +18,19 @@
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_tri.txt</tupleFile>
-            <cutTuple>true</cutTuple>
+            <cutTuple>false</cutTuple>
         </driver>
         <driver name="MollerTuple" type="org.hps.analysis.tuple.MollerTupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_moller.txt</tupleFile>
-            <cutTuple>true</cutTuple>
+            <cutTuple>false</cutTuple>
         </driver>
         <driver name="FEETuple" type="org.hps.analysis.tuple.FEETupleDriver">
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
             <tupleFile>${outputFile}_fee.txt</tupleFile>
-            <cutTuple>true</cutTuple>
+            <cutTuple>false</cutTuple>
         </driver>
         <!--<driver name="FullTruthTuple" type="org.hps.analysis.tuple.WABTridentFullTupleDriver">-->
 	<driver name="FullTruthTuple" type="org.hps.analysis.tuple.TridentFullTupleDriver">

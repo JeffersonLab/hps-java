@@ -143,6 +143,18 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>        
             <trackCollectionNames>GBLTracks</trackCollectionNames>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
+            <beamPositionX> -0.224 </beamPositionX>
+            <beamSigmaX> 0.125 </beamSigmaX>
+            <beamPositionY> -0.08 </beamPositionY>
+            <beamSigmaY> 0.030 </beamSigmaY>
+            <beamPositionZ> -4.3 </beamPositionZ>
+            <maxElectronP> 2.15 </maxElectronP>
+            <maxVertexP> 2.8 </maxVertexP>
+            <minVertexChisqProb> 0.0 </minVertexChisqProb>
+            <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
+            <isMC>true</isMC>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
