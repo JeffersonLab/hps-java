@@ -679,9 +679,10 @@ public class KalmanInterface {
             int detector = temp.getModuleNumber();
             if (kalLayer > 13) {
                 System.out.format("***KalmanInterface.createSiModules Warning: Kalman layer %d , tempLayer = %d out of range.***\n", kalLayer,temp.getLayerNumber());
-            }
+            }           
+            int millipedeID = temp.getMillepedeId();
             SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), inputPlane.getWidth(), inputPlane.getLength(),
-                    inputPlane.getThickness(), fm, detector);
+                    inputPlane.getThickness(), fm, detector, millipedeID);
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);
         }

@@ -27,7 +27,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 2000; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -272,70 +272,6 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         printWriter.format("splot ");
         printWriter.format("$runga u 1:2:3 with lines lw 3, $helix u 1:2:3 with lines lw 3\n");
         printWriter.close();
-
-        // Test the helix propagation code
-        /*
-        SquareMatrix startCov = new SquareMatrix(5);
-        startCov.M[0][0] = drhoSigma*drhoSigma;
-        startCov.M[1][1] = phi0Sigma*phi0Sigma;
-        startCov.M[2][2] = kSigma*kSigma;
-        startCov.M[3][3] = dzSigma*dzSigma;
-        startCov.M[4][4] = tanlSigma*tanlSigma;
-                
-        Histogram hdRho = new Histogram(100, -40., 0.8, "Propagation test dho error", "mm", "helices");
-        Histogram hdPhi0 = new Histogram(100, -0.1, 0.002, "Propagation test phi0 error", "radians", "helices");
-        Histogram hdK = new Histogram(100, -10., 0.2, "Propagation test K error", "1/GeV", "helices");
-        Histogram hdZ = new Histogram(100, -4., 0.08, "Propagation test z error", "mm", "helices");
-        Histogram hdTanl = new Histogram(100, -0.015, 0.0003, "Propagation test tan(lambda) error", " ", "helices");
-        Vec centralPropHelix = null;
-        for (int trial = 0; trial<10000; ++trial) {
-            Vec Bfield = fMg.getField(helixOrigin);
-            double startB = Bfield.mag();
-            Vec startTB = Bfield.unitVec(startB);
-            Vec startHelix = null;
-            if (trial == 0) {
-                startHelix = TkInitial.p;
-            } else {
-                startHelix = new Vec(5);
-                startHelix.v[0] = TkInitial.p.v[0] + rnd.nextGaussian() * drhoSigma;
-                startHelix.v[1] = TkInitial.p.v[1] + rnd.nextGaussian() * phi0Sigma;
-                startHelix.v[2] = TkInitial.p.v[2] + rnd.nextGaussian() * kSigma;
-                startHelix.v[3] = TkInitial.p.v[3] + rnd.nextGaussian() * dzSigma;
-                startHelix.v[4] = TkInitial.p.v[4] + rnd.nextGaussian() * tanlSigma;
-            }
-            StateVector sV = new StateVector(1, startHelix, startCov, TkInitial.X0, startB, startTB, TkInitial.origin);
-            double rho = 2.329; // Density of silicon in g/cm^2
-            double radLen = (21.82 / rho) * 10.0;
-            double XL = thickness/radLen;
-            Plane plnEnd = new Plane(new Vec(0., 200., 0.) , new Vec(0., 1., 0.));
-            SquareMatrix newCovariance = new SquareMatrix(5);
-            ArrayList<Double> yScat = new ArrayList<Double>(12);
-            //yScat.add(200.);
-            //yScat.add(300.);
-            //yScat.add(500.);
-            //yScat.add(700.);
-            Vec propagatedHelix = sV.propagateRungeKutta(plnEnd, fMg, newCovariance, yScat, XL);
-            if (trial > 0) {
-                hdRho.entry(propagatedHelix.v[0]-centralPropHelix.v[0]);
-                hdPhi0.entry(propagatedHelix.v[1]-centralPropHelix.v[1]);
-                hdK.entry(propagatedHelix.v[2]-centralPropHelix.v[2]);               
-                hdZ.entry(propagatedHelix.v[3]-centralPropHelix.v[3]);
-                hdTanl.entry(propagatedHelix.v[4]-centralPropHelix.v[4]);
-            } else {
-                centralPropHelix = propagatedHelix;
-                centralPropHelix.print("central propagated helix");
-                newCovariance.print("central propagated covariance");
-                System.out.format("Errors: %10.5f %10.5f %10.5f %10.5f %10.5f\n", Math.sqrt(newCovariance.M[0][0]),
-                        Math.sqrt(newCovariance.M[1][1]), Math.sqrt(newCovariance.M[2][2]),  Math.sqrt(newCovariance.M[3][3]),
-                        Math.sqrt(newCovariance.M[4][4]));
-            }
-        }
-        hdRho.plot(path + "dRhoProp.gp", true, "gaus", " ");
-        hdPhi0.plot(path + "dPhi0Prop.gp", true, "gaus", " ");
-        hdK.plot(path + "dKProp.gp", true, "gaus", " ");
-        hdZ.plot(path + "dZProp.gp", true, "gaus", " ");
-        hdTanl.plot(path + "dTanlProp.gp", true, "gaus", " ");
-        */
         
         Vec zhat = null;
         Vec uhat = null;
@@ -809,8 +745,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     }
                 }
             }
-            for (MeasurementSite site : KalmanTrack.interceptVects.keySet()) {
-                Vec loc = KalmanTrack.interceptVects.get(site);
+            for (MeasurementSite site : KalmanTrack.interceptVects().keySet()) {
+                Vec loc = KalmanTrack.interceptVects().get(site);
                 SiModule siM = site.m;
                 if (siM.Layer < 0) continue;
                 if (site.hitID < 0) { System.out.format("Missing hit ID on site with layer=%d", siM.Layer); }

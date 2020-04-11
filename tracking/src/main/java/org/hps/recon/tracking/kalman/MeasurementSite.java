@@ -425,28 +425,12 @@ class MeasurementSite {
     }
 
     // Inverse Kalman filter: remove this site from the smoothed track fit
-    boolean removeHit(boolean verbose) {
-        if (!smoothed) {
-            logger.log(Level.WARNING, "******MeasurementSite.removeHit: Warning, this site is not in the correct state!");
-            return false;
-        }
+    boolean removeHit() {
         if (hitID < 0) { return false; }
-        // Remove the hit information from the smoothed state vector
-        //if (verbose) {
-        //    aS.print("in removeHit before");
-        // }
-        //Measurement hit = m.hits.get(hitID);
-        //double V = hit.sigma * hit.sigma;
-        //aS.inverseFilter(H, V);  // This doesn't appear to work and is perhaps pointless
-        //if (verbose) {
-        //    aS.print("in removeHit after");
-        //}
         hitID = -1;
         chi2inc = 0.;
-        aS.r = 99.;
         smoothed = false;
         filtered = false;
-
         return true;
     }
 

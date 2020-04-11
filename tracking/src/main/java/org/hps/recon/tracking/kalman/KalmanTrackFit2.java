@@ -54,7 +54,7 @@ class KalmanTrackFit2 {
         int prevSite;
         int thisSite;
         MeasurementSite startSite = null;
-        if (start != 0) {
+        if (start > 1) {
             MeasurementSite newSite = null;
             chi2f = 0.;
             prevSite = -1;
@@ -62,6 +62,9 @@ class KalmanTrackFit2 {
             for (int idx = start; idx > -1; idx--) {
                 finalSite = idx;
                 SiModule m = data.get(idx);
+                if (m.hits.size()<=0) { // && m.detector==1) {
+                    continue;
+                }
                 thisSite++;
                 newSite = new MeasurementSite(idx, m, mxResid, mxResid);
                 int hitNumber = 0;
@@ -100,6 +103,7 @@ class KalmanTrackFit2 {
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
                 newSite.aF.a.print("filtered helix parameters at innermost site.");
+                System.out.format("    The innermost site is at layer %d\n", newSite.m.Layer);
                 int cnt = 0;
                 for (MeasurementSite site : sites) {
                     SiModule m = site.m;
@@ -147,6 +151,9 @@ class KalmanTrackFit2 {
             thisSite = -1;
             while (itr.hasNext()) {
                 SiModule m = itr.next();
+                if (m.hits.size()<=0) { // && m.detector==1) {
+                    continue;
+                }
                 thisSite++;
                 int hitNumber = 0;
                 if (m.hits.size() == 0) hitNumber = -1;
@@ -166,7 +173,7 @@ class KalmanTrackFit2 {
                 }
 
                 if (!newSite.filter()) {
-                    System.out.format("KalmanTrackFit2 153: Failed to filter at site %d.  Ignore remaining sites\n", thisSite);
+                    System.out.format("KalmanTrackFit2 153: Failed to filter at site %d layer %d.  Ignore remaining sites\n", thisSite, newSite.m.Layer);
                     success = false;
                     break;
                 }
@@ -182,7 +189,7 @@ class KalmanTrackFit2 {
                 // if (verbose) {
                 // newSite.print(String.format("Iteration %d: filtering", iteration));
                 // }
-                if (m.Layer >= 0) chi2f += newSite.chi2inc;
+                if (m.Layer >= 0 && hitNumber >=0) chi2f += newSite.chi2inc;
 
                 sites.add(newSite);
 
@@ -266,8 +273,21 @@ class KalmanTrackFit2 {
 
         finalSite = sites.size() - 1;
 
-        ArrayList<Double> yScat = new ArrayList<Double>(); 
-        tkr = new KalTrack(evtNumb, 0, nHits, sites, chi2s, yScat); // Store the fit information as a KalTrack object
+        int nLyrs = 12;
+        int [] lyrPtr = new int[nLyrs+1];
+        for (int i=0; i<sites.size(); ++i) {
+            MeasurementSite site = sites.get(i);
+            int lyr = site.m.Layer;
+            lyrPtr[lyr] = i;
+        }
+        ArrayList<Double> yScat = new ArrayList<Double>(nLyrs);
+        for (int lyr=1; lyr<=nLyrs; ++lyr) {
+            MeasurementSite site = sites.get(lyrPtr[lyr]);
+            double yLyr = site.m.p.X().v[1];
+            yScat.add(yLyr);
+            //System.out.format("Layer %d, y=%10.5f\n", lyr, yLyr);
+        }
+        tkr = new KalTrack(evtNumb, 0, sites, yScat); // Store the fit information as a KalTrack object
         for (MeasurementSite site : sites) { // Mark the hits as used
             for (Measurement hit : site.m.hits) { // Should be only a single hit (this is not a pattern recognition routine)
                 hit.tracks.add(tkr);

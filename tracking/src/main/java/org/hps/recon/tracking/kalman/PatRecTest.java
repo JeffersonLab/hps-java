@@ -30,6 +30,7 @@ class PatRecTest {
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = false;
         boolean noisy = true;
+        boolean smear = false;          // Smear initial momentum vector randomly
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -139,7 +140,7 @@ class PatRecTest {
 
         int nLayers = 14; // Layer 0 not yet implemented here
         double resolution = 0.006; // SSD point resolution, in mm
-        double hitEfficiency = 0.99;
+        double hitEfficiency = 1.00;
         double[] location = new double[nLayers];
         double[] xdet = new double[SiModules.size()];
         double[] ydet = new double[SiModules.size()];
@@ -156,13 +157,14 @@ class PatRecTest {
                     si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
 
-        int nHelices = 1; // Number of helix tracks to simulate
+        int nHelices = 2; // Number of helix tracks to simulate
+        if (!smear) nHelices = 1;
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
         double Phi = 91. * Math.PI / 180.;
         double Theta = 88.5 * Math.PI / 180.;
-
+        double energy0 = 2.4;
 
         // Define histograms
         Histogram hNtracks = new Histogram(10, 0., 1., "Number of tracks found and fitted", "tracks", "events");
@@ -229,18 +231,25 @@ class PatRecTest {
             }
             Vec[] initialDirection = new Vec[nHelices];
             for (int i = 0; i < nHelices; i++) {
-                if (rnd.nextGaussian() > 0.) Q[i] = 1.0;    // Randomize the momentum vectors
-                else Q[i] = -1.0;
-                p[i] = 2.4 + rnd.nextGaussian() * 0.02;
-                double PhiR = Phi + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
-                double ThetaR = Theta + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+                double PhiR = Phi;
+                double ThetaR = Theta;
+                if (smear) {
+                    if (rnd.nextGaussian() > 0.) Q[i] = 1.0;    // Randomize the momentum vectors
+                    else Q[i] = -1.0;
+                    p[i] = energy0 + rnd.nextGaussian() * 0.02;
+                    PhiR += rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+                    ThetaR += rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+                } else {
+                    Q[i] = 1.0;
+                    p[i] = energy0;
+                }
                 initialDirection[i] = new Vec(Math.cos(PhiR) * Math.sin(ThetaR), Math.sin(PhiR) * Math.sin(ThetaR), Math.cos(ThetaR));
                 if (verbose) initialDirection[i].print("initial particle direction");
             }
-            double[] drho = new double[nHelices]; // { -0., 0., 1. }; // Helix parameters
-            double[] dz = new double[nHelices]; // { 5.0, 1.0, 4.0 };
-            double[] phi0 = new double[nHelices]; // { 0.0, 0.04, 0.05 };
-            double[] tanl = new double[nHelices]; // { 0.1, 0.12, 0.13 };
+            double[] drho = new double[nHelices]; // Helix parameters
+            double[] dz = new double[nHelices]; 
+            double[] phi0 = new double[nHelices]; 
+            double[] tanl = new double[nHelices]; 
             double[] K = new double[nHelices];
             Helix[] TkInitial = new Helix[nHelices];
             Vec[] helixMCtrue = new Vec[nHelices];
@@ -467,7 +476,7 @@ class PatRecTest {
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
-            if (nPlot < mxPlot && verbose) {
+            if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;
                 PrintWriter printWriter3 = null;
                 String fn = String.format("%shelix3_%d.gp", path, eventNumber);
@@ -558,6 +567,7 @@ class PatRecTest {
                 hMomentum.entry(pMag);
                 Set<Integer> MCtks = new HashSet<Integer>();
                 int [] MCfreq = new int[nHelices];
+                int nH = 0;
                 for (MeasurementSite site : tkr.SiteList) {
                     int layer = site.m.Layer;
                     hScatXY[layer].entry(tkr.scatX(layer));
@@ -570,7 +580,9 @@ class PatRecTest {
                             MCfreq[iMC]++;
                         }
                     }
+                    nH++;
                 }
+                if (nH != tkr.nHits) System.out.format("Event %d, the number of hits %d in KalTrack is incorrect. Should be %d\n", eventNumber, tkr.nHits, nH);
                 int jMC = -1;
                 int mxMC = 0;
                 for (int i=0; i<MCfreq.length; ++i) {
