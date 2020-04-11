@@ -375,10 +375,12 @@ public class KalmanPatRecDriver extends Driver {
                 TrackResidualsData resData = new TrackResidualsData(trackerVolume,layers,residuals,sigmas);
                 trackResiduals.add(resData);
                 trackResidualsRelations.add(new BaseLCRelation(resData,KalmanTrackHPS));
+                /*
                 if (KalmanTrackHPS.getTrackerHits().size() != residuals.size()) {
                     System.out.println("KalmanPatRecDriver::Residuals consistency check failed.");
                     System.out.printf("Track has %d hits while I have %d residuals \n", KalmanTrackHPS.getTrackerHits().size(), residuals.size());
                 }
+                */
                     
             } // end of loop on tracks
         } // end of loop on trackers

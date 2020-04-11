@@ -40,6 +40,7 @@ import hep.aida.IBaseHistogram;
  *
  * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  * @author Alessandra Filippi <filippi@to.infn.it>
+ * @author PF <pbutti@slac.stanford.edu>
  */
 public class GBLOutputDriver extends Driver {
 
@@ -49,7 +50,7 @@ public class GBLOutputDriver extends Driver {
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
     public boolean debug = false;
-    private double chi2Cut = 20;
+    private double chi2Cut = 99999;
 
     public void setChi2Cut(double input) {
         chi2Cut = input;
@@ -105,7 +106,7 @@ public class GBLOutputDriver extends Driver {
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
             Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
-            Map<HpsSiSensor, Integer> sensorNums = new HashMap<HpsSiSensor, Integer>();
+            Map<HpsSiSensor, Integer> sensorNums    = new HashMap<HpsSiSensor, Integer>();
             List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(trk, hitToStrips, hitToRotated);
 
             int i = 0;
@@ -124,7 +125,7 @@ public class GBLOutputDriver extends Driver {
                 
             }
             doBasicGBLtrack(trk);
-            doGBLresiduals(trk, sensorHits);
+            doGBLresiduals(trk, sensorHits,event);
             doMTresiduals(matchedTrack, sensorHits);
             doGBLkinks(gblKink, sensorNums);
         }
@@ -147,6 +148,8 @@ public class GBLOutputDriver extends Driver {
         for (HpsSiSensor sensor : sensorHits.keySet()) {
             Hep3Vector extrapPos = TrackStateUtils.getLocationAtSensor(trackState, sensor, bfield);
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
+            if (hitPos == null || extrapPos == null)
+                return;
             Hep3Vector diff = VecOp.sub(extrapPos, hitPos);
             if (debug)
                 System.out.printf("MextrapPos %s MhitPos %s \n Mdiff %s ", extrapPos.toString(), hitPos.toString(), diff.toString());
@@ -179,24 +182,39 @@ public class GBLOutputDriver extends Driver {
         aidaGBL.histogram1D("beamspot_y_" + isTop).fill(beamspot.y());
     }
 
-    private void doGBLresiduals(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits) {
+    private void doGBLresiduals(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits, EventHeader event) {
+        
+        Map<Integer,HpsSiSensor> sensorMPIDs   = new HashMap<Integer,HpsSiSensor>();
         
         for (HpsSiSensor sensor : sensorHits.keySet()) {
+            //Also fill here the sensorMPIDs map
+            sensorMPIDs.put(sensor.getMillepedeId(),sensor);
             ITransform3D trans = sensor.getGeometry().getGlobalToLocal();
-
+            
             // position of hit (track crossing the sensor before GBL extrapolation)
             // the hit information available on each sensor is meaningful only along the measurement direction,
             // Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
             // instead: extract the information of the hit of the track at the sensor position before GBL
             TrackState trackState = trk.getTrackStates().get(0);
             Hep3Vector hitTrackPos = TrackStateUtils.getLocationAtSensor(trackState, sensor, bfield);
+            
+            if (hitTrackPos == null) {
+                if (debug) {
+                    System.out.printf("GBLOutputDriver::doGBLresiduals:: hitTrackPos is null to sensor %s\n", sensor.toString());
+                }
+                continue;
+            }
+            
             Hep3Vector hitTrackPosSensor = new BasicHep3Vector(hitTrackPos.v());
             trans.transform(hitTrackPosSensor);
             // after the transformation x and y in the sensor frame are reversed
+            // This plot is ill defined.
+            
             aidaGBL.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitTrackPosSensor.y(), hitTrackPosSensor.x());
             //aidaGBL.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitPos.y(), hitPos.x());
             //aidaGBL.histogram2D("hit y vs x lab-frame " + sensor.getName()).fill(hitPos.y(), hitPos.x());
-
+            
+            
             // position predicted on track after GBL
             Hep3Vector extrapPos = null;
             Hep3Vector extrapPosSensor = null;
@@ -238,9 +256,61 @@ public class GBLOutputDriver extends Driver {
                 Hep3Vector testZ = trans.inverse().rotated(new BasicHep3Vector(0, 0, 1));
                 System.out.printf("unMeasCoord %s MeasCoord %s \n transX %s transY %s transZ %s \n", unmeasuredCoordinate.toString(), measuredCoordinate.toString(), testX.toString(), testY.toString(), testZ.toString());
             }
+        }//loop on sensor hits
+        
+        RelationalTable trackResidualsTable = null;
+        if (event.hasCollection(LCRelation.class, "TrackResidualsGBLRelations")) {
+            trackResidualsTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> trackresRelation = event.get(LCRelation.class, "TrackResidualsGBLRelations");
+            for (LCRelation relation : trackresRelation) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    trackResidualsTable.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        } else {
+            System.out.println("null TrackResidualsGBL Data Relations.");
+            //Failed finding TrackResidualsGBL
+            return;
         }
-    }
-
+        
+        GenericObject trackRes = (GenericObject) trackResidualsTable.from(trk);
+        if (trackRes == null) {
+            System.out.println("null TrackResidualsGBL Data.");
+            return;
+        }
+        
+        //it's bias-unbias-bias-unbias-bias-unbias....
+        //TODO add in trackRes the number of hits on tracks ?
+        int nres = (trackRes.getNInt()-1);
+        
+        //get the bias first 
+        for (int i_hit =0; i_hit < nres-1 ; i_hit+=2) {
+            if (trackRes.getIntVal(i_hit)!=-999)  {
+                String sensorName = (sensorMPIDs.get(trackRes.getIntVal(i_hit))).getName();
+                if (debug) {
+                    System.out.printf("NHits %d MPID sensor:%d %s %d\n", nres,trackRes.getIntVal(i_hit), sensorName,i_hit);
+                    System.out.printf("Track residuals: %s %.5f %.5f\n",sensorName, trackRes.getDoubleVal(i_hit),trackRes.getFloatVal(i_hit));
+                }
+                aidaGBL.histogram1D("bresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
+                aidaGBL.histogram1D("breserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
+                aidaGBL.histogram1D("ures_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
+            }   
+        }
+        // get the unbias
+        for (int i_hit =1; i_hit < nres-1 ; i_hit+=2) {
+            if (trackRes.getIntVal(i_hit)!=-999)  {  
+                String sensorName = (sensorMPIDs.get(trackRes.getIntVal(i_hit))).getName();
+                if (debug) {
+                    System.out.printf("NHits %d MPID sensor:%d %s %d\n", nres,trackRes.getIntVal(i_hit), sensorName,i_hit);
+                    System.out.printf("Track uresiduals: %s %.5f %.5f\n",sensorName, trackRes.getDoubleVal(i_hit),trackRes.getFloatVal(i_hit));
+                }
+                aidaGBL.histogram1D("uresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
+                aidaGBL.histogram1D("ureserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
+                aidaGBL.histogram1D("ures_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
+            }
+        }
+    }//doGBLresiduals
+    
     private void setupPlots() {
         
         for (SiSensor sensor : sensors) {
@@ -254,7 +324,15 @@ public class GBLOutputDriver extends Driver {
             xmax = 0.05;
             if (l >= 6)
                 xmax = 0.01;
-            aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName(),  50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("bresidual_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("uresidual_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("breserror_GBL_" + sensor.getName(), 50, 0.0, 0.05);
+            aidaGBL.histogram1D("ureserror_GBL_" + sensor.getName(), 50, 0.0, 0.1);
+            aidaGBL.histogram1D("bres_pull_GBL_" + sensor.getName(), 100, -5, 5);
+            aidaGBL.histogram1D("ures_pull_GBL_" + sensor.getName(), 100, -5, 5);
+            
+            
 
             aidaGBL.histogram2D("residual_after_GBL_vs_u_hit_" + sensor.getName(), 100, -20.0, 20.0, 100, -0.04, 0.04);
             aidaGBL.histogram2D("residual_after_GBL_vs_v_predicted_" + sensor.getName(), 100, -55.0, 55.0, 100, -0.04, 0.04);

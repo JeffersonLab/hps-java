@@ -165,7 +165,7 @@ public final class TrackDataDriver extends Driver {
                 trackResidualsX.clear();
                 trackResidualsY.clear();
                 stereoLayers.clear();
-
+                
                 // Change the position of a HelicalTrackHit to be the corrected one.
                 // Loop over all stereo hits comprising a track
                 for (TrackerHit rotatedStereoHit : track.getTrackerHits()) {
@@ -207,9 +207,9 @@ public final class TrackDataDriver extends Driver {
                     ((HelicalTrackHit) rotatedStereoHit).setPosition(stereoHitPosition.v());
                     stereoHitPosition = CoordinateTransformations.transformVectorToDetector(stereoHitPosition);
                     helicalTrackHit.setPosition(stereoHitPosition.v());
-
+                    
                 }
-
+                
                 //
                 // Add a track state that contains the extrapolated track position and 
                 // parameters at the face of the Ecal.
@@ -281,7 +281,11 @@ public final class TrackDataDriver extends Driver {
         // Add all collections to the event
         event.put(TrackData.TRACK_DATA_COLLECTION, trackDataCollection, TrackData.class, 0);
         event.put(TrackData.TRACK_DATA_RELATION_COLLECTION, trackDataRelations, LCRelation.class, 0);
+
+        //PF::Deprecated.
+        /*
         event.put(TRK_RESIDUALS_COL_NAME, trackResidualsCollection, TrackResidualsData.class, 0);
         event.put(TRK_RESIDUALS_REL_COL_NAME, trackToTrackResidualsRelations, LCRelation.class, 0);
+        */
     }
 }
