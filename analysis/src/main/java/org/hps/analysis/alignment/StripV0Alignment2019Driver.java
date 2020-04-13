@@ -20,8 +20,14 @@ public class StripV0Alignment2019Driver extends Driver {
 
         if (V0List.size() != 0) {
             skipEvent = false;
+        }
+
+        if (skipEvent) {
+            throw new Driver.NextEventException();
+        } else {
             _numberOfEventsSelected++;
         }
+
     }
 
     protected void endOfData() {
