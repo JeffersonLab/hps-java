@@ -53,6 +53,10 @@ class TrackCandidate {
         kalTkrID = -1;
     }
     
+    boolean contains(ArrayList<KalHit> hitList) {
+        return hits.containsAll(hitList);
+    }
+    
     int numHits() {
         return hits.size();
     }

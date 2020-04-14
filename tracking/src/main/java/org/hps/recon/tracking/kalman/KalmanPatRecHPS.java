@@ -61,7 +61,7 @@ class KalmanPatRecHPS {
         // This is needed because one layer can have multiple SiModules
         // Also make a list of Si modules with hits in each layer
         int numLayers = 14;
-        int firstLayer = 0; // (2 for pre-2019 data)
+        int firstLayer = kPar.firstLayer;
         lyrHits = new ArrayList<ArrayList<KalHit>>(numLayers);
         moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
         for (int lyr = 0; lyr < numLayers; lyr++) {
@@ -134,11 +134,10 @@ class KalmanPatRecHPS {
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
             for (int[] list : kPar.lyrList[topBottom]) {
                 int nLyrs = list.length;
-                //PF::This value is OK for 2016, what about 2019 (probably should be 0) ?!!
-                int originLyr = 2;    
-                if (moduleList.get(list[originLyr]).size() == 0) continue;
-                SiModule m0 = moduleList.get(list[2]).get(0);
-                double yOrigin = m0.p.X().v[1];
+                int middleLyr = 2;
+                if (moduleList.get(list[middleLyr]).size() == 0) continue;  // Skip seed if there is no hit in the middle layer
+                SiModule m0 = moduleList.get(list[middleLyr]).get(0);
+                double yOrigin = m0.p.X().v[1];                     // Set the local origin to be in the middle of the seed list
                 Vec pivot = new Vec(0, yOrigin, 0.);
                 Vec Bfield = KalmanInterface.getField(pivot, m0.Bfield);
                 double Bmag = Bfield.mag();
@@ -150,7 +149,7 @@ class KalmanPatRecHPS {
                 ArrayList<SeedTrack> seedList = new ArrayList<SeedTrack>();
                 int[] idx = new int[nLyrs];
                 for (idx[0] = 0; idx[0] < lyrHits.get(list[0]).size(); idx[0]++) {
-                    if (lyrHits.get(list[0]).get(idx[0]).hit.tracks.size() > 0) continue; // don't use hits already on tracks, in 2nd iteration
+                    if (lyrHits.get(list[0]).get(idx[0]).hit.tracks.size() > 0) continue; // don't use hits already on KalTrack tracks
                     for (idx[1] = 0; idx[1] < lyrHits.get(list[1]).size(); idx[1]++) {
                         if (lyrHits.get(list[1]).get(idx[1]).hit.tracks.size() > 0) continue;
                         for (idx[2] = 0; idx[2] < lyrHits.get(list[2]).size(); idx[2]++) {
@@ -178,42 +177,48 @@ class KalmanPatRecHPS {
                                         //}
                                         continue;
                                     }
+                                    // To avoid wasting time fitting seeds, skip seeds that are entirely contained in already found candidates
+                                    boolean redundantSeed = false;
+                                    for (TrackCandidate tkr : candidateList) {
+                                        if (tkr.contains(hitList)) {
+                                            if (verbose) System.out.format("KalmanPatRecHPS: seed %d %d %d %d %d is already on candidate %d\n",
+                                                    idx[0], idx[1], idx[2], idx[3], idx[4], tkr.ID);
+                                            redundantSeed = true;
+                                            break;
+                                        }
+                                    }
+                                    if (redundantSeed) continue;
+                                    
+                                    // Fit the seed to extract helix parameters
                                     SeedTrack seed = new SeedTrack(hitList, yOrigin, false);
                                     if (!seed.success) continue;
+                                    
                                     // Cuts on the seed quality
                                     Vec hp = seed.helixParams();
-                                    Vec pInt = seed.planeIntersection(p0);
-                                    
+                                    Vec pInt = seed.planeIntersection(p0);                         
                                     if (verbose) {
                                         System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f, tanl=%10.5f, dxz=%10.5f   ",
                                                           idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], hp.v[4], pInt.mag());
-                                    }
-                                    
-                                    boolean seed_passes_cuts = false;
-                                    
+                                    }                                    
+                                    boolean seed_passes_cuts = false;                                    
                                     if (Math.abs(hp.v[2]) < kPar.kMax[trial]) {
                                         if (Math.abs(hp.v[4]) < kPar.tanlMax[trial]) {
-                                            if (verbose) 
-                                                System.out.format("intersection with target plane= %9.3f %9.3f %9.3f \n", pInt.v[0],
-                                                                  pInt.v[1], pInt.v[2]);
+                                            if (verbose) System.out.format("intersection with target plane= %9.3f %9.3f %9.3f \n", 
+                                                    pInt.v[0], pInt.v[1], pInt.v[2]);
                                             if (pInt.mag() < kPar.dRhoMax[trial]) {
-                                                if (Math.abs(pInt.v[2]) < kPar.dzMax[trial]) 
-                                                    seed_passes_cuts = true;
-                                                //seedList.add(seed);
-                                            }//Check intersection with target plane
-                                        }//Check tanLambda
-                                    }//Check curvature
+                                                if (Math.abs(pInt.v[2]) < kPar.dzMax[trial]) seed_passes_cuts = true;
+                                            } //Check intersection with target plane
+                                        } //Check tanLambda
+                                    } //Check curvature
                                     
-                                    //Good seed; check for duplicates
+                                    //Good seed; check for approximate duplicates
                                     if (seed_passes_cuts) {
                                         boolean reject_seed = false;
                                         for (SeedTrack sel_seed : seedList) {
                                             reject_seed = seed.isCompatibleTo(sel_seed,kPar.seedCompThr);
-                                            if (reject_seed)
-                                                break;
+                                            if (reject_seed) break;
                                         }
-                                        if (!reject_seed)
-                                            seedList.add(seed);
+                                        if (!reject_seed) seedList.add(seed);
                                     }
                                     if (verbose) System.out.format("\n");
                                 }
@@ -254,8 +259,9 @@ class KalmanPatRecHPS {
                         System.out.format("\n");
                     }
                     // Skip seeds that are already on a good track candidate
+                    // This is not redundant with the above test, as we can catch here some candidates formed within this seed loop
                     for (TrackCandidate tkCand : candidateList) {
-                        if (tkCand.hits.containsAll(seed.hits)) {
+                        if (tkCand.contains(seed.hits)) {
                             if (verbose) System.out.format("KalmanPatRecHPS: skipping seed %d that is already on candidate %d\n", 
                                     seedList.indexOf(seed),candidateList.indexOf(tkCand));
                             continue seedLoop;
@@ -1185,7 +1191,7 @@ class KalmanPatRecHPS {
             return false;
         }
         
-        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.sites, yScat);
+        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.sites, yScat, kPar);
         boolean redundant = false;
         for (KalTrack oldTkr : TkrList) {
             if (tkr.equals(oldTkr)) {

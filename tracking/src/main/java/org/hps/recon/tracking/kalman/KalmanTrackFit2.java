@@ -26,6 +26,7 @@ class KalmanTrackFit2 {
             Vec pivot, // Pivot point for the starting "guess" helix
             Vec helixParams, // 5 helix parameters for the starting "guess" helix
             SquareMatrix C, // Full covariance matrix for the starting "guess" helix
+            KalmanParams kPar,
             org.lcsim.geometry.FieldMap fM) {
 
         logger = Logger.getLogger(KalmanTrackFit2.class.getName());
@@ -287,7 +288,7 @@ class KalmanTrackFit2 {
             yScat.add(yLyr);
             //System.out.format("Layer %d, y=%10.5f\n", lyr, yLyr);
         }
-        tkr = new KalTrack(evtNumb, 0, sites, yScat); // Store the fit information as a KalTrack object
+        tkr = new KalTrack(evtNumb, 0, sites, yScat, kPar); // Store the fit information as a KalTrack object
         for (MeasurementSite site : sites) { // Mark the hits as used
             for (Measurement hit : site.m.hits) { // Should be only a single hit (this is not a pattern recognition routine)
                 hit.tracks.add(tkr);

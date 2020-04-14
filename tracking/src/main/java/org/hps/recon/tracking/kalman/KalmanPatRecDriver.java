@@ -76,6 +76,7 @@ public class KalmanPatRecDriver extends Driver {
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
+    private double beamSpotLoc;        // Beam spot location along the beam axis
     private boolean addResiduals;      // If true add the hit-on-track residuals to the LCIO event
     
     
@@ -107,9 +108,9 @@ public class KalmanPatRecDriver extends Driver {
         siHitsLimit = input;
     }
     
-    public void setSeedCompThr(double thr) {
-        seedCompThr = thr;
-    }
+                                            
+                          
+     
 
     public void setAddResiduals(boolean input) {
         addResiduals = input;
@@ -163,6 +164,7 @@ public class KalmanPatRecDriver extends Driver {
         if (maxResidShare != 0.0) kPar.setMxResidShare(maxResidShare);
         if (maxChi2IncShare != 0.0) kPar.setMxChi2double(maxChi2IncShare);
         if (seedCompThr != 0.0) kPar.setSeedCompThr(seedCompThr);
+        if (beamSpotLoc != 0.0) kPar.setBeamSpot(beamSpotLoc);
         
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
@@ -454,5 +456,11 @@ public class KalmanPatRecDriver extends Driver {
     }
     public void setDoDebugPlots(boolean doDebugPlots) {
         this.doDebugPlots = doDebugPlots;
+    }    
+    public void setSeedCompThr(double seedCompThr) {
+        this.seedCompThr = seedCompThr;
+    }
+    public void setBeamSpotLoc(double beamSpotLoc) {
+        this.beamSpotLoc = beamSpotLoc;
     }
 }

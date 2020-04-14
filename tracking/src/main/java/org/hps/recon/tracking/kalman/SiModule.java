@@ -107,6 +107,11 @@ class SiModule {
         }
         return str;
     }
+    public String toString() {
+        String str = String.format("Si Module: Lyr=%2d Det=%2d Mpd=%d stereo=%b pnt=%8.3f %8.3f %8.3f t=%7.3f %7.3f %7.3f\n",
+                Layer, detector, millipedeID, isStereo, p.X().v[0], p.X().v[1], p.X().v[2], p.T().v[0], p.T().v[1], p.T().v[2]);
+        return str;
+    }
 
     // Delete all the existing hits
     void reset() {

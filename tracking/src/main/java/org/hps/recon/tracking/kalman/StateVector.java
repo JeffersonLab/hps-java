@@ -473,7 +473,8 @@ class StateVector {
     
     // Propagate a helix by Runge-Kutta integration to an arbitrary plane
     Vec propagateRungeKutta(Plane pln, org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, ArrayList<Double> yScat, double XL) {
-        // pln = plane to where the extrapolation is taking place.  The origin of pln will be the new helix pivot point.
+        // pln = plane to where the extrapolation is taking place in global coordinates.  
+        // The origin of pln will be the new helix pivot point.
         // fM  = HPS field map
         // newCovariance = output helix covariance at the new pivot
         // return value = helix parameters at the new pivot
@@ -491,22 +492,22 @@ class StateVector {
         Vec vB = tB.cross(uB);
         RotMatrix originRot = new RotMatrix(uB, vB, tB); // Rotation from the global system into the B-field system at the plane
         
-        // Plane in the B-field coordinate system 
-        Plane originPlane = new Plane(pln.X(), originRot.rotate(pln.T()));        
+        // Target plane after rotation to the B-field coordinate system 
+        Plane originPlane = new Plane(originRot.rotate(pln.X()), originRot.rotate(pln.T()));        
         
-        // Point and momentum on the helix in the B-field system near the first tracking layer
+        // Point and momentum on the helix in the B-field system near the tracking layer from where we extrapolate
         Vec xLocal = atPhi(0.);
         Vec pLocal = getMom(0.);
 
-        // Position and momentum in the origin B-field system
+        // Position and momentum in the target B-field system
         Vec X0origin = originRot.rotate(Rot.inverseRotate(xLocal).sum(origin));
         Vec P0origin = originRot.rotate(Rot.inverseRotate(pLocal));
         double Q = Math.signum(a.v[2]);
 
         Vec pInt = new Vec(3);
-        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the origin plane
+        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the target plane
         Vec helixAtIntersect = pTOa(pInt, 0., 0., Q);
-        Vec helixAtOrigin = pivotTransform(new Vec(0., 0., 0.), helixAtIntersect, Xplane, alpha, 0.);
+        Vec helixAtOrigin = pivotTransform(originPlane.X(), helixAtIntersect, Xplane, alpha, 0.);
         if (verbose) {
             System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1],
                     origin.v[2]);
@@ -532,7 +533,9 @@ class StateVector {
 
         // The covariance matrix is transformed assuming a sequence of pivot transforms (not Runge Kutta)
         Vec transHelix = new Vec(5);
-        if (!helixStepper(25.0, yScat, XL, newCovariance, transHelix, pln.X(), fM)) {
+        double stepSize = 25.0;
+        // Step from XL to pln.X(), both in global coordinates
+        if (!helixStepper(stepSize, yScat, XL, newCovariance, transHelix, pln.X(), fM)) {
             for (int i=0; i<5; ++i) {
                 for (int j=0; j<5; ++j) {
                     newCovariance.M[i][j] = this.C.M[i][j];

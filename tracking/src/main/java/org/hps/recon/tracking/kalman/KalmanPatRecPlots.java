@@ -119,6 +119,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("GBL pt inverse, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track time range (ns)", 100, 0., 100.);
         aida.histogram1D("GBL number of hits",20,0.,20.);
+        aida.histogram1D("Kalman layer hit",20,0.,20.);
         for (int lyr=0; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
@@ -190,6 +191,7 @@ class KalmanPatRecPlots {
                                     mod.print("the bad module");
                                     continue;
                                 }
+                                aida.histogram1D("Kalman layer hit").fill(mod.Layer);
                                 double resid = mod.hits.get(site.hitID).v - rLoc.v[1];
                                 if (kTk.nHits >= 10) aida.histogram1D("Kalman track hit residual >= 10 hits, sigmas").fill(resid/Math.sqrt(site.aS.R));
                                 aida.histogram1D("Kalman track hit residual").fill(resid);

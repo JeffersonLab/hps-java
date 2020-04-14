@@ -41,12 +41,14 @@ public class KalTrack {
     double tMin;
     double tMax;
     private Logger logger;
+    private KalmanParams kPar;
 
-    KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat) {
+    KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
         this.yScat = yScat;
         logger = Logger.getLogger(KalTrack.class.getName());
+        this.kPar = kPar;
         
         // Make a new list of sites in case somebody modifies the one referred to on input
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
@@ -79,7 +81,7 @@ public class KalTrack {
         propagated = false;
         originCov = new SquareMatrix(5);
         MeasurementSite site0 = this.SiteList.get(0);
-        Vec B = KalmanInterface.getField(new Vec(0., 0., 0.), site0.m.Bfield);
+        Vec B = KalmanInterface.getField(new Vec(3,kPar.beamSpot), site0.m.Bfield);
         Bmag = B.mag();
         tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
@@ -399,7 +401,7 @@ public class KalTrack {
 
     // Runge Kutta propagation of the helix to the origin
     public boolean originHelix() {
-        if (propagated) { return true; }
+        if (propagated) return true;
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -419,10 +421,12 @@ public class KalTrack {
             logger.log(Level.WARNING, String.format("KalTrack.originHelix: event %d inner site is not smoothed.\n", eventNumber));
             return false;
         }
+        Vec beamSpot = new Vec(3, kPar.beamSpot);
         
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
+        // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
         double XL = innerSite.m.thickness/innerSite.radLen;
-        Plane originPlane = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.)); 
+        Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
         helixAtOrigin = innerSite.aS.propagateRungeKutta(originPlane, innerSite.m.Bfield, originCov, yScat, XL);
         if (Double.isNaN(originCov.M[0][0])) return false;
         SquareMatrix Cinv = originCov.invert();
@@ -441,9 +445,11 @@ public class KalTrack {
             }
         }
 
-        // Find the position and momentum of the particle near the origin, including
-        // covariance
-        Vec XonHelix = StateVector.atPhi(new Vec(0., 0., 0.), helixAtOrigin, 0., alpha);
+        Vec beamSpotBframe = Rot.rotate(beamSpot);
+        //System.out.format("KalTrack: beamspot= %f %f %f global, %f %f %f local field\n", beamSpot.v[0], beamSpot.v[1], beamSpot.v[2],
+        //        beamSpotBframe.v[0], beamSpotBframe.v[1], beamSpotBframe.v[2]);
+        // Find the position and momentum of the particle near the origin, including covariance
+        Vec XonHelix = StateVector.atPhi(beamSpotBframe, helixAtOrigin, 0., alpha);
         Vec PofHelix = StateVector.aTOp(helixAtOrigin);
         originMomentum = Rot.inverseRotate(PofHelix);
         originPoint = Rot.inverseRotate(XonHelix);

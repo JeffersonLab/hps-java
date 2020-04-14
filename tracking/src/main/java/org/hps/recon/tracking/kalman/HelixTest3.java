@@ -39,6 +39,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                                    // piecewise helix
         boolean verbose = nTrials < 2;
 
+        KalmanParams kPar = new KalmanParams();
+        
         // Seed the random number generator
         long rndSeed = -3263009337738135404L;
         rnd = new Random();
@@ -699,7 +701,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             if (verbose) { initialCovariance.print("initial covariance guess"); }
             // Run the Kalman fit
             KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
-                    initialHelixGuess, initialCovariance, fM);
+                    initialHelixGuess, initialCovariance, kPar, fM);
             if (!kF.success) continue;
             KalTrack KalmanTrack = kF.tkr;
             if (KalmanTrack == null) continue;

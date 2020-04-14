@@ -624,6 +624,11 @@ public class KalmanInterface {
         //2016 => 12 planes, 2019 => 14 planes
         int nPlanes = inputPlanes.size();
         //System.out.printf("PF::nPlanes::%d", nPlanes);
+        if (nPlanes == 40) { // 2019 vs 2016 detector first layer
+            kPar.setFirstLayer(0);
+        } else {            
+            kPar.setFirstLayer(2);
+        }
         
         SiMlist.clear();
 
@@ -667,13 +672,12 @@ public class KalmanInterface {
                         new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(tK.v).toString());
             }
             Plane p =new Plane(pointOnPlaneTransformed, tK, uK, vK);
-            
-            //Indexing valid for 2016 detector
-            int kalLayer = temp.getLayerNumber()+1;  
-            
-            //Indexing valid for 2019 detector -> Include new layer-0, layers go from 0 to 13!!
-            if (nPlanes == 40) {
+                        
+            int kalLayer;                         
+            if (nPlanes == 40) { //Indexing valid for 2019 detector -> Include new layer-0, layers go from 0 to 13!!
                 kalLayer = temp.getLayerNumber()-1;
+            } else {            //Indexing valid for 2016 detector
+                kalLayer = temp.getLayerNumber()+1;
             }
             
             int detector = temp.getModuleNumber();
@@ -682,11 +686,14 @@ public class KalmanInterface {
             }           
             int millipedeID = temp.getMillepedeId();
             SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), inputPlane.getWidth(), inputPlane.getLength(),
-                    inputPlane.getThickness(), fm, detector, millipedeID);
+                    inputPlane.getThickness(), fm, detector, millipedeID);           
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);
         }
         Collections.sort(SiMlist, new SortByLayer());
+        for (SiModule sim : SiMlist) {
+            logger.log(Level.INFO, sim.toString());
+        }
     }
     
     // Method to feed simulated hits into the pattern recognition, for testing
@@ -1036,7 +1043,7 @@ public class KalmanInterface {
         SquareMatrix cov = seed.covariance();
         cov.scale(1000.0);
 
-        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, kPar, fm);
     }
 
     // Method to refit an existing track, using the track's helix parameters and covariance to initialize the Kalman Filter.
@@ -1061,7 +1068,7 @@ public class KalmanInterface {
         int startIndex = 0;
         if (verbose) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
         cov.scale(1000.0);
-        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, pivot, helixParams, cov, fm);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, pivot, helixParams, cov, kPar, fm);
     }
 
     // public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {
@@ -1069,7 +1076,6 @@ public class KalmanInterface {
     // }
 
     class SortByLayer implements Comparator<SiModule> {
-
         @Override
         public int compare(SiModule o1, SiModule o2) {
             return o1.Layer - o2.Layer;
