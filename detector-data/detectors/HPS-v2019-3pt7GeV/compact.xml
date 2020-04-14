@@ -6,7 +6,7 @@
     <info name="HPS-v2019-3pt7GeV">
         <comment>
             HPS detector based on the layout used for the 2019 run but with the
-            fieldmap scaled to xxx for running at 3.7 GeV. The tracker is at the 
+            fieldmap scaled to -.84 for running at 3.7 GeV. The tracker is at the 
             nominal opening angle and doesn't include the survey constants.  The 
             ECal survey alignment constants (global y/z translations) have been
             put in.
@@ -35,7 +35,8 @@
         <constant name="dipoleMagnetHeight" value="100*cm"/>
         <constant name="dipoleMagnetWidth" value="100*cm"/>
         <constant name="dipoleMagnetLength" value="108*cm"/>
-        <constant name="constBFieldY" value="-1.08"/><!-- set for 4.5GeV running -->
+        <!-- Set for 3.7 GeV running -->
+        <constant name="constBFieldY" value="-.84"/>
 
         <!-- 
             ECal
@@ -608,36 +609,35 @@
                 <bottom dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0."/>
             </layout>
         </detector>
-  </detectors>
+    </detectors>
 
-  <readouts>   
-      <readout name="TrackerHits">
-          <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
-      </readout>
-      <readout name="TrackerHitsFieldDef">
-          <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
-          <processor type="ScoringTrackerHitProcessor" />        
-      </readout>
-      <readout name="TrackerHitsECal">
-          <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
-          <processor type="ScoringTrackerHitProcessor" />        
-      </readout>
-      <readout name="HodoscopeHits">
-          <id>system:6,barrel:3,layer:4,ix:4,iy:-3,hole:-3</id>
-      </readout>
-      <readout name="HodoscopeForeHits">
-          <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
-          <processor type="ScoringTrackerHitProcessor"/>
-      </readout>
-      <readout name="EcalHits">
-          <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
-          <id>system:6,layer:2,ix:-8,iy:-6</id>
-      </readout>
+    <readouts>   
+        <readout name="TrackerHits">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+        </readout>
+        <readout name="TrackerHitsFieldDef">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+            <processor type="ScoringTrackerHitProcessor" />        
+        </readout>
+        <readout name="TrackerHitsECal">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id> 
+            <processor type="ScoringTrackerHitProcessor" />        
+        </readout>
+        <readout name="HodoscopeHits">
+            <id>system:6,barrel:3,layer:4,ix:4,iy:-3,hole:-3</id>
+        </readout>
+        <readout name="HodoscopeForeHits">
+            <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+            <processor type="ScoringTrackerHitProcessor"/>
+        </readout>
+        <readout name="EcalHits">
+            <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+            <id>system:6,layer:2,ix:-8,iy:-6</id>
+        </readout>
+    </readouts>
 
-  </readouts>
-
-  <fields>
-      <field 
+    <fields>
+        <field 
           type="FieldMap3D"
           name="HPSDipoleFieldMap3D"
           filename="fieldmap/334acm3_8kg_corrected_unfolded_scaled_1.0508.dat"
@@ -646,11 +646,12 @@
           yoffset="0.0*cm"
           zoffset="45.72*cm"
           />
-  </fields>
+    </fields>
 
-  <includes>
-      <gdmlFile file="gdml/ecal_vacuum_flange_complete_v3.gdml" /> 
-      <gdmlFile file="gdml/hps_hodoscope_assembly.gdml" /> 
-      <gdmlFile file="gdml/svt_chamber_v2.gdml" />
-  </includes>
+    <includes>
+        <gdmlFile file="gdml/ecal_vacuum_flange_complete_v3.gdml" /> 
+        <gdmlFile file="gdml/hps_hodoscope_assembly.gdml" /> 
+        <gdmlFile file="gdml/svt_chamber_v2.gdml" />
+    </includes>
+
 </lccdd>

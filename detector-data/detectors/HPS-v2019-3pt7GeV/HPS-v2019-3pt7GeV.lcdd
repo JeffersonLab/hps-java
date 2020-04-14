@@ -2,9 +2,9 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-v2019-3pt7GeV" />
-    <generator name="lcsim" version="1.0" file="HPS-v2019-3pt7GeV/compact.xml" checksum="648755921" />
+    <generator name="lcsim" version="1.0" file="/home/omoreno/projects/hps/software/hps-java/detector-data/detectors/HPS-v2019-3pt7GeV/compact.xml" checksum="3838651600" />
     <author name="NONE" />
-    <comment>HPS detector based on the layout used for the 2019 run but with the fieldmap scaled to xxx for running at 3.7 GeV. The tracker is at the nominal opening angle and doesn't include the survey constants. The ECal survey alignment constants (global y/z translations) have been put in.</comment>
+    <comment>HPS detector based on the layout used for the 2019 run but with the fieldmap scaled to -.84 for running at 3.7 GeV. The tracker is at the nominal opening angle and doesn't include the survey constants. The ECal survey alignment constants (global y/z translations) have been put in.</comment>
   </header>
   <iddict>
     <idspec name="HodoscopeForeHits" length="46">
@@ -180,7 +180,7 @@
       <constant name="top_rot_alpha" value="6.4964212772E-4" />
       <constant name="y_rot" value="0.03052" />
       <constant name="tracking_region_zmax" value="1368.0" />
-      <constant name="constBFieldY" value="-1.08" />
+      <constant name="constBFieldY" value="-0.84" />
       <constant name="top_tr_z" value="4.9375" />
       <constant name="top_tr_y" value="2.725" />
       <constant name="top_tr_x" value="-0.71" />
