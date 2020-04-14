@@ -10064,7 +10064,7 @@
     </setup>
   </gdml>
   <fields>
-    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
+    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/125acm2_3kg_corrected_unfolded_scaled_0.7992_v3.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
   </fields>
 </lcdd>
 
