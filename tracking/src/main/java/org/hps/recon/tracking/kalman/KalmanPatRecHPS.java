@@ -643,63 +643,61 @@ class KalmanPatRecHPS {
                 TrackCandidate tkr = iter.next();
                 if (!tkr.good) {
                     // Resurrect the candidate if it has enough hits and none of them is shared with a good candidate or finished track
-                    if (trial > 0) {
-                        boolean resurrect = true;
-                        for (KalHit ht : tkr.hits) {
-                            if (ht.hit.tracks.size() > 0) {
-                                resurrect = false;
-                                break;
-                            }
-                            int nGood = 0;
-                            for (TrackCandidate tkr2 : ht.tkrCandidates) {
-                                if (tkr2.good) nGood++;
-                            }
-                            if (nGood > 0) {
-                                resurrect = false;
-                                break;
-                            }
+                    boolean resurrect = true;
+                    for (KalHit ht : tkr.hits) {
+                        if (ht.hit.tracks.size() > 0) {
+                            resurrect = false;
+                            break;
                         }
-                        if (resurrect) {
-                            if (tkr.numHits() >= kPar.minHits1[trial] && tkr.numStereo() >= kPar.minStereo[trial]) {
-                                int nAxial = tkr.numHits() - tkr.numStereo();
-                                if (nAxial >= kPar.minAxial) {
-                                    StateVector aS0 = tkr.sites.get(0).aS;
-                                    if (aS0 != null) {
-                                        if (!aS0.a.isNaN()) {
-                                            if (!aS0.C.isNaN()) {
-                                                Collections.sort(tkr.sites, MeasurementSite.SiteComparatorUp); // Occasionally necessary
-                                                if (tkr.sites.get(0).aS == null) {
-                                                    if (tkr.reFit()) {
-                                                        tkr.good = true;
-                                                        if (verbose) {
-                                                            System.out.format("KalmanPatRecHPS event %d: resurrecting refit candidate %d with chi2=%9.5f\n", 
-                                                                              eventNumber, tkr.ID, tkr.chi2s);
-                                                            tkr.print("resurrected", true); 
-                                                        }
-                                                        for (KalHit hit : tkr.hits) {
-                                                            boolean foundIt = false;
-                                                            for (MeasurementSite site : tkr.sites) {
-                                                                if (site.m == hit.module) {
-                                                                    foundIt = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if (!foundIt) {
-                                                                logger.log(Level.WARNING, String.format("KalmanPatRecHPS event %d, missing site for candidate track", eventNumber));
-                                                            }
-                                                            if (!hit.tkrCandidates.contains(tkr)) hit.tkrCandidates.add(tkr);
-                                                        }
-                                                        continue;
+                        int nGood = 0;
+                        for (TrackCandidate tkr2 : ht.tkrCandidates) {
+                            if (tkr2.good) nGood++;
+                        }
+                        if (nGood > 0) {
+                            resurrect = false;
+                            break;
+                        }
+                    }
+                    if (resurrect) {
+                        if (tkr.numHits() >= kPar.minHits1[trial] && tkr.numStereo() >= kPar.minStereo[trial]) {
+                            int nAxial = tkr.numHits() - tkr.numStereo();
+                            if (nAxial >= kPar.minAxial) {
+                                StateVector aS0 = tkr.sites.get(0).aS;
+                                if (aS0 != null) {
+                                    if (!aS0.a.isNaN()) {
+                                        if (!aS0.C.isNaN()) {
+                                            Collections.sort(tkr.sites, MeasurementSite.SiteComparatorUp); // Occasionally necessary
+                                            if (tkr.sites.get(0).aS == null) {
+                                                if (tkr.reFit()) {
+                                                    tkr.good = true;
+                                                    if (verbose) {
+                                                        System.out.format("KalmanPatRecHPS event %d: resurrecting refit candidate %d with chi2=%9.5f\n", 
+                                                                          eventNumber, tkr.ID, tkr.chi2s);
+                                                        tkr.print("resurrected", true); 
                                                     }
+                                                    for (KalHit hit : tkr.hits) {
+                                                        boolean foundIt = false;
+                                                        for (MeasurementSite site : tkr.sites) {
+                                                            if (site.m == hit.module) {
+                                                                foundIt = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!foundIt) {
+                                                            logger.log(Level.WARNING, String.format("KalmanPatRecHPS event %d, missing site for candidate track", eventNumber));
+                                                        }
+                                                        if (!hit.tkrCandidates.contains(tkr)) hit.tkrCandidates.add(tkr);
+                                                    }
+                                                    continue;
                                                 }
-                                                tkr.good = true;
-                                                if (verbose) {
-                                                    System.out.format("KalmanPatRecHPS event %d: resurrecting candidate %d with chi2=%9.5f\n", 
-                                                                      eventNumber, tkr.ID, tkr.chi2s);
-                                                    tkr.print("resurrected", true);
-                                                }
-                                                continue;                                        
                                             }
+                                            tkr.good = true;
+                                            if (verbose) {
+                                                System.out.format("KalmanPatRecHPS event %d: resurrecting candidate %d with chi2=%9.5f\n", 
+                                                                  eventNumber, tkr.ID, tkr.chi2s);
+                                                tkr.print("resurrected", true);
+                                            }
+                                            continue;                                        
                                         }
                                     }
                                 }
