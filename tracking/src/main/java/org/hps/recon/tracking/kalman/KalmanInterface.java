@@ -1010,7 +1010,7 @@ public class KalmanInterface {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
         if (verbose) System.out.printf("firstHitZ %f \n", firstHitZ);
-        return new SeedTrack(trackHitsKalman, firstHitZ, verbose);
+        return new SeedTrack(trackHitsKalman, firstHitZ, 0., verbose);
     }
 
     // Method to refit an existing track's hits, using the Kalman seed-track to initialize the Kalman Filter.
@@ -1103,7 +1103,7 @@ public class KalmanInterface {
                 } else {
                     if (SiM.p.X().v[2] > 0) continue;
                 }
-                if (!SiM.hits.isEmpty()) SiMoccupied.add(SiM);
+                SiMoccupied.add(SiM);
             }
             Collections.sort(SiMoccupied, new SortByLayer());
             

@@ -54,6 +54,14 @@ class Vec { // N-vector for the Kalman filter
         }
         return str;
     }
+    
+    public String toString() {
+        String str = " ";
+        for (int i = 0; i < N; i++) {
+            str=str+String.format("%10.6f ", v[i]);
+        }
+        return str;
+    }
 
     Vec copy() {
         return new Vec(N, v);

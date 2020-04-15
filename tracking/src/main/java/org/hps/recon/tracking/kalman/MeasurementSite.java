@@ -251,7 +251,7 @@ class MeasurementSite {
         }
 
         // Loop over hits and find the one that is closest, unless the hit has been specified
-        boolean verbose2 = (logger.getLevel()==Level.FINER);
+        boolean verbose2 = (verbose || logger.getLevel()==Level.FINER);
         int nHits = m.hits.size();
         if (nHits > 0) {
             double minResid = 999.;

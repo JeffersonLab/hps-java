@@ -121,7 +121,10 @@ class TrackCandidate {
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
 
         boolean failure = false;
-        StateVector sHstart = sites.get(0).aS;
+        MeasurementSite startSite = sites.get(0);
+        StateVector sHstart = startSite.aS;
+        if (verbose) System.out.format("  Start site at layer %d detector %d, helix=%s\n", 
+                                       startSite.m.Layer, startSite.m.detector, sHstart.a.toString());
         do {
             StateVector sH = sHstart;
             sH.C.scale(1000.*chi2s); // Blow up the initial covariance matrix to avoid double counting measurements
@@ -160,7 +163,7 @@ class TrackCandidate {
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {
-                        currentSite.hitID = 0;
+                        currentSite.hitID = -1;
                         failure = true;
                         break;
                     }
@@ -171,16 +174,20 @@ class TrackCandidate {
                     tMin = Math.min(tMin, currentSite.m.hits.get(currentSite.hitID).time);
                     tMax = Math.max(tMax, currentSite.m.hits.get(currentSite.hitID).time);
                 }
+                if (verbose) System.out.format("  After prediction to layer %d detector %d, hit=%d, helix=%s\n",
+                        currentSite.m.Layer, currentSite.m.detector, currentSite.hitID, currentSite.aP.a.toString());
                 if (!currentSite.filter()) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to filter at layer %d in event %d!\n",currentSite.m.Layer, eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {
-                        currentSite.hitID = 0;
+                        currentSite.hitID = -1;
                         failure = true;
                         break;
                     }
                     if (verbose) System.out.format("TrackCandidate.reFit: abort refit for event %d, nHits=%d, nStereo=%d\n", eventNumber, hits.size(), nStereo);
                     return false;
                 }
+                if (verbose) System.out.format("  After filtering at layer %d detector %d, resid=%9.5f, helix=%s\n",
+                        currentSite.m.Layer, currentSite.m.detector, currentSite.aF.r, currentSite.aF.a.toString());
                 if (currentSite.chi2inc >= chi2s) {
                     currentSite.filtered = false;
                     currentSite.aF = null;
@@ -222,6 +229,7 @@ class TrackCandidate {
                     if (verbose) System.out.format("TrackCandidate.refit: removing site at layer %d detector %d\n", site.m.Layer, site.m.detector);
                     sites.remove(site);
                     if (site.hitID >= 0) {
+                        if (verbose) System.out.format("       TrackCandidate.refit: removing hit %d\n", site.hitID);
                         KalHit theHit = hitMap.get(site.m.hits.get(site.hitID));
                         theHit.tkrCandidates.remove(this);
                     }
@@ -234,15 +242,15 @@ class TrackCandidate {
         MeasurementSite nextSite = null;
         for (int idx = sites.size() - 1; idx >= 0; idx--) {
             MeasurementSite currentSite = sites.get(idx);
-            if (currentSite.aF == null || currentSite.hitID < 0) continue;
-            if (verbose) System.out.format("TrackCandidate.reFit: smoothing site at layer %d detector %d\n", 
-                    currentSite.m.Layer, currentSite.m.detector);
+            //if (currentSite.aF == null || currentSite.hitID < 0) continue;
             if (nextSite == null) {
                 currentSite.aS = currentSite.aF.copy();
                 currentSite.smoothed = true;
             } else {
                 currentSite.smooth(nextSite);
             }
+            if (verbose) System.out.format("TrackCandidate.reFit: after smoothing site at layer %d detector %d, resid=%9.6f, helix=%s\n", 
+                    currentSite.m.Layer, currentSite.m.detector, currentSite.aS.r, currentSite.aS.a.toString());
             chi2s += Math.max(currentSite.chi2inc,0.);
 
             //if (verbose) {
@@ -290,6 +298,7 @@ class TrackCandidate {
         double etanl = Math.sqrt(aS.C.M[4][4]);
         str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
+        str=str+String.format("              for origin at %s and pivot=%s\n", aS.origin.toString(), aS.X0.toString());
         str=str+String.format("   %d Hits: ", hits.size());
         for (KalHit ht : hits) str = str + ht.toString("short");
         if (shrt) {

@@ -210,10 +210,10 @@ class KalmanPatRecPlots {
                                     double unbResid = residPr.getFirstElement();
                                     aida.histogram1D(String.format("Layers/Kalman track ubiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
                                     aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
-                                    if (variance < 0.) {
-                                        System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", 
-                                                            event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);
-                                    }
+                                    //if (variance < 0.) {
+                                    //    System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", 
+                                    //                        event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);
+                                    //}
                                 }
                                 TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                                 List<RawTrackerHit> rawHits = hpsHit.getRawHits();
@@ -547,7 +547,7 @@ class KalmanPatRecPlots {
         
         if (nPlotted < numEvtPlots) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
-            KI.plotGBLtracks(outputGnuPlotDir, event);
+            //KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;
         }
         

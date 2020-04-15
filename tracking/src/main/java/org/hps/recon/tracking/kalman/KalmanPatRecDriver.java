@@ -185,6 +185,9 @@ public class KalmanPatRecDriver extends Driver {
         int[] list12 = {2, 3, 4, 5, 6};
         int[] list13 = {2, 4, 5, 6, 7};
         int[] list14 = {6, 7, 8, 10, 11};
+        int[] list15 = {1, 2, 4, 5, 6};
+        int[] list16 = {0, 1, 2, 3, 4};
+        int[] list17 = {0, 3, 4, 5, 6};
         kPar.addStrategy(list0);
         kPar.addStrategy(list1);
         kPar.addStrategy(list2);
@@ -200,6 +203,9 @@ public class KalmanPatRecDriver extends Driver {
         kPar.addStrategy(list12);
         kPar.addStrategy(list13);
         kPar.addStrategy(list14);
+        kPar.addStrategy(list15);
+        kPar.addStrategy(list16);
+        kPar.addStrategy(list17);
         
         System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
     }
