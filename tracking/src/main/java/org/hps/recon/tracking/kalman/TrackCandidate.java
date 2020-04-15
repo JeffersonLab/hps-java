@@ -16,8 +16,7 @@ class TrackCandidate {
     double chi2f, chi2s;
     double tMin, tMax;
     int nTaken;
-    private int mxShared;
-    private double mxTdif;
+    private KalmanParams kPar;
     boolean filtered;
     boolean smoothed;
     boolean good;
@@ -25,12 +24,11 @@ class TrackCandidate {
     int eventNumber;
     private Logger logger;
 
-    TrackCandidate(int IDset, ArrayList<KalHit> seedHits, int mxShared, double mxTdif, Map<Measurement, KalHit> hitMap, int event) {
+    TrackCandidate(int IDset, ArrayList<KalHit> seedHits, KalmanParams kPar, Map<Measurement, KalHit> hitMap, int event) {
         logger = Logger.getLogger(TrackCandidate.class.getName());
         ID = IDset;
         eventNumber = event;
-        this.mxShared = mxShared;
-        this.mxTdif = mxTdif;
+        this.kPar = kPar;
         filtered = false;
         smoothed = false;
         chi2f = 0.;
@@ -94,7 +92,7 @@ class TrackCandidate {
             logger.log(Level.WARNING, String.format("TrackCandidate.removeHit error in event %d: MeasurementSite is missing for layer %d\n", 
                     eventNumber, mod.Layer));
         } else {
-            sites.remove(siteR);
+            siteR.hitID = -1;
         }
         if (kalTkrID == -1) {
             if (hit.hit.tracks.size() > 0) nTaken--;
@@ -117,12 +115,14 @@ class TrackCandidate {
     }
     
     boolean reFit() {
-        boolean verbose = (logger.getLevel()==Level.FINER);
+        boolean verbose = (logger.getLevel()==Level.FINER || logger.getLevel()==Level.FINEST);
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
 
         boolean failure = false;
         MeasurementSite startSite = sites.get(0);
         StateVector sHstart = startSite.aS;
+        if (sHstart == null) sHstart = startSite.aF;
+        if (sHstart == null) return false;
         if (verbose) System.out.format("  Start site at layer %d detector %d, helix=%s\n", 
                                        startSite.m.Layer, startSite.m.detector, sHstart.a.toString());
         do {
@@ -156,9 +156,9 @@ class TrackCandidate {
                     pickupHits = true;
                 } 
     
-                boolean allowSharing = nTaken < mxShared;
+                boolean allowSharing = nTaken < kPar.mxShared;
                 boolean checkBounds = false;
-                double [] tRange = {tMax - mxTdif, tMin + mxTdif}; 
+                double [] tRange = {tMax - kPar.mxTdif, tMin + kPar.mxTdif}; 
                 int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange);
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
@@ -188,21 +188,15 @@ class TrackCandidate {
                 }
                 if (verbose) System.out.format("  After filtering at layer %d detector %d, resid=%9.5f, helix=%s\n",
                         currentSite.m.Layer, currentSite.m.detector, currentSite.aF.r, currentSite.aF.a.toString());
-                if (currentSite.chi2inc >= chi2s) {
-                    currentSite.filtered = false;
-                    currentSite.aF = null;
+                if (currentSite.chi2inc > 5.0*kPar.mxChi2Inc && currentSite.chi2inc > chi2f) {
                     currentSite.hitID = -1;
-                    failure = true;
-                    if (verbose) System.out.format("TrackCandidate.reFit: bad chi^2 %7.1f from filter at layer %d\n", currentSite.chi2inc, currentSite.m.Layer);
-                    if (nStereo > 2 && hits.size() > 4) break;
-                    continue;               
-                }
-    
-                // if (verbose) currentSite.print("iterating filtering");
+                    if (verbose) System.out.format("TrackCandidate.reFit: reject hit with really bad chi^2 %7.1f from filter at layer %d\n", currentSite.chi2inc, currentSite.m.Layer);           
+                    currentSite.filtered = false;
+                    currentSite.filter();
+                }   
                 if (currentSite.hitID >= 0) {
                     KalHit hitNew = hitMap.get(currentSite.m.hits.get(currentSite.hitID));
                     hits.add(hitNew);
-                    //hitNew.tkrCandidates.add(this); don't do this; hits are marked later
                     chi2f += Math.max(currentSite.chi2inc,0.);
                     if (currentSite.m.isStereo) nStereo++;
                     if (currentSite.m.hits.get(currentSite.hitID).tracks.size() > 0) nTaken++;
@@ -214,15 +208,18 @@ class TrackCandidate {
                 sH = currentSite.aF;
                 prevMod = currentSite.m;
             }
-            if (nStereo < 3 || hits.size() < 5) {
+            if (nStereo < kPar.minStereo[1] || hits.size() < kPar.minAxial) {
                 if (verbose) System.out.format("TrackCandidate.reFit event %d: not enough hits included in fit.  nHits=%d, nStereo=%d\n", eventNumber, hits.size(), nStereo);
                 return false;
             }
-            if (failure) {
+            if (failure) {  // Attempt to recover from failed prediction or filter by chopping off part of the track
                 ArrayList<MeasurementSite> sitesToRemove = new ArrayList<MeasurementSite>();
-                for (MeasurementSite site : sites) {
-                    if (site.aP == null || site.aF == null) {
+                for (int idx=sites.size()-1; idx>=0; --idx) {  // Remove sites without hits or filtering at tail end only
+                    MeasurementSite site = sites.get(idx);
+                    if (site.hitID < 0 || site.aF == null) {
                         sitesToRemove.add(site);
+                    } else {
+                        break;
                     }
                 }
                 for (MeasurementSite site : sitesToRemove) {

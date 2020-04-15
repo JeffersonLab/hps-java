@@ -53,6 +53,7 @@ class KalmanPatRecPlots {
     int nMCtracksFound;
     private Efficiency pEff;
     private Logger logger;
+    private int numBadCov;
 
     KalmanPatRecPlots(boolean verbose, KalmanInterface KI, IDDecoder decoder, int numEvtPlots, org.lcsim.geometry.FieldMap fm) {
         this.verbose = verbose;
@@ -60,7 +61,7 @@ class KalmanPatRecPlots {
         this.decoder = decoder;
         this.fm = fm;
         this.numEvtPlots = numEvtPlots;
-        logger = Logger.getLogger(KalTrack.class.getName());
+        logger = Logger.getLogger(KalmanPatRecPlots.class.getName());
         
         if (aida == null) aida = AIDA.defaultInstance();
         aida.tree().cd("/");
@@ -68,6 +69,7 @@ class KalmanPatRecPlots {
         nEvents = 0;
         nMCtracks = 0;
         nMCtracksFound = 0;
+        numBadCov = 0;
         
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman pattern recognition time", 100, 0., 500.);
@@ -210,10 +212,11 @@ class KalmanPatRecPlots {
                                     double unbResid = residPr.getFirstElement();
                                     aida.histogram1D(String.format("Layers/Kalman track ubiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
                                     aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
-                                    //if (variance < 0.) {
+                                    if (variance < 0.) {
+                                        numBadCov++;
                                     //    System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", 
                                     //                        event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);
-                                    //}
+                                    }
                                 }
                                 TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
                                 List<RawTrackerHit> rawHits = hpsHit.getRawHits();
@@ -247,8 +250,6 @@ class KalmanPatRecPlots {
                 int nBad = 0;
                 for (MeasurementSite site : kTk.SiteList) {
                     if (site.hitID < 0) {
-                        logger.log(Level.WARNING, String.format("event %d, missing hit ID for track %d on layer %d, detector %d",
-                                event.getEventNumber(), kTk.ID, site.m.Layer, site.m.detector));
                         continue;
                     }
                     SiModule mod = site.m;
@@ -365,8 +366,6 @@ class KalmanPatRecPlots {
                 for (MeasurementSite site : kTk.SiteList) {
                     SiModule mod = site.m;
                     if (site.hitID < 0) {
-                        logger.log(Level.WARNING, String.format("event %d, missing hit ID for track %d on layer %d, detector %d",
-                                event.getEventNumber(), kTk.ID, site.m.Layer, site.m.detector));
                         continue;
                     }
                     TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
@@ -663,6 +662,7 @@ class KalmanPatRecPlots {
         int nMiss = nMCtracks - nMCtracksFound;
         double err = Math.sqrt((double)nMiss) / (double)nMCtracks;
         System.out.format("KalmanPatRecPlots: the track efficiency for p>0.7 GeV and >= 10 sim hits is %9.3f+-%9.3f\n", trackEfficiency, err);
+        System.out.format("KalmanPatRecPlots: the total number of hits with negative unbiased residual predicted variance=%d\n", numBadCov);
         try {
             System.out.format("Outputting the aida histograms now for %d events to file %s\n", nEvents, outputFileName);
             aida.saveAs(outputFileName);

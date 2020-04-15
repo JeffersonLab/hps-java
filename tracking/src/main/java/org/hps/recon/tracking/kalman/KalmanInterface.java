@@ -1103,7 +1103,7 @@ public class KalmanInterface {
                 } else {
                     if (SiM.p.X().v[2] > 0) continue;
                 }
-                SiMoccupied.add(SiM);
+                SiMoccupied.add(SiM);  // Need to keep all of these even if there are no hits!!!!!!
             }
             Collections.sort(SiMoccupied, new SortByLayer());
             

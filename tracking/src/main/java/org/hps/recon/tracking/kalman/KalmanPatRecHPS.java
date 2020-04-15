@@ -50,6 +50,8 @@ class KalmanPatRecHPS {
         logger = Logger.getLogger(KalmanPatRecHPS.class.getName());
         this.topBottom = topBottom;
         this.eventNumber = eventNumber;
+        //if (eventNumber == 754) logger.setLevel(Level.FINER);
+        //else logger.setLevel(Level.INFO);
         this.verbose = (logger.getLevel()==Level.FINER || logger.getLevel()==Level.FINEST);
         this.kPar = kPar;
 
@@ -291,7 +293,7 @@ class KalmanPatRecHPS {
                     CovGuess.scale(1000.);
                     // Create an state vector from the input seed to initialize the Kalman filter
                     StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot);
-                    TrackCandidate candidateTrack = new TrackCandidate(candID, seed.hits, kPar.mxShared, kPar.mxTdif, hitMap, eventNumber);
+                    TrackCandidate candidateTrack = new TrackCandidate(candID, seed.hits, kPar, hitMap, eventNumber);
                     candID++;
                     filterTrack(candidateTrack, list[0], numLayers - 1, sI, trial, true, true);
                     if (!candidateTrack.filtered) {
@@ -640,6 +642,70 @@ class KalmanPatRecHPS {
             while (iter.hasNext()) {
                 TrackCandidate tkr = iter.next();
                 if (!tkr.good) {
+                    // Resurrect the candidate if it has enough hits and none of them is shared with a good candidate or finished track
+                    if (trial > 0) {
+                        boolean resurrect = true;
+                        for (KalHit ht : tkr.hits) {
+                            if (ht.hit.tracks.size() > 0) {
+                                resurrect = false;
+                                break;
+                            }
+                            int nGood = 0;
+                            for (TrackCandidate tkr2 : ht.tkrCandidates) {
+                                if (tkr2.good) nGood++;
+                            }
+                            if (nGood > 0) {
+                                resurrect = false;
+                                break;
+                            }
+                        }
+                        if (resurrect) {
+                            if (tkr.numHits() >= kPar.minHits1[trial] && tkr.numStereo() >= kPar.minStereo[trial]) {
+                                int nAxial = tkr.numHits() - tkr.numStereo();
+                                if (nAxial >= kPar.minAxial) {
+                                    StateVector aS0 = tkr.sites.get(0).aS;
+                                    if (aS0 != null) {
+                                        if (!aS0.a.isNaN()) {
+                                            if (!aS0.C.isNaN()) {
+                                                Collections.sort(tkr.sites, MeasurementSite.SiteComparatorUp); // Occasionally necessary
+                                                if (tkr.sites.get(0).aS == null) {
+                                                    if (tkr.reFit()) {
+                                                        tkr.good = true;
+                                                        if (verbose) {
+                                                            System.out.format("KalmanPatRecHPS event %d: resurrecting refit candidate %d with chi2=%9.5f\n", 
+                                                                              eventNumber, tkr.ID, tkr.chi2s);
+                                                            tkr.print("resurrected", true); 
+                                                        }
+                                                        for (KalHit hit : tkr.hits) {
+                                                            boolean foundIt = false;
+                                                            for (MeasurementSite site : tkr.sites) {
+                                                                if (site.m == hit.module) {
+                                                                    foundIt = true;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!foundIt) {
+                                                                logger.log(Level.WARNING, String.format("KalmanPatRecHPS event %d, missing site for candidate track", eventNumber));
+                                                            }
+                                                            if (!hit.tkrCandidates.contains(tkr)) hit.tkrCandidates.add(tkr);
+                                                        }
+                                                        continue;
+                                                    }
+                                                }
+                                                tkr.good = true;
+                                                if (verbose) {
+                                                    System.out.format("KalmanPatRecHPS event %d: resurrecting candidate %d with chi2=%9.5f\n", 
+                                                                      eventNumber, tkr.ID, tkr.chi2s);
+                                                    tkr.print("resurrected", true);
+                                                }
+                                                continue;                                        
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     if (verbose) {
                         System.out.format("KalmanPatRecHPS: removing bad track candidate %d\n", tkr.ID);
                         tkr.print("being removed", true);
@@ -890,12 +956,9 @@ class KalmanPatRecHPS {
             if (removeIt) {
                 TkrList.remove(tkr);
                 for (MeasurementSite site : tkr.SiteList) {
-                    if (site.hitID!=-1) {
+                    if (site.hitID != -1) {
                         site.m.hits.get(site.hitID).tracks.remove(tkr);
                         site.removeHit();
-                    }
-                    else {
-                        logger.log(Level.WARNING,"Removing track from measurement site with hitID=-1. Skipping removal.");
                     }
                 }
                 continue;
@@ -930,9 +993,6 @@ class KalmanPatRecHPS {
                     if (site.hitID!=-1) {
                         site.m.hits.get(site.hitID).tracks.remove(tkr);
                         site.removeHit();
-                    }
-                    else {
-                        System.out.format("KalmanPatRecHPS: Removing track from measurement site with hitID=-1. Skipping removal.");
                     }
                 }
                 continue;
@@ -1067,7 +1127,7 @@ class KalmanPatRecHPS {
                     break;
                 }
             }
-
+            if (verbose) System.out.format("KalmanPatRecHPS.filterTrack: layer %d, %d modules\n", lyr, moduleList.get(lyr).size());
             // Loop over all of the modules in this layer
             for (int imod = 0; imod < moduleList.get(lyr).size(); ++imod) {
                 SiModule m = moduleList.get(lyr).get(imod);
@@ -1184,11 +1244,19 @@ class KalmanPatRecHPS {
     }
 
     boolean storeTrack(int tkID, TrackCandidate tkrCand) {
-        //System.out.format("entering storeTrack for track %d, verbose=%b\n", tkID, verbose);
+        if (verbose) System.out.format("entering storeTrack for track %d, verbose=%b\n", tkID, verbose);
+
         MeasurementSite firstSite = null;
-        for (MeasurementSite site : tkrCand.sites) {
+        for (int idx=0; idx<tkrCand.sites.size()-1; ++idx) {
+            MeasurementSite site = tkrCand.sites.get(idx);
             if (site.hitID >= 0) firstSite = site;
+            MeasurementSite nxtSite = tkrCand.sites.get(idx+1);
+            if (nxtSite.m.Layer-site.m.Layer > 1) {
+                logger.warning(String.format("Event %d, Track candidate %d has missing layer %d", eventNumber, tkrCand.ID, site.m.Layer+1));
+            }
         }
+        if (firstSite == null) tkrCand.print("firstSite null", false);
+        if (firstSite.aS == null) tkrCand.print("aS null", false);
         if (Math.abs(firstSite.aS.a.v[2]) > kPar.kMax[1]) {
             if (verbose) System.out.format("KalmanPatRecHPS.storeTrack: k=%10.4f is too large for candidate %d\n", 
                     firstSite.aS.a.v[2], tkrCand.ID);
@@ -1219,12 +1287,7 @@ class KalmanPatRecHPS {
         } 
         for (MeasurementSite site : tkr.SiteList) {
             int theHit = site.hitID;
-            if (theHit < 0) {
-                logger.log(Level.WARNING, String.format("event %d track %d has hit missing on layer %d detector %d",
-                        tkr.eventNumber, tkr.ID, site.m.Layer, site.m.detector));
-                continue;
-            }
-            site.m.hits.get(theHit).tracks.add(tkr); // Mark the hits as used
+            if (theHit >= 0) site.m.hits.get(theHit).tracks.add(tkr); // Mark the hits as used
         }
         if (verbose) {
             System.out.format("KalmanPatRecHPS.storeTrack: Adding track %d with %d hits and smoothed chi^2=%10.5f\n",

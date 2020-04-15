@@ -49,34 +49,34 @@ public class KalTrack {
         this.yScat = yScat;
         logger = Logger.getLogger(KalTrack.class.getName());
         this.kPar = kPar;
+        ID = tkID;
         
-        // Make a new list of sites in case somebody modifies the one referred to on input
+        // Trim empty sites from the track ends
+        Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
+        int firstSite = -1;
+        for (int idx=0; idx<SiteList.size(); ++idx) {
+            firstSite = idx;
+            if (SiteList.get(idx).hitID >= 0) break;
+        }
+        int lastSite = 999;
+        for (int idx = SiteList.size()-1; idx >= 0; --idx) {
+            lastSite = idx;
+            if (SiteList.get(idx).hitID >= 0) break;
+        }
+        
+        // Make a new list of sites, without empty sites at beginning or end
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
-        for (MeasurementSite site : SiteList) { 
-            if (site.hitID >= 0 && site.aS != null) this.SiteList.add(site); 
-            if (site.hitID >=0 && site.aS == null) {
-                logger.log(Level.WARNING, String.format("KalTrack error event %d: site is missing smoothed state vector for layer %d detector %d\n", 
+        for (int idx=firstSite; idx<=lastSite; ++idx) { 
+            MeasurementSite site = SiteList.get(idx);
+            if (site.aS == null) {
+                logger.log(Level.WARNING, String.format("Event %d: site is missing smoothed state vector for layer %d detector %d", 
                         eventNumber, site.m.Layer, site.m.detector));
                 logger.log(Level.WARNING, site.toString("bad site"));
                 continue;
             }
-        }
-        if (this.SiteList.size() < 5) {
-            logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
-            String str="";
-            for (MeasurementSite site : SiteList) {
-                str = str + String.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
-            }
-            str = str + "\n";
-            logger.log(Level.FINER,str);
+            this.SiteList.add(site); 
         }
         
-        Collections.sort(this.SiteList, MeasurementSite.SiteComparatorUp);
-        ID = tkID;
-        if (this.SiteList.size() < 5) {
-            logger.log(Level.WARNING, "KalTrack error: not enough hits ("+SiteList.size()+") on the candidate track (ID::"+ID+") for event "+eventNumber);
-            for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
-        }
         helixAtOrigin = null;
         propagated = false;
         originCov = new SquareMatrix(5);
@@ -99,18 +99,31 @@ public class KalTrack {
         tMin = 9.9e9;
         tMax = -9.9e9;
         this.chi2 = 0.;
-        this.nHits = this.SiteList.size();
+        this.nHits = 0;
         for (MeasurementSite site : this.SiteList) {
+            if (site.hitID < 0) continue;
+            nHits++;
             time += site.m.hits.get(site.hitID).time;
             tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
             tMax = Math.max(tMax,  site.m.hits.get(site.hitID).time);
             this.chi2 += site.chi2inc;
         }
-        time = time/(double)SiteList.size(); 
+        time = time/(double)nHits; 
         lyrMap = null;
         millipedeMap = null;
         interceptVects = null;
         interceptMomVects = null;
+        if (nHits < 5) {
+            logger.log(Level.WARNING, "KalTrack error: not enough hits ("+nHits+") on the candidate track (ID::"+ID+") for event "+eventNumber);
+            for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
+            logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
+            String str="";
+            for (MeasurementSite site : SiteList) {
+                str = str + String.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
+            }
+            str = str + "\n";
+            logger.log(Level.FINER,str);
+        }
     }
 
     public double getTime() {
@@ -391,7 +404,8 @@ public class KalTrack {
             if (Double.isNaN(phiS)) { continue; }
             Vec rHelixG = site.aS.toGlobal(site.aS.atPhi(phiS));
             Vec rHelixL = site.m.toLocal(rHelixG);
-            double residual = site.m.hits.get(site.hitID).v - rHelixL.v[1];
+            double residual = -999.;
+            if (site.hitID >= 0) residual = site.m.hits.get(site.hitID).v - rHelixL.v[1];
             pW.format(" %10.5f  %10.6f    #  %10.6f\n", rHelixG.v[1], residual, site.aS.r);
         }
         pW.format("EOD\n");
@@ -547,7 +561,7 @@ public class KalTrack {
         logger.log(Level.FINE, String.format("Event %d track %d remove hit %d on layer %d detector %d", 
                 eventNumber, ID, site.hitID, site.m.Layer, site.m.detector));
         if (site.hitID < 0) {
-            logger.log(Level.WARNING, String.format("Event %d track %d is missing hitID on layer %d detector %d", 
+            logger.log(Level.WARNING, String.format("Event %d track %d, trying to remove nonexistent hit on layer %d detector %d", 
                     eventNumber, ID, site.m.Layer, site.m.detector));
             return exchange;
         }
@@ -583,6 +597,8 @@ public class KalTrack {
         int numAdded  = 0;
         int numLayers = 14;
         if (nHits == numLayers) return numAdded;
+        //Level lvl = logger.getLevel();
+        //logger.setLevel(Level.FINER);
         logger.log(Level.FINER, String.format("addHits: trying to add hits to track %d", ID));
         
         sortSites(true);
@@ -615,14 +631,15 @@ public class KalTrack {
                     break;
                 }
             }
-            if (nxtIdx < 0) continue;
+            if (nxtIdx < 0) break;
             MeasurementSite nxtSite = SiteList.get(nxtIdx);
+            MeasurementSite siteFrom = site;
             for (int lyr=site.m.Layer+1; lyr<nxtSite.m.Layer; ++lyr) { // Loop over hitless layers between two sites with hits
                 logger.log(Level.FINER, String.format("KalTrack.addHits: looking for hits on layer %d", lyr));
                 for (SiModule module : moduleList.get(lyr)) {
                     MeasurementSite newSite = new MeasurementSite(lyr, module, mxResid, 0.);
                     double [] tRange = {tMax - mxTdif, tMin + mxTdif}; 
-                    int rF = newSite.makePrediction(site.aF, site.m, -1, false, true, false, tRange);
+                    int rF = newSite.makePrediction(siteFrom.aF, siteFrom.m, -1, false, true, false, tRange);
                     if (rF == 1) {
                         logger.log(Level.FINER, String.format("KalTrack.addHits: predicted chi2inc=%8.3f\n",newSite.chi2inc));
                         if (newSite.chi2inc < mxChi2inc) {
@@ -634,7 +651,7 @@ public class KalTrack {
                                     newSites.add(newSite);
                                     numAdded++;
                                     nHits++;
-                                    site = newSite;
+                                    siteFrom = newSite;
                                     double hitTime = newSite.m.hits.get(newSite.hitID).time;
                                     if (hitTime > tMax) tMax = hitTime;
                                     else if (hitTime < tMin) tMin = hitTime;
@@ -648,7 +665,15 @@ public class KalTrack {
         }
         if (numAdded > 0) {
             for (MeasurementSite site : newSites) {
+                MeasurementSite siteToDelete = null;
+                for (MeasurementSite eSite : SiteList) {
+                    if (eSite.m.Layer == site.m.Layer) {
+                        siteToDelete = eSite;
+                        break;
+                    }
+                }
                 logger.log(Level.FINE, String.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d", eventNumber, site.hitID, site.m.Layer, site.m.detector));
+                if (siteToDelete != null) SiteList.remove(siteToDelete);
                 SiteList.add(site);
             }
             sortSites(true);
@@ -663,6 +688,7 @@ public class KalTrack {
             logger.log(Level.FINE, String.format("KalTrack.addHits: no hits added in event %d to track %d", eventNumber, ID));
         }
 
+        //logger.setLevel(lvl);
         return numAdded;
     }
         
@@ -698,7 +724,7 @@ public class KalTrack {
                     return false;
                 }
 
-                chi2f += Math.max(currentSite.chi2inc,0.);
+                if (currentSite.hitID >= 0) chi2f += Math.max(currentSite.chi2inc,0.);
 
                 sH = currentSite.aF;
                 prevMod = currentSite.m;
@@ -715,7 +741,7 @@ public class KalTrack {
                 } else {
                     currentSite.smooth(nextSite);
                 }
-                chi2s += Math.max(currentSite.chi2inc,0.);
+                if (currentSite.hitID >= 0) chi2s += Math.max(currentSite.chi2inc,0.);
 
                 nextSite = currentSite;
             }
