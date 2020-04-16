@@ -3,6 +3,9 @@ package org.hps.recon.tracking.gbl;
 import java.util.ArrayList;
 import java.util.List;
 
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.BasicHep3Vector;
+
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MultipleScattering;
@@ -53,9 +56,15 @@ public class GBLRefitterDriver extends Driver {
     private boolean includeNoHitScatters = true;
     private boolean computeGBLResiduals  = true;
     private boolean enableStandardCuts = false;
+    private boolean enableAlignmentCuts = false;
+
     
     //Setting 0 is a single refit, 1 refit twice and so on..
     private int gblRefitIterations = 5; 
+
+    public void setEnableAlignmentCuts (boolean val) {
+        enableAlignmentCuts = val;
+    }
 
     public void setIncludeNoHitScatters(boolean val) {
         includeNoHitScatters = val;
@@ -95,6 +104,14 @@ public class GBLRefitterDriver extends Driver {
 
     public void setOutputCollectionName(String outputCollectionName) {
         this.outputCollectionName = outputCollectionName;
+    }
+
+    public void setTrackResidualsColName (String val) {
+        trackResidualsColName = val;
+    }
+
+    public void setTrackResidualsRelColName (String val) {
+        trackResidualsRelColName = val;
     }
     
     public void setTrackRelationCollectionName(String trackRelationCollectionName) {
@@ -201,13 +218,33 @@ public class GBLRefitterDriver extends Driver {
             if (newTrack == null)
                 continue;
             Track gblTrk = newTrack.getFirst();
+
+            if (enableStandardCuts && gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
+                continue;
+            
+            //Include trackSelector to decide which tracks to use for alignment. 
+            //Propose to use tracks with at least 6 hits in the detector. 
+            
+            
+            if (enableAlignmentCuts) {
+                
+                //At least 1 GeV
+                Hep3Vector momentum = new BasicHep3Vector(gblTrk.getTrackStates().get(0).getMomentum());
+               
+                
+                if (momentum.magnitude() < 1)
+                    continue;
+                //At least 6 hits
+                if (gblTrk.getTrackerHits().size() < 6) 
+                    continue;
+                
+            }
+            
             if (writeMilleBinary)
                 if (gblTrk.getChi2() < writeMilleChi2Cut)
                     newTrackTraj.getSecond().get_traj().milleOut(mille);
-
+            
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
-            if (enableStandardCuts && gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
-                continue;
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
             //PF :: unused

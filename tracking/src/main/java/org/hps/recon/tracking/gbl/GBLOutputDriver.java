@@ -171,9 +171,12 @@ public class GBLOutputDriver extends Driver {
         if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
             isTop = "top";
         }
+        aidaGBL.histogram1D("Chi2_" + isTop).fill(trk.getChi2());
         aidaGBL.histogram1D("d0_" + isTop).fill(trackState.getD0());
         aidaGBL.histogram1D("z0_" + isTop).fill(trackState.getZ0());
         aidaGBL.histogram1D("p_" + isTop).fill(new BasicHep3Vector(trackState.getMomentum()).magnitude());
+        aidaGBL.histogram1D("tanLambda_" + isTop).fill(trackState.getTanLambda());
+        aidaGBL.histogram1D("nHits_" + isTop).fill(trk.getTrackerHits().size());
 
         Hep3Vector beamspot = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState, 0));
         if (debug)
@@ -293,7 +296,7 @@ public class GBLOutputDriver extends Driver {
                 }
                 aidaGBL.histogram1D("bresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram1D("breserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
-                aidaGBL.histogram1D("ures_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
+                aidaGBL.histogram1D("bres_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
             }   
         }
         // get the unbias
@@ -316,21 +319,22 @@ public class GBLOutputDriver extends Driver {
         for (SiSensor sensor : sensors) {
 
             HpsSiSensor sens = (HpsSiSensor) sensor.getGeometry().getDetectorElement();
-            double xmax = 0.1;
+            double xmax = 0.5;
+            int nbins = 250;
             int l = (sens.getLayerNumber() + 1) / 2;
             if (l > 1) xmax = 0.05 + (l - 1) * 0.08;
-            aidaGBL.histogram1D("residual_before_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("residual_before_GBL_" + sensor.getName(), nbins, -1.0 * xmax, xmax);
 
-            xmax = 0.05;
+            xmax = 0.250;
             if (l >= 6)
-                xmax = 0.01;
-            aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName(),  50, -1.0 * xmax, xmax);
-            aidaGBL.histogram1D("bresidual_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
-            aidaGBL.histogram1D("uresidual_GBL_" + sensor.getName(), 50, -1.0 * xmax, xmax);
-            aidaGBL.histogram1D("breserror_GBL_" + sensor.getName(), 50, 0.0, 0.05);
-            aidaGBL.histogram1D("ureserror_GBL_" + sensor.getName(), 50, 0.0, 0.1);
-            aidaGBL.histogram1D("bres_pull_GBL_" + sensor.getName(), 100, -5, 5);
-            aidaGBL.histogram1D("ures_pull_GBL_" + sensor.getName(), 100, -5, 5);
+                xmax = 0.250;
+            aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName(),  nbins, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("bresidual_GBL_" + sensor.getName(), nbins, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("uresidual_GBL_" + sensor.getName(), nbins, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D("breserror_GBL_" + sensor.getName(), nbins, 0.0, 0.05);
+            aidaGBL.histogram1D("ureserror_GBL_" + sensor.getName(), nbins, 0.0, 0.1);
+            aidaGBL.histogram1D("bres_pull_GBL_" + sensor.getName(), nbins, -5, 5);
+            aidaGBL.histogram1D("ures_pull_GBL_" + sensor.getName(), nbins, -5, 5);
             
             
 
@@ -358,12 +362,18 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D("phi_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
         }
 
-        aidaGBL.histogram1D("d0_top", 50, -2.0, 2.0);
-        aidaGBL.histogram1D("z0_top", 50, -1.3, 1.3);
-        aidaGBL.histogram1D("beamspot_x_top", 50, -3, 3);
-        aidaGBL.histogram1D("beamspot_y_top", 50, -3, 3);
-        aidaGBL.histogram1D("d0_bottom", 50, -2.0, 2.0);
-        aidaGBL.histogram1D("z0_bottom", 50, -1.3, 1.3);
+        aidaGBL.histogram1D("d0_top", 100, -2.0, 2.0);
+        aidaGBL.histogram1D("z0_top", 100, -1.3, 1.3);
+        aidaGBL.histogram1D("Chi2_top",100,0,50);
+        aidaGBL.histogram1D("Chi2_bottom",100,0,50);
+        aidaGBL.histogram1D("nHits_top",14,0,14);
+        aidaGBL.histogram1D("nHits_bottom",14,0,14);
+        aidaGBL.histogram1D("tanLambda_top",100,0.,0.1);
+        aidaGBL.histogram1D("tanLambda_bottom",100,-0.1,0.);
+        aidaGBL.histogram1D("beamspot_x_top", 100, -3, 3);
+        aidaGBL.histogram1D("beamspot_y_top", 100, -3, 3);
+        aidaGBL.histogram1D("d0_bottom", 100, -2.0, 2.0);
+        aidaGBL.histogram1D("z0_bottom", 100, -1.3, 1.3);
         if(bfield > 1.03 && bfield < 1.04){ // 2019 bfield: 1.03 T
             aidaGBL.histogram1D("p_top", 150, 0., 6.);
             aidaGBL.histogram1D("p_bottom", 150, 0., 6.);
