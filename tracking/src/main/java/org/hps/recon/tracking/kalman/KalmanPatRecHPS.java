@@ -690,14 +690,15 @@ class KalmanPatRecHPS {
                                                     }
                                                     continue;
                                                 }
+                                            } else {
+                                                tkr.good = true;
+                                                if (verbose) {
+                                                    System.out.format("KalmanPatRecHPS event %d: resurrecting candidate %d with chi2=%9.5f\n", 
+                                                                      eventNumber, tkr.ID, tkr.chi2s);
+                                                    tkr.print("resurrected", true);
+                                                }
+                                                continue; 
                                             }
-                                            tkr.good = true;
-                                            if (verbose) {
-                                                System.out.format("KalmanPatRecHPS event %d: resurrecting candidate %d with chi2=%9.5f\n", 
-                                                                  eventNumber, tkr.ID, tkr.chi2s);
-                                                tkr.print("resurrected", true);
-                                            }
-                                            continue;                                        
                                         }
                                     }
                                 }
