@@ -10,15 +10,25 @@ import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSet
 
 
 /**
+ * Driver used to load FittedRawTrackerHits onto a sensor readout. 
  *
+ * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class SensorSetup extends RawTrackerHitSensorSetup { 
 
     /// Name of the collection of fitted hits 
     private String fittedHitColName_ = ""; 
 
+    /// Constructor
     public SensorSetup() { }
 
+    /**
+     * Set the name of the FittedRawTrackerHit collection to load onto a sensor
+     * readout. 
+     *
+     * @param fittedHitColName Name of the FittedRawTrackerHit collection to 
+     *                         load.
+     */
     public void setFittedHitCollection(String fittedHitColName) { fittedHitColName_ = fittedHitColName; }
 
     @Override
@@ -29,16 +39,23 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
         if (!event.hasCollection(LCRelation.class, fittedHitColName_)) return; 
         
         List< LCRelation > fittedHits = event.get(LCRelation.class, fittedHitColName_); 
-        System.out.println("SensorSetup::process : Collection has " + fittedHits.size() + " fitted hits."); 
         
         loadFittedHits(fittedHits);  
     }
 
+    /**
+     * Method to process all FittedRawTrackerHits and load them onto a sensor
+     * readout. 
+     *
+     * @param fittedHits The collection of FittedRawTrackerHits to load. 
+     */
     public void loadFittedHits(List< LCRelation > fittedHits) {
 
         for (LCRelation fittedHit : fittedHits) { 
             RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(fittedHit);
-            ((SiSensor) rawHit.getDetectorElement()).getReadout().addHit((FittedRawTrackerHit) fittedHit); 
+            ShapeFitParameters fit = new ShapeFitParameters(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
+            FittedRawTrackerHit hit = new FittedRawTrackerHit(rawHit, fit); 
+            ((SiSensor) rawHit.getDetectorElement()).getReadout().addHit(hit); 
         }
     }
 }
