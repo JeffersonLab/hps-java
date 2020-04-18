@@ -68,7 +68,18 @@ public class DataTrackerHitDriverTest extends TestCase {
         loop.setLCIORecordSource(inputFile);
         loop.loop(nEvents);
 
-        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
+        System.out.println("Loop from raw processed " + loop.getTotalSupplied() + " events.");
+        
+        System.out.println("rerunning from LCIO fitted hits");
+        
+        LCSimLoop loop2 = new LCSimLoop();
+        dthDriver.setSetupSensors(true);
+        loop2.add(dthDriver);
+        loop2.setLCIORecordSource(inputFile);
+        loop2.loop(nEvents);
+
+        System.out.println("Loop from fitted LCIO processed " + loop.getTotalSupplied() + " events.");
+        
         System.out.println("Done!");
     }
 
