@@ -111,8 +111,19 @@ public class SVTOpeningAlignment extends Driver {
     boolean matchFullTracks = false;
     String fullTrackCollectionName = "s234_c5_e167";
     double targetPosition = -5.0; //mm
+    boolean showPlots = true;
 
     public SVTOpeningAlignment() {
+    }
+    
+    public void setTargetPosition(double d)
+    {
+        targetPosition = d;
+    }
+    
+    public void setShowPlots(boolean b)
+    {
+        showPlots = b;
     }
 
     public void setMatchFullTracks(boolean match) {
@@ -195,7 +206,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterTop.region(6).plot(fwTop, functionStyle);
         plotterTop.region(1).plot(flambdaTop, functionStyle);
         plotterTop.region(4).plot(fz0Top, functionStyle);
-        plotterTop.show();
+        if(showPlots) plotterTop.show();
 
         plotterParsTop = pfac.create("Top Track Pars");
         plotterParsTop.createRegions(2, 4);
@@ -216,7 +227,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterParsTop.region(6).plot(lambdaVsz0TopL46);
         plotterParsTop.region(3).plot(zTargetTopL03);
         plotterParsTop.region(7).plot(zTargetTopL46);
-        plotterParsTop.show();
+        if(showPlots) plotterParsTop.show();
 
         plotterBot = pfac.create("Bottom Layers");
         IPlotterStyle styleBot = plotterBot.style();
@@ -256,7 +267,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterBot.region(6).plot(fwBot, functionStyle);
         plotterBot.region(1).plot(flambdaBot, functionStyle);
         plotterBot.region(4).plot(fz0Bot, functionStyle);
-        plotterBot.show();
+        if(showPlots) plotterBot.show();
 
         plotterParsBot = pfac.create("Bot Track Pars");
         plotterParsBot.createRegions(2, 4);
@@ -276,7 +287,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterParsBot.region(6).plot(lambdaVsz0BotL46);
         plotterParsBot.region(3).plot(zTargetBotL03);
         plotterParsBot.region(7).plot(zTargetBotL46);
-        plotterParsBot.show();
+        if(showPlots) plotterParsBot.show();
 
         plotterHinge = pfac.create("Y @ Hinge");
         plotterHinge.createRegions(2, 4);
@@ -297,7 +308,7 @@ public class SVTOpeningAlignment extends Driver {
         plotterHinge.region(5).plot(yAtHingeL03VsL46Bot);
         plotterHinge.region(6).plot(delYAtHingeVsL03SlopeBot);
         plotterHinge.region(7).plot(delYAtHingeVsL46SlopeBot);
-        plotterHinge.show();
+        if(showPlots) plotterHinge.show();
     }
 
     @Override

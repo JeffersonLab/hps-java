@@ -135,7 +135,7 @@ public class StripMaker {
             hits.addAll(makeHits(sensor, (ThinSiStrips) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
 
         if (_debug)
-            System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor");
+            System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor "+sensor.getName());
         return hits;
     }
 
