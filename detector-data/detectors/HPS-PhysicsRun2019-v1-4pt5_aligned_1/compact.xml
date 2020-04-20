@@ -524,12 +524,13 @@
         <millepede_constant name="22322" value="0.0"/>
         
         <!-- top support tilt angles -->
-	
-        <millepede_constant name="13100" value="-0.0001"/> <!-- + means opening-->
+	<!-- 20200419 0.000028 derived from fieldOff Fees -->
+        <millepede_constant name="13100" value="-0.0001 + 0.000028"/> <!-- + means opening-->
         <millepede_constant name="13200" value="0.0"/>
         <millepede_constant name="13300" value="0.0"/>
         
         <!-- bottom support tilt angles -->
+        <!-- 20200419 0.0014 derived from field-on Fees -->
         <millepede_constant name="23100" value="0.0001+0.0014"/>  <!-- - means opening -->
         <millepede_constant name="23200" value="0.0"/>
         <millepede_constant name="23300" value="0.0"/>
