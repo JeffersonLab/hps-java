@@ -498,6 +498,17 @@ public class SVTOpeningAlignment extends Driver {
                 yAtHingeL03VsL46Bot.fill(yAtHingeL46, yAtHingeL03);
                 delYAtHingeVsL46SlopeBot.fill(deltaYAtHinge, slL46);
                 delYAtHingeVsL03SlopeBot.fill(deltaYAtHinge, slL03);
+                
+                //cng
+                double[] targetPositions = {-5., -6., -7., -8., -9., -10., -11., -12., -13.};
+                for (int i = 0; i < targetPositions.length; ++i) {
+                    double yAtTargetL03Sweep = (targetPositions[i] - x0L03) * slL03 + y0L03;
+                    double yAtTargetL46Sweep = (targetPositions[i] - x0L46) * slL46 + y0L46;
+                    aida.histogram1D("yTarget " + targetPositions[i] + ": Top L0-3", 100, -2.5, 2.5).fill(yAtTargetL03Sweep);
+                    aida.histogram1D("yTarget " + targetPositions[i] + ": Top L4-6", 100, -2.5, 2.5).fill(yAtTargetL46Sweep);
+                    aida.histogram1D("Delta yTarget " + targetPositions[i] + ": Bot", 100, -1.0, 1.0).fill(yAtTargetL46Sweep - yAtTargetL03Sweep);
+                }
+                //cng                
             }
         }
 
