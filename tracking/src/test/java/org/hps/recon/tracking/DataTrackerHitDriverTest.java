@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
+import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
@@ -61,12 +62,14 @@ public class DataTrackerHitDriverTest extends TestCase {
         if (!rerunFromFittedHits) {
             loop.add(sensorSetup);
             loop.add(rthfDriver);
+            loop.add(new ReadoutCleanupDriver());
         }
         loop.add(dthDriver);
         String fileName = "tstDataTrackerHitDriver.slcio";
         File inputFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/" + fileName));
         loop.setLCIORecordSource(inputFile);
         loop.loop(nEvents);
+        loop.dispose();
 
         System.out.println("Loop from raw processed " + loop.getTotalSupplied() + " events.");
         
@@ -76,8 +79,10 @@ public class DataTrackerHitDriverTest extends TestCase {
         dthDriver.setSetupSensors(true);
         loop2.add(dthDriver);
         loop2.setLCIORecordSource(inputFile);
+        loop.add(new ReadoutCleanupDriver());
         loop2.loop(nEvents);
-
+        loop.dispose();
+        
         System.out.println("Loop from fitted LCIO processed " + loop.getTotalSupplied() + " events.");
         
         System.out.println("Done!");
