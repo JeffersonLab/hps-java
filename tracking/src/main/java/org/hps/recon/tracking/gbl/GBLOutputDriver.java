@@ -26,6 +26,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
@@ -33,6 +34,9 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import hep.aida.IManagedObject;
 import hep.aida.IBaseHistogram;
+
+
+import org.lcsim.geometry.FieldMap;
 
 
 /**
@@ -43,7 +47,7 @@ import hep.aida.IBaseHistogram;
  * @author PF <pbutti@slac.stanford.edu>
  */
 public class GBLOutputDriver extends Driver {
-
+    
     private AIDA aidaGBL; // era public 
     private String outputPlots = "GBLplots_ali.root";
     private String trackCollectionName = "GBLTracks";
@@ -51,6 +55,20 @@ public class GBLOutputDriver extends Driver {
     private double bfield;
     public boolean debug = false;
     private double chi2Cut = 99999;
+    String kinkFolder = "/gbl_kinks/";
+    private boolean b_doGBLkinks = false;
+
+    //This should be moved to the GBL Refitter!!!
+    //The field map for extrapolation
+    private FieldMap bFieldMap;
+
+    //The location of the extrapolation
+    private double bsZ = 0.;
+
+    //Override the Z of the target.
+    public void setBsZ (double input) {
+        bsZ = input;
+    }
 
     public void setChi2Cut(double input) {
         chi2Cut = input;
@@ -63,7 +81,7 @@ public class GBLOutputDriver extends Driver {
     public void setTrackCollectionName(String val) {
         trackCollectionName=val;
     }
-        
+
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -80,6 +98,8 @@ public class GBLOutputDriver extends Driver {
 
         Hep3Vector fieldInTracker = TrackUtils.getBField(detector);
         this.bfield = Math.abs(fieldInTracker.y());
+
+        bFieldMap = detector.getFieldMap();
 
         setupPlots();
     }
@@ -118,16 +138,17 @@ public class GBLOutputDriver extends Driver {
                     if (debug)
                         System.out.printf("adding sensor %d \n", i);
                 }
-                
+
                 if (debug && sensor == null)
                     System.out.printf("TrackerHit null sensor %s \n", hit.toString());
                 i++;
-                
+
             }
             doBasicGBLtrack(trk);
             doGBLresiduals(trk, sensorHits,event);
             doMTresiduals(matchedTrack, sensorHits);
-            doGBLkinks(gblKink, sensorNums);
+            if (b_doGBLkinks)
+                doGBLkinks(gblKink, sensorNums);
         }
     }
 
@@ -136,9 +157,10 @@ public class GBLOutputDriver extends Driver {
             int index = sensorNums.get(sensor);
             double phi = kink.getDoubleVal(index);
             float lambda = kink.getFloatVal(index);
+            
 
-            aidaGBL.histogram1D("lambda_kink_" + sensor.getName()).fill(lambda);
-            aidaGBL.histogram1D("phi_kink_" + sensor.getName()).fill(phi);
+            aidaGBL.histogram1D(kinkFolder+"lambda_kink_" + sensor.getName()).fill(lambda);
+            aidaGBL.histogram1D(kinkFolder+"phi_kink_" + sensor.getName()).fill(phi);
         }
 
     }
@@ -163,26 +185,80 @@ public class GBLOutputDriver extends Driver {
 
         }
     }
+    
+    private void FillGBLTrackPlot(String str, String isTop, String charge, double val) {
+        aidaGBL.histogram1D(str+isTop).fill(val);
+        aidaGBL.histogram1D(str+isTop+charge).fill(val);
+    }
+
+    private void FillGBLTrackPlot(String str, String isTop, String charge, double valX, double valY) {
+        aidaGBL.histogram2D(str+isTop).fill(valX,valY);
+        aidaGBL.histogram2D(str+isTop+charge).fill(valX,valY);
+    }
 
     private void doBasicGBLtrack(Track trk) {
         TrackState trackState = trk.getTrackStates().get(0);
 
-        String isTop = "bottom";
+        String isTop = "_bottom";
         if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
-            isTop = "top";
+            isTop = "_top";
         }
-        aidaGBL.histogram1D("Chi2_" + isTop).fill(trk.getChi2());
-        aidaGBL.histogram1D("d0_" + isTop).fill(trackState.getD0());
-        aidaGBL.histogram1D("z0_" + isTop).fill(trackState.getZ0());
-        aidaGBL.histogram1D("p_" + isTop).fill(new BasicHep3Vector(trackState.getMomentum()).magnitude());
-        aidaGBL.histogram1D("tanLambda_" + isTop).fill(trackState.getTanLambda());
-        aidaGBL.histogram1D("nHits_" + isTop).fill(trk.getTrackerHits().size());
+        
+        String charge = "_pos";
+        if (trk.getCharge()<0)
+            charge = "_neg";
+        
+        double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
+        
+        FillGBLTrackPlot("d0",isTop,charge,trackState.getD0());
+        FillGBLTrackPlot("z0",isTop,charge,trackState.getZ0());
+        FillGBLTrackPlot("phi",isTop,charge,trackState.getPhi());
+        FillGBLTrackPlot("tanLambda",isTop,charge,trackState.getTanLambda());
+        FillGBLTrackPlot("p",isTop,charge,trackp);
+        FillGBLTrackPlot("Chi2",isTop,charge,trk.getChi2());
+                
+        aidaGBL.histogram1D("nHits" + isTop).fill(trk.getTrackerHits().size());
+        aidaGBL.histogram1D("nHits" + isTop+charge).fill(trk.getTrackerHits().size());
 
         Hep3Vector beamspot = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState, 0));
         if (debug)
             System.out.printf("beamspot %s transformed %s \n", beamspot.toString());
-        aidaGBL.histogram1D("beamspot_x_" + isTop).fill(beamspot.x());
-        aidaGBL.histogram1D("beamspot_y_" + isTop).fill(beamspot.y());
+        FillGBLTrackPlot("trk_extr_or_x",isTop,charge,beamspot.x());
+        FillGBLTrackPlot("trk_extr_or_y",isTop,charge,beamspot.y());
+        
+        
+        //Extrapolation to assumed tgt pos - helix
+        Hep3Vector trkTgt = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState,bsZ));
+        FillGBLTrackPlot("trk_extr_bs_x",isTop,charge,trkTgt.x());
+        FillGBLTrackPlot("trk_extr_bs_y",isTop,charge,trkTgt.y());
+                 
+        BaseTrackState ts_bs = TrackUtils.getTrackExtrapAtVtxSurfRK(trackState,bFieldMap,0.,bsZ);
+         
+        FillGBLTrackPlot("trk_extr_bs_x_rk",isTop,charge,ts_bs.getReferencePoint()[1]);
+        FillGBLTrackPlot("trk_extr_bs_y_rk",isTop,charge,ts_bs.getReferencePoint()[2]);
+
+        //Ill defined - should be defined wrt bsX and bsY
+        FillGBLTrackPlot("d0_vs_bs_rk",isTop,charge,ts_bs.getD0());
+        
+        //Ok
+        FillGBLTrackPlot("z0_vs_bs_rk",isTop,charge,ts_bs.getZ0());
+
+        //TH2D - Filling
+        FillGBLTrackPlot("d0_vs_phi",isTop,charge,trackState.getPhi(),trackState.getD0());
+        FillGBLTrackPlot("d0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getD0());
+        FillGBLTrackPlot("d0_vs_p",isTop,charge,trackState.getD0(),trackp);
+                
+        //Ill defined - should be defined wrt bsX and bsY
+        FillGBLTrackPlot("d0bs_vs_p",isTop,charge,trackState.getD0(),trackp);
+        
+        FillGBLTrackPlot("z0_vs_p",isTop,charge,trackState.getZ0(),trackp); 
+        FillGBLTrackPlot("z0bs_vs_p",isTop,charge,ts_bs.getZ0(),trackp); 
+        
+        //Interesting plot to get a sense where z-vtx is. 
+        //If z0 is referenced to the right BS z location, the slope of <z0> vs tanLambda is 0
+        FillGBLTrackPlot("z0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getZ0());
+        FillGBLTrackPlot("z0bs_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getTanLambda());
+        
     }
 
     private void doGBLresiduals(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits, EventHeader event) {
@@ -331,8 +407,8 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D("residual_after_GBL_" + sensor.getName(),  nbins, -1.0 * xmax, xmax);
             aidaGBL.histogram1D("bresidual_GBL_" + sensor.getName(), nbins, -1.0 * xmax, xmax);
             aidaGBL.histogram1D("uresidual_GBL_" + sensor.getName(), nbins, -1.0 * xmax, xmax);
-            aidaGBL.histogram1D("breserror_GBL_" + sensor.getName(), nbins, 0.0, 0.05);
-            aidaGBL.histogram1D("ureserror_GBL_" + sensor.getName(), nbins, 0.0, 0.1);
+            aidaGBL.histogram1D("breserror_GBL_" + sensor.getName(), nbins, 0.0, 0.1);
+            aidaGBL.histogram1D("ureserror_GBL_" + sensor.getName(), nbins, 0.0, 0.2);
             aidaGBL.histogram1D("bres_pull_GBL_" + sensor.getName(), nbins, -5, 5);
             aidaGBL.histogram1D("ures_pull_GBL_" + sensor.getName(), nbins, -5, 5);
             
@@ -358,34 +434,67 @@ public class GBLOutputDriver extends Driver {
                 if (sens.isTopLayer() && !sens.isAxial())
                     xmax = 0.001;
             }
-            aidaGBL.histogram1D("lambda_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
-            aidaGBL.histogram1D("phi_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D(kinkFolder+"lambda_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
+            aidaGBL.histogram1D(kinkFolder+"phi_kink_" + sensor.getName(), 50, -1.0 * xmax, xmax);
         }
+        
+        List<String> volumes = new ArrayList<String>();
+        volumes.add("_top");
+        volumes.add("_bottom");
+        List<String> charges = new ArrayList<String>();
+        charges.add("");
+        charges.add("_pos");
+        charges.add("_neg");
+        
+        int nbins_t = 100;
+        
+        //For momentum
+        int nbins_p = 150;
+        
+        
+        for (String vol : volumes) {
+            for (String charge : charges) {
+                
+                
+                //TH1Ds
+                aidaGBL.histogram1D("d0"+vol+charge,nbins_t,-5.0,5.0);
+                aidaGBL.histogram1D("z0"+vol+charge,nbins_t,-1.3,1.3);
+                aidaGBL.histogram1D("phi"+vol+charge,nbins_t,-0.3,0.3);
+                aidaGBL.histogram1D("tanLambda"+vol+charge,nbins_t,-0.2,0.2);
+                aidaGBL.histogram1D("p"+vol+charge,nbins_p,0.,6.);
+                                
+                aidaGBL.histogram1D("Chi2"+vol+charge,nbins_t,0,50);
+                aidaGBL.histogram1D("nHits"+vol+charge,14,0,14);
+                aidaGBL.histogram1D("trk_extr_or_x"+vol+charge,nbins_t,-3,3);
+                aidaGBL.histogram1D("trk_extr_or_y"+vol+charge,nbins_t,-3,3);
+                aidaGBL.histogram1D("trk_extr_bs_x"+vol+charge, 2*nbins_t, -5, 5);
+                aidaGBL.histogram1D("trk_extr_bs_y"+vol+charge, 2*nbins_t, -5, 5);
+                aidaGBL.histogram1D("trk_extr_bs_x_rk"+vol+charge, 2*nbins_t, -5, 5);
+                aidaGBL.histogram1D("trk_extr_bs_y_rk"+vol+charge, 2*nbins_t, -3, 3);
+                aidaGBL.histogram1D("d0_vs_bs_rk"+vol+charge, 2*nbins_t, -5, 5);
+                aidaGBL.histogram1D("z0_vs_bs_rk"+vol+charge, 2*nbins_t, -5, 5);
+                
+                
+                //TH2Ds
+                
+                aidaGBL.histogram2D("d0_vs_phi"+vol+charge,nbins_t,-0.3,0.3,nbins_t,-5.0,5.0);
+                //aidaGBL.histogram2D("d0_vs_phi_bs"+vol+charge,nbins_t,-5.0,5.0,nbins_t,-0.3,0.3);
+                aidaGBL.histogram2D("d0_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D("d0_vs_p"+vol+charge,  nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D("d0bs_vs_p"+vol+charge,nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D("z0_vs_p"+vol+charge,  nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D("z0bs_vs_p"+vol+charge,nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D("z0_vs_tanLambda"+vol+charge,  nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D("z0bs_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
+                
+            }//charge loop
+        }//vol loop
+        
+        
 
-        aidaGBL.histogram1D("d0_top", 100, -2.0, 2.0);
-        aidaGBL.histogram1D("z0_top", 100, -1.3, 1.3);
-        aidaGBL.histogram1D("Chi2_top",100,0,50);
-        aidaGBL.histogram1D("Chi2_bottom",100,0,50);
-        aidaGBL.histogram1D("nHits_top",14,0,14);
-        aidaGBL.histogram1D("nHits_bottom",14,0,14);
-        aidaGBL.histogram1D("tanLambda_top",100,0.,0.1);
-        aidaGBL.histogram1D("tanLambda_bottom",100,-0.1,0.);
-        aidaGBL.histogram1D("beamspot_x_top", 100, -3, 3);
-        aidaGBL.histogram1D("beamspot_y_top", 100, -3, 3);
-        aidaGBL.histogram1D("d0_bottom", 100, -2.0, 2.0);
-        aidaGBL.histogram1D("z0_bottom", 100, -1.3, 1.3);
-        if(bfield > 1.03 && bfield < 1.04){ // 2019 bfield: 1.03 T
-            aidaGBL.histogram1D("p_top", 150, 0., 6.);
-            aidaGBL.histogram1D("p_bottom", 150, 0., 6.);
-        }else if(bfield > 0.5 && bfield < 0.6){ // 2016 bfield: 0.523 T
-            aidaGBL.histogram1D("p_top", 150, 0., 3.);
-            aidaGBL.histogram1D("p_bottom", 150, 0., 3.);
-        }else if(bfield <0.25){ // 2015 bfield: 0.24 T
-            aidaGBL.histogram1D("p_top", 150, 0., 2.);
-            aidaGBL.histogram1D("p_bottom", 150, 0., 2.);
-        }
-        aidaGBL.histogram1D("beamspot_x_bottom", 50, -3, 3);
-        aidaGBL.histogram1D("beamspot_y_bottom", 50, -3, 3);
+
+
+
     }
 
     public void endOfData() {
