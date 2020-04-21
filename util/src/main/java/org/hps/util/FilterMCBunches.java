@@ -18,6 +18,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.hps.logging.config.DefaultLoggingConfig;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawCalorimeterHit;
@@ -42,6 +43,7 @@ public class FilterMCBunches {
 
     static {
         LCSimConditionsManagerImplementation.register();
+        DefaultLoggingConfig.initialize();
     }
     
     /**

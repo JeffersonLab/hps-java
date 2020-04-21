@@ -210,6 +210,8 @@
             <trackClusterTimeOffset>28</trackClusterTimeOffset>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
+	    <maxElectronP>7.0</maxElectronP> 
+            <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
         </driver>         
 
@@ -231,6 +233,8 @@
             <trackClusterTimeOffset>28</trackClusterTimeOffset>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
+	    <maxElectronP>7.0</maxElectronP>
+	    <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
             
         </driver>         
