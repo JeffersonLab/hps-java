@@ -63,7 +63,14 @@ public class DataTrackerHitDriver extends Driver {
     private StripMaker stripClusterer;
     // private DumbShaperFit shaperFit;
     int[] counts = new int[14];
+    
+    //If flag is false do not save the StripCluster Collection if bigger than threshold (to remove monster events)
+    private boolean saveMonsterEvents = true;
+    
+    //Threshold to decide if this is a monster event
 
+    private int thresholdMonsterEvents = 50;
+    
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
@@ -133,6 +140,14 @@ public class DataTrackerHitDriver extends Driver {
 
     public void setUseWeights(boolean useWeights) {
         this.useWeights = useWeights;
+    }
+
+    public void setSaveMonsterEvents(boolean saveMonsterEvents) {
+        this.saveMonsterEvents = saveMonsterEvents;
+    }
+
+    public void setThresholdMonsterEvents(int thresholdMonsterEvents) {
+        this.thresholdMonsterEvents = thresholdMonsterEvents;
     }
 
     /**
@@ -225,12 +240,18 @@ public class DataTrackerHitDriver extends Driver {
                         + this.fittedTrackerHitCollectionName + " has " + event.get(LCRelation.class, fittedTrackerHitCollectionName).size() + " hits.");
             System.out.println("TrackerHit collection " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
         }
-
+        
+        if (debug)
+            System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
+        
+        //Clear the stripHits array = PF::Hack
+        if (!saveMonsterEvents && stripHits1D.size()>thresholdMonsterEvents)
+            stripHits1D = new ArrayList<SiTrackerHit>();
+                
         // Put output hits into collection.
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
-        if (debug)
-            System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
+        
         for (SiTrackerHit stripHit : stripHits1D)
             counts[((SiTrackerHitStrip1D) stripHit).getRawHits().get(0).getLayerNumber()-1]++;
 

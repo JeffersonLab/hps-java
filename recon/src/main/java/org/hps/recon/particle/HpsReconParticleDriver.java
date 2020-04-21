@@ -378,7 +378,14 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 }
                 
                 // Make V0 candidates
-                this.makeV0Candidates(electron, positron);
+                try {
+                    this.makeV0Candidates(electron, positron);
+                }
+                catch (RuntimeException e) {
+                    e.printStackTrace();
+                    System.out.println("HpsReconParticleDriver::makeV0Candidates fails:: skipping ele/pos pair.");
+                    continue;
+                }
             }
         }
     }
