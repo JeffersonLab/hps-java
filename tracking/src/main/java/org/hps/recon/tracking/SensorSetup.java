@@ -11,8 +11,6 @@ import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSet
 
 /**
  * Driver used to load FittedRawTrackerHits onto a sensor readout. 
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class SensorSetup extends RawTrackerHitSensorSetup { 
 
@@ -27,7 +25,7 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
      * readout. 
      *
      * @param fittedHitColName Name of the FittedRawTrackerHit collection to 
-     *                         load.
+     *      load.
      */
     public void setFittedHitCollection(String fittedHitColName) { fittedHitColName_ = fittedHitColName; }
 
@@ -38,7 +36,7 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
       
         if (!event.hasCollection(LCRelation.class, fittedHitColName_)) return; 
         
-        List< LCRelation > fittedHits = event.get(LCRelation.class, fittedHitColName_); 
+        List< LCRelation > fittedHits = event.get(LCRelation.class, fittedHitColName_);
         
         loadFittedHits(fittedHits);  
     }
@@ -53,9 +51,7 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
 
         for (LCRelation fittedHit : fittedHits) { 
             RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(fittedHit);
-            ShapeFitParameters fit = new ShapeFitParameters(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
-            FittedRawTrackerHit hit = new FittedRawTrackerHit(rawHit, fit); 
-            ((SiSensor) rawHit.getDetectorElement()).getReadout().addHit(hit); 
+            ((SiSensor) rawHit.getDetectorElement()).getReadout().addHit(fittedHit); 
         }
     }
 }
