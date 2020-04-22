@@ -5,6 +5,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hps.analysis.alignment.straighttrack.vertex.Track;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.detector.DetectorElementStore;
@@ -98,8 +101,18 @@ public class StraightTrackAnalysisDriver extends Driver {
             "module_L7b_halfmodule_axial_hole_sensor0");
 
     protected void detectorChanged(Detector detector) {
-        Path path = Paths.get("D:/work/hps/analysis/physrun2019/alignment/fieldOff/20200203/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt");
-        _alignedDetector = new DetectorBuilder(path);
+
+//        Path resourcePath = Paths.get(getClass().getClassLoader().getResource("org/hps/analysis/alignment/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt").getPath());
+        Path resourcePath = null;
+        try {
+            resourcePath = Paths.get(getClass().getClassLoader().getResource("org/hps/analysis/alignment/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt").toURI());
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(StraightTrackAnalysisDriver.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println(resourcePath);
+//        Path path = Paths.get("D:/work/hps/analysis/physrun2019/alignment/fieldOff/20200203/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt");
+//        System.out.println(path);
+        _alignedDetector = new DetectorBuilder(resourcePath);
         _defaultDetector = new DetectorBuilder(detector);
 
     }
