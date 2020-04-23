@@ -11,7 +11,6 @@ import org.lcsim.event.base.BaseLCRelation;
  * @version $Id: HPSFittedRawTrackerHit.java,v 1.3 2013/04/16 22:05:43 phansson
  * Exp $
  */
-// TODO: Add class documentation.
 public class FittedRawTrackerHit extends BaseLCRelation {
 
     public FittedRawTrackerHit(RawTrackerHit hit, ShapeFitParameters fit) {
@@ -48,6 +47,16 @@ public class FittedRawTrackerHit extends BaseLCRelation {
 
     public static double getAmp(LCRelation rel) {
         return ShapeFitParameters.getAmp(getShapeFitParameters(rel));
+    }
+
+    /**
+     * Get the fit chi2 probability. 
+     *
+     * @param relation The relation between a RawTrackerHit and 
+     *                 ShapeFitParameter.
+     */
+    public static double getChi2Prob(LCRelation relation) {
+        return ShapeFitParameters.getChiProb(getShapeFitParameters(relation)); 
     }
 
     @Override

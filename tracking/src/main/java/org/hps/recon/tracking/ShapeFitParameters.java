@@ -23,6 +23,14 @@ public class ShapeFitParameters implements GenericObject {
         _t0 = t0;
         _amp = amplitude;
     }
+    
+    public ShapeFitParameters(GenericObject parameters) { 
+        setT0(getT0(parameters)); 
+        setT0Err(getT0Err(parameters)); 
+        setAmp(getAmp(parameters)); 
+        setAmpErr(getAmpErr(parameters)); 
+        setChiProb(getChiProb(parameters)); 
+    }
 
     public void setT0(double t0) {
         _t0 = t0;
