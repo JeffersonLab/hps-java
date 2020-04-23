@@ -155,7 +155,7 @@ public class StripMaker {
 
 
         if (_debug)
-            System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor");
+            System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor "+sensor.getName());
         return hits;
     }
 
