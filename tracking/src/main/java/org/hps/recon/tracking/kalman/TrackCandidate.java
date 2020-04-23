@@ -75,7 +75,7 @@ class TrackCandidate {
                 break;
             }
         }
-        return site0.aS.pivotTransform();
+        return site0.aS.helix.pivotTransform();
     }
 
     void removeHit(KalHit hit) {
@@ -124,10 +124,10 @@ class TrackCandidate {
         if (sHstart == null) sHstart = startSite.aF;
         if (sHstart == null) return false;
         if (verbose) System.out.format("  Start site at layer %d detector %d, helix=%s\n", 
-                                       startSite.m.Layer, startSite.m.detector, sHstart.a.toString());
+                                       startSite.m.Layer, startSite.m.detector, sHstart.helix.a.toString());
         do {
             StateVector sH = sHstart;
-            sH.C.scale(1000.*chi2s); // Blow up the initial covariance matrix to avoid double counting measurements
+            sH.helix.C.scale(1000.*chi2s); // Blow up the initial covariance matrix to avoid double counting measurements
             
             SiModule prevMod = null;
             chi2f = 0.;
@@ -175,7 +175,7 @@ class TrackCandidate {
                     tMax = Math.max(tMax, currentSite.m.hits.get(currentSite.hitID).time);
                 }
                 if (verbose) System.out.format("  After prediction to layer %d detector %d, hit=%d, helix=%s\n",
-                        currentSite.m.Layer, currentSite.m.detector, currentSite.hitID, currentSite.aP.a.toString());
+                        currentSite.m.Layer, currentSite.m.detector, currentSite.hitID, currentSite.aP.helix.a.toString());
                 if (!currentSite.filter()) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to filter at layer %d in event %d!\n",currentSite.m.Layer, eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {
@@ -187,7 +187,7 @@ class TrackCandidate {
                     return false;
                 }
                 if (verbose) System.out.format("  After filtering at layer %d detector %d, resid=%9.5f, helix=%s\n",
-                        currentSite.m.Layer, currentSite.m.detector, currentSite.aF.r, currentSite.aF.a.toString());
+                        currentSite.m.Layer, currentSite.m.detector, currentSite.aF.r, currentSite.aF.helix.a.toString());
                 if (currentSite.chi2inc > 5.0*kPar.mxChi2Inc && currentSite.chi2inc > chi2f) {
                     currentSite.hitID = -1;
                     if (verbose) System.out.format("TrackCandidate.reFit: reject hit with really bad chi^2 %7.1f from filter at layer %d\n", currentSite.chi2inc, currentSite.m.Layer);           
@@ -247,7 +247,7 @@ class TrackCandidate {
                 currentSite.smooth(nextSite);
             }
             if (verbose) System.out.format("TrackCandidate.reFit: after smoothing site at layer %d detector %d, resid=%9.6f, helix=%s\n", 
-                    currentSite.m.Layer, currentSite.m.detector, currentSite.aS.r, currentSite.aS.a.toString());
+                    currentSite.m.Layer, currentSite.m.detector, currentSite.aS.r, currentSite.aS.helix.a.toString());
             chi2s += Math.max(currentSite.chi2inc,0.);
 
             //if (verbose) {
@@ -287,15 +287,15 @@ class TrackCandidate {
         int lyr = site0.m.Layer;
         StateVector aS = site0.aS;
         if (aS == null) aS = site0.aF;
-        Vec p = aS.a;
-        double edrho = Math.sqrt(aS.C.M[0][0]);
-        double ephi0 = Math.sqrt(aS.C.M[1][1]);
-        double eK = Math.sqrt(aS.C.M[2][2]);
-        double eZ0 = Math.sqrt(aS.C.M[3][3]);
-        double etanl = Math.sqrt(aS.C.M[4][4]);
+        Vec p = aS.helix.a;
+        double edrho = Math.sqrt(aS.helix.C.M[0][0]);
+        double ephi0 = Math.sqrt(aS.helix.C.M[1][1]);
+        double eK = Math.sqrt(aS.helix.C.M[2][2]);
+        double eZ0 = Math.sqrt(aS.helix.C.M[3][3]);
+        double etanl = Math.sqrt(aS.helix.C.M[4][4]);
         str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
-        str=str+String.format("              for origin at %s and pivot=%s\n", aS.origin.toString(), aS.X0.toString());
+        str=str+String.format("              for origin at %s and pivot=%s\n", aS.helix.origin.toString(), aS.helix.X0.toString());
         str=str+String.format("   %d Hits: ", hits.size());
         for (KalHit ht : hits) str = str + ht.toString("short");
         if (shrt) {
@@ -321,7 +321,7 @@ class TrackCandidate {
                     str = str + site.toString("messed up site");
                     continue;
                 }
-                double phiF = aF.planeIntersect(m.p);
+                double phiF = aF.helix.planeIntersect(m.p);
                 if (Double.isNaN(phiF)) { phiF = 0.; }
                 double vPred = site.h(aF, site.m, phiF);
                 int cnt = sites.indexOf(site);

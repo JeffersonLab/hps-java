@@ -508,10 +508,10 @@ class PatRecTest {
                     for (MeasurementSite site : tkr.SiteList) {
                         StateVector aS = site.aS;
                         SiModule m = site.m;
-                        double phiS = aS.planeIntersect(m.p);
+                        double phiS = aS.helix.planeIntersect(m.p);
                         if (Double.isNaN(phiS)) continue;
-                        Vec rLocal = aS.atPhi(phiS);
-                        Vec rGlobal = aS.toGlobal(rLocal);
+                        Vec rLocal = aS.helix.atPhi(phiS);
+                        Vec rGlobal = aS.helix.toGlobal(rLocal);
                         printWriter3.format(" %10.6f %10.6f %10.6f\n", rGlobal.v[0], rGlobal.v[1], rGlobal.v[2]);
                         // Vec rDetector = m.toLocal(rGlobal);
                         // double vPred = rDetector.v[1];
@@ -672,13 +672,13 @@ class PatRecTest {
                 // Repeat comparison just after the first tracker plane 
                 if (tkr.SiteList.get(0).m.Layer == 2) {
                     StateVector S = tkr.SiteList.get(0).aS;
-                    Vec helixAtLayer1 = S.pivotTransform(TkSaved[iBest].X0);
+                    Vec helixAtLayer1 = S.helix.pivotTransform(TkSaved[iBest].X0);
                     trueErr = helixAtLayer1.dif(TkSaved[iBest].p);
-                    Vec helErrs = tkr.SiteList.get(0).aS.helixErrors();
+                    Vec helErrs = tkr.SiteList.get(0).aS.helix.helixErrors();
                     if (verbose) {
                         helixAtLayer1.print("reconstructed helix at layer 1");
-                        S.origin.print("reconstructed helix origin at layer 1");
-                        S.X0.print("reconstructed helix pivot at layer 1");
+                        S.helix.origin.print("reconstructed helix origin at layer 1");
+                        S.helix.X0.print("reconstructed helix pivot at layer 1");
                         TkSaved[iBest].p.print(String.format("generated helix at layer 1 for iBest=%d", iBest));
                         TkSaved[iBest].X0.print("generated helix pivot at layer 1");
                         TkSaved[iBest].origin.print("generated helix origin at layer 1");

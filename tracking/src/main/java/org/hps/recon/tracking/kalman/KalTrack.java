@@ -137,9 +137,9 @@ public class KalTrack {
                 StateVector sV = null;
                 if (site.smoothed) sV = site.aS;
                 else sV = site.aP;
-                double phiS = sV.planeIntersect(site.m.p);
+                double phiS = sV.helix.planeIntersect(site.m.p);
                 if (Double.isNaN(phiS)) phiS = 0.;
-                interceptVects.put(site, sV.toGlobal(sV.atPhi(phiS)));                
+                interceptVects.put(site, sV.helix.toGlobal(sV.helix.atPhi(phiS)));                
             }
         }
         return interceptVects;
@@ -152,9 +152,9 @@ public class KalTrack {
                 StateVector sV = null;
                 if (site.smoothed) sV = site.aS;
                 else sV = site.aP;
-                double phiS = sV.planeIntersect(site.m.p);
+                double phiS = sV.helix.planeIntersect(site.m.p);
                 if (Double.isNaN(phiS)) phiS = 0.;
-                interceptMomVects.put(site, sV.Rot.inverseRotate(sV.getMom(phiS)));
+                interceptMomVects.put(site, sV.helix.Rot.inverseRotate(sV.helix.getMom(phiS)));
             }
         }
         return interceptMomVects;
@@ -185,13 +185,13 @@ public class KalTrack {
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
         if (s1.aS == null || s2.aS == null) return -999.;
-        double phiS1 = s1.aS.planeIntersect(s2.m.p);
+        double phiS1 = s1.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS1)) return -999.;
-        Vec p1 = s1.aS.getMom(phiS1);
+        Vec p1 = s1.aS.helix.getMom(phiS1);
         double t1 = Math.atan2(p1.v[0], p1.v[1]);
-        double phiS2 = s2.aS.planeIntersect(s2.m.p);
+        double phiS2 = s2.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS2)) return -999.;
-        Vec p2 = s2.aS.getMom(phiS2);
+        Vec p2 = s2.aS.helix.getMom(phiS2);
         double t2 = Math.atan2(p2.v[0], p2.v[1]);
         return t1 - t2;
     }
@@ -206,13 +206,13 @@ public class KalTrack {
         MeasurementSite s1 = lyrMap.get(layer);
         MeasurementSite s2 = lyrMap.get(lyrNxt);
         if (s1.aS == null || s2.aS == null) return -999.;
-        double phiS1 = s1.aS.planeIntersect(s2.m.p);
+        double phiS1 = s1.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS1)) return -999.;
-        Vec p1 = s1.aS.Rot.inverseRotate(s1.aS.getMom(phiS1));
+        Vec p1 = s1.aS.helix.Rot.inverseRotate(s1.aS.helix.getMom(phiS1));
         double t1 = Math.atan2(p1.v[2], p1.v[1]);
-        double phiS2 = s2.aS.planeIntersect(s2.m.p);
+        double phiS2 = s2.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS2)) return -999.;
-        Vec p2 = s2.aS.Rot.inverseRotate(s2.aS.getMom(phiS2));
+        Vec p2 = s2.aS.helix.Rot.inverseRotate(s2.aS.helix.getMom(phiS2));
         double t2 = Math.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
@@ -221,7 +221,7 @@ public class KalTrack {
         double c2 = 0.;
         for (MeasurementSite S : SiteList) {
             if (S.aS == null) continue;
-            double phiS = S.aS.planeIntersect(S.m.p);
+            double phiS = S.aS.helix.planeIntersect(S.m.p);
             if (Double.isNaN(phiS)) { phiS = 0.; }
             double vpred = S.h(S.aS, S.m, phiS);
             for (Measurement hit : S.m.hits) {
@@ -261,11 +261,11 @@ public class KalTrack {
             SquareMatrix Cstar = new SquareMatrix(5);
             aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
             HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-            Plane pTrans = site.m.p.toLocal(site.aS.Rot, site.aS.origin);
-            double phiInt = hpi.planeIntersect(aStar, site.aS.X0, site.aS.alpha, pTrans);
+            Plane pTrans = site.m.p.toLocal(site.aS.helix.Rot, site.aS.helix.origin);
+            double phiInt = hpi.planeIntersect(aStar, site.aS.helix.X0, site.aS.helix.alpha, pTrans);
             if (!Double.isNaN(phiInt)) {
-                Vec intPnt = StateVector.atPhi(site.aS.X0, aStar, phiInt, site.aS.alpha);
-                Vec globalInt = site.aS.toGlobal(intPnt);
+                Vec intPnt = HelixState.atPhi(site.aS.helix.X0, aStar, phiInt, site.aS.helix.alpha);
+                Vec globalInt = site.aS.helix.toGlobal(intPnt);
                 Vec localInt = site.m.toLocal(globalInt);
                 resid = site.m.hits.get(site.hitID).v - localInt.v[1];
                 varResid = sigma*sigma + site.H.dot(site.H.leftMultiply(Cstar));
@@ -384,7 +384,7 @@ public class KalTrack {
         pW.format("EOD\n");
         pW.format("$trks << EOD\n");
         for (MeasurementSite site : SiteList) {
-            Vec rHelix = site.aS.toGlobal(site.aS.atPhi(0.));
+            Vec rHelix = site.aS.helix.toGlobal(site.aS.helix.atPhi(0.));
             pW.format(" %10.5f  %10.6f\n", rHelix.v[1], rHelix.v[2]);
         }
         pW.format("EOD\n");
@@ -400,9 +400,9 @@ public class KalTrack {
         pW.format("$resids << EOD\n");
         for (MeasurementSite site : SiteList) {
             if (site.m.Layer < 0) continue;
-            double phiS = site.aS.planeIntersect(site.m.p);
+            double phiS = site.aS.helix.planeIntersect(site.m.p);
             if (Double.isNaN(phiS)) { continue; }
-            Vec rHelixG = site.aS.toGlobal(site.aS.atPhi(phiS));
+            Vec rHelixG = site.aS.helix.toGlobal(site.aS.helix.atPhi(phiS));
             Vec rHelixL = site.m.toLocal(rHelixG);
             double residual = -999.;
             if (site.hitID >= 0) residual = site.m.hits.get(site.hitID).v - rHelixL.v[1];
@@ -441,7 +441,8 @@ public class KalTrack {
         // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
         double XL = innerSite.m.thickness/innerSite.radLen;
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
-        helixAtOrigin = innerSite.aS.propagateRungeKutta(originPlane, innerSite.m.Bfield, originCov, yScat, XL);
+        RotMatrix originRot = new RotMatrix();
+        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, innerSite.m.Bfield, originCov, yScat, originRot, XL);
         if (Double.isNaN(originCov.M[0][0])) return false;
         SquareMatrix Cinv = originCov.invert();
         for (int i=0; i<5; ++i) {
@@ -463,8 +464,8 @@ public class KalTrack {
         //System.out.format("KalTrack: beamspot= %f %f %f global, %f %f %f local field\n", beamSpot.v[0], beamSpot.v[1], beamSpot.v[2],
         //        beamSpotBframe.v[0], beamSpotBframe.v[1], beamSpotBframe.v[2]);
         // Find the position and momentum of the particle near the origin, including covariance
-        Vec XonHelix = StateVector.atPhi(beamSpotBframe, helixAtOrigin, 0., alpha);
-        Vec PofHelix = StateVector.aTOp(helixAtOrigin);
+        Vec XonHelix = HelixState.atPhi(beamSpotBframe, helixAtOrigin, 0., alpha);
+        Vec PofHelix = HelixState.aTOp(helixAtOrigin);
         originMomentum = Rot.inverseRotate(PofHelix);
         originPoint = Rot.inverseRotate(XonHelix);
         double[][] Dx = DxTOa(helixAtOrigin);
@@ -698,7 +699,7 @@ public class KalTrack {
         for (int iteration = 0; iteration < nIterations; iteration++) {
             logger.log(Level.FINER, String.format("KalTrack.fit: starting filtering for iteration %d", iteration));
             StateVector sH = SiteList.get(0).aS;
-            sH.C.scale(1000.*chi2); // Blow up the initial covariance matrix to avoid double counting measurements
+            sH.helix.C.scale(1000.*chi2); // Blow up the initial covariance matrix to avoid double counting measurements
             SiModule prevMod = null;
             double chi2f = 0.;
             for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps

@@ -328,7 +328,7 @@ public class KalmanDriverHPS extends Driver {
 
                 double bflyr1 = KalmanInterface.getField(newPivot, fm).mag();
                 double alphaLyr1 = 1000.0 * 1.0e9 / (c * bflyr1);
-                kalParams = StateVector.pivotTransform(newPivot, kalParams, oldPivot, alphaLyr1, 0.);
+                kalParams = HelixState.pivotTransform(newPivot, kalParams, oldPivot, alphaLyr1, 0.);
 
                 double[] covHPS = ts1.getCovMatrix();
                 SquareMatrix cov = new SquareMatrix(5, KalmanInterface.ungetLCSimCov(covHPS, alphaLyr1));
@@ -348,10 +348,10 @@ public class KalmanDriverHPS extends Driver {
                 }
                 StateVector iniState = ktf2.fittedStateBegin();
                 if (iniState != null) {
-                    Vec finalPivot = iniState.origin.sum(iniState.X0);
-                    Vec kalParamsF = StateVector.pivotTransform(finalPivot, kalParams, newPivot, alphaLyr1, 0.);
-                    double[] hprms = KalmanInterface.getLCSimParams(iniState.a.v, alphaLyr1);
-                    Vec ptk = iniState.Rot.inverseRotate(iniState.getMom(0.));
+                    Vec finalPivot = iniState.helix.origin.sum(iniState.helix.X0);
+                    Vec kalParamsF = HelixState.pivotTransform(finalPivot, kalParams, newPivot, alphaLyr1, 0.);
+                    double[] hprms = KalmanInterface.getLCSimParams(iniState.helix.a.v, alphaLyr1);
+                    Vec ptk = iniState.helix.Rot.inverseRotate(iniState.helix.getMom(0.));
                     double tanLambda = (ptk.v[2] / Math.sqrt(ptk.v[0] * ptk.v[0] + ptk.v[1] * ptk.v[1]));
 
                     printGBLkinks(GBLtoKinks, trk);
@@ -361,8 +361,8 @@ public class KalmanDriverHPS extends Driver {
                         finalPivot.print("Pivot point for the Kalman fitted helix: ");
                         kalParams.print("Kalman initial guess helix parameters, from GBL fit  ");
                         kalParamsF.print("Kalman initial guess helix parameters at final pivot ");
-                        iniState.a.print("Kalman fitted helix parameters, starting from GBL fit");
-                        iniState.getMom(0.).print("Kalman momentum");
+                        iniState.helix.a.print("Kalman fitted helix parameters, starting from GBL fit");
+                        iniState.helix.getMom(0.).print("Kalman momentum");
                         ptk.print("Kalman momentum rotated to global frame");
                         System.out.format("Kalman rotated tanLambda = %10.4f", tanLambda);
                         System.out.format("GBL Bfield=%10.4f, alpha=%12.4e    Layer 1 Bfield=%10.4f, alpha=%12.4e\n", bField, alpha, bflyr1, alphaLyr1);
@@ -370,12 +370,12 @@ public class KalmanDriverHPS extends Driver {
                         System.out.format("  >> GBL chi2=%10.4e,  Kalman chi2=%10.4e\n", trk.getChi2(), ktf2.tkr.chi2);
                         if (evtNumb < 100) ktf2.tkr.plot("./");
                     }
-                    aida.histogram1D("phi0 difference lyr1, degrees").fill(180. * (iniState.a.v[1] - kalParamsF.v[1]) / Math.PI);
-                    aida.histogram1D("rho0 difference lyr1, mm").fill(iniState.a.v[0] - kalParamsF.v[0]);
-                    aida.histogram1D("z0 difference lyr1, mm").fill(iniState.a.v[3] - kalParamsF.v[3]);
-                    aida.histogram1D("tanl difference lyr1").fill(iniState.a.v[4] - kalParamsF.v[4]);
+                    aida.histogram1D("phi0 difference lyr1, degrees").fill(180. * (iniState.helix.a.v[1] - kalParamsF.v[1]) / Math.PI);
+                    aida.histogram1D("rho0 difference lyr1, mm").fill(iniState.helix.a.v[0] - kalParamsF.v[0]);
+                    aida.histogram1D("z0 difference lyr1, mm").fill(iniState.helix.a.v[3] - kalParamsF.v[3]);
+                    aida.histogram1D("tanl difference lyr1").fill(iniState.helix.a.v[4] - kalParamsF.v[4]);
                     aida.histogram1D("tanl rotated difference lyr1").fill(tanLambda - kalParamsF.v[4]);
-                    aida.histogram1D("pt % difference lyr1").fill(100. * (iniState.a.v[2] - kalParamsF.v[2]) / kalParamsF.v[2]);
+                    aida.histogram1D("pt % difference lyr1").fill(100. * (iniState.helix.a.v[2] - kalParamsF.v[2]) / kalParamsF.v[2]);
                 }
             }
 

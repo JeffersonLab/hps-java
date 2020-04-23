@@ -103,13 +103,13 @@ class KalmanTrackFit2 {
             if (!success) { return; }
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
-                newSite.aF.a.print("filtered helix parameters at innermost site.");
+                newSite.aF.helix.a.print("filtered helix parameters at innermost site.");
                 System.out.format("    The innermost site is at layer %d\n", newSite.m.Layer);
                 int cnt = 0;
                 for (MeasurementSite site : sites) {
                     SiModule m = site.m;
                     StateVector aF = site.aF;
-                    double phiF = aF.planeIntersect(m.p);
+                    double phiF = aF.helix.planeIntersect(m.p);
                     if (Double.isNaN(phiF)) phiF = 0.;
                     double vPred = site.h(aF, site.m, phiF);
                     System.out.format("   %d Lyr %d stereo=%b Hit %d chi2inc=%10.6f, vPred=%10.6f; Hits: ", cnt, m.Layer, m.isStereo,
@@ -137,7 +137,7 @@ class KalmanTrackFit2 {
                 } else {
                     sH = startSite.aF.copy();
                 }
-                sH.C.scale(1000.); // Blow up the initial covariance matrix to avoid double counting measurements
+                sH.helix.C.scale(1000.); // Blow up the initial covariance matrix to avoid double counting measurements
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
@@ -180,12 +180,12 @@ class KalmanTrackFit2 {
                 }
                 if (verbose && previousSite != null) {
                     System.out.format("KalmanTrackFit2: filter at layer %d detector %d\n", m.Layer, m.detector);
-                    previousSite.aF.a.print("old filtered helix");
-                    newSite.aP.a.print("new predicted helix");
-                    newSite.aF.a.print("new filtered helix");
-                    previousSite.aF.C.print("old filtered covariance");
-                    newSite.aP.C.print("new predicted covariance");
-                    newSite.aF.C.print("new filtered covariance");
+                    previousSite.aF.helix.a.print("old filtered helix");
+                    newSite.aP.helix.a.print("new predicted helix");
+                    newSite.aF.helix.a.print("new filtered helix");
+                    previousSite.aF.helix.C.print("old filtered covariance");
+                    newSite.aP.helix.C.print("new predicted covariance");
+                    newSite.aF.helix.C.print("new filtered covariance");
                 }
                 // if (verbose) {
                 // newSite.print(String.format("Iteration %d: filtering", iteration));
@@ -199,15 +199,15 @@ class KalmanTrackFit2 {
             if (!success) { return; }
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Fit chi^2 after first full filtering = %12.4e\n", chi2f);
-                previousSite.aF.a.print("filtered helix parameters at last site filtered");
+                previousSite.aF.helix.a.print("filtered helix parameters at last site filtered");
                 int cnt = 0;
                 for (MeasurementSite site : sites) {
                     SiModule m = site.m;
                     StateVector aF = site.aF;
-                    double phiF = aF.planeIntersect(m.p);
+                    double phiF = aF.helix.planeIntersect(m.p);
                     if (Double.isNaN(phiF)) phiF = 0.;
                     double vPred = site.h(aF, site.m, phiF);
-                    double phiP = site.aP.planeIntersect(m.p);
+                    double phiP = site.aP.helix.planeIntersect(m.p);
                     if (Double.isNaN(phiP)) phiP = 0.;
                     double vPredP = site.h(site.aP, site.m, phiP);
                     System.out.format("   %d Lyr %d stereo=%b Hit %d chi2inc=%10.6f, vPred=%10.6f; vPredP=%10.6f Hits: ", cnt, m.Layer,
@@ -250,11 +250,11 @@ class KalmanTrackFit2 {
 
             if (verbose) {
                 System.out.format("KalmanTrackFit2: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
-                currentSite.aS.a.print("smoothed helix parameters at the innermost site");
+                currentSite.aS.helix.a.print("smoothed helix parameters at the innermost site");
                 int cnt = 0;
                 double chi2prime = 0.;
                 for (MeasurementSite site : sites) {
-                    double phiS = site.aS.planeIntersect(site.m.p);
+                    double phiS = site.aS.helix.planeIntersect(site.m.p);
                     if (Double.isNaN(phiS)) phiS = 0.;
                     double vpred = site.h(site.aS, site.m, phiS);
                     System.out.format("   %d Lyr %d stereo=%b Hit %d chi2inc=%10.6f r1=%10.8f err=%10.8f vPred=%10.6f; Hits: ", cnt,
@@ -300,13 +300,13 @@ class KalmanTrackFit2 {
             System.out.format("KalmanTrackFit2: Final fit chi^2 after smoothing = %12.4e\n", chi2s);
             double[] hp = tkr.originHelixParms();
             System.out.format("   At origin, drho=%10.7f, phi0=%10.7f, K=%10.7f, dz=%10.7f, tanl=%10.7f\n", hp[0], hp[1], hp[2], hp[3], hp[4]);
-            Vec afF = sites.get(sites.size() - 1).aF.a;
-            Vec afC = sites.get(sites.size() - 1).aF.helixErrors();
+            Vec afF = sites.get(sites.size() - 1).aF.helix.a;
+            Vec afC = sites.get(sites.size() - 1).aF.helix.helixErrors();
             afF.print("KalmanFit helix parameters at final filtered site");
             afC.print("KalmanFit helix parameter errors");
             if (startSite != null) {
-                startSite.aS.a.print("KalmanFit helix parameters at the final smoothed site");
-                startSite.aS.helixErrors().print("KalmanFit helix parameter errors:");
+                startSite.aS.helix.a.print("KalmanFit helix parameters at the final smoothed site");
+                startSite.aS.helix.helixErrors().print("KalmanFit helix parameter errors:");
             }
         }
     }
@@ -323,17 +323,17 @@ class KalmanTrackFit2 {
         System.out.format("KalmanTrackFit2: dump of track information for %s\n", s);
         System.out.format("    Final fit chi^2 after filtering = %12.4e\n", chi2f);
         StateVector fS = sites.get(finalSite).aF;
-        double[] a = fS.a.v;
+        double[] a = fS.helix.a.v;
         System.out.format("    Helix parameters at the outermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
-        double Bmag = fS.B;
-        double[] tB = { fS.Rot.M[2][0], fS.Rot.M[2][1], fS.Rot.M[2][2] };
+        double Bmag = fS.helix.B;
+        double[] tB = { fS.helix.Rot.M[2][0], fS.helix.Rot.M[2][1], fS.helix.Rot.M[2][2] };
         System.out.format("        B-field at the outermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB[0], tB[1], tB[2]);
         System.out.format("    Final fit chi^2 after smoothing = %12.4e\n", chi2s);
         StateVector iS = sites.get(initialSite).aS;
-        a = iS.a.v;
+        a = iS.helix.a.v;
         System.out.format("    Helix parameters at the innermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
-        Bmag = iS.B;
-        double[] tB2 = { iS.Rot.M[2][0], iS.Rot.M[2][1], iS.Rot.M[2][2] };
+        Bmag = iS.helix.B;
+        double[] tB2 = { iS.helix.Rot.M[2][0], iS.helix.Rot.M[2][1], iS.helix.Rot.M[2][2] };
         System.out.format("        B-field at the innermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB2[0], tB2[1], tB2[2]);
         if (tkr != null) {
             tkr.originHelix();

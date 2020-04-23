@@ -92,9 +92,9 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
             return X0;
         }
         //System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
-        Vec xInt = StateVector.atPhi(X1local, helix, phiInt, alpha);
+        Vec xInt = HelixState.atPhi(X1local, helix, phiInt, alpha);
         //StateVector.getMom(phiInt, helix).print("pInt local");
-        Vec temp = R.inverseRotate(StateVector.getMom(phiInt, helix));
+        Vec temp = R.inverseRotate(HelixState.getMom(phiInt, helix));
         //xInt.print("xInt, local coordinates intersection with plane");
         pInt.v[0] = temp.v[0];
         pInt.v[1] = temp.v[1];
@@ -221,6 +221,6 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     }
 
     private double S(double phi) {
-        return (StateVector.atPhi(X0, a, phi, alpha).dif(p.X())).dot(p.T());
+        return (HelixState.atPhi(X0, a, phi, alpha).dif(p.X())).dot(p.T());
     }
 }

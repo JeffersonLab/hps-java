@@ -98,8 +98,8 @@ class KalmanPatRecPlots {
         aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
         aida.histogram1D("pt inverse", 100, -2.5, 2.5);
         aida.histogram1D("pt inverse True", 100, -2.5, 2.5);
-        aida.histogram1D("pt inverse error, percent >= 10 hits", 100, -50., 50.);
-        aida.histogram1D("pt inverse error, sigmas >= 10 hits", 100, -5., 5.);
+        aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
+        aida.histogram1D("pt inverse error, sigmas", 100, -5., 5.);
         aida.histogram1D("tanLambda", 100, -0.3, 0.3);
         aida.histogram1D("GBL tanLambda", 100, -0.3, 0.3);
         aida.histogram1D("tanLambda true", 100, -0.3, 0.3);
@@ -176,10 +176,10 @@ class KalmanPatRecPlots {
                     StateVector aS = site.aS;
                     SiModule mod = site.m;
                     if (aS != null && mod != null) {
-                        double phiS = aS.planeIntersect(mod.p);
+                        double phiS = aS.helix.planeIntersect(mod.p);
                         if (!Double.isNaN(phiS)) {
-                            Vec rLocal = aS.atPhi(phiS);        // Position in the Bfield frame
-                            Vec rGlobal = aS.toGlobal(rLocal);  // Position in the global frame                 
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
                             Vec rLoc = mod.toLocal(rGlobal);    // Position in the detector frame
                             if (site.hitID < 0) {
                                 for (Measurement m : mod.hits) {
@@ -300,23 +300,23 @@ class KalmanPatRecPlots {
                     SquareMatrix CovInv = Cov.invert();
                     Vec helixDiff = ap.dif(apTrue);
                     double chi2Helix = helixDiff.dot(helixDiff.leftMultiply(CovInv));
-                    aida.histogram1D("helix chi-squared at origin").fill(chi2Helix);
-                    aida.histogram1D("dRho").fill(dRho);
-                    aida.histogram1D("dRho error, sigmas").fill(dRho/dRhoErr);
-                    aida.histogram1D("z0").fill(z0);
-                    aida.histogram1D("z0 error, sigmas").fill((z0-z0True)/z0Err);
-                    aida.histogram1D("phi0 true").fill(phi0True);
-                    aida.histogram1D("phi0").fill(phi0);
-                    aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
-                    aida.histogram1D("pt inverse").fill(ptInv);
-                    aida.histogram1D("pt inverse True").fill(ptInvTrue);
-                    if (kTk.nHits >= 10) {
-                        aida.histogram1D("pt inverse error, percent >= 10 hits").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
-                        aida.histogram1D("pt inverse error, sigmas >= 10 hits").fill((ptInv-ptInvTrue)/ptInvErr);
+                    if (kTk.nHits >= 10 && kTk.chi2/(double)kTk.nHits < 2.0) {
+                        aida.histogram1D("helix chi-squared at origin").fill(chi2Helix);
+                        aida.histogram1D("dRho").fill(dRho);
+                        aida.histogram1D("dRho error, sigmas").fill(dRho/dRhoErr);
+                        aida.histogram1D("z0").fill(z0);
+                        aida.histogram1D("z0 error, sigmas").fill((z0-z0True)/z0Err);
+                        aida.histogram1D("phi0 true").fill(phi0True);
+                        aida.histogram1D("phi0").fill(phi0);
+                        aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
+                        aida.histogram1D("pt inverse").fill(ptInv);
+                        aida.histogram1D("pt inverse True").fill(ptInvTrue);                        
+                        aida.histogram1D("pt inverse error, percent").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
+                        aida.histogram1D("pt inverse error, sigmas").fill((ptInv-ptInvTrue)/ptInvErr);    
+                        aida.histogram1D("tanLambda").fill(tanLambda);
+                        aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
+                        aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
                     }
-                    aida.histogram1D("tanLambda").fill(tanLambda);
-                    aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
-                    aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
                 }
             }  // Loop over Kalman tracks
         } // Loop over SVT trackers (top/bottom)
