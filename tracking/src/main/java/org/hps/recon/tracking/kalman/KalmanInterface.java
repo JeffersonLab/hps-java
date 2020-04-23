@@ -272,28 +272,28 @@ public class KalmanInterface {
         // First pivot transform to the point of intersection of helix with SSD.  
         // Then rotate to the global frame.
         // Then pivot transform back to the origin
-        double phiS = sv.planeIntersect(ms.m.p);
+        double phiS = sv.helix.planeIntersect(ms.m.p);
         if (Double.isNaN(phiS)) phiS = 0.;
-        Vec newPivot = sv.atPhi(phiS);
-        Vec localParams = sv.pivotTransform(newPivot);
+        Vec newPivot = sv.helix.atPhi(phiS);
+        Vec localParams = sv.helix.pivotTransform(newPivot);
         // Note: this rotation doesn't totally make sense, as the helix parameters are defined, strictly speaking, 
         // only in a frame in which the B field is the axis of the helix. It's probably okay, though, as long
         // as the parameters are not used to propagate the helix over a large distance.
-        SquareMatrix F = sv.makeF(localParams);
+        SquareMatrix F = sv.helix.makeF(localParams);
         SquareMatrix fRot = new SquareMatrix(5);
-        Vec rotatedParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot);
-        Vec globalParams = StateVector.pivotTransform(sv.origin.scale(-1.0), rotatedParams, newPivot, sv.alpha, 0.);
-        double phiInt3 = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, ms.m.p);
-        double[] newParams = getLCSimParams(globalParams.v, sv.alpha);
-        SquareMatrix F2 = StateVector.makeF(globalParams, rotatedParams, sv.alpha);
-        SquareMatrix localCov = sv.C;
+        Vec rotatedParams = HelixState.rotateHelix(localParams, sv.helix.Rot.invert(), fRot);
+        Vec globalParams = HelixState.pivotTransform(sv.helix.origin.scale(-1.0), rotatedParams, newPivot, sv.helix.alpha, 0.);
+        double phiInt3 = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.helix.alpha, ms.m.p);
+        double[] newParams = getLCSimParams(globalParams.v, sv.helix.alpha);
+        SquareMatrix F2 = HelixState.makeF(globalParams, rotatedParams, sv.helix.alpha);
+        SquareMatrix localCov = sv.helix.C;
         SquareMatrix globalCov = localCov.similarity(F2.multiply(fRot.multiply(F)));
-        double[] newCov = getLCSimCov(globalCov.M, sv.alpha).asPackedArray(true);
+        double[] newCov = getLCSimCov(globalCov.M, sv.helix.alpha).asPackedArray(true);
         if (verbose) {  // The enclosed code is for testing that the transformations made some sense. . .
             System.out.format("KalmanInterface.createTrackState: transforming to the HPS global frame\n");
-            sv.X0.print("helix pivot");
-            sv.origin.print("origin of local field frame");
-            sv.a.print("local helix parameters");
+            sv.helix.X0.print("helix pivot");
+            sv.helix.origin.print("origin of local field frame");
+            sv.helix.a.print("local helix parameters");
             newPivot.print("new pivot on helix");
             localParams.print("local helix parameters transformed to pivot on helix; should have drho & dz = 0");
             rotatedParams.print("rotated local helix parameters");
@@ -304,19 +304,19 @@ public class KalmanInterface {
             localCov.print("original covariance");
             globalCov.print("transformed covariance");
             Plane pTest = new Plane(new Vec(0.,0.,0.),new Vec(0.,1.,0.));            
-            double phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, pTest);
-            Vec rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.alpha);
-            Plane pTran = new Plane(sv.toLocal(new Vec(0.,0.,0.)), sv.Rot.rotate(new Vec(0.,1.,0.)));
+            double phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.helix.alpha, pTest);
+            Vec rInt = HelixState.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.helix.alpha);
+            Plane pTran = new Plane(sv.helix.toLocal(new Vec(0.,0.,0.)), sv.helix.Rot.rotate(new Vec(0.,1.,0.)));
             pTran.print("y=0 plane in field system");
-            double phiInt2 = sv.planeIntersect(pTest);
-            Vec rInt2 = sv.atPhi(phiInt2);
+            double phiInt2 = sv.helix.planeIntersect(pTest);
+            Vec rInt2 = sv.helix.atPhi(phiInt2);
             rInt2.print("intersection of the original helix with the y=0 plane in field coordinates");
             System.out.format("The following two points will not match exactly, due to the field tilt\n");
             rInt.print("intersection of the transformed helix with y=0 plane");
-            sv.toGlobal(rInt2).print("intersection of the original helix with the y=0 plane in global coordinates");            
-            rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt3, sv.alpha);
+            sv.helix.toGlobal(rInt2).print("intersection of the original helix with the y=0 plane in global coordinates");            
+            rInt = HelixState.atPhi(new Vec(0.,0.,0.), globalParams, phiInt3, sv.helix.alpha);
             rInt.print("intersection of the global helix with the sensor plane, in global coordinates");
-            sv.toGlobal(newPivot).print("intersection of local helix wit the sensor plane, in global coordinates");
+            sv.helix.toGlobal(newPivot).print("intersection of local helix wit the sensor plane, in global coordinates");
         } 
 
         BaseTrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
@@ -325,9 +325,9 @@ public class KalmanInterface {
         //PF::Do not use a different definition wrt GBL
         //ts.setPhi(phiInt3);
         // Set the reference point (normally defaulted to the origin) to be the intersection point, in HPS tracking coordinates
-        ts.setReferencePoint(vectorKalmanToTrk(sv.toGlobal(newPivot)));
+        ts.setReferencePoint(vectorKalmanToTrk(sv.helix.toGlobal(newPivot)));
         //Compute and store the momentum in the track state
-        double [] momtm = ts.computeMomentum(sv.B);
+        double [] momtm = ts.computeMomentum(sv.helix.B);
         
         if (verbose && ts != null) {
             System.out.format("KalmanInterface.createTrackState: location=%d layer=%d detector=%d\n", ts.getLocation(), ms.m.Layer, ms.m.detector);
@@ -366,7 +366,7 @@ public class KalmanInterface {
             
             // Arc length along helix from the previous site
             clstr.setPath3D(site.arcLength);
-            double tanL = site.aS.a.v[4];
+            double tanL = site.aS.helix.a.v[4];
             clstr.setPath(site.arcLength/Math.sqrt(1.+tanL*tanL));
             
             // Direction cosines of the sensor axes in the HPS tracking coordinate system
@@ -380,8 +380,8 @@ public class KalmanInterface {
             // Direction of the track in the HPS tracking coordinate system
             // Find the momentum from the smoothed helix at the sensor location, make it a unit vector, 
             // and then transform from the B-field frame to the Kalman global tracking frame.
-            Vec momentum = site.aS.getMom(0.);
-            Vec pDir= site.aS.Rot.inverseRotate(momentum.unitVec());
+            Vec momentum = site.aS.helix.getMom(0.);
+            Vec pDir= site.aS.helix.Rot.inverseRotate(momentum.unitVec());
             Hep3Vector trackDir = new BasicHep3Vector(vectorKalmanToTrk(pDir));
             clstr.setTrackDir(trackDir);
             
@@ -390,7 +390,7 @@ public class KalmanInterface {
             double ct = trackDir.z()/trackDir.magnitude();
             double tanLambda = ct/Math.sqrt(1-ct*ct);  // Should be very much the same as tanL above, after accounting for the field tilt
             if (verbose) {
-                Vec tilted = site.aS.Rot.inverseRotate(new Vec(0.,0.,1.));
+                Vec tilted = site.aS.helix.Rot.inverseRotate(new Vec(0.,0.,1.));
                 double tiltAngle = Math.acos(tilted.v[2]);
                 System.out.format("KalmanInterface.createGBLStripClusterData: layer=%d det=%d tanL=%10.6f, tanLambda=%10.6f, tilt=%10.6f, sum=%10.6f\n", 
                         site.m.Layer, site.m.detector, -tanL, tanLambda, tiltAngle, tiltAngle+tanLambda);
@@ -411,7 +411,7 @@ public class KalmanInterface {
             clstr.setMeasErr(uMeasErr);
             
             // Track position in local frame. First coordinate will be the predicted measurement.
-            Vec rGlb = site.aS.toGlobal(site.aS.atPhi(0.));
+            Vec rGlb = site.aS.helix.toGlobal(site.aS.helix.atPhi(0.));
             Vec rLoc = site.m.toLocal(rGlb);
             Hep3Vector rLocHps = new BasicHep3Vector(localKalToHps(rLoc));
             clstr.setTrackPos(rLocHps);
@@ -419,7 +419,7 @@ public class KalmanInterface {
             // rms projected scattering angle
             double ctSensor = pDir.dot(site.m.p.T());
             double XL = Math.abs(site.radLen/ctSensor);
-            clstr.setScatterAngle(StateVector.projMSangle(momentum.mag(), XL));
+            clstr.setScatterAngle(HelixState.projMSangle(momentum.mag(), XL));
             
             rtnList.add(clstr);
         }
@@ -1235,10 +1235,10 @@ public class KalmanInterface {
                         site.print(" bad site ");
                         continue;
                     }
-                    double phiS = aS.planeIntersect(module.p);
+                    double phiS = aS.helix.planeIntersect(module.p);
                     if (Double.isNaN(phiS)) continue;
-                    Vec rLocal = aS.atPhi(phiS);
-                    Vec rGlobal = aS.toGlobal(rLocal);
+                    Vec rLocal = aS.helix.atPhi(phiS);
+                    Vec rGlobal = aS.helix.toGlobal(rLocal);
                     printWriter3.format(" %10.6f %10.6f %10.6f\n", rGlobal.v[0], rGlobal.v[1], rGlobal.v[2]);
                     // Vec rDetector = m.toLocal(rGlobal);
                     // double vPred = rDetector.v[1];
@@ -1259,10 +1259,10 @@ public class KalmanInterface {
                     Vec rLoc = null;
                     if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
                         StateVector aS = site.aS;
-                        double phiS = aS.planeIntersect(module.p);
+                        double phiS = aS.helix.planeIntersect(module.p);
                         if (!Double.isNaN(phiS)) {
-                            Vec rLocal = aS.atPhi(phiS);        // Position in the Bfield frame
-                            Vec rGlobal = aS.toGlobal(rLocal);  // Position in the global frame                 
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
                             rLoc = module.toLocal(rGlobal);     // Position in the detector frame
                         } else {
                             rLoc = new Vec(0.,0.,0.);

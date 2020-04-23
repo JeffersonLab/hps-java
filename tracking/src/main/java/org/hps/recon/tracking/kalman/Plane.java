@@ -56,10 +56,10 @@ class Plane { // Description of a 2D plane in 3D space
     
     String toString(String s) {
         String str = String.format("Printout of plane %s\n", s);
-        str=str+x.toString("       point=");
-        str=str+t.toString("       direction=");
-        str=str+u.toString("       uhat=");
-        str=str+v.toString("       vhat=");
+        str=str+"       point="+x.toString();
+        str=str+"       direction="+t.toString()+"\n";
+        str=str+"       uhat="+u.toString();
+        str=str+"       vhat="+v.toString()+"\n";
         return str;
     }
 

@@ -427,7 +427,7 @@ class KalmanPatRecHPS {
                     MeasurementSite startSite=null;
                     if (lastSite.m.Layer < firstSite.m.Layer) startSite = lastSite;
                     else startSite = firstSite;
-                    startSite.aF.C.scale(10000.);
+                    startSite.aF.helix.C.scale(10000.);
                     filterTrack(candidateTrack, firstLayer, numLayers - 1, startSite.aF, trial, true, false);
                     if (!candidateTrack.filtered) {
                         if (verbose) { System.out.format("KalmanPatRecHPS: %d failed filtering of all layers. Try next seed.\n", candidateTrack.ID); }
@@ -468,7 +468,7 @@ class KalmanPatRecHPS {
                     
                     // Junk highly curved candidates that don't even intersect the y=0 plane
                     StateVector aS = candidateTrack.sites.get(0).aS;
-                    double phi0 = aS.planeIntersect(new Plane(new Vec(0.,0.,0.), new Vec(0.,1.,0.)));
+                    double phi0 = aS.helix.planeIntersect(new Plane(new Vec(0.,0.,0.), new Vec(0.,1.,0.)));
                     if (Double.isNaN(phi0)) {
                         if (verbose) System.out.format("KalmanPatRecHPS: marking track candidate %d bad, as it does not intersect the origin plane.\n", candidateTrack.ID);
                         candidateTrack.good = false;
@@ -507,8 +507,8 @@ class KalmanPatRecHPS {
                             }
                         }
                         if (endSite != null) {
-                            Vec afF = endSite.aF.a;
-                            Vec afC = endSite.aF.helixErrors();
+                            Vec afF = endSite.aF.helix.a;
+                            Vec afC = endSite.aF.helix.helixErrors();
                             afF.print("KalmanPatRecHPS helix parameters at final filtered site");
                             afC.print("KalmanPatRecHPS helix parameter errors");
                         }
@@ -517,8 +517,8 @@ class KalmanPatRecHPS {
                             if (site.aS != null) startSite = site;
                         }
                         if (startSite != null) {
-                            startSite.aS.a.print("KalmanPatRecHPS helix parameters at the final smoothed site");
-                            startSite.aS.helixErrors().print("KalmanPatRecHPS helix parameter errors:");
+                            startSite.aS.helix.a.print("KalmanPatRecHPS helix parameters at the final smoothed site");
+                            startSite.aS.helix.helixErrors().print("KalmanPatRecHPS helix parameter errors:");
                         }
                     }
                     // If any hit assignments changed, then check again for redundant candidates
@@ -539,7 +539,7 @@ class KalmanPatRecHPS {
                     for (MeasurementSite site : candidateTrack.sites) {
                         if (site.aS != null) startSite = site;
                     }
-                    SquareMatrix Cov = startSite.aS.C;
+                    SquareMatrix Cov = startSite.aS.helix.C;
                     for (int ix=0; ix<5; ++ix) {
                         for (int iy=0; iy<5; ++iy) {
                             if (Double.isNaN(Cov.M[ix][iy])) {
@@ -664,8 +664,8 @@ class KalmanPatRecHPS {
                             if (nAxial >= kPar.minAxial) {
                                 StateVector aS0 = tkr.sites.get(0).aS;
                                 if (aS0 != null) {
-                                    if (!aS0.a.isNaN()) {
-                                        if (!aS0.C.isNaN()) {
+                                    if (!aS0.helix.a.isNaN()) {
+                                        if (!aS0.helix.C.isNaN()) {
                                             Collections.sort(tkr.sites, MeasurementSite.SiteComparatorUp); // Occasionally necessary
                                             if (tkr.sites.get(0).aS == null) {
                                                 if (tkr.reFit()) {
@@ -969,7 +969,7 @@ class KalmanPatRecHPS {
             if (goodFit) {
                 StateVector aS = tkr.SiteList.get(0).aS;
                 if (aS != null) {
-                    double phi0 = aS.planeIntersect(new Plane(new Vec(0.,0.,0.), new Vec(0.,1.,0.)));
+                    double phi0 = aS.helix.planeIntersect(new Plane(new Vec(0.,0.,0.), new Vec(0.,1.,0.)));
                     if (Double.isNaN(phi0)) {
                         if (verbose) System.out.format("KalmanPatRecHPS: track %d does not intersect the origin plane!\n", tkr.ID);
                         goodFit = false;
@@ -1081,10 +1081,10 @@ class KalmanPatRecHPS {
         //}
 
         if (verbose) {
-            Vec hprms = sI.a;
+            Vec hprms = sI.helix.a;
             System.out.format("\n KalmanPatRecHPS:filterTrack: Start filtering candidate %d with drho=%10.5f phi0=%10.5f k=%10.5f dz=%10.5f tanl=%10.5f \n",
                     tkrCandidate.ID, hprms.v[0], hprms.v[1], hprms.v[2], hprms.v[3], hprms.v[4]);
-            System.out.format("                    origin=%s,   pivot=%s\n", sI.origin.toString(), sI.X0.toString());
+            System.out.format("                    origin=%s,   pivot=%s\n", sI.helix.origin.toString(), sI.helix.X0.toString());
         }
 
         if (startNew) {
@@ -1256,19 +1256,19 @@ class KalmanPatRecHPS {
         }
         if (firstSite == null) tkrCand.print("firstSite null", false);
         if (firstSite.aS == null) tkrCand.print("aS null", false);
-        if (Math.abs(firstSite.aS.a.v[2]) > kPar.kMax[1]) {
+        if (Math.abs(firstSite.aS.helix.a.v[2]) > kPar.kMax[1]) {
             if (verbose) System.out.format("KalmanPatRecHPS.storeTrack: k=%10.4f is too large for candidate %d\n", 
-                    firstSite.aS.a.v[2], tkrCand.ID);
+                    firstSite.aS.helix.a.v[2], tkrCand.ID);
             return false;
         }
-        if (Math.abs(firstSite.aS.a.v[0]) > kPar.dRhoMax[1]) {
+        if (Math.abs(firstSite.aS.helix.a.v[0]) > kPar.dRhoMax[1]) {
             if (verbose) System.out.format("KalmanPatRecHPS.storeTrack: dRho=%10.4f is too large for candidate %d\n", 
-                    firstSite.aS.a.v[0], tkrCand.ID);
+                    firstSite.aS.helix.a.v[0], tkrCand.ID);
             return false;
         }
-        if (Math.abs(firstSite.aS.a.v[3]) > kPar.dzMax[1]) {
+        if (Math.abs(firstSite.aS.helix.a.v[3]) > kPar.dzMax[1]) {
             if (verbose) System.out.format("KalmanPatRecHPS.storeTrack: dz=%10.4f is too large for candidate %d\n", 
-                    firstSite.aS.a.v[3], tkrCand.ID);
+                    firstSite.aS.helix.a.v[3], tkrCand.ID);
             return false;
         }
         

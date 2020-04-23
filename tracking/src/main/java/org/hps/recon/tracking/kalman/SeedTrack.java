@@ -331,7 +331,7 @@ class SeedTrack {
         // The rotation is easily applied to the momentum vector, so first we transform
         // from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
-        Vec p_prime = R.rotate(StateVector.aTOp(a));
+        Vec p_prime = R.rotate(HelixState.aTOp(a));
         double Q = Math.signum(a.v[2]);
         Vec a_prime = pTOa(p_prime, Q);
         return new Vec(a.v[0], a_prime.v[0], a_prime.v[1], a.v[3], a_prime.v[2]);
