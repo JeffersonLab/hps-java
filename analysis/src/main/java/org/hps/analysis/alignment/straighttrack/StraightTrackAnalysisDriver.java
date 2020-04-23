@@ -101,8 +101,6 @@ public class StraightTrackAnalysisDriver extends Driver {
             "module_L7b_halfmodule_axial_hole_sensor0");
 
     protected void detectorChanged(Detector detector) {
-
-//        Path resourcePath = Paths.get(getClass().getClassLoader().getResource("org/hps/analysis/alignment/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt").getPath());
         Path resourcePath = null;
         try {
             resourcePath = Paths.get(getClass().getClassLoader().getResource("org/hps/analysis/alignment/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt").toURI());
@@ -110,11 +108,8 @@ public class StraightTrackAnalysisDriver extends Driver {
             Logger.getLogger(StraightTrackAnalysisDriver.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.out.println(resourcePath);
-//        Path path = Paths.get("D:/work/hps/analysis/physrun2019/alignment/fieldOff/20200203/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt");
-//        System.out.println(path);
         _alignedDetector = new DetectorBuilder(resourcePath);
         _defaultDetector = new DetectorBuilder(detector);
-
     }
 
     protected void process(EventHeader event) {
