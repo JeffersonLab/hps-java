@@ -404,11 +404,11 @@ public class DetectorBuilder {
         return sensorNameMap.get(trackerName);
     }
 
-    public void drawDetector() {
+    public void drawDetector() throws Exception {
         drawDetector(_det);
     }
 
-    private void drawDetector(Detector det) {
+    private void drawDetector(Detector det) throws Exception {
         //TODO provide this functionality working from the planemap
         boolean debug = false;
         List<MaterialSupervisor.ScatteringDetectorVolume> stripPlanes = materialManager.getMaterialVolumes();
@@ -528,86 +528,90 @@ public class DetectorBuilder {
 //        System.out.println(vs1);
         // now draw
         if (_drawDetector) {
-            //TODO extract the following into a separate method
-            System.out.println("\n\n\n");
-            System.out.println("size(600);");
-            System.out.println("import three;");
-            System.out.println("currentprojection=orthographic(");
-            System.out.println("camera=(-1250,850,-1500),");
-            System.out.println("up=(0.374061249845773,1.48257908496856,0.568508408053946),");
-            System.out.println("target=(0,0,0),");
-            System.out.println("zoom=1);");
+            FileOutputStream fos = new FileOutputStream(_detectorName + "_" + myDate() + "_3Dgeom.asy");
+            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "Cp850"));
 
-            System.out.println("");
-            System.out.println("pen fill=gray(0.6)+opacity(0.2);");
-            System.out.println("pen edge=black;");
-            System.out.println("pen axialEdge=red;");
-            System.out.println("pen stereoEdge=blue;");
-            System.out.println("// o is the origin point in the plane, u is the measurement direction, v is the unmeasured direction");
-            System.out.println("// clockwise normal orientation corresponds to z = u x v");
-            System.out.println("//");
-            System.out.println("//     +----------------------+  ^");
-            System.out.println("//     |                      |  |");
-            System.out.println("//     |                      |  u");
-            System.out.println("//     |           o          |  |");
-            System.out.println("//     |                      |   ");
-            System.out.println("//     |                      |   ");
-            System.out.println("//     +----------------------+   ");
-            System.out.println("//               ------ v ---->   ");
-            System.out.println("path3 myPlane(triple o, triple u, triple v)");
-            System.out.println("{");
-            System.out.println("    path3 P;");
-            System.out.println("    P=o+(u+v)--o-u+v--o-u-v--o+u-v--cycle;");
-            System.out.println("    return P;");
-            System.out.println("}");
-            System.out.println(" void drawAxes(triple o, triple u, triple v)");
-            System.out.println(" {");
-            System.out.println("pen p = red;");
-            System.out.println(" draw(Label(\"$u$\",1),(o--o+u),p,Arrow3);");
-            System.out.println("p=green;");
-            System.out.println(" draw(Label(\"$v$\",1),(o--o+v),p,Arrow3);");
-            System.out.println("p=blue;");
-            System.out.println(" draw(Label(\"$w$\",1),(o--o+10.*cross(unit(v),unit(u))),p,Arrow3);");
-            System.out.println(" }");
+            //TODO extract the following into a separate method
+            w.write("\n\n\n");
+
+            w.write("size(600);\n");
+            w.write("import three;\n");
+            w.write("currentprojection=orthographic(\n");
+            w.write("camera=(-1250,850,-1500),\n");
+            w.write("up=(0.374061249845773,1.48257908496856,0.568508408053946),\n");
+            w.write("target=(0,0,0),\n");
+            w.write("zoom=1);\n");
+
+            w.write("\n");
+            w.write("pen fill=gray(0.6)+opacity(0.2);\n");
+            w.write("pen edge=black;\n");
+            w.write("pen axialEdge=red;\n");
+            w.write("pen stereoEdge=blue;\n");
+            w.write("// o is the origin point in the plane, u is the measurement direction, v is the unmeasured direction\n");
+            w.write("// clockwise normal orientation corresponds to z = u x v\n");
+            w.write("//\n");
+            w.write("//     +----------------------+  ^\n");
+            w.write("//     |                      |  |\n");
+            w.write("//     |                      |  u\n");
+            w.write("//     |           o          |  |\n");
+            w.write("//     |                      |   \n");
+            w.write("//     |                      |   \n");
+            w.write("//     +----------------------+   \n");
+            w.write("//               ------ v ---->   \n");
+            w.write("path3 myPlane(triple o, triple u, triple v)\n");
+            w.write("{\n");
+            w.write("    path3 P;\n");
+            w.write("    P=o+(u+v)--o-u+v--o-u-v--o+u-v--cycle;\n");
+            w.write("    return P;\n");
+            w.write("}\n");
+            w.write(" void drawAxes(triple o, triple u, triple v)\n");
+            w.write(" {\n");
+            w.write("pen p = red;\n");
+            w.write(" draw(Label(\"$u$\",1),(o--o+u),p,Arrow3);\n");
+            w.write("p=green;\n");
+            w.write(" draw(Label(\"$v$\",1),(o--o+v),p,Arrow3);\n");
+            w.write("p=blue;\n");
+            w.write(" draw(Label(\"$w$\",1),(o--o+10.*cross(unit(v),unit(u))),p,Arrow3);\n");
+            w.write(" }\n");
 
             // ECal crystal frustum volume
             // use volumes for hit crystals in event data
-            System.out.println("void drawvolume(triple p1, triple p2, triple p3, triple p4, triple p5, triple p6, triple p7, triple p8, pen surfpen)");
-            System.out.println("{");
-            System.out.println("surface[] surfs;");
-            System.out.println("");
-            System.out.println("surfs.push( surface(p1--p2--p4--p3--cycle) );");
-            System.out.println("surfs.push( surface(p4--p8--p7--p3--cycle) );");
-            System.out.println("surfs.push( surface(p3--p7--p5--p1--cycle) );");
-            System.out.println("surfs.push( surface(p2--p1--p5--p6--cycle) );");
-            System.out.println("surfs.push( surface(p2--p6--p8--p4--cycle) );");
-            System.out.println("surfs.push( surface(p6--p5--p7--p8--cycle) );");
-            System.out.println("");
-            System.out.println("for (int i = 0; i < surfs.length; ++i) {");
-            System.out.println("        draw(surfs[i], surfpen);");
-            System.out.println("    }");
-            System.out.println("");
-            System.out.println("}");
+            w.write("void drawvolume(triple p1, triple p2, triple p3, triple p4, triple p5, triple p6, triple p7, triple p8, pen surfpen)\n");
+            w.write("{\n");
+            w.write("surface[] surfs;\n");
+            w.write("\n");
+            w.write("surfs.push( surface(p1--p2--p4--p3--cycle) );\n");
+            w.write("surfs.push( surface(p4--p8--p7--p3--cycle) );\n");
+            w.write("surfs.push( surface(p3--p7--p5--p1--cycle) );\n");
+            w.write("surfs.push( surface(p2--p1--p5--p6--cycle) );\n");
+            w.write("surfs.push( surface(p2--p6--p8--p4--cycle) );\n");
+            w.write("surfs.push( surface(p6--p5--p7--p8--cycle) );\n");
+            w.write("\n");
+            w.write("for (int i = 0; i < surfs.length; ++i) {\n");
+            w.write("        draw(surfs[i], surfpen);\n");
+            w.write("    }\n");
+            w.write("\n");
+            w.write("}\n");
 
             //ECal crystal frustum edges
             // Use edges to draw detector
             // this causes out-of-memory crashes.
             // keep this here, but don't use it for now.
-            System.out.println("void drawEdges(triple p1, triple p2, triple p3, triple p4, triple p5, triple p6, triple p7, triple p8, pen edgepen)");
-            System.out.println("{");
-            System.out.println("draw(p1--p2--p3--p4--cycle, edgepen);");
-            System.out.println("draw(p2--p6--p7--p3--cycle, edgepen);");
-            System.out.println("draw(p3--p7--p8--p4--cycle, edgepen);");
-            System.out.println("draw(p1--p4--p8--p5--cycle, edgepen);");
-            System.out.println("draw(p1--p5--p6--p2--cycle, edgepen);");
-            System.out.println("draw(p5--p8--p7--p6--cycle, edgepen);");
-            System.out.println("}");
+            w.write("void drawEdges(triple p1, triple p2, triple p3, triple p4, triple p5, triple p6, triple p7, triple p8, pen edgepen)\n");
+            w.write("{\n");
+            w.write("draw(p1--p2--p3--p4--cycle, edgepen);\n");
+            w.write("draw(p2--p6--p7--p3--cycle, edgepen);\n");
+            w.write("draw(p3--p7--p8--p4--cycle, edgepen);\n");
+            w.write("draw(p1--p4--p8--p5--cycle, edgepen);\n");
+            w.write("draw(p1--p5--p6--p2--cycle, edgepen);\n");
+            w.write("draw(p5--p8--p7--p6--cycle, edgepen);\n");
+            w.write("}\n");
 
-            DecimalFormat df = new DecimalFormat("###.######");
+            DecimalFormat df = new DecimalFormat("###.######\n");
 
-            System.out.println("draw(Label(\"$x$\",1),(O--100.*X),Arrow3(HookHead3));");
-            System.out.println("draw(Label(\"$y$\",1),(O--100.*Y),Arrow3(HookHead3));");
-            System.out.println("draw(Label(\"$z$\",1),(O--1000.*Z),Arrow3(HookHead3));");
+            w.write("draw(Label(\"$x$\",1),(O--100.*X),Arrow3(HookHead3));\n");
+            w.write("draw(Label(\"$y$\",1),(O--100.*Y),Arrow3(HookHead3));\n");
+            w.write("draw(Label(\"$z$\",1),(O--1000.*Z),Arrow3(HookHead3));\n");
 
             for (int i = 0; i < oList.size(); ++i) {
                 Hep3Vector o = oList.get(i);
@@ -619,38 +623,58 @@ public class DetectorBuilder {
                 // o' = o-(l*V+h*u)
                 // Hep3Vector op = VecOp.sub(o, VecOp.add(VecOp.mult(l, v), VecOp.mult(h, u)));
                 String planeType = isAxial.get(i) ? "axial" : "stereo";
-                System.out.println("//" + planeType);
-                StringBuffer sb = new StringBuffer("draw(surface( myPlane( ");
+                w.write("//" + planeType + "\n");
+//                StringBuffer sb = new StringBuffer("draw(surface( myPlane( ");
+//                //origin
+//                sb.append("( " + df.format(o.x()) + " , " + df.format(o.y()) + " , " + df.format(o.z()) + " ), ");
+//                //u coordinate
+//                sb.append(h + "*( " + df.format(u.x()) + " , " + df.format(u.y()) + " , " + df.format(u.z()) + " ), ");
+//                //v coordinate
+//                sb.append(l + "*( " + df.format(v.x()) + " , " + df.format(v.y()) + " , " + df.format(v.z()) + " )  ) ), fill, " + planeType + "Edge); ");
+//                // sensor axes
+//                sb = new StringBuffer("drawAxes( ");
+//                //origin
+//                sb.append("( " + df.format(o.x()) + " , " + df.format(o.y()) + " , " + df.format(o.z()) + " ), ");
+//                //u coordinate
+//                sb.append(h + "*( " + df.format(u.x()) + " , " + df.format(u.y()) + " , " + df.format(u.z()) + " ), ");
+//                //v coordinate
+//                sb.append(l + "*( " + df.format(v.x()) + " , " + df.format(v.y()) + " , " + df.format(v.z()) + " ) ); ");
+//
+//                w.write(sb.toString()+"\n");
+                w.write("draw(surface( myPlane( " + "\n");
                 //origin
-                sb.append("( " + df.format(o.x()) + " , " + df.format(o.y()) + " , " + df.format(o.z()) + " ), ");
+                w.write("( " + df.format(o.x()) + " , " + df.format(o.y()) + " , " + df.format(o.z()) + " ), " + "\n");
                 //u coordinate
-                sb.append(h + "*( " + df.format(u.x()) + " , " + df.format(u.y()) + " , " + df.format(u.z()) + " ), ");
+                w.write(h + "*( " + df.format(u.x()) + " , " + df.format(u.y()) + " , " + df.format(u.z()) + " ), " + "\n");
                 //v coordinate
-                sb.append(l + "*( " + df.format(v.x()) + " , " + df.format(v.y()) + " , " + df.format(v.z()) + " )  ) ), fill, " + planeType + "Edge); ");
-
-                System.out.println(sb.toString());
+                w.write(l + "*( " + df.format(v.x()) + " , " + df.format(v.y()) + " , " + df.format(v.z()) + " )  ) ), fill, " + planeType + "Edge); " + "\n");
                 // sensor axes
-                sb = new StringBuffer("drawAxes( ");
+                w.write("drawAxes( " + "\n");
                 //origin
-                sb.append("( " + df.format(o.x()) + " , " + df.format(o.y()) + " , " + df.format(o.z()) + " ), ");
+                w.write("( " + df.format(o.x()) + " , " + df.format(o.y()) + " , " + df.format(o.z()) + " ), " + "\n");
                 //u coordinate
-                sb.append(h + "*( " + df.format(u.x()) + " , " + df.format(u.y()) + " , " + df.format(u.z()) + " ), ");
+                w.write(h + "*( " + df.format(u.x()) + " , " + df.format(u.y()) + " , " + df.format(u.z()) + " ), " + "\n");
                 //v coordinate
-                sb.append(l + "*( " + df.format(v.x()) + " , " + df.format(v.y()) + " , " + df.format(v.z()) + " ) ); ");
+                w.write(l + "*( " + df.format(v.x()) + " , " + df.format(v.y()) + " , " + df.format(v.z()) + " ) ); " + "\n");
 
-                System.out.println(sb.toString());
             }
             // now the calorimeter...
 //            StringBuffer sbcal = new StringBuffer();
 //            for (List<Hep3Vector> vertices : calcells) {
 //                addcell(sbcal, vertices);
 //            }
-//            System.out.println(sbcal.toString());
+//            w.write(sbcal.toString());
+            w.flush();
+            w.close();
         }
     }
 
-    public static void main(String[] args) {
-        DetectorBuilder db = new DetectorBuilder("HPS-EngRun2015-Nominal-v0");
+    public static void main(String[] args) throws Exception {
+        String detectorName = "HPS-PhysicsRun2019-v2-4pt5";
+        if (args.length > 1) {
+            detectorName = args[0];
+        }
+        DetectorBuilder db = new DetectorBuilder(detectorName);
 
         List<DetectorPlane> planes = db.getTracker("topSlot");
         for (DetectorPlane p : planes) {
