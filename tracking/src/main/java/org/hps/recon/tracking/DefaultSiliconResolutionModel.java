@@ -7,6 +7,7 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.tracker.silicon.SiStriplets;
+import org.lcsim.event.LCRelation;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -15,7 +16,7 @@ import hep.physics.vec.VecOp;
 public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
 
     @Override
-    public double getMeasuredResolution(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) 
+    public double getMeasuredResolution(List< LCRelation > cluster, SiSensorElectrodes electrodes) 
     
     {
         double measured_resolution;
@@ -51,13 +52,13 @@ public class DefaultSiliconResolutionModel implements SiliconResolutionModel{
     //       be handled differently because it does not inherit from SiStrips.  
     //       To clean this up, the getStripLength method should be added to 
     //       SiSensorElectrodes.  This would elimininate the need for casting. 
-    public double getUnmeasuredResolution(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes, Map<FittedRawTrackerHit, Integer> strip_map) {
+    public double getUnmeasuredResolution(List< LCRelation > cluster, SiSensorElectrodes electrodes, Map<LCRelation, Integer> strip_map) {
         // Get length of longest strip in hit
 
         if (electrodes instanceof SiStriplets) return ((SiStriplets) electrodes).getStripLength(strip_map.get(cluster.get(0))); 
 
         double hit_length = 0;
-        for (FittedRawTrackerHit hit : cluster) {
+        for (LCRelation hit : cluster) {
             hit_length = Math.max(hit_length, ((SiStrips) electrodes).getStripLength(strip_map.get(hit)));
         }
         return hit_length / Math.sqrt(12);
