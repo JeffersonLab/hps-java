@@ -32,7 +32,7 @@ public class PrintGeometryDriver extends Driver {
                 .getSimpleName());
         IDetectorElement detectorElement = detector.getDetectorElement();
         List<SiSensor> sensors = detectorElement.findDescendants(SiSensor.class);
-        System.out.printf("%32s: %40s %40s %40s %40s\n", this.getClass().getSimpleName(), "Pos", "u", "v", "uXv");
+        System.out.printf("%32s: %40s %40s %40s %40s\n",  detector.getName(), "Pos", "u", "v", "uXv");
         for (SiSensor sensor : sensors) {
             Hep3Vector position = sensor.getGeometry().getPosition();
 //            Hep3Vector u = this.getUnitVector(sensor, "measured");
