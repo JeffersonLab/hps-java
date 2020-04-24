@@ -9,8 +9,12 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Random;
-import org.hps.recon.tracking.jama.Matrix;
-import org.hps.recon.tracking.jama.EigenvalueDecomposition;
+
+//import org.hps.recon.tracking.jama.Matrix;
+//import org.hps.recon.tracking.jama.EigenvalueDecomposition;
+
+import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 
 import org.hps.util.Pair;
 
@@ -1024,22 +1028,22 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                         double check = (rscat.dif(thisSi.p.X()).dot(thisSi.p.T()));
                         System.out.format("Layer %d dot product of vector in plane with plane direction=%12.8e, should be zero\n", pln, check);
                         rscat.print("Runge-Kutta intersection point");
-                     }
-                     Vec t1 = Tk.p.unitVec();
-                     if (verbose) Tk.print("before scattering from the detector plane");
-                     if (thisSi.Layer<nLayers) Tk = Tk.randomScat(thisSi.p, thisSi.thickness);
-                     Vec t2 = Tk.p.unitVec();
-                     double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
-                     if (verbose) {
-                         Tk.print("scattered from the the detector plane");
-                         Vec p2 = Tk.p;
-                         p2.print("momentum after scatter");
-                         System.out.format("Scattering angle from layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng,
-                                 p2.mag());
-                     }
+                    }
+                    Vec t1 = Tk.p.unitVec();
+                    if (verbose) Tk.print("before scattering from the detector plane");
+                    if (thisSi.Layer<nLayers) Tk = Tk.randomScat(thisSi.p, thisSi.thickness);
+                    Vec t2 = Tk.p.unitVec();
+                    double scattAng = Math.acos(Math.min(1.0, t1.dot(t2)));
+                    if (verbose) {
+                        Tk.print("scattered from the the detector plane");
+                        Vec p2 = Tk.p;
+                        p2.print("momentum after scatter");
+                        System.out.format("Scattering angle from layer of thickness %10.5f = %10.7f; p=%10.7f\n", thickness, scattAng,
+                                          p2.mag());
+                    }
                 }
                 // Transform to a reference frame with origin at the final pivot and aligned with field
-
+                
                 Vec pivotF = new Vec(3);
                 Vec helixFinal = Tk.helixParameters(posEnd, pivotF);
                 if (verbose) {
