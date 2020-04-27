@@ -311,7 +311,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram hChi2HelixS = new Histogram(80, 0., 0.4, "smoothed chi^2 of helix parameters", "chi^2", "tracks");
         Histogram hChi2Helix = new Histogram(80, 0., 0.4, "filtered chi^2 of helix parameters", "chi^2", "tracks");
         Histogram hChi2Guess = new Histogram(80, 0., 2.0, "chi^2 of guess helix parameters", "chi^2", "tracks");
-        Histogram hChi2Origin = new Histogram(80, 0., .5, "Helix fit chi^2 at the origin", "chi^2", "tracks");
+        Histogram hChi2Origin = new Histogram(80, 0., .4, "Helix parameters chi^2 at the origin", "chi^2", "tracks");
         Histogram hRes = new Histogram(100, -.25, 0.005, "detector resolution", "mm", "hits");
         Histogram hEdrho = new Histogram(100, -10., 0.2, "Filtered helix parameter drho error", "sigmas", "track");
         Histogram hEphi0 = new Histogram(100, -10., 0.2, "Filtered helix parameter phi0 error", "sigmas", "track");
@@ -961,7 +961,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             Vec vB = tB.cross(uB);
             RotMatrix finalRot = new RotMatrix(uB, vB, tB);
             double alphaF = 1.0e12 / (2.99793e8 * Bfinal.mag());
+            plnEnd = new Plane(posEnd, new Vec(0.,1.,0.));
+            HelixState newHelixState = aS.helix.propagateRungeKutta(plnEnd, yScat, XL, fM);
             boolean success = aS.helix.helixStepper(25., yScat, XL, propCov, propHelix, posEnd, fM);
+            propCov = newHelixState.C;
+            propHelix = newHelixState.a;
+            newHelixState.print("new");
             propCov.print("propagated covariance");
             propHelix.print("propagated helix");
             posEnd.print("ending helix origin of field system");

@@ -3,13 +3,12 @@ package org.hps.recon.tracking.kalman;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 //State vector (projected, filtered, or smoothed) for the Kalman filter
 class StateVector {
 
     int kUp;            // Last site index for which information is used in this state vector
     int kLow;           // Index of the site for the present pivot (lower index on a in the formalism)
-    HelixState helix;
+    HelixState helix;   // Class that includes the helix parameters, pivot, coordinate rotation, etc.
     double mPred;       // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r;           // Predicted, filtered, or smoothed residual at site kLow
     double R;           // Covariance of residual

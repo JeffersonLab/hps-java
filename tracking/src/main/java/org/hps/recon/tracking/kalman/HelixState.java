@@ -8,15 +8,16 @@ import java.util.logging.Logger;
 
 import org.hps.util.Pair;
 
+// Helix description for the Kalman filter
 class HelixState {
-    Vec a;                      // Helix parameters 
-    Vec X0;                     // Pivot point of helix
+    Vec a;                      // Helix parameters: rho0, phi0, K, z0, tan(lambda)
+    Vec X0;                     // Pivot point of helix in the B-field reference frame (local field coordinates)
     RotMatrix Rot;              // Rotation from the global coordinates to the local field coordinates 
     Vec origin;                 // Origin of the local field coordinates in the global system.
     SquareMatrix C;             // Helix covariance matrix 
-    double B;           // Magnetic field magnitude at origin
+    double B;                   // Magnetic field magnitude at origin
     private Vec tB;             // Magnetic field direction at origin
-    double alpha;       // Conversion from 1/K to radius R
+    double alpha;               // Conversion from 1/K to radius R
     private double c;           // Speed of light
     private Logger logger;
     private HelixPlaneIntersect hpi;
@@ -76,6 +77,7 @@ class HelixState {
         str = str + String.format("   Origin=%s,  B=%10.6f in direction %s\n", origin.toString(), B, tB.toString());
         str = str + C.toString("covariance");
         str = str + Rot.toString("from global coordinates to field coordinates");
+        str = str + "End of HelixState dump\n";
         return str;
     }
     
@@ -299,78 +301,68 @@ class HelixState {
         return new Vec(5, aP);
     }
     
-    Vec propagateRungeKutta(Plane pln, org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
-        ArrayList<Double> yScat = new ArrayList<Double>();
-        RotMatrix originRot = new RotMatrix();
-        return propagateRungeKutta(pln, fM, newCovariance, yScat, originRot, XL);
-    }
-    
     // Propagate a helix by Runge-Kutta integration to an arbitrary plane
-    Vec propagateRungeKutta(Plane pln, org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, ArrayList<Double> yScat, RotMatrix RotOut, double XL) {
-        // pln = plane to where the extrapolation is taking place in global coordinates.  
-        // The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.
-        // fM  = HPS field map
-        // newCovariance = output helix covariance at the new pivot
-        // return value = helix parameters at the new pivot. These helix parameters are valid in the B-field coordinate system with
-        //                origin at the pivot point and z axis in the direction of the B-field at the pivot.
+    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, double XL, org.lcsim.geometry.FieldMap fM) {
+        // pln   = plane to where the extrapolation is taking place in global coordinates.  
+        //         The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.
         // yScat = input array of y values where scattering in silicon will take place. Only those between the start and finish points
-        //         will be used, so including extras will just waste a bit of CPU time
-        // Rot   = rotation from global coordinates to the B-field system
-        // XL    = silicon thickness in radiation lengths
+        //         will be used, so including extras will just waste a bit of CPU time. Silicon is assumed to lie in a plane
+        //         perpendicular to the beam axis at each of these yScat values.
+        // XL    = silicon thickness in radiation lengths at each of the scattering planes
+        // fM    = HPS field map
+        // return value = helix state at the new pivot. These helix parameters are valid in the B-field coordinate system with
+        //                origin at the pivot point and z axis in the direction of the B-field at the pivot.
+        
         //boolean verbose = true;
         
         // Take the B-field reference frame to be at the position X of the plane. The returned helix will be in this frame.
         Vec B = KalmanInterface.getField(pln.X(), fM);
         double Bmag = B.mag();
-        double alphaOrigin = 1.0e12 / (c * Bmag);
+        double alphatarget = 1.0e12 / (c * Bmag);
         Vec tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec uB = yhat.cross(tB).unitVec();
         Vec vB = tB.cross(uB);
-        RotMatrix originRot = new RotMatrix(uB, vB, tB); // Rotation from the global system into the B-field system at the plane
-        for (int i=0; i<3; ++i) {
-            for (int j=0; j<3; ++j) {
-                RotOut.M[i][j] = originRot.M[i][j];
-            }
-        }
+        RotMatrix targetRot = new RotMatrix(uB, vB, tB); // Rotation from the global system into the B-field system at the plane
         
         // Target plane after transforming to the B-field coordinate system 
-        Plane originPlane = pln.toLocal(originRot, pln.X());    
+        Plane targetPlane = pln.toLocal(targetRot, pln.X());    
         
         // Point and momentum on the helix in the B-field system near the tracking layer from where we extrapolate
-        Vec xLocal = atPhi(0.);
-        Vec pLocal = getMom(0.);
+        Vec x0Local = atPhi(0.);
+        Vec p0Local = getMom(0.);
+        Vec x0Global = toGlobal(x0Local);
+        Vec p0Global = Rot.inverseRotate(p0Local);
 
-        // Starting position and momentum in the B-field system
-        Vec X0origin = originRot.rotate((Rot.inverseRotate(xLocal).sum(origin)).dif(pln.X()));
-        Vec P0origin = originRot.rotate(Rot.inverseRotate(pLocal));
         double Q = Math.signum(a.v[2]);
 
         Vec pInt = new Vec(3);
-        Vec Xplane = hpi.rkIntersect(originPlane, X0origin, P0origin, Q, fM, pInt); // RK propagation to the target plane
-        Vec helixAtIntersect = pTOa(pInt, 0., 0., Q); // Helix with pivot at Xplane
-        Vec helixAtOrigin = pivotTransform(originPlane.X(), helixAtIntersect, Xplane, alpha, 0.);
+        Vec Xplane = hpi.rkIntersect(pln, x0Global, p0Global, Q, fM, pInt); // RK propagation to the target plane
+        Vec XplaneLocal = targetRot.rotate(Xplane.dif(pln.X()));
+        Vec helixAtIntersect = pTOa(targetRot.rotate(pInt), 0., 0., Q); // Helix with pivot at Xplane (in field coordinates)
+        Vec helixAtTarget = pivotTransform(targetPlane.X(), helixAtIntersect, XplaneLocal, alphatarget, 0.);
         if (verbose) {
             System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1],
                     origin.v[2]);
             System.out.format("    At final plane B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
-            System.out.format("    alpha=%10.6f,  alpha at final plane=%10.6f\n", alpha, alphaOrigin);
-            Rot.invert().print("from local system at layer 1 to global");
-            originRot.print("to Bfield system at final plane");
-            originPlane.print("at final plane in B-field system");
+            System.out.format("    alpha=%10.6f,  alpha at final plane=%10.6f\n", alpha, alphatarget);
+            targetRot.print("to Bfield system at final plane");
+            targetPlane.print("at final plane in B-field system");
             origin.print("origin of local detector system in global coordinates");
             X0.print("helix pivot");
-            a.print("local helix parameters at layer 1");
-            xLocal.print("point on helix, local at layer 1");
-            pLocal.print("helix momentum, local at layer 1");
-            X0origin.print("point on helix, origin system, at layer 1");
-            P0origin.print("helix momentum, origin system global at layer 1");
+            a.print("local helix parameters at initial point");
+            x0Local.print("point on helix, local at initial point");
+            x0Global.print("point on helix, global at initial point");
+            p0Local.print("helix momentum, local initial point");
             Xplane.print("RK helix intersection with final plane");
-            Vec Xglob = originRot.inverseRotate(Xplane);
-            Xglob.print("intersection with final plane in global coordinates");
+            XplaneLocal.print("RK helix intersection with final plane in local system");
             pInt.print("RK momentum at helix intersection");
+            double pTanL = pInt.v[2]/Math.sqrt(pInt.v[0]*pInt.v[0]+pInt.v[1]*pInt.v[1]);
+            Vec pLoc = targetRot.rotate(pInt);
+            double pTanLlocal = pLoc.v[2]/Math.sqrt(pLoc.v[0]*pLoc.v[0]+pLoc.v[1]*pLoc.v[1]);
+            System.out.format("from momentum, global tan(lambda)=%10.6f, local tan(lambda)=%10.6f\n",pTanL,pTanLlocal);
             helixAtIntersect.print("helix at final-plane intersection");
-            helixAtOrigin.print("helix with pivot at final plane");
+            helixAtTarget.print("helix with pivot at final plane");
             pln.X().print("origin of final field system in global system");
             Rot.print("rotation matrix from global to final field system");
         }
@@ -379,6 +371,7 @@ class HelixState {
         double stepSize = 25.0;
         // Step from the origin of this StateVector to pln.X(), both in global coordinates
         Vec transHelix = new Vec(5);
+        SquareMatrix newCovariance = new SquareMatrix(5);
         if (!helixStepper(stepSize, yScat, XL, newCovariance, transHelix, pln.X(), fM)) {
             for (int i=0; i<5; ++i) {
                 for (int j=0; j<5; ++j) {
@@ -396,17 +389,15 @@ class HelixState {
             for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", Math.sqrt(newCovariance.M[i][i])); }
             System.out.println("\n");
         }
-               
-        return helixAtOrigin;
+        
+        HelixState newHelixState = new HelixState(helixAtTarget, new Vec(0.,0.,0.), pln.X(), newCovariance, Bmag, tB);
+        return newHelixState;
     }
-    
-    // Propagate a helix by Runge-Kutta integration to an x,z plane containing the origin.
-    Vec propagateRungeKutta(org.lcsim.geometry.FieldMap fM, SquareMatrix newCovariance, double XL) {
-      
-        // Plane in the B-field coordinate system at the origin
-        Plane originPlane = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.)); 
- 
-        return propagateRungeKutta(originPlane, fM, newCovariance, XL);
+
+    // Optional interface for the case in which there are no scattering planes
+    HelixState propagateRungeKutta(Plane pln, double XL, org.lcsim.geometry.FieldMap fM) {
+        ArrayList<Double> yScat = new ArrayList<Double>();
+        return propagateRungeKutta(pln, yScat, XL, fM);
     }
 
     static double projMSangle(double p, double XL) {

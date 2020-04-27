@@ -25,10 +25,9 @@ public class KalTrack {
     Map<Integer, MeasurementSite> millipedeMap;
     Map<Integer, MeasurementSite> lyrMap;
     public int eventNumber;
-    private Vec helixAtOrigin;
+    private HelixState helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
-    private SquareMatrix originCov;
     private Vec originPoint;
     private Vec originMomentum;
     private ArrayList<Double> yScat;
@@ -79,7 +78,6 @@ public class KalTrack {
         
         helixAtOrigin = null;
         propagated = false;
-        originCov = new SquareMatrix(5);
         MeasurementSite site0 = this.SiteList.get(0);
         Vec B = KalmanInterface.getField(new Vec(3,kPar.beamSpot), site0.m.Bfield);
         Bmag = B.mag();
@@ -310,8 +308,7 @@ public class KalTrack {
         String str = String.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax);
         if (propagated) {
             str=str+String.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
-            str=str+helixAtOrigin.toString("helix for a pivot at the origin")+"\n";
-            str=str+originCov.toString("covariance of helix parameters for a pivot at the origin");
+            str=str+helixAtOrigin.toString("helix state for a pivot at the origin")+"\n";
             str=str+originPoint.toString("point on the helix closest to the origin")+"\n";
             SquareMatrix C1 = new SquareMatrix(3, Cx);
             str=str+C1.toString("covariance matrix for the point");
@@ -416,6 +413,7 @@ public class KalTrack {
     // Runge Kutta propagation of the helix to the origin
     public boolean originHelix() {
         if (propagated) return true;
+        propagated = true;
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -441,35 +439,31 @@ public class KalTrack {
         // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
         double XL = innerSite.m.thickness/innerSite.radLen;
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
-        RotMatrix originRot = new RotMatrix();
-        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, innerSite.m.Bfield, originCov, yScat, originRot, XL);
-        if (Double.isNaN(originCov.M[0][0])) return false;
-        SquareMatrix Cinv = originCov.invert();
+        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XL, innerSite.m.Bfield);
+        if (covNaN()) return false;
+        SquareMatrix Cinv = helixAtOrigin.C.invert();
         for (int i=0; i<5; ++i) {
             if (Cinv.M[i][i] == 0.0) {  // The covariance matrix was singular
                 logger.log(Level.WARNING, String.format("KalTrack.originHelix: the track %d covariance matrix is singular!\n", ID));
-                originCov.print("singular");
+                helixAtOrigin.C.print("singular");
                 helixAtOrigin.print("singular");
                 for (int k=0; k<5; ++k) {
                     for (int m=0; m<k; ++m) {
-                        originCov.M[k][m] = 0.;
-                        originCov.M[m][k] = 0.;
+                        helixAtOrigin.C.M[k][m] = 0.;
+                        helixAtOrigin.C.M[m][k] = 0.;
                     }
                 }
                 break;
             }
         }
 
-        Vec beamSpotBframe = Rot.rotate(beamSpot);
-        //System.out.format("KalTrack: beamspot= %f %f %f global, %f %f %f local field\n", beamSpot.v[0], beamSpot.v[1], beamSpot.v[2],
-        //        beamSpotBframe.v[0], beamSpotBframe.v[1], beamSpotBframe.v[2]);
         // Find the position and momentum of the particle near the origin, including covariance
-        Vec XonHelix = HelixState.atPhi(beamSpotBframe, helixAtOrigin, 0., alpha);
-        Vec PofHelix = HelixState.aTOp(helixAtOrigin);
+        Vec XonHelix = helixAtOrigin.atPhi(0.);
+        Vec PofHelix = HelixState.aTOp(helixAtOrigin.a);
         originMomentum = Rot.inverseRotate(PofHelix);
         originPoint = Rot.inverseRotate(XonHelix);
-        double[][] Dx = DxTOa(helixAtOrigin);
-        double[][] Dp = DpTOa(helixAtOrigin);
+        double[][] Dx = DxTOa(helixAtOrigin.a);
+        double[][] Dp = DpTOa(helixAtOrigin.a);
         Cx = new double[3][3];
         Cp = new double[3][3];
         for (int i = 0; i < 3; i++) {
@@ -478,8 +472,8 @@ public class KalTrack {
                 Cp[i][j] = 0.;
                 for (int k = 0; k < 5; k++) {
                     for (int l = 0; l < 5; l++) {
-                        Cx[i][j] += Dx[i][k] * originCov.M[k][l] * Dx[j][l];
-                        Cp[i][j] += Dp[i][k] * originCov.M[k][l] * Dp[j][l];
+                        Cx[i][j] += Dx[i][k] * helixAtOrigin.C.M[k][l] * Dx[j][l];
+                        Cp[i][j] += Dp[i][k] * helixAtOrigin.C.M[k][l] * Dp[j][l];
                     }
                 }
             }
@@ -488,7 +482,6 @@ public class KalTrack {
         Cx = temp.inverseRotate(Rot).M;
         temp = new SquareMatrix(3, Cp);
         Cp = temp.inverseRotate(Rot).M;
-        propagated = true;
         return true;
     }
 
@@ -512,21 +505,21 @@ public class KalTrack {
 
     public double[][] originCovariance() {
         if (!propagated) { originHelix(); }
-        return originCov.M.clone();
+        return helixAtOrigin.C.M.clone();
     }
 
     public boolean covNaN() { 
-        if (!propagated) {originHelix();}
-        return originCov.isNaN();
+        if (!propagated) originHelix();
+        return helixAtOrigin.C.isNaN();
     }
     
     public double[] originHelixParms() {
-        if (propagated) return helixAtOrigin.v.clone();
+        if (propagated) return helixAtOrigin.a.v.clone();
         else return null;
     }
 
     public double helixErr(int i) {
-        return Math.sqrt(originCov.M[i][i]);
+        return Math.sqrt(helixAtOrigin.C.M[i][i]);
     }
 
     public double[] rotateToGlobal(double[] x) {
