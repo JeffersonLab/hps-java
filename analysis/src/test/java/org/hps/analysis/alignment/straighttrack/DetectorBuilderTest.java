@@ -20,7 +20,7 @@ public class DetectorBuilderTest extends TestCase {
 //            System.out.println("");
 //        }
 
-        //db.drawDetector();
+        db.drawDetector();
         db.archiveIt("test");
 
         // try building detector from file...
