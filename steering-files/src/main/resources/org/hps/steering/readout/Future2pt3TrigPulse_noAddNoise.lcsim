@@ -2,7 +2,8 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @Readout steering file with pairs trigger for 2019 MC.
+      @Readout steering file with pulse trigger for MC of future 2.3
+      GeV beam.
       @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
     -->
     <execute>
