@@ -70,7 +70,7 @@ public class DetectorPlane implements Comparable {
         _measuredDimension = y;
         // Phi is measured from the vertical
         _phi = atan2(_measDir.y(), _measDir.x());
-        System.out.println("DetectorPlane " + name + " phi " + _phi);
+        //System.out.println("DetectorPlane " + name + " phi " + _phi);
         _zmin = pos.z();
         _zmax = pos.z();
     }

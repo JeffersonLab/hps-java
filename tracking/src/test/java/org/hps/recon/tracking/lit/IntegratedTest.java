@@ -15,15 +15,13 @@ import org.lcsim.util.aida.AIDA;
  *
  * @version $Id:
  */
-public class IntegratedTest extends TestCase
-{
+public class IntegratedTest extends TestCase {
 
-    boolean debug = true;
+    boolean debug = false;
     AIDA aida = AIDA.defaultInstance();
     private ITree _tree = aida.tree();
 
-    public void testAll() throws Exception
-    {
+    public void testAll() throws Exception {
         double[] zpos = {10., 20., 30., 40., 50., 60., 70.};
         // a constant magnetic field...
         ConstantMagneticField field = new ConstantMagneticField(0., 1., 0.);
@@ -38,7 +36,6 @@ public class IntegratedTest extends TestCase
         // a class to smear initial track parameters.
         // notice large smearing in q/p!
 //        TrackParameterSmearer smearer = new TrackParameterSmearer(.001, .001, .002, .002, .002);
-
         // a trackParam to use for intializing the fits
         CbmLitTrackParam trkParamZeroEstimate = new CbmLitTrackParam();
         trkParamZeroEstimate.SetQp(0.1);
@@ -85,17 +82,12 @@ public class IntegratedTest extends TestCase
             // now to make a track...
             CbmLitTrack track = new CbmLitTrack();
             for (int i = 0; i < hitList.size(); ++i) {
-                if (debug) {
-                    System.out.println("adding hit to track...");
-                }
-                if (debug) {
-                    System.out.println(hitList.get(i));
-                }
+
                 track.AddHit(hitList.get(i));
                 if (debug) {
+                    System.out.println("adding hit to track...");
+                    System.out.println(hitList.get(i));
                     System.out.println(" with this track state: ");
-                }
-                if (debug) {
                     System.out.println(trackStateList.get(i));
                 }
             }
@@ -109,20 +101,16 @@ public class IntegratedTest extends TestCase
             // for now, let's just smear the original track parameters...
             //
 //            CbmLitTrackParam smearedParams = new CbmLitTrackParam(trkParam);
-            if (debug) {
-                System.out.println(trkParam);
-            }
 //            smearer.SmearTrackParameters(smearedParams);
             if (debug) {
+                System.out.println(trkParam);
                 System.out.println("smeared track params ");
-            }
-
-            if (debug) {
                 System.out.println(trkParamZeroEstimate);
             }
             track.SetParamFirst(trkParamZeroEstimate);
             track.SetParamLast(trkParamZeroEstimate);
             if (debug) {
+                System.out.println("track ");
                 System.out.println(track);
             }
 
@@ -133,8 +121,8 @@ public class IntegratedTest extends TestCase
             CbmLitTrackPropagator prop = new SimpleTrackPropagator(extrap);
             CbmLitTrackFitter fitter = new CbmLitTrackFitterImp(prop, trackUpdate);
             CbmLitTrackFitter smoother = new CbmLitKalmanSmoother();
-        // can't fit both sequentially (pulls will be sigma=1.4 instead of 1.0)
-	// choose one or the other            
+            // can't fit both sequentially (pulls will be sigma=1.4 instead of 1.0)
+            // choose one or the other            
 //	//fit downstream...
             boolean downstream = false;
             String dir = downstream ? "downstream" : "upstream";
@@ -147,16 +135,11 @@ public class IntegratedTest extends TestCase
 //            compare(track, trkParam, dir, extrap, downstream);
 
 //
-            if (debug) {
-                System.out.println(" track after fit: ");
-            }
-            if (debug) {
-                System.out.println(track);
-            }
             CbmLitFitNode[] fitNodeList = track.GetFitNodes();
             if (debug) {
+                System.out.println(" track after fit: ");
+                System.out.println(track);
                 System.out.println(" track fit nodes: ");
-
                 for (int i = 0; i < fitNodeList.length; ++i) {
                     System.out.println(fitNodeList[i]);
                 }
@@ -189,8 +172,7 @@ public class IntegratedTest extends TestCase
 
     }
 
-    private void compare(CbmLitTrack track, CbmLitTrackParam mcp, String folder, CbmLitTrackExtrapolator extrap, boolean downstream)
-    {
+    private void compare(CbmLitTrack track, CbmLitTrackParam mcp, String folder, CbmLitTrackExtrapolator extrap, boolean downstream) {
         _tree.mkdirs(folder);
         _tree.cd(folder);
         // get the upstream track parameters
@@ -201,8 +183,10 @@ public class IntegratedTest extends TestCase
         double z = mcp.GetZ();
         // extrapolate our track to this z position
         extrap.Extrapolate(tp1, tAtOrigin, z, null);
-        System.out.println("MC parameters             : " + mcp);
-        System.out.println("track parameters at origin: " + tAtOrigin);
+        if (debug) {
+            System.out.println("MC parameters             : " + mcp);
+            System.out.println("track parameters at origin: " + tAtOrigin);
+        }
         double[] mcStateVector = mcp.GetStateVector();
         double[] tStateVector = tAtOrigin.GetStateVector();
         String[] label = {"x", "y", "tx", "ty", "qp"};
