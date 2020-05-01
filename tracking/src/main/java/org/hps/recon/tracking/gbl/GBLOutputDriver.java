@@ -62,8 +62,8 @@ public class GBLOutputDriver extends Driver {
     String trkpDetailFolder="/trk_detail/";
     String resFolder="/res/";
     String hitFolder="/hit/";
-    private boolean b_doGBLkinks = false;
-    private boolean b_doDetailPlots = false;
+    private boolean b_doGBLkinks = true;
+    private boolean b_doDetailPlots = true;
 
     //This should be moved to the GBL Refitter!!!
     //The field map for extrapolation
@@ -427,6 +427,17 @@ public class GBLOutputDriver extends Driver {
                     System.out.printf("NHits %d MPID sensor:%d %s %d\n", nres,trackRes.getIntVal(i_hit), sensorName,i_hit);
                     System.out.printf("Track uresiduals: %s %.5f %.5f\n",sensorName, trackRes.getDoubleVal(i_hit),trackRes.getFloatVal(i_hit));
                 }
+
+                //General residuals Per volume
+                aidaGBL.histogram1D(resFolder+"uresidual_GBL"+vol).fill(trackRes.getDoubleVal(i_hit));
+                
+                if (trackRes.getIntVal(i_hit) < 9) 
+                    //L1L4 
+                    aidaGBL.histogram1D(resFolder+"uresidual_GBL"+vol+"_L1L4").fill(trackRes.getDoubleVal(i_hit));
+                else 
+                    //L5L7
+                    aidaGBL.histogram1D(resFolder+"uresidual_GBL"+vol+"_L5L7").fill(trackRes.getDoubleVal(i_hit));
+
                 aidaGBL.histogram1D(resFolder+"uresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"ureserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"ures_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
