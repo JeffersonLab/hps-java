@@ -62,6 +62,7 @@ public class CbmLitTrackFitterImp implements CbmLitTrackFitter {
             nodes[iHit].SetPredictedParam(par);
             nodes[iHit].SetF(F);
             double[] chi2Hit = new double[1];
+
             if (fUpdate.Update(par, hit, chi2Hit) == LitStatus.kLITERROR) {
                 track.SetQuality(LitTrackQa.kLITBAD);
                 return LitStatus.kLITERROR;

@@ -220,7 +220,14 @@ public class CbmLitKalmanFilter implements CbmLitTrackUpdate {
 
         // Residual of predictions
         double r = u - xIn[0] * phiCos - xIn[1] * phiSin;
-
+        if (debug) {
+            System.out.println("**** In update***");
+            System.out.println("u meas " + u);
+            System.out.println("xIn[0] " + xIn[0] + " xIn[1] " + xIn[1]);
+            System.out.println("phiCos " + phiCos + " phiSin " + phiSin);
+            System.out.println("u pred " + (xIn[0] * phiCos + xIn[1] * phiSin));
+            System.out.println("residual r " + r);
+        }
         // Calculate filtered state vector
         double[] xOut = new double[5];
         xOut[0] = xIn[0] + KR0 * r;
@@ -262,6 +269,9 @@ public class CbmLitKalmanFilter implements CbmLitTrackUpdate {
         // Filtered residuals
         double ru = u - xOut[0] * phiCos - xOut[1] * phiSin;
 
+        if (debug) {
+            System.out.println("filtered residual ru " + ru);
+        }
         // Calculate chi-square
         chiSq[0] = (ru * ru) / (duu - phiCosSq * cOut[0] - phi2SinCos * cOut[1] - phiSinSq * cOut[5]);
 

@@ -47,30 +47,30 @@ import org.lcsim.util.aida.AIDA;
  * @author Norman A. Graf
  */
 public class HpsLitFitDriver2_1 extends Driver {
-
+    
     private boolean _debug = false;
-
+    
     private MaterialSupervisor _materialManager = null;
     private MultipleScattering _scattering = null;
     private Map<Long, Hep3Matrix> rotMap = new HashMap<Long, Hep3Matrix>();
     private Map<Long, Hep3Vector> tranMap = new HashMap<Long, Hep3Vector>();
     private Map<Long, ITransform3D> xformMap = new HashMap<Long, ITransform3D>();
     private Map<Long, String> xformNames = new HashMap<Long, String>();
-
+    
     private Map<String, DetectorPlane> planes = new HashMap<String, DetectorPlane>();
-
+    
     private Map<String, SimTrackerHit> simTrackerHitmap = new HashMap<>();
-
+    
     private Hep3Vector uHat = new BasicHep3Vector(1, 0, 0);
     private Hep3Vector wHat = new BasicHep3Vector(0, 0, 1);
-
+    
     private HpsDetector _det;
-
+    
     private CbmLitRK4TrackExtrapolator _extrap;
     CbmLitTrackFitter _fitter;
     CbmLitTrackFitter _smoother;
     CbmLitTrackFitterIter _iterFitter;
-
+    
     Random ran = new Random();
 
     // histograms
@@ -83,7 +83,7 @@ public class HpsLitFitDriver2_1 extends Driver {
 
     // what about trf?
     PropZZRK trfprop;
-
+    
     protected void detectorChanged(Detector detector) {
         _materialManager = new MaterialSupervisor();
         _scattering = new MultipleScattering(_materialManager);
@@ -92,7 +92,7 @@ public class HpsLitFitDriver2_1 extends Driver {
 //        setupTransforms(detector);
         // a constant magnetic field...
         ConstantMagneticField bfield = new ConstantMagneticField(0., -0.24, 0.);
-
+        
         HpsMagField field = new HpsMagField(detector.getFieldMap());
         _extrap = new CbmLitRK4TrackExtrapolator(bfield);
 
@@ -102,23 +102,23 @@ public class HpsLitFitDriver2_1 extends Driver {
         _fitter = new CbmLitTrackFitterImp(prop, trackUpdate);
         _smoother = new CbmLitKalmanSmoother();
         _iterFitter = new CbmLitTrackFitterIter(_fitter, _smoother);
-
+        
         _det = new HpsDetector(detector);
         List<DetectorPlane> planeList = _det.getPlanes();
         for (DetectorPlane p : planeList) {
             planes.put(p.name(), p);
         }
         System.out.println(_det);
-
+        
         populatePhiMap2();
 
         // trf
         org.lcsim.recon.tracking.magfield.ConstantMagneticField cmf = new org.lcsim.recon.tracking.magfield.ConstantMagneticField(0, -0.24, 0);
         trfprop = new PropZZRK(cmf);
         System.out.println("trfprop " + trfprop);
-
+        
     }
-
+    
     @Override
     protected void process(EventHeader event) {
         System.out.println("Event: " + event.getEventNumber());
@@ -128,9 +128,9 @@ public class HpsLitFitDriver2_1 extends Driver {
         List<SimTrackerHit> simTrackerHitList = event.get(SimTrackerHit.class, "TrackerHits");
         List<MCParticle> mcParticles = event.get(MCParticle.class, "MCParticle");
         int nSimTrackerHits = simTrackerHitList.size();
-
+        
         double[] mcmomentum = mcParticles.get(0).getMomentum().v();
-
+        
         List<Track> tracks = event.get(Track.class, "MatchedTracks");
         if (tracks.size() != 1) {
             return;
@@ -182,7 +182,7 @@ public class HpsLitFitDriver2_1 extends Driver {
                         }
                         Hep3Vector globalPos = new BasicHep3Vector(strip.getPosition());
                         Hep3Vector localPos = sensor.getGeometry().getGlobalToLocal().transformed(globalPos);
-
+                        
                         double u = localPos.x(); // u measurement in local coordinates...
                         SymmetricMatrix globalCovMatrix = new SymmetricMatrix(3, strip.getCovMatrix(), true);
                         SymmetricMatrix localCovMatrix = sensor.getGeometry().getGlobalToLocal().transformed(globalCovMatrix);
@@ -199,6 +199,8 @@ public class HpsLitFitDriver2_1 extends Driver {
                 //lets try to propagate the final state generator MCParticle
                 List<CbmLitDetPlaneStripHit> mcPropagatedDetPlaneHits = new ArrayList<CbmLitDetPlaneStripHit>();
                 List<CbmLitStripHit> mcPropagatedZPlaneHits = new ArrayList<CbmLitStripHit>();
+                List<CbmLitStripHit> simtrackerhitZPlaneHits = new ArrayList<CbmLitStripHit>();
+                
                 for (MCParticle mcp : mcParticles) {
                     if (mcp.getGeneratorStatus() == MCParticle.FINAL_STATE) {
                         //TODO abstract out method to create a track given an MCParticle
@@ -211,7 +213,7 @@ public class HpsLitFitDriver2_1 extends Driver {
                         // create a Lit Track
                         double p = sqrt(mom[0] * mom[0] + mom[1] * mom[1] + mom[2] * mom[2]);
                         CbmLitTrackParam parIn = new CbmLitTrackParam();
-
+                        
                         double[] pars = new double[5];
                         pars[0] = mcp.getOriginX(); //x
                         pars[1] = mcp.getOriginY(); //y
@@ -220,7 +222,7 @@ public class HpsLitFitDriver2_1 extends Driver {
                         pars[4] = q / p; // q/p
                         parIn.SetStateVector(pars);
                         parIn.SetZ(mcp.getOriginZ());
-
+                        
                         CbmLitTrackParam parOut = new CbmLitTrackParam();
 
                         // let's propagate!
@@ -229,7 +231,7 @@ public class HpsLitFitDriver2_1 extends Driver {
                         //TODO remove fixed size loop here and replace arrays with collections.
                         for (CbmLitDetPlaneStripHit hit : trackHitList) {
                             DetectorPlane dp = hit.GetPlane();
-
+                            
                             _extrap.Extrapolate(parIn, parOut, dp, null);
                             String name = dp.name();
                             double u = dp.u(new CartesianThreeVector(parOut.GetX(), parOut.GetY(), parOut.GetZ()));
@@ -251,39 +253,83 @@ public class HpsLitFitDriver2_1 extends Driver {
                             CbmLitStripHit zhit = new CbmLitStripHit();
 
                             // CBM measures phi from the vertical...
-                            System.out.println("hit phi " + hit.GetPhi() + " detector map phi" + detectorPhi.get(name));
+                            System.out.println("hit phi " + hit.GetPhi() + " detector map phi " + detectorPhi.get(name));
+                            CartesianThreeVector pTmp = new CartesianThreeVector(parOut.GetX(), parOut.GetY(), parOut.GetZ());
+                            System.out.println("pTmp " + pTmp);
+                            double uTmp = dp.u(pTmp);
+                            System.out.println("uTmp " + uTmp);
                             double detPhi = detectorPhi.get(name);
                             double detPhiU = cos(detPhi) * parOut.GetX() + sin(detPhi) * parOut.GetY();
                             double litPhi = hit.GetPhi() + PI / 2.;
                             double zu = cos(litPhi) * parOut.GetX() + sin(litPhi) * parOut.GetY();
+                            //20200430 seems clear that I have switched x and y, let's see if this fixes things
+                            double zuPrime = cos(litPhi) * parOut.GetY() + sin(litPhi) * parOut.GetX();
+                            System.out.println("zu " + zu + " zuPrime " + zuPrime);
                             System.out.println("u " + u + " detPhiU " + detPhiU);
                             zu += ran.nextGaussian() * sigmaU;
                             System.out.println("LitStripHit smeared zu: " + zu + "MC phi: " + hit.GetPhi() + " litPhi " + litPhi);
 
                             //SimTrackerHit...
                             Hep3Vector simTrackerHitPos = simTrackerHitmap.get(name).getPositionVec();
+                            CartesianThreeVector simTrackerHitVec = new CartesianThreeVector(simTrackerHitPos.x(), simTrackerHitPos.y(), simTrackerHitPos.z());
+                            double uSth = dp.u(simTrackerHitVec);
                             System.out.println("SimTrackerHit position " + simTrackerHitPos);
+                            System.out.println("simTrackerHit u " + uSth);
                             zhit.SetPhi(litPhi);
-                            zhit.SetU(zu);
+                            zhit.SetU(zu + ran.nextGaussian() * sigmaU);
                             zhit.SetDu(sigmaU);
-                            zhit.SetZ(z);
+                            zhit.SetZ(simTrackerHitPos.z());
                             zhit.SetDz(.0001);
                             mcPropagatedZPlaneHits.add(zhit);
 
+                            // try using the SImTrackerHit...
+                            CbmLitStripHit sthhit = new CbmLitStripHit();
+                            sthhit.SetPhi(detPhi);
+                            sthhit.SetU(-uSth);
+                            sthhit.SetDu(sigmaU);
+                            sthhit.SetZ(z);
+                            sthhit.SetDz(.0001);
+                            simtrackerhitZPlaneHits.add(sthhit);
+                            
                             System.out.println("***** " + name + " hitPhi " + hit.GetPhi());
                             System.out.println("MC propagated  pos " + parOut.GetX() + " " + parOut.GetY() + " " + parOut.GetZ());
                             System.out.println("MC propagated u: " + u);
                             System.out.println("hit u: " + hit.GetU());
                         }
                         // OK, ready to fit!
+                        // OK, ready to fit!
+                        // we have three collections of hits, let's compare them...
+                        System.out.println("trackHitList " + trackHitList.size() + " hits");
+                        System.out.println("mcPropagatedDetPlaneHits " + mcPropagatedDetPlaneHits.size() + " hits");
+                        System.out.println("mcPropagatedZPlaneHits " + mcPropagatedZPlaneHits.size() + " hits");
+                        //loop and compare hit positions
+                        int i = 0;
+                        for (CbmLitDetPlaneStripHit trackHit : trackHitList) {
+//                            System.out.println("trackHit                " + trackHit.GetU() + " +/- " + trackHit.GetDu() + " at z= " + trackHit.GetZ());
+//                            System.out.println("mcPropagatedDetPlaneHit " + mcPropagatedDetPlaneHits.get(i).GetU() + " +/- " + mcPropagatedDetPlaneHits.get(i).GetDu() + " at z= " + mcPropagatedDetPlaneHits.get(i).GetZ());
+                            System.out.println("mcPropagatedZPlaneHits  " + mcPropagatedZPlaneHits.get(i).GetU() + " +/- " + mcPropagatedZPlaneHits.get(i).GetDu() + " at z= " + mcPropagatedZPlaneHits.get(i).GetZ());
+                            System.out.println("simtrackerhitZPlaneHits " + simtrackerhitZPlaneHits.get(i).GetU() + "+/- " + simtrackerhitZPlaneHits.get(i).GetDu() + " at z= " + simtrackerhitZPlaneHits.get(i).GetZ());
+//                            System.out.println("trackHit                \n  " + trackHit);
+//                            System.out.println("mcPropagatedDetPlaneHit \n  " + mcPropagatedDetPlaneHits.get(i));
+                            System.out.println("mcPropagatedZPlaneHits  \n  " + mcPropagatedZPlaneHits.get(i));
+                            System.out.println("simtrackerhitZPlaneHits \n " + simtrackerhitZPlaneHits.get(i));
+                            i++;
+                        }
                         System.out.println("MC parIn: " + parIn);
                         System.out.println("MC parOut: " + parOut);
-//                        CbmLitTrack detTrack = fit(mcPropagatedDetPlaneHits);
-//                        compare(detTrack, parIn, "detTrack");
                         CbmLitTrack zTrack = fitIt(mcPropagatedZPlaneHits);
                         System.out.println("zTrack " + zTrack);
                         //extrapolate to zero, compare to MC, create residuals and pulls
                         compare(zTrack, parIn, "zTrack");
+                        
+                        CbmLitTrack simTrackerHitTrack = fitIt(simtrackerhitZPlaneHits);
+                        System.out.println("simTrackerHitTrack " + simTrackerHitTrack);
+                        //extrapolate to zero, compare to MC, create residuals and pulls
+                        compare(simTrackerHitTrack, parIn, "simTrackerHitTrack");
+                        
+//                        CbmLitTrack detTrack = fit(mcPropagatedDetPlaneHits);
+//                        System.out.println("detTrack " + detTrack);
+//                        compare(detTrack, parIn, "detTrack");
                     }
                 } // end of loop over MCParticles
             }  // end of check on six hits
@@ -298,7 +344,7 @@ public class HpsLitFitDriver2_1 extends Driver {
 //            }
 //        }
     }
-
+    
     private void compare(CbmLitTrack track, CbmLitTrackParam mcp, String folder) {
         _tree.mkdirs(folder);
         _tree.cd(folder);
@@ -331,7 +377,7 @@ public class HpsLitFitDriver2_1 extends Driver {
         aida.cloud1D("Momentum").fill(abs(1. / tStateVector[4]));
         _tree.cd("/");
     }
-
+    
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
         if (event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {
@@ -372,7 +418,7 @@ public class HpsLitFitDriver2_1 extends Driver {
             }
         }
     }
-
+    
     private CbmLitTrack fit(List<CbmLitDetPlaneStripHit> hits) {
         // create a track
         CbmLitTrack track = new CbmLitTrack();
@@ -398,7 +444,7 @@ public class HpsLitFitDriver2_1 extends Driver {
         System.out.println(track.GetParamFirst());
         return track;
     }
-
+    
     private CbmLitTrack fitIt(List<CbmLitStripHit> hits) {
         // create a track
         CbmLitTrack track = new CbmLitTrack();

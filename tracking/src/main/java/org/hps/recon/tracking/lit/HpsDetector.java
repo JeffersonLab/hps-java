@@ -34,7 +34,9 @@ public class HpsDetector {
     List<DetectorPlane> detList;
     // use a map to get plane by name
     private Map<String, DetectorPlane> _planemap = new HashMap<String, DetectorPlane>();
+    // minimum z for the detector as a whole
     double zMin = 9999.;
+    // maximum z for the detector as a whole
     double zMax = -9999.;
 
     // temporary objects for the range determination
@@ -43,7 +45,7 @@ public class HpsDetector {
 
     private String _name = "dummy";
 
-    boolean debug = false;
+    boolean debug = true;
 
     public HpsDetector() {
     }
@@ -61,10 +63,6 @@ public class HpsDetector {
 
             // origin point in the plane
             Hep3Vector oprime = CoordinateTransformations.transformVectorToDetector(plane.origin());
-            if (debug) {
-                System.out.println("plane.origin() " + plane.origin());
-                System.out.println("oprime " + oprime);
-            }
             CartesianThreeVector pos = new CartesianThreeVector(oprime.x(), oprime.y(), oprime.z());
 
             // normal to the plane
@@ -75,9 +73,7 @@ public class HpsDetector {
             // create a DetectorPlane object
             String name = sensor.getName();
             double x0 = plane.getThicknessInRL();
-            if (debug) {
-                System.out.println(name + " X0= " + x0);
-            }
+
             ITransform3D l2g = sensor.getGeometry().getLocalToGlobal();
             ITransform3D g2l = sensor.getGeometry().getGlobalToLocal();
             // dimensions and directions in the plane
@@ -89,10 +85,14 @@ public class HpsDetector {
             Polygon3D psidePoly = plane.getPsidePlane();
             List<Point3D> psidePoints = psidePoly.getClosedVertices();
             if (debug) {
+                System.out.println(name + ":");
+                System.out.println("plane.origin() " + plane.origin());
+                System.out.println("oprime " + oprime);
+                System.out.println("normal: " + normal);
                 System.out.println("l2g sensor measDir " + sensorMeasDir);
                 System.out.println("l2g sensor unMeasDir " + sensorUnMeasDir);
                 System.out.println("meas cross unmeas " + cross);
-                System.out.println("nside Polygon points global:");
+                System.out.println(name + " X0= " + x0);
             }
 
 //            System.out.println("nside Polygon points local:");
@@ -104,9 +104,9 @@ public class HpsDetector {
             double zmax = -999.;
             for (Point3D point : psidePoints) {
                 Hep3Vector g = sensor.getGeometry().transformLocalToGlobal(point);
-                if (debug) {
-                    System.out.println(g);
-                }
+//                if (debug) {
+//                    System.out.println(g);
+//                }
                 if (g.z() > zmax) {
                     zmax = g.z();
                 }
