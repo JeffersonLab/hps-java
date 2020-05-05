@@ -58,7 +58,6 @@ public class GBLRefitterDriver extends Driver {
     private boolean enableStandardCuts = false;
     private boolean enableAlignmentCuts = false;
 
-    
     //Setting 0 is a single refit, 1 refit twice and so on..
     private int gblRefitIterations = 5; 
 
@@ -245,6 +244,9 @@ public class GBLRefitterDriver extends Driver {
                     newTrackTraj.getSecond().get_traj().milleOut(mille);
             
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
+            if (enableStandardCuts && (gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size())))
+                continue;
+
             refittedTracks.add(gblTrk);
             trackRelations.add(new BaseLCRelation(track, gblTrk));
             //PF :: unused

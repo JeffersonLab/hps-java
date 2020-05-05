@@ -208,9 +208,10 @@
             <beamSigmaY> 0.02 </beamSigmaY>
             <beamPositionZ> -7.5 </beamPositionZ>
             <trackClusterTimeOffset>28</trackClusterTimeOffset>
+            <maxMatchDt>1000</maxMatchDt>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-	    <maxElectronP>7.0</maxElectronP> 
+	        <maxElectronP>7.0</maxElectronP> 
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
         </driver>         
@@ -225,25 +226,27 @@
             <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
             <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+	        <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
             <beamPositionX> 0  </beamPositionX>
             <beamSigmaX> 0.05 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
             <beamSigmaY> 0.02 </beamSigmaY>
             <beamPositionZ> -7.5 </beamPositionZ>
             <trackClusterTimeOffset>28</trackClusterTimeOffset>
+            <maxMatchDt>1000</maxMatchDt>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-	    <maxElectronP>7.0</maxElectronP>
-	    <maxVertexP>7.0</maxVertexP>
+	        <maxElectronP>7.0</maxElectronP>
+	        <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
-            
+                        
         </driver>         
 
 
 
 
 
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>
+        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
 
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
             <!--<doDebugPlots>false</doDebugPlots>-->
