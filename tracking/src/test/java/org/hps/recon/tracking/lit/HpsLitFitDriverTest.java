@@ -24,8 +24,8 @@ public class HpsLitFitDriverTest extends TestCase {
         int nEvents = 1;
         LCSimLoop loop = new LCSimLoop();
 //        HpsLitFitDriver3 d = new HpsLitFitDriver3();
-        HpsLitFitDriver2_1 d = new HpsLitFitDriver2_1();
-//        HpsLitFitDriver2 d = new HpsLitFitDriver2();
+//        HpsLitFitDriver2_1 d = new HpsLitFitDriver2_1();
+        HpsLitFitDriver2 d = new HpsLitFitDriver2();
         //HpsTrfFitDriver d = new HpsTrfFitDriver();
         loop.add(d);
         try {

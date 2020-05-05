@@ -8,6 +8,7 @@ package org.hps.recon.tracking.lit;
  */
 public class CbmLitMaterialInfo implements Comparable {
 
+    //TODO might want to abstract out the specific (length, position) from the general
     double fLength; // Length of the material [cm]
     double fRL; // Radiation length [cm]
     double fRho; // Density [g/cm^3]
@@ -15,6 +16,27 @@ public class CbmLitMaterialInfo implements Comparable {
     double fA; // Atomic mass
     double fZpos; // Z position of the material
     String fName; // Name of material
+
+    // default constructor
+    public CbmLitMaterialInfo() {
+
+    }
+
+    // fully qualified constructor
+    public CbmLitMaterialInfo(String Name, double Zpos, double Length, double Rho, double RL, double Z, double A) {
+        fName = Name;
+        fZpos = Zpos;
+        fA = A;
+        fZ = Z;
+        fRho = Rho;
+        fRL = RL;
+        fLength = Length;
+    }
+
+    public static CbmLitMaterialInfo getSilicon() {
+        return new CbmLitMaterialInfo("Silicon", 0., 0., 2.329, 9.370, 14, 28.0855);
+    }
+
 
     /*
      * @return Length of the material
@@ -113,9 +135,9 @@ public class CbmLitMaterialInfo implements Comparable {
      */
     public String toString() {
         StringBuffer ss = new StringBuffer();
-        ss.append("MaterialInfo: length=" + fLength + " rl=" + fRL
-                + " rho=" + fRho + " Z=" + fZ + " A=" + fA + " zpos=" + fZpos
-                + " name=" + fName + "\n");
+        ss.append("MaterialInfo: " + fName + " length=" + fLength + " cm, X0=" + fRL
+                + " cm, rho=" + fRho + " g/cm^3 Z=" + fZ + " A=" + fA + " g/mole zpos=" + fZpos
+                + " cm \n");
         return ss.toString();
     }
 

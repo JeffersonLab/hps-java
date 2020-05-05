@@ -7,6 +7,9 @@ import static java.lang.Math.abs;
 import static java.lang.Math.atan2;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.Transform3D;
+import org.lcsim.detector.solids.GeomOp3D;
+import org.lcsim.detector.solids.Line3D;
+import org.lcsim.detector.solids.Point3D;
 
 /**
  * A class to encapsulate the behavior of a planar detector
@@ -28,6 +31,8 @@ public class DetectorPlane implements Comparable {
     private double _phi; // effective stereo angle in global coordinates
     private double _zmin; //minimum z of bounding box
     private double _zmax; // maximum z of bounding box
+
+    Line3D zAxis = new Line3D(new Point3D(0., 0., 0.), new BasicHep3Vector(0., 0., 1.));
 
     DetectorPlane() {
 
@@ -191,6 +196,11 @@ public class DetectorPlane implements Comparable {
         // note that the local measurement coordinate is x!
         Hep3Vector localPos = _globalToLocal.transformed(globalPos);
         return localPos.x();
+    }
+
+    public double globalU(Hep3Vector globalPos) {
+        Line3D strip = new Line3D(new Point3D(globalPos), _unmeasDir);
+        return GeomOp3D.distanceBetween(zAxis, strip);
     }
 
     /*

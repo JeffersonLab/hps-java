@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.tracking.lit;
 
 import java.io.File;
@@ -10,13 +5,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import junit.framework.TestCase;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.lcsim.geometry.Detector;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 

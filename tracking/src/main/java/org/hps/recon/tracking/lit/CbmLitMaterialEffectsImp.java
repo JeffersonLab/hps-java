@@ -15,7 +15,7 @@ import static java.lang.Math.pow;
 public class CbmLitMaterialEffectsImp implements CbmLitMaterialEffects {
 
     boolean fDownstream = true; // Propagation direction
-    double fMass = 0.1396; // Hypothesis on particle mass
+    double fMass = 0.000511;//fMass = 0.1396; // Hypothesis on particle mass
     boolean fIsElectron = false; // True if particle is an electron or positron
     boolean fIsMuon = true; // True if particle is muon
 
@@ -39,9 +39,10 @@ public class CbmLitMaterialEffectsImp implements CbmLitMaterialEffects {
             fMass = 0.105;
         }
         AddEnergyLoss(par, mat);
-
-//   AddThinScatter(par, mat);
-        AddThickScatter(par, mat);
+        //TODO pick one or the other depending on thickness and RL
+        //For now, use thin scatter
+        AddThinScatter(par, mat);
+//        AddThickScatter(par, mat);
 
         return LitStatus.kLITSUCCESS;
     }
@@ -169,7 +170,7 @@ public class CbmLitMaterialEffectsImp implements CbmLitMaterialEffects {
             CbmLitTrackParam par,
             CbmLitMaterialInfo mat) {
         double dedx = BetheBloch(par, mat);
-// dedx += BetheHeitler(par, mat);
+        dedx += BetheHeitler(par, mat);
 // if (fIsMuon) dedx += PairProduction(par, mat);
         return dedx;
     }

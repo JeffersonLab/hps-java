@@ -38,6 +38,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
+import org.lcsim.event.MCParticle.SimulatorStatus;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
@@ -110,45 +111,114 @@ public class SimTrackerHitFitterDriver extends Driver {
         if (mcParticles.size() != 1) {
             return;
         }
-        for (SimTrackerHit simtrackerhit : simTrackerHitList) {
-            String sensorName = simtrackerhit.getDetectorElement().getName();
-            simTrackerHitmap.put(sensorName, simtrackerhit);
-        }
-        List<Track> tracks = event.get(Track.class, "MatchedTracks");
-        if (tracks.size() != 1) {
-            return;
-        }
-        setupSensors(event);
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        MCParticle mcp = mcParticles.get(0);
+        SimulatorStatus simstat = mcp.getSimulatorStatus();
+        if (simstat.isDecayedInCalorimeter() || simstat.hasLeftDetector()) {
 
-        Track t = tracks.get(0);
-        Map<String, Hep3Vector> trackHitGlobalPosMap = new HashMap<>();
-        Map<String, Hep3Vector> trackHitLocalPosMap = new HashMap<>();
+            for (SimTrackerHit simtrackerhit : simTrackerHitList) {
+                String sensorName = simtrackerhit.getDetectorElement().getName();
+                simTrackerHitmap.put(sensorName, simtrackerhit);
+            }
+            List<Track> tracks = event.get(Track.class, "MatchedTracks");
+            if (tracks.size() != 1) {
+                return;
+            }
+            setupSensors(event);
+            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
-        for (TrackerHit hit : t.getTrackerHits()) {
-            Set<TrackerHit> stripList = hitToStrips.allFrom(hitToRotated.from(hit));
-            for (TrackerHit strip : stripList) {
-                List rawHits = strip.getRawHits();
-                HpsSiSensor sensor = null;
-                for (Object o : rawHits) {
-                    RawTrackerHit rth = (RawTrackerHit) o;
-                    // TODO figure out why the following collection is always null
-                    //List<SimTrackerHit> stipMCHits = rth.getSimTrackerHits();
-                    sensor = (HpsSiSensor) rth.getDetectorElement();
-                }
-                String name = sensor.getName();
-                Hep3Vector globalPos = new BasicHep3Vector(strip.getPosition());
-                Hep3Vector localPos = sensor.getGeometry().getGlobalToLocal().transformed(globalPos);
+            Track t = tracks.get(0);
+            Map<String, Hep3Vector> trackHitGlobalPosMap = new HashMap<>();
+            Map<String, Hep3Vector> trackHitLocalPosMap = new HashMap<>();
+
+            for (TrackerHit hit : t.getTrackerHits()) {
+                Set<TrackerHit> stripList = hitToStrips.allFrom(hitToRotated.from(hit));
+                for (TrackerHit strip : stripList) {
+                    List rawHits = strip.getRawHits();
+                    HpsSiSensor sensor = null;
+                    for (Object o : rawHits) {
+                        RawTrackerHit rth = (RawTrackerHit) o;
+                        // TODO figure out why the following collection is always null
+                        //List<SimTrackerHit> stipMCHits = rth.getSimTrackerHits();
+                        sensor = (HpsSiSensor) rth.getDetectorElement();
+                    }
+                    String name = sensor.getName();
+                    Hep3Vector globalPos = new BasicHep3Vector(strip.getPosition());
+                    Hep3Vector localPos = sensor.getGeometry().getGlobalToLocal().transformed(globalPos);
 //                System.out.println("track hit in " + name);
 //                System.out.println("  global " + globalPos);
 //                System.out.println("  local " + localPos);
-                trackHitGlobalPosMap.put(name, globalPos);
-                trackHitGlobalPosMap.put(name, localPos);
-            }
-        } // end of loop over hits...
+                    trackHitGlobalPosMap.put(name, globalPos);
+                    trackHitGlobalPosMap.put(name, localPos);
+                }
+            } // end of loop over hits...
 
-        MCParticle mcp = mcParticles.get(0);
+            double[] pos = {mcp.getOriginX(), mcp.getOriginY(), mcp.getOriginZ()};
+            double[] mom = {mcp.getPX(), mcp.getPY(), mcp.getPZ()};
+            double E = mcp.getEnergy();
+            double q = mcp.getCharge();
+            // create a physical track 
+            PhysicalTrack ptrack = new PhysicalTrack(pos, mom, E, (int) q);
+            // create a Lit Track
+            double p = sqrt(mom[0] * mom[0] + mom[1] * mom[1] + mom[2] * mom[2]);
+            CbmLitTrackParam parIn = new CbmLitTrackParam();
+
+            double[] pars = new double[5];
+            pars[0] = mcp.getOriginX(); //x
+            pars[1] = mcp.getOriginY(); //y
+            pars[2] = mom[0] / mom[2]; // x' (dx/dz)
+            pars[3] = mom[1] / mom[2]; // y' (dy/dz)
+            pars[4] = q / p; // q/p
+            parIn.SetStateVector(pars);
+            parIn.SetZ(mcp.getOriginZ());
+
+            CbmLitTrackParam parOut = new CbmLitTrackParam();
+            // loop over all of the SImTrackerHits associated with this MCParticle 
+            // and try fitting them
+            List<CbmLitStripHit> simtrackerhitZPlaneHits = new ArrayList<CbmLitStripHit>();
+            
+            for (SimTrackerHit sth : simTrackerHitList) {
+                String sensorName = sth.getDetectorElement().getName();
+                Hep3Vector globalPos = sth.getPositionVec();
+                NewDetectorPlane dp = planeMap.get(sensorName);
+                CartesianThreeVector simTrackerHitVec = new CartesianThreeVector(globalPos.x(), globalPos.y(), globalPos.z());
+                Hep3Vector localPos = dp.globalToLocal(globalPos);
+                double u = localPos.y() + ran.nextGaussian() * sigmaU;
+                CbmLitStripHit sthhit = new CbmLitStripHit();
+                double stereo = stereoAngleMap.get(sensorName);
+                sthhit.SetPhi((PI / 2. - stereo)); // tracking code assumes X measurement with Phi measured from the Y axis
+                //what if this u should be the GLOBAL u?
+                double globalU = globalU(globalPos, dp.v());
+                globalU += ran.nextGaussian() * sigmaU;
+                if (_debug) {
+                    System.out.println("SimTrackerHit in " + sensorName);
+                    System.out.println("SimTrackerHit global position " + globalPos);
+                    System.out.println("SimTrackerHit local position " + localPos);
+                    System.out.println("SimTrackerHit local back to global position " + dp.localToGlobal(localPos));
+                    System.out.println("trackHit global position " + trackHitGlobalPosMap.get(sensorName));
+                    System.out.println("trackHit local position " + trackHitLocalPosMap.get(sensorName));
+                    System.out.println(sensorName + " stereo angle " + stereo);
+                    System.out.println("globalU " + globalU);
+                }
+                _tree.mkdirs("SimTrackerHit momenta");
+                _tree.cd("SimTrackerHit momenta");
+                aida.histogram1D(sensorName + " SimTrackerHit momentum", 100, 2.295, 2.30).fill(new BasicHep3Vector(sth.getMomentum()).magnitude());
+                _tree.cd("/");
+                sthhit.SetU(globalU);
+                sthhit.SetDu(sigmaU);
+                sthhit.SetZ(globalPos.z());
+                sthhit.SetDz(.0001);
+                simtrackerhitZPlaneHits.add(sthhit);
+            }
+            //let's fit!
+            CbmLitTrack simTrackerHitTrack = fitIt(simtrackerhitZPlaneHits, parIn);
+//        System.out.println("simTrackerHitTrack " + simTrackerHitTrack);
+            //extrapolate to zero, compare to MC, create residuals and pulls
+            compare(simTrackerHitTrack, parIn, "simTrackerHitTrack");
+        }//end of check on simstat
+    }
+
+    private void extrapolateAndFitMCParticle(MCParticle mcp) {
         double[] pos = {mcp.getOriginX(), mcp.getOriginY(), mcp.getOriginZ()};
         double[] mom = {mcp.getPX(), mcp.getPY(), mcp.getPZ()};
         double E = mcp.getEnergy();
@@ -169,44 +239,10 @@ public class SimTrackerHitFitterDriver extends Driver {
         parIn.SetZ(mcp.getOriginZ());
 
         CbmLitTrackParam parOut = new CbmLitTrackParam();
-        // loop over all of the SImTrackerHits associated with this MCParticle 
-        // and try fitting them
-        List<CbmLitStripHit> simtrackerhitZPlaneHits = new ArrayList<CbmLitStripHit>();
 
-        for (SimTrackerHit sth : simTrackerHitList) {
-            String sensorName = sth.getDetectorElement().getName();
-            Hep3Vector globalPos = sth.getPositionVec();
-            NewDetectorPlane dp = planeMap.get(sensorName);
-            CartesianThreeVector simTrackerHitVec = new CartesianThreeVector(globalPos.x(), globalPos.y(), globalPos.z());
-            Hep3Vector localPos = dp.globalToLocal(globalPos);
-            double u = localPos.y() + ran.nextGaussian() * sigmaU;
-            CbmLitStripHit sthhit = new CbmLitStripHit();
-            double stereo = stereoAngleMap.get(sensorName);
-            sthhit.SetPhi((PI / 2. - stereo)); // tracking code assumes X measurement with Phi measured from the Y axis
-            //what if this u should be the GLOBAL u?
-            double globalU = globalU(globalPos, dp.v());
-            globalU += ran.nextGaussian() * sigmaU;
-            if (_debug) {
-                System.out.println("SimTrackerHit in " + sensorName);
-                System.out.println("SimTrackerHit global position " + globalPos);
-                System.out.println("SimTrackerHit local position " + localPos);
-                System.out.println("SimTrackerHit local back to global position " + dp.localToGlobal(localPos));
-                System.out.println("trackHit global position " + trackHitGlobalPosMap.get(sensorName));
-                System.out.println("trackHit local position " + trackHitLocalPosMap.get(sensorName));
-                System.out.println(sensorName + " stereo angle " + stereo);
-                System.out.println("globalU " + globalU);
-            }
-            sthhit.SetU(globalU);
-            sthhit.SetDu(sigmaU);
-            sthhit.SetZ(globalPos.z());
-            sthhit.SetDz(.0001);
-            simtrackerhitZPlaneHits.add(sthhit);
-        }
-        //let's fit!
-        CbmLitTrack simTrackerHitTrack = fitIt(simtrackerhitZPlaneHits, parIn);
-//        System.out.println("simTrackerHitTrack " + simTrackerHitTrack);
-        //extrapolate to zero, compare to MC, create residuals and pulls
-        compare(simTrackerHitTrack, parIn, "simTrackerHitTrack");
+        // let's propagate!
+        System.out.println("Propagating MCParticle " + mcp);
+        double sigmaU = .005;
 
     }
 
@@ -486,23 +522,29 @@ public class SimTrackerHitFitterDriver extends Driver {
         double[] minVal = {-0.5, -0.05, -0.005, -0.0001, -0.05};// x,y,tx,ty,q/p
         double[] maxVal = {0.5, 0.05, 0.005, 0.0001, 0.05};
 
-        double[] minValTrack = {-0.5, -0.05, -0.2, 0.01, -1.0};// x,y,tx,ty,q/p
-        double[] maxValTrack = {0.5, 0.05, 0.2, 0.06, 0.0};
+        double[] minValTrack_nomsc = {-0.5, -0.05, -0.2, 0.01, -1.0};// x,y,tx,ty,q/p
+        double[] maxValTrack_nomsc = {0.5, 0.05, 0.2, 0.06, 0.0};
+
+        double[] minValTrack = {-5., -5., -0.2, 0.01, -5.};// x,y,tx,ty,q/p
+        double[] maxValTrack = {5., 5., 0.2, 0.06, 5.};
 
         for (int i = 0; i < 5; ++i) {
 //            aida.cloud1D(label[i] + " MC").fill(mcStateVector[i]);
-//            aida.cloud1D(label[i] + " residual").fill(tStateVector[i] - mcStateVector[i]);
-//            aida.cloud1D(label[i] + " pull").fill((tStateVector[i] - mcStateVector[i]) / sqrt(covMat[index[i]]));
             aida.histogram1D(label[i] + " MC", 100, minValTrack[i], maxValTrack[i]).fill(mcStateVector[i]);
             aida.histogram1D(label[i] + " track", 100, minValTrack[i], maxValTrack[i]).fill(tStateVector[i]);
             aida.histogram1D(label[i] + " residual", 100, minVal[i], maxVal[i]).fill(tStateVector[i] - mcStateVector[i]);
             aida.histogram1D(label[i] + " pull", 100, -5., 5.).fill((tStateVector[i] - mcStateVector[i]) / sqrt(covMat[index[i]]));
+
+            aida.histogram1D(label[i] + " MC nomsc", 100, minValTrack_nomsc[i], maxValTrack_nomsc[i]).fill(mcStateVector[i]);
+            aida.histogram1D(label[i] + " track nomsc", 100, minValTrack_nomsc[i], maxValTrack_nomsc[i]).fill(tStateVector[i]);
+            aida.histogram1D(label[i] + " residual nomsc", 100, minVal[i], maxVal[i]).fill(tStateVector[i] - mcStateVector[i]);
+            aida.histogram1D(label[i] + " pull nomsc", 100, -5., 5.).fill((tStateVector[i] - mcStateVector[i]) / sqrt(covMat[index[i]]));
         }
         double chisq = track.GetChi2();
         int ndf = track.GetNDF();
-        aida.histogram1D("Chisq", 100, 0., 25.).fill(chisq);
+        aida.histogram1D("Chisq", 100, 0., 500.).fill(chisq);
         aida.histogram1D("Chisq Probability", 100, 0., 1.).fill(ChisqProb.gammq(ndf, chisq));
-        aida.histogram1D("Momentum", 100, 2.15, 2.5).fill(abs(1. / tStateVector[4]));
+        aida.histogram1D("Momentum track", 100, 1.5, 3.0).fill(abs(1. / tStateVector[4]));
         _tree.cd("/");
     }
 
