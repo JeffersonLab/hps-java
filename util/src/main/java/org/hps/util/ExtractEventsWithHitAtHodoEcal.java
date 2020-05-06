@@ -15,6 +15,7 @@ import org.hps.logging.config.DefaultLoggingConfig;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimCalorimeterHit;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.base.BaseLCSimEvent;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.lcio.LCIOWriter;
@@ -27,7 +28,7 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
  *
  * @author Tongtong Cao <caot@jlab.org>
  */
-public class ExtractEventsWithPositronHitsAtEcal {
+public class ExtractEventsWithHitAtHodoEcal {
     static {
         LCSimConditionsManagerImplementation.register();
         DefaultLoggingConfig.initialize();
@@ -43,6 +44,8 @@ public class ExtractEventsWithPositronHitsAtEcal {
 
         options.addOption(new Option("n", true, "Number of events to read"));
         options.addOption(new Option("w", true, "Number of events to write"));
+        options.addOption(new Option("M", true, "Number of requied hits at hodoscope"));
+        options.addOption(new Option("N", true, "Number of requied positron hits at Ecal"));
         options.addOption(new Option("E", true, "Lower energy threshold for hits at Ecal"));
         options.addOption(new Option("t", true, "Lower energy threshold for sum of energy of all hits at top or bot of Ecal"));
         options.addOption(new Option("e", true, "Interval between non-empty events"));
@@ -81,6 +84,12 @@ public class ExtractEventsWithPositronHitsAtEcal {
             throw new RuntimeException(e);
         }
         
+        int numHitHodo = 0;
+        if (cl.hasOption("M")) numHitHodo = Integer.valueOf(cl.getOptionValue("M"));
+        
+        int numPositronHitEcal = 0;
+        if (cl.hasOption("N")) numPositronHitEcal = Integer.valueOf(cl.getOptionValue("N"));
+        
         double eCutHit = 0;
         if (cl.hasOption("E")) eCutHit = Double.valueOf(cl.getOptionValue("E"));
         
@@ -101,7 +110,7 @@ public class ExtractEventsWithPositronHitsAtEcal {
 
         String detectorName = null;
         
-        ExtractEventsWithPositronHitsAtEcal extractor = new ExtractEventsWithPositronHitsAtEcal();
+        ExtractEventsWithHitAtHodoEcal extractor = new ExtractEventsWithHitAtHodoEcal();
 
         fileLoop: for (int fileNumber = 0; fileNumber < parsedArgs.length - 1; fileNumber++) {
             LCIOReader reader = null;
@@ -129,7 +138,7 @@ public class ExtractEventsWithPositronHitsAtEcal {
                     detectorName = event.getDetectorName();
                 }
 
-                if (extractor.goodEvent(event, eCutHit, eCutTotal)) {
+                if (extractor.goodEvent(event, numHitHodo, numPositronHitEcal, eCutHit, eCutTotal)) {
                     writtenEvents++;
                     try {
                         writer.write(event);
@@ -173,9 +182,14 @@ public class ExtractEventsWithPositronHitsAtEcal {
      * @param eCutTotal: Lower energy threshold for sum of energy of all hits at top or bot of Ecal
      * @return Return true if an event is good
      */
-    public boolean goodEvent(EventHeader event, double eCutHit, double eCutTotal) {
+    public boolean goodEvent(EventHeader event, int numHitHodo, int numPositronHitEcal, double eCutHit, double eCutTotal) {        
+        if(numHitHodo > 0) {
+            List<SimTrackerHit> hodoHits = event.get(SimTrackerHit.class, "HodoscopeHits");
+            if(hodoHits.size() < numHitHodo) return false;
+        }
+        
         List<SimCalorimeterHit> ecalHits = event.get(SimCalorimeterHit.class, "EcalHits");
-
+        
         if(eCutTotal > 0) {
             double topE = 0, botE = 0;
             for (SimCalorimeterHit hit : ecalHits) {
@@ -187,17 +201,21 @@ public class ExtractEventsWithPositronHitsAtEcal {
             }
             if(topE < eCutTotal || botE < eCutTotal) return false;
         }
-
-        for (SimCalorimeterHit simHit : ecalHits) {            
-            if(simHit.getRawEnergy() >= eCutHit) {
-                for(int i = 0; i < simHit.getMCParticleCount(); i++) {
-                    MCParticle particle = simHit.getMCParticle(i);
-                    if(particle.getPDGID() == -11) return true;
-                }            
+        
+        int numPosHit = 0;
+        if(numPositronHitEcal > 0) {
+            for (SimCalorimeterHit simHit : ecalHits) {            
+                if(simHit.getRawEnergy() >= eCutHit) {
+                    for(int i = 0; i < simHit.getMCParticleCount(); i++) {
+                        MCParticle particle = simHit.getMCParticle(i);
+                        if(particle.getPDGID() == -11) numPosHit++;
+                    }            
+                }
             }
+            if (numPosHit < numPositronHitEcal) return false;
         }
         
-        return false;
+        return true;
     }
 }
 
