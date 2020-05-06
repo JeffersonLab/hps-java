@@ -44,8 +44,8 @@ public class ExtractEventsWithHitAtHodoEcal {
 
         options.addOption(new Option("n", true, "Number of events to read"));
         options.addOption(new Option("w", true, "Number of events to write"));
-        options.addOption(new Option("M", true, "Number of requied hits at hodoscope"));
-        options.addOption(new Option("N", true, "Number of requied positron hits at Ecal"));
+        options.addOption(new Option("M", true, "Number of required hits at hodoscope"));
+        options.addOption(new Option("N", true, "Number of required positron hits at Ecal"));
         options.addOption(new Option("E", true, "Lower energy threshold for hits at Ecal"));
         options.addOption(new Option("t", true, "Lower energy threshold for sum of energy of all hits at top or bot of Ecal"));
         options.addOption(new Option("e", true, "Interval between non-empty events"));
@@ -178,6 +178,8 @@ public class ExtractEventsWithHitAtHodoEcal {
     /**
      * An event is regarded as good if there is positron hits at Ecal
      * @param event: LCIO event
+     * @param numHitHodo: # of required hits at hodo
+     * @param numPositronHitEcal: # of required positron hits at Ecal
      * @param eCutHit: Lower energy threshold for hits at Ecal
      * @param eCutTotal: Lower energy threshold for sum of energy of all hits at top or bot of Ecal
      * @return Return true if an event is good
