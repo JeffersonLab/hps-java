@@ -135,9 +135,9 @@ public class KalmanPatRecDriver extends Driver {
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
-        KI = new KalmanInterface(uniformB);
+        KI = new KalmanInterface(uniformB, fm);
         KI.setSiHitsLimit(siHitsLimit);
-        KI.createSiModules(detPlanes, fm);
+        KI.createSiModules(detPlanes);
         
         decoder = det.getSubdetector("Tracker").getIDDecoder();
         if (doDebugPlots) {
@@ -395,7 +395,7 @@ public class KalmanPatRecDriver extends Driver {
         
         nTracks += nKalTracks;
         
-        if (kPlot != null) kPlot.process(event, runTime, kPatList, rawtomc);
+        if (kPlot != null) kPlot.process(event, runTime, kPatList, outputFullTracks, rawtomc);
         
         KI.clearInterface();
         logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));

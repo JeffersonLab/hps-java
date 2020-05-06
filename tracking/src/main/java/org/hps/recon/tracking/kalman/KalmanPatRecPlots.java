@@ -134,6 +134,12 @@ class KalmanPatRecPlots {
                 aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", lyr),100, -0.0025, .0025);
             }
         }
+        aida.histogram1D("projected track-state x error", 100, -5., 5.);
+        aida.histogram1D("projected track-state y error", 100, -5., 5.);
+        aida.histogram1D("projected track-state x uncertainty",100,0.,5.);
+        aida.histogram1D("projected track-state y uncertainty",100,0.,5.);
+        aida.histogram1D("projected track-state x error, sigmas", 100, -10., 10.);
+        aida.histogram1D("projected track-state y error, sigmas", 100, -10., 10.);
         hf = aida.histogramFactory();
         hp = aida.histogram1D("MC particle momentum",40,0.,4.);
         hpf = aida.histogram1D("MC particle momentum, found",40,0.,4.);
@@ -142,10 +148,41 @@ class KalmanPatRecPlots {
         pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
     }
     
-    void process(EventHeader event, double runTime, ArrayList<KalmanPatRecHPS> kPatList, RelationalTable rawtomc) {
+    void process(EventHeader event, double runTime, ArrayList<KalmanPatRecHPS> kPatList, 
+            List<Track> outputFullTracks, RelationalTable rawtomc) {
         
         aida.histogram1D("Kalman pattern recognition time").fill(runTime);
         nEvents++;
+        
+        for (Track tkr : outputFullTracks) {            
+            if (tkr.getTrackerHits().size() < 12) continue;
+            if (tkr.getChi2()/tkr.getNDF() > 2.) continue;
+            List<TrackState> tkStates = tkr.getTrackStates();
+            TrackState lastState = null;
+            for (TrackState tkState : tkStates) {
+                if (tkState.getLocation() == TrackState.AtLastHit) {
+                    lastState = tkState;
+                    break;
+                }
+            }
+            if (lastState != null) {
+                // test propagation of a track state from one end of the track to the ECAL
+                double [] location = new double[3];
+                location[0] = 0.; location[1] = 1370.; location[2] = 0.;
+                double [] direction = new double[3];
+                direction[0] = 0.; direction[1] = 0.; direction[2] = 1.;
+                PropagatedTrackState pts = KI.propagateTrackState(lastState, location, direction);
+                double [] intPnt = pts.getIntersection();
+                double [][] intPntCov = pts.getIntersectionCov();
+                double [] lastPnt = {0., 0., 0.};  // need to get ECAL cluster position
+                aida.histogram1D("projected track-state x error").fill(intPnt[0] - lastPnt[0]);
+                aida.histogram1D("projected track-state x uncertainty").fill(Math.sqrt(intPntCov[0][0]));
+                aida.histogram1D("projected track-state x error, sigmas").fill((intPnt[0] - lastPnt[0])/Math.sqrt(intPntCov[0][0]));
+                aida.histogram1D("projected track-state y error").fill(intPnt[1] - lastPnt[1]);
+                aida.histogram1D("projected track-state y uncertainty").fill(Math.sqrt(intPntCov[1][1]));
+                aida.histogram1D("projected track-state y error, sigmas").fill((intPnt[1] - lastPnt[1])/Math.sqrt(intPntCov[1][1]));
+            }
+        }
         
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         hitToRotated = TrackUtils.getHitToRotatedTable(event);

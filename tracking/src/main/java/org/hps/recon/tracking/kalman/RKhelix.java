@@ -2,7 +2,8 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.Random;
 
-// This code is only to help with internal testing of the Kalman package and is not part of the fitting or pattern recognition
+// Runge-Kutta propagation through the detector, including Gaussian MCS at silicon planes.
+// This code is only to help with internal testing of the Kalman package and is not part of the fitting or pattern recognition.
 class RKhelix {
 
     Vec x;    // point on the track
@@ -26,16 +27,23 @@ class RKhelix {
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
     }
     
-    Vec planeIntersect(Plane P, Vec pInt) { // phi value where the helix intersects the plane P (given in global coordinates)        
-        return hpi.rkIntersect(P, x, p, Q, fM, pInt);
+    RKhelix propagateRK(Plane pln) {
+        Vec newP = new Vec(3);
+        Vec newX = planeIntersect(pln, newP);
+        return new RKhelix(newX, newP, Q, fM, rndm);
+    }
+    
+    Vec planeIntersect(Plane pln, Vec pInt) { // phi value where the helix intersects the plane P (given in global coordinates)        
+        return hpi.rkIntersect(pln, x, p, Q, fM, pInt);
     }
 
     void print(String s) {
         System.out.format("RKhelix %s: x=%s, p=%s, Q=%3.1f\n", s, x.toString(), p.toString(), Q);
     }
     
-    // Get parameters for the helix passing through the point x, taking x to be the origin of the field reference system.
+    // Get parameters for the helix passing through the point x.
     // pivotF is the pivot point in the helix field reference system.
+    // Input "pivot", the desired pivot point in global coordinates. This will be the origin of the field reference system.
     Vec helixParameters(Vec pivot, Vec pivotF) {
         Vec B = fM.getField(pivot);
         double Bmag = B.mag();

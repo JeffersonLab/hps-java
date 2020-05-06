@@ -171,8 +171,8 @@ public class KalmanDriverHPS extends Driver {
         bField = TrackUtils.getBField(det).magnitude();
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface(this.uniformB);
-        KI.createSiModules(detPlanes, fm);
+        KI = new KalmanInterface(this.uniformB, fm);
+        KI.createSiModules(detPlanes);
         
         System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);
     }
@@ -275,7 +275,7 @@ public class KalmanDriverHPS extends Driver {
                 outputSeedTracks.add(HPStrk);
 
                 //full track
-                ktf2 = KI.createKalmanTrackFit(evtNumb, seedKalmanTrack, trk, hitToStrips, hitToRotated, fm, 2);
+                ktf2 = KI.createKalmanTrackFit(evtNumb, seedKalmanTrack, trk, hitToStrips, hitToRotated, 2);
                 if (!ktf2.success) {
                     KI.clearInterface();
                     continue;
@@ -341,7 +341,7 @@ public class KalmanDriverHPS extends Driver {
                     cov.print("GBL covariance for starting Kalman fit");
                 }
                 //full track
-                ktf2 = KI.createKalmanTrackFit(evtNumb, kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, fm, 2);
+                ktf2 = KI.createKalmanTrackFit(evtNumb, kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, 2);
                 if (!ktf2.success) {
                     KI.clearInterface();
                     continue;

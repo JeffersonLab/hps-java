@@ -62,6 +62,10 @@ class Plane { // Description of a 2D plane in 3D space
         str=str+"       vhat="+v.toString()+"\n";
         return str;
     }
+    
+    public String toString() {
+        return String.format("pnt %s dir %s", x.toString(), t.toString());
+    }
 
 
     Vec U() { // unit vector in the plane perpendicular to t and the world z axis
