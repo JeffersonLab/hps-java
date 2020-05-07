@@ -45,7 +45,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
         boolean verbose = nTrials < 2;
         
-        double eCalLoc = 1370.;
+        double eCalLoc = 1394.;
         
         SquareMatrix testCov = null;
         Vec testHelix = null;
@@ -218,12 +218,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double hitEfficiency = 1.0;
 
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helix
-        Vec Bpivot = fM.getField(helixOrigin);
+        Vec Bpivot = new Vec(3,fM.getField(helixOrigin));
         Bpivot.print("magnetic field at the initial origin");
         for (int pln = 0; pln < SiModules.size(); pln++) {
-            Vec bf = fM.getField(new Vec(xdet[pln], ydet[pln], zdet[pln]));
+            Vec bf = new Vec(3,fM.getField(new Vec(xdet[pln], ydet[pln], zdet[pln])));
             System.out.format("Kalman fitting B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
-            bf = fMg.getField(new Vec(xdet[pln], ydet[pln], zdet[pln]));
+            bf = new Vec(3,fMg.getField(new Vec(xdet[pln], ydet[pln], zdet[pln])));
             System.out.format("MC generator B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
         }
         double Phi = 91. * Math.PI / 180.;
@@ -576,7 +576,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
             helixMCtrue = helixSaved[frstLyr];
             Vec pivotOnAxis = new Vec(0., location[frstLyr], 0.);
-            Vec Bpiv = fMg.getField(pivotOnAxis);
+            Vec Bpiv = new Vec(3,fMg.getField(pivotOnAxis));
             double alpha = 1.0e12 / (2.99793e8 * Bpiv.mag());
             Vec helixTrueTrans = HelixState.pivotTransform(pivotOnAxis, helixMCtrue, pivotSaved[frstLyr], alpha, 0.);
             Vec gErrVec = initialHelixGuess.dif(helixTrueTrans);
@@ -653,7 +653,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 initialCovariance.M[3][3] = (dzSigma * dzSigma);
                 initialCovariance.M[4][4] = (tanlSigma * tanlSigma);
 
-                Vec Bf0 = fMg.getField(helixOrigin);
+                Vec Bf0 = new Vec(3,fMg.getField(helixOrigin));
                 if (verbose) {
                     initialHelixGuess.print("initial helix guess");
                     System.out.format("True helix: %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho, phi0, K, dz, tanl);
@@ -701,6 +701,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                         double [] locs = KalmanInterface.vectorKalmanToGlb(TkEcal.x);
                         double [] direction = KalmanInterface.vectorKalmanToGlb(pEcal.T());
                         PropagatedTrackState pts = KI.propagateTrackState(tkState, locs, direction);
+                        if (pts.getTrackState() == null) continue;
+                        if (new Vec(5,pts.getTrackState().getParameters()).isNaN()) continue;
                         double [] intPnt = pts.getIntersection();
                         double [][] intPntCov = pts.getIntersectionCov();
                         double [] pntMC = KalmanInterface.vectorKalmanToGlb(TkEcal.x);
@@ -1006,7 +1008,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 System.out.format("Location of scattering layer %d is %8.2f with XL=%8.3f\n", layer, yScat.get(layer), XLscat.get(layer));
             }
             HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-            Vec Borig = fMg.getField(X0initial);
+            Vec Borig = new Vec(3,fMg.getField(X0initial));
             double alpha = 1.0e12 / (2.99793e8 * Borig.mag());
             Plane plnEnd = null;
             for (SiModule mod : SiModules) {
@@ -1029,7 +1031,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             aS.print("starting");
             SquareMatrix propCov = new SquareMatrix(5);
             Vec propHelix = new Vec(5);
-            Vec Bfinal = fMg.getField(posEnd);
+            Vec Bfinal = new Vec(3,fMg.getField(posEnd));
             double Bmag = Bfinal.mag();
             Vec yhat = new Vec(0.,1.,0.);
             Vec tB = Bfinal.unitVec(Bmag); // Local field at the new origin

@@ -10,13 +10,13 @@ class RKhelix {
     Vec p;    // momentum of the track at point x
     double Q; // charge of the particle
     
-    private FieldMap fM;
+    private org.lcsim.geometry.FieldMap fM;
     private Random rndm;
     private HelixPlaneIntersect hpi;
     private double rho;
     private double radLen;
     
-    RKhelix(Vec x, Vec p, double Q, FieldMap fM, Random rndm) {
+    RKhelix(Vec x, Vec p, double Q, org.lcsim.geometry.FieldMap fM, Random rndm) {
         this.rndm = rndm;
         this.fM = fM;
         this.x = x;
@@ -45,7 +45,7 @@ class RKhelix {
     // pivotF is the pivot point in the helix field reference system.
     // Input "pivot", the desired pivot point in global coordinates. This will be the origin of the field reference system.
     Vec helixParameters(Vec pivot, Vec pivotF) {
-        Vec B = fM.getField(pivot);
+        Vec B = KalmanInterface.getField(pivot, fM);
         double Bmag = B.mag();
         double alpha = 1.0e12 / (2.99793e8 * Bmag);
         RotMatrix Rot = R(pivot);
@@ -65,7 +65,7 @@ class RKhelix {
     }
     
     RotMatrix R(Vec position) {
-        Vec B = fM.getField(position);
+        Vec B = KalmanInterface.getField(position, fM);
         double Bmag = B.mag();
         Vec t = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
