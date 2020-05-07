@@ -282,13 +282,17 @@ class KalmanTrackFit2 {
             lyrPtr[lyr] = i;
         }
         ArrayList<Double> yScat = new ArrayList<Double>(nLyrs);
+        ArrayList<Double> XLscat = new ArrayList<Double>(nLyrs);
+        double rho = 2.329; // Density of silicon in g/cm^2
+        double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         for (int lyr=1; lyr<=nLyrs; ++lyr) {
             MeasurementSite site = sites.get(lyrPtr[lyr]);
             double yLyr = site.m.p.X().v[1];
+            XLscat.add(site.m.thickness/radLen);
             yScat.add(yLyr);
             //System.out.format("Layer %d, y=%10.5f\n", lyr, yLyr);
         }
-        tkr = new KalTrack(evtNumb, 0, sites, yScat, kPar); // Store the fit information as a KalTrack object
+        tkr = new KalTrack(evtNumb, 0, sites, yScat, XLscat, kPar); // Store the fit information as a KalTrack object
         for (MeasurementSite site : sites) { // Mark the hits as used
             for (Measurement hit : site.m.hits) { // Should be only a single hit (this is not a pattern recognition routine)
                 hit.tracks.add(tkr);

@@ -38,6 +38,7 @@ class KalmanPatRecHPS {
     private ArrayList<ArrayList<SiModule>> moduleList;
     private Map<Measurement, KalHit> hitMap;
     private ArrayList<Double> yScat;
+    private ArrayList<Double> XLscat;
 
     private int eventNumber;
     private boolean verbose;
@@ -82,9 +83,13 @@ class KalmanPatRecHPS {
             moduleList.get(thisSi.Layer).add(thisSi);
         }
         yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
+        XLscat = new ArrayList<Double>(numLayers);
         
         if (verbose) System.out.format("Entering KalmanPatRecHPS for event %d, top-bottom=%d with %d modules, for %d trials.\n", 
                                          eventNumber, topBottom, nModules, KalmanParams.nTries);
+        
+        double rho = 2.329;                   // Density of silicon in g/cm^2
+        double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         for (int lyr = 0; lyr < numLayers; lyr++) {
             if (verbose) {
                 System.out.format("Layer %d modules:  ", lyr);
@@ -96,6 +101,7 @@ class KalmanPatRecHPS {
             if (moduleList.get(lyr).size() > 0) {
                 SiModule thisSi = moduleList.get(lyr).get(0);
                 yScat.add(thisSi.p.X().v[1]);
+                XLscat.add(thisSi.thickness/radLen);
             }
         }
         if (verbose) {
@@ -1272,7 +1278,7 @@ class KalmanPatRecHPS {
             return false;
         }
         
-        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.sites, yScat, kPar);
+        KalTrack tkr = new KalTrack(eventNumber, tkID, tkrCand.sites, yScat, XLscat, kPar);
         boolean redundant = false;
         for (KalTrack oldTkr : TkrList) {
             if (tkr.equals(oldTkr)) {
