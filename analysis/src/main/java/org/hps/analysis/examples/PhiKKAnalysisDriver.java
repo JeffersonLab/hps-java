@@ -9,6 +9,7 @@ import org.hps.recon.tracking.TrackType;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -62,10 +63,21 @@ public class PhiKKAnalysisDriver extends Driver {
                 String trackType = isGBL ? "gbl" : "matchedTracks";
                 aida.tree().mkdirs(trackType);
                 aida.tree().cd(trackType);
+                Track t = rp.getTracks().get(0);
+                int nHits = t.getTrackerHits().size();
+                double dEdx = t.getdEdx();
+                aida.histogram1D(particleType[i] + " track nHits", 20, 0., 20.).fill(nHits);
+                aida.cloud1D(particleType[i] + " track dEdx").fill(dEdx);
                 // cluster plots
                 if (clus != null) {
+                    aida.cloud1D(particleType[i] + " cluster nHits").fill(clus.getCalorimeterHits().size());
                     aida.histogram1D(particleType[i] + " cluster energy", 100, 0., 1.5).fill(clus.getEnergy());
                     aida.histogram2D(particleType[i] + " cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(clus.getPosition()[0], clus.getPosition()[1]);
+                    if (clus.getEnergy() < clusterEcut) {
+                        aida.histogram1D(particleType[i] + " MIP track nHits", 20, 0., 20.).fill(nHits);
+                        aida.cloud1D(particleType[i] + " MIP track dEdx").fill(dEdx);
+                        aida.cloud1D(particleType[i] + " MIP cluster nHits").fill(clus.getCalorimeterHits().size());
+                    }
                 }
                 aida.tree().cd("..");
             }
@@ -130,6 +142,14 @@ public class PhiKKAnalysisDriver extends Driver {
                 aida.histogram1D("vertex invariant mass phi search two clusters", 100, 0.98, 1.06).fill(kkmass);
                 aida.histogram2D("electron vs positron cluster energy", 100, 0., 1.5, 100, 0., 1.5).fill(clusters[0].getEnergy(), clusters[1].getEnergy());
                 if (clusters[0].getEnergy() < clusterEcut && clusters[1].getEnergy() < clusterEcut) {
+                    aida.cloud1D(particleType[0] + " two MIP clusters nHits").fill(clusters[0].getCalorimeterHits().size());
+                    aida.cloud1D(particleType[1] + " two MIP clusters nHits").fill(clusters[1].getCalorimeterHits().size());
+                    aida.histogram1D(particleType[0] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[0].getEnergy());
+                    aida.histogram1D(particleType[1] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[1].getEnergy());
+
+                    aida.cloud1D(particleType[0] + " two MIP clusters track dEdx").fill(ele.getTracks().get(0).getdEdx());
+                    aida.cloud1D(particleType[1] + " two MIP clusters track dEdx").fill(pos.getTracks().get(0).getdEdx());
+
                     aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut, 100, 0.98, 1.06).fill(kkmass);
                     aida.histogram1D("vertex invariant mass two clusters below " + clusterEcut, 100, 0., 0.4).fill(invMass);
                     aida.histogram1D("two cluster deltaT", 100, -5., 5.).fill(ClusterUtilities.findSeedHit(clusters[0]).getTime() - ClusterUtilities.findSeedHit(clusters[1]).getTime());
