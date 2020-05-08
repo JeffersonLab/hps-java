@@ -113,11 +113,17 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         Vec xInt = HelixState.atPhi(X1local, helix, phiInt, alpha);
         if (debug) HelixState.getMom(phiInt, helix).print("pInt local");
         Vec temp = R.inverseRotate(HelixState.getMom(phiInt, helix));
-        if (debug) xInt.print("xInt, local coordinates intersection with plane");
+        Vec xIntGlb = R.inverseRotate(xInt).sum(X1); // return value in global coordinates
+        if (debug) {
+            xInt.print("xInt, local coordinates of intersection with plane");
+            xIntGlb.print("xInt, global coordinates of intersection with plane");
+            temp.print("Momentum at intersection with plane, in global coordinates");
+            System.out.format("Exiting HelixPlaneIntersect.rkIntersect\n");
+        }
         pInt.v[0] = temp.v[0];
         pInt.v[1] = temp.v[1];
         pInt.v[2] = temp.v[2];
-        return R.inverseRotate(xInt).sum(X1); // return value in global coordinates
+        return xIntGlb;
     }
 
     // Given the momentum and charge at a location, return the parameters of the helix,

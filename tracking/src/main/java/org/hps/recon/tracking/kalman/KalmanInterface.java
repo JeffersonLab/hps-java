@@ -116,8 +116,10 @@ public class KalmanInterface {
             hpsPos[0] = 0.;
             hpsPos[1] = 0.;
             hpsPos[2] = SVTcenter;
+        } else {
+            if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   // To avoid getting a field returned that is identically equal to zero
+            if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
         }
- 
         double[] hpsField = hpsFm.getField(hpsPos);
         if (uniformB) {
             double [] kalField = {0., 0., -1.0 * hpsField[1]};

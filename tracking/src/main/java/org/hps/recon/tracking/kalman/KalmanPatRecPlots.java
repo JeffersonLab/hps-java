@@ -144,7 +144,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("projected track-state x error, sigmas", 100, -10., 10.);
         aida.histogram1D("projected track-state y error, sigmas", 100, -10., 10.);
         aida.histogram1D("Kalman projected track-state x error", 100, -25., 25.);
-        aida.histogram1D("Kalman projected track-state y error", 100, -25., 25.);
+        aida.histogram1D("Kalman projected track-state z error", 100, -25., 25.);
         hf = aida.histogramFactory();
         hp = aida.histogram1D("MC particle momentum",40,0.,4.);
         hpf = aida.histogram1D("MC particle momentum, found",40,0.,4.);
@@ -194,21 +194,23 @@ class KalmanPatRecPlots {
             }
             for (KalmanPatRecHPS kPat : kPatList) {
                 for (KalTrack tkr : kPat.TkrList) {
+                    if (tkr.nHits < 12) continue;
+                    if (tkr.chi2/tkr.nHits > 2.) continue;
                     MeasurementSite lastSite = tkr.SiteList.get(tkr.SiteList.size()-1);
                     for (Cluster cluster : clusters) {
                         Vec eCalPos = KalmanInterface.vectorGlbToKalman(cluster.getPosition());
                         Plane plnAtEcal = new Plane(eCalPos, new Vec(0.,1.,0.));
                         ArrayList<Double> yScat = new ArrayList<Double>();
                         ArrayList<Double> XLscat = new ArrayList<Double>();
+                        //eCalPos.print("ECAL cluster position");
+                        //lastSite.aS.helix.print("helix at last layer");
                         HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm);
                         if (helixAtEcal.C.isNaN()) continue;
                         Vec intPnt = helixAtEcal.getRKintersection();
-                        //eCalPos.print("ECAL cluster position");
-                        //lastSite.aS.helix.print("helix at last layer");
                         //helixAtEcal.print("helix at ECAL cluster");
                         //intPnt.print("RK intersection point");
                         aida.histogram1D("Kalman projected track-state x error").fill(intPnt.v[0] - eCalPos.v[0]);
-                        aida.histogram1D("Kalman projected track-state y error").fill(intPnt.v[1] - eCalPos.v[1]);
+                        aida.histogram1D("Kalman projected track-state z error").fill(intPnt.v[2] - eCalPos.v[2]);
                     }
                 }
             }
