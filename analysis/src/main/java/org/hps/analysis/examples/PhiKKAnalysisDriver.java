@@ -35,6 +35,8 @@ public class PhiKKAnalysisDriver extends Driver {
     double kmass = 0.493667;
     double[] masses = {0.000511, 0.10566, 0.13957, 0.493667};
     String[] particleNames = {"electron", "muon", "pion", "kaon"};
+    double[] minVals = {0.0, 0.15, 0.25, 0.95};
+    double[] maxVals = {0.8, 0.65, 0.75, 1.45};
     double phimass = 1.019;
     double emass2 = emass * emass;
     double kmass2 = kmass * kmass;
@@ -67,16 +69,16 @@ public class PhiKKAnalysisDriver extends Driver {
                 int nHits = t.getTrackerHits().size();
                 double dEdx = t.getdEdx();
                 aida.histogram1D(particleType[i] + " track nHits", 20, 0., 20.).fill(nHits);
-                aida.cloud1D(particleType[i] + " track dEdx").fill(dEdx);
+                aida.histogram1D(particleType[i] + " track dEdx", 200, 0., 0.003).fill(dEdx);
                 // cluster plots
                 if (clus != null) {
-                    aida.cloud1D(particleType[i] + " cluster nHits").fill(clus.getCalorimeterHits().size());
+                    aida.histogram1D(particleType[i] + " cluster nHits", 20, 0., 20.).fill(clus.getCalorimeterHits().size());
                     aida.histogram1D(particleType[i] + " cluster energy", 100, 0., 1.5).fill(clus.getEnergy());
                     aida.histogram2D(particleType[i] + " cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(clus.getPosition()[0], clus.getPosition()[1]);
                     if (clus.getEnergy() < clusterEcut) {
                         aida.histogram1D(particleType[i] + " MIP track nHits", 20, 0., 20.).fill(nHits);
-                        aida.cloud1D(particleType[i] + " MIP track dEdx").fill(dEdx);
-                        aida.cloud1D(particleType[i] + " MIP cluster nHits").fill(clus.getCalorimeterHits().size());
+                        aida.histogram1D(particleType[i] + " MIP track dEdx", 200, 0., 0.003).fill(dEdx);
+                        aida.histogram1D(particleType[i] + " MIP cluster nHits", 20, 0., 20.).fill(clus.getCalorimeterHits().size());
                     }
                 }
                 aida.tree().cd("..");
@@ -142,13 +144,13 @@ public class PhiKKAnalysisDriver extends Driver {
                 aida.histogram1D("vertex invariant mass phi search two clusters", 100, 0.98, 1.06).fill(kkmass);
                 aida.histogram2D("electron vs positron cluster energy", 100, 0., 1.5, 100, 0., 1.5).fill(clusters[0].getEnergy(), clusters[1].getEnergy());
                 if (clusters[0].getEnergy() < clusterEcut && clusters[1].getEnergy() < clusterEcut) {
-                    aida.cloud1D(particleType[0] + " two MIP clusters nHits").fill(clusters[0].getCalorimeterHits().size());
-                    aida.cloud1D(particleType[1] + " two MIP clusters nHits").fill(clusters[1].getCalorimeterHits().size());
+                    aida.histogram1D(particleType[0] + " two MIP clusters nHits", 20, 0., 20.).fill(clusters[0].getCalorimeterHits().size());
+                    aida.histogram1D(particleType[1] + " two MIP clusters nHits", 20, 0., 20.).fill(clusters[1].getCalorimeterHits().size());
                     aida.histogram1D(particleType[0] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[0].getEnergy());
                     aida.histogram1D(particleType[1] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[1].getEnergy());
 
-                    aida.cloud1D(particleType[0] + " two MIP clusters track dEdx").fill(ele.getTracks().get(0).getdEdx());
-                    aida.cloud1D(particleType[1] + " two MIP clusters track dEdx").fill(pos.getTracks().get(0).getdEdx());
+                    aida.histogram1D(particleType[0] + " two MIP clusters track dEdx", 200, 0., 0.003).fill(ele.getTracks().get(0).getdEdx());
+                    aida.histogram1D(particleType[1] + " two MIP clusters track dEdx", 200, 0., 0.003).fill(pos.getTracks().get(0).getdEdx());
 
                     aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut, 100, 0.98, 1.06).fill(kkmass);
                     aida.histogram1D("vertex invariant mass two clusters below " + clusterEcut, 100, 0., 0.4).fill(invMass);
@@ -174,7 +176,7 @@ public class PhiKKAnalysisDriver extends Driver {
                         kksum = kvec1.plus(kvec2);
                         kkmass = kksum.mass();
 //                        aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, 0., 2.).fill(kkmass);
-                        aida.cloud1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis").fill(kkmass);
+                        aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, minVals[j], maxVals[j]).fill(kkmass);
 
                     }
                 }
