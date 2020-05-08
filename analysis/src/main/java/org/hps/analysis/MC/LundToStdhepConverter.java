@@ -53,8 +53,9 @@ public class LundToStdhepConverter {
         FileInputStream fin1 = new FileInputStream(fileName);
 
         double zOffset = 0.;
-        if (args.length > 2) {
+        if (args.length > 1) {
             zOffset = Double.parseDouble(args[1]);
+            System.out.println("Offsetting z vertex by "+zOffset+" mm.");
         }
         File outputDir = new File(".");
         if (args.length > 2) {
