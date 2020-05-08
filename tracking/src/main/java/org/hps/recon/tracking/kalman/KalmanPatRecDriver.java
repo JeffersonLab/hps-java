@@ -125,7 +125,31 @@ public class KalmanPatRecDriver extends Driver {
         _materialManager.buildModel(det);
 
         fm = det.getFieldMap();
-
+        /*
+        System.out.format("B field map vs y:\n");
+        double eCalLoc = 1394.;
+        for (double y=0.; y<1500.; y+=5.) {
+            double z1=-50.; 
+            double z2= 50.;
+            Vec B1 = new Vec(3, KalmanInterface.getFielD(new Vec(0., y, z1), fm));
+            Vec B2 = new Vec(3, KalmanInterface.getFielD(new Vec(0., y, 0.), fm));
+            Vec B3 = new Vec(3, KalmanInterface.getFielD(new Vec(0., y, z2), fm));
+            System.out.format("y=%6.1f z=%6.1f: %s z=0: %s z=%6.1f: %s\n", y, z1, B1.toString(), B2.toString(), z2, B3.toString());
+        }
+        System.out.format("B field map vs z at ECAL:\n");
+        for (double z=-200.; z<200.; z+=5.) {
+            double y=eCalLoc; 
+            Vec B = new Vec(3, KalmanInterface.getFielD(new Vec(0., y, z), fm));
+            System.out.format("x=0 y=%6.1f z=%6.1f: %s\n", y, z, B.toString());
+        }
+        System.out.format("B field map vs x at ECAL:\n");
+        for (double x=-200.; x<200.; x+=5.) {
+            double y=eCalLoc;
+            double z=20.;
+            Vec B = new Vec(3, KalmanInterface.getFielD(new Vec(x, y, z), fm));
+            System.out.format("x=%6.1f y=%6.1f z=%6.1f: %s\n", x, y, z, B.toString());
+        }
+        */
         detPlanes = new ArrayList<SiStripPlane>();
         List<ScatteringDetectorVolume> materialVols = ((MaterialSupervisor) (_materialManager)).getMaterialVolumes();
         for (ScatteringDetectorVolume vol : materialVols) {

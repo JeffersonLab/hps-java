@@ -102,6 +102,10 @@ public class KalmanInterface {
     // The HPS field map is in the HPS global coordinate system. This routine includes the transformations
     // to return the field in the Kalman global coordinate system given a coordinate in the same system.
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
+        return new Vec(3, getFielD(kalPos, hpsFm));
+    }
+    
+    static double [] getFielD(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         // Field map for stand-alone running
         if (FieldMap.class.isInstance(hpsFm)) { return ((FieldMap) (hpsFm)).getField(kalPos); }
 
@@ -112,11 +116,17 @@ public class KalmanInterface {
             hpsPos[0] = 0.;
             hpsPos[1] = 0.;
             hpsPos[2] = SVTcenter;
+        } else {
+            if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   // To avoid getting a field returned that is identically equal to zero
+            if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
         }
- 
         double[] hpsField = hpsFm.getField(hpsPos);
-        if (uniformB) return new Vec(0., 0., -1.0 * hpsField[1]);
-        return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
+        if (uniformB) {
+            double [] kalField = {0., 0., -1.0 * hpsField[1]};
+            return kalField;
+        }
+        double [] kalField = {hpsField[0], hpsField[2], -1.0 * hpsField[1]};
+        return kalField;
     }
 
     // Set the layers to be used for finding seed tracks (not used by Kalman pattern recognition)

@@ -44,7 +44,7 @@ class HelixState {
     }
     
     HelixState(double B, Vec tB, Vec origin) {
-        logger = Logger.getLogger(StateVector.class.getName());
+        logger = Logger.getLogger(HelixState.class.getName());
         verbose = logger.getLevel()==Level.FINEST;
         this.origin = origin;
         this.B = B;
@@ -59,7 +59,7 @@ class HelixState {
     }
     
     HelixState() {
-        logger = Logger.getLogger(StateVector.class.getName());
+        logger = Logger.getLogger(HelixState.class.getName());
         verbose = logger.getLevel()==Level.FINEST;
         hpi = new HelixPlaneIntersect();
         c = 2.99793e8; // Speed of light in m/s        
@@ -338,13 +338,8 @@ class HelixState {
 
         double Q = Math.signum(a.v[2]);
 
-        Vec pInt = new Vec(3);
-        Vec xPlane = hpi.rkIntersect(pln, x0Global, p0Global, Q, fM, pInt); // RK propagation to the target plane
-        Vec XplaneLocal = targetRot.rotate(xPlane.dif(pln.X()));
-        Vec helixAtIntersect = pTOa(targetRot.rotate(pInt), 0., 0., Q); // Helix with pivot at Xplane (in field coordinates)
-        Vec helixAtTarget = pivotTransform(targetPlane.X(), helixAtIntersect, XplaneLocal, alphatarget, 0.);
         if (debug) {
-            System.out.format("\nStateVector.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1],
+            System.out.format("\nHelixState.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n", Q, origin.v[0], origin.v[1],
                     origin.v[2]);
             System.out.format("    At final plane B=%10.5f, t=%10.6f %10.6f %10.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             System.out.format("    alpha=%10.6f,  alpha at final plane=%10.6f\n", alpha, alphatarget);
@@ -357,6 +352,14 @@ class HelixState {
             x0Global.print("point on helix, global at initial point");
             p0Local.print(String.format("helix momentum, local initial point, p=%10.6f",p0Local.mag()));
             p0Global.print(String.format("helix momentum, global initial point, p=%10.6f",p0Global.mag()));
+        }
+        
+        Vec pInt = new Vec(3);
+        Vec xPlane = hpi.rkIntersect(pln, x0Global, p0Global, Q, fM, pInt); // RK propagation to the target plane
+        Vec XplaneLocal = targetRot.rotate(xPlane.dif(pln.X()));
+        Vec helixAtIntersect = pTOa(targetRot.rotate(pInt), 0., 0., Q); // Helix with pivot at Xplane (in field coordinates)
+        Vec helixAtTarget = pivotTransform(targetPlane.X(), helixAtIntersect, XplaneLocal, alphatarget, 0.);
+        if (debug) {
             xPlane.print("RK helix intersection with final plane");
             XplaneLocal.print("RK helix intersection with final plane in local system");
             pInt.print("RK momentum at helix intersection");
