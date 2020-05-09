@@ -889,12 +889,13 @@ public class StraightTrackAlignmentDriver extends Driver {
         //System.out.println(fitFront + " " + frontPlanes.size() + " " + frontHits.size());
         double[] parsFront = fitFront.pars();
         double[] parsBack = fitBack.pars();
-        aida.cloud2D(" X vs Y front at z = " + zPivot).fill(parsFront[0], parsFront[1]);
-        aida.cloud2D(" X vs Y back at z = " + zPivot).fill(parsBack[0], parsBack[1]);
+        aida.histogram2D(" X vs Y front at z = " + zPivot, 200, -60., 16., 200, -50., 50.).fill(parsFront[0], parsFront[1]);
+        aida.histogram2D(" X vs Y back at z = " + zPivot, 200, -60., 16., 200, -50., 50.).fill(parsBack[0], parsBack[1]);
         aida.histogram1D(topOrBottom + " X back-front at z = " + zPivot, 100, -2.5, 2.5).fill(parsBack[0] - parsFront[0]);
-        aida.cloud2D(topOrBottom + " Y back-front vs X at z = " + zPivot).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.histogram2D(topOrBottom + " Y back-front vs X at z = " + zPivot, 200, -40., 15., 100, -0.5, 0.5).fill(parsFront[0], parsBack[1] - parsFront[1]);
         aida.histogram1D(topOrBottom + " Y back-front at z = " + zPivot, 100, -0.5, 0.5).fill(parsBack[1] - parsFront[1]);
         aida.profile1D(topOrBottom + " Y back-front vs X at z = " + zPivot + " profile", 100, -40., 10.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.profile1D(topOrBottom + " Y back-front vs X at z = " + zPivot + " profile tight", 100, -37., -15.).fill(parsFront[0], parsBack[1] - parsFront[1]);
         aida.histogram1D(topOrBottom + " dXdZ back-front at z = " + zPivot, 100, -0.01, 0.01).fill(parsBack[2] - parsFront[2]);
         aida.histogram1D(topOrBottom + " dYdZ back-front at z = " + zPivot, 100, -0.005, 0.005).fill(parsBack[3] - parsFront[3]);
 
