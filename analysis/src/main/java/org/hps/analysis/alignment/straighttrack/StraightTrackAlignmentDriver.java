@@ -319,6 +319,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 }
                 // require at least 8 hits for fit in top, 10 in bottom (for early runs), 9 in bottom in later runs due to missing layer 4
                 int minHitsToFit = isTop ? 8 : 10;  // only 10101 has a working layer 4...
+//                if(!isTop && event.getRunNumber()>10101) minHitsToFit=8
                 if (hits.size() >= minHitsToFit) {
                     aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
