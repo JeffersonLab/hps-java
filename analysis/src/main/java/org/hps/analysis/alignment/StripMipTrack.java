@@ -1,8 +1,12 @@
 package org.hps.analysis.alignment;
 
 import static java.lang.Math.abs;
+import java.util.ArrayList;
 import java.util.List;
+import org.hps.analysis.trigger.util.Trigger;
 import org.hps.recon.tracking.TrackType;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -15,6 +19,7 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.util.Driver;
@@ -45,11 +50,25 @@ public class StripMipTrack extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        if (event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
+                    TSData2019 triggerData = new TSData2019(data);
+                    int[] indices = triggerData.getIndicesOfRegisteredTriggers(); // registered triggers are save into array 
+
+                    // You also can call methods to check if a specified trigger is registered. For example, triggerData.isSingle3TopTrigger() to check if Single 3 top is registered. For other methods, please refer to the class TSData2019.
+                }
+            }
+        }
         if (event.get(RawTrackerHit.class, "SVTRawTrackerHits").size() < _maxSvtRawTrackerHits) {
             // get the ReconstructedParticles in this event
             List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
             // now add in the FEE candidates
             rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+            aida.histogram1D("number of ReconstructedParticles", 10, 0., 10.).fill(rpList.size());
+            int nMipTracks = 0;
+            List<ReconstructedParticle> mipTracks = new ArrayList<>();
             for (ReconstructedParticle rp : rpList) {
                 if (abs(rp.getParticleIDUsed().getPDG()) == 11 && TrackType.isGBL(rp.getType())) {
                     Track t = rp.getTracks().get(0);
@@ -76,9 +95,11 @@ public class StripMipTrack extends Driver {
                                 if (nhits >= _minNumberOfHitsOnTrack) {
                                     if (_skimTopTrack && isTop) {
                                         skipEvent = false;
+                                        mipTracks.add(rp);
                                     }
                                     if (_skimBottomTrack && !isTop) {
                                         skipEvent = false;
+                                        mipTracks.add(rp);
                                     }
                                     aida.histogram2D("MIP Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
                                     if (cluster.getPosition()[1] > 0.) {
@@ -92,6 +113,19 @@ public class StripMipTrack extends Driver {
                     }//end of check whether ReconstructedParticle has a cluster
                 }//end of check on GBL tracks
             } // end of loop over ReconstructedParticles
+            aida.histogram1D("number of MIP ReconstructedParticles", 10, 0., 10.).fill(mipTracks.size());
+            if (mipTracks.size() == 2) {
+                double e1 = mipTracks.get(0).getEnergy();
+                double e2 = mipTracks.get(1).getEnergy();
+                double deltaE = e1 - e2;
+                aida.histogram2D("Two MIP clusters e1 vs e2", 100, 0., 0.5, 100, 0., 0.5).fill(e1, e2);
+                if (abs(deltaE) > .0001) {
+                    aida.histogram1D("Two MIP clusters e1-e2", 100, -0.1, 0.1).fill(e1 - e2);
+                    aida.histogram2D("Two MIP clusters e1 vs e2 nopulsers", 100, 0., 0.5, 100, 0., 0.5).fill(e1, e2);
+                }
+
+            }
+
         } // end of check on SVT monster events
 
         if (skipEvent) {
