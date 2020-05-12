@@ -84,10 +84,10 @@ public enum TriggerType2019 {
                 System.out.println("Pair 1 Trigger");
                 break;
             case PAIR2:
-                System.out.println("Pair 2 Top Trigger");
+                System.out.println("Pair 2 Trigger");
                 break;
             case PAIR3:
-                System.out.println("Pair 3 Top Trigger");
+                System.out.println("Pair 3 Trigger");
                 break;
             case LED:
                 System.out.println("LED Trigger");

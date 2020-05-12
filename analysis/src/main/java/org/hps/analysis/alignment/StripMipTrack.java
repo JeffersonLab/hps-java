@@ -3,10 +3,10 @@ package org.hps.analysis.alignment;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.List;
-import org.hps.analysis.trigger.util.Trigger;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TSData2019;
+import org.hps.record.triggerbank.TriggerType2019;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -48,15 +48,30 @@ public class StripMipTrack extends Driver {
     private boolean _skimTopTrack = true;
     private boolean _skimBottomTrack = true;
 
+    TriggerType2019[] triggertypes = TriggerType2019.values();
+
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        List<TriggerType2019> eventTriggers = new ArrayList<>();
         if (event.hasCollection(GenericObject.class, "TSBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
             for (GenericObject data : triggerList) {
                 if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
                     TSData2019 triggerData = new TSData2019(data);
-                    int[] indices = triggerData.getIndicesOfRegisteredTriggers(); // registered triggers are save into array 
+//                    System.out.println("isFaradayCup " + triggerData.isFaradayCupTrigger());
+                    if (!triggerData.isFaradayCupTrigger()) {
+                        int[] indices = triggerData.getIndicesOfRegisteredTriggers(); // registered triggers are save into array 
+//                        System.out.println(Arrays.toString(indices));
+//                        System.out.println("isFaradayCup " + triggerData.isFaradayCupTrigger() + " indices has " + indices.length + " entries");
 
+                        for (int i = 0; i < indices.length; ++i) {
+                            //System.out.println(triggertypes[indices[i]]);
+                            eventTriggers.add(triggertypes[indices[i]]);
+                        }
+                    }
+//                    for (TriggerType2019 trigger : TriggerType2019.values()) {
+//                        System.out.println(trigger);
+//                    }
                     // You also can call methods to check if a specified trigger is registered. For example, triggerData.isSingle3TopTrigger() to check if Single 3 top is registered. For other methods, please refer to the class TSData2019.
                 }
             }
@@ -120,6 +135,7 @@ public class StripMipTrack extends Driver {
                 double deltaE = e1 - e2;
                 aida.histogram2D("Two MIP clusters e1 vs e2", 100, 0., 0.5, 100, 0., 0.5).fill(e1, e2);
                 if (abs(deltaE) > .0001) {
+                    System.out.println("two-MIP event trigger " + eventTriggers);
                     aida.histogram1D("Two MIP clusters e1-e2", 100, -0.1, 0.1).fill(e1 - e2);
                     aida.histogram2D("Two MIP clusters e1 vs e2 nopulsers", 100, 0., 0.5, 100, 0., 0.5).fill(e1, e2);
                 }
