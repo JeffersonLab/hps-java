@@ -22,12 +22,10 @@ class HelixState {
     private double c;           // Speed of light
     private Logger logger;
     private HelixPlaneIntersect hpi;
-    private boolean verbose;
     private Vec xPlaneRK;
     
     HelixState(Vec a, Vec X0, Vec origin, SquareMatrix C, double B, Vec tB) {
         logger = Logger.getLogger(HelixState.class.getName());
-        verbose = logger.getLevel()==Level.FINEST;
         this.a = a;
         this.X0 = X0;
         this.origin = origin;
@@ -45,7 +43,6 @@ class HelixState {
     
     HelixState(double B, Vec tB, Vec origin) {
         logger = Logger.getLogger(HelixState.class.getName());
-        verbose = logger.getLevel()==Level.FINEST;
         this.origin = origin;
         this.B = B;
         this.tB = tB;
@@ -60,7 +57,6 @@ class HelixState {
     
     HelixState() {
         logger = Logger.getLogger(HelixState.class.getName());
-        verbose = logger.getLevel()==Level.FINEST;
         hpi = new HelixPlaneIntersect();
         c = 2.99793e8; // Speed of light in m/s        
     }
@@ -374,7 +370,7 @@ class HelixState {
         }
 
         // The covariance matrix is transformed assuming a sequence of pivot transforms (not Runge Kutta)
-        double stepSize = 10.0;
+        double stepSize = 20.0;
         // Step from the origin of this StateVector to pln.X(), both in global coordinates
         Vec transHelix = new Vec(5);
         SquareMatrix newCovariance = new SquareMatrix(5);
@@ -428,7 +424,7 @@ class HelixState {
                 
         final boolean debug = false;
         
-        double tol = 1.0;  // Tolerance in mm to determine whether a location is on a scattering plane. 
+        double tol = 2.0;  // Tolerance in mm to determine whether a location is on a scattering plane. 
         if (maxStep < tol) tol = maxStep/2.0;
         int nSteps = (int)(Math.abs(newOrigin.v[1] - this.origin.v[1])/maxStep);
         if (nSteps < 1) nSteps = 1;
@@ -468,10 +464,32 @@ class HelixState {
         Vec Origin = this.origin.copy(); // In global coordinates
         SquareMatrix fRot = new SquareMatrix(5);
         SquareMatrix Cov = this.C;
+        Vec pMom = getMom(0.,newHelix);
+        double momentum = pMom.mag();
+        double ct = pMom.v[1]/momentum;
+        double thisXL = 0.;
+        // Account for scattering in the silicon layer from where we are starting if going in the beam direction.
+        // When going toward the target, the Kalman smoother has already accounted for scattering in the first layer.
+        if (yDistance > 0.) {
+            for (int i=0; i<yScat.size(); ++i) {
+                double y = yScat.get(i);
+                if (Math.abs(this.origin.v[1]-y) < tol) {
+                    thisXL = XL.get(i);                    // Find the amount of material at the starting layer
+                }
+            }
+        }
+        double sigmaMS = projMSangle(momentum, thisXL/ct);
+        SquareMatrix Q = this.getQ(sigmaMS);
         Vec yhat = new Vec(0., 1., 0.);
         if (debug) {
             System.out.format("Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", 
                     stepPnts.size(), B, RM.M[2][0],RM.M[2][1], RM.M[2][2]);
+            if (yScat.size() == 0) {
+                System.out.format("     No scattering layers provided\n");
+            }
+            for (double y : yScat) {
+                System.out.format("    scattering at y=%9.4f with XL=%8.4f\n", y, XL.get(yScat.indexOf(y)));
+            }
             for (Pair<Double,Double> step : stepPnts) {
                 double y = step.getFirstElement();
                 double XLScat = step.getSecondElement();
@@ -481,6 +499,7 @@ class HelixState {
             this.X0.print("old pivot");
             this.a.print("old helix");
             Cov.print("old helix covariance");
+            Q.print("Qmcs");
             newOrigin.print("new origin");
             RM.print("to transform to the local field frame");
             Plane pln = new Plane(newOrigin, yhat);
@@ -491,10 +510,11 @@ class HelixState {
             Vec newHelix0 = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.);
             newHelix0.print("Pivot transform to final plane in a single step");
         }
+        Cov = Cov.sum(Q);
         for (int step = 0; step < stepPnts.size(); ++step) {
             Pair<Double, Double> thisStep = stepPnts.get(step);
             double yInt = thisStep.getFirstElement();
-            Double thisXL = thisStep.getSecondElement();
+            thisXL = thisStep.getSecondElement();
             Plane pln = new Plane(new Vec(0., yInt, 0.), yhat); // Make a plane in global coordinates, perpendicular to the y axis
             Plane plnLocal = pln.toLocal(RM, Origin); // Transform the plane to local coordinates
             double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with the plane
@@ -541,12 +561,12 @@ class HelixState {
             SquareMatrix Ft = F.multiply(fRot);              
             Cov = Cov.similarity(Ft);                           // Here we propagate the covariance matrix
             // Add in multiple scattering if we are here passing through a plane with material
-            SquareMatrix Q = null;
+            Q = null;
             if (thisXL > 0.) {                
-                Vec pMom = getMom(0.,newHelix);
-                double momentum = pMom.mag();
-                double ct = pMom.v[1]/momentum;
-                double sigmaMS = projMSangle(momentum, thisXL/ct);
+                pMom = getMom(0.,newHelix);
+                momentum = pMom.mag();
+                ct = pMom.v[1]/momentum;
+                sigmaMS = projMSangle(momentum, thisXL/ct);
                 Q = this.getQ(sigmaMS);
                 Cov = Cov.sum(Q);
             }
@@ -561,6 +581,7 @@ class HelixState {
                 deltaRM.print("rotation to field system");
                 Origin.print("intermediate origin in global system");
                 newHelix.print("new helix after rotation");
+                fRot.print("transform of rotation");
                 Ft.print("transform matrix");
                 Cov.print("covariance after rotation");
                 if (Q != null) Q.print("multiple scattering matrix");

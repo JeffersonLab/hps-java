@@ -147,27 +147,34 @@ public class PropagatedTrackState {
         // Put together a list of scattering planes
         ArrayList<Double> yScat = new ArrayList<Double>();
         ArrayList<Double> XL = new ArrayList<Double>();
-        double [] yv = {103.69,111.75,203.81,211.87,303.76,311.63,505.57,513.08,705.47,713.07,905.35,912.89};
+        /*
+        double [] yv = {103.69,111.75,203.81,211.87,303.76,311.63,505.57,513.08,705.47,713.07,897.,912.89}; // For stand-alone test
         double rho = 2.329; // Density of silicon in g/cm^2
         double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         for (int i=0; i<12; ++i) {
             yScat.add(yv[i]);
             XL.add(0.3/radLen);
         }
-/*        
+        */
         for (SiStripPlane svtPlane : detPlanes) {
             double[] pointOnPlane = svtPlane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector().v();
             Vec pointOnPlaneTransformed = KalmanInterface.vectorGlbToKalman(pointOnPlane);
             double zKal = pointOnPlaneTransformed.v[2];
             double tanl = helixParams.v[4];
+            if (debug) {
+                pointOnPlaneTransformed.print("point on plane");
+                System.out.format("  zKal=%10.6f,  tanl=%10.6f\n", zKal, tanl);
+            }
             if (zKal*tanl < 0.) continue;  // wrong half of the SVT
             double yKal = pointOnPlaneTransformed.v[1];
-            double yDir = location[1] - yKal;
+            double yDir = pntEnd.v[1] - yKal;
+            
             if (yDir > 0.) {
-                if (yKal < refPnt.v[1] + 2.0 || yKal > pntEnd.v[1]) continue;
+                if (yKal < refPnt.v[1] - 2.5 || yKal > pntEnd.v[1]) continue;
             } else {
-                if (yKal > refPnt.v[1] - 2.0 || yKal < pntEnd.v[1]) continue;
+                if (yKal > refPnt.v[1] - 2.5 || yKal < pntEnd.v[1]) continue;
             }
+            
             yScat.add(yKal);
             XL.add(svtPlane.getThicknessInRL());
             if (debug) {
@@ -175,7 +182,7 @@ public class PropagatedTrackState {
                         pointOnPlaneTransformed.toString(), svtPlane.getThicknessInRL());
             }
         }
- */       
+        
         // Propagate the HelixState to the destination plane       
         destinationPlane = new Plane(pntEnd, dirEnd);
         if (debug) destinationPlane.print("destination");
