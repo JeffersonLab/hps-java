@@ -1,6 +1,7 @@
 package org.hps.analysis.examples;
 
 import hep.physics.vec.Hep3Vector;
+import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class PhiKKAnalysisDriver extends Driver {
     double[] masses = {0.000511, 0.10566, 0.13957, 0.493667};
     String[] particleNames = {"electron", "muon", "pion", "kaon"};
     double[] minVals = {0.0, 0.15, 0.25, 0.95};
-    double[] maxVals = {0.8, 0.65, 0.75, 1.45};
+    double[] maxVals = {0.85, 0.85, 0.85, 1.45};
     double phimass = 1.019;
     double emass2 = emass * emass;
     double kmass2 = kmass * kmass;
@@ -144,40 +145,45 @@ public class PhiKKAnalysisDriver extends Driver {
                 aida.histogram1D("vertex invariant mass phi search two clusters", 100, 0.98, 1.06).fill(kkmass);
                 aida.histogram2D("electron vs positron cluster energy", 100, 0., 1.5, 100, 0., 1.5).fill(clusters[0].getEnergy(), clusters[1].getEnergy());
                 if (clusters[0].getEnergy() < clusterEcut && clusters[1].getEnergy() < clusterEcut) {
-                    aida.histogram1D(particleType[0] + " two MIP clusters nHits", 20, 0., 20.).fill(clusters[0].getCalorimeterHits().size());
-                    aida.histogram1D(particleType[1] + " two MIP clusters nHits", 20, 0., 20.).fill(clusters[1].getCalorimeterHits().size());
-                    aida.histogram1D(particleType[0] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[0].getEnergy());
-                    aida.histogram1D(particleType[1] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[1].getEnergy());
+                    double deltaT = ClusterUtilities.findSeedHit(clusters[0]).getTime() - ClusterUtilities.findSeedHit(clusters[1]).getTime();
+                    if (abs(deltaT) < 5.) {
+                        aida.histogram1D(particleType[0] + " track momentum", 200, 0., 4.5).fill(ele.getMomentum().magnitude());
+                        aida.histogram1D(particleType[1] + " track momentum", 200, 0., 4.5).fill(pos.getMomentum().magnitude());
+                        aida.histogram2D("electron vs positron track momentum", 100, 0., 4.5, 100, 0., 4.5).fill(ele.getMomentum().magnitude(), pos.getMomentum().magnitude());
+                        aida.histogram1D(particleType[0] + " two MIP clusters nHits", 20, 0., 20.).fill(clusters[0].getCalorimeterHits().size());
+                        aida.histogram1D(particleType[1] + " two MIP clusters nHits", 20, 0., 20.).fill(clusters[1].getCalorimeterHits().size());
+                        aida.histogram1D(particleType[0] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[0].getEnergy());
+                        aida.histogram1D(particleType[1] + " two MIP clusters energy", 100, 0., 0.3).fill(clusters[1].getEnergy());
 
-                    aida.histogram1D(particleType[0] + " two MIP clusters track dEdx", 200, 0., 0.003).fill(ele.getTracks().get(0).getdEdx());
-                    aida.histogram1D(particleType[1] + " two MIP clusters track dEdx", 200, 0., 0.003).fill(pos.getTracks().get(0).getdEdx());
+                        aida.histogram1D(particleType[0] + " two MIP clusters track dEdx", 200, 0., 0.003).fill(ele.getTracks().get(0).getdEdx());
+                        aida.histogram1D(particleType[1] + " two MIP clusters track dEdx", 200, 0., 0.003).fill(pos.getTracks().get(0).getdEdx());
 
-                    aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut, 100, 0.98, 1.06).fill(kkmass);
-                    aida.histogram1D("vertex invariant mass two clusters below " + clusterEcut, 100, 0., 0.4).fill(invMass);
-                    aida.histogram1D("two cluster deltaT", 100, -5., 5.).fill(ClusterUtilities.findSeedHit(clusters[0]).getTime() - ClusterUtilities.findSeedHit(clusters[1]).getTime());
-                    aida.histogram2D(particleType[0] + " cluster x vs y two clusters below " + clusterEcut, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(clusters[0].getPosition()[0], clusters[0].getPosition()[1]);
-                    aida.histogram2D(particleType[1] + " cluster x vs y two clusters below " + clusterEcut, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(clusters[1].getPosition()[0], clusters[1].getPosition()[1]);
-                    aida.histogram1D("vertex x MIP clusters", 100, -3., 3.).fill(vertexPosition.x());
-                    aida.histogram1D("vertex y MIP clusters", 100, -1., 1.).fill(vertexPosition.y());
-                    aida.histogram1D("vertex z MIP clusters", 200, -25., 0.).fill(vertexPosition.z());
-                    aida.histogram2D("vertex x vs y MIP clusters", 100, -3., 3., 100, -1., 1.).fill(vertexPosition.x(), vertexPosition.y());
-                    for (int j = 0; j < masses.length; ++j) {
-                        double mass2 = masses[j] * masses[j];
-                        k1 = 0;
-                        k2 = 0.;
-                        for (int i = 0; i < 3; ++i) {
-                            k1 += p1[i] * p1[i];
-                            k2 += p2[i] * p2[i];
-                        }
-                        k1 = sqrt(k1 + mass2);
-                        k2 = sqrt(k2 + mass2);
-                        kvec1 = new Momentum4Vector(p1[0], p1[1], p1[2], k1);
-                        kvec2 = new Momentum4Vector(p2[0], p2[1], p2[2], k2);
-                        kksum = kvec1.plus(kvec2);
-                        kkmass = kksum.mass();
+                        aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut, 100, 0.98, 1.06).fill(kkmass);
+                        aida.histogram1D("vertex invariant mass two clusters below " + clusterEcut, 100, 0., 0.4).fill(invMass);
+                        aida.histogram1D("two cluster deltaT", 100, -5., 5.).fill(deltaT);
+                        aida.histogram2D(particleType[0] + " cluster x vs y two clusters below " + clusterEcut, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(clusters[0].getPosition()[0], clusters[0].getPosition()[1]);
+                        aida.histogram2D(particleType[1] + " cluster x vs y two clusters below " + clusterEcut, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(clusters[1].getPosition()[0], clusters[1].getPosition()[1]);
+                        aida.histogram1D("vertex x MIP clusters", 100, -3., 3.).fill(vertexPosition.x());
+                        aida.histogram1D("vertex y MIP clusters", 100, -1., 1.).fill(vertexPosition.y());
+                        aida.histogram1D("vertex z MIP clusters", 200, -25., 0.).fill(vertexPosition.z());
+                        aida.histogram2D("vertex x vs y MIP clusters", 100, -3., 3., 100, -1., 1.).fill(vertexPosition.x(), vertexPosition.y());
+                        for (int j = 0; j < masses.length; ++j) {
+                            double mass2 = masses[j] * masses[j];
+                            k1 = 0;
+                            k2 = 0.;
+                            for (int i = 0; i < 3; ++i) {
+                                k1 += p1[i] * p1[i];
+                                k2 += p2[i] * p2[i];
+                            }
+                            k1 = sqrt(k1 + mass2);
+                            k2 = sqrt(k2 + mass2);
+                            kvec1 = new Momentum4Vector(p1[0], p1[1], p1[2], k1);
+                            kvec2 = new Momentum4Vector(p2[0], p2[1], p2[2], k2);
+                            kksum = kvec1.plus(kvec2);
+                            kkmass = kksum.mass();
 //                        aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, 0., 2.).fill(kkmass);
-                        aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, minVals[j], maxVals[j]).fill(kkmass);
-
+                            aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, minVals[j], maxVals[j]).fill(kkmass);
+                        }
                     }
                 }
             }
