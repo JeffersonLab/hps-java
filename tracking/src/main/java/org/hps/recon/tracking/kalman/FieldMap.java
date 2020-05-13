@@ -182,6 +182,9 @@ public class FieldMap extends FieldOverlay {
             Bout[0] = 0.; // constant field
             Bout[1] = 0.;
         }
+        //Bout[0] = 0.;
+        //Bout[1] = 0.;
+        //Bout[2] = 0.240241;
         return Bout; 
     }
 
