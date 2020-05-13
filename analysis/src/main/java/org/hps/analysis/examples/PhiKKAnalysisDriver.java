@@ -44,7 +44,20 @@ public class PhiKKAnalysisDriver extends Driver {
     boolean debug = false;
     double clusterEcut = 0.3;
 
+    // skimming
+    boolean _skimEvents = true;
+    int _numberOfEventsSelected;
+
     protected void process(EventHeader event) {
+        boolean skipEvent = true;
+        // just a few sanity checks
+        List<Cluster> eventClusters = event.get(Cluster.class, "EcalClustersCorr");
+        aida.histogram1D("Number of Clusters in Event", 10, 0., 10.).fill(eventClusters.size());
+        for (Cluster c : eventClusters) {
+            aida.histogram1D("event cluster nHits", 20, 0., 20.).fill(c.getCalorimeterHits().size());
+            aida.histogram1D("event cluster energy", 100, 0., 1.5).fill(c.getEnergy());
+            aida.histogram2D("event cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+        }
         List<ReconstructedParticle> V0List = event.get(ReconstructedParticle.class, "UnconstrainedV0Candidates");
 //        if (V0List.size() != 2) {
 //            return;
@@ -147,6 +160,8 @@ public class PhiKKAnalysisDriver extends Driver {
                 if (clusters[0].getEnergy() < clusterEcut && clusters[1].getEnergy() < clusterEcut) {
                     double deltaT = ClusterUtilities.findSeedHit(clusters[0]).getTime() - ClusterUtilities.findSeedHit(clusters[1]).getTime();
                     if (abs(deltaT) < 5.) {
+                        //two in-time MIP-like clusters: keep
+                        skipEvent = false;
                         aida.histogram1D(particleType[0] + " track momentum", 200, 0., 4.5).fill(ele.getMomentum().magnitude());
                         aida.histogram1D(particleType[1] + " track momentum", 200, 0., 4.5).fill(pos.getMomentum().magnitude());
                         aida.histogram2D("electron vs positron track momentum", 100, 0., 4.5, 100, 0., 4.5).fill(ele.getMomentum().magnitude(), pos.getMomentum().magnitude());
@@ -189,5 +204,19 @@ public class PhiKKAnalysisDriver extends Driver {
             }
             aida.tree().cd("..");
         }
+        if (skipEvent && _skimEvents) {
+            throw new Driver.NextEventException();
+        } else {
+            _numberOfEventsSelected++;
+        }
+    }
+
+    @Override
+    protected void endOfData() {
+        System.out.println("Selected " + _numberOfEventsSelected + " events");
+    }
+
+    public void setSkimEvents(boolean b) {
+        _skimEvents = b;
     }
 }
