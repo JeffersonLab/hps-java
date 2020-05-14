@@ -284,18 +284,19 @@ public class EcalEvioReader extends EvioReader {
                     // 3. hack downstream software to know about 2 types of crate numbers
                     //
                     // This is option #2:
+                    int tmpcrate = crate;
                     if (slot==13) {
                         if (crate==1) {
-                            crate = topBankTag;
+                            tmpcrate = topBankTag;
                         }
                         else if (crate==2) {
-                            crate = botBankTag;
+                            tmpcrate = botBankTag;
                         }
                     }
                     // TODO: We *should* have something here that makes sure the we don't also store all the Hodoscope hits.
                     // OR we should simply parse the GenericHits elsewhere.
                     // 
-                    FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_RAW_MODE, crate, slot, channel, cdata, nSamples);
+                    FADCGenericHit hit = makeGenericRawHit(EventConstants.ECAL_RAW_MODE, tmpcrate, slot, channel, cdata, nSamples);
                     processUnrecognizedChannel(hit);  
 
                 } else {
