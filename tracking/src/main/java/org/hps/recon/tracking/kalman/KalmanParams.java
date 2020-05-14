@@ -59,8 +59,8 @@ public class KalmanParams {
         dzMax[0] = 3.;      // Maximum z at target plane for seed
         dzMax[1] = 10.;
         chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
-        chi2mx1[1] = 12.0;  
-        minHits0 = 6;       // Minimum number of hits in the initial outward filtering (including 5 from the seed)
+        chi2mx1[1] = 16.0;  
+        minHits0 = 5;       // Minimum number of hits in the initial outward filtering (including 5 from the seed)
         minHits1[0] = 7;    // Minimum number of hits for a good track
         minHits1[1] = 6;
         mxChi2Inc = 2.;     // Maximum increment to the chi^2 to add a hit to a completed track 
