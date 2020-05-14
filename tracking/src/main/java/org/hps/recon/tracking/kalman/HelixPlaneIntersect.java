@@ -14,10 +14,12 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     private double h;
     private double c;
     double alpha;
+    private final boolean debug;
 
     HelixPlaneIntersect() {
         c = 2.99793e8;
         h = 1.0; // Integration step size. It is not optimized and can probably be set significantly larger to save time.
+        debug = false;
     }
 
     // Runge Kutta integration extrapolation to a plane through a non-uniform field
@@ -31,6 +33,11 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         // pInt return value for the momentum at the intersection
         // the function return value is the 3-D intersection point
 
+        if (debug) {
+            System.out.format("Entering HelixPlaneIntersect.rkIntersect for plane %s\n", P.toString());
+            X0.print("rkIntersect start location, global coords");
+            P0in.print("rkIntersect start momentum, global coords");          
+        }
         // Find the straight-line distance to the plane for an initial guess at the distance
         Vec r = P.X().dif(X0);
         double Q = Qin;
@@ -45,10 +52,9 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         double dPerp = r.dot(P.T());
         Vec pHat = P0.unitVec();
         double distance = Math.abs(dPerp / pHat.dot(P.T()));
+        if (debug) System.out.format("  distance=%10.6f, backwards=%b\n", distance, backwards);
 
         RungeKutta4 rk4 = new RungeKutta4(Q, h, fM);
-        //X0.print("rkIntersect start location, global coords");
-        //P0.print("rkIntersect start momentum, global coords");
         double[] d = rk4.integrate(X0, P0, distance);
         Vec X1 = new Vec(d[0], d[1], d[2]);
         Vec P1 = null;
@@ -58,48 +64,66 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         } else {
             P1 = new Vec(d[3], d[4], d[5]);
         }
-        //X1.print("point close to the plane in rkIntersect, global coords");
-        //P1.print("rkIntersect final momentum, global coords");
+        if (debug) {
+            X1.print("point close to the plane in rkIntersect, global coords");
+            P1.print("rkIntersect final momentum, global coords");
+            System.out.format("  Straight line distance from start to end of RK integration=%10.6f\n", X1.dif(X0).mag());
+        }
 
         // Transform to the local B-field reference frame at this location
         Vec B = KalmanInterface.getField(X1, fM);
         double Bmag = B.mag();
+        if (Bmag == 0.) {
+            B = KalmanInterface.getField(P.X(), fM);
+            Bmag = B.mag();
+        }
         this.alpha = 1.0e12 / (c * Bmag);
         Vec t = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
         Vec u = yhat.cross(t).unitVec();
         Vec v = t.cross(u);
         RotMatrix R = new RotMatrix(u, v, t);
-        //System.out.format("B field at the final location=%10.6f, t=%10.8f %10.8f %10.8f\n", Bmag,t.v[0],t.v[1],t.v[2]);
-        //R.print("to local B field frame");
+        if (debug) {
+            System.out.format("rkIntersect B field at the final location=%10.6f, t=%s\n", Bmag,t.toString());
+            R.print("to local B field frame");
+        }
         Vec P1local = R.rotate(P1);
         Vec X1local = new Vec(0., 0., 0.);
-        //P1local.print("momentum in local B-field coords");
-        //X1local.print("point on helix in local B-field system");
+        if (debug) {
+            P1local.print("momentum in local B-field coords");
+            X1local.print("point on helix in local B-field system");
+        }
         Vec helix = pToHelix(X1local, P1local, Q);
         Plane pLocal = P.toLocal(R, X1);
-        //helix.print("local helix");
-        //pLocal.print("target plane in local B-field coords");
-
-        // helix.print("helix parameters close to the plane in rkIntersect");
+        if (debug) {
+            helix.print("local helix");
+            pLocal.print("target plane in local B-field coords");
+            helix.print("helix parameters close to the plane in rkIntersect");
+        }
         // Note: this call to planeIntersect fills in X0 and a
         double phiInt = planeIntersect(helix, X1local, alpha, pLocal); // helix intersection
         if (Double.isNaN(phiInt)) {
-            //System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
+            if (debug) System.out.format("HelixPlaneIntersect:rkIntersect: there is no intersection.\n");
             pInt.v[0] = P0.v[0];
             pInt.v[1] = P0.v[1];
             pInt.v[2] = P0.v[2];
             return X0;
         }
-        //System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
+        if (debug) System.out.format("HelixPlaneIntersect:rkIntersect, delta-phi to the intersection is %12.5e\n", phiInt);
         Vec xInt = HelixState.atPhi(X1local, helix, phiInt, alpha);
-        //StateVector.getMom(phiInt, helix).print("pInt local");
+        if (debug) HelixState.getMom(phiInt, helix).print("pInt local");
         Vec temp = R.inverseRotate(HelixState.getMom(phiInt, helix));
-        //xInt.print("xInt, local coordinates intersection with plane");
+        Vec xIntGlb = R.inverseRotate(xInt).sum(X1); // return value in global coordinates
+        if (debug) {
+            xInt.print("xInt, local coordinates of intersection with plane");
+            xIntGlb.print("xInt, global coordinates of intersection with plane");
+            temp.print("Momentum at intersection with plane, in global coordinates");
+            System.out.format("Exiting HelixPlaneIntersect.rkIntersect\n");
+        }
         pInt.v[0] = temp.v[0];
         pInt.v[1] = temp.v[1];
         pInt.v[2] = temp.v[2];
-        return R.inverseRotate(xInt).sum(X1); // return value in global coordinates
+        return xIntGlb;
     }
 
     // Given the momentum and charge at a location, return the parameters of the helix,

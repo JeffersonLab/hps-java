@@ -31,6 +31,7 @@ public class KalTrack {
     private Vec originPoint;
     private Vec originMomentum;
     private ArrayList<Double> yScat;
+    private ArrayList<Double> XLscat;
     public double alpha;
     private double[][] Cx;
     private double[][] Cp;
@@ -42,10 +43,11 @@ public class KalTrack {
     private Logger logger;
     private KalmanParams kPar;
 
-    KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, KalmanParams kPar) {
+    KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
         this.yScat = yScat;
+        this.XLscat = XLscat;
         logger = Logger.getLogger(KalTrack.class.getName());
         this.kPar = kPar;
         ID = tkID;
@@ -437,9 +439,8 @@ public class KalTrack {
         
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
         // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
-        double XL = innerSite.m.thickness/innerSite.radLen;
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
-        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XL, innerSite.m.Bfield);
+        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield);
         if (covNaN()) return false;
         SquareMatrix Cinv = helixAtOrigin.C.invert();
         for (int i=0; i<5; ++i) {
@@ -747,7 +748,7 @@ public class KalTrack {
     }
 
     // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
-    private double[][] DpTOa(Vec a) {
+    static double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];
         double K = Math.abs(a.v[2]);
         double sgn = Math.signum(a.v[2]);
@@ -762,7 +763,7 @@ public class KalTrack {
 
     // Derivative matrix for propagating the covariance of the helix parameter to a
     // covariance of the point of closest approach to the origin (i.e. at phi=0)
-    private double[][] DxTOa(Vec a) {
+    static double[][] DxTOa(Vec a) {
         double[][] M = new double[3][5];
         M[0][0] = Math.cos(a.v[1]);
         M[0][1] = -a.v[0] * Math.sin(a.v[1]);

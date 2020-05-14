@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 //import org.hps.recon.tracking.jama.Matrix;
@@ -17,6 +18,7 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 
 import org.hps.util.Pair;
+import org.lcsim.event.TrackState;
 
 //This is for testing only and is not part of the Kalman fitting code
 class HelixTest3 { // Program for testing the Kalman fitting code
@@ -43,6 +45,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
         boolean verbose = nTrials < 2;
         
+        double eCalLoc = 1394.;
+        
         SquareMatrix testCov = null;
         Vec testHelix = null;
 
@@ -52,7 +56,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         long rndSeed = -3263009337738135404L;
         rnd = new Random();
         rnd.setSeed(rndSeed);
-
+        
         Histogram hGaus = new Histogram(100, -4., 0.08, "Normal Distribution 1", "x", "y");
         for (int i = 0; i < 1000000; i++) { hGaus.entry(rnd.nextGaussian()); }
 
@@ -70,6 +74,28 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         }
         if (mapType != "binary") {
             fM.writeBinaryFile("C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\125acm2_3kg_corrected_unfolded_scaled_0.7992_v2.bin");
+        }
+        System.out.format("B field map vs y:\n");
+        for (double y=0.; y<1500.; y+=5.) {
+            double z1=-50.; 
+            double z2= 50.;
+            Vec B1 = new Vec(3, fM.getField(new Vec(0., y, z1)));
+            Vec B2 = new Vec(3, fM.getField(new Vec(0., y, 0.)));
+            Vec B3 = new Vec(3, fM.getField(new Vec(0., y, z2)));
+            System.out.format("y=%6.1f z=%6.1f: %s z=0: %s z=%6.1f: %s\n", y, z1, B1.toString(), B2.toString(), z2, B3.toString());
+        }
+        System.out.format("B field map vs z at ECAL:\n");
+        for (double z=-200.; z<200.; z+=5.) {
+            double y=eCalLoc + 10.; 
+            Vec B = new Vec(3, fM.getField(new Vec(0., y, z)));
+            System.out.format("x=0 y=%6.1f z=%6.1f: %s\n", y, z, B.toString());
+        }
+        System.out.format("B field map vs x at ECAL:\n");
+        for (double x=-200.; x<200.; x+=5.) {
+            double y=eCalLoc + 10.;
+            double z=20.;
+            Vec B = new Vec(3, fM.getField(new Vec(x, y, z)));
+            System.out.format("x=%6.1f y=%6.1f z=%6.1f: %s\n", x, y, z, B.toString());
         }
 
         // Tracking instrument description
@@ -173,6 +199,20 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
         int nLayers = 13; // Layer 0 not yet implemented here
 
+        ArrayList<Double> yScat = new ArrayList<Double>(nLayers);
+        ArrayList<Double> XLscat = new ArrayList<Double>(nLayers);
+        double rho = 2.329; // Density of silicon in g/cm^2
+        double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
+        for (int layer = 0; layer < nLayers; layer++) {
+            for (SiModule mod : SiModules) {
+                if (mod.Layer == layer) {
+                    yScat.add(mod.p.X().v[1]);
+                    XLscat.add(mod.thickness/radLen);
+                    break;
+                }
+            }
+        }
+        
         double[] location = new double[nLayers];
         double[] xdet = new double[SiModules.size()];
         double[] ydet = new double[SiModules.size()];
@@ -200,12 +240,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double hitEfficiency = 1.0;
 
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helix
-        Vec Bpivot = fM.getField(helixOrigin);
+        Vec Bpivot = new Vec(3,fM.getField(helixOrigin));
         Bpivot.print("magnetic field at the initial origin");
         for (int pln = 0; pln < SiModules.size(); pln++) {
-            Vec bf = fM.getField(new Vec(xdet[pln], ydet[pln], zdet[pln]));
+            Vec bf = new Vec(3,fM.getField(new Vec(xdet[pln], ydet[pln], zdet[pln])));
             System.out.format("Kalman fitting B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
-            bf = fMg.getField(new Vec(xdet[pln], ydet[pln], zdet[pln]));
+            bf = new Vec(3,fMg.getField(new Vec(xdet[pln], ydet[pln], zdet[pln])));
             System.out.format("MC generator B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
         }
         double Phi = 91. * Math.PI / 180.;
@@ -356,7 +396,20 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plant %d", i), "mm", "hits");
             hUnbiasSig[i] = new Histogram(100, -10., 0.2, String.format("Unbiased residuals for layer %d", i), "sigmas", "hits");
         }
-
+        Histogram hpropx = new Histogram(100,-5.,0.1,"projected track-state x error","mm","track");
+        Histogram hpropxs = new Histogram(100,-5.,0.1,"projected track-state x error","sigmas","track");
+        Histogram hpropy = new Histogram(100,-5.,0.1,"projected track-state y error","mm","track");
+        Histogram hpropys = new Histogram(100,-5.,0.1,"projected track-state y error","sigmas","track");
+        Histogram hpropxu = new Histogram(100,0.,0.05,"projected track-state x uncertainty","mm","track");
+        Histogram hpropyu = new Histogram(100,0.,0.05,"projected track-state y uncertainty","mm","track");
+        Histogram hPropxHS = new Histogram(100,-5.,0.1,"projected HelixState x error","mm","track");
+        Histogram hPropzHS = new Histogram(100,-5.,0.1,"projected HelixState z error","mm","track");
+        Histogram hPropxsHS = new Histogram(100,-5.,0.1,"projected HelixState x error","sigmas","track");
+        Histogram hPropzsHS = new Histogram(100,-5.,0.1,"projected HelixState z error","sigmas","track");
+        Histogram hPropx1 = new Histogram(100,-5.,0.1,"projected track-state x error 1 step","mm","track");
+        Histogram hPropx1s = new Histogram(100,-5.,0.1,"projected track-state x error 1 step","sigmas","track");
+        Histogram hPropz1 = new Histogram(100,-5.,0.1,"projected track-state z error 1 step","mm","track");
+        Histogram hPropz1s = new Histogram(100,-5.,0.1,"projected track-state z error 1 step","sigmas","track");
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
@@ -381,6 +434,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         TkInitial.print("TkInitial: initial helix at the origin");
         helixBegin.print("helixBegin: starting helix at layer 1");
         RKhelix TkEnd = helixBeginRK;
+        KalmanInterface KI = new KalmanInterface(false, fM);
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
             RKhelix Tk = helixBeginRK.copy();
             if (verbose) { Tk.print("copied initial helix"); }
@@ -477,6 +531,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     if (verbose) { TkEnd.print("TkEnd"); }
                 }
             }
+            
+            // Extrapolate further to the ECAL location. The helix parameters are in a coordinate system with origin
+            // on the helix at the current location x and aligned with the local B field. Since we provide the pivot
+            // point to be x (in global coordinates), the pivotECAL in the field system is (0,0,0).
+            Plane pEcal = new Plane(new Vec(0.,eCalLoc,0.), new Vec(0.,1.,0.));
+            RKhelix TkEcal = Tk.propagateRK(pEcal);
 
             int nHits = 0;
             for (SiModule siM : SiModules) {
@@ -544,7 +604,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
             helixMCtrue = helixSaved[frstLyr];
             Vec pivotOnAxis = new Vec(0., location[frstLyr], 0.);
-            Vec Bpiv = fMg.getField(pivotOnAxis);
+            Vec Bpiv = new Vec(3,fMg.getField(pivotOnAxis));
             double alpha = 1.0e12 / (2.99793e8 * Bpiv.mag());
             Vec helixTrueTrans = HelixState.pivotTransform(pivotOnAxis, helixMCtrue, pivotSaved[frstLyr], alpha, 0.);
             Vec gErrVec = initialHelixGuess.dif(helixTrueTrans);
@@ -621,7 +681,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 initialCovariance.M[3][3] = (dzSigma * dzSigma);
                 initialCovariance.M[4][4] = (tanlSigma * tanlSigma);
 
-                Vec Bf0 = fMg.getField(helixOrigin);
+                Vec Bf0 = new Vec(3,fMg.getField(helixOrigin));
                 if (verbose) {
                     initialHelixGuess.print("initial helix guess");
                     System.out.format("True helix: %10.6f %10.6f %10.6f %10.6f %10.6f\n", drho, phi0, K, dz, tanl);
@@ -641,7 +701,139 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             if (KalmanTrack == null) continue;
             KalmanTrack.originHelix();
             if (verbose) KalmanTrack.print("KalmanTrack");
-
+            
+            // Test the helix propagation code
+            
+            List<TrackState> states = new ArrayList<TrackState>();
+            for (MeasurementSite site : kF.sites) {
+                int loc = TrackState.AtOther;
+                if (kF.sites.indexOf(site) == 0) loc = TrackState.AtFirstHit;
+                else if (kF.sites.indexOf(site) == kF.sites.size()-1) {
+                    loc = TrackState.AtLastHit;
+                }
+                TrackState ts = KI.createTrackState(site, loc, true);    
+                states.add(ts);
+            }
+            TrackState lastState = null;
+            for (TrackState tkState : states) {
+                if (tkState.getLocation() == TrackState.AtLastHit) {
+                    lastState = tkState;
+                    break;
+                }
+            }
+            if (lastState != null) {
+             // test propagation of a track state from one end of the track to the ECAL region
+                final boolean debug = false;          
+                if (KalmanTrack.nHits >= 12) {
+                    if (KalmanTrack.chi2/KalmanTrack.nHits < 2.) {
+                        MeasurementSite lastSite = KalmanTrack.SiteList.get(KalmanTrack.SiteList.size()-1);
+                        Vec eCalPos = TkEcal.x;
+                        Plane plnAtEcal = new Plane(eCalPos, new Vec(0.,1.,0.));
+                        if (debug) {
+                            eCalPos.print("ECAL cluster position");
+                            lastSite.aS.helix.print("helix at last layer");
+                        }
+                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fM);
+                        if (helixAtEcal.C.isNaN()) continue;
+                        Vec intPnt = helixAtEcal.getRKintersection();
+                        if (debug) {
+                            helixAtEcal.print("helix at ECAL cluster");
+                            intPnt.print("RK intersection point");
+                        }
+                        hPropxHS.entry(intPnt.v[0] - eCalPos.v[0]);
+                        hPropzHS.entry(intPnt.v[2] - eCalPos.v[2]);
+                        SquareMatrix covAtEcal = helixAtEcal.C;
+                        double [][] dadx = KalTrack.DxTOa(helixAtEcal.a);
+                        double [][] Cx = new double[3][3];
+                        for (int i = 0; i < 3; i++) {
+                            for (int j = 0; j < 3; j++) {
+                                Cx[i][j] = 0.;
+                                for (int k = 0; k < 5; k++) {
+                                    for (int l = 0; l < 5; l++) {
+                                        Cx[i][j] += dadx[i][k] * covAtEcal.M[k][l] * dadx[j][l];
+                                    }
+                                }
+                            }
+                        }
+                        hPropxsHS.entry((intPnt.v[0] - eCalPos.v[0])/Math.sqrt(Cx[0][0]));
+                        hPropzsHS.entry((intPnt.v[2] - eCalPos.v[2])/Math.sqrt(Cx[2][2]));
+                        
+                        // Try in a single step---this worked perfect in uniform field, as long as last scatter is included
+                        double phiIntEcal = lastSite.aS.helix.planeIntersect(plnAtEcal);
+                        if (!Double.isNaN(phiIntEcal)) {
+                            if (debug) {
+                                System.out.format("phiInteEcal=%10.6f\n", phiIntEcal);
+                                plnAtEcal.print("plane at ECAL");
+                                lastSite.aS.helix.print("at last site");
+                            }
+                            Vec intcpt = lastSite.aS.helix.atPhi(phiIntEcal);
+                            Vec helixAtIntcpt = lastSite.aS.helix.pivotTransform(intcpt);
+                            if (debug) intcpt.print("intercept local");
+                            intcpt = lastSite.aS.helix.toGlobal(intcpt);
+                            if (debug) intcpt.print("intercept global");
+                            SquareMatrix F = lastSite.aS.helix.makeF(helixAtIntcpt);
+                            if (debug) F.print("tranform matrix F");
+                            Vec pMom = HelixState.getMom(0.,helixAtIntcpt);
+                            double pMag = pMom.mag();
+                            double ct = pMom.v[1]/pMag;
+                            double sigmaMS = HelixState.projMSangle(pMag, XLscat.get(XLscat.size()-1)/ct);
+                            SquareMatrix Qmcs = lastSite.aS.helix.getQ(sigmaMS);
+                            if (debug) Qmcs.print("Qmcs");
+                            SquareMatrix covAtIntcpt = (lastSite.aS.helix.C.sum(Qmcs)).similarity(F);
+                            dadx = KalTrack.DxTOa(helixAtIntcpt);
+                            Cx = new double[3][3];
+                            for (int i = 0; i < 3; i++) {
+                                for (int j = 0; j < 3; j++) {
+                                    Cx[i][j] = 0.;
+                                    for (int k = 0; k < 5; k++) {
+                                        for (int l = 0; l < 5; l++) {
+                                            Cx[i][j] += dadx[i][k] * covAtIntcpt.M[k][l] * dadx[j][l];
+                                        }
+                                    }
+                                }
+                            }
+                            if (debug) {
+                                covAtIntcpt.print("covAtIntcpt");
+                                new SquareMatrix(3,Cx).print("Cx");
+                            }
+                            hPropx1.entry(intcpt.v[0] - eCalPos.v[0]);
+                            hPropz1.entry(intcpt.v[2] - eCalPos.v[2]);     
+                            hPropx1s.entry((intcpt.v[0] - eCalPos.v[0])/Math.sqrt(Cx[0][0]));
+                            hPropz1s.entry((intcpt.v[2] - eCalPos.v[2])/Math.sqrt(Cx[2][2]));     
+                        }
+                    } 
+                }
+                /*
+                for (TrackState tkState : states) {                   
+                    if (tkState.getLocation() == TrackState.AtLastHit) {
+                        double [] locs = KalmanInterface.vectorKalmanToGlb(TkEcal.x);
+                        double [] direction = KalmanInterface.vectorKalmanToGlb(pEcal.T());
+                        PropagatedTrackState pts = KI.propagateTrackState(tkState, locs, direction);
+                        if (pts.getTrackState() == null) continue;
+                        if (new Vec(5,pts.getTrackState().getParameters()).isNaN()) continue;
+                        double [] intPnt = pts.getIntersection();
+                        double [][] intPntCov = pts.getIntersectionCov();
+                        double [] pntMC = KalmanInterface.vectorKalmanToGlb(TkEcal.x);
+                        if (debug) {
+                            PropagatedTrackState.printTrackState(tkState, "start");
+                            PropagatedTrackState.printTrackState(pts.getTrackState(), "propagated");
+                            new Vec(3,intPnt).print("intersection point");
+                            new Vec(3,pntMC).print("MC intersection");
+                            pts.print("test");
+                        }
+                        hpropx.entry(intPnt[0] - pntMC[0]);
+                        hpropxu.entry(Math.sqrt(intPntCov[0][0]));
+                        hpropxs.entry((intPnt[0] - pntMC[0])/Math.sqrt(intPntCov[0][0]));
+                        hpropy.entry(intPnt[1] - pntMC[1]);
+                        hpropyu.entry(Math.sqrt(intPntCov[1][1]));
+                        hpropys.entry((intPnt[1] - pntMC[1])/Math.sqrt(intPntCov[1][1]));
+                        break;
+                    }
+                }
+                */
+            }
+            // end of test of helix propagation
+            
             double chi2s = 0.;
             ArrayList<MeasurementSite> sites = kF.sites;
             for (MeasurementSite site : sites) {
@@ -896,7 +1088,22 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             hUnbias[i].plot(path + String.format("residUnbiased1_%d.gp", i), true, "gaus", " ");
             hUnbiasSig[i].plot(path + String.format("residUnbiased2_%d.gp", i), true, "gaus", " ");
         }
+        hpropx.plot(path + "propx.gp", true, "gaus", " ");
+        hpropy.plot(path + "propy.gp", true, "gaus", " ");
+        hpropxu.plot(path + "propxu.gp", true, "gaus", " ");
+        hpropyu.plot(path + "propyu.gp", true, "gaus", " ");
+        hpropxs.plot(path + "propxs.gp", true, "gaus", " ");
+        hpropys.plot(path + "propys.gp", true, "gaus", " ");
+        hPropxHS.plot(path + "propxHS.gp", true, "gaus", " ");
+        hPropzHS.plot(path + "propzHS.gp", true, "gaus", " ");
+        hPropxsHS.plot(path + "propxsHS.gp", true, "gaus", " ");
+        hPropzsHS.plot(path + "propzsHS.gp", true, "gaus", " ");
+        hPropx1.plot(path + "propx1.gp", true, "gaus", " ");
+        hPropz1.plot(path + "propz1.gp", true, "gaus", " ");
+        hPropx1s.plot(path + "propx1s.gp", true, "gaus", " ");
+        hPropz1s.plot(path + "propz1s.gp", true, "gaus", " ");
         
+        testCov = null;
         // Test of helix covariance extrapolation
         if (testCov != null && testHelix != null) {
             Vec X0initial = new Vec(0.,0.,0.);
@@ -914,20 +1121,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             Histogram hCovChi2 = new Histogram(100, 0., 0.2, "Helix chi^2 in covariance test","chi2","trials");
             Histogram hTanLp = new Histogram(100, -0.1, 0.002, "Helix tan(lambda) in global coordinates"," ","trials");
             Histogram hTanLpF = new Histogram(100, -0.2, 0.002, "Helix tan(lambda) in field coordinates"," ","trials");
-            ArrayList<Double> yScat = new ArrayList<Double>(nLayers);
-            for (int layer = 0; layer < nLayers; layer++) {
-                for (SiModule mod : SiModules) {
-                    if (mod.Layer == layer) {
-                        yScat.add(mod.p.X().v[1]);
-                        break;
-                    }
-                }
-            }
+
             for (int layer=0; layer<yScat.size(); ++layer) {
-                System.out.format("Location of scattering layer %d is %8.2f\n", layer, yScat.get(layer));
+                System.out.format("Location of scattering layer %d is %8.2f with XL=%8.3f\n", layer, yScat.get(layer), XLscat.get(layer));
             }
             HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-            Vec Borig = fMg.getField(X0initial);
+            Vec Borig = new Vec(3,fMg.getField(X0initial));
             double alpha = 1.0e12 / (2.99793e8 * Borig.mag());
             Plane plnEnd = null;
             for (SiModule mod : SiModules) {
@@ -936,6 +1135,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     break;
                 }
             }
+            //plnEnd = new Plane(new Vec(0., eCalLoc, 0.), new Vec(0., 1., 0.));
             double phiI = hpi.planeIntersect(testHelix, X0initial, alpha, plnEnd);
             Vec posEnd = HelixState.atPhi(X0initial, testHelix, phiI, alpha);
             posEnd.print("ending position single helix step");
@@ -948,12 +1148,9 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             
             StateVector aS = new StateVector(1, testHelix, testCov, X0initial, Borig.mag(), Borig.unitVec(), X0initial);
             aS.print("starting");
-            double rho = 2.329; // Density of silicon in g/cm^2
-            double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
-            double XL = thickness/radLen;
             SquareMatrix propCov = new SquareMatrix(5);
             Vec propHelix = new Vec(5);
-            Vec Bfinal = fMg.getField(posEnd);
+            Vec Bfinal = new Vec(3,fMg.getField(posEnd));
             double Bmag = Bfinal.mag();
             Vec yhat = new Vec(0.,1.,0.);
             Vec tB = Bfinal.unitVec(Bmag); // Local field at the new origin
@@ -962,8 +1159,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             RotMatrix finalRot = new RotMatrix(uB, vB, tB);
             double alphaF = 1.0e12 / (2.99793e8 * Bfinal.mag());
             plnEnd = new Plane(posEnd, new Vec(0.,1.,0.));
-            HelixState newHelixState = aS.helix.propagateRungeKutta(plnEnd, yScat, XL, fM);
-            boolean success = aS.helix.helixStepper(25., yScat, XL, propCov, propHelix, posEnd, fM);
+            HelixState newHelixState = aS.helix.propagateRungeKutta(plnEnd, yScat, XLscat, fM);
+            //boolean success = aS.helix.helixStepper(25., yScat, XLscat, propCov, propHelix, posEnd, fM);
             propCov = newHelixState.C;
             propHelix = newHelixState.a;
             newHelixState.print("new");
@@ -1108,8 +1305,9 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             hTanLp.plot(path + "TestTanlp.gp", true, "gaus", " ");
             hTanLpF.plot(path + "TestTanlpF.gp", true, "gaus", " ");
             System.out.println("All Done!");
-        }
+        } 
     }
+    
     /*
     double[] gausRan() { // Return two gaussian random numbers
     
