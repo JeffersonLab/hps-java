@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
@@ -53,10 +55,23 @@ public class PhiKKAnalysisDriver extends Driver {
         // just a few sanity checks
         List<Cluster> eventClusters = event.get(Cluster.class, "EcalClustersCorr");
         aida.histogram1D("Number of Clusters in Event", 10, 0., 10.).fill(eventClusters.size());
+        boolean isMC = event.hasCollection(MCParticle.class, "MCParticle");
+        MCParticle mcp = null;
+        if (isMC) {
+            if (!event.get(MCParticle.class, "MCParticle").isEmpty()) {
+                mcp = event.get(MCParticle.class, "MCParticle").get(0);
+            }
+        }
         for (Cluster c : eventClusters) {
             aida.histogram1D("event cluster nHits", 20, 0., 20.).fill(c.getCalorimeterHits().size());
             aida.histogram1D("event cluster energy", 100, 0., 1.5).fill(c.getEnergy());
             aida.histogram2D("event cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+            if (mcp != null) {
+                aida.tree().mkdirs("all clusters");
+                aida.tree().cd("all clusters");
+                analyzeCluster(c, "MC " + mcp.getType().getName());
+                aida.tree().cd("..");
+            }
         }
         List<ReconstructedParticle> V0List = event.get(ReconstructedParticle.class, "UnconstrainedV0Candidates");
 //        if (V0List.size() != 2) {
@@ -64,6 +79,10 @@ public class PhiKKAnalysisDriver extends Driver {
 //        }
         List<Vertex> vertices = event.get(Vertex.class, vertexCollectionName);
         for (Vertex v : vertices) {
+            boolean goodMuPair = false;
+            ReconstructedParticle muPlus = null;
+            ReconstructedParticle muMinus = null;
+
             ReconstructedParticle V0 = v.getAssociatedParticle();
 
             Cluster[] clusters = new Cluster[2];
@@ -198,8 +217,13 @@ public class PhiKKAnalysisDriver extends Driver {
                             kkmass = kksum.mass();
 //                        aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, 0., 2.).fill(kkmass);
                             aida.histogram1D("vertex invariant mass phi search two clusters below " + clusterEcut + " " + particleNames[j] + " hypothesis", 200, minVals[j], maxVals[j]).fill(kkmass);
-                        }
-                    }
+                        } //end of loop over particle hypotheses
+                        goodMuPair = true;
+                        muPlus = pos;
+                        muMinus = ele;
+                        analyzeCluster(muPlus.getClusters().get(0), "mu+");
+                        analyzeCluster(muMinus.getClusters().get(0), "mu-");
+                    } // end of deltaT cut
                 }
             }
             aida.tree().cd("..");
@@ -218,5 +242,23 @@ public class PhiKKAnalysisDriver extends Driver {
 
     public void setSkimEvents(boolean b) {
         _skimEvents = b;
+    }
+
+    void analyzeCluster(Cluster cluster, String type) {
+        if (cluster.getCalorimeterHits().size() == 1) {
+            aida.tree().mkdirs("clusterAnalysis");
+            aida.tree().cd("clusterAnalysis");
+            CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
+            int ix = seed.getIdentifierFieldValue("ix");
+            int iy = seed.getIdentifierFieldValue("iy");
+            if (ix > 5 && type.equals("MC mu+")) {
+                aida.histogram1D(type + " crystal energy", 100, 0.1, 0.3).fill(cluster.getEnergy());
+            }
+            if (ix < -5 && type.equals("MC mu-")) {
+                aida.histogram1D(type + " crystal energy", 100, 0.1, 0.3).fill(cluster.getEnergy());
+            }
+            aida.histogram1D(ix + " " + iy + " " + type + " crystal energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
+            aida.tree().cd("..");
+        }
     }
 }
