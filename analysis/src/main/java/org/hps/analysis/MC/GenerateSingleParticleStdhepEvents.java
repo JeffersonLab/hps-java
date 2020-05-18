@@ -135,7 +135,7 @@ public class GenerateSingleParticleStdhepEvents {
         double p = sqrt(energy * energy - mass2);
 
         Random ran = new Random();
-        StdhepWriter eventWriter = new StdhepWriter("hpsForward_"+pname+"_"+energy+"GeV_z" + zTarget + ".stdhep", "Generated Stdhep Events", "top", 250000);
+        StdhepWriter eventWriter = new StdhepWriter("hpsForward_" + pname + "_" + energy + "GeV_z" + zTarget + ".stdhep", "Generated Stdhep Events", "top", 250000);
 //        StdhepWriter bottomEvents = new StdhepWriter("hpsForwardFullEnergyElectrons_z" + zTarget + "_bottom.stdhep", "Generated Stdhep Events", "bottom", 250000);
 
         eventWriter.setCompatibilityMode(false);
@@ -150,7 +150,9 @@ public class GenerateSingleParticleStdhepEvents {
             double y = ThreadLocalRandom.current().nextDouble(yMin, yMax);
             double r = sqrt(x * x + y * y + z * z);
             phep[0] = p * x / r; //px
-            phep[1] = p * y / r; //py
+            // randomize top and bottom
+            int top = Math.random() < 0.5 ? 1 : -1;
+            phep[1] = top * p * y / r; //py
             phep[2] = p * z / r; //pz
             phep[3] = energy;
             phep[4] = mass;
@@ -175,7 +177,6 @@ public class GenerateSingleParticleStdhepEvents {
 
 //        bottomEvents.writeRecord(se);
 //        bottomEvents.close();
-
     }
 
     public static void usage() {
