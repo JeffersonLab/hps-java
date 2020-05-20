@@ -3,7 +3,6 @@ package org.hps.analysis.alignment;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.List;
-import org.hps.analysis.trigger.util.Trigger;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TSData2019;

@@ -1,5 +1,7 @@
 package org.hps.analysis.wab;
 
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
@@ -43,154 +45,195 @@ public class StripWABCandidates extends Driver {
 
     private int _numberOfEventsWritten = 0;
 
+    private boolean _stripTwoEcalClusters = true;
+    double esumCut = 3.0;
+
     boolean isMC;
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
-        // get the ReconstructedParticles in this event
-        List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
-        // now add in the FEE candidates
-        rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+        // skim candidates based only on calorimeter clusters
+        if (_stripTwoEcalClusters) {
+            List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClusters");
+            // let's start by requiring two and only two clusters, in opposite hemispheres, whose energies sum to the beam energy
+            aida.tree().mkdirs("two cluster analysis");
+            aida.tree().cd("two cluster analysis");
+            aida.histogram1D("number of clusters", 10, 0., 10.).fill(ecalClusters.size());
+            for (Cluster c : ecalClusters) {
+                analyzeCluster(c);
+            }
+            if (ecalClusters.size() == 2) {
+                Cluster c1 = ecalClusters.get(0);
+                double e1 = c1.getEnergy();
+                Hep3Vector pos1 = new BasicHep3Vector(c1.getPosition());
+                Cluster c2 = ecalClusters.get(1);
+                double e2 = c2.getEnergy();
+                double esum = e1 + e2;
+                Hep3Vector pos2 = new BasicHep3Vector(c2.getPosition());
+                aida.histogram2D("two cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                aida.histogram1D("two cluster e1 + e2", 100, 0., 5.).fill(esum);
+                //opposite hemispheres
+                if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
+                    aida.histogram2D("two opposite cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                    aida.histogram1D("two opposite cluster e1 + e2", 100, 0., 5.).fill(esum);
+                    if (esum > esumCut) {
+                        aida.histogram2D("two opposite esum > " + esumCut + " cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                        aida.histogram1D("two opposite esum > " + esumCut + " cluster e1 + e2", 100, esumCut, 5.).fill(esum);
+                        aida.histogram2D("two opposite esum > " + esumCut + " cluster1 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos1.x(), pos1.y());
+                        aida.histogram2D("two opposite esum > " + esumCut + " cluster2 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos2.x(), pos2.y());
 
-        // any MC information?
-        isMC = event.hasCollection(MCParticle.class, "MCParticle");
-        List<MCParticle> mcParts = null;
-        MCParticle wabelectron = null;
-        MCParticle wabPhoton = null;
-        boolean wabElectronInCalorimeter = false;
-        boolean wabPhotonInCalorimeter = false;
-        boolean keepThisMcEvent = false;
-        if (isMC) {
-            mcParts = event.get(MCParticle.class, "MCParticle");
-            for (MCParticle part : mcParts) {
-                List<MCParticle> parents = part.getParents();
-                for (MCParticle parent : parents) {
-                    if (parent.getPDGID() == 622) {
-                        if (part.getPDGID() == 22) {
-                            wabPhoton = part;
-                            wabPhotonInCalorimeter = wabPhoton.getSimulatorStatus().isDecayedInCalorimeter();
-                            //System.out.println("wabPhoton " + wabPhotonInCalorimeter);
-                        }
-                        if (part.getPDGID() == 11) {
-                            wabelectron = part;
-                            wabElectronInCalorimeter = wabelectron.getSimulatorStatus().isDecayedInCalorimeter();
-                            //System.out.println("wabelectron " + wabElectronInCalorimeter);
-                        }
+                        skipEvent = false;
                     }
                 }
             }
-            keepThisMcEvent = wabPhotonInCalorimeter && wabElectronInCalorimeter;
-            if (keepThisMcEvent) {
-                skipEvent = false;
-            }
-        }
+            aida.tree().cd("..");
 
-        // quick and dirty RP analysis
-        for (ReconstructedParticle rp : rps) {
-            String type = "";
-            boolean isGBL = TrackType.isGBL(rp.getType());
-            String trackType = isGBL ? "gbl " : "kalman ";
-            if (rp.getParticleIDUsed().getPDG() == 11) {
-                type = "electron ";
-                aida.histogram1D(type + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
-                aida.histogram1D(type + trackType + "momentum FEE", 100, 3.0, 6.0).fill(rp.getMomentum().magnitude());
-            }
-            if (rp.getParticleIDUsed().getPDG() == 22) {
-                type = "photon ";
-            }
-            aida.histogram1D(type + "energy", 100, 0., 6.).fill(rp.getEnergy());
-        }
+        } else { // select one electron and one photon.
+            // get the ReconstructedParticles in this event
+            List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
+            // now add in the FEE candidates
+            rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
 
-        // get the electron and photon
-        // for now start with only 3 ReconstructedParticles in the event...
-        // 3 since we allow both GBL and Matched Tracks (soon to include Kalman tracks)
-        if (rps.size() <= _nReconstructedParticles) {
-            ReconstructedParticle electron = null;
-            ReconstructedParticle photon = null;
+            // any MC information?
+            isMC = event.hasCollection(MCParticle.class, "MCParticle");
+            List<MCParticle> mcParts = null;
+            MCParticle wabelectron = null;
+            MCParticle wabPhoton = null;
+            boolean wabElectronInCalorimeter = false;
+            boolean wabPhotonInCalorimeter = false;
+            boolean keepThisMcEvent = false;
+            if (isMC) {
+                mcParts = event.get(MCParticle.class, "MCParticle");
+                for (MCParticle part : mcParts) {
+                    List<MCParticle> parents = part.getParents();
+                    for (MCParticle parent : parents) {
+                        if (parent.getPDGID() == 622) {
+                            if (part.getPDGID() == 22) {
+                                wabPhoton = part;
+                                wabPhotonInCalorimeter = wabPhoton.getSimulatorStatus().isDecayedInCalorimeter();
+                                //System.out.println("wabPhoton " + wabPhotonInCalorimeter);
+                            }
+                            if (part.getPDGID() == 11) {
+                                wabelectron = part;
+                                wabElectronInCalorimeter = wabelectron.getSimulatorStatus().isDecayedInCalorimeter();
+                                //System.out.println("wabelectron " + wabElectronInCalorimeter);
+                            }
+                        }
+                    }
+                }
+                keepThisMcEvent = wabPhotonInCalorimeter && wabElectronInCalorimeter;
+                if (keepThisMcEvent) {
+                    skipEvent = false;
+                }
+            }
+
+            // quick and dirty RP analysis
             for (ReconstructedParticle rp : rps) {
-                // require the electron to have an associated ECal cluster
-                if (rp.getParticleIDUsed().getPDG() == 11 && rp.getClusters().size() == 1 && TrackType.isGBL(rp.getType())) {
-                    electron = rp;
+                String type = "";
+                boolean isGBL = TrackType.isGBL(rp.getType());
+                String trackType = isGBL ? "gbl " : "kalman ";
+                if (rp.getParticleIDUsed().getPDG() == 11) {
+                    type = "electron ";
+                    aida.histogram1D(type + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
+                    aida.histogram1D(type + trackType + "momentum FEE", 100, 3.0, 6.0).fill(rp.getMomentum().magnitude());
                 }
                 if (rp.getParticleIDUsed().getPDG() == 22) {
-                    photon = rp;
+                    type = "photon ";
                 }
+                aida.histogram1D(type + "energy", 100, 0., 6.).fill(rp.getEnergy());
             }
-            // do we have one (and only one) of each?
-            if (electron != null && photon != null) {
-                double eEnergy = electron.getEnergy();
-                double eMomentum = electron.getMomentum().magnitude();
-                Cluster eClus = electron.getClusters().get(0);
-                double eClusEnergy = eClus.getEnergy();
-                boolean electronIsFiducial = isFiducial(ClusterUtilities.findSeedHit(eClus));
-                String eDir = electronIsFiducial ? "electron fiducial" : "electron non-fiducial";
-                double eTime = ClusterUtilities.getSeedHitTime(eClus);
-                // have good candidates
-                // let's setup up a few things for more detailed analyses
-                setupSensors(event);
-                Track t = electron.getTracks().get(0);
-                String topOrBottom = isTopTrack(t) ? " top " : " bottom ";
-                int nHits = t.getTrackerHits().size();
-                double pEnergy = photon.getEnergy();
-                Cluster pClus = photon.getClusters().get(0);
-                boolean photonIsFiducial = isFiducial(ClusterUtilities.findSeedHit(pClus));
-                double pTime = ClusterUtilities.getSeedHitTime(pClus);
-                double eSum = eEnergy + pEnergy;
-                aida.histogram1D(topOrBottom + "Electron + Photon cluster Esum", 100, 0., 6.0).fill(eSum);
-                aida.histogram1D(topOrBottom + "Electron momentum + photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
-                aida.histogram1D(topOrBottom + "Electron energy", 100, 0., 6.0).fill(eEnergy);
-                aida.histogram1D(topOrBottom + "Electron cluster energy", 100, 0., 6.0).fill(eClusEnergy);
-                aida.histogram1D(topOrBottom + "Electron momentum", 100, 0., 6.0).fill(eMomentum);
-                aida.histogram1D(topOrBottom + "Electron eOverP", 100, 0., 2.0).fill(eEnergy / eMomentum);
-                aida.histogram2D(topOrBottom + "Electron eOverP vs P", 100, 0., 6.0, 100, 0., 2.).fill(eMomentum, eEnergy / eMomentum);
-                aida.histogram2D(topOrBottom + "Electron momentum vs Electron energy", 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, eEnergy);
-                aida.histogram1D("Photon Energy", 100, 0., 6.0).fill(pEnergy);
-                aida.histogram2D(topOrBottom + "Electron energy vs Photon energy", 100, 0., 6.0, 100, 0., 6.0).fill(eEnergy, pEnergy);
-                aida.histogram2D(topOrBottom + "Electron momentum vs Photon energy", 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, pEnergy);
-                aida.histogram2D("Electron Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(eClus.getPosition()[0], eClus.getPosition()[1]);
-                aida.histogram2D("Photon Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(pClus.getPosition()[0], pClus.getPosition()[1]);
-                aida.histogram1D("Cluster delta time", 100, -5., 5.).fill(eTime - pTime);
-                aida.histogram2D("Electron Cluster y vs Photon Cluster y", 100, -100., 100., 100, -100., 100.).fill(eClus.getPosition()[1], pClus.getPosition()[1]);
-                if (eSum >= _energyCut && electron.getTracks().get(0).getTrackerHits().size() >= _nHitsOnTrack) // electron
-                {
-                    if (abs(eTime - pTime) < 2.) {
-                        if (eClus.getPosition()[1] * pClus.getPosition()[1] < 0.) {
 
-                            hitToStrips = TrackUtils.getHitToStripsTable(event);
-                            hitToRotated = TrackUtils.getHitToRotatedTable(event);
-                            analyzeHitlayers(electron);
-                            aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron momentum + photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
-                            aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
-                            // Passed all cuts, let's write this event
-                            skipEvent = false;
-                            aida.tree().mkdirs(eDir);
-                            aida.tree().cd(eDir);
-                            aida.histogram1D(topOrBottom + "Electron momentum " + eDir, 100, 0., 6.0).fill(eMomentum);
-                            aida.histogram1D(topOrBottom + "Electron eOverP " + eDir, 100, 0., 2.0).fill(eEnergy / eMomentum);
-                            aida.histogram2D(topOrBottom + "Electron eOverP vs P " + eDir, 100, 0., 6.0, 100, 0., 2.).fill(eMomentum, eEnergy / eMomentum);
-                            aida.histogram2D(topOrBottom + "Electron momentum vs Electron energy " + eDir, 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, eEnergy);
-                            aida.tree().cd("..");
-                            //Are we also requiring both clusters to be fiducial?
-                            if (_stripBothFiducial) {
-                                if (!electronIsFiducial || !photonIsFiducial) {
-                                    skipEvent = true;
+            // get the electron and photon
+            // for now start with only 3 ReconstructedParticles in the event...
+            // 3 since we allow both GBL and Matched Tracks (soon to include Kalman tracks)
+            if (rps.size() <= _nReconstructedParticles) {
+                ReconstructedParticle electron = null;
+                ReconstructedParticle photon = null;
+                for (ReconstructedParticle rp : rps) {
+                    // require the electron to have an associated ECal cluster
+                    if (rp.getParticleIDUsed().getPDG() == 11 && rp.getClusters().size() == 1 && TrackType.isGBL(rp.getType())) {
+                        electron = rp;
+                    }
+                    if (rp.getParticleIDUsed().getPDG() == 22) {
+                        photon = rp;
+                    }
+                }
+                // do we have one (and only one) of each?
+                if (electron != null && photon != null) {
+                    double eEnergy = electron.getEnergy();
+                    double eMomentum = electron.getMomentum().magnitude();
+                    Cluster eClus = electron.getClusters().get(0);
+                    double eClusEnergy = eClus.getEnergy();
+                    boolean electronIsFiducial = isFiducial(ClusterUtilities.findSeedHit(eClus));
+                    String eDir = electronIsFiducial ? "electron fiducial" : "electron non-fiducial";
+                    double eTime = ClusterUtilities.getSeedHitTime(eClus);
+                    // have good candidates
+                    // let's setup up a few things for more detailed analyses
+                    setupSensors(event);
+                    Track t = electron.getTracks().get(0);
+                    String topOrBottom = isTopTrack(t) ? " top " : " bottom ";
+                    int nHits = t.getTrackerHits().size();
+                    double pEnergy = photon.getEnergy();
+                    Cluster pClus = photon.getClusters().get(0);
+                    boolean photonIsFiducial = isFiducial(ClusterUtilities.findSeedHit(pClus));
+                    double pTime = ClusterUtilities.getSeedHitTime(pClus);
+                    double eSum = eEnergy + pEnergy;
+                    aida.histogram1D(topOrBottom + "Electron + Photon cluster Esum", 100, 0., 6.0).fill(eSum);
+                    aida.histogram1D(topOrBottom + "Electron momentum + photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
+                    aida.histogram1D(topOrBottom + "Electron energy", 100, 0., 6.0).fill(eEnergy);
+                    aida.histogram1D(topOrBottom + "Electron cluster energy", 100, 0., 6.0).fill(eClusEnergy);
+                    aida.histogram1D(topOrBottom + "Electron momentum", 100, 0., 6.0).fill(eMomentum);
+                    aida.histogram1D(topOrBottom + "Electron eOverP", 100, 0., 2.0).fill(eEnergy / eMomentum);
+                    aida.histogram2D(topOrBottom + "Electron eOverP vs P", 100, 0., 6.0, 100, 0., 2.).fill(eMomentum, eEnergy / eMomentum);
+                    aida.histogram2D(topOrBottom + "Electron momentum vs Electron energy", 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, eEnergy);
+                    aida.histogram1D("Photon Energy", 100, 0., 6.0).fill(pEnergy);
+                    aida.histogram2D(topOrBottom + "Electron energy vs Photon energy", 100, 0., 6.0, 100, 0., 6.0).fill(eEnergy, pEnergy);
+                    aida.histogram2D(topOrBottom + "Electron momentum vs Photon energy", 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, pEnergy);
+                    aida.histogram2D("Electron Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(eClus.getPosition()[0], eClus.getPosition()[1]);
+                    aida.histogram2D("Photon Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(pClus.getPosition()[0], pClus.getPosition()[1]);
+                    aida.histogram1D("Cluster delta time", 100, -5., 5.).fill(eTime - pTime);
+                    aida.histogram2D("Electron Cluster y vs Photon Cluster y", 100, -100., 100., 100, -100., 100.).fill(eClus.getPosition()[1], pClus.getPosition()[1]);
+                    if (eSum >= _energyCut && electron.getTracks().get(0).getTrackerHits().size() >= _nHitsOnTrack) // electron
+                    {
+                        if (abs(eTime - pTime) < 2.) {
+                            if (eClus.getPosition()[1] * pClus.getPosition()[1] < 0.) {
+
+                                hitToStrips = TrackUtils.getHitToStripsTable(event);
+                                hitToRotated = TrackUtils.getHitToRotatedTable(event);
+                                analyzeHitlayers(electron);
+                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron momentum + photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
+                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
+                                // Passed all cuts, let's write this event
+                                skipEvent = false;
+                                aida.tree().mkdirs(eDir);
+                                aida.tree().cd(eDir);
+                                aida.histogram1D(topOrBottom + "Electron momentum " + eDir, 100, 0., 6.0).fill(eMomentum);
+                                aida.histogram1D(topOrBottom + "Electron eOverP " + eDir, 100, 0., 2.0).fill(eEnergy / eMomentum);
+                                aida.histogram2D(topOrBottom + "Electron eOverP vs P " + eDir, 100, 0., 6.0, 100, 0., 2.).fill(eMomentum, eEnergy / eMomentum);
+                                aida.histogram2D(topOrBottom + "Electron momentum vs Electron energy " + eDir, 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, eEnergy);
+                                aida.tree().cd("..");
+                                //Are we also requiring both clusters to be fiducial?
+                                if (_stripBothFiducial) {
+                                    if (!electronIsFiducial || !photonIsFiducial) {
+                                        skipEvent = true;
+                                    }
                                 }
-                            }
-                            // Are we only requiring the photon to be fiducial?
-                            if (_onlyPhotonFiducial) {
-                                if (!photonIsFiducial) {
-                                    skipEvent = true;
+                                // Are we only requiring the photon to be fiducial?
+                                if (_onlyPhotonFiducial) {
+                                    if (!photonIsFiducial) {
+                                        skipEvent = true;
+                                    }
                                 }
-                            }
-                            aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron momentum + photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
-                            aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
-                            if (electronIsFiducial && photonIsFiducial) {
-                                aida.histogram1D("Final " + nHits + " hits Fiducial " + topOrBottom + "Electron momentum + Fiducial photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
-                                aida.histogram1D("Final " + nHits + " hits Fiducial " + topOrBottom + "Electron energy + Fiducial photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
-                            }
-                            if (photonIsFiducial) {
-                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron momentum + Fiducial photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
-                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + Fiducial photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
+                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron momentum + photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
+                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
+                                if (electronIsFiducial && photonIsFiducial) {
+                                    aida.histogram1D("Final " + nHits + " hits Fiducial " + topOrBottom + "Electron momentum + Fiducial photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
+                                    aida.histogram1D("Final " + nHits + " hits Fiducial " + topOrBottom + "Electron energy + Fiducial photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
+                                }
+                                if (photonIsFiducial) {
+                                    aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron momentum + Fiducial photon Energy", 100, 0., 6.0).fill(eMomentum + pEnergy);
+                                    aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + Fiducial photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
+                                }
                             }
                         }
                     }
@@ -368,6 +411,23 @@ public class StripWABCandidates extends Driver {
     @Override
     protected void endOfData() {
         System.out.println("Wrote " + _numberOfEventsWritten + " events");
+    }
+
+    public void setStripTwoEcalClusters(boolean b) {
+        _stripTwoEcalClusters = b;
+    }
+
+    public void setEsumCut(double d) {
+        esumCut = d;
+    }
+
+    void analyzeCluster(Cluster c) {
+        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+        if (c.getPosition()[1] > 0.) {
+            aida.histogram1D("Top cluster energy", 100, 0., 5.5).fill(c.getEnergy());
+        } else {
+            aida.histogram1D("Bottom cluster energy", 100, 0., 5.5).fill(c.getEnergy());
+        }
     }
 
 }
