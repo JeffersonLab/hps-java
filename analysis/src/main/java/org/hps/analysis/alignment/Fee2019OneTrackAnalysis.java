@@ -47,6 +47,33 @@ public class Fee2019OneTrackAnalysis extends Driver {
         // now add in the FEE candidates
         rpList.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
 
+        boolean analyzeAllTracks = true;
+
+        if (analyzeAllTracks) {
+            List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+            aida.tree().mkdirs("all clusters");
+            aida.tree().cd("all clusters");
+            for (Cluster c : ecalClusters) {
+                analyzeCluster(c);
+            }
+            aida.tree().cd("..");
+            if (rpList.size() > 0) {
+                setupSensors(event);
+
+                for (ReconstructedParticle rp : rpList) {
+                    aida.tree().mkdirs("all tracks");
+                    aida.tree().cd("all tracks");
+                    if (rp.getParticleIDUsed().getPDG() == 11 && rp.getTracks().get(0) != null) {
+                        analyzeTrack(rp);
+                    }
+                    aida.tree().cd("..");
+
+                    analyzeReconstructedParticle(rp);
+                }
+
+            }
+        }
+
         // should have at most two RPS (one MatchedTrack and one GBL Track
         if (rpList.size() != 2) {
             return;
@@ -75,6 +102,45 @@ public class Fee2019OneTrackAnalysis extends Driver {
             }
         }
 
+    }
+
+    void analyzeReconstructedParticle(ReconstructedParticle rp) {
+        boolean isElectron = rp.getParticleIDUsed().getPDG() == 11;
+        boolean isPositron = rp.getParticleIDUsed().getPDG() == -11;
+        boolean isPhoton = rp.getParticleIDUsed().getPDG() == 22;
+        String type = "";
+        if (isElectron) {
+            type = "electron";
+        }
+        if (isPositron) {
+            type = "positron";
+        }
+        if (isPhoton) {
+            type = "photon";
+        }
+
+        aida.tree().mkdirs(type);
+        aida.tree().cd(type);
+
+        if (isElectron || isPositron) {
+            analyzeTrack(rp);
+        }
+
+        if (isPhoton) {
+            analyzeCluster(rp);
+        }
+
+        aida.tree().cd("..");
+
+    }
+
+    void analyzeCluster(Cluster c) {
+        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+        if (c.getPosition()[1] > 0.) {
+            aida.histogram1D("Top cluster energy", 100, 3.5, 5.5).fill(c.getEnergy());
+        } else {
+            aida.histogram1D("Bottom cluster energy", 100, 3.5, 5.5).fill(c.getEnergy());
+        }
     }
 
     void analyzeCluster(ReconstructedParticle rp) {
@@ -132,18 +198,26 @@ public class Fee2019OneTrackAnalysis extends Driver {
     void analyzeTrack(ReconstructedParticle rp) {
         boolean isGBL = TrackType.isGBL(rp.getType());
         String trackDir = isGBL ? "gbl" : "htf";
-
+        if (rp.getType() == 1) {
+            trackDir = "kf";
+        }
         aida.tree().mkdirs(trackDir);
         aida.tree().cd(trackDir);
 
         Track t = rp.getTracks().get(0);
+
+//        aida.cloud1D("ReconstructedParticle Type").fill(rp.getType());
+//        aida.cloud1D("Track Type").fill(t.getType());
         //rotate into physiscs frame of reference
         Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
         double theta = Math.acos(rprot.z() / rprot.magnitude());
         double chiSquared = t.getChi2();
         int ndf = t.getNDF();
         double chi2Ndf = t.getChi2() / t.getNDF();
-        double chisqProb = ChisqProb.gammp(ndf, chiSquared);
+        double chisqProb = 1.;
+        if (ndf != 0) {
+            chisqProb = ChisqProb.gammp(ndf, chiSquared);
+        }
         int nHits = t.getTrackerHits().size();
         double dEdx = t.getdEdx();
         double e = rp.getEnergy();
@@ -173,6 +247,10 @@ public class Fee2019OneTrackAnalysis extends Driver {
         aida.histogram1D("rp y0" + topOrBottom + " " + nHits + " hits", 100, -5.0, 5.0).fill(TrackUtils.getY0(t));
         aida.histogram1D("rp z0" + topOrBottom + " " + nHits + " hits", 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
 
+        boolean hasCluster = rp.getClusters().size() == 1;
+        if (hasCluster) {
+            analyzeCluster(rp);
+        }
         //
         aida.tree().cd("..");
     }

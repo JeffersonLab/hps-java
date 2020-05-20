@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.hps.analysis.alignment.straighttrack.FitTracks.GET_IMPACT;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.DetectorElementStore;
@@ -30,6 +32,7 @@ public class StraightTrackGeometryDriver extends Driver {
 
     boolean debug = true;
     DetectorBuilder _db;
+    boolean drawDetector = false;
 
     Map<String, SimTrackerHit> simTrackerHitByModule = new TreeMap<String, SimTrackerHit>();
     Map<String, SiTrackerHitStrip1D> stripTrackerHitByModule = new TreeMap<String, SiTrackerHitStrip1D>();
@@ -37,7 +40,11 @@ public class StraightTrackGeometryDriver extends Driver {
 
     protected void detectorChanged(Detector detector) {
         _db = new DetectorBuilder(detector);
-        _db.drawDetector();
+        try {
+            _db.drawDetector();
+        } catch (Exception ex) {
+            Logger.getLogger(StraightTrackGeometryDriver.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     protected void process(EventHeader event) {
@@ -235,6 +242,10 @@ public class StraightTrackGeometryDriver extends Driver {
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
             }
         }
+    }
+
+    public void setDrawDetector(boolean b) {
+        drawDetector = b;
     }
 
 }

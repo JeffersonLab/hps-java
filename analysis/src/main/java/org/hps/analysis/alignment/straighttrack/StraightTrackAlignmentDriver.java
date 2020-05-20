@@ -125,7 +125,6 @@ public class StraightTrackAlignmentDriver extends Driver {
     // this will be update after every alignment.
     Map<String, DetectorPlane> planeMap = new HashMap<String, DetectorPlane>();
 
-
     // try some vertexing here...
     List<Track> topTracks = new ArrayList<Track>();
     List<Track> bottomTracks = new ArrayList<Track>();
@@ -320,6 +319,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 }
                 // require at least 8 hits for fit in top, 10 in bottom (for early runs), 9 in bottom in later runs due to missing layer 4
                 int minHitsToFit = isTop ? 8 : 10;  // only 10101 has a working layer 4...
+//                if(!isTop && event.getRunNumber()>10101) minHitsToFit=8
                 if (hits.size() >= minHitsToFit) {
                     aida.histogram1D(topOrBottom + fid + " number of hits in fit", 20, 0., 20.).fill(hits.size());
                     // fit the track!
@@ -332,6 +332,8 @@ public class StraightTrackAlignmentDriver extends Driver {
 //                    }
                         // calculate unbiased residuals here
                         refitTrack(planes, hits, A0, B0, isTop);
+                        //opening angle analysis...
+                        openingAngleAnalysis(planes, hits, A0, B0, isTop);
                         // Note that track position parameters x & y are reported at the input z.
                         double[] pars = fit.pars();
                         double[] cov = fit.cov();
@@ -663,15 +665,14 @@ public class StraightTrackAlignmentDriver extends Driver {
         }
         // let's archive this...
         // Note that we always write out the full detector...
-        System.out.println("archiving "+path+ "iteration "+iter);
+        System.out.println("archiving " + path + "iteration " + iter);
         FileOutputStream fos;
         try {
             fos = new FileOutputStream(_detectorName + "_" + myDate() + "_" + (isTop ? "topAlignment" : "bottomAlignment_") + nEventsToAlign + "EventsIteration_" + iter + ".txt");
             Writer w = new BufferedWriter(new OutputStreamWriter(fos));
             for (DetectorBuilder.Tracker t : DetectorBuilder.Tracker.values()) {
                 String[] sensorNames = _db.getTrackerSensorNames(t.trackerName());
-                for(String sensor : sensorNames)
-                {
+                for (String sensor : sensorNames) {
                     DetectorPlane p = planeMap.get(sensor);
                     StringBuffer sb = new StringBuffer(p.id() + " " + p.name() + " ");
                     sb.append("o ( " + p.origin().x() + " " + p.origin().y() + " " + p.origin().z() + " ) ");
@@ -849,6 +850,56 @@ public class StraightTrackAlignmentDriver extends Driver {
 //            aida.histogram2D(topOrBottom + "unbiased x vs residual " + missingPlane.id(), 300, -200, 100, 100, -1.0, 1.0).fill(resid[0], resid[1]);
 //            aida.histogram1D(topOrBottom + "unbiased x " + missingPlane.id(), 300, -200, 100).fill(resid[0]);
         }
+        aida.tree().cd("..");
+    }
+
+    public void openingAngleAnalysis(List<DetectorPlane> planes, List<Hit> hits, double[] A0, double[] B0, boolean isTop) {
+        String topOrBottom = isTop ? "top " : "bottom ";
+        String path = "Opening Angle ";
+        aida.tree().mkdirs(path);
+        aida.tree().cd(path);
+        // refit front and back parts of this track to determine SVT opening angle.
+        int nHitsOnTrack = planes.size();
+        List<DetectorPlane> frontPlanes = new ArrayList<DetectorPlane>();
+        List<Hit> frontHits = new ArrayList<Hit>();
+        List<DetectorPlane> backPlanes = new ArrayList<DetectorPlane>();
+        List<Hit> backHits = new ArrayList<Hit>();
+        // loop over all the hits
+        aida.histogram1D(topOrBottom + " number of hits in fit", 20, 0., 20.).fill(nHitsOnTrack);
+        for (int i = 0; i < nHitsOnTrack; ++i) {
+            int id = planes.get(i).id();
+            //System.out.println("opening angle refit i : " + i + " plane id " + planes.get(i).id());
+            aida.histogram1D(topOrBottom + " hit id", 20, 0., 20.).fill(planes.get(i).id());
+            if (id < 9) {
+                frontPlanes.add(planes.get(i));
+                frontHits.add(hits.get(i));
+            } else {
+                backPlanes.add(planes.get(i));
+                backHits.add(hits.get(i));
+            }
+        }
+        // fit the full track...
+        TrackFit fullFit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
+        //System.out.println(fullFit + " " + planes.size() + " " + hits.size());
+        
+        // define the fit plane halfway between
+        double zPivot = 414.0;
+        double[] APivot = {0., 0., zPivot}; // midway between layer 3 and 4
+        TrackFit fitFront = FitTracks.STR_LINFIT(frontPlanes, frontHits, APivot, B0);
+        TrackFit fitBack = FitTracks.STR_LINFIT(backPlanes, backHits, APivot, B0);
+        //System.out.println(fitFront + " " + frontPlanes.size() + " " + frontHits.size());
+        double[] parsFront = fitFront.pars();
+        double[] parsBack = fitBack.pars();
+        aida.histogram2D(" X vs Y front at z = " + zPivot, 200, -60., 16., 200, -50., 50.).fill(parsFront[0], parsFront[1]);
+        aida.histogram2D(" X vs Y back at z = " + zPivot, 200, -60., 16., 200, -50., 50.).fill(parsBack[0], parsBack[1]);
+        aida.histogram1D(topOrBottom + " X back-front at z = " + zPivot, 100, -2.5, 2.5).fill(parsBack[0] - parsFront[0]);
+        aida.histogram2D(topOrBottom + " Y back-front vs X at z = " + zPivot, 200, -40., 15., 100, -0.5, 0.5).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.histogram1D(topOrBottom + " Y back-front at z = " + zPivot, 100, -0.5, 0.5).fill(parsBack[1] - parsFront[1]);
+        aida.profile1D(topOrBottom + " Y back-front vs X at z = " + zPivot + " profile", 100, -40., 10.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.profile1D(topOrBottom + " Y back-front vs X at z = " + zPivot + " profile tight", 100, -37., -15.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.histogram1D(topOrBottom + " dXdZ back-front at z = " + zPivot, 100, -0.01, 0.01).fill(parsBack[2] - parsFront[2]);
+        aida.histogram1D(topOrBottom + " dYdZ back-front at z = " + zPivot, 100, -0.005, 0.005).fill(parsBack[3] - parsFront[3]);
+
         aida.tree().cd("..");
     }
 

@@ -282,7 +282,7 @@ public class FitTracks {
                     }
                 }
             } // end of loop over planes
-            if (NDF > 0) {
+            if (NDF >= 0) {
                 if (debug()) {
                     System.out.println("CALLING TRSINV");
                 }
