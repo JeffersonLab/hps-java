@@ -33,7 +33,7 @@ import org.lcsim.util.aida.AIDA;
 public class StripWABCandidates extends Driver {
 
     private boolean _writeRunAndEventNumbers = false;
-    private boolean _stripBothFiducial = false;
+    private boolean _stripBothFiducial = true;
     private boolean _onlyPhotonFiducial = false;
     private double _energyCut = 0.85;
     private int _nHitsOnTrack = 5;
@@ -90,6 +90,14 @@ public class StripWABCandidates extends Driver {
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster2 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos2.x(), pos2.y());
                         }
                         skipEvent = false;
+                        if (_stripBothFiducial) {
+                            if (!e1IsFiducial) {
+                                skipEvent = true;
+                            }
+                            if (!e2IsFiducial) {
+                                skipEvent = true;
+                            }
+                        }
                     }
                 }
             }
