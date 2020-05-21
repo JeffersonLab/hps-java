@@ -12,7 +12,6 @@ import static java.lang.Math.PI;
 //import java.io.OutputStreamWriter;
 //import java.io.Writer;
 import static java.lang.Math.abs;
-import static java.lang.Math.signum;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +49,6 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.math.chisq.ChisqProb;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -330,15 +328,15 @@ public class StraightTrackAlignmentDriver extends Driver {
                     Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
                     hits.add(h);
                     //cng
-                    SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-                    SiTrackerHitStrip1D global = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
-                    System.out.println("original hit " + stripHit.getPositionAsVector());
-                    System.out.println("global hit " + global.getPositionAsVector());
-                    System.out.println("local hit " + local.getPositionAsVector());
-                    System.out.println("local u " + local.getPositionAsVector().x() + " my hit u " + h.uvm()[0]);
-                    double sign = signum(h.uvm()[0] * local.getPositionAsVector().x());
-                    System.out.println(stripHit.getSensor().getName() + " " + sign);
-                    aida.histogram1D(stripHit.getSensor().getName() + "stripHit u - my u", 100, -0.161, -0.159).fill(sign * local.getPositionAsVector().x() - h.uvm()[0]);
+//                    SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+//                    SiTrackerHitStrip1D global = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+//                    System.out.println("original hit " + stripHit.getPositionAsVector());
+//                    System.out.println("global hit " + global.getPositionAsVector());
+//                    System.out.println("local hit " + local.getPositionAsVector());
+//                    System.out.println("local u " + local.getPositionAsVector().x() + " my hit u " + h.uvm()[0]);
+//                    double sign = signum(h.uvm()[0] * local.getPositionAsVector().x());
+//                    System.out.println(stripHit.getSensor().getName() + " " + sign);
+//                    aida.histogram1D(stripHit.getSensor().getName() + "stripHit u - my u", 100, -0.161, -0.159).fill(sign * local.getPositionAsVector().x() - h.uvm()[0]);
                     //cng
                     // if we have an aligned plane, use it
                     //20200117 not sure what's going on here...

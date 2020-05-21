@@ -1,8 +1,11 @@
 package org.hps.analysis.wab;
 
+import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 import static java.lang.Math.abs;
+import java.util.ArrayList;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
@@ -23,6 +26,8 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.geometry.Detector;
+import org.lcsim.math.chisq.ChisqProb;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -49,6 +54,12 @@ public class StripWABCandidates extends Driver {
     double esumCut = 3.0;
 
     boolean isMC;
+
+    private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+
+    protected void detectorChanged(Detector detector) {
+        beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+    }
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
@@ -207,8 +218,8 @@ public class StripWABCandidates extends Driver {
                     aida.histogram1D("Photon Energy", 100, 0., 6.0).fill(pEnergy);
                     aida.histogram2D(topOrBottom + "Electron energy vs Photon energy", 100, 0., 6.0, 100, 0., 6.0).fill(eEnergy, pEnergy);
                     aida.histogram2D(topOrBottom + "Electron momentum vs Photon energy", 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, pEnergy);
-                    aida.histogram2D("Electron Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(eClus.getPosition()[0], eClus.getPosition()[1]);
-                    aida.histogram2D("Photon Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(pClus.getPosition()[0], pClus.getPosition()[1]);
+                    aida.histogram2D("Electron Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(eClus.getPosition()[0], eClus.getPosition()[1]);
+                    aida.histogram2D("Photon Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pClus.getPosition()[0], pClus.getPosition()[1]);
                     aida.histogram1D("Cluster delta time", 100, -5., 5.).fill(eTime - pTime);
                     aida.histogram2D("Electron Cluster y vs Photon Cluster y", 100, -100., 100., 100, -100., 100.).fill(eClus.getPosition()[1], pClus.getPosition()[1]);
                     if (eSum >= _energyCut && electron.getTracks().get(0).getTrackerHits().size() >= _nHitsOnTrack) // electron
@@ -440,7 +451,7 @@ public class StripWABCandidates extends Driver {
     }
 
     void analyzeCluster(Cluster c) {
-        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+        aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
         if (c.getPosition()[1] > 0.) {
             aida.histogram1D("Top cluster energy", 100, 0., 5.5).fill(c.getEnergy());
         } else {
@@ -449,6 +460,7 @@ public class StripWABCandidates extends Driver {
     }
 
     void analyzeWabTrackingEfficiency(EventHeader event) {
+        setupSensors(event);
         boolean isGG; // two photons  : presumably missing the electron track
         boolean isEG; // electron + photon : good WAB
         boolean isPG; // positron + photon : missing electron track
@@ -464,6 +476,7 @@ public class StripWABCandidates extends Driver {
         }
         int[] pdgIds = new int[2];
         int i = 0;
+        List<ReconstructedParticle> twoRPs = new ArrayList<>();
         for (ReconstructedParticle rp : rps) {
             boolean isGBL = TrackType.isGBL(rp.getType());
             String trackType = isGBL ? "gbl " : "other ";
@@ -473,6 +486,7 @@ public class StripWABCandidates extends Driver {
                 particleType = "electron ";
                 if (trackType.equals("gbl ") && !rp.getClusters().isEmpty()) {
                     pdgIds[i++] = pdgId;
+                    twoRPs.add(rp);
                     aida.histogram1D(particleType + "energy", 100, 0., 6.).fill(rp.getEnergy());
                 }
                 aida.histogram1D(particleType + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
@@ -481,6 +495,7 @@ public class StripWABCandidates extends Driver {
                 particleType = "positron ";
                 if (trackType.equals("gbl ") && !rp.getClusters().isEmpty()) {
                     pdgIds[i++] = pdgId;
+                    twoRPs.add(rp);
                     aida.histogram1D(particleType + "energy", 100, 0., 6.).fill(rp.getEnergy());
                 }
                 aida.histogram1D(particleType + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
@@ -488,9 +503,9 @@ public class StripWABCandidates extends Driver {
             if (pdgId == 22) {
                 particleType = "photon ";
                 pdgIds[i++] = pdgId;
+                twoRPs.add(rp);
                 aida.histogram1D(particleType + "energy", 100, 0., 6.).fill(rp.getEnergy());
             }
-
         }
         if (pdgIds[0] == 22 && pdgIds[1] == 22) {
             isGG = true;
@@ -520,7 +535,156 @@ public class StripWABCandidates extends Driver {
             isEP = true;
             type = "ep";
         }
-        System.out.println("type " + type);
+//        System.out.println("type " + type);
+        aida.tree().mkdirs(type);
+        aida.tree().cd(type);
+        //start by comparing egamma to gammagamma and assume that the electron track is missing in the latter sample.
+        for (ReconstructedParticle rp : twoRPs) {
+            analyzeReconstructedParticle(rp);
+        }
+        aida.tree().cd("..");
+    }
+
+    void analyzeReconstructedParticle(ReconstructedParticle rp) {
+        boolean isElectron = rp.getParticleIDUsed().getPDG() == 11;
+        boolean isPositron = rp.getParticleIDUsed().getPDG() == -11;
+        boolean isPhoton = rp.getParticleIDUsed().getPDG() == 22;
+        String type = "";
+        if (isElectron) {
+            type = "electron";
+        }
+        if (isPositron) {
+            type = "positron";
+        }
+        if (isPhoton) {
+            type = "photon";
+        }
+
+        aida.tree().mkdirs(type);
+        aida.tree().cd(type);
+
+        if (isElectron || isPositron) {
+            analyzeTrack(rp);
+        }
+
+        if (isPhoton) {
+            analyzeCluster(rp);
+        }
+
+        aida.tree().cd("..");
+
+    }
+
+    void analyzeCluster(ReconstructedParticle rp) {
+        Cluster c = rp.getClusters().get(0);
+        double p = rp.getMomentum().magnitude();
+        double e = rp.getEnergy();
+
+        CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+        double seedHitEnergy = ClusterUtilities.findSeedHit(c).getCorrectedEnergy();
+        boolean isFiducial = isFiducial(seedHit);
+        String fid = isFiducial ? "fiducial" : "";
+        // debug diagnostics to set cuts
+
+        if (c.getPosition()[1] > 0.) {
+            aida.histogram1D("Top cluster energy", 100, 0., 5.5).fill(c.getEnergy());
+        } else {
+            aida.histogram1D("Bottom cluster energy", 100, 0., 5.5).fill(c.getEnergy());
+        }
+        aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+        aida.histogram1D("clusterSeedHit energy", 50, 0.5, 4.5).fill(seedHitEnergy);
+        aida.histogram1D("cluster nHits", 20, 0., 20.).fill(c.getCalorimeterHits().size());
+        aida.histogram2D("clusterSeedHit energy vs energy", 100, 0., 5.5, 50, 0.5, 4.5).fill(e, seedHitEnergy);
+        aida.histogram2D("cluster nHits vs energy", 100, 0., 5.5, 20, 0., 20.).fill(e, c.getCalorimeterHits().size());
+        aida.histogram2D("cluster time vs e", 100, 0., 5.5, 30, 30., 60.).fill(p, ClusterUtilities.getSeedHitTime(c));
+        if (isFiducial) {
+            if (c.getPosition()[1] > 0.) {
+                aida.histogram1D("Top cluster energy " + fid, 100, 0.0, 5.5).fill(c.getEnergy());
+            } else {
+                aida.histogram1D("Bottom cluster energy " + fid, 100, 0.0, 5.5).fill(c.getEnergy());
+            }
+            aida.histogram2D("Cluster x vs y " + fid, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+            aida.histogram1D("clusterSeedHit energy " + fid, 50, 0.5, 4.5).fill(seedHitEnergy);
+            aida.histogram1D("cluster nHits " + fid, 20, 0., 20.).fill(c.getCalorimeterHits().size());
+            aida.histogram2D("clusterSeedHit energy vs energy " + fid, 100, 0.0, 5.5, 50, 0.5, 4.5).fill(e, seedHitEnergy);
+            aida.histogram2D("cluster nHits vs energy " + fid, 100, 0.0, 5.5, 20, 0., 20.).fill(e, c.getCalorimeterHits().size());
+            aida.histogram2D("cluster time vs e " + fid, 100, 0.0, 5.5, 30, 30., 60.).fill(p, ClusterUtilities.getSeedHitTime(c));
+
+            if (seedHitEnergy > 2.8) {
+                if (c.getPosition()[1] > 0.) {
+                    aida.histogram1D("Top cluster energy seed hit > 2.8", 100, 0.0, 5.5).fill(c.getEnergy());
+                } else {
+                    aida.histogram1D("Bottom cluster energy seed hit > 2.8", 100, 0.0, 5.5).fill(c.getEnergy());
+                }
+                if (seedHitEnergy > 3.0) {
+                    if (c.getPosition()[1] > 0.) {
+                        aida.histogram1D("Top cluster energy seed hit > 3.0", 100, 0.0, 5.5).fill(c.getEnergy());
+                    } else {
+                        aida.histogram1D("Bottom cluster energy seed hit > 3.0", 100, 0.0, 5.5).fill(c.getEnergy());
+                    }
+                }
+            }
+        }
+    }
+
+    void analyzeTrack(ReconstructedParticle rp) {
+        boolean isGBL = TrackType.isGBL(rp.getType());
+        String trackDir = isGBL ? "gbl" : "htf";
+        if (rp.getType() == 1) {
+            trackDir = "kf";
+        }
+        aida.tree().mkdirs(trackDir);
+        aida.tree().cd(trackDir);
+
+        Track t = rp.getTracks().get(0);
+
+//        aida.cloud1D("ReconstructedParticle Type").fill(rp.getType());
+//        aida.cloud1D("Track Type").fill(t.getType());
+        //rotate into physiscs frame of reference
+        Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
+        double theta = Math.acos(rprot.z() / rprot.magnitude());
+        double chiSquared = t.getChi2();
+        int ndf = t.getNDF();
+        double chi2Ndf = t.getChi2() / t.getNDF();
+        double chisqProb = 1.;
+        if (ndf != 0) {
+            chisqProb = ChisqProb.gammp(ndf, chiSquared);
+        }
+        int nHits = t.getTrackerHits().size();
+        double dEdx = t.getdEdx();
+        double e = rp.getEnergy();
+        double p = rp.getMomentum().magnitude();
+
+        String topOrBottom = isTopTrack(t) ? " top " : " bottom ";
+        aida.histogram1D("Track chisq per df" + topOrBottom, 100, 0., 50.).fill(chiSquared / ndf);
+        aida.histogram1D("Track chisq prob" + topOrBottom, 100, 0., 1.).fill(chisqProb);
+        aida.histogram1D("Track nHits" + topOrBottom, 7, 0.5, 7.5).fill(t.getTrackerHits().size());
+        aida.histogram1D("Track momentum" + topOrBottom, 100, 0., 10.0).fill(p);
+        aida.histogram1D("Track deDx" + topOrBottom, 100, 0.00004, 0.00013).fill(t.getdEdx());
+        aida.histogram1D("Track theta" + topOrBottom, 100, 0.010, 0.160).fill(theta);
+        aida.histogram2D("Track theta vs p" + topOrBottom, 100, 0.010, 0.160, 100, 0., 10.0).fill(theta, p);
+        aida.histogram1D("rp x0" + topOrBottom, 100, -0.50, 0.50).fill(TrackUtils.getX0(t));
+        aida.histogram1D("rp y0" + topOrBottom, 100, -5.0, 5.0).fill(TrackUtils.getY0(t));
+        aida.histogram1D("rp z0" + topOrBottom, 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
+
+        //
+        aida.histogram1D("Track chisq per df" + topOrBottom + " " + nHits + " hits", 100, 0., 50.).fill(chiSquared / ndf);
+        aida.histogram1D("Track chisq prob" + topOrBottom + " " + nHits + " hits", 100, 0., 1.).fill(chisqProb);
+        aida.histogram1D("Track nHits" + topOrBottom + " " + nHits + " hits", 7, 0.5, 7.5).fill(t.getTrackerHits().size());
+        aida.histogram1D("Track momentum" + topOrBottom + " " + nHits + " hits", 100, 0., 10.0).fill(p);
+        aida.histogram1D("Track deDx" + topOrBottom + " " + nHits + " hits", 100, 0.00004, 0.00013).fill(t.getdEdx());
+        aida.histogram1D("Track theta" + topOrBottom + " " + nHits + " hits", 100, 0.010, 0.160).fill(theta);
+        aida.histogram2D("Track theta vs p" + topOrBottom + " " + nHits + " hits", 100, 0.010, 0.160, 100, 0., 10.0).fill(theta, p);
+        aida.histogram1D("rp x0" + topOrBottom + " " + nHits + " hits", 100, -0.50, 0.50).fill(TrackUtils.getX0(t));
+        aida.histogram1D("rp y0" + topOrBottom + " " + nHits + " hits", 100, -5.0, 5.0).fill(TrackUtils.getY0(t));
+        aida.histogram1D("rp z0" + topOrBottom + " " + nHits + " hits", 100, -1.0, 1.0).fill(TrackUtils.getZ0(t));
+
+        boolean hasCluster = rp.getClusters().size() == 1;
+        if (hasCluster) {
+            analyzeCluster(rp);
+        }
+        //
+        aida.tree().cd("..");
     }
 
 }
