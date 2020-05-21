@@ -23,7 +23,6 @@ public class DetectorBuilderTest extends TestCase {
         db.drawDetector();
         String suffix = "test";
         db.archiveIt(suffix);
-
         // try building detector from file...
         Path path = Paths.get(detectorName + "_" + myDate() + "_" + suffix + ".txt");
         DetectorBuilder fileDb = new DetectorBuilder(path);
