@@ -84,10 +84,13 @@ public class StripWABCandidates extends Driver {
                         boolean e1IsFiducial = isFiducial(ClusterUtilities.findSeedHit(c1));
                         boolean e2IsFiducial = isFiducial(ClusterUtilities.findSeedHit(c2));
                         if (e1IsFiducial && e2IsFiducial) {
+                            aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1", 100, 0., 5.).fill(e1);
+                            aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e2", 100, 0., 5.).fill(e2);
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
                             aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1 + e2", 100, esumCut, 5.).fill(esum);
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster1 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos1.x(), pos1.y());
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster2 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos2.x(), pos2.y());
+                            analyzeWabTrackingEfficiency(event);
                         }
                         skipEvent = false;
                         if (_stripBothFiducial) {
@@ -443,6 +446,81 @@ public class StripWABCandidates extends Driver {
         } else {
             aida.histogram1D("Bottom cluster energy", 100, 0., 5.5).fill(c.getEnergy());
         }
+    }
+
+    void analyzeWabTrackingEfficiency(EventHeader event) {
+        boolean isGG; // two photons  : presumably missing the electron track
+        boolean isEG; // electron + photon : good WAB
+        boolean isPG; // positron + photon : missing electron track
+        boolean isEP; // V0 : good trident or BH
+        String type = "unknown";
+
+        // get the ReconstructedParticles in this event
+        List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
+        // now add in the FEE candidates
+        rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+        if (rps.size() > 3) {
+            return; //currently allow both matched and gbl tracks
+        }
+        int[] pdgIds = new int[2];
+        int i = 0;
+        for (ReconstructedParticle rp : rps) {
+            boolean isGBL = TrackType.isGBL(rp.getType());
+            String trackType = isGBL ? "gbl " : "other ";
+            String particleType = "unknown";
+            int pdgId = rp.getParticleIDUsed().getPDG();
+            if (pdgId == 11) {
+                particleType = "electron ";
+                if (trackType.equals("gbl ") && !rp.getClusters().isEmpty()) {
+                    pdgIds[i++] = pdgId;
+                    aida.histogram1D(particleType + "energy", 100, 0., 6.).fill(rp.getEnergy());
+                }
+                aida.histogram1D(particleType + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
+            }
+            if (pdgId == -11) {
+                particleType = "positron ";
+                if (trackType.equals("gbl ") && !rp.getClusters().isEmpty()) {
+                    pdgIds[i++] = pdgId;
+                    aida.histogram1D(particleType + "energy", 100, 0., 6.).fill(rp.getEnergy());
+                }
+                aida.histogram1D(particleType + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
+            }
+            if (pdgId == 22) {
+                particleType = "photon ";
+                pdgIds[i++] = pdgId;
+                aida.histogram1D(particleType + "energy", 100, 0., 6.).fill(rp.getEnergy());
+            }
+
+        }
+        if (pdgIds[0] == 22 && pdgIds[1] == 22) {
+            isGG = true;
+            type = "gg";
+        }
+        if (pdgIds[0] == 22 && pdgIds[1] == 11) {
+            isEG = true;
+            type = "eg";
+        }
+        if (pdgIds[0] == 11 && pdgIds[1] == 22) {
+            isEG = true;
+            type = "eg";
+        }
+        if (pdgIds[0] == -11 && pdgIds[1] == 22) {
+            isPG = true;
+            type = "pg";
+        }
+        if (pdgIds[0] == 22 && pdgIds[1] == -11) {
+            isPG = true;
+            type = "pg";
+        }
+        if (pdgIds[0] == 11 && pdgIds[1] == -11) {
+            isEP = true;
+            type = "ep";
+        }
+        if (pdgIds[0] == -11 && pdgIds[1] == 11) {
+            isEP = true;
+            type = "ep";
+        }
+        System.out.println("type " + type);
     }
 
 }
