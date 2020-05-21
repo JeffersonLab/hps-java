@@ -90,8 +90,8 @@ public class StripWABCandidates extends Driver {
                     if (esum > esumCut) {
                         aida.histogram2D("two opposite esum > " + esumCut + " cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
                         aida.histogram1D("two opposite esum > " + esumCut + " cluster e1 + e2", 100, esumCut, 5.).fill(esum);
-                        aida.histogram2D("two opposite esum > " + esumCut + " cluster1 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos1.x(), pos1.y());
-                        aida.histogram2D("two opposite esum > " + esumCut + " cluster2 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos2.x(), pos2.y());
+                        aida.histogram2D("two opposite esum > " + esumCut + " cluster1 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                        aida.histogram2D("two opposite esum > " + esumCut + " cluster2 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
                         boolean e1IsFiducial = isFiducial(ClusterUtilities.findSeedHit(c1));
                         boolean e2IsFiducial = isFiducial(ClusterUtilities.findSeedHit(c2));
                         if (e1IsFiducial && e2IsFiducial) {
@@ -99,8 +99,8 @@ public class StripWABCandidates extends Driver {
                             aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e2", 100, 0., 5.).fill(e2);
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
                             aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1 + e2", 100, esumCut, 5.).fill(esum);
-                            aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster1 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos1.x(), pos1.y());
-                            aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster2 x vs y", 200, -200., 200., 100, -100., 100.).fill(pos2.x(), pos2.y());
+                            aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster1 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                            aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster2 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
                             analyzeWabTrackingEfficiency(event);
                         }
                         skipEvent = false;
