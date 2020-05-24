@@ -12,6 +12,9 @@ import static java.lang.Math.PI;
 //import java.io.OutputStreamWriter;
 //import java.io.Writer;
 import static java.lang.Math.abs;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +61,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     private int _numberOfEventsWritten = 0;
     boolean _debug = false;
     DetectorBuilder _db;
+    boolean _useAlignedDetector = false;
     String _detectorName;
     double _minClusterEnergy = 3.5;
 
@@ -142,7 +146,21 @@ public class StraightTrackAlignmentDriver extends Driver {
             target_y = 0.;
             target_z = -2267;
         }
-        _db = new DetectorBuilder(detector);
+        if (_useAlignedDetector) {
+            Path resourcePath = null;
+            String resourceName = "org/hps/analysis/alignment/HPS-PhysicsRun2019-v1-4pt5_20200205_topAlignment250000EventsIteration_9.txt";
+            try {
+                resourcePath = Paths.get(getClass().getClassLoader().getResource(resourceName).toURI());
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(StraightTrackAnalysisDriver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println(resourcePath);
+            _db = new DetectorBuilder(resourcePath);
+            System.out.println("Using aligned detector " + resourceName);
+        } else {
+            System.out.println("using default detector " + detector.getName());
+            _db = new DetectorBuilder(detector);
+        }
         planeMap.putAll(_db.planeMap());
         // set up the DetectorPlanes at the 2H02 wire
         double[] beamSpot = {target_x, target_y, target_z};  // start with this...
@@ -293,6 +311,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                 double[] fixedDu = {0., .012, .006};
                 for (String s : hitsToFit.keySet()) {
                     SiTrackerHitStrip1D stripHit = hitsToFit.get(s);
+
 //                System.out.println(s + " has a hit at " + stripHit.getPositionAsVector());
                     int size = stripHit.getRawHits().size();
                     double du;
@@ -308,6 +327,17 @@ public class StraightTrackAlignmentDriver extends Driver {
                     //for now, always calculate the local coordinate from the original plane, not the updated, aligned one.
                     Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
                     hits.add(h);
+                    //cng
+//                    SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+//                    SiTrackerHitStrip1D global = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+//                    System.out.println("original hit " + stripHit.getPositionAsVector());
+//                    System.out.println("global hit " + global.getPositionAsVector());
+//                    System.out.println("local hit " + local.getPositionAsVector());
+//                    System.out.println("local u " + local.getPositionAsVector().x() + " my hit u " + h.uvm()[0]);
+//                    double sign = signum(h.uvm()[0] * local.getPositionAsVector().x());
+//                    System.out.println(stripHit.getSensor().getName() + " " + sign);
+//                    aida.histogram1D(stripHit.getSensor().getName() + "stripHit u - my u", 100, -0.161, -0.159).fill(sign * local.getPositionAsVector().x() - h.uvm()[0]);
+                    //cng
                     // if we have an aligned plane, use it
                     //20200117 not sure what's going on here...
                     // let's simplify things.
@@ -881,7 +911,7 @@ public class StraightTrackAlignmentDriver extends Driver {
         // fit the full track...
         TrackFit fullFit = FitTracks.STR_LINFIT(planes, hits, A0, B0);
         //System.out.println(fullFit + " " + planes.size() + " " + hits.size());
-        
+
         // define the fit plane halfway between
         double zPivot = 414.0;
         double[] APivot = {0., 0., zPivot}; // midway between layer 3 and 4
@@ -892,14 +922,15 @@ public class StraightTrackAlignmentDriver extends Driver {
         double[] parsBack = fitBack.pars();
         aida.histogram2D(" X vs Y front at z = " + zPivot, 200, -60., 16., 200, -50., 50.).fill(parsFront[0], parsFront[1]);
         aida.histogram2D(" X vs Y back at z = " + zPivot, 200, -60., 16., 200, -50., 50.).fill(parsBack[0], parsBack[1]);
-        aida.histogram1D(topOrBottom + " X back-front at z = " + zPivot, 100, -2.5, 2.5).fill(parsBack[0] - parsFront[0]);
-        aida.histogram2D(topOrBottom + " Y back-front vs X at z = " + zPivot, 200, -40., 15., 100, -0.5, 0.5).fill(parsFront[0], parsBack[1] - parsFront[1]);
-        aida.histogram1D(topOrBottom + " Y back-front at z = " + zPivot, 100, -0.5, 0.5).fill(parsBack[1] - parsFront[1]);
-        aida.profile1D(topOrBottom + " Y back-front vs X at z = " + zPivot + " profile", 100, -40., 10.).fill(parsFront[0], parsBack[1] - parsFront[1]);
-        aida.profile1D(topOrBottom + " Y back-front vs X at z = " + zPivot + " profile tight", 100, -37., -15.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.histogram1D(topOrBottom + " dX back-front at z = " + zPivot, 100, -2.5, 2.5).fill(parsBack[0] - parsFront[0]);
+        aida.histogram2D(topOrBottom + " dY back-front vs X at z = " + zPivot, 200, -40., 15., 100, -0.5, 0.5).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.histogram1D(topOrBottom + " dY back-front at z = " + zPivot, 100, -0.5, 0.5).fill(parsBack[1] - parsFront[1]);
+        aida.profile1D(topOrBottom + " dY back-front vs X at z = " + zPivot + " profile", 100, -40., 10.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+        aida.profile1D(topOrBottom + " dY back-front vs X at z = " + zPivot + " profile tight", 100, -37., -15.).fill(parsFront[0], parsBack[1] - parsFront[1]);
         aida.histogram1D(topOrBottom + " dXdZ back-front at z = " + zPivot, 100, -0.01, 0.01).fill(parsBack[2] - parsFront[2]);
         aida.histogram1D(topOrBottom + " dYdZ back-front at z = " + zPivot, 100, -0.005, 0.005).fill(parsBack[3] - parsFront[3]);
 
+        // project line fits to z of target
         aida.tree().cd("..");
     }
 
