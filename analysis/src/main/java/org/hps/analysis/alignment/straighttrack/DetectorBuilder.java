@@ -302,7 +302,10 @@ public class DetectorBuilder {
                 if (_debug) {
                     System.out.println(stripPlaneName);
                 }
-                Hep3Vector origin = CoordinateTransformations.transformVectorToDetector(plane.origin());
+                // the following method is off by 100 microns for layers 1 and 2 and 160 microns for the rest
+                // changed 20200524
+//                Hep3Vector origin = CoordinateTransformations.transformVectorToDetector(plane.origin());
+                Hep3Vector origin = plane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector();
 
                 Hep3Vector normal = CoordinateTransformations.transformVectorToDetector(plane.normal());
                 // orient all normals to point along +ive z
