@@ -121,6 +121,11 @@ public class SVTOpeningAlignment extends Driver {
 
     public SVTOpeningAlignment() {
     }
+    
+    public void setSkimGoodTracks(boolean b)
+    {
+        skimGoodTracks = b;
+    }
 
     public void setTargetPosition(double d) {
         targetPosition = d;
