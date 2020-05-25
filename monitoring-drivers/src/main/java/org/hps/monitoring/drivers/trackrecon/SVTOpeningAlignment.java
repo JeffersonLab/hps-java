@@ -116,6 +116,8 @@ public class SVTOpeningAlignment extends Driver {
     int nGoodTopTracks = 0;
     int nGoodBottomTracks = 0;
     boolean skimGoodTracks = true;
+    //20200524 c_support_kin_L13b origin in trackingVolume : [     -117.33,     -67.996,      417.79]
+    double zPivot = 417.79;
 
     public SVTOpeningAlignment() {
     }
@@ -412,8 +414,8 @@ public class SVTOpeningAlignment extends Driver {
                 double y0L46 = ts46.getZ0();
                 double yAtTargetL03 = (targetPosition - x0L03) * slL03 + y0L03;
                 double yAtTargetL46 = (targetPosition - x0L46) * slL46 + y0L46;
-                double yAtHingeL03 = (414.0 - x0L03) * slL03 + y0L03;
-                double yAtHingeL46 = (414.0 - x0L46) * slL46 + y0L46;
+                double yAtHingeL03 = (zPivot - x0L03) * slL03 + y0L03;
+                double yAtHingeL46 = (zPivot - x0L46) * slL46 + y0L46;
                 double deltaYAtHinge = yAtHingeL46 - yAtHingeL03;
                 double deltaYAtTarget = yAtTargetL46 - yAtTargetL03;
                 nHits03Top.fill(trk03.getTrackerHits().size());
@@ -479,8 +481,8 @@ public class SVTOpeningAlignment extends Driver {
                 double y0L46 = ts46.getZ0();
                 double yAtTargetL03 = (targetPosition - x0L03) * slL03 + y0L03;
                 double yAtTargetL46 = (targetPosition - x0L46) * slL46 + y0L46;
-                double yAtHingeL03 = (414.0 - x0L03) * slL03 + y0L03;
-                double yAtHingeL46 = (414.0 - x0L46) * slL46 + y0L46;
+                double yAtHingeL03 = (zPivot - x0L03) * slL03 + y0L03;
+                double yAtHingeL46 = (zPivot - x0L46) * slL46 + y0L46;
                 double deltaYAtHinge = yAtHingeL46 - yAtHingeL03;
                 double deltaYAtTarget = yAtTargetL46 - yAtTargetL03;
                 nHits03Bot.fill(trk03.getTrackerHits().size());
@@ -533,7 +535,7 @@ public class SVTOpeningAlignment extends Driver {
 
         if (skimGoodTracks && skipEvent) {
             throw new Driver.NextEventException();
-        } 
+        }
     }
 
     @Override
