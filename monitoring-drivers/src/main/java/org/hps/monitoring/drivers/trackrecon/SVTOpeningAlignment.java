@@ -447,6 +447,8 @@ public class SVTOpeningAlignment extends Driver {
                 delYAtHingeVsL03SlopeTop.fill(deltaYAtHinge, slL03);
 
                 //cng
+                aida.histogram1D("DeltaY at Hinge Top " + trk03.getTrackerHits().size() + " hits on L03", 100, -0.5, 0.5).fill(deltaYAtHinge);
+                aida.histogram1D("Delta slope: Top " + trk03.getTrackerHits().size() + " hits on L03", 100, -0.005, 0.005).fill(ts46.getTanLambda() - ts03.getTanLambda());
                 double[] targetPositions = {0., -1., -2., -3., -4., -5., -6., -7., -8.};
                 for (int i = 0; i < targetPositions.length; ++i) {
                     double yAtTargetL03Sweep = (targetPositions[i] - x0L03) * slL03 + y0L03;
