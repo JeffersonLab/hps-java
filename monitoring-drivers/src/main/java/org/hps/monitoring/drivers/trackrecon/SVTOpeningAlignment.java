@@ -540,6 +540,9 @@ public class SVTOpeningAlignment extends Driver {
 
     @Override
     public void endOfData() {
+        if (skimGoodTracks) {
+            System.out.println("selected " + nGoodTopTracks + " good top tracks and " + nGoodBottomTracks + " good bottom tracks for alignment");
+        }
         if (outputPlots != null) {
             try {
                 plotterTop.writeToFile(outputPlots + "-deltasTop.gif");
