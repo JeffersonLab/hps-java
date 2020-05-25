@@ -113,6 +113,10 @@ public class SVTOpeningAlignment extends Driver {
     double targetPosition = -5.0; //mm
     boolean showPlots = true;
 
+    int nGoodTopTracks = 0;
+    int nGoodBottomTracks = 0;
+    boolean skimGoodTracks = true;
+
     public SVTOpeningAlignment() {
     }
 
@@ -321,6 +325,7 @@ public class SVTOpeningAlignment extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        boolean skipEvent = true;
         aida.tree().cd("/");
         if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName)) {
             return;
@@ -444,6 +449,9 @@ public class SVTOpeningAlignment extends Driver {
                     aida.histogram1D("yTarget " + targetPositions[i] + ": Top L4-6", 100, -2.5, 2.5).fill(yAtTargetL46Sweep);
                     aida.histogram1D("Delta yTarget " + targetPositions[i] + ": Bot", 100, -1.0, 1.0).fill(yAtTargetL46Sweep - yAtTargetL03Sweep);
                 }
+                //This is a good top track
+                nGoodTopTracks++;
+                skipEvent = false;
                 //cng
             }
         }
@@ -508,6 +516,9 @@ public class SVTOpeningAlignment extends Driver {
                     aida.histogram1D("yTarget " + targetPositions[i] + ": Bot L4-6", 100, -2.5, 2.5).fill(yAtTargetL46Sweep);
                     aida.histogram1D("Delta yTarget " + targetPositions[i] + ": Bot", 100, -1.0, 1.0).fill(yAtTargetL46Sweep - yAtTargetL03Sweep);
                 }
+                //This is a good bottom track
+                nGoodBottomTracks++;
+                skipEvent = false;
                 //cng                
             }
         }
@@ -520,6 +531,9 @@ public class SVTOpeningAlignment extends Driver {
         fitAndPutParameters(delz0Bot, fz0Bot);
         fitAndPutParameters(dellambdaBot, flambdaBot);
 
+        if (skimGoodTracks && skipEvent) {
+            throw new Driver.NextEventException();
+        } 
     }
 
     @Override

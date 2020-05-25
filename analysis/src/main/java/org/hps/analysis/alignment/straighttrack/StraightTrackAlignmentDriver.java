@@ -913,7 +913,9 @@ public class StraightTrackAlignmentDriver extends Driver {
         //System.out.println(fullFit + " " + planes.size() + " " + hits.size());
 
         // define the fit plane halfway between
-        double zPivot = 414.0;
+//        double zPivot = 414.0;
+//20200524 c_support_kin_L13b origin in trackingVolume : [     -117.33,     -67.996,      417.79]
+        double zPivot = 417.79;
         double[] APivot = {0., 0., zPivot}; // midway between layer 3 and 4
         TrackFit fitFront = FitTracks.STR_LINFIT(frontPlanes, frontHits, APivot, B0);
         TrackFit fitBack = FitTracks.STR_LINFIT(backPlanes, backHits, APivot, B0);

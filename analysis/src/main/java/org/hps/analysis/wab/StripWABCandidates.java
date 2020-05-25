@@ -42,9 +42,11 @@ public class StripWABCandidates extends Driver {
     private boolean _onlyPhotonFiducial = false;
     private double _energyCut = 0.85;
     private int _nHitsOnTrack = 5;
+    String _reconstructedParticleCollectionName = "FinalStateParticles";
     private int _nReconstructedParticles = 3;
     private AIDA aida = AIDA.defaultInstance();
 
+    boolean _analyzeWabTrackingEfficiency = true;
     RelationalTable hitToStrips;
     RelationalTable hitToRotated;
 
@@ -101,7 +103,9 @@ public class StripWABCandidates extends Driver {
                             aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1 + e2", 100, esumCut, 5.).fill(esum);
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster1 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
                             aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster2 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
-                            analyzeWabTrackingEfficiency(event);
+                            if (_analyzeWabTrackingEfficiency) {
+                                analyzeWabTrackingEfficiency(event);
+                            }
                         }
                         skipEvent = false;
                         if (_stripBothFiducial) {
@@ -119,7 +123,7 @@ public class StripWABCandidates extends Driver {
 
         } else { // select one electron and one photon.
             // get the ReconstructedParticles in this event
-            List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
+            List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, _reconstructedParticleCollectionName);
             // now add in the FEE candidates
             rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
 
@@ -307,6 +311,10 @@ public class StripWABCandidates extends Driver {
         _nReconstructedParticles = cut;
     }
 
+    public void setReconstructedParticleCollectionName(String s) {
+        _reconstructedParticleCollectionName = s;
+    }
+
     /**
      * Write out run and event numbers of events passing the cuts if desired
      *
@@ -448,6 +456,10 @@ public class StripWABCandidates extends Driver {
 
     public void setEsumCut(double d) {
         esumCut = d;
+    }
+
+    public void setAnalyzeWabTrackingEfficiency(boolean b) {
+        _analyzeWabTrackingEfficiency = b;
     }
 
     void analyzeCluster(Cluster c) {
@@ -636,7 +648,14 @@ public class StripWABCandidates extends Driver {
         aida.tree().mkdirs(trackDir);
         aida.tree().cd(trackDir);
 
+        if (rp.getTracks().isEmpty()) {
+            System.out.println("RP with no Track with pdgId " + rp.getParticleIDUsed().getPDG());
+            return;
+        }
         Track t = rp.getTracks().get(0);
+        if (t == null) {
+            System.out.println("null track in RP with pdgId " + rp.getParticleIDUsed().getPDG());
+        }
 
 //        aida.cloud1D("ReconstructedParticle Type").fill(rp.getType());
 //        aida.cloud1D("Track Type").fill(t.getType());
@@ -659,7 +678,7 @@ public class StripWABCandidates extends Driver {
         aida.histogram1D("Track chisq per df" + topOrBottom, 100, 0., 50.).fill(chiSquared / ndf);
         aida.histogram1D("Track chisq prob" + topOrBottom, 100, 0., 1.).fill(chisqProb);
         aida.histogram1D("Track nHits" + topOrBottom, 7, 0.5, 7.5).fill(t.getTrackerHits().size());
-        aida.histogram1D("Track momentum" + topOrBottom, 100, 0., 10.0).fill(p);
+        aida.histogram1D("Track momentum" + topOrBottom, 100, 0., 5.0).fill(p);
         aida.histogram1D("Track deDx" + topOrBottom, 100, 0.00004, 0.00013).fill(t.getdEdx());
         aida.histogram1D("Track theta" + topOrBottom, 100, 0.010, 0.160).fill(theta);
         aida.histogram2D("Track theta vs p" + topOrBottom, 100, 0.010, 0.160, 100, 0., 10.0).fill(theta, p);
@@ -671,7 +690,7 @@ public class StripWABCandidates extends Driver {
         aida.histogram1D("Track chisq per df" + topOrBottom + " " + nHits + " hits", 100, 0., 50.).fill(chiSquared / ndf);
         aida.histogram1D("Track chisq prob" + topOrBottom + " " + nHits + " hits", 100, 0., 1.).fill(chisqProb);
         aida.histogram1D("Track nHits" + topOrBottom + " " + nHits + " hits", 7, 0.5, 7.5).fill(t.getTrackerHits().size());
-        aida.histogram1D("Track momentum" + topOrBottom + " " + nHits + " hits", 100, 0., 10.0).fill(p);
+        aida.histogram1D("Track momentum" + topOrBottom + " " + nHits + " hits", 100, 0., 5.0).fill(p);
         aida.histogram1D("Track deDx" + topOrBottom + " " + nHits + " hits", 100, 0.00004, 0.00013).fill(t.getdEdx());
         aida.histogram1D("Track theta" + topOrBottom + " " + nHits + " hits", 100, 0.010, 0.160).fill(theta);
         aida.histogram2D("Track theta vs p" + topOrBottom + " " + nHits + " hits", 100, 0.010, 0.160, 100, 0., 10.0).fill(theta, p);
