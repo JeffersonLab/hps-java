@@ -518,6 +518,10 @@ public class SVTOpeningAlignment extends Driver {
                 //cng
                 aida.histogram1D("DeltaY at Hinge Bottom " + trk03.getTrackerHits().size() + " hits on L03", 100, -0.5, 0.5).fill(deltaYAtHinge);
                 aida.histogram1D("Delta slope: Bot " + trk03.getTrackerHits().size() + " hits on L03", 100, -0.005, 0.005).fill(ts46.getTanLambda() - ts03.getTanLambda());
+                aida.histogram1D("Delta d0: Bot", 50, -20.0, 20.0).fill(ts46.getD0() - ts03.getD0());
+                aida.histogram1D("Delta sin(phi): Bot " + trk03.getTrackerHits().size() + " hits on L03", 50, -0.1, 0.1).fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
+                aida.histogram1D("Delta curvature: Bot " + trk03.getTrackerHits().size() + " hits on L03", 50, -0.0002, 0.0002).fill(ts46.getOmega() - ts03.getOmega());
+                aida.histogram1D("Delta yTarget: Bot " + trk03.getTrackerHits().size() + " hits on L03", 100, -1.0, 1.0).fill(deltaYAtTarget);
                 double[] targetPositions = {0., -1., -2., -3., -4., -5., -6., -7., -8.};
                 for (int i = 0; i < targetPositions.length; ++i) {
                     double yAtTargetL03Sweep = (targetPositions[i] - x0L03) * slL03 + y0L03;
