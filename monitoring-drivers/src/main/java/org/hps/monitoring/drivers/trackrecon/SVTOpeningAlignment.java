@@ -516,12 +516,43 @@ public class SVTOpeningAlignment extends Driver {
                 delYAtHingeVsL03SlopeBot.fill(deltaYAtHinge, slL03);
 
                 //cng
-                aida.histogram1D("DeltaY at Hinge Bottom " + trk03.getTrackerHits().size() + " hits on L03", 100, -0.5, 0.5).fill(deltaYAtHinge);
-                aida.histogram1D("Delta slope: Bot " + trk03.getTrackerHits().size() + " hits on L03", 100, -0.005, 0.005).fill(ts46.getTanLambda() - ts03.getTanLambda());
-                aida.histogram1D("Delta d0: Bot " + trk03.getTrackerHits().size() + " hits on L03", 50, -20.0, 20.0).fill(ts46.getD0() - ts03.getD0());
-                aida.histogram1D("Delta sin(phi): Bot " + trk03.getTrackerHits().size() + " hits on L03", 50, -0.1, 0.1).fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
-                aida.histogram1D("Delta curvature: Bot " + trk03.getTrackerHits().size() + " hits on L03", 50, -0.0002, 0.0002).fill(ts46.getOmega() - ts03.getOmega());
-                aida.histogram1D("Delta yTarget: Bot " + trk03.getTrackerHits().size() + " hits on L03", 100, -1.0, 1.0).fill(deltaYAtTarget);
+                List<TrackerHit> trk03Hits = trk03.getTrackerHits();
+                int trk03nHits = trk03Hits.size();
+                int missingLayer = 0;
+                if (trk03nHits == 3) {
+                    missingLayer = 10;
+                    for (TrackerHit th : trk03Hits) {
+                        //quick hack to get layer
+                        double z = th.getPosition()[2];
+                        if (z > 0. && z < 75.) {
+                            missingLayer -= 1;
+                        }
+                        if (z > 75. && z < 150.) {
+                            missingLayer -= 2;
+                        }
+                        if (z > 150. && z < 250.) {
+                            missingLayer -= 3;
+                        }
+                        if (z > 250. && z < 350.) {
+                            missingLayer -= 4;
+                        }
+                    }
+                }
+                aida.histogram1D("DeltaY at Hinge Bottom " + trk03nHits + " hits on L03", 100, -0.5, 0.5).fill(deltaYAtHinge);
+                aida.histogram1D("Delta slope: Bot " + trk03nHits + " hits on L03", 100, -0.005, 0.005).fill(ts46.getTanLambda() - ts03.getTanLambda());
+                aida.histogram1D("Delta d0: Bot " + trk03nHits + " hits on L03", 50, -20.0, 20.0).fill(ts46.getD0() - ts03.getD0());
+                aida.histogram1D("Delta sin(phi): Bot " + trk03nHits + " hits on L03", 50, -0.1, 0.1).fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
+                aida.histogram1D("Delta curvature: Bot " + trk03nHits + " hits on L03", 50, -0.0002, 0.0002).fill(ts46.getOmega() - ts03.getOmega());
+                aida.histogram1D("Delta yTarget: Bot " + trk03nHits + " hits on L03", 100, -1.0, 1.0).fill(deltaYAtTarget);
+
+                String missing = trk03nHits == 4 ? "missing no layer " : "missing layer " + (missingLayer - 1) + " ";
+                aida.histogram1D("DeltaY at Hinge Bottom " + missing + " hits on L03", 100, -0.5, 0.5).fill(deltaYAtHinge);
+                aida.histogram1D("Delta slope: Bot " + missing + " hits on L03", 100, -0.005, 0.005).fill(ts46.getTanLambda() - ts03.getTanLambda());
+                aida.histogram1D("Delta d0: Bot " + missing + " hits on L03", 50, -20.0, 20.0).fill(ts46.getD0() - ts03.getD0());
+                aida.histogram1D("Delta sin(phi): Bot " + missing + " hits on L03", 50, -0.1, 0.1).fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
+                aida.histogram1D("Delta curvature: Bot " + trk03nHits + " hits on L03", 50, -0.0002, 0.0002).fill(ts46.getOmega() - ts03.getOmega());
+                aida.histogram1D("Delta yTarget: Bot " + trk03nHits + " hits on L03", 100, -1.0, 1.0).fill(deltaYAtTarget);
+
                 double[] targetPositions = {0., -1., -2., -3., -4., -5., -6., -7., -8.};
                 for (int i = 0; i < targetPositions.length; ++i) {
                     double yAtTargetL03Sweep = (targetPositions[i] - x0L03) * slL03 + y0L03;
