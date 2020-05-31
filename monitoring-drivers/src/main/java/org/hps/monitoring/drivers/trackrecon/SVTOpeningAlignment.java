@@ -523,7 +523,7 @@ public class SVTOpeningAlignment extends Driver {
                     missingLayer = 10;
                     for (TrackerHit th : trk03Hits) {
                         //quick hack to get layer
-                        double z = th.getPosition()[2];
+                        double z = th.getPosition()[0];
                         if (z > 0. && z < 75.) {
                             missingLayer -= 1;
                         }
@@ -550,8 +550,8 @@ public class SVTOpeningAlignment extends Driver {
                 aida.histogram1D("Delta slope: Bot " + missing + " hits on L03", 100, -0.005, 0.005).fill(ts46.getTanLambda() - ts03.getTanLambda());
                 aida.histogram1D("Delta d0: Bot " + missing + " hits on L03", 50, -20.0, 20.0).fill(ts46.getD0() - ts03.getD0());
                 aida.histogram1D("Delta sin(phi): Bot " + missing + " hits on L03", 50, -0.1, 0.1).fill(Math.sin(ts46.getPhi()) - Math.sin(ts03.getPhi()));
-                aida.histogram1D("Delta curvature: Bot " + trk03nHits + " hits on L03", 50, -0.0002, 0.0002).fill(ts46.getOmega() - ts03.getOmega());
-                aida.histogram1D("Delta yTarget: Bot " + trk03nHits + " hits on L03", 100, -1.0, 1.0).fill(deltaYAtTarget);
+                aida.histogram1D("Delta curvature: Bot " + missing + " hits on L03", 50, -0.0002, 0.0002).fill(ts46.getOmega() - ts03.getOmega());
+                aida.histogram1D("Delta yTarget: Bot " + missing + " hits on L03", 100, -1.0, 1.0).fill(deltaYAtTarget);
 
                 double[] targetPositions = {0., -1., -2., -3., -4., -5., -6., -7., -8.};
                 for (int i = 0; i < targetPositions.length; ++i) {
