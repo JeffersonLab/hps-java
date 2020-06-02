@@ -168,6 +168,13 @@ public class GblTrajectory {
         return null;
     }
 
+    //return a copy of the GBL Data 
+    public List<GblData> getTrajData() {
+        List<GblData> returnData = new ArrayList<GblData>(theData);
+        return returnData;
+    }
+
+
     // / Retrieve validity of trajectory
     public boolean isValid() {
         return constructOK;
@@ -816,6 +823,7 @@ public class GblTrajectory {
         if (!constructOK) {
             throw new RuntimeException("GblTrajectory milleOut not properly constructed");
         }
+        boolean debugMille = false;
         // data: measurements, kinks and external seed
         for (GblData d : theData) {
             float[] floats = new float[2]; // fValue , fErr
@@ -824,6 +832,12 @@ public class GblTrajectory {
             List<Integer> labGlobal = new ArrayList<Integer>();
             List<Double> derGlobal = new ArrayList<Double>();
             d.getAllData(floats, indLocal, derLocal, labGlobal, derGlobal);
+            if (debugMille) {
+                System.out.printf("PF::Saving to MilleFile: res  sigma %f %f \n", floats[0], floats[1]);
+                System.out.printf("PF::Saving to MilleFile: indLocal %s \n", indLocal.toString());
+                System.out.printf("PF::Saving to MilleFile: labGlobal %s\n", labGlobal.toString());
+                System.out.printf("PF::Saving to MilleFile: derGlobal %s\n", derGlobal.toString());
+            }
             aMille.addData(floats[0], floats[1], indLocal, derLocal, labGlobal, derGlobal);
         }
 

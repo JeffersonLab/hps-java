@@ -81,7 +81,14 @@ public class HpsSiSensor extends SiSensor {
     protected Map<Integer, double[]> shapeFitParametersMap = new HashMap<Integer, double[]>();
     protected Set<Integer> badChannels = new HashSet<Integer>();
     protected int millepedeId = -1;
-
+    
+    
+    // ------------------//
+    // Alignment         //
+    // -----------------///
+    
+    //protected AlignableDetectorElement alignable_parent = null;
+    
     /**
      * This class constructor matches the signature of <code>SiSensor</code>.
      *

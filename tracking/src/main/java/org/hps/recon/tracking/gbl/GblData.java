@@ -221,6 +221,18 @@ public class GblData {
         for (int i = 0; i < theDerivatives.size(); ++i) {
             System.out.print(" " + theDerivatives.get(i));
         }
+        System.out.println("\n");
+        for (int i = 0; i < globalLabels.size(); ++i) {
+            System.out.print(" " + globalLabels.get(i));
+        }
+        System.out.println("\n");
+        for (int i = 0; i < globalDerivatives.size(); ++i) {
+            System.out.print(" " + globalDerivatives.get(i));
+        }
+        System.out.println("\n");
+        
+        System.out.println("");
+        System.out.println("");
         System.out.println("");
     }
 

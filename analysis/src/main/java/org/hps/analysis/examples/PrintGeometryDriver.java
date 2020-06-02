@@ -7,12 +7,15 @@ import hep.physics.vec.VecOp;
 import java.util.List;
 
 import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.DetectorElement;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.Transform3D;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
+//import org.lcsim.detector.tracker.silicon.SiTrackerLayer;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.geometry.Detector;
@@ -27,19 +30,54 @@ public class PrintGeometryDriver extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-
+        
         System.out.printf("%s: ################# Print geometry ##########################\n", this.getClass()
-                .getSimpleName());
+                          .getSimpleName());
+        
         IDetectorElement detectorElement = detector.getDetectorElement();
-        List<SiSensor> sensors = detectorElement.findDescendants(SiSensor.class);
+        
+        System.out.printf("%s: All Detector Elements! \n", this.getClass());
+        List<DetectorElement> des = detectorElement.findDescendants(DetectorElement.class);
+        for (DetectorElement de : des){
+            if ( de.getName().contains("alignable")) {
+                System.out.printf("Detector element informations: %s \n", de.getName());
+                if (de.getGeometry() == null) {
+                    System.out.printf(((AlignableDetectorElement)de).getlocalToGlobal().toString()+"\n");
+                }
+                else {
+                    ITransform3D localToGlobal = de.getGeometry().getLocalToGlobal();
+                    System.out.printf(localToGlobal.toString()+"\n");
+                }
+            }
+        }
+        
+        /*
+          List<SiTrackerLayer> layers = detectorElement.findDescendants(SiTrackerLayer.class);
+          System.out.printf("%s: Getting Layers \n", this.getClass());
+          
+          for (SiTrackerLayer layer : layers) {
+          //Position in global coordinates
+          Hep3Vector position = layer.getGeometry().getPosition();
+          System.out.printf("Get Layer %s in %s. The transform is\n",layer.getName(),position.toString());
+          ITransform3D localToGlobal = layer.getGeometry().getLocalToGlobal();            
+          System.out.printf(localToGlobal.toString()+"\n");
+          }
+        */
+        
+        sensors = detectorElement.findDescendants(SiSensor.class);
         System.out.printf("%32s: %40s %40s %40s %40s\n",  detector.getName(), "Pos", "u", "v", "uXv");
         for (SiSensor sensor : sensors) {
             Hep3Vector position = sensor.getGeometry().getPosition();
 //            Hep3Vector u = this.getUnitVector(sensor, "measured");
 //            System.out.printf("%48s: %40s %40s\n", sensor.getName(), position.toString(), u.toString());
             Hep3Vector[] vecs = getUnitVectors(sensor);
+            System.out.printf("Get Sensors informations\n");
+            System.out.printf("%32s: %40s %40s %40s %40s\n",  detector.getName(), "Pos", "u", "v", "uXv");
             System.out.printf("%48s: %40s %40s %40s %40s\n", sensor.getName(), position.toString(), vecs[0], vecs[1], vecs[2]);
-
+            System.out.printf("Get Sensors local to global transformation\n");
+            ITransform3D localToGlobal = sensor.getGeometry().getLocalToGlobal();
+            System.out.printf(localToGlobal.toString()+"\n");
+            
         }
         System.out.printf("%s: ###########################################################\n", this.getClass()
                 .getSimpleName());
