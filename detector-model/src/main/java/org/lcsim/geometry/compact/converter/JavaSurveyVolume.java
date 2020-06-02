@@ -42,7 +42,7 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
     public JavaSurveyVolume(SurveyVolume surveyVolume) {
         super(surveyVolume);
     }
-
+    
     /**
      * Construct a JAVA geometry object from its geometry definition and an already built logical volume. This is typically used by the tracking volume.
      * 
@@ -309,7 +309,7 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
         box = b;
     }
 
-    protected ITranslation3D getPos() {
+    public ITranslation3D getPos() {
         return pos;
     }
 
@@ -317,7 +317,7 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
         this.pos = iTranslation3D;
     }
 
-    protected IRotation3D getRot() {
+    public IRotation3D getRot() {
         return rot;
     }
 

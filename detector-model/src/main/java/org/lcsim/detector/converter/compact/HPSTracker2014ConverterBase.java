@@ -22,12 +22,14 @@ import org.lcsim.detector.material.MaterialStore;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.SiTrackerModule;
+//import org.lcsim.detector.tracker.silicon.SiTrackerLayer;
 import org.lcsim.geometry.compact.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
 import org.lcsim.geometry.compact.converter.HPSTrackerJavaBuilder;
 import org.lcsim.geometry.compact.converter.JavaGhostSurveyVolume;
 import org.lcsim.geometry.compact.converter.JavaSurveyVolume;
+import org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
 
 /**
  * Converts the compact description into Java runtime objects
@@ -153,7 +155,7 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
 
         if (_debug)
             System.out.printf("%s: DONE setup the detector elements\n", getClass().getSimpleName());
-
+        
     }
 
     /**
@@ -177,45 +179,63 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         // to build a hierarchy.
 
         if (surveyVolume instanceof JavaGhostSurveyVolume) {
-
+            
             if (_debug)
-                System.out.printf("%s: %s  is a ghost volume, dont create elements or physvol\n", getClass()
-                        .getSimpleName(), surveyVolume.getName());
-
+                System.out.printf("%s: %s  is a ghost volume, dont create alignable structures only, not physvol\n", getClass()
+                                  .getSimpleName(), surveyVolume.getName());
+            
+            if (HPSTrackerBuilder.isModule(surveyVolume.getName())) {
+                
+                System.out.printf("%s PF::create the layer detector element\n", getClass().getSimpleName());
+                IDetectorElement fullmoduleDe = createAlignableModuleDetectorElement(surveyVolume);
+            }
+            
+            //Not supported still
+            /*
+            if (HPSTrackedBuild.isSupportRingKin(surveyVolume.getName())) {
+                System.out.printf("%s PF::create the support ring detector element\n", getClass().getSimpleName());
+                IDetectorElement supportRingKin = createAlignableModuleDetectorElement(surveyVolume);
+            }
+            */
+            
         } else if (surveyVolume.getName().contains("tracking")) {
             if (_debug)
                 System.out.printf("%s: %s  is the tracking volume, dont create elements or physvol\n", getClass()
                         .getSimpleName(), surveyVolume.getName());
         } else {
-
+            
+            
             // build the physical volume
             surveyVolume.buildPhysVolume();
-
-            // create detector element
+            
             // create detector element
             if (HPSTrackerBuilder.isBase(surveyVolume.getName())) {
-
+                
                 if (_debug)
                     System.out.printf("%s: create the base detector element\n", getClass().getSimpleName());
 
                 createBaseDetectorElement(surveyVolume);
-
+                
                 if (_debug)
                     System.out.printf("%s: DONE create the base detector element\n", getClass().getSimpleName());
 
-            } else if (HPSTrackerBuilder.isHalfModule(surveyVolume.getName())) {
-
+                //}else if (HPSTrackerBuilder.isModule(surveyVolume.getName())) {
+                // System.out.printf("%s PF::create the layer detector element\n", getClass().getSimpleName());
+                //IDetectorElement fullmoduleDe = createFullModuleDetectorElement(surveyVolume);
+                
+            }else if (HPSTrackerBuilder.isHalfModule(surveyVolume.getName())) {
+                
                 if (_debug)
                     System.out.printf("%s: create the layer detector element\n", getClass().getSimpleName());
-
+                
                 IDetectorElement layerDe = createLayerDetectorElement(surveyVolume);
-
+                
                 if (_debug)
                     System.out.printf("%s: DONE create the layer detector element\n", getClass().getSimpleName());
-
+                
                 if (_debug)
                     System.out.printf("%s: create the module detector element\n", getClass().getSimpleName());
-
+                
                 createTrackerModuleDetectorElement(surveyVolume, layerDe);
 
                 if (_debug)
@@ -300,6 +320,7 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
      * @param surveyVolume
      * @return the {@link DetectorElement}.
      */
+
     private IDetectorElement getLayerDetectorElement(JavaSurveyVolume surveyVolume) {
         // Helper
         IIdentifierDictionary iddict = builder.getDetectorIdentifierHelper().getIdentifierDictionary();
@@ -340,6 +361,10 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         if (_debug)
             System.out.printf("%s: found %s phys vol\n", this.getClass().getSimpleName(), sensorPhysVol.getName());
 
+        // find the full module detector element
+        
+        IDetectorElement fullmoduleDe = getLayerDetectorElement(surveyVolume);
+        
         // find the layer and module detector element
 
         IDetectorElement layerDe = getLayerDetectorElement(surveyVolume);
@@ -376,13 +401,16 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         IPhysicalVolume componentPhysVol = surveyVolume.getPhysMother().getPhysVolume();
         String sensorPath = modulePath.toString() + "/" + componentPhysVol.getName() + "/" + sensorPhysVol.getName();
         String sensorName = moduleDe.getName() + "_sensor" + sensorNumber;
-
+        
+        /*
         if (_debug) {
             System.out
                     .printf("%s: create HpsSiSensor with old layer id %d with sensorNumber %d name %s moduleDe %s sensorPath %s sensor Id %d \n",
                             getClass().getSimpleName(), layerDe.getIdentifier(), sensorNumber, sensorName,
                             moduleDe.getName(), sensorPath, sensorNumber);
         }
+        */
+        
         // System.out.printf("%s: HpsSiSensor old layer id %d and module nr %d and sensor nr %d <-> DE name %s \n", getClass().getSimpleName(),
         // builder.getDetectorIdentifierHelper().getValue(layerDe.getIdentifier(), "layer"), ((SiTrackerModule) moduleDe).getModuleId(), sensorNumber,sensorName);
 
@@ -448,6 +476,73 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         builder.addModuleDetectorElement(moduleDe);
 
     }
+    
+    //TEMPORARY SOLUTION  - Use the SiTrackerLayer (Can be changed) \\
+    //PF\\
+
+    protected IDetectorElement createAlignableModuleDetectorElement(JavaSurveyVolume surveyVolume) {
+        
+        int nfields = builder.getDetectorIdentifierHelper().getIdentifierDictionary().getNumberOfFields();
+        IExpandedIdentifier layerPosId = new ExpandedIdentifier(nfields);
+
+        String volume = "_top";
+        int bv = 1;
+        if (surveyVolume.getName().endsWith("b")) {
+            volume = "_bottom";
+            bv = 2;
+        }
+        
+        layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("system"), builder.getSubdetector()
+                            .getSystemID());
+        
+        //layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("barrel"), builder
+        //                    .getDetectorIdentifierHelper().getBarrelValue());
+                
+        layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("barrel"), bv);
+        
+        int layer = builder._builder.getLayerFromVolumeName(surveyVolume.getName());
+        layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("layer"), layer);
+        
+        
+        //System.out.printf("%s: PF:: Check Check barrel %d layerPosId layer = %d (compare with new layer %d) %s\n", getClass().getSimpleName(),bv,
+        //                layer, HPSTrackerBuilder.getLayerFromVolumeName(surveyVolume.getName()), surveyVolume.getName());
+        
+        
+        // find the base DE as mother
+        IDetectorElement baseDe = builder.getBaseDetectorElement();
+        if (baseDe == null) {
+            throw new RuntimeException("Base DE couldn't be found. Shouldn't happen!");
+        }
+        
+        // create the layer detector element and keep track of it
+        IDetectorElement fullmoduleDe = builder.getLayerDetectorElement(layerPosId);
+        
+        if (fullmoduleDe == null) {
+            // layerDe = new DetectorElement(builder.getSubdetector().getName() + "_layer" + layer, builder.getSubdetector().getDetectorElement(), builder.getDetectorIdentifierHelper().pack(layerPosId));
+            
+            /*
+            fullmoduleDe = new AlignableDetectorElement(builder.getSubdetector().getName() + "_alignable_fullmoduleLayer" + layer+volume, baseDe, builder
+                                                        .getDetectorIdentifierHelper().pack(layerPosId),surveyVolume);
+            */
+
+            //Minimal constructor
+            fullmoduleDe = new AlignableDetectorElement(builder.getSubdetector().getName() + "_alignable_fullmoduleLayer" + layer+volume,surveyVolume, baseDe, builder.getDetectorIdentifierHelper().pack(layerPosId));
+            
+            int millepedeLayer = builder._builder.getMillepedeLayer(surveyVolume.getName());
+            ((AlignableDetectorElement)fullmoduleDe).setMillepedeId(millepedeLayer);
+            builder.addLayerDetectorElement(fullmoduleDe);
+            
+        } else {
+            if (_debug)
+                System.out.printf("%s: PF:: full module DE exists\n", getClass().getSimpleName());
+        }
+
+        if (_debug)
+            System.out.printf("%s: PF:: created fullmoduleDE  %s  \n", getClass().getSimpleName(), fullmoduleDe.getName());
+        
+        return fullmoduleDe;
+        
+    }
 
     /**
      * Create the layer {@link DetectorElement}
@@ -462,9 +557,12 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
                 .getSystemID());
         layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("barrel"), builder
                 .getDetectorIdentifierHelper().getBarrelValue());
+
+        //System.out.printf("PFCHECK:: %d\n", builder.getDetectorIdentifierHelper().getBarrelValue());
+        
         // use the old definition of layer number to be consistent
         // int layer = HPSTestRunTracker2014Builder.getLayerFromVolumeName(geometryObject.getName());
-        int layer = builder._builder.getOldGeomDefLayerFromVolumeName(surveyVolume.getName());
+        int layer  = builder._builder.getOldGeomDefLayerFromVolumeName(surveyVolume.getName());
         layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("layer"), layer);
         if (_debug)
             System.out.printf("%s: layerPosId layer = %d (compare with new layer %d)\n", getClass().getSimpleName(),

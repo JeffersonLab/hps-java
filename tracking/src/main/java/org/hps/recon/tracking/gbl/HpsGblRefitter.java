@@ -30,7 +30,7 @@ public class HpsGblRefitter {
 
     private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
-
+    
     public void setDebug(boolean debug) {
         _debug = debug;
         MakeGblTracks.setDebug(debug);
@@ -67,7 +67,7 @@ public class HpsGblRefitter {
         // save path length to each point
         iLabel = listOfPoints.size();
         pathLengthMap.put(iLabel, s);
-
+        
         // Loop over strips
         int n_strips = hits.size();
         for (int istrip = 0; istrip != n_strips; ++istrip) {
@@ -234,32 +234,47 @@ public class HpsGblRefitter {
             // measurements: non-measured directions
             double vmeas = 0.;
             double wmeas = 0.;
+            
+            //Add derivatives only to measurements
+            if (strip.getScatterOnly()==0) {
+                // calculate and add derivatives to point
+                GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
+                
+                // TODO find a more robust way to get half.
+                boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
+                
+                // Get the list of millepede parameters
+                List<MilleParameter> milleParameters = glDers.getDers(isTop);
 
-            // calculate and add derivatives to point
-            GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
-
-            // TODO find a more robust way to get half.
-            boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
-
-            // Get the list of millepede parameters
-            List<MilleParameter> milleParameters = glDers.getDers(isTop);
-
-            // need to make vector and matrices for interface
-            List<Integer> labGlobal = new ArrayList<Integer>();
-            Matrix addDer = new Matrix(1, milleParameters.size());
-            for (int i = 0; i < milleParameters.size(); ++i) {
-                labGlobal.add(milleParameters.get(i).getId());
-                addDer.set(0, i, milleParameters.get(i).getValue());
+                // need to make vector and matrices for interface
+                List<Integer> labGlobal = new ArrayList<Integer>();
+                
+                //The Matrix addDer is a single row vector of the size of the milleParameters (6)
+                Matrix addDer = new Matrix(1, milleParameters.size());
+                if (debug) {
+                    System.out.println("PF::Derivatives Informations");
+                    System.out.printf("MilleParameters size %d\n", milleParameters.size());
+                }
+                
+                for (int i = 0; i < milleParameters.size(); ++i) {
+                    labGlobal.add(milleParameters.get(i).getId());
+                    addDer.set(0, i, milleParameters.get(i).getValue());
+                }
+                if (debug) {
+                    System.out.println("PF::Print the lables and the derivatives");
+                    System.out.println(labGlobal.toString());
+                    addDer.print(6,6);
+                }
+                
+                point.addGlobals(labGlobal, addDer);
+                //            String logders = "";
+                //            for (int i = 0; i < milleParameters.size(); ++i) {
+                //                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
+                //            }
+                //            LOGGER.info("\n" + logders);
+                
+                //LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             }
-            point.addGlobals(labGlobal, addDer);
-            //            String logders = "";
-            //            for (int i = 0; i < milleParameters.size(); ++i) {
-            //                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
-            //            }
-            //            LOGGER.info("\n" + logders);
-
-            LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
-
             // go to next point
             s += step;
             
