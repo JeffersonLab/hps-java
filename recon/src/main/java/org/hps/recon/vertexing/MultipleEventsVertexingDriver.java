@@ -18,6 +18,13 @@ public final class MultipleEventsVertexingDriver extends Driver {
     
     private List<Track> accumulatedTracks            = new ArrayList<Track>();
     private List<BilliorTrack> accumulatedBTracks    = new ArrayList<BilliorTrack>(); 
+
+    private List<Track> accumulatedTracksTop            = new ArrayList<Track>();
+    private List<BilliorTrack> accumulatedBTracksTop    = new ArrayList<BilliorTrack>(); 
+
+    private List<Track> accumulatedTracksBot            = new ArrayList<Track>();
+    private List<BilliorTrack> accumulatedBTracksBot    = new ArrayList<BilliorTrack>(); 
+
     private String trackCollectionName = "GBLTracks";
     protected double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
     private double[] beamPositionToUse = new double[3];
@@ -29,6 +36,11 @@ public final class MultipleEventsVertexingDriver extends Driver {
     private int _ntrks = 100;
     private String outputPlots = "multiEvt.root";
     
+
+    public void setNtrks( int ntrks) {
+        _ntrks = ntrks;
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
         
@@ -42,14 +54,17 @@ public final class MultipleEventsVertexingDriver extends Driver {
         bField = detector.getFieldMap().getField(ip).y();
         
         List<String> volumes = new ArrayList<String>();
-        //volumes.add("_top");
-        //volumes.add("_bottom");
+        volumes.add("_top");
+        volumes.add("_bottom");
         volumes.add("");
         
         for (String vol : volumes) {
-            aida.histogram1D(vtxFold+"vtx_x"+vol,100,-3,3);
-            aida.histogram1D(vtxFold+"vtx_y"+vol,100,-1,1);
-            aida.histogram1D(vtxFold+"vtx_z"+vol,100,-12,-5);
+            aida.histogram1D(vtxFold+"vtx_x"+vol,200,-3,3);
+            aida.histogram1D(vtxFold+"vtx_y"+vol,200,-1,1);
+            aida.histogram1D(vtxFold+"vtx_z"+vol,400,-20,20);
+            aida.histogram2D(vtxFold+"vtx_x_y"+vol,200,-3,3,200,-1,1);
+            aida.histogram1D(vtxFold+"vtx_chi2"+vol,200,0,8000);
+            aida.histogram1D(vtxFold+"vtx_ntrks"+vol,200,0,200);
         }
     }
 
@@ -68,6 +83,17 @@ public final class MultipleEventsVertexingDriver extends Driver {
         for (Track track : trackCollection) {
             accumulatedTracks.add(track);
             accumulatedBTracks.add(new BilliorTrack(track));
+            
+            if (track.getTrackStates().get(0).getTanLambda() > 0) {
+                accumulatedTracksTop.add(track);
+                accumulatedBTracksTop.add(new BilliorTrack(track));
+            }
+            
+            else {
+                accumulatedTracksBot.add(track);
+                accumulatedBTracksBot.add(new BilliorTrack(track));
+            }
+
         }
     }
     
@@ -89,37 +115,48 @@ public final class MultipleEventsVertexingDriver extends Driver {
         vtxFitter.setDebug(debug);
         vtxFitter.doBeamSpotConstraint(false);
         
-        int n_chunks = accumulatedBTracks.size() / _ntrks;
-        int n_rest   = accumulatedBTracks.size() % _ntrks;
+        FitMultiVtx(accumulatedBTracks,vtxFitter,"");
+        FitMultiVtx(accumulatedBTracksTop,vtxFitter,"_top");
+        FitMultiVtx(accumulatedBTracksBot,vtxFitter,"_bottom");
+
+    }
+    
+    private void FitMultiVtx(List<BilliorTrack> accTrks, BilliorVertexer vtxFitter, String vol) {
+        
+        int n_chunks = accTrks.size() / _ntrks;
+        int n_rest   = accTrks.size() % _ntrks;
         System.out.println("n_chunks = " + n_chunks);
         System.out.println("n_rest = "   + n_rest);
         System.out.printf("size  = %d \n", (n_chunks*_ntrks + n_rest));
+
+        if (accTrks.size() < 2)
+            return;
         
         for (int i_chunk = 0; i_chunk < n_chunks; i_chunk++) {
-            List<BilliorTrack> tracksForFit = accumulatedBTracks.subList(i_chunk*_ntrks, (i_chunk+1)*_ntrks);
+            List<BilliorTrack> tracksForFit = accTrks.subList(i_chunk*_ntrks, (i_chunk+1)*_ntrks);
             BilliorVertex vtx = vtxFitter.fitVertex(tracksForFit);
-            aida.histogram1D(vtxFold+"vtx_x").fill(vtx.getPosition().x());
-            aida.histogram1D(vtxFold+"vtx_y").fill(vtx.getPosition().y());
-            aida.histogram1D(vtxFold+"vtx_z").fill(vtx.getPosition().z());
-            System.out.printf("vtx  %.5f %.5f %.5f\n",vtx.getPosition().x(), vtx.getPosition().y(),vtx.getPosition().z());
+            aida.histogram1D(vtxFold+"vtx_x"+vol).fill(vtx.getPosition().x());
+            aida.histogram1D(vtxFold+"vtx_y"+vol).fill(vtx.getPosition().y());
+            aida.histogram1D(vtxFold+"vtx_z"+vol).fill(vtx.getPosition().z());
+            aida.histogram2D(vtxFold+"vtx_x_y"+vol).fill(vtx.getPosition().x(),vtx.getPosition().y());
+            aida.histogram1D(vtxFold+"vtx_chi2"+vol).fill(vtx.getChi2());
+            aida.histogram1D(vtxFold+"vtx_ntrks"+vol).fill(_ntrks);
+            //System.out.printf("vtx  %.5f %.5f %.5f\n",vtx.getPosition().x(), vtx.getPosition().y(),vtx.getPosition().z());
         }
         
         if (n_rest > 1) {
             
-            List<BilliorTrack> tracksForFit = accumulatedBTracks.subList(n_chunks*_ntrks, n_chunks*_ntrks + n_rest);
+            List<BilliorTrack> tracksForFit = accTrks.subList(n_chunks*_ntrks, n_chunks*_ntrks + n_rest);
             BilliorVertex vtx = vtxFitter.fitVertex(tracksForFit);
-            aida.histogram1D(vtxFold+"vtx_x").fill(vtx.getPosition().x());
-            aida.histogram1D(vtxFold+"vtx_y").fill(vtx.getPosition().y());
-            aida.histogram1D(vtxFold+"vtx_z").fill(vtx.getPosition().z());
+            aida.histogram1D(vtxFold+"vtx_x"+vol).fill(vtx.getPosition().x());
+            aida.histogram1D(vtxFold+"vtx_y"+vol).fill(vtx.getPosition().y());
+            aida.histogram1D(vtxFold+"vtx_z"+vol).fill(vtx.getPosition().z());
+            aida.histogram2D(vtxFold+"vtx_x_y"+vol).fill(vtx.getPosition().x(),vtx.getPosition().y());
+            aida.histogram1D(vtxFold+"vtx_ntrks"+vol).fill(n_rest);
+            aida.histogram1D(vtxFold+"vtx_chi2"+vol).fill(vtx.getChi2());
         }
-        
-        
-        //save the Output
-        //try {
-        //  aida.saveAs(outputPlots);
-        //}
-        //catch (IOException ex) {
-        //}
+     
+        return ;
     }
     
 }
