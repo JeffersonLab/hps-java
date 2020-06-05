@@ -11,7 +11,6 @@ import hep.physics.vec.BasicHep3Vector;
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
@@ -25,7 +24,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
@@ -357,9 +355,9 @@ public class KalmanPatRecDriver extends Driver {
                     }
                 }
                 
-                //Ecal extrapolation - For the moment done here, but should be moved inside the KalmanInterface (the field map needs to be passed to the KI once)
-                BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(KalmanTrackHPS,fm);
-                KalmanTrackHPS.getTrackStates().add(ts_ecal);
+                //Ecal extrapolation - For the moment done here, but should be moved inside the KalmanInterface (DONE)
+                //BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(KalmanTrackHPS,fm);
+                //KalmanTrackHPS.getTrackStates().add(ts_ecal);
                 
                 allClstrs.addAll(clstrs);
                 for (GBLStripClusterData clstr : clstrs) {
