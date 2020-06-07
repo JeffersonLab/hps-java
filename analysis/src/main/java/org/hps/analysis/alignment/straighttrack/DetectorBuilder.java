@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -727,5 +728,15 @@ public class DetectorBuilder {
         String day = formatter.format(cal.get(Calendar.DAY_OF_MONTH));
         String month = formatter.format(cal.get(Calendar.MONTH) + 1);
         return cal.get(Calendar.YEAR) + month + day;
+    }
+
+    public String toString() {
+        StringBuffer sb = new StringBuffer(" Detector " + _detectorName);
+        List<String> list = new ArrayList<>(planeMap.keySet());
+        Collections.sort(list);
+        for (String s : list) {
+            System.out.println(planeMap.get(s));
+        }
+        return sb.toString();
     }
 }

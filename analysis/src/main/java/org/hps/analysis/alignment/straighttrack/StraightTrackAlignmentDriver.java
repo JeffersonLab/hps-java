@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
+import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +47,7 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.math.chisq.ChisqProb;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -112,7 +115,7 @@ public class StraightTrackAlignmentDriver extends Driver {
     boolean _isMC = false;
 
     boolean beamConstrain = true;
-    int nEventsToAlign = 250000;
+    int nEventsToAlign = 50000;
     int bottomIter;
     int topIter;
     int NITER = 7;
@@ -322,17 +325,32 @@ public class StraightTrackAlignmentDriver extends Driver {
                     //That would allow us to introduce new (read aligned) geometries in  the analysis.
                     //for now, always calculate the local coordinate from the original plane, not the updated, aligned one.
                     Hit h = makeHit(detectorPlanesInFit.get(s), pos, du);
+                    int mySign = 1;
+                    // I flip my coordinate system to have +ive u always up, i.e. aligned with +ive y.
+                    if (detectorPlanesInFit.get(s).name().contains("t_halfmodule_stereo")) {
+                        mySign = -1;
+                    }
+                    if (detectorPlanesInFit.get(s).name().contains("b_halfmodule_axial")) {
+                        mySign = -1;
+                    }
+                    
+                    double[] u = {mySign*stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR).getPositionAsVector().x(), 0.};
+                    double[] wt = {1 / (du * du), 0., 0.};
+                    Hit myHit = new Hit(u, wt);
+
+                    System.out.println(detectorPlanesInFit.get(s).name()+" h " + h + " myHit " + myHit);
                     hits.add(h);
+//                    hits.add(myHit);
                     //cng
-//                    SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-//                    SiTrackerHitStrip1D global = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
-//                    System.out.println("original hit " + stripHit.getPositionAsVector());
-//                    System.out.println("global hit " + global.getPositionAsVector());
-//                    System.out.println("local hit " + local.getPositionAsVector());
-//                    System.out.println("local u " + local.getPositionAsVector().x() + " my hit u " + h.uvm()[0]);
-//                    double sign = signum(h.uvm()[0] * local.getPositionAsVector().x());
-//                    System.out.println(stripHit.getSensor().getName() + " " + sign);
-//                    aida.histogram1D(stripHit.getSensor().getName() + "stripHit u - my u", 100, -0.161, -0.159).fill(sign * local.getPositionAsVector().x() - h.uvm()[0]);
+                    SiTrackerHitStrip1D local = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                    SiTrackerHitStrip1D global = stripHit.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+                    System.out.println("original hit " + stripHit.getPositionAsVector());
+                    System.out.println("global hit " + global.getPositionAsVector());
+                    System.out.println("local hit " + local.getPositionAsVector());
+                    System.out.println("local u " + local.getPositionAsVector().x() + " my hit u " + h.uvm()[0]);
+                    double sign = signum(h.uvm()[0] * local.getPositionAsVector().x());
+                    System.out.println(stripHit.getSensor().getName() + " " + sign);
+                    aida.histogram1D(stripHit.getSensor().getName() + "stripHit u - my u", 100, -0.001, 0.001).fill(sign * local.getPositionAsVector().x() - h.uvm()[0]);
                     //cng
                     // if we have an aligned plane, use it
                     //20200117 not sure what's going on here...
@@ -427,7 +445,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                                     if (alignit) {
                                         topEventsToAlign.add(hits);
                                     }
-//                                    topTracks.add(new Track(fit));
+                                    topTracks.add(new Track(fit));
                                     topAndBottomTracks.add(new Track(fit));
                                 } else {
                                     if (bottomPlanes == null) {
@@ -437,7 +455,7 @@ public class StraightTrackAlignmentDriver extends Driver {
                                     if (alignit) {
                                         bottomEventsToAlign.add(hits);
                                     }
-//                                    bottomTracks.add(new Track(fit));
+                                    bottomTracks.add(new Track(fit));
                                     topAndBottomTracks.add(new Track(fit));
                                 }
                             }
@@ -513,14 +531,14 @@ public class StraightTrackAlignmentDriver extends Driver {
         }
         //let's try to vertex some tracks...
         // same side tracks aren't really very useful...
-//        if (topTracks.size() >= nTracksToVertex) {
-//            vertexEm(topTracks, "top");
-//            topTracks.clear();
-//        }
-//        if (bottomTracks.size() >= nTracksToVertex) {
-//            vertexEm(bottomTracks, "bottom");
-//            bottomTracks.clear();
-//        }
+        if (topTracks.size() >= nTracksToVertex) {
+            vertexEm(topTracks, "top");
+            topTracks.clear();
+        }
+        if (bottomTracks.size() >= nTracksToVertex) {
+            vertexEm(bottomTracks, "bottom");
+            bottomTracks.clear();
+        }
         if (topAndBottomTracks.size() >= nTracksToVertex) {
             vertexEm(topAndBottomTracks, "topAndBottom");
             topAndBottomTracks.clear();
@@ -891,9 +909,21 @@ public class StraightTrackAlignmentDriver extends Driver {
         List<DetectorPlane> backPlanes = new ArrayList<DetectorPlane>();
         List<Hit> backHits = new ArrayList<Hit>();
         // loop over all the hits
+        boolean allSingleHits = true;
+        boolean allDoubleHits = true;
         aida.histogram1D(topOrBottom + " number of hits in fit", 20, 0., 20.).fill(nHitsOnTrack);
         for (int i = 0; i < nHitsOnTrack; ++i) {
             int id = planes.get(i).id();
+//            System.out.println("hit wt " + Arrays.toString(hits.get(i).wt()) + " " + sqrt(1 / hits.get(i).wt()[0]));
+            double du = sqrt(1 / hits.get(i).wt()[0]);
+            if (du == 0.006 || du == 0.04) {
+//                System.out.println(" allSingleHits = false");
+                allSingleHits = false;
+            }
+            if (du == 0.012 || du == 0.04) {
+//                System.out.println(" allDoubleHits = false");
+                allDoubleHits = false;
+            }
             //System.out.println("opening angle refit i : " + i + " plane id " + planes.get(i).id());
             aida.histogram1D(topOrBottom + " hit id", 20, 0., 20.).fill(planes.get(i).id());
             if (id < 9) {
@@ -928,6 +958,21 @@ public class StraightTrackAlignmentDriver extends Driver {
         aida.histogram1D(topOrBottom + " dXdZ back-front at z = " + zPivot, 100, -0.01, 0.01).fill(parsBack[2] - parsFront[2]);
         aida.histogram1D(topOrBottom + " dYdZ back-front at z = " + zPivot, 100, -0.005, 0.005).fill(parsBack[3] - parsFront[3]);
 
+        if (allSingleHits || allDoubleHits) {
+            String type = " all single hits";
+            if (allDoubleHits) {
+                type = " all double hits";
+            }
+            aida.histogram2D(" X vs Y front at z = " + zPivot + " " + type, 200, -60., 16., 200, -50., 50.).fill(parsFront[0], parsFront[1]);
+            aida.histogram2D(" X vs Y back at z = " + zPivot + " " + type, 200, -60., 16., 200, -50., 50.).fill(parsBack[0], parsBack[1]);
+            aida.histogram1D(topOrBottom + " dX back-front at z = " + zPivot + " " + type, 100, -2.5, 2.5).fill(parsBack[0] - parsFront[0]);
+            aida.histogram2D(topOrBottom + " dY back-front vs X at z = " + zPivot + " " + type, 200, -40., 15., 100, -0.5, 0.5).fill(parsFront[0], parsBack[1] - parsFront[1]);
+            aida.histogram1D(topOrBottom + " dY back-front at z = " + zPivot + " " + type, 100, -0.5, 0.5).fill(parsBack[1] - parsFront[1]);
+            aida.profile1D(topOrBottom + " dY back-front vs X at z = " + zPivot + " " + type + " profile", 100, -40., 10.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+            aida.profile1D(topOrBottom + " dY back-front vs X at z = " + zPivot + " " + type + " profile tight", 100, -37., -15.).fill(parsFront[0], parsBack[1] - parsFront[1]);
+            aida.histogram1D(topOrBottom + " dXdZ back-front at z = " + zPivot + " " + type, 100, -0.01, 0.01).fill(parsBack[2] - parsFront[2]);
+            aida.histogram1D(topOrBottom + " dYdZ back-front at z = " + zPivot + " " + type, 100, -0.005, 0.005).fill(parsBack[3] - parsFront[3]);
+        }
         // project line fits to z of target
         aida.tree().cd("..");
     }
