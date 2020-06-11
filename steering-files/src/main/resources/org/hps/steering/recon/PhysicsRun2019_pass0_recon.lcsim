@@ -349,7 +349,8 @@
 
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>          
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>   
+            <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
