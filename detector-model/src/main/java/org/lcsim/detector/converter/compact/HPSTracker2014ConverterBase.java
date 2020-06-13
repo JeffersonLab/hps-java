@@ -103,7 +103,7 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         // build the local geometry
         builder = initializeBuilder(node);
         // builder = new HPSTestRunTracker2014JavaBuilder(_debug,node);
-
+        
         // Set subdetector for later reference
         builder.setSubdetector(subdet);
 
@@ -184,20 +184,25 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
                 System.out.printf("%s: %s  is a ghost volume, dont create alignable structures only, not physvol\n", getClass()
                                   .getSimpleName(), surveyVolume.getName());
             
+            System.out.printf("%s check for support ring %s \n", getClass().getSimpleName(), surveyVolume.getName());
+            if (HPSTrackerBuilder.isSupportRingKinMount(surveyVolume.getName())) {
+                System.out.printf("%s PF::create the support ring detector element\n", getClass().getSimpleName());
+                IDetectorElement supportRingKin = createAlignableSupport(surveyVolume);
+            }
+            
+            System.out.printf("%s check for back uChannel %s \n", getClass().getSimpleName(), surveyVolume.getName());
+            
+            if (HPSTrackerBuilder.isUChannelSupport(surveyVolume.getName())) {
+                System.out.printf("%s PF::create the uChannel detector element\n",getClass().getSimpleName());
+                IDetectorElement uchannelSupport = createAlignableSupport(surveyVolume);
+            }
+            
             if (HPSTrackerBuilder.isModule(surveyVolume.getName())) {
                 
                 System.out.printf("%s PF::create the layer detector element\n", getClass().getSimpleName());
                 IDetectorElement fullmoduleDe = createAlignableModuleDetectorElement(surveyVolume);
             }
-            
-            //Not supported still
-            /*
-            if (HPSTrackedBuild.isSupportRingKin(surveyVolume.getName())) {
-                System.out.printf("%s PF::create the support ring detector element\n", getClass().getSimpleName());
-                IDetectorElement supportRingKin = createAlignableModuleDetectorElement(surveyVolume);
-            }
-            */
-            
+                        
         } else if (surveyVolume.getName().contains("tracking")) {
             if (_debug)
                 System.out.printf("%s: %s  is the tracking volume, dont create elements or physvol\n", getClass()
@@ -477,7 +482,70 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
 
     }
     
-    //TEMPORARY SOLUTION  - Use the SiTrackerLayer (Can be changed) \\
+    //TEMPORARY SOLUTION  - Use the SiTrackerLayer (Can be changed) \   \
+    //PF\\
+    
+    protected IDetectorElement createAlignableSupport(JavaSurveyVolume surveyVolume) {
+        int nfields = builder.getDetectorIdentifierHelper().getIdentifierDictionary().getNumberOfFields();
+        IExpandedIdentifier layerPosId = new ExpandedIdentifier(nfields);
+        String volume = "_top";
+        int bv = 3;
+        //int sys = 0;
+        int layer = 80;
+        if (surveyVolume.getName().endsWith("b") || surveyVolume.getName().contains("support_bottom")) {
+            volume = "_bottom";
+            bv = 4;
+        }
+        
+        boolean isUChannel = builder._builder.isUChannelSupport(surveyVolume.getName());
+
+        if (isUChannel) {
+            layer = 90;
+        }
+        
+        layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("system"), builder.getSubdetector()
+                            .getSystemID());
+        
+        //layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("system"), sys);
+
+
+        layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("barrel"), bv);
+
+        layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("layer"), layer);
+        IDetectorElement baseDe = builder.getBaseDetectorElement();
+        if (baseDe == null) {
+            throw new RuntimeException("Base DE couldn't be found. Shouldn't happen!");
+        }
+        
+        IDetectorElement supportDe = builder.getLayerDetectorElement(layerPosId);
+        if (supportDe == null) {
+            String basename = "_alignable_supportRing";
+            if (isUChannel)
+                basename = "_alignable_UChannel";
+            
+            supportDe = new AlignableDetectorElement(builder.getSubdetector().getName() + basename + layer+volume,surveyVolume, baseDe, builder.getDetectorIdentifierHelper().pack(layerPosId));
+            //supportDe = new AlignableDetectorElement(builder.getSubdetector().getName() + basename + layer+volume,surveyVolume, baseDe, null);
+            
+            int millepedeLayer = 80;
+            
+            if (isUChannel)
+                millepedeLayer = 90;
+            
+            ((AlignableDetectorElement)supportDe).setMillepedeId(millepedeLayer);
+            
+            builder.addLayerDetectorElement(supportDe);
+        } else {
+            if (_debug) 
+                System.out.printf("%s: PF:: full module DE exists \n", getClass().getSimpleName());
+        }
+
+        if (_debug)
+            System.out.printf("%s: PF::created fullmoduleDe %s \n", getClass().getSimpleName(), supportDe.getName());
+        
+        return supportDe;
+    }
+    
+    //TEMPORARY SOLUTION  - Use the SiTrackerLayer (Can be changed) \   \
     //PF\\
 
     protected IDetectorElement createAlignableModuleDetectorElement(JavaSurveyVolume surveyVolume) {
@@ -497,7 +565,7 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         
         //layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("barrel"), builder
         //                    .getDetectorIdentifierHelper().getBarrelValue());
-                
+        
         layerPosId.setValue(builder.getDetectorIdentifierHelper().getFieldIndex("barrel"), bv);
         
         int layer = builder._builder.getLayerFromVolumeName(surveyVolume.getName());
@@ -513,6 +581,16 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
         if (baseDe == null) {
             throw new RuntimeException("Base DE couldn't be found. Shouldn't happen!");
         }
+
+        //Get the support right detector element as mother.
+
+        IDetectorElement supportDe = builder.getSupportDetectorMother(surveyVolume.getName(),volume,layer);
+        if (supportDe == null) {
+            throw new RuntimeException("Support DE couldn't be found. Shouldn't happen!");
+        }
+        else {
+            System.out.printf("DEBUG::PF:: found support volume %s for surveyVolume %s \n", supportDe.getName(), surveyVolume.getName());
+        }
         
         // create the layer detector element and keep track of it
         IDetectorElement fullmoduleDe = builder.getLayerDetectorElement(layerPosId);
@@ -526,10 +604,11 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
             */
 
             //Minimal constructor
-            fullmoduleDe = new AlignableDetectorElement(builder.getSubdetector().getName() + "_alignable_fullmoduleLayer" + layer+volume,surveyVolume, baseDe, builder.getDetectorIdentifierHelper().pack(layerPosId));
+            fullmoduleDe = new AlignableDetectorElement(builder.getSubdetector().getName() + "_alignable_fullmoduleLayer" + layer+volume,surveyVolume, supportDe, builder.getDetectorIdentifierHelper().pack(layerPosId));
             
             int millepedeLayer = builder._builder.getMillepedeLayer(surveyVolume.getName());
             ((AlignableDetectorElement)fullmoduleDe).setMillepedeId(millepedeLayer);
+            //supportDe.getChildren().add(fullmoduleDe);
             builder.addLayerDetectorElement(fullmoduleDe);
             
         } else {
@@ -619,8 +698,8 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
                     + " is not tracking volume!?");
         }
         String physVolPath = trackingVolume.getName() + "/" + surveyVolume.getPhysVolume().getName();
-        baseDe = new DetectorElement(builder.getSubdetector().getName() + "_base", builder.getSubdetector()
-                .getDetectorElement(), physVolPath, builder.getIdentifierDictionary().pack(layerPosId));
+        baseDe = new AlignableDetectorElement(builder.getSubdetector().getName() + "_base_alignable", builder.getSubdetector()
+                                              .getDetectorElement(), physVolPath, builder.getIdentifierDictionary().pack(layerPosId));
         builder.addBaseDetectorElement(baseDe);
 
         if (_debug)

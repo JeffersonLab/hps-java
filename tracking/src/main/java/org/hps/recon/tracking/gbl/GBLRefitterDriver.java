@@ -3,6 +3,12 @@ package org.hps.recon.tracking.gbl;
 import java.util.ArrayList;
 import java.util.List;
 
+
+//Rounding
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
@@ -34,6 +40,12 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+
+
+// Constrain file writer
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 
 /**
@@ -69,8 +81,10 @@ public class GBLRefitterDriver extends Driver {
     private boolean debugAlignmentDs = false;
     private boolean compositeAlign = false;
     private boolean usePoints = true;
-
     
+    //Calculator for Frame to Frame derivatives
+    private FrameToFrameDers f2fD = new FrameToFrameDers();
+        
     //Setting 0 is a single refit, 1 refit twice and so on..
     private int gblRefitIterations = 5; 
     
@@ -208,17 +222,29 @@ public class GBLRefitterDriver extends Driver {
         IDetectorElement detectorElement = detector.getDetectorElement();
         Alignabledes = detectorElement.findDescendants(AlignableDetectorElement.class);
         
-        /*
         for (AlignableDetectorElement ade : Alignabledes) {
             if (ade.getName().contains("alignable")) {
-                System.out.printf("Detector element informations: %s \n", ade.getName());
-                System.out.printf(((AlignableDetectorElement)ade).getlocalToGlobal().toString()+"\n");
+                System.out.printf("Alignable Detector Elements informations: %s \n", ade.getName());
+                //System.out.printf(((AlignableDetectorElement)ade).getlocalToGlobal().toString()+"\n");
+                if (ade.getParent() != null) {
+                    System.out.printf("The parent is: %s\n", ade.getParent().getName());
+                }
+                else {
+                    System.out.printf("No parent. \n");
+                }
             }
         }
-        */
+        
         // Get the sensors subcomponents
         sensors = detectorElement.findDescendants(SiSensor.class);
 
+        //Assign the mothers to the sensors
+        //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
+        MakeAlignmentTree("alignable_fullmodule");
+        
+        //Dump the constrain file
+        MakeAlignmentConstraintFile();
+        
     }
     
     @Override
@@ -283,10 +309,6 @@ public class GBLRefitterDriver extends Driver {
             }
             
             if (compositeAlign) {
-                
-                //Calculator for Frame to Frame derivatives
-                
-                FrameToFrameDers f2fD = new FrameToFrameDers();
                 
                 //Retrieve the GBLPoints from the fit trajectory.
                 GblTrajectory gbl_fit_trajectory = newTrackTraj.getSecond().get_traj();
@@ -358,75 +380,80 @@ public class GBLRefitterDriver extends Driver {
                                 System.out.println(Tgtos.toString());
                             }
                             
-                            //The same sensor will be contained in multiple Composite structures.
-                            for (AlignableDetectorElement ade : Alignabledes) {
-                                
-                                AlignableDetectorElement myade = null;
-                                
-                                if (ade.getName().contains(volname) && ade.getName().contains(String.valueOf(getFullModule(volume,mpid)))) {
-                                    if (debugAlignmentDs)
-                                        System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),ade.getName());
-                                    myade = ade;
-                                    
-                                    
-                                    Hep3Matrix Rgtoc = myade.getlocalToGlobal().getRotation().getRotationMatrix();
-                                    Hep3Vector Tgtoc = myade.getlocalToGlobal().getTranslation().getTranslationVector();
-                                    Matrix C_matrix = f2fD.getDerivative(Rgtos, Rgtoc, Tgtos, Tgtoc);
-                                    
-                                    //Compute the composite structure derivatives
-                                    //dr/dac = dr/dai * dai/dac = dr/dai * Ci
-                                    
-                                    Matrix c_derGlobal = g_ders.times(C_matrix);
-                                    
-                                    //Copy the labels for the composite structure
-                                    List<Integer> c_labGlobal = new ArrayList<Integer>(labels);
-                                    
-                                    //Change the sensor ID to the composite structure one
-                                    for (int ilabel = 0; ilabel < c_labGlobal.size(); ilabel++) {
-                                        Integer c_label = (c_labGlobal.get(ilabel) / 100) * 100 + myade.getMillepedeId();
-                                        c_labGlobal.set(ilabel , c_label);
-                                    }
-                                    
-                                    //Add the labels and the derivatives to the points.
-                                    Matrix allDer = new Matrix(1, labels.size() + c_labGlobal.size());
-                                    for (int ider = 0; ider< labels.size(); ider++) {
-                                        allDer.set(0,ider,g_ders.get(0,ider));
-                                    }
-                                    
-                                    for (int ider = 0; ider < c_labGlobal.size(); ider++) {
-                                        allDer.set(0,ider+labels.size(),c_derGlobal.get(0,ider));
-                                    }
-                                    
+                            //The same sensor will be contained in multiple Composite structures. 
+                            //For the moment I'll try to align the front support and back UChannels.
+                            
+                            AlignableDetectorElement myade = (AlignableDetectorElement) mysensor.getAdeMother().getParent();
+                            
+                            if (debugAlignmentDs)
+                                System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade.getName());
+                            
+                            Hep3Matrix Rgtoc = myade.getlocalToGlobal().getRotation().getRotationMatrix();
+                            Hep3Vector Tgtoc = myade.getlocalToGlobal().getTranslation().getTranslationVector();
+                            Matrix C_matrix = f2fD.getDerivative(Rgtos, Rgtoc, Tgtos, Tgtoc);
+                            
+                            //Compute the composite structure derivatives
+                            //dr/dac = dr/dai * dai/dac = dr/dai * Ci
+                            
+                            Matrix c_derGlobal = g_ders.times(C_matrix);
+                            
+                            //Copy the labels for the composite structure
+                            List<Integer> c_labGlobal = new ArrayList<Integer>(labels);
+                            
+                            //Change the sensor ID to the composite structure one
+                            for (int ilabel = 0; ilabel < c_labGlobal.size(); ilabel++) {
+                                Integer c_label = (c_labGlobal.get(ilabel) / 100) * 100 + myade.getMillepedeId();
+                                c_labGlobal.set(ilabel , c_label);
+                            }
+                            
+                            //Add the labels and the derivatives to the points.
+                            Matrix allDer = new Matrix(1, labels.size() + c_labGlobal.size());
+                            for (int ider = 0; ider< labels.size(); ider++) {
+                                allDer.set(0,ider,g_ders.get(0,ider));
+                            }
+                            
+                            for (int ider = 0; ider < c_labGlobal.size(); ider++) {
+                                allDer.set(0,ider+labels.size(),c_derGlobal.get(0,ider));
+                            }
+                            
+                            //Check the derivatives print out. 
 
-                                    //Join the two lists
-                                    List<Integer> all_labels = new ArrayList<Integer>();
-                                    all_labels.addAll(labels);
-                                    all_labels.addAll(c_labGlobal);
-                                    
-                                    gblpoint.addGlobals(all_labels,allDer);
-                                    
-                                    if (debugAlignmentDs) {
-                                        System.out.printf("PF::Print the Composite %s Transform:\n", myade.getName());
-                                        System.out.println(Rgtoc.toString());
-                                        System.out.println(Tgtoc.toString());
-                                        C_matrix.print(6,6);
-                                        System.out.println("PF:: Composite labels and derivatives");
-                                        System.out.println(c_labGlobal.toString());
-                                        c_derGlobal.print(6,6);
-                                                                                
-                                        //Print all data to be written to the binary:
-                                        System.out.println(all_labels.toString());
-                                        allDer.print(12,6);
-                                        System.out.println("========================");
-                                    }
-                                    
-                                    //if (writeMilleBinary) {
-                                    //  mille.addData(floats[0],floats[1],indLocal,derLocal,all_labels,all_ders);
-                                    //  mille.writeRecord();
-                                    //}
-                                                                        
-                                }//Found the alignable composite structure
-                            }//loop on alignable structures
+                            List<Double> derBuff = new ArrayList<Double>();
+                            List<Integer> labBuff = new ArrayList<Integer>();
+                            
+                            addGlobalDerivatives(derBuff, labBuff,
+                                                 Rgtos,Tgtos, g_ders,
+                                                 myade, labels);
+                            
+                            if (debugAlignmentDs) {
+                                System.out.printf("PF::addGlobalDerivatives::Labels\n");
+                                System.out.println(labBuff.toString());
+                                System.out.printf("PF::addGlobalDerivatives::Ders\n");
+                                System.out.println(derBuff.toString());
+                            }
+                            
+                            //Join the two lists
+                            List<Integer> all_labels = new ArrayList<Integer>();
+                            all_labels.addAll(labels);
+                            all_labels.addAll(c_labGlobal);
+                            
+                            gblpoint.addGlobals(all_labels,allDer);
+                            
+                            if (debugAlignmentDs) {
+                                System.out.printf("PF::Print the Composite %s Transform:\n", myade.getName());
+                                System.out.println(Rgtoc.toString());
+                                System.out.println(Tgtoc.toString());
+                                C_matrix.print(6,6);
+                                System.out.println("PF:: Composite labels and derivatives");
+                                System.out.println(c_labGlobal.toString());
+                                c_derGlobal.print(6,6);
+                                
+                                //Print all data to be written to the binary:
+                                System.out.println(all_labels.toString());
+                                allDer.print(12,6);
+                                System.out.println("========================");
+                            }
+                            
                         }//labels > 0
                     }//point loop
                     
@@ -437,6 +464,7 @@ public class GBLRefitterDriver extends Driver {
                     
                 }//usePoints
                 
+                /*
                 else {
                     //Get the labels and the derivatives
                     for ( GblData gbldata : data_on_traj) {
@@ -577,19 +605,21 @@ public class GBLRefitterDriver extends Driver {
                                     //  mille.addData(floats[0],floats[1],indLocal,derLocal,all_labels,all_ders);
                                     //  mille.writeRecord();
                                     //}
-                                                                        
+                                    
                                 }//Found the alignable composite structure
                             }//loop on alignable structures
                         }//labels size > 0 ; removing scatter only and the reference point
                     }//gblpointsloop
+                
                 }//decide if gblpoints or gbldata
+                */
             }//alitest
             
-            
+            /*
             if (writeMilleBinary)
                 if (gblTrk.getChi2() < writeMilleChi2Cut)
                     newTrackTraj.getSecond().get_traj().milleOut(mille);
-            
+            */
 
             
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
@@ -706,7 +736,215 @@ public class GBLRefitterDriver extends Driver {
         event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
     }
     
+    
+    //Get the derivatives
+    
+    private void addGlobalDerivatives(List<Double> derBuff, List<Integer> labBuff, 
+                                      Hep3Matrix Rgtosc, Hep3Vector Tgtosc, Matrix g_ders,
+                                      AlignableDetectorElement ade, List<Integer> baseLabels) {
+        
+        Hep3Matrix Rgtoc = ade.getlocalToGlobal().getRotation().getRotationMatrix();
+        Hep3Vector Tgtoc = ade.getlocalToGlobal().getTranslation().getTranslationVector();
+        Matrix C_matrix  = f2fD.getDerivative(Rgtosc, Rgtoc, Tgtosc, Tgtoc);
+        
+        //Compute the composite structure derivatives
+        //dr/dac = dr/dai * dai/dac = dr/dai * Ci
+        Matrix c_derGlobal = g_ders.times(C_matrix);
+        
+        //Change the sensor ID to the composite structure one                                                                           
+        for (int ilabel = 0; ilabel < baseLabels.size(); ilabel++) {
+            Integer c_label = (baseLabels.get(ilabel) / 100) * 100 + ade.getMillepedeId();
+            labBuff.add(c_label);
+            derBuff.add(c_derGlobal.get(0,ilabel));
+        }
+    }
+    
+    
+    //a=ai +C_ij ac_j +C_jk ac_k +... 
+    //where j,k, ... are the composite structures indices.
+    
+    private void getConstraints(AlignableDetectorElement ade, List<String> constraints) {
+        
+        //System.out.printf("DEBUG::PF::getConstraints\n");
+        //Get the rotation and translation of the detectorElement
+        Hep3Matrix Rgtoc = ade.getlocalToGlobal().getRotation().getRotationMatrix();
+        Hep3Vector Tgtoc = ade.getlocalToGlobal().getTranslation().getTranslationVector();
+        
+        //Get the amount of constraints (should be 6)
+        int nc = ade.getMPIILabels().size();
+        
+        /*
+        //System.out.printf("Constraints for de: %s \n", ade.getName());
+        List<String> constraints = new ArrayList<String>();
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        */
+        
+        // loop on the children
+        for (IDetectorElement i_de : ade.getChildren()) {
+            
+            //check if the child is and alignableDetectorElement
+            if (i_de instanceof AlignableDetectorElement) {
+                
+                AlignableDetectorElement sc_de = (AlignableDetectorElement) i_de;
+                //System.out.printf("Found alignable child: %s\n", sc_de.getName());
+                //Get the labels of the child
+                List<Integer> sc_labels = sc_de.getMPIILabels();
+                
+                //System.out.printf("Derivatives labels: \n%s\n", sc_labels.toString());
+                //Get the rotation and translation of the child sub-component
+                Hep3Matrix Rgtosc = sc_de.getlocalToGlobal().getRotation().getRotationMatrix();
+                Hep3Vector Tgtosc = sc_de.getlocalToGlobal().getTranslation().getTranslationVector();
+                
+                //Compute the CMatrix of mother => child
+                Matrix C_matrix = f2fD.getDerivative(Rgtosc, Rgtoc, Tgtosc, Tgtoc);
+                
+                //System.out.printf("CMatrix\n");
+                C_matrix.print(6,6);
+                
+                //Invert the C_Matrix ( PF::TODO::It is enough to compute the transpose of C11, C12, C22)
+                //System.out.printf("CMatrix_inv\n");
+                Matrix C_matrixInv = C_matrix.inverse();
+                C_matrixInv.print(6,6);
+                
+                for (int ic = 0; ic < nc; ic++) {
+                    String appendix   = ""; //decide if to keep summing or last entry in the constraint.
+                    
+                    //The constraint is of the form 0 = sum_i=0 ^{n} C^{-1}a_i
+                    
+                    //Cmatrix is a 6by6 (get the nCols) TODO
+                    for (int icol = 0 ; icol < 6; icol++) {
+                        
+                        //Get the current value
+                        String s_cnstr = constraints.get(ic);
+                        
+                        //Cmatrix coeff less than 1e-5 are ignored. Revisit? 
+                                                
+                        if (C_matrixInv.get(ic,icol) < 1e-5) 
+                            continue;
+                        
+                        // get the rounded C matrix -1 entry rounded to 10e-4
+                        Double cnstr  = round(C_matrixInv.get(ic,icol),4);
+                        Integer sc_label = sc_labels.get(icol);
 
+                        
+                        if (s_cnstr != "")
+                            s_cnstr += " + ";
+                        
+                        s_cnstr += String.valueOf(cnstr) + "* [" + String.valueOf(sc_label) + "]";
+                        
+                        //Set this in the list
+                        constraints.set(ic, s_cnstr);
+                    }//loop on C^-1 columns
+                }//contraint loop
+            }//child is an ade
+        }//children loop
+        
+        //System.out.printf("Constraints : \n%s\n", constraints.toString());
+        
+    }//get constraints
+    
+    //Get the constraint
+    
+    //Make the alignment Constraint file
+    //Should make a list for only alignable sensors
+    
+    private void MakeAlignmentConstraintFile() {
+        
+        List<String> constraints = new ArrayList<String>();
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        constraints.add("");
+        
+        try {
+            
+            FileWriter writer = new FileWriter("mille_constraint.txt");
+            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+
+            //Get the base object
+            
+            for (AlignableDetectorElement ade : Alignabledes) {
+                if (ade.getName().contains("Tracker_base"))
+                    getConstraints(ade, constraints);
+            }
+            
+            for (SiSensor sensor : sensors) {
+                
+                HpsSiSensor hpsSensor = (HpsSiSensor) sensor;
+                
+                if (hpsSensor.getMillepedeId() < 0)
+                    continue;
+                
+                bufferedWriter.write(hpsSensor.getName());
+                bufferedWriter.newLine();
+                bufferedWriter.write(hpsSensor.getMPIILabels().toString());
+                bufferedWriter.newLine();
+                
+            }
+            
+            bufferedWriter.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    //Assigns the mother to the sensors
+    private void MakeAlignmentTree(String regEx) {
+        
+        //Loop on the sensors
+        for (SiSensor sensor : sensors)  {
+            
+            String volname = "top";
+            int volume = 1;
+            int mpid = ((HpsSiSensor)sensor).getMillepedeId();
+            
+            //Remove the ecal scoring planes
+            if (mpid < 0)
+                continue;
+                        
+            if (((HpsSiSensor)sensor).isBottomLayer()) {
+                volname = "bottom"; 
+                volume = 2;
+            }
+            //System.out.printf("DEBUG::PF::MakeAlignmentTree Checking sensor %s \n", sensor.getName());
+            
+            //Loop on the alignable elements
+            for (AlignableDetectorElement ade : Alignabledes) {
+                
+                if (ade.getName().contains(volname) && ade.getName().contains(String.valueOf(getFullModule(volume,((HpsSiSensor)sensor).getMillepedeId() ) ) ) )
+                {
+                    //Add the alignable mother to the sensor
+                    ((HpsSiSensor)sensor).setAdeMother(ade);
+                    
+                    //Add the sensor to the children of the alignable detector element
+                    ade.getChildren().add(sensor);
+                }
+            }//loop on ades
+        }//loop on sensors
+        
+        
+        
+        for (SiSensor sensor : sensors) {
+            if (((HpsSiSensor)sensor).getAdeMother() != null)
+                System.out.printf("DEBUG::PF::MakeAlignmentTree sensor %s has mother %s \n", sensor.getName(), ((HpsSiSensor)sensor).getAdeMother().getName());
+        }
+        
+        for (AlignableDetectorElement ade : Alignabledes) {
+            System.out.printf("DEBUG::PF::MakeAlignmentTree ade %s has children \n %s \n", ade.getName(), ade.getChildren().toString());
+            
+        }
+        
+        
+    }
+    
     private int getFullModule(int volume, int mpid) {
         
         //top
@@ -726,16 +964,16 @@ public class GBLRefitterDriver extends Driver {
             else if (mpid == 17 || mpid == 18 || mpid == 19 || mpid == 20 )
                 return 7;
             else {
-                System.out.printf("ERROR::Module volume %d / mpid %d not found", volume, mpid);
+                System.out.printf("ERROR::Module volume %d / mpid %d not found \n", volume, mpid);
                 return -1;
             }
         }
         else {
-            System.out.printf("ERROR::Module volume %d / mpid %d not found", volume, mpid);
+            System.out.printf("ERROR::Module volume %d / mpid %d not found \n", volume, mpid);
             return -1;
         }
     }
-
+    
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = null;
         if (event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
@@ -775,5 +1013,14 @@ public class GBLRefitterDriver extends Driver {
             if (hit.getDetectorElement() == null)
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
         }
+    }
+    
+    public static double round(double value, int places) {
+        if (places < 0) 
+            return value;
+        
+        BigDecimal bd = BigDecimal.valueOf(value);
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 }

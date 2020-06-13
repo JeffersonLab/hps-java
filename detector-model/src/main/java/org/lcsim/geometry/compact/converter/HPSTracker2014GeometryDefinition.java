@@ -328,7 +328,8 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
         }
 
         protected void setCenter() {
-            setCenter(null); // dummy
+            //setCenter(null); // dummy
+            setCenter(new BasicHep3Vector(0.,0.,0.));
         }
 
         protected void setBoxDim() {
