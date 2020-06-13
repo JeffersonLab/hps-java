@@ -14,6 +14,11 @@ import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.Lon
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.PSVacuumChamber;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBox;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBoxBasePlate;
+import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SupportRingL13TopKinMount;
+import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SupportRingL13BottomKinMount;
+import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.UChannelL46Bottom;
+import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.UChannelL46Top;
+
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder.BaseModuleBundle;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder.HalfModuleBundle;
 import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
@@ -74,8 +79,37 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
         JavaSurveyVolume svtBoxBasePlate = new JavaGhostSurveyVolume(_builder.getSurveyVolume(SvtBoxBasePlate.class),
                 getBaseTrackerGeometry());
         add(svtBoxBasePlate);
+        
+        System.out.println("PF::TEMPORARY:: Move the kinMounts to a 2019 detector build method");
 
+        //Problem: 
+        //We align the SupportRing for the front and the UChannel for the back... What a mess.
+        
+        //Front bottom
+        JavaSurveyVolume SupportRingBottomKinMount = new JavaGhostSurveyVolume(_builder.getSurveyVolume(SupportRingL13BottomKinMount.class),
+                                                                               getBaseTrackerGeometry());
+        add(SupportRingBottomKinMount);
+
+        //Back bottom
+
+        JavaSurveyVolume uChannelBackBottom = new JavaGhostSurveyVolume(_builder.getSurveyVolume(UChannelL46Bottom.class),
+                                                                        getBaseTrackerGeometry());
+        
+        add(uChannelBackBottom);
+        //Front top
+        JavaSurveyVolume SupportRingTopKinMount = new JavaGhostSurveyVolume(_builder.getSurveyVolume(SupportRingL13TopKinMount.class),
+                                                                            getBaseTrackerGeometry());
+        add(SupportRingTopKinMount);
+        
+        //Back top
+        
+        JavaSurveyVolume uChannelBackTop = new JavaGhostSurveyVolume(_builder.getSurveyVolume(UChannelL46Top.class),
+                                                                     getBaseTrackerGeometry());
+        
+        add(uChannelBackTop);
+        
         // build modules
+        
 
         if (isDebug())
             System.out.printf("%s: build JAVA modules\n", getClass().getSimpleName());
@@ -122,7 +156,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
         // System.out.printf("%s: Built %d JAVA geometry objects\n",
         // getClass().getSimpleName(),javaSurveyVolumes.size());
 
-        if (isDebug()) {
+        if (isDebug() || true) {
             System.out.printf("%s: DONE building the JAVA geometry objects\n", getClass().getSimpleName());
             System.out.printf("%s: List of all the JAVA geometry objects built\n", this.getClass().getSimpleName());
             for (JavaSurveyVolume bg : javaSurveyVolumes) {

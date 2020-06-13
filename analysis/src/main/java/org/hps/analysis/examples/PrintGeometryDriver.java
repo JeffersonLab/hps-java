@@ -39,6 +39,7 @@ public class PrintGeometryDriver extends Driver {
         System.out.printf("%s: All Detector Elements! \n", this.getClass());
         List<DetectorElement> des = detectorElement.findDescendants(DetectorElement.class);
         for (DetectorElement de : des){
+            System.out.println(de.getName());
             if ( de.getName().contains("alignable")) {
                 System.out.printf("Detector element informations: %s \n", de.getName());
                 if (de.getGeometry() == null) {
@@ -64,7 +65,7 @@ public class PrintGeometryDriver extends Driver {
           }
         */
         
-        sensors = detectorElement.findDescendants(SiSensor.class);
+        List <SiSensor> sensors = detectorElement.findDescendants(SiSensor.class);
         System.out.printf("%32s: %40s %40s %40s %40s\n",  detector.getName(), "Pos", "u", "v", "uXv");
         for (SiSensor sensor : sensors) {
             Hep3Vector position = sensor.getGeometry().getPosition();

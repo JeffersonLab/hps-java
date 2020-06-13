@@ -131,6 +131,9 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
 
         // Vector from origin to center of box locally
         Hep3Vector box_center_base_local = base.getCenter();
+        
+        if (box_center_base_local == null)
+            System.out.println("ERROR ERROR ERROR box_center_base_local is null");
 
         // find the physical mother i.e. not a ghost volume and compound transformations to it
         JavaSurveyVolume physMother = getPhysMother();
