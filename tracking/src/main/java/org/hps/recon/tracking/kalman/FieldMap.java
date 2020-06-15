@@ -34,6 +34,9 @@ public class FieldMap extends FieldOverlay {
         // The offsets are in HPS coordinates and come from HPSDipoleFieldMap3D
 
         this.uniform = uniform; // To allow testing the effects of fitting with a uniform field
+        if (uniform) {
+            System.out.println("FieldMap.java: warning, the field map is set to be uniform!");
+        }
         if (type == "binary") { // This is far faster than scanning the text file (and the file is ~1/3 the size)!
             FileInputStream ifile = new FileInputStream(FileName);
             BufferedInputStream bis = new BufferedInputStream(ifile); // This buffering is essential!

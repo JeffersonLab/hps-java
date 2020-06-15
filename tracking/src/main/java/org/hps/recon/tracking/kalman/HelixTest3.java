@@ -11,9 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-//import org.hps.recon.tracking.jama.Matrix;
-//import org.hps.recon.tracking.jama.EigenvalueDecomposition;
-
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 
@@ -690,7 +687,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 }
             }
 
-            initialCovariance.scale(1000.); // Blow up the errors on the initial guess
+            initialCovariance.scale(10.); // Blow up the errors on the initial guess
 
             if (verbose) { initialCovariance.print("initial covariance guess"); }
             // Run the Kalman fit
@@ -701,6 +698,20 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             if (KalmanTrack == null) continue;
             KalmanTrack.originHelix();
             if (verbose) KalmanTrack.print("KalmanTrack");
+            
+            // Check on the covariance matrix
+            Matrix C = new Matrix(KalmanTrack.originCovariance());
+            EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
+            double [] ev = eED.getRealEigenvalues();
+            for (int i=0; i<5; ++i) {
+                if (ev[i] < 0.) {
+                    System.out.format("Event %d, eigenvalue %d of covariance is negative!", iTrial, i);
+                }
+            }
+            if (iTrial < 10) {
+                Vec evV = new Vec(5,ev);
+                evV.print("Eigenvalues of covariance");
+            }
             
             // Test the helix propagation code
             

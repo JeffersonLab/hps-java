@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
+import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.util.Pair;
 
 //This is for testing only and is not part of the Kalman fitting code
@@ -22,15 +24,17 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
-        int mxPlot = 0;                // Maximum number of single event plots
+        int nTrials = 10000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int mxPlot = 10;                // Maximum number of single event plots
         int [] eventToPrint = {};
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = false;
         boolean noisy = true;
-        boolean smear = false;          // Smear initial momentum vector randomly
+        boolean smear = true;          // Smear initial momentum vector randomly
+        boolean uniformB = false;
+        double hitEfficiency = 0.90;
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -39,7 +43,7 @@ class PatRecTest {
 
         // Set pattern recognition parameters
         KalmanParams kPar = new KalmanParams();
-        kPar.setIterations(1);
+        kPar.setIterations(2);
         
         // Definition of the magnetic field
         String mapType = "binary";
@@ -47,7 +51,7 @@ class PatRecTest {
         String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\209acm2_5kg_corrected_unfolded_scaled_1.04545_v4.bin";
         FieldMap fM = null;
         try {
-            fM = new FieldMap(mapFile, mapType, true, 21.17, 0., 457.2);       // for fitting tracks
+            fM = new FieldMap(mapFile, mapType, uniformB, 21.17, 0., 457.2);       // for fitting tracks
         } catch (IOException e) {
             System.out.format("Could not open or read the field map %s\n", mapFile);
             return;
@@ -140,7 +144,6 @@ class PatRecTest {
 
         int nLayers = 14; // Layer 0 not yet implemented here
         double resolution = 0.006; // SSD point resolution, in mm
-        double hitEfficiency = 1.00;
         double[] location = new double[nLayers];
         double[] xdet = new double[SiModules.size()];
         double[] ydet = new double[SiModules.size()];
@@ -205,6 +208,12 @@ class PatRecTest {
             hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plant %d", i), "mm", "hits");
             hUnbiasSig[i] = new Histogram(100, -10., 0.2, String.format("Unbiased residuals for layer %d", i), "sigmas", "hits");
         }
+        Histogram[] covEigenV = new Histogram[5];
+        covEigenV[0] = new Histogram(100, -0.05, 0.001, "Largest eigenvalue of track covariance", " ", "tracks");
+        covEigenV[1] = new Histogram(100, -0.005, 0.0001, "Second eigenvalue of track covariance", " ", "tracks");
+        covEigenV[2] = new Histogram(100, -0.0005, 0.00001, "Third eigenvalue of track covariance", " ", "tracks");
+        covEigenV[3] = new Histogram(100, -0.0000005, 0.0000000001, "Fourth eigenvalue of track covariance", " ", "tracks");
+        covEigenV[4] = new Histogram(100, -0.000000005, 0.000000000001, "Smalles eigenvalue of track covariance", " ", "tracks");
         Histogram hNmcHt = new Histogram(10,0.,1.,"Bad variance number of MC tracks contributing to hit","N","tracks");
         Histogram hNmcTk = new Histogram(10,0.,1.,"Bad variance number of MC tracks contributing to track","N","tracks");
         Histogram hMCgood = new Histogram(5,0.,1.,"Bad variance number of bad or good tracks","goodness","tracks");
@@ -554,6 +563,20 @@ class PatRecTest {
             int nTracks = patRec.TkrList.size();
             hNtracks.entry(nTracks);
             for (KalTrack tkr : patRec.TkrList) {
+                // Check on the covariance matrix
+                Matrix C = new Matrix(tkr.originCovariance());
+                EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
+                double [] ev = eED.getRealEigenvalues();
+                for (int i=0; i<5; ++i) {
+                    covEigenV[i].entry(ev[i]);
+                    if (ev[i] < 0.) {
+                        System.out.format("Event %d, eigenvalue %d = %10.5e of covariance is negative!\n", eventNumber, i, ev[i]);
+                    }
+                }
+                if (eventNumber < 10) {
+                    Vec evV = new Vec(5,ev);
+                    evV.print("Eigenvalues of covariance");
+                }
                 tkr.sortSites(true);
                 if (verbose) {
                     System.out.format("Track %d, %d hits, chi^2=%10.5f, 1st layer=%d\n", tkr.ID, tkr.nHits, tkr.chi2,
@@ -575,12 +598,12 @@ class PatRecTest {
                     hResidS0[layer].entry(site.aS.r/Math.sqrt(site.aS.R));
                     hResidS2[layer].entry(site.aS.r);
                     if (site.hitID >= 0) {
+                        nH++;
                         for (int iMC : site.m.hits.get(site.hitID).tksMC) {                    
                             MCtks.add(iMC);
                             MCfreq[iMC]++;
                         }
                     }
-                    nH++;
                 }
                 if (nH != tkr.nHits) System.out.format("Event %d, the number of hits %d in KalTrack is incorrect. Should be %d\n", eventNumber, tkr.nHits, nH);
                 int jMC = -1;
@@ -599,6 +622,7 @@ class PatRecTest {
                         double sigma = Math.sqrt(variance);
                         hUnbias[layer].entry(unbResid);
                         hUnbiasSig[layer].entry(unbResid/sigma);
+                        /*
                         if (variance < 0.) {
                             System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f, lyrs:", 
                                                 eventNumber, layer, variance, tkr.chi2, tkr.nHits, unbResid);
@@ -624,6 +648,7 @@ class PatRecTest {
                                 }
                             }                           
                         }
+                        */
                     }
                 }
 
@@ -732,6 +757,9 @@ class PatRecTest {
             hResidS2[layer].plot(path + String.format("ResidS2_%d.gp", layer), true, " ", " ");
             hUnbias[layer].plot(path + String.format("residUnbiased1_%d.gp", layer), true, "gaus", " ");
             hUnbiasSig[layer].plot(path + String.format("residUnbiased2_%d.gp", layer), true, "gaus", " ");
+        }
+        for (int i=0; i<5; i++) {
+            covEigenV[i].plot(path + String.format("eigenvalue_%d.gp", i), true, " ", " ");
         }
         hNmcHt.plot(path + "NmcHt.gp",  true,  " ",  " ");
         hNmcTk.plot(path + "NmcTk.gp",  true,  " ",  " "); 

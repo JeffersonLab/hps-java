@@ -49,11 +49,14 @@ public class KalmanPatRecDriver extends Driver {
     private int nTracks;
     private int nEvents;
     private double executionTime;
+    private double interfaceTime;
+    private double plottingTime;
     private KalmanParams kPar;
     private KalmanPatRecPlots kPlot;
     private Logger logger;
     
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
+    private int numPatRecIteration;    // Number of global iterations of the pattern recognition
     private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
     private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
     private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
@@ -118,6 +121,9 @@ public class KalmanPatRecDriver extends Driver {
     public void detectorChanged(Detector det) {
         logger = Logger.getLogger(KalmanPatRecDriver.class.getName());
         verbose = (logger.getLevel()==Level.FINE);
+        executionTime = 0.;
+        interfaceTime = 0.;
+        plottingTime = 0.;
         
         _materialManager = new MaterialSupervisor();
         _materialManager.buildModel(det);
@@ -170,6 +176,7 @@ public class KalmanPatRecDriver extends Driver {
         // We assume that if not set by the steering file, then the parameters will have the Java default values for the primitives
         // Note that all of the parameters have defaults hard coded in KalmanParams.java
         kPar = KI.getKalmanParams();
+        if (numPatRecIteration != 0) kPar.setGlbIterations(numPatRecIteration);
         if (numKalmanIteration != 0) kPar.setIterations(numKalmanIteration);
         if (maxPtInverse != 0.0) kPar.setMaxK(maxPtInverse);
         if (maxD0 != 0.0) kPar.setMaxdRho(maxD0);
@@ -191,6 +198,7 @@ public class KalmanPatRecDriver extends Driver {
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
         // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
+        
         kPar.clrStrategies();
         int[] list0 = {6, 7, 8, 9, 10};
         int[] list1 = {4, 5, 6, 7, 8};
@@ -417,7 +425,17 @@ public class KalmanPatRecDriver extends Driver {
         
         nTracks += nKalTracks;
         
-        if (kPlot != null) kPlot.process(event, runTime, kPatList, outputFullTracks, rawtomc);
+        long endInterfaceTime = System.nanoTime();
+        runTime = (double)(endInterfaceTime - endTime)/1000000.;
+        interfaceTime += runTime;
+        
+        if (kPlot != null) {
+            kPlot.process(event, runTime, kPatList, outputFullTracks, rawtomc);
+            long endPlottingTime = System.nanoTime();
+            runTime = (double)(endPlottingTime - endInterfaceTime)/1000000.;
+            plottingTime += runTime;
+            
+        }
         
         KI.clearInterface();
         logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));
@@ -428,12 +446,24 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void endOfData() {
-        System.out.format("KalmanPatRecDrive.endOfData: total pattern recognition execution time=%12.4f ms for %d events and %d tracks.\n", 
+        System.out.format("KalmanPatRecDriver.endOfData: total pattern recognition execution time=%12.4f ms for %d events and %d tracks.\n", 
                 executionTime, nEvents, nTracks);
-        if (kPlot != null) kPlot.output();
+        double evtTime = executionTime/(double)nEvents;
+        double tkrTime = executionTime/(double)nTracks;
+        System.out.format("                              Kalman Patrec Time per event = %9.4f; Time per track = %9.4f\n", evtTime, tkrTime);
+        evtTime = interfaceTime/(double)nEvents;
+        System.out.format("                              Kalman Interface Time per event = %9.4f\n", evtTime);
+        if (kPlot != null) {
+            kPlot.output();
+            evtTime = plottingTime/(double)nEvents;
+            System.out.format("                              Kalman Plotting Time per event = %9.4f\n", evtTime);
+        }
     }
     
     // Methods to set Kalman parameters from within the steering file
+    public void setNumPatRecIteration(int numPatRecIteration) {
+        this.numPatRecIteration = numPatRecIteration;
+    }
     public void setNumKalmanIteration(int numKalmanIteration) {
         this.numKalmanIteration = numKalmanIteration;
     }

@@ -137,7 +137,7 @@ class KalmanTrackFit2 {
                 } else {
                     sH = startSite.aF.copy();
                 }
-                sH.helix.C.scale(1000.); // Blow up the initial covariance matrix to avoid double counting measurements
+                sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
