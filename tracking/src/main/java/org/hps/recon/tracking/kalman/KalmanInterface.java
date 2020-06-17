@@ -516,7 +516,9 @@ public class KalmanInterface {
             }
         }
         
-        //TODO Ecal extrapolation should be done here [ Currently is done in the PatRecDriver ]
+        // Extrapolate to the ECAL and make a new trackState there.
+        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM);
+        newTrack.getTrackStates().add(ts_ecal);
         
         // other track properties
         newTrack.setChisq(kT.chi2);
