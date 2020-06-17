@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.record.triggerbank.TriggerModule;
-import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
