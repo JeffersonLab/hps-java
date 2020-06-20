@@ -2,6 +2,8 @@ package org.hps.recon.tracking.gbl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 
 //Rounding
@@ -757,11 +759,54 @@ public class GBLRefitterDriver extends Driver {
         }
     }
     
+    //Custom constraint 
+    private void getSensorConstraints(AlignableDetectorElement ade, List<SiSensor> hps_sensors, List<String> constraints, boolean MPIIFormat) {
+        
+        //Get the rotation and translation of the detectorElement                                                                                                                                                      
+        Hep3Matrix Rgtoc = ade.getlocalToGlobal().getRotation().getRotationMatrix();
+        Hep3Vector Tgtoc = ade.getlocalToGlobal().getTranslation().getTranslationVector();
+
+        //Get the amount of constraints (should be 6)
+        int nc = ade.getMPIILabels().size();
+        
+        //loop on the sensors list:
+        
+        System.out.println("PF::CustomConstraint::"+ade.getName());
+        
+        for (SiSensor sensor : hps_sensors) {
+            
+            HpsSiSensor hps_sensor = (HpsSiSensor) sensor;
+            
+            //Check if the sensor belongs to the ade structure
+            
+            if (sensorBelongsToStructure(ade,hps_sensor)) {
+                
+
+                List<Integer> sc_labels = hps_sensor.getMPIILabels();
+                
+                System.out.println("PF::Sensor belongs::"+hps_sensor.getName());
+                
+                //System.out.printf("Derivatives labels: \n%s\n", sc_labels.toString());
+                //Get the rotation and translation of the child sub-component
+                Hep3Matrix Rgtosc = hps_sensor.getlocalToGlobal().getRotation().getRotationMatrix();
+                Hep3Vector Tgtosc = hps_sensor.getlocalToGlobal().getTranslation().getTranslationVector();
+                
+                //Compute the CMatrix of mother => child
+                Matrix C_matrix = f2fD.getDerivative(Rgtosc, Rgtoc, Tgtosc, Tgtoc);
+                Matrix C_matrixInv = C_matrix.inverse();
+
+                C_matrixInv.print(6,6);
+
+                FormatConstraint(C_matrixInv, nc, constraints, sc_labels, MPIIFormat);
+                
+            }//sensor belongs 
+                        
+        }//sensor loop
+        
+    }//custom constraint
     
-    //a=ai +C_ij ac_j +C_jk ac_k +... 
-    //where j,k, ... are the composite structures indices.
-    
-    private void getConstraints(AlignableDetectorElement ade, List<String> constraints) {
+    //Constraint is of the form 0 = sum_n Ciai
+    private void getConstraints(AlignableDetectorElement ade, List<String> constraints, boolean MPIIFormat) {
         
         //System.out.printf("DEBUG::PF::getConstraints\n");
         //Get the rotation and translation of the detectorElement
@@ -770,18 +815,7 @@ public class GBLRefitterDriver extends Driver {
         
         //Get the amount of constraints (should be 6)
         int nc = ade.getMPIILabels().size();
-        
-        /*
-        //System.out.printf("Constraints for de: %s \n", ade.getName());
-        List<String> constraints = new ArrayList<String>();
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        */
-        
+                
         // loop on the children
         for (IDetectorElement i_de : ade.getChildren()) {
             
@@ -808,71 +842,118 @@ public class GBLRefitterDriver extends Driver {
                 //System.out.printf("CMatrix_inv\n");
                 Matrix C_matrixInv = C_matrix.inverse();
                 C_matrixInv.print(6,6);
-                
-                for (int ic = 0; ic < nc; ic++) {
-                    String appendix   = ""; //decide if to keep summing or last entry in the constraint.
-                    
-                    //The constraint is of the form 0 = sum_i=0 ^{n} C^{-1}a_i
-                    
-                    //Cmatrix is a 6by6 (get the nCols) TODO
-                    for (int icol = 0 ; icol < 6; icol++) {
-                        
-                        //Get the current value
-                        String s_cnstr = constraints.get(ic);
-                        
-                        //Cmatrix coeff less than 1e-5 are ignored. Revisit? 
-                                                
-                        if (C_matrixInv.get(ic,icol) < 1e-5) 
-                            continue;
-                        
-                        // get the rounded C matrix -1 entry rounded to 10e-4
-                        Double cnstr  = round(C_matrixInv.get(ic,icol),4);
-                        Integer sc_label = sc_labels.get(icol);
 
-                        
-                        if (s_cnstr != "")
-                            s_cnstr += " + ";
-                        
-                        s_cnstr += String.valueOf(cnstr) + "* [" + String.valueOf(sc_label) + "]";
-                        
-                        //Set this in the list
-                        constraints.set(ic, s_cnstr);
-                    }//loop on C^-1 columns
-                }//contraint loop
+                FormatConstraint(C_matrixInv, nc, constraints, sc_labels, MPIIFormat);
+                
             }//child is an ade
         }//children loop
         
-        //System.out.printf("Constraints : \n%s\n", constraints.toString());
-        
     }//get constraints
     
-    //Get the constraint
+    //Format the constraint
+    
+    private void FormatConstraint(Matrix C_matrixInv, int nc, List<String> constraints, List<Integer> sc_labels, boolean MPIIFormat) {
+        
+        for (int ic = 0; ic < nc; ic++) {
+            String appendix   = ""; //decide if to keep summing or last entry in the constraint.
+            
+            //The constraint is of the form 0 = sum_i=0 ^{n} C^{-1}a_i
+            
+            //Cmatrix is a 6by6 (get the nCols) TODO
+            for (int icol = 0 ; icol < 6; icol++) {
+                
+                //Get the current value
+                String s_cnstr = constraints.get(ic);
+                
+                //Cmatrix coeff less than 1e-5 are ignored. Revisit? 
+                
+                if (Math.abs(C_matrixInv.get(ic,icol)) < 1e-5) 
+                    continue;
+                
+                // get the rounded C matrix -1 entry rounded to 10e-4
+                Double cnstr  = round(C_matrixInv.get(ic,icol),4);
+                Integer sc_label = sc_labels.get(icol);
+                
+                
+                if (s_cnstr != "")
+                    if (!MPIIFormat)
+                        s_cnstr += " + ";
+                    else
+                        s_cnstr += "\n";
+                else
+                    if (MPIIFormat)
+                        s_cnstr += "\n\n";
+                
+                //s_cnstr += String.valueOf(cnstr) + "* [" + String.valueOf(sc_label) + "]";
+                if (!MPIIFormat)
+                    s_cnstr +=  String.valueOf(sc_label) + " * " + String.valueOf(cnstr);
+                else
+                    s_cnstr +=  String.valueOf(sc_label) + " " + String.valueOf(cnstr);
+                
+                //Set this in the list
+                constraints.set(ic, s_cnstr);
+            }//loop on C^-1 columns
+        }//contraint loop
+    }
     
     //Make the alignment Constraint file
     //Should make a list for only alignable sensors
     
     private void MakeAlignmentConstraintFile() {
         
-        List<String> constraints = new ArrayList<String>();
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
-        constraints.add("");
+        //Map for mapping structure to constraints
+        Map<String,List<String> > constraintMap =  new HashMap< String,List<String> >(); 
         
         try {
             
-            FileWriter writer = new FileWriter("mille_constraint.txt");
+            FileWriter writer = new FileWriter("mille_constraint.txt",false);
             BufferedWriter bufferedWriter = new BufferedWriter(writer);
-
-            //Get the base object
             
+            //Get the base object
             for (AlignableDetectorElement ade : Alignabledes) {
                 if (ade.getName().contains("Tracker_base"))
-                    getConstraints(ade, constraints);
+                    continue;
+                if (!constraintMap.containsKey(ade.getName())) {
+                    //Make the constraints:
+                    List<String> constraints = new ArrayList<String>();
+                    constraints.add("");
+                    constraints.add("");
+                    constraints.add("");
+                    constraints.add("");
+                    constraints.add("");
+                    constraints.add("");
+                    //getConstraints(ade, constraints,true);
+                    getSensorConstraints(ade, sensors, constraints,true);
+                    
+                    constraintMap.put(ade.getName(),constraints);
+                }
             }
             
+            //Print all the constraints
+            System.out.printf("DEBUG::PF::CONSTRAINTS::\n");
+            List<String> constr_labels = new ArrayList<String>();
+            constr_labels.add("!tu");
+            constr_labels.add("!tv");
+            constr_labels.add("!tw");
+            constr_labels.add("!ru");
+            constr_labels.add("!rv");
+            constr_labels.add("!rw");
+            
+            
+            bufferedWriter.write("!Constraint file for HPS MPII Alignment\n\n\n");
+            for (Map.Entry< String,List<String>> me : constraintMap.entrySet()) {
+                System.out.printf(me.getKey()+":\n"); 
+                
+                int iconstr = -1;
+                for ( String constr : me.getValue()) {
+                    iconstr +=1;
+                    bufferedWriter.write("Constraint 0.0    !"+me.getKey()+" " +  constr_labels.get(iconstr)+"\n");
+                    bufferedWriter.write(constr);
+                    bufferedWriter.write("\n\n");
+                }
+            }
+            
+            /*
             for (SiSensor sensor : sensors) {
                 
                 HpsSiSensor hpsSensor = (HpsSiSensor) sensor;
@@ -886,6 +967,7 @@ public class GBLRefitterDriver extends Driver {
                 bufferedWriter.newLine();
                 
             }
+            */
             
             bufferedWriter.close();
         }
@@ -938,11 +1020,31 @@ public class GBLRefitterDriver extends Driver {
         for (AlignableDetectorElement ade : Alignabledes) {
             System.out.printf("DEBUG::PF::MakeAlignmentTree ade %s has children \n %s \n", ade.getName(), ade.getChildren().toString());
             
-        }
-        
-        
+        }        
     }
     
+    //Matching by name
+    private boolean sensorBelongsToStructure(AlignableDetectorElement ade, HpsSiSensor sensor) {
+        
+        AlignableDetectorElement ade_to_check = sensor.getAdeMother();
+        
+        while (ade_to_check != null && ade_to_check.getName() != null && !ade_to_check.getName().contains("Tracker_base")) {
+            
+            if (ade_to_check.getName().equals(ade.getName()))
+                return true;
+            else {
+                if (!(ade_to_check.getParent() instanceof AlignableDetectorElement))
+                    break;
+                ade_to_check = (AlignableDetectorElement)ade_to_check.getParent();
+                if (ade_to_check == null)
+                    break;
+            }
+        }
+        
+        return false;
+    }
+
+
     private int getFullModule(int volume, int mpid) {
         
         //top
