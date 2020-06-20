@@ -587,6 +587,11 @@ public class HpsSiSensor extends SiSensor {
 
     }
 
+    public Transform3D getlocalToGlobal() {
+        return (Transform3D) getGeometry().getLocalToGlobal();
+    }
+        
+
     /**
      * Return the length of an {@link HpsSiSensor} strip. This is done by getting the face of the {@link HpsSiSensor}
      * and returning the length of the longest edge.
