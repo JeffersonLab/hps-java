@@ -177,4 +177,12 @@ public class Strip2019FeeForAlignment extends Driver {
         _maxNClusters = i;
     }
 
+    public void setMaxNumberOfTracks(int i) {
+        _maxNumberOfTracks = i;
+    }
+
+    public void setMinNumberOfTracks(int i) {
+        _minNumberOfTracks = i;
+    }
+
 }
