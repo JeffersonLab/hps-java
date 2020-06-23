@@ -27,7 +27,7 @@ public class Strip2019FeeForAlignment extends Driver {
     int _numberOfEventsSelected;
     private AIDA aida = AIDA.defaultInstance();
 
-    int maxNClusters = 1;
+    int _maxNClusters = 1;
     double _minClusterEnergy = 3.5;
     double _minSeedHitEnergy = 3.0;
 
@@ -45,7 +45,7 @@ public class Strip2019FeeForAlignment extends Driver {
         if (event.get(RawTrackerHit.class, "SVTRawTrackerHits").size() < _maxSvtRawTrackerHits) {
             List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
             //System.out.println(clusters.size()+ "clusters");
-            if (clusters.size() > 0 && clusters.size() <= maxNClusters) {
+            if (clusters.size() > 0 && clusters.size() <= _maxNClusters) {
                 for (Cluster cluster : clusters) {
                     //System.out.println("cluster energy "+cluster.getEnergy());
                     if (cluster.getEnergy() > _minClusterEnergy) {
@@ -164,4 +164,17 @@ public class Strip2019FeeForAlignment extends Driver {
     public void setMinNumberOfHitsOnTrack(int i) {
         _minNumberOfHitsOnTrack = i;
     }
+
+    public void setMinClusterEnergy(double d) {
+        _minClusterEnergy = d;
+    }
+
+    public void setMinSeedHitEnergy(double d) {
+        _minSeedHitEnergy = d;
+    }
+
+    public void setMaxNClusters(int i) {
+        _maxNClusters = i;
+    }
+
 }
