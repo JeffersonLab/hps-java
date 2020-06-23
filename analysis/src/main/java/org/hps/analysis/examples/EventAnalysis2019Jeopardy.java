@@ -142,8 +142,8 @@ public class EventAnalysis2019Jeopardy extends Driver {
     protected void endOfData() {
         try {
             // Save the final plots to a new file.
-            aida.saveAs("2019JeopardyPlots_Graf.aida");
-            aida.saveAs("2019JeopardyPlots_Graf.root");
+            aida.saveAs("2019JeopardyPlots_FEEAnalysis_Graf.aida");
+            aida.saveAs("2019JeopardyPlots_FEEAnalysis_Graf.root");
         } catch (IOException ex) {
             Logger.getLogger(EventAnalysis2019Jeopardy.class.getName()).log(Level.SEVERE, null, ex);
         }
