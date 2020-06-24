@@ -52,6 +52,7 @@ import java.util.Locale;
 // * @author The MathWorks, Inc. and the National Institute of Standards and
 // * Technology.
 // * @author Norman A. Graf (modifications for the gbl package)
+// * @author PF (restoring broken functionalities here and there)
 // * @version 5 August 1998 $Id: Matrix.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy
 // * Exp $
 // */
@@ -248,42 +249,38 @@ public class Matrix implements Cloneable, java.io.Serializable {
         return C;
     }
 
-    // /**
-    // * Make a one-dimensional column packed copy of the internal array.
-    // *
-    // * @return Matrix elements packed in a one-dimensional array by columns.
-    // */
-    // public double[] getColumnPackedCopy()
-    // {
-    // double[] vals = new double[m * n];
-    // for (int i = 0; i < m; i++)
-    // {
-    // for (int j = 0; j < n; j++)
-    // {
-    // vals[i + j * m] = A[i][j];
-    // }
-    // }
-    // return vals;
-    // }
-    //
-    // /**
-    // * Make a one-dimensional row packed copy of the internal array.
-    // *
-    // * @return Matrix elements packed in a one-dimensional array by rows.
-    // */
-    // public double[] getRowPackedCopy()
-    // {
-    // double[] vals = new double[m * n];
-    // for (int i = 0; i < m; i++)
-    // {
-    // for (int j = 0; j < n; j++)
-    // {
-    // vals[i * n + j] = A[i][j];
-    // }
-    // }
-    // return vals;
-    // }
-    //
+    /**
+     * Make a one-dimensional column packed copy of the internal array.
+     *
+     * @return Matrix elements packed in a one-dimensional array by columns.
+     */
+    public double[] getColumnPackedCopy() {
+        double[] vals = new double[m * n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                vals[i + j * m] = A[i][j];
+            }
+        }
+        return vals;
+    }
+    
+    /**
+     * Make a one-dimensional row packed copy of the internal array.
+     *
+     * @return Matrix elements packed in a one-dimensional array by rows.
+     */
+    public double[] getRowPackedCopy() {
+        double[] vals = new double[m * n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                vals[i * n + j] = A[i][j];
+            }
+        }
+        return vals;
+    }
+    
+
+    
     /**
      * @return the number of rows.
      */
