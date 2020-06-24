@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class GBLexampleJna {
     
-    private int nTry = 10000;
+    private int nTry = 1;
     private int nLayer = 10;
     private NormalDistribution norm = new NormalDistribution();
     private String outputPlots = "example1jna.root";
@@ -154,10 +154,10 @@ public class GBLexampleJna {
             double s = 0;
             jacPointToPoint.UnitMatrix();
             List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
-
-            //The points need to be created using the double[][] representation.
-            GblPointJna gblPoint = new GblPointJna(jacPointToPoint.getArray());
-           
+            
+            //The points need to be created using the double[] representation.
+            GblPointJna gblPoint = new GblPointJna(jacPointToPoint.getRowPackedCopy());
+            
             /* 
             for (int iLayer = 0; iLayer<nLayer; iLayer+=1) {
                 double sinStereo = (iLayer % 2 == 0) ? 0. : 0.1;
