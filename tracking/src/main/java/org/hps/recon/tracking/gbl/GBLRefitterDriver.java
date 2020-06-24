@@ -176,6 +176,9 @@ public class GBLRefitterDriver extends Driver {
         //GBLexample1 example1 = new GBLexample1();
         //example1.runExample(1,10,false);
         
+        //GBLexampleJna examplejna1 = new GBLexampleJna();
+        //examplejna1.runExample();
+
     }
 
     @Override
