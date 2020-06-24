@@ -16,7 +16,7 @@ public class GBLexampleJna {
     private int nTry = 10000;
     private int nLayer = 10;
     private NormalDistribution norm = new NormalDistribution();
-    private String outputPlots = "example1.root";
+    private String outputPlots = "example1jna.root";
     private boolean debug = false;
     
     
@@ -45,7 +45,7 @@ public class GBLexampleJna {
     
     public void runExample() {
         setupPlots();
-        System.out.println("Running GBL Example!");
+        System.out.println("Running GBL Example JNA!");
         
         double sinLambda = 0.3;
         double cosLambda = Math.sqrt(1.0-sinLambda*sinLambda);
@@ -154,6 +154,9 @@ public class GBLexampleJna {
             double s = 0;
             jacPointToPoint.UnitMatrix();
             List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
+
+            //The points need to be created using the double[][] representation.
+            GblPointJna gblPoint = new GblPointJna(jacPointToPoint.getArray());
            
             /* 
             for (int iLayer = 0; iLayer<nLayer; iLayer+=1) {

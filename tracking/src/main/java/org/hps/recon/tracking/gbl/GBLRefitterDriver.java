@@ -148,6 +148,13 @@ public class GBLRefitterDriver extends Driver {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+
+        GBLexample1 example1 = new GBLexample1();  
+        //example1.runExample(); 
+        
+        GBLexampleJna examplejna1 = new GBLexampleJna();
+        examplejna1.runExample();
+
     }
 
     @Override
