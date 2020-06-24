@@ -3,6 +3,7 @@ package org.hps.recon.tracking.gbl;
 /**
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  * @author Norman A Graf
+ * @author PF <pbutti@slac.stanford.edu>
  * @version $Id:
 o */
 import static java.lang.Math.abs;
@@ -14,6 +15,7 @@ import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.gbl.matrix.BorderedBandMatrix;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.VVector;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
@@ -142,10 +144,15 @@ public class GblTrajectory {
         numAllPoints = aPointList.size();
         numOffsets = 0;
         numInnerTrans = 0;
+        //numInnerTransOffsets = 0;
         numCurvature = (flagCurv ? 1 : 0);
         numParameters = 0;
         numLocals = 0;
         numMeasurements = 0;
+        externalPoint = aLabel;
+        //skippedMeasLabel = -999;
+        //maxNumGlobals = 0;
+        
 
         if (flagU1dir) {
             theDimension.add(0);
@@ -153,6 +160,9 @@ public class GblTrajectory {
         if (flagU2dir) {
             theDimension.add(1);
         }
+        
+        //Copy the precision matrix inside the trajectory
+        externalSeed = new SymMatrix(aSeed);
         // simple (single) trajectory
         thePoints.add(aPointList);
         numPoints.add(numAllPoints);
@@ -194,6 +204,9 @@ public class GblTrajectory {
         constructOK = false;
         fitOK = false;
         int aLabel = 0;
+
+        //Check on numAllPoints is missing
+        
         // loop over trajectories
         numTrajectories = thePoints.size();
         for (List<GblPoint> list : thePoints) {
@@ -749,8 +762,53 @@ public class GblTrajectory {
             }// end loop over points
             scatDataIndex.set(list.get(list.size() - 1).getLabel(), nData);
         } // end loop over trajectories
+
+
+        //External seed
+        
+        if (externalPoint != 0) {
+            
+            Pair<List<Integer>, Matrix> indexAndJacobian = getJacobian(externalPoint);
+            List<Integer> externalSeedIndex = indexAndJacobian.getFirst();
+            List<Double> externalSeedDerivatives = new ArrayList<Double>();
+            for (int i=0; i<externalSeedIndex.size(); ++i){
+                externalSeedDerivatives.add(0.);
+            }
+            EigenvalueDecomposition externalSeedEigen = new EigenvalueDecomposition(externalSeed);
+            Vector valEigen = new Vector(externalSeedEigen.getRealEigenvalues());
+            Matrix vecEigen = externalSeedEigen.getEigenVectors();
+            vecEigen = (vecEigen.transpose()).times(indexAndJacobian.getSecond());
+            
+            for (int i = 0; i < externalSeed.getRowDimension(); ++i ) {
+                if (valEigen.get(i) > 0.) {
+                    for (int j = 0; j<externalSeed.getColumnDimension(); ++j) {
+                        externalSeedDerivatives.set(j,vecEigen.get(i,j));
+                    }
+                }// the eigenvalue is positive
+                GblData aData = new GblData(externalPoint,GblData.dataBlockType.ExternalSeed, 0., valEigen.get(i));
+                aData.addDerivatives(externalSeedIndex,externalSeedDerivatives);
+                theData.add(aData);
+                nData++;
+            }//loop on eigen values
+        }
+        
         measDataIndex.set(numAllPoints + 1, nData);
+        
+        
+
+        //////////////////////////////////////////////////
+        //Insert the code for external measurements here//
+        //////////////////////////////////////////////////
+        
+
+
         measDataIndex.set(numAllPoints + 2, nData);
+
+
+
+
+
+
     }
 
     //

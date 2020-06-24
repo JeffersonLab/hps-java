@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 
@@ -282,9 +283,15 @@ public class HpsGblRefitter {
         
         // create the trajectory
         GblTrajectory traj = null;
+
+        //Seed precision matrix
+        SymMatrix seedPrecision = new SymMatrix(5);
+        seedPrecision.set(0,0,1000000);
+        
         
         try {
-            traj = new GblTrajectory(listOfPoints); // ,seedLabel, clSeed);
+            //traj = new GblTrajectory(listOfPoints); // ,seedLabel, clSeed);
+            traj = new GblTrajectory(listOfPoints,1,seedPrecision,true, true, true); // ,seedLabel, clSeed);
             
             
             if (!traj.isValid()) {

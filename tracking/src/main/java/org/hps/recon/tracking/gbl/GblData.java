@@ -19,6 +19,7 @@ public class GblData {
     }
     
     int theLabel; // /< Label (of measurements point)
+    int theRow; // /< Row number (of measurement)
     dataBlockType theType; // /<Type of measurement
     double theValue; // /< Value (residual)
     double thePrecision; // /< Precision (1/sigma**2)
@@ -29,6 +30,7 @@ public class GblData {
     List<Double> theDerivatives = new ArrayList<Double>(); // /< List of derivatives for fit
     List<Integer> globalLabels = new ArrayList<Integer>(); // /< Labels for global derivatives
     List<Double> globalDerivatives = new ArrayList<Double>(); // /< Global derivatives
+        
 
     // / Create data block.
     /**
@@ -67,6 +69,8 @@ public class GblData {
             List<Integer> labGlobal, Matrix derGlobal, int extOff, Matrix extDer) {
         int nLocal = 0;
         int nExt = 0;
+        theRow = iRow - iOff;
+        
         if (derLocal != null) {
             nLocal = derLocal.getColumnDimension();
         }
@@ -76,7 +80,7 @@ public class GblData {
         int nParMax = 5 + nLocal + nExt;
         // theParameters.reserve(nParMax); // have to be sorted
         // theDerivatives.reserve(nParMax);
-
+        
         if (derLocal != null) {
             for (int i = 0; i < derLocal.getColumnDimension(); ++i) // local derivatives
             {
@@ -86,7 +90,7 @@ public class GblData {
                 }
             }
         }
-
+        
         if (extDer != null) {
             for (int i = 0; i < extDer.getColumnDimension(); ++i) // external derivatives
             {
@@ -103,14 +107,14 @@ public class GblData {
                 theDerivatives.add(matDer.get(iRow, i));
             }
         }
-
+        
         globalLabels = labGlobal;
         for (int i = 0; i < derGlobal.getColumnDimension(); ++i) // global derivatives
         {
             globalDerivatives.add(derGlobal.get(iRow - iOff, i));
         }
     }
-
+    
     // / Add derivatives from kink.
     /**
      * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters. \param [in] iRow Row index
@@ -118,15 +122,17 @@ public class GblData {
      * fit parameters' \param [in] extOff Offset for external parameters \param [in] extDer Derivatives for external
      * Parameters
      */
+    
     void addDerivatives(int iRow, List<Integer> labDer, Matrix matDer, int extOff, Matrix extDer) {
         int nExtDer = 0;
         if (extDer != null) {
             nExtDer = extDer.getColumnDimension();
         }
+        theRow = iRow;
         int nParMax = 7 + nExtDer;
         // theParameters.reserve(nParMax); // have to be sorted
         // theDerivatives.reserve(nParMax);
-
+        
         if (extDer != null) {
             for (int i = 0; i < extDer.getColumnDimension(); ++i) // external derivatives
             {
@@ -145,12 +151,22 @@ public class GblData {
         }
     }
 
-    // /// Add derivatives from external seed.
-    // /**
-    // * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters.
-    // * \param [in] index Labels for derivatives
-    // * \param [in] derivatives Derivatives (vector)
-    // */
+    /// Add derivatives from external seed.
+    /**
+     * Add (non-zero) derivatives to data block. Fill list of labels of used fit parameters.
+     * \param [in] index Labels for derivatives
+     * \param [in] derivatives Derivatives (vector)
+     */
+
+    void addDerivatives(List<Integer> index, List<Double> derivatives) {
+        for (int i=0; i<derivatives.size(); ++i) { //any derivatives
+            if (derivatives.get(i) != 0.) { // Not really safe to check for 0. on a Double. TODO::Fix this
+                theParameters.add(index.get(i));
+                theDerivatives.add(derivatives.get(i));
+            }
+        }
+    }
+    
     // void addDerivatives(const std::vector<unsigned int> &index,
     // const std::vector<double> &derivatives) {
     // for (unsigned int i = 0; i < derivatives.size(); ++i) // any derivatives
@@ -163,7 +179,7 @@ public class GblData {
     // }
     // / Calculate prediction for data from fit (by GblTrajectory::fit).
     void setPrediction(VVector aVector) {
-
+        
         thePrediction = 0.;
         for (int i = 0; i < theDerivatives.size(); ++i) {
             thePrediction += theDerivatives.get(i) * aVector.get(theParameters.get(i) - 1);
