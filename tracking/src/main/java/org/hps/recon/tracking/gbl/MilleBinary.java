@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.Buffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -112,13 +113,13 @@ public class MilleBinary {
         for (Integer i : _intBuffer) {
             b.putInt(i);
         }
-        b.flip();
+        ((Buffer)b).flip();
         try {
             _channel.write(b);
         } catch (IOException ex) {
             Logger.getLogger(MilleBinary.class.getName()).log(Level.SEVERE, null, ex);
         }
-        b.clear();
+        ((Buffer)b).clear();
         _floatBuffer.clear();
         _intBuffer.clear();
         _intBuffer.add(0); // first word is error counter
