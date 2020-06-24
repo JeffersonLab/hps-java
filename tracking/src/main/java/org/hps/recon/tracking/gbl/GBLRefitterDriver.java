@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-
+import static java.lang.Math.sqrt;
 
 //Rounding
 import java.math.BigDecimal;
@@ -33,6 +33,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
@@ -251,6 +252,8 @@ public class GBLRefitterDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
+
+                
         if (!event.hasCollection(Track.class, inputCollectionName))
             return;
 
@@ -278,6 +281,41 @@ public class GBLRefitterDriver extends Driver {
             if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
+            
+            
+            double momentum_param = 2.99792458e-04;
+            
+            //Get the track parameters
+            double[] trk_prms = track.getTrackParameters();
+            
+            /*
+            System.out.printf("%f %f %f %f %f \n", trk_prms[BaseTrack.D0], trk_prms[BaseTrack.PHI], trk_prms[BaseTrack.OMEGA], trk_prms[BaseTrack.TANLAMBDA], trk_prms[BaseTrack.Z0]);
+            
+            System.out.printf("Track curvature: %f \n", trk_prms[BaseTrack.OMEGA]);
+            System.out.printf("Track px %f py %f px %f\n", track.getPX(), track.getPY(), track.getPZ());
+            */
+            
+            //Bias the track
+            double pt = sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY());
+            int sign = trk_prms[BaseTrack.OMEGA] > 0. ? 1 : -1;
+            /*
+            System.out.printf("Track curvature from momentum %f\n", sign*(bfield*momentum_param)/pt);
+            System.out.printf("Track momentum: %f \n",  sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY()));
+            */
+            
+            double pt_bias = 0.5; 
+            double corrected_pt = pt+pt_bias;
+            double corrected_c = sign*(bfield*momentum_param)/(corrected_pt);
+            /*
+            System.out.printf("corrected transverse momentum: %f ==> corrected curvature %f\n", corrected_pt, corrected_c);
+            */
+            trk_prms[BaseTrack.OMEGA] = corrected_c;
+            
+            ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
+            /*
+            System.out.printf("Biased track parameters \n");
+            System.out.printf("%f %f %f %f %f \n", trk_prms[BaseTrack.D0], trk_prms[BaseTrack.PHI], trk_prms[BaseTrack.OMEGA], trk_prms[BaseTrack.TANLAMBDA], trk_prms[BaseTrack.Z0]);
+            */
 
             Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
             if (newTrackTraj == null) {
@@ -876,6 +914,16 @@ public class GBLRefitterDriver extends Driver {
                 Double cnstr  = round(C_matrixInv.get(ic,icol),4);
                 Integer sc_label = sc_labels.get(icol);
                 
+                int trans_type = (sc_label / 100) % 10;
+                boolean isRot  = ((sc_label / 1000) % 10) == 1 ? false : true;
+                
+                
+                //Remove translations along v and w of the sensors
+                if (trans_type == 2 || trans_type == 3)
+                    continue;
+                //Remove rotations 
+                if (isRot)
+                    continue;
                 
                 if (s_cnstr != "")
                     if (!MPIIFormat)

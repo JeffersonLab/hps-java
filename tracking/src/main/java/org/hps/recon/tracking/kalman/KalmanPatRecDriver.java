@@ -232,8 +232,8 @@ public class KalmanPatRecDriver extends Driver {
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
-        event.put("GBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
-        event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
+        event.put("KFGBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
+        event.put("KFGBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
         event.put("KFTrackData",trackDataCollection, TrackData.class,0);
         event.put("KFTrackDataRelations",trackDataRelations,LCRelation.class,0);
         
