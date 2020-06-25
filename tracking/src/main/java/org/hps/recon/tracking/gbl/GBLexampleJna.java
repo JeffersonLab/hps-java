@@ -9,7 +9,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.lcsim.util.aida.AIDA;
 
 //import hep.aida.IHistogram1D;
-import java.io.IOException;
+//import java.io.IOException;
 
 public class GBLexampleJna {
     
@@ -156,7 +156,13 @@ public class GBLexampleJna {
             List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
             
             //The points need to be created using the double[] representation.
-            GblPointJna gblPoint = new GblPointJna(jacPointToPoint.getRowPackedCopy());
+            GblPointJna gblPointJna = new GblPointJna(jacPointToPoint.getRowPackedCopy());
+            System.out.println("Constructed the gblPointjna");
+            System.out.println(gblPointJna.hasMeasurement());
+            System.out.println(gblPointJna.getMeasPrecMin());
+            
+            
+            
             
             /* 
             for (int iLayer = 0; iLayer<nLayer; iLayer+=1) {
@@ -299,6 +305,7 @@ public class GBLexampleJna {
             aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]); */
         }
         
+        /*
         if (outputPlots != null) {
             try {
                 aida.saveAs(outputPlots);
@@ -307,6 +314,9 @@ public class GBLexampleJna {
             }
             
         }
+        */
+     
+        System.out.println("done running jnaGBLExample1");
     }
 
     

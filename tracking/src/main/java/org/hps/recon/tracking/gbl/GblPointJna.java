@@ -13,6 +13,9 @@ public class GblPointJna {
         
         Pointer GblPointCtor(double matrixArray[]); 
         Pointer GblPointCtor2D(double matrix[][]); 
+
+        int GblPoint_hasMeasurement(Pointer self);
+        double GblPoint_getMeasPrecMin(Pointer self);
     }
     
     private Pointer self; 
@@ -23,6 +26,15 @@ public class GblPointJna {
         self = GblPointInterface.INSTANCE.GblPointCtor(matrixArray); 
     }
 
+    int hasMeasurement() {
+        return GblPointInterface.INSTANCE.GblPoint_hasMeasurement(self);
+    }
+
+    double getMeasPrecMin() {
+        return GblPointInterface.INSTANCE.GblPoint_getMeasPrecMin(self);
+    }
+        
+    
     public GblPointJna(double matrix[][]) { 
         //do nothing for the moment
         //The 2d should be unpacked here.
