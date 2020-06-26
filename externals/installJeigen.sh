@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=externals/Jeigen-onefat.jar -DgroupId=jeigen -DartifactId=Jeigen-onefat  -Dversion=1.1 -Dpackaging=jar -DgeneratePom=true
