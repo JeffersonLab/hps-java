@@ -4,9 +4,13 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import java.util.List;
 import java.util.ArrayList;
-//import static java.lang.Math.sqrt;
+import static java.lang.Math.sqrt;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.lcsim.util.aida.AIDA;
+
+
+import static jeigen.Shortcuts.*;
+import jeigen.DenseMatrix;
 
 //import hep.aida.IHistogram1D;
 //import java.io.IOException;
@@ -153,18 +157,86 @@ public class GBLexampleJna {
             
             double s = 0;
             jacPointToPoint.UnitMatrix();
+            jacPointToPoint.set(1,2,10);
+            jacPointToPoint.set(3,4,-999);
+            jacPointToPoint.set(1,4,999);
+
+            jacPointToPoint.print(5,5);
+            
             List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
             
-            //The points need to be created using the double[] representation.
-            GblPointJna gblPointJna = new GblPointJna(jacPointToPoint.getRowPackedCopy());
+            GblPointJna gblPointJna = new GblPointJna(jacPointToPoint);
+            
             System.out.println("Constructed the gblPointjna");
             System.out.println(gblPointJna.hasMeasurement());
             System.out.println(gblPointJna.getMeasPrecMin());
             
+            //Test jeigen
+            DenseMatrix dm1 = new DenseMatrix("1 2; 3 4");
+            DenseMatrix dm2 = new DenseMatrix(new double[][]{{1,2},{3,4}});
+            
+            dm1 = ones(5,5);
+            
+            System.out.println(dm1);
+            double sinStereo = 0.1;
+            double cosStereo = sqrt(1.0 - sinStereo * sinStereo);
+            
+            Matrix mDirT = new Matrix(3, 2);
+            mDirT.times(0);
+            mDirT.set(1,0,cosStereo);
+            mDirT.set(2,0,sinStereo);
+            mDirT.set(1,1,-sinStereo);
+            mDirT.set(2,1,cosStereo);
+            
+            System.out.println("mDirT");
+            mDirT.print(3,5);
             
             
+            Matrix proM2l = uvDir.times(mDirT);
             
-            /* 
+            System.out.println("ProM2L");
+            proM2l.print(2,3);
+            
+            Matrix proL2m = proM2l.copy();
+            proL2m = proL2m.inverse();
+            
+            System.out.println("proL2m");
+            proL2m.print(2,3);
+            
+            
+            System.out.println("JacPointToPoint");
+            jacPointToPoint.print(5,5);
+            
+            
+            Vector meas = new Vector(2);
+            Vector clPar_tail = new Vector(2);
+            clPar_tail.set(0,clPar.get(3));
+            clPar_tail.set(1,clPar.get(4));
+            
+            
+            System.out.println("clPar.tail");
+            clPar_tail.print(2,3);
+            
+            
+            meas = proL2m.times(clPar_tail);
+            System.out.println("measurement before smearing");
+            meas.print(2,3);
+            
+            
+            for (int i=0; i<2; i+=1) {
+                meas.set(i,meas.get(i)+measErr.get(i) * norm.sample());
+            }
+            
+            
+            System.out.println("measurement after smearing");
+            meas.print(2,3);
+            
+            
+            gblPointJna.addMeasurement(proL2m,meas,measPrec,0.);
+            
+
+            
+            /*
             for (int iLayer = 0; iLayer<nLayer; iLayer+=1) {
                 double sinStereo = (iLayer % 2 == 0) ? 0. : 0.1;
                 double cosStereo = sqrt(1.0 - sinStereo * sinStereo);
