@@ -100,6 +100,7 @@
         </driver>
         <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">         
             <triggerType>all</triggerType>
+            <makeExtraPlots>true</makeExtraPlots>
         </driver>      
         <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <triggerType>all</triggerType>

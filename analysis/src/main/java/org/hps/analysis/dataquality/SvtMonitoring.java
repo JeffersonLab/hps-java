@@ -83,7 +83,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         this.trackerHitCollectionName = inputCollection;
     }
 
-    public void MakeExtraPlots(boolean make) {
+    public void setMakeExtraPlots(boolean make) {
         this.makeExtraPlots = make;
     }
 
@@ -103,6 +103,7 @@ public class SvtMonitoring extends DataQualityMonitor {
         aida.tree().cd("/");
         for (HpsSiSensor sensor : sensors) {
             int i = sensor.getLayerNumber();
+            System.out.println("Setting up plots for layer  = "+i);
             double maxHTHX = 150.0;
             double maxHTHY = 50.0;
             if (i < 5) {
@@ -300,6 +301,7 @@ public class SvtMonitoring extends DataQualityMonitor {
 
     @Override
     public void calculateEndOfRunQuantities() {
+        System.out.println("calculateEndOfRunQuantities");
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         IFitFactory fitFactory = analysisFactory.createFitFactory();
         IFitter fitter = fitFactory.createFitter("chi2");

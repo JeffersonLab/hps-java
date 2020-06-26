@@ -24,17 +24,20 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
+import org.lcsim.event.Track;
 import org.lcsim.lcio.LCIOUtil;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
 /**
  *
- * @author mgraham created 5/14/19
+ * @author mgraham created 2/2/20
+ * Based on StripHitKiller.java,
  * This driver will remove 1d strip clusters from the
  * "StripClusterer_SiTrackerHitStrip1D" (default)
- * collection based on a channel-based (data/mc) ratio file.
- *
+ * collection based on a channel-based (data/mc) ratio file 
+ * FOR HITS-ON-TRACKS ONLY
+ ***   we should probably disambiguate tracks first (some tracks have 5 overlapping hits ***
  * Careful..the names of the ratio files are important! Format
  * should be:
  * <prefix>_LX_top/bottom_stereo/axial_slot/hole.txt
@@ -42,7 +45,7 @@ import org.lcsim.util.Driver;
  * mg...this only works for L1 and L6 smearing at the moment
  * ...unfortunately some of these things are hard coded
  */
-public class StripHitKiller extends Driver {
+public class TrackHitKiller extends Driver {
 
     //IMPORTANT...the layer, top/bottom/stereo/axial/slot/hole are derived from these names!!!
     Set<String> ratioFiles = new HashSet<String>();
@@ -52,6 +55,7 @@ public class StripHitKiller extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
     private static Pattern layerPattern = Pattern.compile("L(\\d+)(t|b)");
     private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    private String trackCollectionName="MatchedTracks";
     private boolean _debug = false;
     //  instead of just removing hit at a given channel, remove all hits within Nsigma
     private boolean removeHitsWithinNSig = false;
@@ -61,8 +65,8 @@ public class StripHitKiller extends Driver {
     double sigmaUL1 = 0.1; //100 microns...this is roughly the 5-hit track projection error in U for layer 1, plotted in SVTHitLevelPlots
     double sigmaUL6 = 0.25; //250 microns...this is roughly the 5-hit track projection error in U for layer 6*1.5 because pull is too wide, plotted in SVTHitLevelPlots
     //    double sigmaUL6 = 0.05; //50 microns...this is narrow just to check the effect. 
-    double firstSensorKillFactor=3.0;
-    double secondSensorKillFactor=2.0;
+    double firstSensorKillFactor=1.0;
+    double secondSensorKillFactor=1.0;
     //these are just used for debugging...
     int checkHitsChannel = 634;
     int checkHitsTotal = 0;
@@ -73,7 +77,7 @@ public class StripHitKiller extends Driver {
     private List<TrackerHit> siClusters=new ArrayList<TrackerHit>();
 
     private Map<TrackerHit, Boolean> _siClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
-    private    Map<TrackerHit, Boolean> _finalSiClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
+    private Map<TrackerHit, Boolean> _finalSiClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
 
     private Map<Integer, Double> _smearingFractionsL1 = new HashMap<Integer, Double>();
     private Map<Integer, Double> _smearingFractionsL6 = new HashMap<Integer, Double>();
@@ -107,7 +111,7 @@ public class StripHitKiller extends Driver {
         this.nSig = nSig;
     }
 
-    public StripHitKiller() {
+    public TrackHitKiller() {
     }
 
     @Override
@@ -123,7 +127,7 @@ public class StripHitKiller extends Driver {
         //parse the ratio names and register sensors to kill
         String delims = "_|\\.";// this will split strings between  one "_" or "."
         for (String ratioFile : ratioFiles) {
-            System.out.println("StripHitKiller::Using this ratioFile:  " + ratioFile);
+            System.out.println("TrackHitKiller::Using this ratioFile:  " + ratioFile);
             int layer = -1;
             boolean top = false;
             boolean stereo = false;
@@ -146,7 +150,7 @@ public class StripHitKiller extends Driver {
                 stereo = true;
             if (tokens[3].matches("slot"))
                 slot = true;
-            System.out.println("StripHitKiller::Killing this:  "
+            System.out.println("TrackHitKiller::Killing this:  "
                     + "layer = " + layer + "; top = " + top + "; stereo = " + stereo
                     + "; slot = " + slot);
             this.registerSensor(layer, top, stereo, slot, ratioFile);            
@@ -159,19 +163,22 @@ public class StripHitKiller extends Driver {
     @Override
     public void process(EventHeader event) {
         //    System.out.println("In process of SVTHitKiller");
-        _siClustersAcceptMap.clear();
+        //        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+
         if (event.hasItem(stripHitInputCollectionName))
             siClusters = (List<TrackerHit>) event.get(stripHitInputCollectionName);
         else {
             System.out.println("StripHitKiller::process No Input Collection Found?? " + stripHitInputCollectionName);
             return;
         }
-        if (_debug)
-            System.out.println("Number of SiClusters Found = " + siClusters.size());
+
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
+
+        List<TrackerHit> l1HitsOnTracks=getTrackHitsPerLayer(tracks,1);
+        
         int oldClusterListSize = siClusters.size();
-        for (TrackerHit siCluster : siClusters) {
-            boolean passHit = true;
-            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) siCluster.getRawHits().get(0)).getDetectorElement();
+        for (TrackerHit siCluster : l1HitsOnTracks) {
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) siCluster.getRawHits().get(0)).getDetectorElement();            
             for (SensorToKill sensorToKill : _sensorsToKill)
                 if (sensorToKill.matchSensor(sensor)) {
                     //ok, get hit channel and kill or not
@@ -179,8 +186,8 @@ public class StripHitKiller extends Driver {
                     int chan = getChan(pos, sensor);
                     if (_debug)
                         System.out.println("Found a hit on a sensor to kill!!!  Layer = " + sensor.getLayerNumber()
-                                + " isTop? " + sensorToKill.getIsTop() + "isStereo? " + sensorToKill.getIsStereo()
-                                + " isSlot? " + sensorToKill.getIsSlot() + " channel = " + chan);
+                                           + " isTop? " + sensorToKill.getIsTop() + "isStereo? " + sensorToKill.getIsStereo()
+                                           + " isSlot? " + sensorToKill.getIsSlot() + " channel = " + chan);
                     double ratio = 0;
                     if (useSigmaWeightedRatios)
                         ratio = this.getSmearedRatio(chan, sensorToKill);
@@ -190,39 +197,24 @@ public class StripHitKiller extends Driver {
                     ratio=1-killFactor;
                     if (ratio != -666) {
                         double random = Math.random(); //throw a random number to see if this hit should be rejected
-                        if (random > ratio) {
-                            passHit = false;
-                            if (_debug)
-                                System.out.println("Killing this hit Layer = " + sensor.getLayerNumber()
-                                                   + " isTop? " + sensorToKill.getIsTop() + "isStereo? " + sensorToKill.getIsStereo()
-                                                   + " isSlot? " + sensorToKill.getIsSlot() +" scaleKillFactor= "+ sensorToKill.getScaleKillFactor()
-                                                   + " channel = " + chan + "  ratio = " + ratio);
-
+                        if (random < ratio) {
+                            //                            passHit = false;
+                            siClusters.remove(siCluster);
+            
                         }
                     }
-                    if (chan == checkHitsChannel) {
-                        checkHitsTotal++;
-                        if (passHit)
-                            checkHitsPassed++;
-                        checkHitsRatio = ratio;
-                    }
-
                 }
-            _siClustersAcceptMap.put(siCluster, passHit);
         }
 
-//        if (_debug)
-        List<TrackerHit> tmpClusterList = getFinalHits(_siClustersAcceptMap);
         if (_debug)
-            System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
+            System.out.println("New Cluster List Has " + siClusters.size() + "; old List had " + oldClusterListSize);
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
-        event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
-
+        event.put(this.stripHitInputCollectionName, siClusters, SiTrackerHitStrip1D.class, 0, toString());
     }
 
     @Override
     public void endOfData() {
-        System.out.println("StripHitKiller::endOfData  channel = " + checkHitsChannel
+        System.out.println("TrackHitKiller::endOfData  channel = " + checkHitsChannel
                 + "  ratio = " + checkHitsRatio + "; hits pass = " + checkHitsPassed
                 + "  hits total = " + checkHitsTotal + "  passRatio = " + ((double) checkHitsPassed) / checkHitsTotal);
     }
@@ -450,7 +442,7 @@ public class StripHitKiller extends Driver {
                     _channelToRatioMap.put(Integer.parseInt(tokens[0]), Double.parseDouble(tokens[1]));
                 }
             } catch (IOException ex) {
-                Logger.getLogger(StripHitKiller.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TrackHitKiller.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -505,4 +497,18 @@ public class StripHitKiller extends Driver {
         return 1 / (Math.sqrt(2 * Math.PI * Math.pow(sigma, 2))) * Math.exp(-Math.pow(x - mean, 2) / (2 * Math.pow(sigma, 2)));
     }
 
+    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, int layer){
+        List<TrackerHit> lhits=new ArrayList<TrackerHit>();
+        for(Track trk: tracks){
+            for (TrackerHit hit : trk.getTrackerHits()) {
+                int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+                int module = thislayer / 2 + 1;
+                if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
+                    lhits.add(hit);
+                }
+                
+            }            
+        }
+        return lhits;
+    }
 }
