@@ -17,6 +17,8 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
+//import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.hps.recon.tracking.SiTrackerHitStrip1D;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.IDetectorElement;
@@ -33,7 +35,6 @@ import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
@@ -472,8 +473,8 @@ public class MakeGblTracks {
     }
 
     private static HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
-        SiTrackerHitStrip1D local = h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
-        SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+        SiTrackerHitStrip1D local  = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR));
+        SiTrackerHitStrip1D global = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL));
 
         ITransform3D trans = local.getLocalToGlobal();
         Hep3Vector org = trans.transformed(new BasicHep3Vector(0., 0., 0.));

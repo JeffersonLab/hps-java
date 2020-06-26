@@ -216,7 +216,7 @@ public class TrackingReconstructionPlots extends Driver {
         int ntracksBot = 0;
         double momentum_param = 2.99792458e-04;
 
-        aida.histogram1D("Tracks per Event", 3, 0, 3).fill(tracks.size());
+        aida.histogram1D("Tracks per Event").fill(tracks.size());
 
         for (Track trk : tracks) {
 
@@ -224,6 +224,10 @@ public class TrackingReconstructionPlots extends Driver {
             if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
                 isTop = true;
             }
+
+            Track trackShared = TrackUtils.mostSharedHitTrack(trk, tracks);
+            int maxShared = TrackUtils.numberOfSharedHits(trk, trackShared);
+            aida.histogram1D("Shared Hits on Track").fill(maxShared);
 
             double pt = Math.abs((1 / trk.getTrackStates().get(0).getOmega()) * bfield * momentum_param);
             double pz = pt * Math.cos(trk.getTrackStates().get(0).getPhi());
@@ -458,7 +462,6 @@ public class TrackingReconstructionPlots extends Driver {
 
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             System.out.println(trackCollectionName + " does not exist; skipping event");
-            aida.histogram1D("Number Tracks/Event").fill(0);
             return;
         }
         List<Track> tracks = event.get(Track.class, trackCollectionName);
@@ -630,6 +633,8 @@ public class TrackingReconstructionPlots extends Driver {
         IHistogram1D trkPy = aida.histogram1D("Track Momentum (Py)", 100, -0.15, 0.15);
         IHistogram1D trkPz = aida.histogram1D("Track Momentum (Pz)", 100, 0, 1.5);
         IHistogram1D trkChi2 = aida.histogram1D("Track Chi2", 25, 0, 25.0);
+
+        aida.histogram1D("Shared Hits on Track", 7, 0, 7);
 
         IHistogram1D toptrkPx = aida.histogram1D("Top Track Momentum (Px)", 100, -0.15, 0.15);
         IHistogram1D toptrkPy = aida.histogram1D("Top Track Momentum (Py)", 100, -0.15, 0.15);

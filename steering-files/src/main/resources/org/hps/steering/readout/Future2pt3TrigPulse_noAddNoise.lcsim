@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @Readout steering file with pulse trigger for MC of future 2.3
+      GeV beam.
+      @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
+    -->
+    <execute>
+        <!-- SLiC Data Readout Drivers -->
+        <driver name="EcalHitsOutputDriver"/>
+        <driver name="MCParticleOutputDriver"/>
+        <driver name="HodoscopeHitsOutputDriver"/>
+        <driver name="TrackerHitsSVTOutputDriver"/>
+        <driver name="TrackerHitsEcalOutputDriver"/>
+        
+        <!-- SVT Readout Drivers -->
+        <driver name="SVTReadoutDriver" />
+        
+        <!-- Hodoscope Readout Simulation Drivers -->
+        <driver name="HodoscopePreprocessingDriver"/>
+        <driver name="HodoscopeDigitizationDriver"/>
+
+        
+        <!-- Calorimeter Readout Simulation Drivers -->
+        <driver name="EcalDigitizationDriver"/>
+ 
+        
+        <!-- Trigger Simulation -->
+        <driver name="PulseTrigger"/>
+        
+        <!-- LCIO Output and Data Management Driver -->
+        <driver name="ReadoutManagerDriver"/>
+        
+        <driver name="CleanupDriver" />
+    </execute> 
+    
+    <drivers>
+        <!--
+             Truth handler drivers load truth information from the input SLIC file
+             and pass them off to the readout data manager, where they may be
+             accessed by other readout drivers.
+             
+             It is required that these drivers specify the name of the collection
+             that they manage, and be of the appropriate handler type that matches
+             the object type of the collection. They may also, optionally, specify
+             whether the truth collection managed by the driver should be output
+             into the readout file, and if so, over what time range.
+             
+             By default, SLIC truth data is not written out. If no output window is
+             specified, and truth is written, the output window will be derived
+             from the readout window and trigger offset parameters of the readout
+             data manager.
+             
+             In general, calorimeter truth information (and the related particles
+             data) are best handled by including truth readout in the calorimeter
+             simulation. This will automatically include all calorimeter truth hits
+             and related MC particles in the readout file.
+          -->
+        <driver name="EcalHitsOutputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
+            <collectionName>EcalHits</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="MCParticleOutputDriver" type="org.hps.readout.MCParticleReadoutDriver">
+            <collectionName>MCParticle</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>32.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
+            <collectionName>TrackerHits</collectionName>
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
+            <collectionName>TrackerHitsECal</collectionName>
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
+            <collectionName>HodoscopeHits</collectionName>
+            
+            <!-- Units of ns. -->
+            <readoutWindowBefore>8.0</readoutWindowBefore>
+            <readoutWindowAfter>32.0</readoutWindowAfter>
+            <persistent>true</persistent>
+        </driver>
+        
+        
+        <!--
+            The SVT driver. Works just like before. Documentation is left to
+            the SVT group.
+        -->
+
+        <driver name="SVTReadoutDriver" type="org.hps.readout.svt.SVTReadoutDriver">
+            <enablePileupCut>false</enablePileupCut>
+            <useTimingConditions>true</useTimingConditions>
+            <addNoise>true</addNoise>
+        </driver>
+  
+        <!--
+             The calorimeter readout driver handles conversion of SLIC truth
+             hits into voltage pulses and ultimately into ADC counts every 4 ns
+             sample. These samples are then integrated and output as hits which
+             are used internally by the readout simulation in the collection
+             set by variable "outputHitCollectionName".
+             
+             When a trigger occurs, the ADC buffer is used to generate readout
+             hits. The exact form these take differs based on the mode that is
+             simulated, but they are always output to the collection defined by
+             variable "readoutHitCollectionName".
+             
+             If truth information is enabled, then a set of truth relations are
+             output as well that link each readout hit to all of the truth hits
+             that are associated with it. Additionally, all truth hits as well
+             as the particle (and its parents) that generated that truth hit
+             are written out to ensure that they are available post-readout.
+             The additional truth information is automatically written to the
+             same collection name as the input truth data. If a truth handler
+             driver also outputs data into this collection, the two will merge.
+          -->
+        <driver name="EcalDigitizationDriver" type="org.hps.readout.ecal.updated.EcalDigitizationReadoutDriver">
+            <!-- LCIO Collection Names -->
+            <inputHitCollectionName>EcalHits</inputHitCollectionName>
+            <outputHitCollectionName>EcalRawHits</outputHitCollectionName>
+            <readoutHitCollectionName>EcalReadoutHits</readoutHitCollectionName>
+            <truthRelationsCollectionName>EcalTruthRelations</truthRelationsCollectionName>
+            <triggerPathTruthRelationsCollectionName>TriggerPathTruthRelations</triggerPathTruthRelationsCollectionName>
+            
+            <!-- Driver Parameters -->
+            <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
+            <addNoise>false</addNoise>
+            
+            <!-- 
+                 Readout offset is not the same as the old system - it measures
+                 amount of samples that are included before the trigger time in
+                 the ADC readout window. The old version can be converted by
+                 selecting a readout window equal to (readoutLatency - 64).
+              -->
+            <readoutOffset>10</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutWindow>48</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesAfter>25</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+            <integrationThreshold>18</integrationThreshold> <!-- Units of ADC. -->
+            
+            <!--
+                The digitization driver produces as output a list of ADC values
+                within a specified window, in emulation of Mode-1 data. This
+                removes the truth information that is otherwise present in the
+                original SLiC output. Setting this option to true creates new
+                LCRelation objects that link the ADC list to the truth hits that
+                created it and stores this in readout. For production running,
+                this should generally be off to save space. Truth hits will be
+                included in readout automatically - the truth hit driver above
+                does not need to be persistent.
+            -->
+            <writeTruth>true</writeTruth>
+            
+            <!--
+                As above, except that truth relations are persisted for the
+                readout hits that are seen by the clusterer and trigger. This
+                is useful if some analysis needs to be performed at the readout
+                level. Otherwise, this should be left off.
+            -->
+            <writeTriggerPathTruth>false</writeTriggerPathTruth>
+        </driver>
+        
+        <!--
+            The hodoscope preprocessing driver is responsible for taking SLiC
+            truth hits and converting them to a form usable by the simulation.
+            Truth hits are of the type SimTrackerHit and need to be converted
+            to the type SimCalorimeterHit. Additionally, SLiC is not able to
+            produce hits on multiple channels from the same scintillator. Some
+            scintillators do have multiple channels in the actual detector. As
+            such, it is necessary to split the energies of hits occurring on
+            scintillators with mutliple channels across the relevant channels.
+            This is handled by this driver.
+        -->
+        <driver name="HodoscopePreprocessingDriver" type="org.hps.readout.hodoscope.HodoscopePreprocessingDriver">
+            <truthHitCollectionName>HodoscopeHits</truthHitCollectionName>
+            <outputHitCollectionName>HodoscopePreprocessedHits</outputHitCollectionName>
+
+            <persistent>true</persistent>
+        </driver>
+        
+        <!--
+             The hodoscope digitization driver works identically to the
+             calorimeter digitization driver, except for the hodoscope.
+          -->
+        <driver name="HodoscopeDigitizationDriver" type="org.hps.readout.hodoscope.HodoscopeDigitizationReadoutDriver">
+            <!-- LCIO Collection Names -->
+            <inputHitCollectionName>HodoscopePreprocessedHits</inputHitCollectionName>
+            <outputHitCollectionName>HodoscopeRawHits</outputHitCollectionName>
+            <readoutHitCollectionName>HodoscopeReadoutHits</readoutHitCollectionName>
+            <truthRelationsCollectionName>HodoscopeTruthRelations</truthRelationsCollectionName>
+            <triggerPathTruthRelationsCollectionName>HodoscopeTriggerPathTruthRelations</triggerPathTruthRelationsCollectionName>
+            
+            <!-- Driver Parameters -->
+            <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
+            <addNoise>false</addNoise>
+            
+            <!-- 
+                 Readout offset is not the same as the old system - it measures
+                 amount of samples that are included before the trigger time in
+                 the ADC readout window. The old version can be converted by
+                 selecting a readout window equal to (readoutLatency - 64).
+              -->
+            <readoutOffset>10</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutWindow>32</readoutWindow>               <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesAfter>13</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
+            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units of 4 ns clock-cycles. -->
+            <integrationThreshold>12</integrationThreshold> <!-- Units
+	    of ADC. -->
+
+	    <!--Factor for gain conversion from self-defined unit/ADC to
+	    MeV/ADC. -->            
+	    <factorGainConversion>0.0007985</factorGainConversion>
+            
+            <!--
+                The digitization driver produces as output a list of ADC values
+                within a specified window, in emulation of Mode-1 data. This
+                removes the truth information that is otherwise present in the
+                original SLiC output. Setting this option to true creates new
+                LCRelation objects that link the ADC list to the truth hits that
+                created it and stores this in readout. For production running,
+                this should generally be off to save space. Truth hits will be
+                included in readout automatically - the truth hit driver above
+                does not need to be persistent.
+            -->
+            <writeTruth>true</writeTruth>
+            
+            <!--
+                As above, except that truth relations are persisted for the
+                readout hits that are seen by the clusterer and trigger. This
+                is useful if some analysis needs to be performed at the readout
+                level. Otherwise, this should be left off.
+            -->
+            <writeTriggerPathTruth>false</writeTriggerPathTruth>
+        </driver>
+
+        <driver name="PulseTrigger"
+		type="org.hps.readout.trigger.PulserReadoutDriver">
+
+	  <!-- Sets the rate of the pulser. It will trigger every
+	       $argument clocok-cycles, where two events is a clock
+	       cycle
+	  -->
+          <pulserRate>125</pulserRate>
+
+        </driver>
+        
+        <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
+            <readoutWindow>200</readoutWindow>
+            <outputFile>${outputFile}.slcio</outputFile>
+        </driver>
+        
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
+    </drivers>
+</lcsim>

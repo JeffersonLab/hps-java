@@ -14,5 +14,9 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-logging</artifactId>
+    </dependency>
   </dependencies>
 </project>

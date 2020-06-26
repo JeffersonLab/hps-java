@@ -1,15 +1,10 @@
 package org.hps.recon.tracking;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
-import org.lcsim.event.SimTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOUtil;
 import org.lcsim.recon.tracking.digitization.sisim.CDFSiSensorSim;
@@ -31,15 +26,13 @@ public class DataTrackerHitDriver extends Driver {
 
     // Debug switch for development.
     private boolean debug = false;
-    // Collection name.
-    private String readoutCollectionName = "TrackerHits";
+    
     // Subdetector name.
     private String subdetectorName = "Tracker";
-    // Name of FittedTrackerHit output collection.
-    private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
 
     // Name of StripHit1D output collection.
     private String stripHitOutputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    
     // Clustering parameters.
     private double clusterSeedThreshold = 4.0;
     private double clusterNeighborThreshold = 3.0;
@@ -49,6 +42,7 @@ public class DataTrackerHitDriver extends Driver {
     private double neighborDeltaT = 24.0;
     private int clusterMaxSize = 10;
     private int clusterCentralStripAveragingThreshold = 4;
+    
     // Clustering errors by number of TrackerHits.
     private static final double clusterErrorMultiplier = 1.0;
     private double oneClusterErr = clusterErrorMultiplier / Math.sqrt(12.);
@@ -56,26 +50,28 @@ public class DataTrackerHitDriver extends Driver {
     private double threeClusterErr = clusterErrorMultiplier / 3.0;
     private double fourClusterErr = clusterErrorMultiplier / 2.0;
     private double fiveClusterErr = clusterErrorMultiplier / 1.0;
-    // weight the hits in a cluster by charge? (if not, all hits have equal weight)
+    
+    // Weight the hits in a cluster by charge? (if not, all hits have equal 
+    // weight)
     private boolean useWeights = true;
-    // Various data lists required by digitization.
-    private List<String> processPaths = new ArrayList<String>();
-    private List<IDetectorElement> processDEs = new ArrayList<IDetectorElement>();
-    private Set<SiSensor> processSensors = new HashSet<SiSensor>();
-    // Digi class objects.
-    // private SiDigitizer stripDigitizer;
-    // private HPSFittedRawTrackerHitMaker hitMaker;
+    
+    // Clusterer
     private StripMaker stripClusterer;
-    // private DumbShaperFit shaperFit;
-    int[] counts = new int[14];
 
+    // List of sensors to process
+    private List<SiSensor> sensors;  
+
+    //If flag is false do not save the StripCluster Collection if bigger than threshold (to remove monster events)
+    private boolean saveMonsterEvents = true;
+    
+    //Threshold to decide if this is a monster event
+
+    private int thresholdMonsterEvents = 50;
+    
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
-    // public void setReadoutCollectionName(String readoutCollectionName) {
-    // this.readoutCollectionName = readoutCollectionName;
-    // }
     public void setSubdetectorName(String subdetectorName) {
         this.subdetectorName = subdetectorName;
     }
@@ -140,6 +136,14 @@ public class DataTrackerHitDriver extends Driver {
         this.useWeights = useWeights;
     }
 
+    public void setSaveMonsterEvents(boolean saveMonsterEvents) {
+        this.saveMonsterEvents = saveMonsterEvents;
+    }
+
+    public void setThresholdMonsterEvents(int thresholdMonsterEvents) {
+        this.thresholdMonsterEvents = thresholdMonsterEvents;
+    }
+
     /**
      * Creates a new instance of TrackerHitDriver.
      */
@@ -152,23 +156,9 @@ public class DataTrackerHitDriver extends Driver {
     @Override
     public void detectorChanged(Detector detector) {
 
-        // Call sub-Driver's detectorChanged methods.
-        super.detectorChanged(detector);
-
-        // Process detectors specified by path, otherwise process entire
-        // detector
-        IDetectorElement deDetector = detector.getDetectorElement();
-
-        for (String path : processPaths)
-            processDEs.add(deDetector.findDetectorElement(path));
-
-        if (processDEs.isEmpty())
-            processDEs.add(deDetector);
-
-        for (IDetectorElement detectorElement : processDEs)
-            processSensors.addAll(detectorElement.findDescendants(SiSensor.class)); // if (debug)
-        // System.out.println("added " + processSensors.size() + " sensors");
-
+        // Get the collection of sensors to process
+        sensors = detector.getSubdetector("Tracker").getDetectorElement().findDescendants(SiSensor.class);
+        
         // Create the sensor simulation.
         CDFSiSensorSim stripSim = new CDFSiSensorSim();
 
@@ -181,15 +171,12 @@ public class DataTrackerHitDriver extends Driver {
         stripClusteringAlgo.setTimeWindow(timeWindow);
         stripClusteringAlgo.setNeighborDeltaT(neighborDeltaT);
 
-        // hitMaker=new HPSFittedRawTrackerHitMaker(shaperFit);
-        // Create the clusterers and set hit-making parameters.
         stripClusterer = new StripMaker(stripSim, stripClusteringAlgo);
-
         stripClusterer.setMaxClusterSize(clusterMaxSize);
         stripClusterer.setCentralStripAveragingThreshold(clusterCentralStripAveragingThreshold);
         stripClusterer.setDebug(debug);
-        // Set the cluster errors.
 
+        // Set the cluster errors.
         DefaultSiliconResolutionModel model = new DefaultSiliconResolutionModel();
 
         model.setOneClusterErr(oneClusterErr);
@@ -200,9 +187,6 @@ public class DataTrackerHitDriver extends Driver {
         model.setUseWeights(useWeights);
 
         stripClusterer.setResolutionModel(model);
-
-        // Set the detector to process.
-        processPaths.add(subdetectorName);
     }
 
     /**
@@ -210,42 +194,24 @@ public class DataTrackerHitDriver extends Driver {
      */
     @Override
     public void process(EventHeader event) {
-        // Call sub-Driver processing.
-        // super.process(event);
 
-        // Make new lists for output.    
+        // Create the collection of 1D strip hits    
         List<SiTrackerHit> stripHits1D = new ArrayList<SiTrackerHit>();
 
-        // Make strip hits.
-        for (SiSensor sensor : processSensors)
-            stripHits1D.addAll(stripClusterer.makeHits(sensor));
+        // Cluster fitted raw hits
+        for (SiSensor sensor : sensors) stripHits1D.addAll(stripClusterer.makeHits(sensor));
 
-        // Debug prints.
-        if (debug) {
-            if (event.hasCollection(SimTrackerHit.class, this.readoutCollectionName))
-                System.out.println("SimTrackerHit collection " + this.readoutCollectionName
-                        + " has " + event.get(SimTrackerHit.class, this.readoutCollectionName).size() + " hits.");
-            if (event.hasCollection(FittedRawTrackerHit.class, fittedTrackerHitCollectionName))
-                System.out.println("FittedRawTrackerHit collection "
-                        + this.fittedTrackerHitCollectionName + " has " + event.get(LCRelation.class, fittedTrackerHitCollectionName).size() + " hits.");
-            System.out.println("TrackerHit collection " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
-        }
-
+        if (debug)
+            System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
+        
+        //Clear the stripHits array = PF::Hack
+        if (!saveMonsterEvents && stripHits1D.size()>thresholdMonsterEvents)
+            stripHits1D = new ArrayList<SiTrackerHit>();
+                
         // Put output hits into collection.
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitOutputCollectionName, stripHits1D, SiTrackerHitStrip1D.class, 0, toString());
-        if (debug)
-            System.out.println("[ DataTrackerHitDriver ] - " + this.stripHitOutputCollectionName + " has " + stripHits1D.size() + " hits.");
-        for (SiTrackerHit stripHit : stripHits1D)
-            counts[((SiTrackerHitStrip1D) stripHit).getRawHits().get(0).getLayerNumber()-1]++;
-
+        
     }
 
-    @Override
-    public void endOfData() {
-        if (debug)
-
-            for (int layer = 0; layer < 14; layer++)
-                System.out.format("layer %d, count %d\n",layer, counts[layer]);
-    }
 }

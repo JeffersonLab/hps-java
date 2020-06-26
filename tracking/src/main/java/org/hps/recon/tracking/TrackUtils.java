@@ -278,7 +278,7 @@ public class TrackUtils {
             // watch out for ambiguity        
             double dphi = phinew - phi0;
             if (Math.abs(dphi) > Math.PI)
-                throw new RuntimeException("dphi is large " + dphi + " from phi0 " + phi0 + " and phinew " + phinew + " take care of the ambiguity!!??");
+                System.out.println("TrackUtils::WARNING::dphi is large " + dphi + " from phi0 " + phi0 + " and phinew " + phinew + " take care of the ambiguity!!??");
 
             // calculate new dca
             dcanew += dx * sinphi - dy * cosphi + (dx * cosphi + dy * sinphi) * Math.tan(dphi / 2.);
@@ -1390,7 +1390,7 @@ public class TrackUtils {
         return hitList;
     }
 
-    private static class LayerComparator implements Comparator<TrackerHit> {
+    public static class LayerComparator implements Comparator<TrackerHit> {
 
         @Override
         public int compare(TrackerHit o1, TrackerHit o2) {

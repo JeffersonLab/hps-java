@@ -29,6 +29,7 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
  * superclass.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Tongtong Cao <caot@jlab.org>
  */
 public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDriver<Hodoscope_v1> {
     /** Stores the set of all channel IDs for  the hodoscope. */
@@ -39,6 +40,8 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     private Map<Long, HodoscopeTimeShift> channelToTimeShiftsMap = new HashMap<Long, HodoscopeTimeShift>();
     /** Maps hodoscope channels to the noise sigma and pedestals for that channel. */
     private Map<Long, HodoscopeCalibration> channelToCalibrationsMap = new HashMap<Long, HodoscopeCalibration>();
+    /** Factor for gain conversion from self-define-unit/ADC to MeV/ADC. */
+    private double factorGainConversion = 0.000833333;
     
     public HodoscopeDigitizationReadoutDriver() {
         // Set the default values for each subdetector-dependent
@@ -74,7 +77,7 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     @Override
     protected double getGainConditions(long channelID) {
         if(channelToGainsMap.containsKey(Long.valueOf(channelID))) {
-            return channelToGainsMap.get(Long.valueOf(channelID)).getGain();
+            return channelToGainsMap.get(Long.valueOf(channelID)).getGain() * factorGainConversion;
         } else {
             throw new IllegalArgumentException("No gain conditions exist for hodoscope channel ID \"" + channelID + "\".");
         }
@@ -144,5 +147,13 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
         for(HodoscopeChannel channel : channels) {
             channelIDSet.add(Long.valueOf(channel.getChannelId().intValue()));
         }
+    }
+    
+    /**
+     * Sets factor for gain conversion from self-defined unit/ADC to MeV/ADC
+     * @param factor - factor for gain conversion from self-defined-unit/ADC to MeV/ADC.
+     */
+    public void setFactorGainConversion(double factor) {
+        factorGainConversion = factor;
     }
 }
