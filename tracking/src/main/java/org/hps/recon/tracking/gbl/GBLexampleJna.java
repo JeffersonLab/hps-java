@@ -99,11 +99,10 @@ public class GBLexampleJna {
         Vector scatPrec = new Vector(2);
         scatPrec.set(0, 1.0 / (scatErr.get(0) * scatErr.get(0)));
         scatPrec.set(1, 1.0 / (scatErr.get(1) * scatErr.get(1)));
-
-        if (debug) {
-            System.out.println("scatPrec");
-            scatPrec.print(2,4);
-        }
+        
+        System.out.println("scatPrec");
+        scatPrec.print(2,4);
+        
 
         Vector clPar = new Vector(5);
         Vector clErr = new Vector(5);
@@ -233,8 +232,15 @@ public class GBLexampleJna {
             
             
             gblPointJna.addMeasurement(proL2m,meas,measPrec,0.);
+            Vector scat = new Vector(2);
+            scat.set(0,0.);
+            scat.set(1,0.);
             
-
+            System.out.println("scat and scatPrec");
+            scat.print(2,6);
+            gblPointJna.addScatterer(scat,scatPrec);
+            
+            
             
             /*
             for (int iLayer = 0; iLayer<nLayer; iLayer+=1) {

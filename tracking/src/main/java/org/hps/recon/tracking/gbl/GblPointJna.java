@@ -20,8 +20,10 @@ public class GblPointJna {
         
         int GblPoint_hasMeasurement(Pointer self);
         double GblPoint_getMeasPrecMin(Pointer self);
-        void GblPoint_addMeasurement2D(Pointer self, double [] projArray, double [] resArray, double [] precArray, 
+        void GblPoint_addMeasurement2D(Pointer self, double[] projArray, double[] resArray, double[] precArray, 
                                        double minPrecision);
+        void GblPoint_addScatterer(Pointer self, double[] resArray, double[] precArray);
+                    
     }
     
     private Pointer self; 
@@ -59,6 +61,17 @@ public class GblPointJna {
             throw new RuntimeException("GBLPoint:: unsupported call to addMeasurement. RowDim==2 only..");
     }
     
+    public void addScatterer(Vector aResiduals, Vector aPrecision) {
+        double [] resArray  = aResiduals.getColumnPackedCopy();
+        double [] precArray = aPrecision.getColumnPackedCopy();
+        
+        if (aPrecision.getColumnDimension() == 1 )
+            GblPointInterface.INSTANCE.GblPoint_addScatterer(self,resArray,precArray);
+        else 
+            throw new RuntimeException("GBLPoint:: unsupported call to addMeasurement. ColDim==1 only..");
+    }
+    
+
     public GblPointJna(double matrix[][]) { 
         //do nothing for the moment
         //The 2d should be unpacked here.
