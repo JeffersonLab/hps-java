@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class GBLexample1 {
     
-    private int nTry = 10000;
+    private int nTry = 1;
     private int nLayer = 10;
     private NormalDistribution norm = new NormalDistribution();
     private String outputPlots = "example1.root";
@@ -128,12 +128,12 @@ public class GBLexample1 {
         
         //Check on factor
         //System.out.println(norm.sample());
-        //double norm_sample = 0.5;
+        double norm_sample = 0.5;
         
         for (int iTry = 1; iTry<=nTry; iTry+=1) {
             for (int i = 0; i<5; i+=1) {
                 
-                clPar.set(i, clErr.get(i)*norm.sample());
+                clPar.set(i, clErr.get(i)*norm_sample);
                 //System.out.println("clPar " + i + " " + clPar.get(i));
                 aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
             }
@@ -208,7 +208,7 @@ public class GBLexample1 {
                 }
                 
                 for (int i=0; i<2; i+=1) {
-                    meas.set(i,meas.get(i)+measErr.get(i) * norm.sample());
+                    meas.set(i,meas.get(i)+measErr.get(i) * norm_sample);
                 }
                 
                 if (debug) {
@@ -248,7 +248,7 @@ public class GBLexample1 {
                     
                     //Only change the slopes
                     for (int i =0; i<2; i+=1) {
-                        double dslope = scatErr.get(i)*norm.sample();
+                        double dslope = scatErr.get(i)*norm_sample;
                         double slope  = clPar.get(i + 1);
                         double dslope_prec = scatErr.get(i) * scatErr.get(i);
                         double slope_prec = clCov.get(i+1, i+1);
@@ -290,10 +290,14 @@ public class GBLexample1 {
             Chi2Sum += dVals[0];
             NdfSum += iVals[0];
             LostSum += dVals[1];
+            numFit++;
             aida.histogram1D("Chi2").fill(dVals[0]);
             aida.histogram1D("Ndf").fill(iVals[0]);
             aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
         }
+        
+        System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
+        System.out.printf("Tracks Fitted  %d \n", numFit);
         
         if (outputPlots != null) {
             try {

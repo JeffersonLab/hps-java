@@ -23,7 +23,9 @@ public class GblPointJna {
         void GblPoint_addMeasurement2D(Pointer self, double[] projArray, double[] resArray, double[] precArray, 
                                        double minPrecision);
         void GblPoint_addScatterer(Pointer self, double[] resArray, double[] precArray);
-                    
+        
+        void GblPoint_printPoint(Pointer self, int i);
+        
     }
     
     private Pointer self; 
@@ -70,7 +72,14 @@ public class GblPointJna {
         else 
             throw new RuntimeException("GBLPoint:: unsupported call to addMeasurement. ColDim==1 only..");
     }
+
+    public void printPoint(int i) {
+        GblPointInterface.INSTANCE.GblPoint_printPoint(self,i);
+    }
     
+    public Pointer getPtr() {
+        return self;
+    }
 
     public GblPointJna(double matrix[][]) { 
         //do nothing for the moment

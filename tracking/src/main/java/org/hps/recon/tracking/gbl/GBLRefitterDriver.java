@@ -150,11 +150,11 @@ public class GBLRefitterDriver extends Driver {
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
 
         GBLexample1 example1 = new GBLexample1();  
-        //example1.runExample(); 
+        example1.runExample(); 
         
-        GBLexampleJna examplejna1 = new GBLexampleJna();
+        GBLexampleJna1 examplejna1 = new GBLexampleJna1();
         examplejna1.runExample();
-
+        
     }
 
     @Override
