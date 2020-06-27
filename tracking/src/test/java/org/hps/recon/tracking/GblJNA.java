@@ -14,9 +14,8 @@ public class GblJNA  {
         Matrix jacPointToPoint = new Matrix(5, 5); 
         jacPointToPoint.UnitMatrix(); 
         
-        // Create an instance of the JNA GBL point.  The points need to be 
-        // created using the double[] representation.
-        GblPointJna gblPointJna = new GblPointJna(jacPointToPoint.getRowPackedCopy());  
-
+        // Create an instance of the JNA GBL point.  
+        GblPointJna gblPointJna = new GblPointJna(jacPointToPoint);  
+        
     } 
 }

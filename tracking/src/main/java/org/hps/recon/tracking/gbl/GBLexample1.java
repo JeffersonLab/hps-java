@@ -135,7 +135,7 @@ public class GBLexample1 {
         
         //Check on factor
         //System.out.println(norm.sample());
-        //double norm_sample = 0.5;
+        double norm_sample = 0.5;
         
         for (int iTry = 1; iTry<=nTry; iTry+=1) {
             for (int i = 0; i<5; i+=1) {
@@ -300,6 +300,7 @@ public class GBLexample1 {
             Chi2Sum += dVals[0];
             NdfSum += iVals[0];
             LostSum += dVals[1];
+            numFit++;
             aida.histogram1D("Chi2").fill(dVals[0]);
             aida.histogram1D("Ndf").fill(iVals[0]);
             aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
@@ -376,8 +377,8 @@ public class GBLexample1 {
             }
         }
         
-        System.out.printf("Chi2Sum/NdfSum = %f\n",Chi2Sum/NdfSum);
-        
+        System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
+        System.out.printf("Tracks Fitted  %d \n", numFit);
         if (outputPlots != null) {
             try {
                 aida.saveAs(outputPlots);
