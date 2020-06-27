@@ -54,6 +54,9 @@ public class GBLexample1 {
         setupPlots();
         System.out.println("Running GBL Example!");
         
+        long startTime = System.nanoTime();
+        
+
         double sinLambda = 0.3;
         double cosLambda = Math.sqrt(1.0-sinLambda*sinLambda);
         double sinPhi = 0.;
@@ -143,7 +146,7 @@ public class GBLexample1 {
                 //clPar.set(i, clErr.get(i)*norm.sample());
                 clPar.set(i, clErr.get(i)*0.5);
                 //System.out.println("clPar " + i + " " + clPar.get(i));
-                aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
+                //aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
             }
             
             clCov.times(0);
@@ -377,6 +380,10 @@ public class GBLexample1 {
             }
         }
         
+        long endTime = System.nanoTime();
+        long duration = endTime - startTime;
+        
+        System.out.printf("Time elapsed %f ms\n", (double)duration/1000000.);
         System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
         System.out.printf("Tracks Fitted  %d \n", numFit);
         if (outputPlots != null) {
