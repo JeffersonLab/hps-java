@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class GBLexample1 {
     
-    private int nTry = 1;
+    private int nTry = 100000;
     private int nLayer = 10;
     private NormalDistribution norm = new NormalDistribution();
     private String outputPlots = "example1.root";
@@ -47,6 +47,9 @@ public class GBLexample1 {
         setupPlots();
         System.out.println("Running GBL Example!");
         
+        long startTime = System.nanoTime();
+        
+
         double sinLambda = 0.3;
         double cosLambda = Math.sqrt(1.0-sinLambda*sinLambda);
         double sinPhi = 0.;
@@ -135,7 +138,7 @@ public class GBLexample1 {
                 
                 clPar.set(i, clErr.get(i)*norm_sample);
                 //System.out.println("clPar " + i + " " + clPar.get(i));
-                aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
+                //aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
             }
             
             clCov.times(0);
@@ -291,11 +294,15 @@ public class GBLexample1 {
             NdfSum += iVals[0];
             LostSum += dVals[1];
             numFit++;
-            aida.histogram1D("Chi2").fill(dVals[0]);
-            aida.histogram1D("Ndf").fill(iVals[0]);
-            aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
+            //aida.histogram1D("Chi2").fill(dVals[0]);
+            //aida.histogram1D("Ndf").fill(iVals[0]);
+            //aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
         }
         
+        long endTime = System.nanoTime();
+        long duration = endTime - startTime;
+        
+        System.out.printf("Time elapsed %f ms\n", (double)duration/1000000.);
         System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
         System.out.printf("Tracks Fitted  %d \n", numFit);
         
