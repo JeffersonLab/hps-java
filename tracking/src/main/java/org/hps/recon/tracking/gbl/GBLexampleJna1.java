@@ -1,6 +1,7 @@
 package org.hps.recon.tracking.gbl;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import java.util.List;
 import java.util.ArrayList;
@@ -283,8 +284,13 @@ public class GBLexampleJna1 {
                     
                 
             }//layers
+
+            Matrix seed = new SymMatrix(5);
+            seed.set(0,0,100000);
             
-            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
+            //GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
+            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,seed,1,1,1);
+            
             if (traj.isValid() == 0 ) {
                 System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
             }
