@@ -552,6 +552,57 @@ public class TrackUtils {
     public static Hep3Vector getTrackPositionAtHarp(Track track) {
         return extrapolateTrack(track, BeamlineConstants.HARP_POSITION_TESTRUN);
     }
+    
+
+    //******* This block can be generalized! *******//
+    
+    //Default step size
+    public static BaseTrackState getTrackExtrapAtVtxSurfRK(Track trk, FieldMap fM, double distanceZ) {
+        return getTrackExtrapAtVtxSurfRK(trk, fM, 0, distanceZ);
+    }
+    
+    //For the moment I use IP, but I should use first sensor!!
+    public static BaseTrackState getTrackExtrapAtVtxSurfRK(Track trk, FieldMap fM, double stepSize, double distanceZ) {
+        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtIP(trk);
+        if (ts != null)
+            return getTrackExtrapAtVtxSurfRK(ts, fM, stepSize,distanceZ);
+        return null;
+    }
+    
+    //For the moment I do an extrapolation to 0 using the IP TSOS. TODO::Improve this.
+    public static BaseTrackState getTrackExtrapAtVtxSurfRK(TrackState ts, FieldMap fM, double stepSize, double distanceZ) {
+        //Change of charge
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, 0.);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
+        double charge = -1.0 * Math.signum(getR(ts));
+        
+        //Extrapolate
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        //Position
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        //Momentum
+        Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement()); 
+        
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        
+        //Correct if it didn't arrive to it
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != distanceZ) {
+            Hep3Vector mom = RKresults.getSecondElement();  
+            double dz = distanceZ - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        bts.setReferencePoint(finalPos.v());
+        bts.setLocation(TrackState.AtVertex);
+        return bts;
+    }
+    
 
     /**
      * Get position of a track extrapolated to the ECAL face in the HPS test run

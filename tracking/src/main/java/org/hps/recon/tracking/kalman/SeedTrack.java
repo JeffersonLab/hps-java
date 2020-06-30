@@ -26,8 +26,7 @@ class SeedTrack {
     private double Bavg; // Average B field
     double yOrigin;
     double chi2;
-    private static Plane p0; // x,z plane at y=0
-    private static double minDistXZ; // Minimum difference in distance to origin for it to be used in sorting
+    private Plane p0; // x,z plane at the target location
     int Nbending;
     int Nnonbending;
 
@@ -36,25 +35,32 @@ class SeedTrack {
     }
 
     void print(String s) {
+        System.out.format("%s", this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str;
         if (success) {
-            System.out.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
-            System.out.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
-            hParm.print("helix parameters rotated into magnetic field frame");
-            System.out.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
-            double yP = 0.;
+            str = String.format("Seed track %s: B=%10.7f helix= %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", s, Bavg, drho, phi0, K, dz, tanl);
+            str=str+String.format("  Number of hits in the bending plane=%d; in the non-bending plane=%d\n", Nbending, Nnonbending);
+            str=str+hParm.toString("helix parameters rotated into magnetic field frame")+"\n";
+            str=str+String.format("  Note that these parameters are with respect to a pivot point 0. %10.7f 0.\n", yOrigin);
+            double yP = p0.X().v[1];
             double[] pivot = { 0., yP, 0. };
             double[] a = this.pivotTransform(pivot);
-            System.out.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", yP, a[0], a[1], a[2],
+            str=str+String.format("    helix parameters transformed to y=%8.2f: %10.6f, %10.6f, %10.6f, %10.6f, %10.6f\n", yP, a[0], a[1], a[2],
                     a[3], a[4]);
-            System.out.format("  seed track hits:");
-            for (int j = 0; j < hits.size(); j++) { System.out.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v); }
-            System.out.format("\n");
+            str=str+String.format("  seed track hits:");
+            for (int j = 0; j < hits.size(); j++) str=str+String.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v);
+            str=str+"\n";
             Vec pInt = planeIntersection(p0);
-            System.out.format("  Distance from origin in X,Z at y=0 is %10.5f\n", pInt.mag());
-            C.print("  seed track covariance");
+            double xzDist = Math.sqrt(pInt.v[0]*pInt.v[0] + pInt.v[2]*pInt.v[2]);
+            str=str+String.format("  Distance from origin in X,Z at y= %8.2f is %10.5f. Intersection=%s\n", yP, xzDist, pInt.toString());
+            str = str + C.toString("  seed track covariance");
         } else {
-            System.out.format("Seed track %s fit unsuccessful.\n", s);
+            str = String.format("Seed track %s fit unsuccessful.\n", s);
         }
+        return str;
     }
 
     // Older interface
@@ -69,18 +75,20 @@ class SeedTrack {
             KalHit tmpHit = new KalHit(thisSi, thisSi.hits.get(hitList.get(i)[1]));
             theHits.add(tmpHit);
         }
-        SeedTracker(theHits, yOrigin, verbose);
+        double yTarget = 0.;
+        SeedTracker(theHits, yOrigin, yTarget, verbose);
     }
 
     // Newer interface
-    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, boolean verbose) {
-        SeedTracker(hitList, yOrigin, verbose);
+    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, double yTarget, boolean verbose) {
+        SeedTracker(hitList, yOrigin, yTarget, verbose);
     }
 
-    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, boolean verbose) {
+    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, double yTarget, boolean verbose) {
+        // yOrigin is the location along the beam about which we fit the seed helix
+        // yTarget is the location along the beam of the target itself
 
-        minDistXZ = 0.25;
-        p0 = new Plane(new Vec(0., 0., 0.), new Vec(0., 1., 0.));
+        p0 = new Plane(new Vec(0., yTarget, 0.), new Vec(0., 1., 0.));  // create plane at the target position
         this.verbose = verbose;
         this.yOrigin = yOrigin;
         hits = new ArrayList<KalHit>(hitList.size());
@@ -323,34 +331,18 @@ class SeedTrack {
         // The rotation is easily applied to the momentum vector, so first we transform
         // from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
-        Vec p_prime = R.rotate(aTOp(a));
+        Vec p_prime = R.rotate(HelixState.aTOp(a));
         double Q = Math.signum(a.v[2]);
         Vec a_prime = pTOa(p_prime, Q);
         return new Vec(a.v[0], a_prime.v[0], a_prime.v[1], a.v[3], a_prime.v[2]);
     }
 
-    // Momentum at the start of the given helix (point closest to the pivot)
-    Vec aTOp(Vec a) {
-        double px = -Math.sin(a.v[1]) / Math.abs(a.v[2]);
-        double py = Math.cos(a.v[1]) / Math.abs(a.v[2]);
-        double pz = a.v[4] / Math.abs(a.v[2]);
-        if (verbose) {
-            a.print("helix parameters in SeedTrack.aTOp");
-            System.out.format("SeedTrack.aTOp: p=%10.5f %10.5f %10.5f\n", px, py, pz);
-        }
-        return new Vec(px, py, pz);
-    }
-
     // Transform from momentum at helix starting point back to the helix parameters
-    Vec pTOa(Vec p, Double Q) {
+    private static Vec pTOa(Vec p, Double Q) {
         double phi0 = Math.atan2(-p.v[0], p.v[1]);
         double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
         double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
         if (phi0 > Math.PI) phi0 = phi0 - 2.0 * Math.PI;
-        if (verbose) {
-            System.out.format("SeedTrack pTOa: Q=%5.1f phi0=%10.7f K=%10.6f tanl=%10.7f\n", Q, phi0, K, tanl);
-            p.print("input momentum vector in SeedTrack.pTOa");
-        }
         // Note: the following only makes sense when a.v[0] and a.v[3] (drho and dz) are
         // both zero, i.e. pivot is on the helix
         return new Vec(phi0, K, tanl);
@@ -369,11 +361,11 @@ class SeedTrack {
         }
     };
 
-    // Comparator function for sorting seeds by distance from origin in x,z plane
+    // Comparator function for sorting seeds by distance from origin in x,z plane at the target
     static Comparator<SeedTrack> dRhoComparator = new Comparator<SeedTrack>() {
         public int compare(SeedTrack t1, SeedTrack t2) {
-            Vec pInt1 = t1.planeIntersection(p0);
-            Vec pInt2 = t2.planeIntersection(p0);
+            Vec pInt1 = t1.planeIntersection(t1.p0);
+            Vec pInt2 = t2.planeIntersection(t2.p0);
             double diff = pInt1.mag() - pInt2.mag();
             
             //if (Math.abs(diff) < 1e-8) {
@@ -420,8 +412,7 @@ class SeedTrack {
         double xC = X0.v[0] + (drho + alpha / K) * Math.cos(phi0); // Center of the helix circle
         double yC = X0.v[1] + (drho + alpha / K) * Math.sin(phi0);
         // X0.print("old pivot");
-        // System.out.format("SeedTrack::pivotTransform: center=%10.6f, %10.6f\n", xC,
-        // yC);
+        // System.out.format("SeedTrack::pivotTransform: center=%10.6f, %10.6f\n", xC, yC);
 
         // Transformed helix parameters
         double[] aP = new double[5];
@@ -435,8 +426,8 @@ class SeedTrack {
         aP[0] = (xC - pivot[0]) * Math.cos(aP[1]) + (yC - pivot[1]) * Math.sin(aP[1]) - alpha / K;
         aP[3] = X0.v[2] - pivot[2] + dz - (alpha / K) * (aP[1] - phi0) * tanl;
 
-        xC = pivot[0] + (aP[0] + alpha / aP[2]) * Math.cos(aP[1]);
-        yC = pivot[1] + (aP[0] + alpha / aP[2]) * Math.sin(aP[1]);
+        //xC = pivot[0] + (aP[0] + alpha / aP[2]) * Math.cos(aP[1]);
+        //yC = pivot[1] + (aP[0] + alpha / aP[2]) * Math.sin(aP[1]);
         // System.out.format("pivotTransform new center=%10.6f, %10.6f\n", xC, yC);
 
         return aP;

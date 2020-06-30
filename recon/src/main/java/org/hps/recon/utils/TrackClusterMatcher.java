@@ -39,6 +39,7 @@ public class TrackClusterMatcher {
     private IHistogramFactory histogramFactory;
     private Map<String, IHistogram1D> plots1D;
     private Map<String, IHistogram2D> plots2D;
+    private String rootFile = "track_cluster_matching_plots.root";
 
     // parameterization
     private Map<String, double[]> paramMap;
@@ -75,6 +76,8 @@ public class TrackClusterMatcher {
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
+
+    public void setRootFileName(String filename) {                                                                                                                 rootFile = filename;                                                                                                                                  }
 
     public void initializeParameterization(String fname) {
 
@@ -507,7 +510,6 @@ public class TrackClusterMatcher {
      */
     public void saveHistograms() {
 
-        String rootFile = "track_cluster_matching_plots.root";
         RootFileStore store = new RootFileStore(rootFile);
         try {
             store.open();

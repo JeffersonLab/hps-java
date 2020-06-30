@@ -113,27 +113,26 @@ public class Matrix implements Cloneable, java.io.Serializable {
     // }
     // }
     //
-    // /**
-    // * Construct a matrix from a 2-D array.
-    // *
-    // * @param A Two-dimensional array of doubles.
-    // * @exception IllegalArgumentException All rows must have the same length
-    // * @see #constructWithCopy
-    // */
-    // public Matrix(double[][] A)
-    // {
-    // m = A.length;
-    // n = A[0].length;
-    // for (int i = 0; i < m; i++)
-    // {
-    // if (A[i].length != n)
-    // {
-    // throw new IllegalArgumentException("All rows must have the same length.");
-    // }
-    // }
-    // this.A = A;
-    // }
-    //
+    /**
+     * Construct a matrix from a 2-D array.
+     *
+     * @param A Two-dimensional array of doubles.
+     * @exception IllegalArgumentException All rows must have the same length
+     * @see #constructWithCopy
+     */
+    public Matrix(double[][] A) {
+        m = A.length;
+        n = A[0].length;
+        for (int i = 0; i < m; i++)
+        {
+            if (A[i].length != n)
+            {
+                throw new IllegalArgumentException("All rows must have the same length.");
+            }
+        }
+        this.A = A;
+    }
+    
     /**
      * Construct a matrix quickly without checking arguments.
      *
@@ -146,7 +145,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
         this.m = m;
         this.n = n;
     }
-
+    
     // /**
     // * Construct a matrix from a one-dimensional packed array
     // *

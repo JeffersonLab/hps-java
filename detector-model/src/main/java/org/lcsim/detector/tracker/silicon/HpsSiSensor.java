@@ -7,6 +7,7 @@ import hep.physics.vec.VecOp;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
@@ -81,7 +82,14 @@ public class HpsSiSensor extends SiSensor {
     protected Map<Integer, double[]> shapeFitParametersMap = new HashMap<Integer, double[]>();
     protected Set<Integer> badChannels = new HashSet<Integer>();
     protected int millepedeId = -1;
-
+    
+    
+    // ------------------//
+    // Alignment         //
+    // -----------------///
+    
+    protected AlignableDetectorElement alignable_parent = null;
+    
     /**
      * This class constructor matches the signature of <code>SiSensor</code>.
      *
@@ -109,6 +117,18 @@ public class HpsSiSensor extends SiSensor {
         this.initialize();
     }
 
+
+    //Set the alignment detector element parent of this sensor
+    
+    public void setAdeMother(IDetectorElement ade) {
+        alignable_parent = (AlignableDetectorElement) ade;
+    }
+
+    //Get the alignment detector element of this sensor
+    public AlignableDetectorElement getAdeMother() { 
+        return alignable_parent;
+    }
+    
     /**
      * Get whether this sensor is in the top half of the detector. Modules in the top half have module numbers of 0 or
      * 2.
@@ -128,7 +148,7 @@ public class HpsSiSensor extends SiSensor {
     public boolean isBottomLayer() {
         return getModuleNumber() % 2 != 0;
     }
-
+    
     /**
      * Get the module number of the sensor.
      *
@@ -147,6 +167,30 @@ public class HpsSiSensor extends SiSensor {
         return (SiTrackerIdentifierHelper) getIdentifierHelper();
     }
 
+    
+
+    //This should be moved
+    public List<Integer> getMPIILabels() {
+        
+        List<Integer> labels = new ArrayList<Integer>();
+        
+        //volume type axis sensorId sensorId == vtass
+        
+        int vOffset = 10000;
+        if (isBottomLayer())
+            vOffset = 20000;
+        
+        //type loop
+        for (int j=1000; j<=2000; j+=1000) {
+            // axis loop
+            for (int i=100; i<=300; i+=100) {
+                labels.add(vOffset+j+i+getMillepedeId());
+            }
+        }
+        
+        return labels;
+    }
+    
     /**
      * Get whether this sensor is axial.
      *
@@ -542,6 +586,11 @@ public class HpsSiSensor extends SiSensor {
         this.setTransferEfficiencies(ChargeCarrier.HOLE, new BasicMatrix(transferEfficiencies));
 
     }
+
+    public Transform3D getlocalToGlobal() {
+        return (Transform3D) getGeometry().getLocalToGlobal();
+    }
+        
 
     /**
      * Return the length of an {@link HpsSiSensor} strip. This is done by getting the face of the {@link HpsSiSensor}

@@ -19,7 +19,7 @@ public abstract class HPSTrackerBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(HPSTrackerBuilder.class.getPackage().getName());
 
-    private boolean debug = false;
+    private boolean debug = true;
     public List<BaseModuleBundle> modules = new ArrayList<BaseModuleBundle>();
     protected List<SurveyVolume> surveyVolumes = new ArrayList<SurveyVolume>();
     protected Element node;
@@ -46,6 +46,7 @@ public abstract class HPSTrackerBuilder {
         } else {
             // Read alignment constants from compact XML file (default behavior).
             LOGGER.config("Mille parameters will be read from compact.xml file.");
+            System.out.println(this.getClass().getSimpleName()+"  Mille parameters will be read from compact.xml file");
             initAlignmentParameters();
         }
 
@@ -59,7 +60,7 @@ public abstract class HPSTrackerBuilder {
      * Extract alignment constants from xml description
      */
     private void initAlignmentParameters() {
-
+        debug = true;
         if (debug)
             System.out.printf("%s: initAlignmentParameters from %s\n", this.getClass().getSimpleName(),
                     node.getAttributeValue("name"));
@@ -108,16 +109,19 @@ public abstract class HPSTrackerBuilder {
                 System.out.printf("%s: %s \n", this.getClass().getSimpleName(), p.toString());
         }
 
+        debug = false;
     }
 
-    /**
-     * Extract @AlignmentCorrection for a half-module
-     * 
-     * @param isTopLayer - top or bottom layer
+
+    /** 
+     * Extract @AlignmentCorrection for a module
+     * @param isTopLayer - top or bottomw layer
      * @param layer - to identify which sensor it is.
-     * @return the alignment correction for this half-module
+     * @return the alignment correction for this module
      */
+
     protected AlignmentCorrection getHalfModuleAlignmentCorrection(boolean isTopLayer, int layer) {
+        boolean localDebug = false;
         int rFound = 0;
         int tFound = 0;
         double r[] = {0, 0, 0};
@@ -135,16 +139,24 @@ public abstract class HPSTrackerBuilder {
                 }
             }
         }
+        //Only support first layers for the moment.
         if (tFound != 3 || rFound != 3) {
             throw new RuntimeException("Problem finding translation alignment parameters (found t " + tFound + " r "
-                    + rFound + ") for " + (isTopLayer ? "top" : "bottom") + " layer " + layer);
+                                       + rFound + ") for " + (isTopLayer ? "top" : "bottom") + " layer " + layer);
+            //System.out.println("ERROR ERROR ERROR TEMPORARY TEMPORARY TEMPORARY ");
+            
         }
         AlignmentCorrection c = new AlignmentCorrection();
         c.setTranslation(new BasicHep3Vector(t));
         c.setRotation(r[0], r[1], r[2]);
+        if (localDebug) {
+            System.out.println(this.getClass().getSimpleName()+" PF::Debug::Alignment correction for MPII-ID top=" + isTopLayer +" layer="+layer);
+            System.out.println("t[0] = " + t[0] + " t[1]= " + t[1]+ " t[2]=" + t[2]);
+            System.out.println("r[0] = " + r[0] + " r[1]= " + r[1]+ " r[2]=" + r[2]);
+        }
         return c;
     }
-
+    
     /**
      * Extract @AlignmentCorrection for the support
      * 
@@ -152,21 +164,50 @@ public abstract class HPSTrackerBuilder {
      * @return the alignment correction
      */
     protected AlignmentCorrection getL13UChannelAlignmentCorrection(boolean isTopLayer) {
+        boolean localDebug = false; 
         double r[] = {0, 0, 0};
         double t[] = {0, 0, 0};
         for (MilleParameter p_loop : milleparameters) {
             boolean paramIsTop = p_loop.getHalf() == 1 ? true : false;
-            if (paramIsTop == isTopLayer && p_loop.getType() == 3) {
-                // xcheck
+
+            //Loop over the translations
+            if (paramIsTop == isTopLayer && p_loop.getType() == 1) {
+                // xcheck The L13-UChannel has MPID 0
                 if (p_loop.getSensor() != 0)
-                    throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                    continue;
+                //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                // get the correction
+                t[p_loop.getDim() - 1] = p_loop.getValue();
+            }
+            
+            //Loop over the rotations
+            if (paramIsTop == isTopLayer && p_loop.getType() == 2) {
+                // xcheck The L13-UChannel has MPID 0
+                if (p_loop.getSensor() != 0)
+                    continue;
+                //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
                 // get the correction
                 r[p_loop.getDim() - 1] = p_loop.getValue();
             }
+            
+            //backward compatibility - global structures have type = 3
+            if (paramIsTop == isTopLayer && p_loop.getType() == 3) { 
+                // xcheck The L13-UChannel has MPID 0
+                if (p_loop.getSensor() != 0)  
+                    throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                r[p_loop.getDim() - 1] = p_loop.getValue(); 
+            }
         }
+        
         AlignmentCorrection c = new AlignmentCorrection();
         c.setTranslation(new BasicHep3Vector(t));
         c.setRotation(r[0], r[1], r[2]);
+        
+        if (localDebug) {
+            System.out.println(this.getClass().getSimpleName()+" PF::Debug::Alignment correction for MPII-ID top=" + isTopLayer);
+            System.out.println("t[0] = " + t[0] + " t[1]= " + t[1]+ " t[2]=" + t[2]);
+            System.out.println("r[0] = " + r[0] + " r[1]= " + r[1]+ " r[2]=" + r[2]);
+        }
         return c;
     }
 
@@ -280,7 +321,7 @@ public abstract class HPSTrackerBuilder {
         }
         return false;
     }
-
+    
     public static boolean isHalfModule(String name) {
         if (name.endsWith("halfmodule_axial") || name.endsWith("halfmodule_axial_slot")
                 || name.endsWith("halfmodule_axial_hole") || name.endsWith("halfmodule_stereo")
@@ -432,10 +473,14 @@ public abstract class HPSTrackerBuilder {
     public static Transform3D getTransform(Transform3D t, SurveyVolume mother, String targetMotherName) {
         int debug = 0;
         if (debug > 0)
-            System.out.printf("getTransform mother %s target %s with current transform\n%s\n", mother.getName(),
+            System.out.printf("getTransform mother %s target %s with current transform\n%s\n", mother != null ? mother.getName() : "no mother",
                     targetMotherName, t.toString());
-        if (mother == null)
-            throw new RuntimeException("Trying to get mother transform but there is no mother?!");
+        if (mother == null) {
+            //throw new RuntimeException("Trying to get mother transform but there is no mother?!");
+            if (debug > 0)
+                System.out.println("No mother for this volume. Must be tracking volume?! Returning t");
+            return t;
+        }
         if (mother.getName().equals(targetMotherName)) {
             if (debug > 0)
                 System.out.printf("found the transform\n");

@@ -129,7 +129,7 @@ public class FieldMap extends FieldOverlay {
         offsets.print("field map offsets");
     }
     
-    Vec getField(Vec r) { // Interpolate the 3D field map
+    double [] getField(Vec r) { // Interpolate the 3D field map
         Vec rHPS;
         if (uniform) {
             rHPS = new Vec(0., 0., 505.57);
@@ -172,20 +172,20 @@ public class FieldMap extends FieldOverlay {
         double xd = (rMag.v[0] - X[iX]) / dX;
         double yd = (rMag.v[1] - Y[iY]) / dY;
         double zd = (rMag.v[2] - Z[iZ]) / dZ;
-        double Bx = triLinear(iX, iY, iZ, xd, yd, zd, bX) * 1000.;
-        double By = triLinear(iX, iY, iZ, xd, yd, zd, bY) * 1000.;
-        double Bz = triLinear(iX, iY, iZ, xd, yd, zd, bZ) * 1000.;
-        // double Bxc = bX[iX][iY][iZ]*1000.;
-        // double Byc = bY[iX][iY][iZ]*1000.;
-        // double Bzc = bZ[iX][iY][iZ]*1000.;
-        // new Vec(-Bxc,Bzc,Byc).print("B on grid");
+        double [] Bout = new double[3];
+        Bout[0] = triLinear(iX, iY, iZ, xd, yd, zd, bX) * 1000.;  // HPS Bx
+        Bout[2] = -triLinear(iX, iY, iZ, xd, yd, zd, bY) * 1000.; // HPS By
+        Bout[1] = triLinear(iX, iY, iZ, xd, yd, zd, bZ) * 1000.;  // HPS Bz
         
         // This transforms the field from the HPS global coordinates to Kalman global coordinates
         if (uniform) {
-            return new Vec(0.,0.,-By); // constant field
+            Bout[0] = 0.; // constant field
+            Bout[1] = 0.;
         }
-        return new Vec(Bx, Bz, -By); // correct HPS field
-        // return new Vec(-Bx, -Bz, +By); // reversed field
+        //Bout[0] = 0.;
+        //Bout[1] = 0.;
+        //Bout[2] = 0.240241;
+        return Bout; 
     }
 
     private double triLinear(int i, int j, int k, double xd, double yd, double zd, double[][][] f) {

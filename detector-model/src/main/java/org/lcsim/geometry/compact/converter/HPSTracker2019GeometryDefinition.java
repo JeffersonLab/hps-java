@@ -47,7 +47,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         supBotCorr.setNode(node);
         AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
         supTopCorr.setNode(node);
-
+        
         // Build the geometry from the basic building blocks in the geometry
         // definition class
         // Keep the order correct.
@@ -55,12 +55,18 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         HPSTrackerGeometryDefinition.TrackingVolume tracking = new HPSTrackerGeometryDefinition.TrackingVolume(
                 "trackingVolume", null);
         surveyVolumes.add(tracking);
-
-        PSVacuumChamber chamber = new PSVacuumChamber("chamber", tracking, null);
+        
+        //System.out.println("PF::Constructed TrackingVolume: " +  tracking.toString());
+        
+        PSVacuumChamber chamber = new PSVacuumChamber("c_hamber", tracking, null);
         surveyVolumes.add(chamber);
+
+        //System.out.println("PF::Constructed PSVacuumChamber: " +  chamber.toString());
 
         SvtBox svtBox = new SvtBox("base", chamber, null);
         surveyVolumes.add(svtBox);
+
+        //System.out.println("PF::Constructed svtBox: " +  svtBox.toString());
 
         SvtBoxBasePlate svtBoxBasePlate = new SvtBoxBasePlate("base_plate", svtBox, null);
         surveyVolumes.add(svtBoxBasePlate);
@@ -68,41 +74,45 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount("c_support_kin_L13b",
                 svtBox, supBotCorr);
         surveyVolumes.add(supportRingKinL13Bottom);
+        
+        //System.out.println("PF::Constructed SupportRingKinL13Bottom: " +  supportRingKinL13Bottom.toString());
 
-        LOGGER.info("Construct uChannelL14Bottom");
+        //LOGGER.info("Construct uChannelL14Bottom");
         
 
         UChannelL13 uChannelL14Bottom = new UChannelL14Bottom("support_bottom_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Bottom);
         surveyVolumes.add(uChannelL14Bottom);
         
-        System.out.println("Constructed uChannelL14Bottom: " + uChannelL14Bottom.toString());
+        //System.out.println("Constructed uChannelL14Bottom: " + uChannelL14Bottom.toString());
 
-        LOGGER.info("Construct uChannelL14BottomPlate");
-
+        //LOGGER.info("Construct uChannelL14BottomPlate");
+        
         UChannelL14Plate uChannelL14BottomPlate = new UChannelL14BottomPlate("support_plate_bottom_L14", svtBox, null,
                 uChannelL14Bottom);
         surveyVolumes.add(uChannelL14BottomPlate);
         
-        System.out.println("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
-
-        LOGGER.info("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
+        //System.out.println("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
+        
+        //LOGGER.info("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
 
         SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox,
                 supTopCorr);
         surveyVolumes.add(supportRingKinL13Top);
+        //System.out.println("PF::Constructed supportRingKinL13Top: " +  supportRingKinL13Top.toString());
+        
 
         UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Top);
         surveyVolumes.add(uChannelL14Top);
         
-        System.out.println("Constructed uChannelL14Top: " + uChannelL14Top.toString());
+        //System.out.println("Constructed uChannelL14Top: " + uChannelL14Top.toString());
 
         UChannelL14Plate uChannelL14TopPlate = new UChannelL14TopPlate("support_plate_top_L14", svtBox, null,
-                uChannelL14Top);
+                                                                       uChannelL14Top);
         surveyVolumes.add(uChannelL14TopPlate);
         
-        System.out.println("Constructed uChannelL14TopPlate: " + uChannelL14TopPlate.toString());
+        //System.out.println("Constructed uChannelL14TopPlate: " + uChannelL14TopPlate.toString());
 
         UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrections);
         surveyVolumes.add(uChannelL46Bottom);
@@ -133,17 +143,17 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                     else
                         moduleRef = getSurveyVolume(UChannelL46Bottom.class);
 
-                    LOGGER.info("Make the bundle for layer " + l + " bottom");
+                    LOGGER.info("PF:: Make the bundle for layer " + l + " bottom with mother " + moduleMother.getName() + " and ref " + moduleRef.getName());
                     makeModuleBundle(l, "bottom", moduleMother, moduleRef);
                 }
-
+                
                 if (doTop) {
                     if (l < 5)
                         moduleRef = getSurveyVolume(UChannelL14Top.class);
                     else
                         moduleRef = getSurveyVolume(UChannelL46Top.class);
-
-                    LOGGER.info("Make the bundle for layer " + l + " top");
+                    
+                    LOGGER.info("Make the bundle for layer " + l + " top with mother " + moduleMother.getName() + " and ref " +moduleRef.getName());
                     makeModuleBundle(l, "top", moduleMother, moduleRef);
                 }
             }
@@ -234,9 +244,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // build the module name
         String volName = "module_L" + layer + (half == "bottom" ? "b" : "t");
+        boolean isTopLayer = true;
+        if (half=="bottom")
+            isTopLayer=false;
 
         // find alignment corrections
-        AlignmentCorrection alignmentCorrection = new AlignmentCorrection();
+        // The modules will have layer ID starting from 61 to 67. 
+        AlignmentCorrection alignmentCorrection = getHalfModuleAlignmentCorrection(isTopLayer,60+layer);
         alignmentCorrection.setNode(node);
 
         BaseModule module;
@@ -650,14 +664,21 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             super(name, mother, alignmentCorrection, ref);
         }
     }
-
+    
     /*
      * (non-Javadoc)
      * @see org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition #getMillepedeLayer(java.lang.String)
      */
+    
     @Override
     public int getMillepedeLayer(String name) {
-
+        if (isModule(name)) { 
+            //PF:: TEMPORARY I HOPE
+            int mpid = getLayerFromVolumeName(name) + 60;
+            //System.out.printf("PF::The MPII ID For %s is %d \n",name,mpid);
+            return mpid;                
+        }
+        
         boolean isTopLayer = getHalfFromName(name).equals("top") ? true : false;
 
         // find layer
