@@ -214,11 +214,11 @@ public class GBLRefitterDriver extends Driver {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
+
+        //GBLexample1 example1 = new GBLexample1();  
+        //example1.runExample(1,10,false); 
         
-        //TESTING PURPOSES
-        //GBLexample1 example1 = new GBLexample1();
-        //example1.runExample(1,10,false);        
-        //GBLexampleJna examplejna1 = new GBLexampleJna();
+        //GBLexampleJna1 examplejna1 = new GBLexampleJna1();
         //examplejna1.runExample();
 
         //Alignment Manager  - Get the composite structures.
