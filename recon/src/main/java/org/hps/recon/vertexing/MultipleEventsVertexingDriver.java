@@ -5,6 +5,7 @@ import hep.physics.vec.BasicHep3Vector;
 
 //import java.io.IOException;
 import java.util.List;
+import java.util.Collections;
 import java.util.ArrayList;
 
 import org.lcsim.event.EventHeader;
@@ -115,7 +116,12 @@ public final class MultipleEventsVertexingDriver extends Driver {
         vtxFitter.setDebug(debug);
         vtxFitter.doBeamSpotConstraint(false);
         
-        FitMultiVtx(accumulatedBTracks,vtxFitter,"");
+        
+        //Randomize the tracks ? Better to do something more reproducible
+        
+        Collections.shuffle(accumulatedBTracks);
+        FitMultiVtx(accumulatedBTracks,vtxFitter,""); 
+        
         FitMultiVtx(accumulatedBTracksTop,vtxFitter,"_top");
         FitMultiVtx(accumulatedBTracksBot,vtxFitter,"_bottom");
 
