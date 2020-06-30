@@ -215,8 +215,8 @@ public class GBLRefitterDriver extends Driver {
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
 
-        GBLexample1 example1 = new GBLexample1();  
-        example1.runExample(1,10,false); 
+        //GBLexample1 example1 = new GBLexample1();  
+        //example1.runExample(1,10,false); 
         
         //GBLexampleJna1 examplejna1 = new GBLexampleJna1();
         //examplejna1.runExample();
@@ -253,13 +253,12 @@ public class GBLRefitterDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
         
-        
         if (!event.hasCollection(Track.class, inputCollectionName))
             return;
         
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
-        //       System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
+        // System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
         //RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         //RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
@@ -281,7 +280,6 @@ public class GBLRefitterDriver extends Driver {
             if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
-            
             
             double momentum_param = 2.99792458e-04;
             
@@ -504,162 +502,13 @@ public class GBLRefitterDriver extends Driver {
                     
                 }//usePoints
                 
-                /*
-                else {
-                    //Get the labels and the derivatives
-                    for ( GblData gbldata : data_on_traj) {
-                        
-                        //Skip the kinks or other points. Only take the internal measurements.
-                        if (gbldata.getType() != GblData.dataBlockType.InternalMeasurement)
-                            continue;
-                        
-                        //Get all Data out of the GblData (needed to form the millepede output)
-                        float[] floats = new float[2]; // fValue , fErr
-                        List<Integer> indLocal = new ArrayList<Integer>();
-                        List<Double> derLocal = new ArrayList<Double>();
-                        
-                        //I will just need to modify and add these two
-                        List<Integer> labels = new ArrayList<Integer>();
-                        List<Double> derGlobal = new ArrayList<Double>();
-                        gbldata.getAllData(floats, indLocal, derLocal, labels, derGlobal);
-                        
-                        if (labels.size() > 0) {
-                            
-                            //Matrix g_ders =  new MAtrixgblpoint.getGlobalDerivatives();
-                            Matrix g_ders = new Matrix(1,6);
-                            for (int ider = 0; ider < derGlobal.size(); ider++) {
-                                g_ders.set(0,ider,derGlobal.get(ider));
-                            }
-                            
-                            //The MPII ID + Volume is used to get the correct composite structure
-                            // 1 for top  2 for bottom
-                            int volume = labels.get(0) / MilleParameter.half_offset;
-                            
-                            String volname = "top";
-                            String volname_s = "t";
-                            
-                            if (volume == 2)  {
-                                volname= "bottom";
-                                volname_s = "b";
-                            }
-                            
-                            //sensor label % 100
-                            int mpid = labels.get(0) % 100;
-                            
-                            if (debugAlignmentDs) {
-                                System.out.println(labels.toString());
-                                g_ders.print(6,6);
-                            }
-                            
-                            HpsSiSensor mysensor = null;
-                            for (SiSensor sensor : sensors) {
-                                
-                                if (sensor.getName().contains(volname_s)) {
-                                    if (((HpsSiSensor) sensor).getMillepedeId() == mpid) {
-                                        mysensor = (HpsSiSensor) sensor;
-                                    }
-                                }
-                            }
-                            
-                            if (mysensor == null)
-                                throw new RuntimeException("Couldn't find HpsSensor for the volume/millepede ID " + volname_s+"/"+String.valueOf(mpid));
-                            //Get the sensor frame
-                            
-                            Hep3Matrix Rgtos = mysensor.getGeometry().getLocalToGlobal().getRotation().getRotationMatrix();
-                            Hep3Vector Tgtos = mysensor.getGeometry().getLocalToGlobal().getTranslation().getTranslationVector();
-                            
-                            if (debugAlignmentDs) {
-                                System.out.printf("PF::Print the Sensor %s Transform:\n", mysensor.getName());
-                                System.out.println(Rgtos.toString());
-                                System.out.println(Tgtos.toString());
-                            }
-                            
-                            //The same sensor will be contained in multiple Composite structures.
-                            for (AlignableDetectorElement ade : Alignabledes) {
-                                
-                                AlignableDetectorElement myade = null;
-                                
-                                if (ade.getName().contains(volname) && ade.getName().contains(String.valueOf(getFullModule(volume,mpid)))) {
-                                    if (debugAlignmentDs)
-                                        System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),ade.getName());
-                                    myade = ade;
-                                    
-                                    
-                                    Hep3Matrix Rgtoc = myade.getlocalToGlobal().getRotation().getRotationMatrix();
-                                    Hep3Vector Tgtoc = myade.getlocalToGlobal().getTranslation().getTranslationVector();
-                                    Matrix C_matrix = f2fD.getDerivative(Rgtos, Rgtoc, Tgtos, Tgtoc);
-                                    
-                                    //Compute the composite structure derivatives
-                                    //dr/dac = dr/dai * dai/dac = dr/dai * Ci
-                                    
-                                    Matrix c_derGlobal = g_ders.times(C_matrix);
-                                    
-                                    //Copy the labels for the composite structure
-                                    List<Integer> c_labGlobal = new ArrayList<Integer>(labels);
-                                    
-                                    //Change the sensor ID to the composite structure one
-                                    for (int ilabel = 0; ilabel < c_labGlobal.size(); ilabel++) {
-                                        Integer c_label = (c_labGlobal.get(ilabel) / 100) * 100 + myade.getMillepedeId();
-                                        c_labGlobal.set(ilabel , c_label);
-                                    }
-                                    
-                                    //Create the mille data
-                                    List<Double> c_derGlobals = new ArrayList<Double>();
-                                    
-                                    //Convert the derivatives in a list
-                                    for (int ilabel = 0 ; ilabel < c_labGlobal.size(); ilabel++) {
-                                        Double c_der = (c_derGlobal.get(0,ilabel));
-                                        c_derGlobals.add(c_der);
-                                    }
-                                    
-                                    //Join the two lists
-                                    List<Integer> all_labels = new ArrayList<Integer>();
-                                    all_labels.addAll(labels);
-                                    all_labels.addAll(c_labGlobal);
-                                    
-                                    List<Double> all_ders = new ArrayList<Double>();
-                                    all_ders.addAll(derGlobal);
-                                    all_ders.addAll(c_derGlobals);
-                                    
-                                    if (debugAlignmentDs) {
-                                        System.out.printf("PF::Print the Composite %s Transform:\n", myade.getName());
-                                        System.out.println(Rgtoc.toString());
-                                        System.out.println(Tgtoc.toString());
-                                        C_matrix.print(6,6);
-                                        System.out.println("PF:: Composite labels and derivatives");
-                                        System.out.println(c_labGlobal.toString());
-                                        c_derGlobal.print(6,6);
-                                        
-                                        System.out.println(c_derGlobals.toString());
-                                        
-                                        //Print all data to be written to the binary:
-                                        System.out.println(floats[0] + " " + floats[1] + " "+indLocal.toString());
-                                        System.out.println(derLocal.toString());
-                                        System.out.println(all_labels.toString());
-                                        System.out.println(all_ders.toString());
-                                        System.out.println("========================");
-                                    }
-                                    
-                                    
-                                    //if (writeMilleBinary) {
-                                    //  mille.addData(floats[0],floats[1],indLocal,derLocal,all_labels,all_ders);
-                                    //  mille.writeRecord();
-                                    //}
-                                    
-                                }//Found the alignable composite structure
-                            }//loop on alignable structures
-                        }//labels size > 0 ; removing scatter only and the reference point
-                    }//gblpointsloop
-                
-                }//decide if gblpoints or gbldata
-                */
             }//alitest
             
-            /*
-            if (writeMilleBinary)
+            
+            if (writeMilleBinary && !compositeAlign)
                 if (gblTrk.getChi2() < writeMilleChi2Cut)
                     newTrackTraj.getSecond().get_traj().milleOut(mille);
-            */
+            
 
             
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
