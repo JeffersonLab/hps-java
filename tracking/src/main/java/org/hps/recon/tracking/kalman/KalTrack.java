@@ -322,7 +322,7 @@ public class KalTrack {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
             int hitID = site.hitID;
-            str=str+String.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d  ", m.Layer, m.detector, m.isStereo,
+            str=str+String.format("Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, Xscat=%10.8f Zscat=%10.8f, arc=%10.5f, hit=%d", m.Layer, m.detector, m.isStereo,
                     site.chi2inc, site.scatX(), site.scatZ(), site.arcLength, hitID);
             if (hitID < 0) {
                 str=str+"\n";
@@ -339,8 +339,10 @@ public class KalTrack {
             if (interceptVects().containsKey(site)) {
                 Vec interceptVec = interceptVects().get(site);
                 Vec interceptMomVec = interceptMomVects().get(site);
-                str=str+String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, error=%9.5f \n", interceptVec.toString(),
-                        interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, Math.sqrt(site.aS.R));
+                double residual = site.m.hits.get(hitID).v - site.aS.mPred;
+                Pair<Double,Double> unBiasedResid = unbiasedResidual(site);
+                str=str+String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f+-%9.5f, error=%9.5f \n", interceptVec.toString(),
+                        interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, residual, unBiasedResid.getFirstElement(), unBiasedResid.getSecondElement(), Math.sqrt(site.aS.R));
             }
         }
         str=str+String.format("End of printing for KalTrack %s ID %d in event %d\n\n", s, ID, eventNumber);
@@ -693,7 +695,7 @@ public class KalTrack {
         for (int iteration = 0; iteration < nIterations; iteration++) {
             logger.log(Level.FINER, String.format("KalTrack.fit: starting filtering for iteration %d", iteration));
             StateVector sH = SiteList.get(0).aS;
-            sH.helix.C.scale(1000.*chi2); // Blow up the initial covariance matrix to avoid double counting measurements
+            sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
             SiModule prevMod = null;
             double chi2f = 0.;
             for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps

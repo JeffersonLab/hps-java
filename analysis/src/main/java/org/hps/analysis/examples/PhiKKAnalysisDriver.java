@@ -257,6 +257,7 @@ public class PhiKKAnalysisDriver extends Driver {
             if (ix < -5 && type.equals("MC mu-")) {
                 aida.histogram1D(type + " crystal energy", 100, 0.1, 0.3).fill(cluster.getEnergy());
             }
+            aida.histogram2D("cluster ix vs iy",47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
             aida.histogram1D(ix + " " + iy + " " + type + " crystal energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
             aida.tree().cd("..");
         }
