@@ -2,12 +2,14 @@ package org.hps.conditions.cli;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.HelpFormatter;
 import org.hps.conditions.api.ConditionsRecord;
 import org.hps.conditions.api.DatabaseObjectException;
 import org.hps.conditions.api.FieldValuesMap;
@@ -38,7 +40,6 @@ final class AddCommand extends AbstractCommand {
         OPTIONS.addOption("t", "table", true, "table name (required)");
         OPTIONS.addOption("c", "collection", true, "collection ID (required)");
         OPTIONS.addOption("u", "user", true, "user name (optional)");
-        OPTIONS.addOption("m", "notes", true, "notes about this conditions set (optional)");
     }
 
     /**
@@ -126,16 +127,13 @@ final class AddCommand extends AbstractCommand {
             createdBy = commandLine.getOptionValue("u");
         }
 
-        // Notes (optional).
-        String notes = null;
-        if (commandLine.hasOption("m")) {
-            notes = commandLine.getOptionValue("m");
-        }
+        // Extra args are used to set the notes value since this parser doesn't handle quotes properly.
+        List<String> extraArgs = commandLine.getArgList();
+        String notes = String.join(" ", extraArgs);
 
         // Create the conditions record to insert.
-        final ConditionsRecord conditionsRecord = this.createConditionsRecord(runStart, runEnd, tableName, name,
-                collectionId, createdBy, notes);
-        LOGGER.info("inserting conditions record ..." + '\n' + conditionsRecord);
+        final ConditionsRecord conditionsRecord = this.createConditionsRecord(runStart, runEnd, tableName, name, collectionId, createdBy, notes);
+        LOGGER.info("Inserting conditions record ..." + '\n' + conditionsRecord);
         try {
             final DatabaseConditionsManager manager = this.getManager();
             conditionsRecord.setConnection(manager.getConnection());
@@ -147,4 +145,10 @@ final class AddCommand extends AbstractCommand {
         }
         LOGGER.info("successfully added conditions record ..." + '\n' + conditionsRecord);       
     }
+
+    protected void printUsage() {
+        final HelpFormatter help = new HelpFormatter();
+        help.printHelp(this.getName(), "", this.getOptions(), "Extra args are used for the 'notes' field.", true);
+    }
+
 }

@@ -106,7 +106,7 @@ abstract class AbstractCommand {
     /**
      * Print the usage of this sub-command.
      */
-    protected final void printUsage() {
+    protected void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         help.printHelp(this.getName(), this.getOptions());
     }
