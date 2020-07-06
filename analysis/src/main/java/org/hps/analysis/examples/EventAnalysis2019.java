@@ -10,6 +10,7 @@ import hep.physics.vec.VecOp;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan2;
 import java.util.List;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.detector.DetectorElementStore;
@@ -152,64 +153,66 @@ public class EventAnalysis2019 extends Driver {
     private void analyzeV0(EventHeader event) {
         String[] v0Dirs = {"UnconstrainedV0Candidates", "UnconstrainedV0Candidates_KF"};
         for (String dir : v0Dirs) {
-            aida.tree().mkdirs(dir);
-            aida.tree().cd(dir);
-            List<ReconstructedParticle> v0List = event.get(ReconstructedParticle.class, dir);
-            for (ReconstructedParticle v0 : v0List) {
-                String trackType = "SeedTrack ";
-                int minNhits = 5;
-                if (TrackType.isGBL(v0.getType())) {
-                    trackType = "GBL ";
-                }
-                if (v0.getType() == 1) {
-                    trackType = "Kalman ";
-                    minNhits = 10;
-                }
-                Vertex uncVert = v0.getStartVertex();
-                Hep3Vector pVtxRot = VecOp.mult(beamAxisRotation, v0.getMomentum());
-                Hep3Vector vtxPosRot = VecOp.mult(beamAxisRotation, uncVert.getPosition());
-                double theta = Math.acos(pVtxRot.z() / pVtxRot.magnitude());
-                double phi = Math.atan2(pVtxRot.y(), pVtxRot.x());
-
-                // this always has 2 tracks.
-                List<ReconstructedParticle> trks = v0.getParticles();
-                ReconstructedParticle ele = trks.get(0);
-                ReconstructedParticle pos = trks.get(1);
-                int eNhits = ele.getTracks().get(0).getTrackerHits().size();
-                int pNhits = pos.getTracks().get(0).getTrackerHits().size();
-                double eMom = ele.getMomentum().magnitude();
-                double pMom = pos.getMomentum().magnitude();
-                aida.histogram1D("electron track nHits", 20, 0., 20.).fill(eNhits);
-                aida.histogram1D("positron track nHits", 20, 0., 20.).fill(pNhits);
-                aida.histogram1D("electron momentum", 100, 0., 6.0).fill(eMom);
-                aida.histogram1D("positron momentum", 100, 0., 6.0).fill(pMom);
-
-                if (eNhits >= minNhits && pNhits >= minNhits) {
-                    aida.histogram1D("v0 x", 50, -5., 5.).fill(vtxPosRot.x());
-                    aida.histogram1D("v0 y", 50, -2., 2.).fill(vtxPosRot.y());
-                    aida.histogram1D("v0 z", 50, -25., 0.).fill(vtxPosRot.z());
-                    aida.histogram1D("v0 x ele "+eNhits+ " pos "+pNhits+" hits on track", 50, -5., 5.).fill(vtxPosRot.x());
-                    aida.histogram1D("v0 y ele "+eNhits+ " pos "+pNhits+" hits on track", 50, -2., 2.).fill(vtxPosRot.y());
-                    aida.histogram1D("v0 z ele "+eNhits+ " pos "+pNhits+" hits on track", 50, -25., 0.).fill(vtxPosRot.z());
-                    aida.histogram1D("v0 energy", 100, 0., 10.).fill(v0.getEnergy());
-                    aida.histogram1D("v0 mass", 50, 0., 0.5).fill(v0.getMass());
-                    aida.histogram2D("v0 mass vs Z vertex", 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
-                    aida.histogram2D("v0 mass vs Z vertex ele "+eNhits+ " pos "+pNhits+" hits on track", 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
-                    aida.profile1D("v0 mass vs Z vertex profile", 50, 0.05, 0.25).fill(v0.getMass(), vtxPosRot.z());
-                    if (ele.getClusters().isEmpty()) {
-                        aida.histogram1D("psum no electron ECal Cluster", 100, 0., 6.0).fill(eMom + pMom);
-                        aida.histogram1D("psum no electron ECal Cluster ele "+eNhits+ " pos "+pNhits+" hits on track", 100, 0., 6.0).fill(eMom + pMom);
+            if (event.hasCollection(ReconstructedParticle.class, dir)) {
+                aida.tree().mkdirs(dir);
+                aida.tree().cd(dir);
+                List<ReconstructedParticle> v0List = event.get(ReconstructedParticle.class, dir);
+                for (ReconstructedParticle v0 : v0List) {
+                    String trackType = "SeedTrack ";
+                    int minNhits = 5;
+                    if (TrackType.isGBL(v0.getType())) {
+                        trackType = "GBL ";
                     }
-                    aida.histogram1D("psum", 100, 0., 6.0).fill(eMom + pMom);
-                    aida.histogram1D("psum ele "+eNhits+ " pos "+pNhits+" hits on track", 100, 0., 6.0).fill(eMom + pMom);
-                    aida.histogram2D("electron vs positron momentum", 100, 0., 6.0, 100, 0., 6.).fill(eMom, pMom);
-                    if (ele.getClusters().size() > 0 && pos.getClusters().size() > 0) {
-                        aida.histogram1D("psum both ECal Clusters", 100, 0., 6.0).fill(eMom + pMom);
-                        aida.histogram1D("esum both ECal Clusters", 100, 0., 6.0).fill(ele.getClusters().get(0).getEnergy() + pos.getClusters().get(0).getEnergy());
+                    if (v0.getType() == 1) {
+                        trackType = "Kalman ";
+                        minNhits = 10;
+                    }
+                    Vertex uncVert = v0.getStartVertex();
+                    Hep3Vector pVtxRot = VecOp.mult(beamAxisRotation, v0.getMomentum());
+                    Hep3Vector vtxPosRot = VecOp.mult(beamAxisRotation, uncVert.getPosition());
+                    double theta = Math.acos(pVtxRot.z() / pVtxRot.magnitude());
+                    double phi = Math.atan2(pVtxRot.y(), pVtxRot.x());
+
+                    // this always has 2 tracks.
+                    List<ReconstructedParticle> trks = v0.getParticles();
+                    ReconstructedParticle ele = trks.get(0);
+                    ReconstructedParticle pos = trks.get(1);
+                    int eNhits = ele.getTracks().get(0).getTrackerHits().size();
+                    int pNhits = pos.getTracks().get(0).getTrackerHits().size();
+                    double eMom = ele.getMomentum().magnitude();
+                    double pMom = pos.getMomentum().magnitude();
+                    aida.histogram1D("electron track nHits", 20, 0., 20.).fill(eNhits);
+                    aida.histogram1D("positron track nHits", 20, 0., 20.).fill(pNhits);
+                    aida.histogram1D("electron momentum", 100, 0., 6.0).fill(eMom);
+                    aida.histogram1D("positron momentum", 100, 0., 6.0).fill(pMom);
+
+                    if (eNhits >= minNhits && pNhits >= minNhits) {
+                        aida.histogram1D("v0 x", 50, -5., 5.).fill(vtxPosRot.x());
+                        aida.histogram1D("v0 y", 50, -2., 2.).fill(vtxPosRot.y());
+                        aida.histogram1D("v0 z", 50, -25., 0.).fill(vtxPosRot.z());
+                        aida.histogram1D("v0 x ele " + eNhits + " pos " + pNhits + " hits on track", 50, -5., 5.).fill(vtxPosRot.x());
+                        aida.histogram1D("v0 y ele " + eNhits + " pos " + pNhits + " hits on track", 50, -2., 2.).fill(vtxPosRot.y());
+                        aida.histogram1D("v0 z ele " + eNhits + " pos " + pNhits + " hits on track", 50, -25., 0.).fill(vtxPosRot.z());
+                        aida.histogram1D("v0 energy", 100, 0., 10.).fill(v0.getEnergy());
+                        aida.histogram1D("v0 mass", 50, 0., 0.5).fill(v0.getMass());
+                        aida.histogram2D("v0 mass vs Z vertex", 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
+                        aida.histogram2D("v0 mass vs Z vertex ele " + eNhits + " pos " + pNhits + " hits on track", 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
+                        aida.profile1D("v0 mass vs Z vertex profile", 50, 0.05, 0.25).fill(v0.getMass(), vtxPosRot.z());
+                        if (ele.getClusters().isEmpty()) {
+                            aida.histogram1D("psum no electron ECal Cluster", 100, 0., 6.0).fill(eMom + pMom);
+                            aida.histogram1D("psum no electron ECal Cluster ele " + eNhits + " pos " + pNhits + " hits on track", 100, 0., 6.0).fill(eMom + pMom);
+                        }
+                        aida.histogram1D("psum", 100, 0., 6.0).fill(eMom + pMom);
+                        aida.histogram1D("psum ele " + eNhits + " pos " + pNhits + " hits on track", 100, 0., 6.0).fill(eMom + pMom);
+                        aida.histogram2D("electron vs positron momentum", 100, 0., 6.0, 100, 0., 6.).fill(eMom, pMom);
+                        if (ele.getClusters().size() > 0 && pos.getClusters().size() > 0) {
+                            aida.histogram1D("psum both ECal Clusters", 100, 0., 6.0).fill(eMom + pMom);
+                            aida.histogram1D("esum both ECal Clusters", 100, 0., 6.0).fill(ele.getClusters().get(0).getEnergy() + pos.getClusters().get(0).getEnergy());
+                        }
                     }
                 }
+                aida.tree().cd("..");
             }
-            aida.tree().cd("..");
         }
     }
 
@@ -248,6 +251,20 @@ public class EventAnalysis2019 extends Driver {
                 aida.histogram1D(topOrBottom + " cluster energy, seed > " + minSeedEnergy + " " + nClusters + " event clusters", 100, 0., 6.0).fill(c.getEnergy());
                 aida.histogram1D(fiducial + topOrBottom + " cluster energy, seed > " + minSeedEnergy, 100, 0., 6.0).fill(c.getEnergy());
                 aida.histogram1D(fiducial + topOrBottom + " cluster energy, seed > " + minSeedEnergy + " " + nClusters + " event clusters", 100, 0., 6.0).fill(c.getEnergy());
+            }
+            List<CalorimeterHit> clusterHits = c.getCalorimeterHits();
+            CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+            aida.histogram1D("cluster seed time", 100, 0., 200.).fill(seedHit.getTime());
+            if (seed != seedHit) {
+                System.out.println("Panic!");
+            }
+            for (CalorimeterHit hit : clusterHits) {
+                aida.histogram1D("cluster hit corrected energy", 200, 0., 5.).fill(hit.getCorrectedEnergy());
+                aida.histogram1D("cluster hit corrected energy low end", 200, 0., 0.1).fill(hit.getCorrectedEnergy());
+//                aida.histogram1D("cluster hit raw energy", 200, 0., 5.).fill(hit.getRawEnergy());  //!? always zero?
+                if (seedHit != hit) {
+                    aida.histogram1D("cluster seed hit time - hit time", 100, -20., 20.).fill(seedHit.getTime() - hit.getTime());
+                }
             }
         }
         aida.tree().cd("..");
