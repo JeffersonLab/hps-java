@@ -94,7 +94,10 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman hit true error over uncertainty", 100, -5., 5.);
-        aida.histogram1D("Kalman track Momentum", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 11-hit", 100, 0., 10.);
+        aida.histogram1D("Kalman track Momentum 12-hit", 100, 0., 10.);
+        aida.histogram1D("Kalman track Momentum 13-hit", 100, 0., 10.);
+        aida.histogram1D("Kalman track Momentum 14-hit", 100, 0., 10.);
         aida.histogram1D("GBL momentum", 100, 0., 5.);
         aida.histogram1D("dRho", 100, -5., 5.);
         aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
@@ -127,6 +130,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("GBL number of hits",20,0.,20.);
         aida.histogram1D("Kalman layer hit",20,0.,20.);
         for (int lyr=0; lyr<14; ++lyr) {
+            aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",lyr), 100, -1.0, 1.0);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
             aida.histogram1D(String.format("Layers/Kalman track ubiased hit residual in layer %d",lyr), 100, -0.1, 0.1);
@@ -233,7 +237,19 @@ class KalmanPatRecPlots {
                 aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
                 double[] momentum = kTk.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
-                aida.histogram1D("Kalman track Momentum").fill(pMag);
+                switch (kTk.nHits) {
+                    case 11:
+                        aida.histogram1D("Kalman track Momentum 11-hit").fill(pMag);
+                        break;
+                    case 12:
+                        aida.histogram1D("Kalman track Momentum 12-hit").fill(pMag);
+                        break;
+                    case 13:
+                        aida.histogram1D("Kalman track Momentum 13-hit").fill(pMag);
+                        break;
+                    case 14:
+                        aida.histogram1D("Kalman track Momentum 14-hit").fill(pMag);
+                }               
                 aida.histogram1D("Kalman track drho").fill(kTk.originHelixParms()[0]);
                 aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
                 aida.histogram1D("Kalman track time range (ns)").fill(kTk.tMax - kTk.tMin);
@@ -262,10 +278,15 @@ class KalmanPatRecPlots {
                             Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
                             Vec rLoc = mod.toLocal(rGlobal);    // Position in the detector frame
                             if (site.hitID < 0) {
+                                double minResid = 9.9e9;
                                 for (Measurement m : mod.hits) {
                                     double resid = m.v - rLoc.v[1];
-                                    aida.histogram1D("Kalman missed hit residual").fill(resid);
-                                }                       
+                                    if (resid < minResid) minResid = resid;                                   
+                                } 
+                                if (kTk.nHits >= 10 && Math.abs(minResid) < 1.0) {
+                                    aida.histogram1D("Kalman missed hit residual").fill(minResid);
+                                    aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",mod.Layer)).fill(minResid);
+                                }
                             } else {
                                 if (site.hitID > mod.hits.size()-1) { // This should never happen!!
                                     logger.warning(String.format("Event %d, hit missing in layer %d detector %d\n",event.getEventNumber(),mod.Layer,mod.detector));

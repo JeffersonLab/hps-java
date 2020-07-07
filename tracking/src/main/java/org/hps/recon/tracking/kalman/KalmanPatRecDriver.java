@@ -198,7 +198,7 @@ public class KalmanPatRecDriver extends Driver {
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
         // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
-        
+        /*
         kPar.clrStrategies();
         int[] list0 = {6, 7, 8, 9, 10};
         int[] list1 = {4, 5, 6, 7, 8};
@@ -236,6 +236,7 @@ public class KalmanPatRecDriver extends Driver {
         kPar.addStrategy(list15);
         kPar.addStrategy(list16);
         kPar.addStrategy(list17);
+        */
         
         System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
     }
