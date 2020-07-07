@@ -9,9 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
+import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Cluster;
@@ -237,6 +238,16 @@ class KalmanPatRecPlots {
                 aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
                 aida.histogram1D("Kalman track time range (ns)").fill(kTk.tMax - kTk.tMin);
 
+                // Check the covariance matrix
+                Matrix C = new Matrix(kTk.originCovariance());
+                EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
+                double [] e = eED.getRealEigenvalues();
+                for (int i=0; i<5; ++i) {
+                    if (e[i] < 0.) {
+                        logger.warning(String.format("Event %d, eigenvalue %d of covariance is negative!", event.getEventNumber(), i));
+                    }
+                }
+                
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
@@ -257,9 +268,9 @@ class KalmanPatRecPlots {
                                 }                       
                             } else {
                                 if (site.hitID > mod.hits.size()-1) { // This should never happen!!
-                                    System.out.format("KalmapPatRecPlots event %d, hit missing in layer %d detector %d\n",event.getEventNumber(),mod.Layer,mod.detector);
-                                    site.print("the bad site");
-                                    mod.print("the bad module");
+                                    logger.warning(String.format("Event %d, hit missing in layer %d detector %d\n",event.getEventNumber(),mod.Layer,mod.detector));
+                                    //site.print("the bad site");
+                                    //mod.print("the bad module");
                                     continue;
                                 }
                                 aida.histogram1D("Kalman layer hit").fill(mod.Layer);

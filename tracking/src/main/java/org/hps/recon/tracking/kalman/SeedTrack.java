@@ -366,17 +366,19 @@ class SeedTrack {
         public int compare(SeedTrack t1, SeedTrack t2) {
             Vec pInt1 = t1.planeIntersection(t1.p0);
             Vec pInt2 = t2.planeIntersection(t2.p0);
-            double diff = pInt1.mag() - pInt2.mag();
-            
-            //if (Math.abs(diff) < 1e-8) {
-            //  System.out.println("SeedTrack::WARNING::Probably duplicate seed.");
-            //}
-            
-            if (diff >= 0.) {
-                return 1;
-            } else {
-                return -1;
+
+            //double diff = pInt1.mag() - pInt2.mag();
+            /*
+            if (Math.abs(diff) < 1e-8) {
+                System.out.println("SeedTrack::WARNING::Probably duplicate seed.");
             }
+            */
+            
+            Double pInt1_mag = new Double(pInt1.mag());
+            Double pInt2_mag = new Double(pInt2.mag());
+                        
+            return pInt1_mag.compareTo(pInt2_mag);
+            
         }
     };
 

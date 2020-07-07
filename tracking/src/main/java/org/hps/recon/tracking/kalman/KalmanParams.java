@@ -6,8 +6,9 @@ import java.util.logging.Logger;
 
 // Parameters used by the Kalman-Filter pattern recognition and fitting
 public class KalmanParams {
-    static final int nTries = 2;  // Number of iterations through the entire pattern recognition; not configurable
-    int nIterations;              // Number of Kalman-fit iterations in the final fit
+    static final int mxTrials = 2;  // Max number of iterations through the entire pattern recognition; not configurable
+    int nTrials;                    // Number of iterations through the entire pattern recognition
+    int nIterations;                // Number of Kalman-fit iterations in the final fit
     double[] kMax; 
     double[] tanlMax; 
     double[] dRhoMax; 
@@ -35,20 +36,20 @@ public class KalmanParams {
         
         logger = Logger.getLogger(KalmanParams.class.getName());;
         
-        kMax = new double[nTries];
-        tanlMax = new double[nTries];
-        dRhoMax = new double[nTries];
-        dzMax = new double[nTries];
-        chi2mx1 = new double[nTries];
-        minHits1 = new int[nTries];
-        mxResid = new double[nTries];
-        minStereo = new int[nTries];  
+        kMax = new double[mxTrials];
+        tanlMax = new double[mxTrials];
+        dRhoMax = new double[mxTrials];
+        dzMax = new double[mxTrials];
+        chi2mx1 = new double[mxTrials];
+        minHits1 = new int[mxTrials];
+        mxResid = new double[mxTrials];
+        minStereo = new int[mxTrials];  
         
         // Set all the default values
         // Cut and parameter values (length units are mm, time is ns).
         // The index is the iteration number.
         // The second iteration generally will have looser cuts.
-        
+        nTrials = 2;        // Number of global iterations of the pattern recognition
         nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
         kMax[0] = 3.0;      // Maximum curvature for seed
         kMax[1] = 6.0;      
@@ -137,9 +138,19 @@ public class KalmanParams {
         }       
     }
     
+    public void setGlbIterations(int nTrials) {
+        if (nTrials < 1 || nTrials > mxTrials) {
+            logger.log(Level.WARNING,String.format("Number of global iterations %d is not valid and is ignored.", nTrials));
+            return;
+        }
+        logger.log(Level.INFO, String.format("Setting the number of global patrec iterations to %d", nTrials));
+        this.nTrials = nTrials;
+    }
+    
     public void setFirstLayer(int firstLayer) {
         if (firstLayer != 0 && firstLayer != 2) {
             logger.log(Level.WARNING,String.format("First layer of %d is not valid and is ignored.", firstLayer));
+            return;
         }
         logger.log(Level.INFO, String.format("Setting the first tracking layer to %d", firstLayer));
         this.firstLayer = firstLayer;

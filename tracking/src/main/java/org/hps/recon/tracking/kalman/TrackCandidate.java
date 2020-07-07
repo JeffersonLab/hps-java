@@ -127,7 +127,7 @@ class TrackCandidate {
                                        startSite.m.Layer, startSite.m.detector, sHstart.helix.a.toString());
         do {
             StateVector sH = sHstart;
-            sH.helix.C.scale(1000.*chi2s); // Blow up the initial covariance matrix to avoid double counting measurements
+            sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
             
             SiModule prevMod = null;
             chi2f = 0.;
