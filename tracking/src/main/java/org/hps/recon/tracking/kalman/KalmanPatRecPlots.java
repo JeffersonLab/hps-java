@@ -79,13 +79,13 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman pattern recognition time", 100, 0., 500.);
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
-        aida.histogram1D("Kalman Track Chi2, 12 hits", 50, 0., 100.);
-        aida.histogram1D("Kalman Track simple Chi2, 12 hits", 50, 0., 100.);
-        aida.histogram1D("Kalman Track Chi2 with 12 good hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track Chi2, >=12 hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track simple Chi2, >=12 hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track Chi2 with >=12 good hits", 50, 0., 100.);
         aida.histogram2D("number tracks Kalman vs GBL", 20, 0., 5., 20, 0., 5.);
         aida.histogram1D("helix chi-squared at origin", 100, 0., 25.);
         aida.histogram1D("GBL track chi^2", 50, 0., 100.);
-        aida.histogram1D("GBL 12-hit track chi^2", 50, 0., 100.);
+        aida.histogram1D("GBL >=12-hit track chi^2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
         aida.histogram1D("GBL number tracks", 10, 0., 10.);
         aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
@@ -103,8 +103,8 @@ class KalmanPatRecPlots {
         aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
         aida.histogram1D("z0", 100, -2., 2.);
         aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
-        aida.histogram1D("pt inverse", 100, -2.5, 2.5);
-        aida.histogram1D("pt inverse True", 100, -2.5, 2.5);
+        aida.histogram1D("pt inverse", 200, -1.5, 1.5);
+        aida.histogram1D("pt inverse True", 200, -1.5, 1.5);
         aida.histogram1D("pt inverse error, percent", 100, -50., 50.);
         aida.histogram1D("pt inverse error, sigmas", 100, -5., 5.);
         aida.histogram1D("tanLambda", 100, -0.3, 0.3);
@@ -124,7 +124,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
         aida.histogram1D("GBL d0", 100, -5., 5.);
         aida.histogram1D("GBL z0", 100, -2., 2.);
-        aida.histogram1D("GBL pt inverse", 100, -2.5, 2.5);
+        aida.histogram1D("GBL pt inverse", 200, -1.5, 1.5);
         aida.histogram1D("GBL pt inverse, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track time range (ns)", 100, 0., 100.);
         aida.histogram1D("GBL number of hits",20,0.,20.);
@@ -230,9 +230,9 @@ class KalmanPatRecPlots {
             for (KalTrack kTk : kPat.TkrList) {
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
-                if (kTk.nHits == 12) {
-                    aida.histogram1D("Kalman Track Chi2, 12 hits").fill(kTk.chi2);
-                    aida.histogram1D("Kalman Track simple Chi2, 12 hits").fill(kTk.chi2prime());
+                if (kTk.nHits >= 12) {
+                    aida.histogram1D("Kalman Track Chi2, >=12 hits").fill(kTk.chi2);
+                    aida.histogram1D("Kalman Track simple Chi2, >=12 hits").fill(kTk.chi2prime());
                 }
                 aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
                 double[] momentum = kTk.originP();
@@ -374,6 +374,17 @@ class KalmanPatRecPlots {
             
                 if (kTk.nHits >= 10) aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits").fill(nBad);
                 MCParticle mcBest = null;
+                double [] hParams = kTk.originHelixParms();
+                double dRho = hParams[0];
+                double phi0 = -hParams[1];
+                double ptInv = hParams[2];
+                double z0 = -hParams[3];
+                double tanLambda = -hParams[4];
+                aida.histogram1D("dRho").fill(dRho);
+                aida.histogram1D("z0").fill(z0);
+                aida.histogram1D("phi0").fill(phi0);
+                aida.histogram1D("pt inverse").fill(ptInv);
+                aida.histogram1D("tanLambda").fill(tanLambda);
                 if (idBest > -1) {
                     mcBest = mcParts.get(idBest); 
                     Hep3Vector pVec = mcBest.getMomentum();
@@ -381,19 +392,13 @@ class KalmanPatRecPlots {
                     double ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
                     double ptInvTrue = mcBest.getCharge()/ptTrue;
                     //double [] pKal = kTk.originP();
-                    double [] hParams = kTk.originHelixParms();
-                    double ptInv = hParams[2];
-                    double tanLambda = -hParams[4];
                     double tanLambdaTrue = pVec.y()/ptTrue;
                     double phi0True = Math.atan2(pVec.x(), pVec.z());
-                    double phi0 = -hParams[1];
                     double phi0Err = kTk.helixErr(1);
                     double ptInvErr = kTk.helixErr(2);
                     double tanLambdaErr = kTk.helixErr(4);
-                    double z0 = -hParams[3];
                     double z0True = rVec.y();
                     double z0Err = kTk.helixErr(3);
-                    double dRho = hParams[0];
                     double dRhoTrue = -Math.sqrt(rVec.y()*rVec.y()+rVec.x()*rVec.x());  // How to get the sign correct here in general?
                     double dRhoErr = kTk.helixErr(0);
                     Vec apTrue = new Vec(0.,-phi0True,ptInvTrue,-z0True,-tanLambdaTrue);
@@ -404,18 +409,13 @@ class KalmanPatRecPlots {
                     double chi2Helix = helixDiff.dot(helixDiff.leftMultiply(CovInv));
                     if (kTk.nHits >= 10 && kTk.chi2/(double)kTk.nHits < 2.0) {
                         aida.histogram1D("helix chi-squared at origin").fill(chi2Helix);
-                        aida.histogram1D("dRho").fill(dRho);
                         aida.histogram1D("dRho error, sigmas").fill((dRho-dRhoTrue)/dRhoErr);
-                        aida.histogram1D("z0").fill(z0);
                         aida.histogram1D("z0 error, sigmas").fill((z0-z0True)/z0Err);
                         aida.histogram1D("phi0 true").fill(phi0True);
-                        aida.histogram1D("phi0").fill(phi0);
                         aida.histogram1D("phi0 error, sigmas").fill((phi0-phi0True)/phi0Err);
-                        aida.histogram1D("pt inverse").fill(ptInv);
                         aida.histogram1D("pt inverse True").fill(ptInvTrue);                        
                         aida.histogram1D("pt inverse error, percent").fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
                         aida.histogram1D("pt inverse error, sigmas").fill((ptInv-ptInvTrue)/ptInvErr);    
-                        aida.histogram1D("tanLambda").fill(tanLambda);
                         aida.histogram1D("tanLambda true").fill(tanLambdaTrue);
                         aida.histogram1D("tanLambda error, sigmas").fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
                     }
@@ -564,7 +564,7 @@ class KalmanPatRecPlots {
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
                 List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
                 int nGBLhits = hitsOnTrack.size();
-                if (nGBLhits == 12) aida.histogram1D("GBL 12-hit track chi^2").fill(tkrGBL.getChi2());
+                if (nGBLhits >= 12) aida.histogram1D("GBL >=12-hit track chi^2").fill(tkrGBL.getChi2());
                 aida.histogram1D("GBL number of hits").fill(nGBLhits);
                 for (TrackerHit hit1D : hitsOnTrack) {
                     List<RawTrackerHit> rawHits = hit1D.getRawHits();
@@ -660,7 +660,7 @@ class KalmanPatRecPlots {
             for (KalmanPatRecHPS kPat : kPatList) {
                 for (KalTrack kTk : kPat.TkrList) {
                     if (kTk.nHits < 12) continue;                    
-                    aida.histogram1D("Kalman Track Chi2 with 12 good hits").fill(kTk.chi2);                    
+                    aida.histogram1D("Kalman Track Chi2 with >=12 good hits").fill(kTk.chi2);                    
                 }
             }
         }
