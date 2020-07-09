@@ -51,13 +51,20 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+//Derivatives plots
+import org.lcsim.util.aida.AIDA;
+//import hep.aida.IManagedObject;
+//import hep.aida.IBaseHistogram;
+
 
 /**
  * A Driver which refits tracks using GBL. Does not require GBL collections to
  * be present in the event.
  */
 public class GBLRefitterDriver extends Driver {
-
+    
+    private AIDA aidaGBL; 
+    String derFolder = "/gbl_derivatives/";
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
     private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
@@ -212,6 +219,14 @@ public class GBLRefitterDriver extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
+
+        if (aidaGBL == null)
+            aidaGBL = AIDA.defaultInstance();
+        
+        aidaGBL.tree().cd("/");
+
+        setupPlots();
+
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
@@ -239,7 +254,7 @@ public class GBLRefitterDriver extends Driver {
             }
         }
         
-        // Get the sensors subcomponents
+        // Get the sensors subcomponents // This should be only HpsSiSensors
         sensors = detectorElement.findDescendants(SiSensor.class);
 
         //Assign the mothers to the sensors
@@ -248,6 +263,8 @@ public class GBLRefitterDriver extends Driver {
         
         //Dump the constrain file
         MakeAlignmentConstraintFile();
+
+        //setupPlots
         
     }
     
@@ -328,6 +345,30 @@ public class GBLRefitterDriver extends Driver {
                     continue;
                 
             }
+
+            //Check the rw derivatives
+            GblTrajectory gbltraj = newTrackTraj.getSecond().get_traj();
+            
+            for (GblData gbldata : gbltraj.getTrajData()) {
+                
+                float vals[] = new float[2];
+                List<Integer> indLocal = new ArrayList<Integer>();
+                List<Double> derLocal = new ArrayList<Double>();
+                List<Integer> labGlobal = new ArrayList<Integer>();
+                List<Double> derGlobal = new ArrayList<Double>();
+                
+                gbldata.getAllData(vals, indLocal, derLocal, labGlobal, derGlobal);
+                
+                //Measurement
+                if  (labGlobal.size() >=6 ) {
+                    for (int itag = 3; itag<=5; itag++) {
+                        String derTag = String.valueOf(labGlobal.get(itag));
+                        aidaGBL.histogram1D(derFolder+derTag).fill(derGlobal.get(itag));
+                    }
+                }
+                
+            }
+            
             
             if (compositeAlign) {
                 
@@ -1005,4 +1046,41 @@ public class GBLRefitterDriver extends Driver {
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }
+
+
+    private void setupPlots() {
+    
+        
+
+        
+        List<String> volumes = new ArrayList<String>();
+        volumes.add("_top");
+        volumes.add("_bottom");
+        int nbins = 500;
+        List<Integer> minAxis = new ArrayList<Integer>();
+        minAxis.add(-5);
+        minAxis.add(-2);
+        minAxis.add(-50);
+
+        List<Integer> maxAxis = new ArrayList<Integer>();
+        maxAxis.add(5);
+        maxAxis.add(2);
+        maxAxis.add(50);
+        
+        //Only rotations around w
+        for (int ivol = 1; ivol<=2; ivol++) {
+            for (int itype = 2; itype<=2;itype++) {
+                for (int iaxis = 1; iaxis<=3; iaxis++) {
+                    for (int is=0; is<=20; is++){
+                        String derTag = String.valueOf(ivol*10000 + itype*1000 + iaxis*100 + is);
+                        aidaGBL.histogram1D(derFolder+derTag,nbins,minAxis.get(iaxis-1),maxAxis.get(iaxis-1));
+                    }//isensor
+                }//iaxis
+            }//itype
+        }//ivol
+        
+    }//setupPlots
 }
+
+
+
