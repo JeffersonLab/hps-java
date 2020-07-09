@@ -32,6 +32,26 @@ public class EcalMuonGainCalibrationDriver extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
+            List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
+            aida.histogram1D("Number of Clusters in Event", 10, 0., 10.).fill(clusters.size());
+            for (Cluster cluster : clusters) {
+                CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
+                int ix = seed.getIdentifierFieldValue("ix");
+                int iy = seed.getIdentifierFieldValue("iy");
+                aida.histogram2D("Event Cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
+                String half = cluster.getPosition()[1] > 0. ? "Top " : "Bottom ";
+                aida.histogram1D(half + "Event Cluster Energy", 100, 0., 6.).fill(cluster.getEnergy());
+            }
+
+            if (clusters.size() == 2) {
+                aida.histogram2D("Two Cluster Events e1 vs e2", 100, 0., 1.0, 100, 0., 1.).fill(clusters.get(0).getEnergy(), clusters.get(1).getEnergy());
+            }
+            if (clusters.size() == 3) {
+                aida.histogram2D("Three Cluster Events e2 vs e3", 100, 0., 1.0, 100, 0., 1.).fill(clusters.get(1).getEnergy(), clusters.get(2).getEnergy());
+            }
+        }
+        aida.histogram1D("Run Number", 750, 10000, 10750).fill(event.getRunNumber());
         // single muon analysis
         if (event.hasCollection(ReconstructedParticle.class, "FinalStateParticles")) {
             List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
