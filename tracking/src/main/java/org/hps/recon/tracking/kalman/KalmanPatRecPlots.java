@@ -273,7 +273,7 @@ class KalmanPatRecPlots {
                     SiModule mod = site.m;
                     if (aS != null && mod != null) {
                         double [] rGbl = null;
-                        double hitV = kTk.moduleIntercept(mod, rGbl);
+                        double hitV = kTk.moduleIntercept(mod, rGbl)[1];
                         if (site.hitID < 0) {
                             double minResid = 9.9e9;
                             for (Measurement m : mod.hits) {

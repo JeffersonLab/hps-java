@@ -160,8 +160,10 @@ public class KalTrack {
         return interceptMomVects;
     }
     
-    // Calculate and return the intersection point of the Kaltrack with an SiModule
-    public double moduleIntercept(SiModule mod, double [] rGbl) {
+    // Calculate and return the intersection point of the Kaltrack with an SiModule.
+    // Local sensor coordinates (u,v) are returned. 
+    // The global intersection can be returned via rGbl if an array of length 3 is passed.
+    public double [] moduleIntercept(SiModule mod, double [] rGbl) {
         HelixState hx = null;
         for (MeasurementSite site : SiteList) {
             if (site.m == mod) hx = site.aS.helix;
@@ -186,7 +188,8 @@ public class KalTrack {
             rGbl[2] = intGlb.v[2];
         }
         Vec intLcl = mod.toLocal(intGlb);
-        return intLcl.v[1];
+        double [] rtnArray = {intLcl.v[0], intLcl.v[1]};
+        return rtnArray;
     }
     
     private void makeLyrMap() {
