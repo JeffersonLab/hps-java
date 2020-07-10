@@ -160,6 +160,35 @@ public class KalTrack {
         return interceptMomVects;
     }
     
+    // Calculate and return the intersection point of the Kaltrack with an SiModule
+    public double moduleIntercept(SiModule mod, double [] rGbl) {
+        HelixState hx = null;
+        for (MeasurementSite site : SiteList) {
+            if (site.m == mod) hx = site.aS.helix;
+        }
+        if (hx == null) {
+            int mxLayer = -1;
+            for (MeasurementSite site : SiteList) {
+                if (site.m.Layer > mod.Layer) continue;
+                if (site.m.Layer > mxLayer) {
+                    mxLayer = site.m.Layer;
+                    hx = site.aS.helix;
+                }
+            }
+        }
+        if (hx == null) hx = SiteList.get(0).aS.helix;
+        double phiS = hx.planeIntersect(mod.p);
+        if (Double.isNaN(phiS)) phiS = 0.;
+        Vec intGlb = hx.toGlobal(hx.atPhi(phiS));
+        if (rGbl != null) {
+            rGbl[0] = intGlb.v[0];
+            rGbl[1] = intGlb.v[1];
+            rGbl[2] = intGlb.v[2];
+        }
+        Vec intLcl = mod.toLocal(intGlb);
+        return intLcl.v[1];
+    }
+    
     private void makeLyrMap() {
         lyrMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
