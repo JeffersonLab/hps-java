@@ -45,24 +45,37 @@ public class EcalMuonCalibrationAnalysisDriver {
         // Define the root directory for the plots.
         boolean showPlots = true;
         boolean writePlots = false;
+        String plotDir = "single muon";
         String fileType = "pdf"; // png, pdf, eps ps svg emf swf
         String rootDir = null;
         String plotFile = null;
-        if (args.length == 0) {
-            System.out.println("Usage: java EcalMuonCalibrationAnalysisDriver histogramFile.aida <filetype>");
-            System.out.println("       if filetype not specified, plots will be shown interactively");
-            System.out.println("       if filetype is specified, plots will be written to that format");
-            System.out.println("       available formats are: png, pdf, eps ps svg emf swf");
-            return;
+        boolean debug = false;
+        if (debug) {
+            plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/combined_plots.aida";
+        } else {
+            if (args.length == 0) {
+                System.out.println("Usage: java EcalMuonCalibrationAnalysisDriver histogramFile.aida <plotDir> <filetype>");
+                System.out.println("       available dirs are 'dimuon' , 'dimuon one cluster' and 'single muon' ");
+                System.out.println("       if plotDir is not specified, plots from 'single muon' will be analyzed");
+                System.out.println("       if filetype not specified, plots will be shown interactively");
+                System.out.println("       if filetype is specified, plots will be written to that format");
+                System.out.println("       available formats are: png, pdf, eps ps svg emf swf");
+                return;
+            }
+            if (args.length > 0) {
+                plotFile = args[0];
+            }
+            if(args.length > 1)
+            {
+                plotDir = args[1];
+            }
+            if (args.length > 2) {
+                showPlots = false;
+                writePlots = true;
+                fileType = args[2];
+            }
         }
-        if (args.length > 0) {
-            plotFile = args[0];
-        }
-        if (args.length > 1) {
-            showPlots = false;
-            writePlots = true;
-            fileType = args[1];
-        }
+
         // Get the plots file and open it.
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
 //        IPlotter plotter = analysisFactory.createPlotterFactory().create("Fit.java Plot");
@@ -132,76 +145,90 @@ public class EcalMuonCalibrationAnalysisDriver {
 //        tst.setParameter("plotterWidth", "1600");
 //        tst.setParameter("plotterHeight", "900");
         for (String type : types) {
-            for (int ix = -23; ix < 24; ++ix) {
-                int region = 0;
+            for (int indexx = 1; indexx < 24; ++indexx) {
+                int ix = indexx;
+                if (type.equals("mu-")) {
+                    ix = -indexx;
+                }
+//                int region = 0;
                 for (int iy = -5; iy < 6; ++iy) {
-                    if (iy != 0) {
-                        region++;
-                    }
-                    String histoName = ix + " " + iy + " " + type + " crystal energy";
-                    if (objectNameList.contains("/single muon/clusterAnalysis/" + histoName)) {
-                        IHistogram1D hist = (IHistogram1D) tree.find("/single muon/clusterAnalysis/" + histoName);
+//                    if (iy != 0) {
+//                        region++;
+//                    }
 
-                        if (hist.allEntries() > 500) {
+                    String histoName = ix + " " + iy + " " + type + " crystal energy";
+                    if (objectNameList.contains("/"+plotDir+"/clusterAnalysis/" + histoName)) {
+                        IHistogram1D hist = (IHistogram1D) tree.find("/"+plotDir+"/clusterAnalysis/" + histoName);
+
+                        if (hist.entries() > 1000) {
                             double[] par = new double[3];
                             par[0] = hist.maxBinHeight();
-                            par[1] = hist.mean();
-                            par[2] = hist.rms();
+                            par[1] = ix < 0 ? 0.176 : 0.184; //hist.mean();
+                            par[2] = 0.02;//hist.rms();
                             double lo = par[1] - 1.5 * par[2];
                             double hi = par[1] + 1.5 * par[2];
                             gaussian.setParameters(par);
-                            IFitResult fitResult = fitter.fit(hist, gaussian, "range=\"(" + lo + "," + hi + ")\"");
-                            IPlotter plotter = analysisFactory.createPlotterFactory().create(histoName);
-                            plotter.region(0).plot(hist, dataStyle);
-                            //plotter.region(0).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
-                            //plotter.show();
-                            //iterate once?
-                            IFunction f = fitResult.fittedFunction();
-                            double[] fitPars = f.parameters();
+                            try {
+                                IFitResult fitResult = fitter.fit(hist, gaussian, "range=\"(" + lo + "," + hi + ")\"");
+                                if (!fitResult.isValid()) {
+                                    System.out.println("fit result not valid!");
+                                }
+                                IPlotter plotter = analysisFactory.createPlotterFactory().create(histoName);
+                                plotter.region(0).plot(hist, dataStyle);
+//                                plotter.region(0).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
+//                                plotter.show();
+                                //iterate once?
+                                IFunction f = fitResult.fittedFunction();
+                                double[] fitPars = f.parameters();
 
-                            par[0] = fitPars[0];
-                            par[1] = fitPars[1];
-                            par[2] = abs(fitPars[2]);
-                            lo = par[1] - 1. * par[2];
-                            hi = par[1] + 1. * par[2];
-                            gaussian.setParameters(par);
-                            fitResult = fitter.fit(hist, gaussian, "range=\"(" + lo + "," + hi + ")\"");
-                            f = fitResult.fittedFunction();
-                            fitPars = f.parameters();
-                            String[] parNames = f.parameterNames();
+                                par[0] = fitPars[0];
+                                par[1] = fitPars[1];
+                                par[2] = abs(fitPars[2]);
+                                lo = par[1] - 1. * par[2];
+                                hi = par[1] + 1. * par[2];
+                                gaussian.setParameters(par);
+                                fitResult = fitter.fit(hist, gaussian, "range=\"(" + lo + "," + hi + ")\"");
+                                f = fitResult.fittedFunction();
+                                fitPars = f.parameters();
+                                String[] parNames = f.parameterNames();
 //                            for (int i = 0; i < f.numberOfParameters(); ++i) {
 //                                System.out.println(parNames[i] + " : " + fitPars[i]);
 //                            }
-                            System.out.println(histoName + " has " + hist.allEntries() + " entries: " + parNames[0] + " : " + fitPars[0] + " " + parNames[1] + " : " + fitPars[1] + " " + parNames[2] + " : " + fitPars[2]);
-                            //plotter.region(0).plot(hist, dataStyle);
-                            plotter.region(0).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
-                            if (fitPars[1] > 0.1 && fitPars[1] < 0.3) {
-                                aida.histogram1D(type + " ECal Row " + iy + " MIP mean", 47, -23.5, 23.5).fill(ix, fitPars[1]);
-                                aida.histogram2D("Cluster ix iy MIP peak mean energy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy, fitPars[1]);
-                                aida.histogram2D(type + " Cluster ix iy MIP peak mean energy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy, fitPars[1]);
-                                tst.region(regionMap.get(iy)).plot(aida.histogram1D(type + " ECal Row " + iy + " MIP mean"));
-                            }
-                            // test multiple plot plotter
+                                System.out.println(histoName + " has " + hist.allEntries() + " entries: " + parNames[0] + " : " + fitPars[0] + " " + parNames[1] + " : " + fitPars[1] + " " + parNames[2] + " : " + fitPars[2]);
+                                //plotter.region(0).plot(hist, dataStyle);
+                                plotter.region(0).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
+                                if (fitPars[1] > 0.1 && fitPars[1] < 0.3) { // only continue with "good" fits
+                                    aida.histogram1D(type + " ECal Row " + iy + " MIP mean", 47, -23.5, 23.5).fill(ix, fitPars[1]);
+                                    aida.histogram2D("Cluster ix iy MIP peak mean energy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy, fitPars[1]);
+                                    aida.histogram2D(type + " Cluster ix iy MIP peak mean energy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy, fitPars[1]);
+                                    tst.region(regionMap.get(iy)).plot(aida.histogram1D(type + " ECal Row " + iy + " MIP mean"));
+
+                                    // test multiple plot plotter
 //                            tst.region(region).plot(hist, dataStyle);
 //                            tst.region(region).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
-                            if (showPlots) {
-                                plotter.show();
+                                    if (showPlots) {
+                                        plotter.show();
 //                                tst.show();
 //                                plotter.clearRegions();
-                            }
+                                    }
 
-                            if (writePlots) {
-                                plotter.writeToFile("Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.pdf");
-                                plotter.writeToFile("Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.png");
-                                plotters.add(plotter);
+                                    if (writePlots) {
+                                        plotter.writeToFile(plotDir+" Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.pdf");
+                                        plotter.writeToFile(plotDir+" Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.png");
+                                        plotters.add(plotter);
+                                    }
+                                }
+                            } catch (Exception ex) {
+                                //System.out.println("problem with histogram /single muon/clusterAnalysis/" + histoName);
+                                ex.printStackTrace();
                             }
                         }
                     }
                 }
             }
         }
-        aida.saveAs("ECalibration.aida");
-        aida.saveAs("ECalibration.root");
+        aida.saveAs(plotDir+" ECalibration.aida");
+        aida.saveAs(plotDir+" ECalibration.root");
 //        if(writePlots)
 //        {
 //            String[] comments = {"test output"};
