@@ -3,7 +3,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
   
-  <info name="HPS_UChannelTranslations_iter0">
+  <info name="HPS_NewAlParAll0_iter0">
     <comment>HPS detector for 2019 run with fieldmap,
     Tracker at nominal opening angle, no SVT survey,  
     this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV.
