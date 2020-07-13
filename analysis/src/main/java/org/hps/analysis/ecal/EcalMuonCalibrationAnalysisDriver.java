@@ -65,8 +65,7 @@ public class EcalMuonCalibrationAnalysisDriver {
             if (args.length > 0) {
                 plotFile = args[0];
             }
-            if(args.length > 1)
-            {
+            if (args.length > 1) {
                 plotDir = args[1];
             }
             if (args.length > 2) {
@@ -157,14 +156,17 @@ public class EcalMuonCalibrationAnalysisDriver {
 //                    }
 
                     String histoName = ix + " " + iy + " " + type + " crystal energy";
-                    if (objectNameList.contains("/"+plotDir+"/clusterAnalysis/" + histoName)) {
-                        IHistogram1D hist = (IHistogram1D) tree.find("/"+plotDir+"/clusterAnalysis/" + histoName);
+                    if (objectNameList.contains("/" + plotDir + "/clusterAnalysis/" + histoName)) {
+                        IHistogram1D hist = (IHistogram1D) tree.find("/" + plotDir + "/clusterAnalysis/" + histoName);
 
                         if (hist.entries() > 1000) {
                             double[] par = new double[3];
                             par[0] = hist.maxBinHeight();
-                            par[1] = ix < 0 ? 0.176 : 0.184; //hist.mean();
-                            par[2] = 0.02;//hist.rms();
+                            par[1] = ix < 0 ? 0.176 : 0.184;
+                            if (plotDir.equals("mc")) {
+                                par[1] = hist.mean();
+                                par[2] = hist.rms();
+                            }
                             double lo = par[1] - 1.5 * par[2];
                             double hi = par[1] + 1.5 * par[2];
                             gaussian.setParameters(par);
@@ -213,8 +215,8 @@ public class EcalMuonCalibrationAnalysisDriver {
                                     }
 
                                     if (writePlots) {
-                                        plotter.writeToFile(plotDir+" Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.pdf");
-                                        plotter.writeToFile(plotDir+" Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.png");
+                                        plotter.writeToFile(plotDir + " Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.pdf");
+                                        plotter.writeToFile(plotDir + " Single Crystal Cluster " + ix + " " + iy + " " + type + " MIP peak mean energy.png");
                                         plotters.add(plotter);
                                     }
                                 }
@@ -227,8 +229,8 @@ public class EcalMuonCalibrationAnalysisDriver {
                 }
             }
         }
-        aida.saveAs(plotDir+" ECalibration.aida");
-        aida.saveAs(plotDir+" ECalibration.root");
+        aida.saveAs(plotDir + " ECalibration.aida");
+        aida.saveAs(plotDir + " ECalibration.root");
 //        if(writePlots)
 //        {
 //            String[] comments = {"test output"};
