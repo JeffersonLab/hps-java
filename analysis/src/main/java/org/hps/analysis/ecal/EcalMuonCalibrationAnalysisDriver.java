@@ -51,7 +51,7 @@ public class EcalMuonCalibrationAnalysisDriver {
         String plotFile = null;
         boolean debug = false;
         if (debug) {
-            plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/combined_plots.aida";
+            plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/combined_plots_20200712.aida";
         } else {
             if (args.length == 0) {
                 System.out.println("Usage: java EcalMuonCalibrationAnalysisDriver histogramFile.aida <plotDir> <filetype>");
