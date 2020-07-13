@@ -16,13 +16,16 @@ import org.lcsim.util.aida.AIDA;
  * @author Norman A> Graf
  */
 public class EcalMuonMCGainCalibrationDriver extends Driver {
-    
+
     private AIDA aida = AIDA.defaultInstance();
-    
+
     protected void process(EventHeader event) {
-        
+
         List<MCParticle> mcparticles = event.get(MCParticle.class, "MCParticle");
         // should I insist on one and only one MCParticle?
+        if (mcparticles.isEmpty()) {
+            return;
+        }
         int pdgId = mcparticles.get(0).getPDGID();
         String type = "";
         if (pdgId == 13) {
@@ -48,10 +51,10 @@ public class EcalMuonMCGainCalibrationDriver extends Driver {
                     analyzeCluster(cluster, type);
                 }
             }
-            aida.tree().cd("..");            
+            aida.tree().cd("..");
         }
     }
-    
+
     void analyzeCluster(Cluster cluster, String type) {
         if (cluster.getCalorimeterHits().size() == 1) {
             aida.tree().mkdirs("clusterAnalysis");
