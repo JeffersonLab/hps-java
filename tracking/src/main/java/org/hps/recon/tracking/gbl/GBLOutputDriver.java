@@ -572,7 +572,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,6.);
                                 
-                aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t,0,50);
+                aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t,0,100);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,14,0,14);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_x"+vol+charge,nbins_t,-3,3);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_y"+vol+charge,nbins_t,-3,3);
