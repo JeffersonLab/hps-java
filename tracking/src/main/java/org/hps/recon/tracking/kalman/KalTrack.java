@@ -810,13 +810,9 @@ public class KalTrack {
     // Comparator function for sorting tracks by quality
     static Comparator<KalTrack> TkrComparator = new Comparator<KalTrack>() {
         public int compare(KalTrack t1, KalTrack t2) {
-            double chi1 = t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.);
-            double chi2 = t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.);
-            if (chi1 < chi2) {
-                return -1;
-            } else {
-                return +1;
-            }
+            Double chi1 = new Double(t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.));
+            Double chi2 = new Double(t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.));
+            return chi1.compareTo(chi2);
         }
     };
 

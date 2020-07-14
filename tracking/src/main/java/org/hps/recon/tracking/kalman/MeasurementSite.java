@@ -658,22 +658,14 @@ class MeasurementSite {
         public int compare(MeasurementSite s1, MeasurementSite s2) {
             int lyr1 = s1.m.Layer;
             int lyr2 = s2.m.Layer;
-            if (lyr1 < lyr2) {
-                return -1;
-            } else {
-                return 1;
-            }
+            return lyr1 - lyr2;
         }
     };
     static Comparator<MeasurementSite> SiteComparatorDn = new Comparator<MeasurementSite>() {
         public int compare(MeasurementSite s1, MeasurementSite s2) {
             int lyr1 = s1.m.Layer;
             int lyr2 = s2.m.Layer;
-            if (lyr1 < lyr2) {
-                return 1;
-            } else {
-                return -1;
-            }
+            return lyr2 - lyr1;
         }
     };
 }
