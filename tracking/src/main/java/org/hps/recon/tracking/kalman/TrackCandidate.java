@@ -350,7 +350,7 @@ class TrackCandidate {
             
             double chi1 = t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/12.) + p1;
             double chi2 = t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/12.) + p2;
-            if (chi1 < chi2) {
+            if (chi1 <= chi2) {
                 return -1;
             } else {
                 return +1;
