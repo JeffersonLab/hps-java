@@ -556,6 +556,7 @@ public class GBLOutputDriver extends Driver {
         
         //For momentum
         int nbins_p = 150;
+        double pmax = 8.;
         
         double z0max = 1;
         double d0max = 5;
@@ -570,7 +571,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"z0"+vol+charge,nbins_t,-1.3,1.3);
                 aidaGBL.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.3,0.3);
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
-                aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,6.);
+                aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t,0,100);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,14,0,14);
@@ -590,10 +591,10 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_phi"+vol+charge,nbins_t,-0.3,0.3,nbins_t,-5.0,5.0);
                 //aidaGBL.histogram2D("d0_vs_phi_bs"+vol+charge,nbins_t,-5.0,5.0,nbins_t,-0.3,0.3);
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
-                aidaGBL.histogram2D(trkpFolder+"d0_vs_p"+vol+charge,  nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
-                aidaGBL.histogram2D(trkpFolder+"d0bs_vs_p"+vol+charge,nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
-                aidaGBL.histogram2D(trkpFolder+"z0_vs_p"+vol+charge,  nbins_p,0.0,6.0,nbins_t,-5.0,5.0);
-                aidaGBL.histogram2D(trkpFolder+"z0bs_vs_p"+vol+charge,nbins_p,0.0,6.0,nbins_t,-z0bsmax,z0bsmax);
+                aidaGBL.histogram2D(trkpFolder+"d0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D(trkpFolder+"d0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D(trkpFolder+"z0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D(trkpFolder+"z0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-z0bsmax,z0bsmax);
                 aidaGBL.histogram2D(trkpFolder+"z0_vs_tanLambda"+vol+charge,  nbins_t,-0.1,0.1,nbins_t,-z0max,z0max);
                 aidaGBL.histogram2D(trkpFolder+"z0bs_vs_tanLambda"+vol+charge,nbins_t,-0.1,0.1,nbins_t,-z0bsmax,z0bsmax);
                 
