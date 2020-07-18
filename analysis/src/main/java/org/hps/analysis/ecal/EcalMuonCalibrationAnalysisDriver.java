@@ -163,9 +163,10 @@ public class EcalMuonCalibrationAnalysisDriver {
                             double[] par = new double[3];
                             par[0] = hist.maxBinHeight();
                             par[1] = ix < 0 ? 0.176 : 0.184;
+                            par[2] = 0.02;
                             if (plotDir.equals("mc")) {
                                 par[1] = hist.mean();
-                                par[2] = hist.rms();
+//                                par[2] = hist.rms();
                             }
                             double lo = par[1] - 1.5 * par[2];
                             double hi = par[1] + 1.5 * par[2];
