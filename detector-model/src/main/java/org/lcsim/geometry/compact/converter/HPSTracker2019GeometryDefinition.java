@@ -41,12 +41,20 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // and
         // the survey corrections based on the XML node
         // FIX THIS! //TODO
+        
         AlignmentCorrection alignmentCorrections = new AlignmentCorrection();
         alignmentCorrections.setNode(node);
         AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
         supBotCorr.setNode(node);
         AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
         supTopCorr.setNode(node);
+
+        AlignmentCorrection supBotCorrBack = getUChannelCorrection(false,90);
+        supBotCorrBack.setNode(node);
+        AlignmentCorrection supTopCorrBack = getUChannelCorrection(true,90);
+        supTopCorr.setNode(node);
+        
+        
         
         // Build the geometry from the basic building blocks in the geometry
         // definition class
@@ -114,14 +122,14 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         
         //System.out.println("Constructed uChannelL14TopPlate: " + uChannelL14TopPlate.toString());
 
-        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrections);
+        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, supBotCorrBack);
         surveyVolumes.add(uChannelL46Bottom);
 
         UChannelL46Plate uChannelL46BottomPlate = new UChannelL46BottomPlate("support_plate_bottom_L46", svtBox, null,
                 uChannelL46Bottom);
         surveyVolumes.add(uChannelL46BottomPlate);
 
-        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, alignmentCorrections);
+        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, supTopCorrBack);
         surveyVolumes.add(uChannelL46Top);
 
         UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate("support_plate_top_L46", svtBox, null,
