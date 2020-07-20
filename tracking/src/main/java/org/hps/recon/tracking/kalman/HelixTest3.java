@@ -39,6 +39,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         int nStereo = 4; // Number of stereo layers needed by the linear fit
         boolean cheat = false; // true to use the true helix parameters (smeared) for the starting guess
         boolean perfect = false;
+        double [] vtxRes = {0.1, 0.5, 0.05};
 
         boolean verbose = nTrials < 2;
         
@@ -233,7 +234,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double resolution = 0.006; // SSD point resolution, in mm
 
         double Q = -1.0;
-        double p = 1.0;
+        double p = 1.3;
         double hitEfficiency = 1.0;
 
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helix
@@ -245,7 +246,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             bf = new Vec(3,fMg.getField(new Vec(xdet[pln], ydet[pln], zdet[pln])));
             System.out.format("MC generator B field at module %d = %10.7f, %10.7f, %10.7f\n", pln, bf.v[0], bf.v[1], bf.v[2]);
         }
-        double Phi = 91. * Math.PI / 180.;
+        double Phi = 91.5 * Math.PI / 180.;
         double Theta = 88. * Math.PI / 180.;
         Vec initialDirection = new Vec(Math.cos(Phi) * Math.sin(Theta), Math.sin(Phi) * Math.sin(Theta), Math.cos(Theta));
         initialDirection.print("initial particle direction");
@@ -349,6 +350,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram hChi2Helix = new Histogram(80, 0., 0.4, "filtered chi^2 of helix parameters", "chi^2", "tracks");
         Histogram hChi2Guess = new Histogram(80, 0., 2.0, "chi^2 of guess helix parameters", "chi^2", "tracks");
         Histogram hChi2Origin = new Histogram(80, 0., .4, "Helix parameters chi^2 at the origin", "chi^2", "tracks");
+        Histogram hChi2OriginC = new Histogram(80, 0., .4, "Helix parameters chi^2 at the origin, constrained", "chi^2", "tracks");
         Histogram hRes = new Histogram(100, -.25, 0.005, "detector resolution", "mm", "hits");
         Histogram hEdrho = new Histogram(100, -10., 0.2, "Filtered helix parameter drho error", "sigmas", "track");
         Histogram hEphi0 = new Histogram(100, -10., 0.2, "Filtered helix parameter phi0 error", "sigmas", "track");
@@ -365,6 +367,21 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram hEkO = new Histogram(100, -10., 0.2, "Origin helix parameter K error", "sigmas", "track");
         Histogram hEdzO = new Histogram(100, -10., 0.2, "Origin helix parameter dz error", "sigmas", "track");
         Histogram hEtanlO = new Histogram(100, -10., 0.2, "Origin helix parameter tanl error", "sigmas", "track");
+        Histogram hEdrhoSigO = new Histogram(100, -10., 0.2, "Origin helix parameter drho constrained error", "sigmas", "track");
+        Histogram hEphi0SigO = new Histogram(100, -10., 0.2, "Origin helix parameter phi0 constrained error", "sigmas", "track");
+        Histogram hEkSigO = new Histogram(100, -10., 0.2, "Origin helix parameter K constrained error", "sigmas", "track");
+        Histogram hEdzSigO = new Histogram(100, -10., 0.2, "Origin helix parameter dz constrained error", "sigmas", "track");
+        Histogram hEtanlSigO = new Histogram(100, -10., 0.2, "Origin helix parameter tanl constrained error", "sigmas", "track");
+        Histogram hEadrhoO = new Histogram(100, -1., 0.02, "Origin helix parameter drho error", "mm", "track");
+        Histogram hEaphi0O = new Histogram(100, -0.02, 0.0004, "Origin helix parameter phi0 error", "radians", "track");
+        Histogram hEakO = new Histogram(100, -0.5, 0.01, "Origin helix parameter K error", "1/GeV", "track");
+        Histogram hEadzO = new Histogram(100, -0.4, 0.008, "Origin helix parameter dz error", "mm", "track");
+        Histogram hEatanlO = new Histogram(100, -0.005, 0.0001, "Origin helix parameter tanl error", " ", "track");
+        Histogram hEcdrhoO = new Histogram(100, -1., 0.02, "Origin helix parameter drho constrained error", "mm", "track");
+        Histogram hEcphi0O = new Histogram(100, -0.02, 0.0004, "Origin helix parameter phi0 constrained error", "radians", "track");
+        Histogram hEckO = new Histogram(100, -0.5, 0.01, "Origin helix parameter K constrained error", "1/GeV", "track");
+        Histogram hEcdzO = new Histogram(100, -0.4, 0.008, "Origin helix parameter dz constrained error", "mm", "track");
+        Histogram hEctanlO = new Histogram(100, -0.005, 0.0001, "Origin helix parameter tanl constrained error", " ", "track");
         Histogram hResid0 = new Histogram(100, -10., 0.2, "Filtered residual for axial planes", "sigmas", "hits");
         Histogram hResid1 = new Histogram(100, -10., 0.2, "Filtered residual for stereo planes", "sigmas", "hits");
         Histogram hEdrhoG = new Histogram(100, -40., 0.8, "Helix guess drho error", "sigmas", "track");
@@ -845,6 +862,18 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             }
             // end of test of helix propagation
             
+            // Test the vertex constraint
+            Vec vtx = helixOrigin.copy();
+            for (int i=0; i<3; ++i) {
+                vtx.v[i] += rnd.nextGaussian() * vtxRes[i];
+            }
+            SquareMatrix vtxCov = new SquareMatrix(3);
+            vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
+            vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
+            vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
+            HelixState constrainedHelix = KalmanTrack.originConstraint(vtx.v, vtxCov.M);
+            //constrainedHelix.print("constrained");
+            //KalmanTrack.helixAtOrigin.print("unconstrained");
             double chi2s = 0.;
             ArrayList<MeasurementSite> sites = kF.sites;
             for (MeasurementSite site : sites) {
@@ -989,11 +1018,28 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     testCov = new SquareMatrix(5,KalmanTrack.originCovariance());
                     double[] hErr = new double[5];
                     for (int i = 0; i < 5; ++i) { hErr[i] = (hP[i] - TkInitial.p.v[i]); }
+                    double[] hErrC = new double[5];
+                    for (int i = 0; i < 5; ++i) { hErrC[i] = (constrainedHelix.a.v[i] - TkInitial.p.v[i]); }
                     hEdrhoO.entry(hErr[0] / KalmanTrack.helixErr(0));
                     hEphi0O.entry(hErr[1] / KalmanTrack.helixErr(1));
                     hEkO.entry(hErr[2] / KalmanTrack.helixErr(2));
                     hEdzO.entry(hErr[3] / KalmanTrack.helixErr(3));
                     hEtanlO.entry(hErr[4] / KalmanTrack.helixErr(4));
+                    hEdrhoSigO.entry(hErrC[0] / Math.sqrt(constrainedHelix.C.M[0][0]));
+                    hEphi0SigO.entry(hErrC[1] / Math.sqrt(constrainedHelix.C.M[1][1]));
+                    hEkSigO.entry(hErrC[2] / Math.sqrt(constrainedHelix.C.M[2][2]));
+                    hEdzSigO.entry(hErrC[3] / Math.sqrt(constrainedHelix.C.M[3][3]));
+                    hEtanlSigO.entry(hErrC[4] / Math.sqrt(constrainedHelix.C.M[4][4]));
+                    hEadrhoO.entry(hErr[0]);
+                    hEaphi0O.entry(hErr[1]);
+                    hEakO.entry(hErr[2]);
+                    hEadzO.entry(hErr[3]);
+                    hEatanlO.entry(hErr[4]);
+                    hEcdrhoO.entry(hErrC[0]);
+                    hEcphi0O.entry(hErrC[1]);
+                    hEckO.entry(hErrC[2]);
+                    hEcdzO.entry(hErrC[3]);
+                    hEctanlO.entry(hErrC[4]);
                     double[] originPnt = KalmanTrack.originX();
                     double[] originMom = KalmanTrack.originP();
                     double[][] xCov = KalmanTrack.originXcov();
@@ -1005,13 +1051,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                         pErr[i] = (originMom[i] - momentum.v[i]) / Math.sqrt(pCov[i][i]);
                     }
                     Vec oHerr = new Vec(5, hErr);
+                    Vec cHerr = new Vec(5, hErrC);
                     SquareMatrix oCov = new SquareMatrix(5, KalmanTrack.originCovariance());
-                    SquareMatrix corr = new SquareMatrix(5);
-                    for (int i = 0; i < 5; ++i) {
-                        for (int j = 0; j < 5; ++j) { corr.M[i][j] = oCov.M[i][j] / KalmanTrack.helixErr(i) / KalmanTrack.helixErr(j); }
-                    }
                     double oHelixChi2 = oHerr.dot(oHerr.leftMultiply(oCov.invert()));
+                    double cHelixChi2 = cHerr.dot(cHerr.leftMultiply(constrainedHelix.C.invert()));
                     hChi2Origin.entry(oHelixChi2);
+                    hChi2OriginC.entry(cHelixChi2);
                     if (verbose) {
                         helixOrigin.print("MC True particle origin");
                         System.out.format("Fitted particle origin=%10.6f %10.6f %10.6f\n", originPnt[0], originPnt[1], originPnt[2]);
@@ -1060,6 +1105,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         hChi2f.plot(path + "chi2f.gp", true, " ", " ");
         hChi2HelixS.plot(path + "chi2helixS.gp", true, " ", " ");
         hChi2Origin.plot(path + "chi2helixO.gp", true, " ", " ");
+        hChi2OriginC.plot(path + "chi2helixOc.gp", true, " ", " ");
         hChi2Helix.plot(path + "chi2helixF.gp", true, " ", " ");
         hChi2Guess.plot(path + "chi2HelixGuess.gp", true, " ", " ");
         hRes.plot(path + "resolution.gp", true, " ", " ");
@@ -1078,6 +1124,21 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         hEkO.plot(path + "kErrorO.gp", true, "gaus", " ");
         hEdzO.plot(path + "dzErrorO.gp", true, "gaus", " ");
         hEtanlO.plot(path + "tanlErrorO.gp", true, "gaus", " ");
+        hEdrhoSigO.plot(path + "drhoErrorSigO.gp", true, "gaus", " ");
+        hEphi0SigO.plot(path + "phi0ErrorSigO.gp", true, "gaus", " ");
+        hEkSigO.plot(path + "kErrorSigO.gp", true, "gaus", " ");
+        hEdzSigO.plot(path + "dzErrorSigO.gp", true, "gaus", " ");
+        hEtanlSigO.plot(path + "tanlErrorSigO.gp", true, "gaus", " ");
+        hEadrhoO.plot(path + "drhoErrorOa.gp", true, "gaus", " ");
+        hEaphi0O.plot(path + "phi0ErrorOa.gp", true, "gaus", " ");
+        hEakO.plot(path + "kErrorOa.gp", true, "gaus", " ");
+        hEadzO.plot(path + "dzErrorOa.gp", true, "gaus", " ");
+        hEatanlO.plot(path + "tanlErrorOa.gp", true, "gaus", " ");
+        hEcdrhoO.plot(path + "drhoErrorOc.gp", true, "gaus", " ");
+        hEcphi0O.plot(path + "phi0ErrorOc.gp", true, "gaus", " ");
+        hEckO.plot(path + "kErrorOc.gp", true, "gaus", " ");
+        hEcdzO.plot(path + "dzErrorOc.gp", true, "gaus", " ");
+        hEctanlO.plot(path + "tanlErrorOc.gp", true, "gaus", " ");
         hEdrhoG.plot(path + "drhoErrorG.gp", true, " ", " ");
         hEphi0G.plot(path + "phi0ErrorG.gp", true, " ", " ");
         hEkG.plot(path + "kErrorG.gp", true, " ", " ");

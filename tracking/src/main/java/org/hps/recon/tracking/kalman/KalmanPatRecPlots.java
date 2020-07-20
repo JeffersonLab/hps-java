@@ -94,11 +94,11 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman hit true error over uncertainty", 100, -5., 5.);
-        aida.histogram1D("Kalman track Momentum 11-hit", 100, 0., 10.);
-        aida.histogram1D("Kalman track Momentum 12-hit", 100, 0., 10.);
-        aida.histogram1D("Kalman track Momentum 13-hit", 100, 0., 10.);
-        aida.histogram1D("Kalman track Momentum 14-hit", 100, 0., 10.);
-        aida.histogram1D("GBL momentum", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 11-hit", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 12-hit", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 13-hit", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 14-hit", 100, 0., 5.);
+        aida.histogram1D("GBL momentum, >= 12 hits", 100, 0., 5.);
         aida.histogram1D("dRho", 100, -5., 5.);
         aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
         aida.histogram1D("z0", 100, -2., 2.);
@@ -633,7 +633,7 @@ class KalmanPatRecPlots {
                             aida.histogram1D("GBL pt inverse, sigmas").fill((ptInvGBL-ptInvTrue)/ptInvErr);
                         }
                         double pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
-                        aida.histogram1D("GBL momentum").fill(pMag);
+                        if (nGBLhits >= 12) aida.histogram1D("GBL momentum, >= 12 hits").fill(pMag);
                         //System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));
                         //System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));
                         //System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);

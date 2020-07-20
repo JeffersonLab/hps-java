@@ -19,8 +19,8 @@ class RKhelix {
     RKhelix(Vec x, Vec p, double Q, org.lcsim.geometry.FieldMap fM, Random rndm) {
         this.rndm = rndm;
         this.fM = fM;
-        this.x = x;
-        this.p = p;
+        this.x = x.copy();
+        this.p = p.copy();
         this.Q = Q;
         hpi = new HelixPlaneIntersect();
         rho = 2.329; // Density of silicon in g/cm^2
