@@ -157,8 +157,59 @@ public abstract class HPSTrackerBuilder {
         return c;
     }
     
+
+    /** Extract @AlignmentCorrections for the support 
+     * @param isTopLayer - top or bottom layer
+     * @param MPID of the global structure
+     *
+     */
+
+    protected AlignmentCorrection getUChannelCorrection(boolean isTopLayer, int mpid) {
+        boolean localDebug = true;
+        double r[] = {0, 0, 0};
+        double t[] = {0, 0, 0};
+        for (MilleParameter p_loop : milleparameters) {
+            boolean paramIsTop = p_loop.getHalf() == 1 ? true : false;
+            
+            //Loop over the translations
+            if (paramIsTop == isTopLayer && p_loop.getType() == 1) {
+                
+                //Select over the MPID to grab the translations corrections
+                if (p_loop.getSensor() != mpid)
+                    continue;
+                //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                // get the correction
+                t[p_loop.getDim() - 1] = p_loop.getValue();
+            }
+            
+            //Loop over the rotations
+            if (paramIsTop == isTopLayer && p_loop.getType() == 2) {
+                // Select over the MPID to grap the rotation corrections
+                if (p_loop.getSensor() != mpid)
+                    continue;
+                //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                // get the correction
+                r[p_loop.getDim() - 1] = p_loop.getValue();
+            }
+            
+        }
+        
+        AlignmentCorrection c = new AlignmentCorrection();
+        c.setTranslation(new BasicHep3Vector(t));
+        c.setRotation(r[0], r[1], r[2]);
+        
+        if (localDebug) {
+            System.out.println(this.getClass().getSimpleName()+" PF::Debug::Alignment correction for MPII-ID top=" + isTopLayer);
+            System.out.println("t[0] = " + t[0] + " t[1]= " + t[1]+ " t[2]=" + t[2]);
+            System.out.println("r[0] = " + r[0] + " r[1]= " + r[1]+ " r[2]=" + r[2]);
+        }
+        return c;
+    }
+    
+    
+
     /**
-     * Extract @AlignmentCorrection for the support
+     * Extract @AlignmentCorrection for the support - kept for backward compatibility
      * 
      * @param isTopLayer - top or bottom layer
      * @return the alignment correction
@@ -173,7 +224,7 @@ public abstract class HPSTrackerBuilder {
             //Loop over the translations
             if (paramIsTop == isTopLayer && p_loop.getType() == 1) {
                 // xcheck The L13-UChannel has MPID 0
-                if (p_loop.getSensor() != 0)
+                if (p_loop.getSensor() != 0 || p_loop.getSensor() != 80)
                     continue;
                 //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
                 // get the correction
@@ -182,8 +233,8 @@ public abstract class HPSTrackerBuilder {
             
             //Loop over the rotations
             if (paramIsTop == isTopLayer && p_loop.getType() == 2) {
-                // xcheck The L13-UChannel has MPID 0
-                if (p_loop.getSensor() != 0)
+                // xcheck The L13-UChannel has MPID 80. Keep 0 for the moment as some compacts still have 0s.
+                if (p_loop.getSensor() != 0 || p_loop.getSensor() != 80)
                     continue;
                 //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
                 // get the correction

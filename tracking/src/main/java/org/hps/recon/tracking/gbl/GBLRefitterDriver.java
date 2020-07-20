@@ -73,7 +73,7 @@ public class GBLRefitterDriver extends Driver {
     private String trackResidualsColName = "TrackResidualsGBL";
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
-
+    
     private double bfield;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
     private boolean storeTrackStates = false;
@@ -222,7 +222,7 @@ public class GBLRefitterDriver extends Driver {
 
         if (aidaGBL == null)
             aidaGBL = AIDA.defaultInstance();
-        
+
         aidaGBL.tree().cd("/");
 
         setupPlots();
@@ -443,7 +443,7 @@ public class GBLRefitterDriver extends Driver {
                             }
                             
                             //The same sensor will be contained in multiple Composite structures. 
-                            //For the moment I'll try to align the front support and back UChannels.
+                            //For the moment I'll try to align the front support and back UChannels. HARDCODED!
                             
                             AlignableDetectorElement myade = (AlignableDetectorElement) mysensor.getAdeMother().getParent();
                             
@@ -684,7 +684,7 @@ public class GBLRefitterDriver extends Driver {
         
         //loop on the sensors list:
         
-        System.out.println("PF::CustomConstraint::"+ade.getName());
+        //System.out.println("PF::CustomConstraint::"+ade.getName());
         
         for (SiSensor sensor : hps_sensors) {
             
@@ -697,7 +697,9 @@ public class GBLRefitterDriver extends Driver {
 
                 List<Integer> sc_labels = hps_sensor.getMPIILabels();
                 
-                System.out.println("PF::Sensor belongs::"+hps_sensor.getName());
+                if (debugAlignmentDs) {
+                    System.out.println("PF::Sensor belongs::"+hps_sensor.getName());
+                }
                 
                 //System.out.printf("Derivatives labels: \n%s\n", sc_labels.toString());
                 //Get the rotation and translation of the child sub-component
@@ -706,10 +708,17 @@ public class GBLRefitterDriver extends Driver {
                 
                 //Compute the CMatrix of mother => child
                 Matrix C_matrix = f2fD.getDerivative(Rgtosc, Rgtoc, Tgtosc, Tgtoc);
+                
                 Matrix C_matrixInv = C_matrix.inverse();
-
-                C_matrixInv.print(6,6);
-
+                
+                if (debugAlignmentDs) {
+                    System.out.println("CMATRIX::");
+                    C_matrix.print(6,6);
+                
+                    System.out.println("CMATRIX-1::");
+                    C_matrixInv.print(6,6);
+                }
+                
                 FormatConstraint(C_matrixInv, nc, constraints, sc_labels, MPIIFormat);
                 
             }//sensor belongs 
@@ -747,14 +756,17 @@ public class GBLRefitterDriver extends Driver {
                 
                 //Compute the CMatrix of mother => child
                 Matrix C_matrix = f2fD.getDerivative(Rgtosc, Rgtoc, Tgtosc, Tgtoc);
-                
-                //System.out.printf("CMatrix\n");
-                C_matrix.print(6,6);
-                
-                //Invert the C_Matrix ( PF::TODO::It is enough to compute the transpose of C11, C12, C22)
-                //System.out.printf("CMatrix_inv\n");
                 Matrix C_matrixInv = C_matrix.inverse();
-                C_matrixInv.print(6,6);
+                
+                if (debugAlignmentDs) {
+                    System.out.printf("CMatrix\n");
+                    C_matrix.print(6,6);
+                
+                    //Invert the C_Matrix ( PF::TODO::It is enough to compute the transpose of C11, C12, C22)
+                    System.out.printf("CMatrix_inv\n");
+                    
+                    C_matrixInv.print(6,6);
+                }
 
                 FormatConstraint(C_matrixInv, nc, constraints, sc_labels, MPIIFormat);
                 
@@ -780,7 +792,7 @@ public class GBLRefitterDriver extends Driver {
                 
                 //Cmatrix coeff less than 1e-5 are ignored. Revisit? 
                 
-                if (Math.abs(C_matrixInv.get(ic,icol)) < 1e-5) 
+                if (Math.abs(C_matrixInv.get(ic,icol)) < 1e-6) 
                     continue;
                 
                 // get the rounded C matrix -1 entry rounded to 10e-4
@@ -794,8 +806,8 @@ public class GBLRefitterDriver extends Driver {
                 //Remove translations along v and w of the sensors
                 if (trans_type == 2 || trans_type == 3)
                     continue;
-                //Remove rotations 
-                if (isRot)
+                //Remove rotations  - don't remove rotations
+                if (isRot && false)
                     continue;
                 
                 if (s_cnstr != "")
