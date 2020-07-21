@@ -442,31 +442,43 @@ public class GBLRefitterDriver extends Driver {
                                 System.out.println(Tgtos.toString());
                             }
                             
+
+                            //Holds the derivatives and labels buffers
+                            List<Double> derBuff = new ArrayList<Double>();
+                            List<Integer> labBuff = new ArrayList<Integer>();
+                            
+
                             //The same sensor will be contained in multiple Composite structures. 
                             //For the moment I'll try to align the front support and back UChannels. HARDCODED!
                             
-                            AlignableDetectorElement myade = (AlignableDetectorElement) mysensor.getAdeMother().getParent();
+                            
+                            //Modules:
+                            
+                            AlignableDetectorElement myade_Mod =  (AlignableDetectorElement) mysensor.getAdeMother();
+
+                            if (debugAlignmentDs) 
+                                System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade_Mod.getName());
+                            
+                            //Modules
+                            addGlobalDerivatives(derBuff, labBuff,
+                                                 Rgtos,Tgtos, g_ders,
+                                                 myade_Mod, labels);
+
+                            //UChannels:
+                            AlignableDetectorElement myade_UC = (AlignableDetectorElement) mysensor.getAdeMother().getParent();
                             
                             if (debugAlignmentDs)
-                                System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade.getName());
+                                System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade_UC.getName());
                             
-                            Hep3Matrix Rgtoc = myade.getlocalToGlobal().getRotation().getRotationMatrix();
-                            Hep3Vector Tgtoc = myade.getlocalToGlobal().getTranslation().getTranslationVector();
-                            Matrix C_matrix = f2fD.getDerivative(Rgtos, Rgtoc, Tgtos, Tgtoc);
-                            
-                            //Compute the composite structure derivatives
-                            //dr/dac = dr/dai * dai/dac = dr/dai * Ci
-                            
-                            Matrix c_derGlobal = g_ders.times(C_matrix);
-                            
+
+                            //UChannels
+                            addGlobalDerivatives(derBuff, labBuff,
+                                                 Rgtos,Tgtos, g_ders,
+                                                 myade_UC, labels);
+
                             //Copy the labels for the composite structure
-                            List<Integer> c_labGlobal = new ArrayList<Integer>(labels);
-                            
-                            //Change the sensor ID to the composite structure one
-                            for (int ilabel = 0; ilabel < c_labGlobal.size(); ilabel++) {
-                                Integer c_label = (c_labGlobal.get(ilabel) / 100) * 100 + myade.getMillepedeId();
-                                c_labGlobal.set(ilabel , c_label);
-                            }
+                            List<Integer> c_labGlobal = new ArrayList<Integer>();
+                            c_labGlobal.addAll(labBuff);
                             
                             //Add the labels and the derivatives to the points.
                             Matrix allDer = new Matrix(1, labels.size() + c_labGlobal.size());
@@ -475,23 +487,7 @@ public class GBLRefitterDriver extends Driver {
                             }
                             
                             for (int ider = 0; ider < c_labGlobal.size(); ider++) {
-                                allDer.set(0,ider+labels.size(),c_derGlobal.get(0,ider));
-                            }
-                            
-                            //Check the derivatives print out. 
-
-                            List<Double> derBuff = new ArrayList<Double>();
-                            List<Integer> labBuff = new ArrayList<Integer>();
-                            
-                            addGlobalDerivatives(derBuff, labBuff,
-                                                 Rgtos,Tgtos, g_ders,
-                                                 myade, labels);
-                            
-                            if (debugAlignmentDs) {
-                                System.out.printf("PF::addGlobalDerivatives::Labels\n");
-                                System.out.println(labBuff.toString());
-                                System.out.printf("PF::addGlobalDerivatives::Ders\n");
-                                System.out.println(derBuff.toString());
+                                allDer.set(0,ider+labels.size(),derBuff.get(ider));
                             }
                             
                             //Join the two lists
@@ -502,13 +498,7 @@ public class GBLRefitterDriver extends Driver {
                             gblpoint.addGlobals(all_labels,allDer);
                             
                             if (debugAlignmentDs) {
-                                System.out.printf("PF::Print the Composite %s Transform:\n", myade.getName());
-                                System.out.println(Rgtoc.toString());
-                                System.out.println(Tgtoc.toString());
-                                C_matrix.print(6,6);
-                                System.out.println("PF:: Composite labels and derivatives");
-                                System.out.println(c_labGlobal.toString());
-                                c_derGlobal.print(6,6);
+                                System.out.println("PF:: Labels and derivatives");
                                 
                                 //Print all data to be written to the binary:
                                 System.out.println(all_labels.toString());
@@ -669,6 +659,19 @@ public class GBLRefitterDriver extends Driver {
             Integer c_label = (baseLabels.get(ilabel) / 100) * 100 + ade.getMillepedeId();
             labBuff.add(c_label);
             derBuff.add(c_derGlobal.get(0,ilabel));
+        }
+        
+        if (debugAlignmentDs) {
+
+            System.out.printf("PF::Print the Composite %s Transform:\n", ade.getName());
+            System.out.println(Rgtoc.toString());
+            System.out.println(Tgtoc.toString());
+            C_matrix.print(6,6);
+            
+            System.out.printf("PF::addGlobalDerivatives::Labels\n");
+            System.out.println(labBuff.toString());
+            System.out.printf("PF::addGlobalDerivatives::Ders\n");
+            System.out.println(derBuff.toString());
         }
     }
     
@@ -1090,6 +1093,12 @@ public class GBLRefitterDriver extends Driver {
                 }//iaxis
             }//itype
         }//ivol
+
+        //Local derivatives 
+        //wrt q/p 
+        aidaGBL.histogram1D(derFolder+"df_d(q/p)",nbins, -5,5);
+        
+        
         
     }//setupPlots
 }
