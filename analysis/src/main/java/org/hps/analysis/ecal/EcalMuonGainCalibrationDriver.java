@@ -2,6 +2,10 @@ package org.hps.analysis.ecal;
 
 import static java.lang.Math.abs;
 import java.util.List;
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.ecal.EcalChannelConstants;
+import org.hps.conditions.ecal.EcalConditions;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.triggerbank.TriggerModule;
@@ -10,6 +14,7 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -29,6 +34,14 @@ public class EcalMuonGainCalibrationDriver extends Driver {
     boolean _skimEvents = true;
     int _numberOfEventsSelected;
     double clusterEcut = 0.3;
+
+    private EcalConditions ecalConditions = null;
+
+    @Override
+    protected void detectorChanged(Detector detector) {
+        // ECAL combined conditions object.
+        ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+    }
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
@@ -65,7 +78,8 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                             String id = pdgId == 11 ? "mu-" : "mu+";
                             aida.tree().mkdirs("single muon");
                             aida.tree().cd("single muon");
-                            analyzeCluster(c, id);
+                            aida.histogram1D(id + " track momentum", 100, 0., 7.).fill(rp.getMomentum().magnitude());
+                            analyzeCluster(c, id, rp.getMomentum().magnitude());
                             aida.tree().cd("..");
                             skipEvent = false;
                         }
@@ -107,10 +121,10 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                     aida.tree().mkdirs("dimuon one cluster");
                     aida.tree().cd("dimuon one cluster");
                     if (muPlus.getClusters().size() == 1) {
-                        analyzeCluster(muPlus.getClusters().get(0), "mu+");
+                        analyzeCluster(muPlus.getClusters().get(0), "mu+", muPlus.getMomentum().magnitude());
                     }
                     if (muMinus.getClusters().size() == 1) {
-                        analyzeCluster(muMinus.getClusters().get(0), "mu-");
+                        analyzeCluster(muMinus.getClusters().get(0), "mu-", muMinus.getMomentum().magnitude());
                     }
                     aida.tree().cd("..");
                 }
@@ -122,8 +136,11 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                             skipEvent = false;
                             aida.tree().mkdirs("dimuon");
                             aida.tree().cd("dimuon");
-                            analyzeCluster(muPlus.getClusters().get(0), "mu+");
-                            analyzeCluster(muMinus.getClusters().get(0), "mu-");
+                            aida.histogram1D("mu+ track momentum", 100, 0., 5.).fill(muPlus.getMomentum().magnitude());
+                            aida.histogram1D("mu- track momentum", 100, 0., 5.).fill(muMinus.getMomentum().magnitude());
+                            aida.histogram2D("mu+ vs mu- track momentum", 100, 0., 5., 100, 0., 5.).fill(muPlus.getMomentum().magnitude(), muMinus.getMomentum().magnitude());
+                            analyzeCluster(muPlus.getClusters().get(0), "mu+", muPlus.getMomentum().magnitude());
+                            analyzeCluster(muMinus.getClusters().get(0), "mu-", muMinus.getMomentum().magnitude());
                             aida.tree().cd("..");
                         } // end of deltaT cut
                     }
@@ -146,7 +163,7 @@ public class EcalMuonGainCalibrationDriver extends Driver {
         _skimEvents = b;
     }
 
-    void analyzeCluster(Cluster cluster, String type) {
+    void analyzeCluster(Cluster cluster, String type, double trackMomentum) {
         if (cluster.getCalorimeterHits().size() == 1) {
             aida.tree().mkdirs("clusterAnalysis");
             aida.tree().cd("clusterAnalysis");
@@ -155,10 +172,23 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             int iy = seed.getIdentifierFieldValue("iy");
             String fid = TriggerModule.inFiducialRegion(cluster) ? "fiducial " : "edge ";
             aida.histogram1D(fid + type + " single-crystal cluster energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
+            aida.histogram1D(fid + type + " single-crystal cluster track momentum", 100, 0., 5.).fill(trackMomentum);
+            if (type.equals("mu+")) {
+                aida.histogram2D(fid + type + " single-crystal cluster track momentum vs ix", 17, 5.5, 22.5, 50, 0., 4.).fill(ix, trackMomentum);
+            } else {
+                aida.histogram2D(fid + type + " single-crystal cluster track momentum vs ix", 17, -22.5, -5.5, 50, 0., 4.).fill(ix, trackMomentum);
+            }
+
             aida.histogram2D(fid + "cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
             aida.histogram1D(type + " single-crystal cluster energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
             aida.histogram2D("cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
             aida.histogram1D(ix + " " + iy + " " + type + " crystal energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
+
+            // Get the channel data.
+            EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(seed.getCellID()));
+            // gain is defined as MeV/integrated ADC
+            double adcSum = seed.getCorrectedEnergy() / (channelData.getGain().getGain() * EcalUtils.MeV);
+            aida.histogram1D(ix + " " + iy + " " + type + " crystal ADC sum", 100, 500., 2000.).fill(adcSum);
             aida.tree().cd("..");
         }
     }
