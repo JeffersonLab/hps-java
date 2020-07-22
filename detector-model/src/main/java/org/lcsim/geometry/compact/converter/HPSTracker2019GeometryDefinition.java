@@ -44,9 +44,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         
         AlignmentCorrection alignmentCorrections = new AlignmentCorrection();
         alignmentCorrections.setNode(node);
-        AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
+        
+        //AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
+        AlignmentCorrection supBotCorr = getUChannelCorrection(false,80);
         supBotCorr.setNode(node);
-        AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
+        
+        //AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
+        AlignmentCorrection supTopCorr = getUChannelCorrection(true,80);
         supTopCorr.setNode(node);
 
         AlignmentCorrection supBotCorrBack = getUChannelCorrection(false,90);
