@@ -412,7 +412,7 @@ public class GBLOutputDriver extends Driver {
             vol = "_bottom";
 
         //get the bias first 
-        for (int i_hit =0; i_hit < nres-1 ; i_hit+=2) {
+        for (int i_hit =0; i_hit <= nres-1 ; i_hit+=2) {
             if (trackRes.getIntVal(i_hit)!=-999)  {
                 String sensorName = (sensorMPIDs.get(trackRes.getIntVal(i_hit))).getName();
                 if (debug) {
@@ -440,10 +440,13 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(resFolder  +"bresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"breserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"bres_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
-            }   
+            }
+            else {
+                System.out.printf("Track refit failed? No biased residual for %d\n", i_hit);
+            }
         }
         // get the unbias
-        for (int i_hit =1; i_hit < nres-1 ; i_hit+=2) {
+        for (int i_hit =1; i_hit <= nres-1 ; i_hit+=2) {
             if (trackRes.getIntVal(i_hit)!=-999)  {  
                 String sensorName = (sensorMPIDs.get(trackRes.getIntVal(i_hit))).getName();
                 if (debug) {
@@ -472,6 +475,11 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(resFolder+"uresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"ureserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"ures_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
+            }
+            else {
+                if (debug){
+                    System.out.printf("Track refit failed? No biased residual for %d\n", i_hit);
+                }
             }
         }
     }//doGBLresiduals
