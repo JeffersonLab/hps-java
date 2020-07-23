@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
-//import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 
@@ -283,17 +283,26 @@ public class HpsGblRefitter {
         
         // create the trajectory
         GblTrajectory traj = null;
-
+        
+        boolean constrainedFit = false;
+        
         try {
-            traj = new GblTrajectory(listOfPoints); // ,seedLabel, clSeed);
-
             
+            if (!constrainedFit) {
+                //Unconstrained fit
+                traj = new GblTrajectory(listOfPoints); 
+            }
             
-            //Seed constrained fit
-            //SymMatrix seedPrecision = new SymMatrix(5);
-            //seedPrecision.set(0,0,1000000);
-            //traj = new GblTrajectory(listOfPoints,1,seedPrecision,true, true, true); // ,seedLabel, clSeed);
-            
+            else {
+                
+                //Seed constrained fit
+                
+                SymMatrix seedPrecision = new SymMatrix(5);
+                seedPrecision.set(0,0,100000000);
+                traj = new GblTrajectory(listOfPoints,1,seedPrecision,true, true, true);
+                
+            }
+                        
             
             if (!traj.isValid()) {
                 System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
