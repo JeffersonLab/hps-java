@@ -12,6 +12,7 @@ import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
 import org.lcsim.geometry.Detector;
@@ -36,6 +37,7 @@ public class EcalMuonGainCalibrationDriver extends Driver {
     double clusterEcut = 0.3;
 
     private EcalConditions ecalConditions = null;
+    List<RawTrackerHit> ecalHitList = null;
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -45,6 +47,7 @@ public class EcalMuonGainCalibrationDriver extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        ecalHitList = event.get(RawTrackerHit.class, "EcalReadoutHits");
         if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
             List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
             aida.histogram1D("Number of Clusters in Event", 10, 0., 10.).fill(clusters.size());
@@ -187,9 +190,30 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             // Get the channel data.
             EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(seed.getCellID()));
             // gain is defined as MeV/integrated ADC
-            double adcSum = seed.getCorrectedEnergy() / (channelData.getGain().getGain() * EcalUtils.MeV);
-            aida.histogram1D(ix + " " + iy + " " + type + " crystal ADC sum", 100, 500., 2000.).fill(adcSum);
+            double energyOverGain = seed.getCorrectedEnergy() / (channelData.getGain().getGain() * EcalUtils.MeV);
+            aida.histogram1D(ix + " " + iy + " " + type + " crystal ADC sum", 100, 500., 2000.).fill(energyOverGain);
+            // try getting it directly from the raw data...
+            double pedestal = channelData.getCalibration().getPedestal();
+            int adcSum = adcSum(seed, ecalHitList, pedestal);
+            System.out.println(ix + " " + iy + " gain " + channelData.getGain().getGain() + " energyOverGain " + energyOverGain + " adcSum " + adcSum);
             aida.tree().cd("..");
         }
+    }
+
+    /**
+     * Integrate the entire window. Return pedestal-subtracted integral.
+     */
+    int adcSum(CalorimeterHit hit, List<RawTrackerHit> ecalHitList, double pedestal) {
+        long cellID = hit.getCellID();
+        int sum = 0;
+        for (RawTrackerHit h : ecalHitList) {
+            if (cellID == h.getCellID()) {
+                short samples[] = h.getADCValues();
+                for (int isample = 0; isample < samples.length; ++isample) {
+                    sum += (samples[isample] - pedestal);
+                }
+            }
+        }
+        return sum;
     }
 }
