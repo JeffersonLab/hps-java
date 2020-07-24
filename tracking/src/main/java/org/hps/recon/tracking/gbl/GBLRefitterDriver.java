@@ -41,6 +41,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+
 import org.lcsim.geometry.compact.converter.MilleParameter;
 import org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -91,6 +93,7 @@ public class GBLRefitterDriver extends Driver {
     private List<SiSensor> sensors = new ArrayList<SiSensor>();
     private boolean debugAlignmentDs = false;
     private boolean compositeAlign = false;
+    private boolean constrainedFit = true;
     private boolean usePoints = true;
     
     //Calculator for Frame to Frame derivatives
@@ -101,6 +104,10 @@ public class GBLRefitterDriver extends Driver {
     
     public void setCompositeAlign (boolean val) {
         compositeAlign = val;
+    }
+
+    public void constrainedFit (boolean val) {
+        constrainedFit = val;
     }
 
     public void setUsePoints (boolean val) {
@@ -260,7 +267,7 @@ public class GBLRefitterDriver extends Driver {
         //Assign the mothers to the sensors
         //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
         MakeAlignmentTree("alignable_fullmodule");
-        
+
         //Dump the constrain file
         MakeAlignmentConstraintFile();
 
@@ -349,6 +356,9 @@ public class GBLRefitterDriver extends Driver {
             //Check the rw derivatives
             GblTrajectory gbltraj = newTrackTraj.getSecond().get_traj();
             
+            //System.out.printf("Derivatives print out\n");
+            //gbltraj.printData();
+            
             for (GblData gbldata : gbltraj.getTrajData()) {
                 
                 float vals[] = new float[2];
@@ -366,6 +376,13 @@ public class GBLRefitterDriver extends Driver {
                         aidaGBL.histogram1D(derFolder+derTag).fill(derGlobal.get(itag));
                     }
                 }
+                
+                /*
+                for (int i_der =0; i_der<derLocal.size();i_der++) {
+                    
+                    System.out.printf("Derivative %d value %f \n:", i_der, derLocal.get(i_der));
+                }
+                */
                 
             }
             
@@ -509,9 +526,24 @@ public class GBLRefitterDriver extends Driver {
                         }//labels > 0
                     }//point loop
                     
-                    //Make a gblTrajectory and write the record
+                    //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
+
+                    GblTrajectory trajForMPII = null;
                     
-                    GblTrajectory trajForMPII = new GblTrajectory(points_on_traj);
+                    if (!constrainedFit) {
+                        trajForMPII =  new GblTrajectory(points_on_traj);
+                    }
+                    
+                    else {
+                        //Seed constrained fit 
+                        SymMatrix seedPrecision = new SymMatrix(5);
+                        seedPrecision.set(0,0,1000000);
+                        trajForMPII = new GblTrajectory(points_on_traj,1,seedPrecision,true,true,true);
+                    }
+                    
+                    if (debugAlignmentDs)
+                        trajForMPII.printData();
+                    
                     trajForMPII.milleOut(mille);
                     
                 }//usePoints
@@ -609,7 +641,7 @@ public class GBLRefitterDriver extends Driver {
                         r_sensors.add(-999);
                         b_residuals.add(-9999.);
                         b_sigmas.add((float)-9999.);
-                        //System.out.println("Unbiasing fit fails!");
+                        //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
                     }
                     
                 }//loop on sensors on track
@@ -744,7 +776,7 @@ public class GBLRefitterDriver extends Driver {
         // loop on the children
         for (IDetectorElement i_de : ade.getChildren()) {
             
-            //check if the child is and alignableDetectorElement
+            //check if the child is an alignableDetectorElement
             if (i_de instanceof AlignableDetectorElement) {
                 
                 AlignableDetectorElement sc_de = (AlignableDetectorElement) i_de;
@@ -806,12 +838,13 @@ public class GBLRefitterDriver extends Driver {
                 boolean isRot  = ((sc_label / 1000) % 10) == 1 ? false : true;
                 
                 
-                //Remove translations along v and w of the sensors
-                if (trans_type == 2 || trans_type == 3)
-                    continue;
-                //Remove rotations  - don't remove rotations
-                if (isRot && false)
-                    continue;
+                //Remove translations along v of the sensors (They should always be fixed)
+                //if (trans_type == 2)
+                //  continue;
+                
+                //Remove rotations
+                //if (isRot && false)
+                //  continue;
                 
                 if (s_cnstr != "")
                     if (!MPIIFormat)
@@ -860,7 +893,7 @@ public class GBLRefitterDriver extends Driver {
                     constraints.add("");
                     constraints.add("");
                     constraints.add("");
-                    //getConstraints(ade, constraints,true);
+                    getConstraints(ade, constraints, true);
                     getSensorConstraints(ade, sensors, constraints,true);
                     
                     constraintMap.put(ade.getName(),constraints);
