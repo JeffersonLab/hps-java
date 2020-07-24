@@ -246,10 +246,6 @@ public class GblData {
             System.out.print(" " + globalDerivatives.get(i));
         }
         System.out.println("\n");
-        
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
     }
 
     public String toString() {

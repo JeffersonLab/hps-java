@@ -784,24 +784,22 @@ public class GblTrajectory {
                     for (int j = 0; j<externalSeed.getColumnDimension(); ++j) {
                         externalSeedDerivatives.set(j,vecEigen.get(i,j));
                     }
-                }// the eigenvalue is positive
-                GblData aData = new GblData(externalPoint,GblData.dataBlockType.ExternalSeed, 0., valEigen.get(i));
-                aData.addDerivatives(externalSeedIndex,externalSeedDerivatives);
-                theData.add(aData);
-                nData++;
+                    
+                    GblData aData = new GblData(externalPoint,GblData.dataBlockType.ExternalSeed, 0., valEigen.get(i));
+                    aData.addDerivatives(externalSeedIndex,externalSeedDerivatives);
+                    theData.add(aData);
+                    nData++;
+                    
+                }//eigen value is positive
             }//loop on eigen values
         }
         
         measDataIndex.set(numAllPoints + 1, nData);
         
-        
-
         //////////////////////////////////////////////////
         //Insert the code for external measurements here//
         //////////////////////////////////////////////////
         
-
-
         measDataIndex.set(numAllPoints + 2, nData);
 
 

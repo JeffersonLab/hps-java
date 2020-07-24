@@ -26,6 +26,7 @@ public class GblTrajectoryJna {
         void GblTrajectory_fit(Pointer self, DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, char [] optionList, int aLabel);
         void GblTrajectory_addPoint(Pointer self, Pointer point);
         int GblTrajectory_isValid(Pointer self);
+        //void GblTrajectory_milleOut(Pointer self);
         
     }
     
@@ -99,5 +100,11 @@ public class GblTrajectoryJna {
         return GblTrajectoryInterface.INSTANCE.GblTrajectory_isValid(self);
         
     }
+    
+    /*
+    public void milleOut() {       
+        return GblTrajectoryInterface.INSTANCE.GblTrajectory_milleOut(self);
+    }
+    */
         
 }
