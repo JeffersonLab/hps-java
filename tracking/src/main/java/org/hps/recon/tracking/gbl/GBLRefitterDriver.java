@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-//import static java.lang.Math.sqrt;
+import static java.lang.Math.sqrt;
 
 //Rounding
 import java.math.BigDecimal;
@@ -33,7 +33,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-//import org.lcsim.event.base.BaseTrack;
+import org.lcsim.event.base.BaseTrack;
 
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
@@ -307,20 +307,48 @@ public class GBLRefitterDriver extends Driver {
                 continue;
             
             //Track biasing example
-            /*
-            double momentum_param = 2.99792458e-04;
-            //Get the track parameters
-            double[] trk_prms = track.getTrackParameters();
-            //Bias the track
-            double pt = sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY());
-            int sign = trk_prms[BaseTrack.OMEGA] > 0. ? 1 : -1;
-            double pt_bias = 0.5; 
-            double corrected_pt = pt+pt_bias;
-            double corrected_c = sign*(bfield*momentum_param)/(corrected_pt);
-            trk_prms[BaseTrack.OMEGA] = corrected_c;
+            if (constrainedFit) {
+                double momentum_param = 2.99792458e-04;
+                //Get the track parameters
+                double[] trk_prms = track.getTrackParameters();
+                //Bias the track
+                double pt = sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY());
+                int sign = trk_prms[BaseTrack.OMEGA] > 0. ? 1 : -1;
+                //Bias the FEEs to beam energy. Correct the curvature by projecting on  X / Y plane
+                double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
+                double targetpT = 4.55 * Math.cos(Math.atan(tanLambda));
+                double pt_bias = targetpT - pt; 
+                double corrected_pt = pt+pt_bias;
+                double corrected_c = sign*(bfield*momentum_param)/(corrected_pt);
+                trk_prms[BaseTrack.OMEGA] = corrected_c;
+                ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
+            }
+
+            boolean constrainedD0Fit = false;
             
-            ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
-            */
+            if (constrainedD0Fit) {
+                double [] trk_prms = track.getTrackParameters();
+                //Bias the track 
+                double d0 = trk_prms[BaseTrack.D0];
+                double targetd0 = 0.;
+                double d0bias = targetd0 - d0;
+                double corrected_d0 = d0+d0bias;
+                trk_prms[BaseTrack.D0] = corrected_d0;
+                ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
+            }
+
+            boolean constrainedZ0Fit = false;
+
+            if (constrainedZ0Fit) {
+                double [] trk_prms = track.getTrackParameters();
+                //Bias the track 
+                double z0 = trk_prms[BaseTrack.Z0];
+                double targetz0 = 0.;
+                double z0bias = targetz0 - z0;
+                double corrected_z0 = z0+z0bias;
+                trk_prms[BaseTrack.Z0] = corrected_z0;
+                ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
+            }
 
             Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
             if (newTrackTraj == null) {

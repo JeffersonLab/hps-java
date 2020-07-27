@@ -298,7 +298,7 @@ public class HpsGblRefitter {
                 //Seed constrained fit
                 
                 SymMatrix seedPrecision = new SymMatrix(5);
-                seedPrecision.set(0,0,100000000);
+                seedPrecision.set(0,0,1000000.);
                 traj = new GblTrajectory(listOfPoints,1,seedPrecision,true, true, true);
                 
             }
