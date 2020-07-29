@@ -3,6 +3,7 @@ package org.hps.analysis.examples;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
 import static java.lang.Math.asin;
+import java.util.Arrays;
 import java.util.List;
 import org.hps.recon.tracking.TrackType;
 import org.lcsim.detector.DetectorElementStore;
@@ -37,6 +38,7 @@ public class TrackAnalysis2019 extends Driver {
                 continue;
             }
             Track t = rp.getTracks().get(0);
+            plotTrackerHit2DPosition(t);
             int nHitsOnTrack = t.getTrackerHits().size();
             int pdgId = rp.getParticleIDUsed().getPDG();
             Hep3Vector pmom = rp.getMomentum();
@@ -98,6 +100,20 @@ public class TrackAnalysis2019 extends Driver {
         }
         throw new RuntimeException("mixed top and bottom hits on same track");
 
+    }
+
+    public void plotTrackerHit2DPosition(Track t) {
+        List<TrackerHit> hits = t.getTrackerHits();
+        String torb = isTopTrack(t) ? "top " : "bottom ";
+
+        for (TrackerHit h : hits) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+            int layer = sensor.getLayerNumber();
+            String name = sensor.getName();
+            double[] pos = h.getPosition();
+            aida.cloud2D(name + " layer " + layer + " x vs y",100000).fill(pos[1], pos[2]); // silly-ass HPS track coordinates...
+//            System.out.println(name + " " + " layer " + layer + " " + Arrays.toString(pos));
+        }
     }
 
     private void setupSensors(EventHeader event) {
