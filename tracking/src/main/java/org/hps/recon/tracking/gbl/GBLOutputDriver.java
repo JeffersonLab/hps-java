@@ -538,7 +538,7 @@ public class GBLOutputDriver extends Driver {
             
             aidaGBL.histogram2D(resFolder+"residual_after_GBL_vs_u_hit_" + sensor.getName(), 100, -20.0, 20.0, 100, -0.04, 0.04);
             aidaGBL.histogram2D(resFolder+"residual_after_GBL_vs_v_predicted_" + sensor.getName(), 100, -55.0, 55.0, 100, -0.04, 0.04);
-            aidaGBL.histogram2D(hitFolder+"hit_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60.0, 60.0, 100, -25, 25);
+            aidaGBL.histogram2D(hitFolder+"hit_u_vs_v_sensor_frame_" + sensor.getName(), 300, -60.0, 60.0, 300, -25, 25);
             aidaGBL.histogram2D(hitFolder+"predicted_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
             aidaGBL.histogram2D(hitFolder+"predicted_u_vs_v_pos_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
             aidaGBL.histogram2D(hitFolder+"predicted_u_vs_v_neg_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
