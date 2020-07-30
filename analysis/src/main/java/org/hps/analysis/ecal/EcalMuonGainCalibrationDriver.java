@@ -38,6 +38,8 @@ public class EcalMuonGainCalibrationDriver extends Driver {
 
     private EcalConditions ecalConditions = null;
     List<RawTrackerHit> ecalHitList = null;
+    List<CalorimeterHit> noGainCalHits = null;
+    int runNumber;
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -47,6 +49,7 @@ public class EcalMuonGainCalibrationDriver extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        runNumber = event.getRunNumber();
         ecalHitList = event.get(RawTrackerHit.class, "EcalReadoutHits");
         if (event.hasCollection(Cluster.class, "EcalClustersCorr")) {
             List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
@@ -67,6 +70,10 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                 aida.histogram2D("Three Cluster Events e2 vs e3", 100, 0., 1.0, 100, 0., 1.).fill(clusters.get(1).getEnergy(), clusters.get(2).getEnergy());
             }
         }
+        if (event.hasCollection(CalorimeterHit.class, "EcalNoGainHits")) {
+            noGainCalHits = event.get(CalorimeterHit.class, "EcalNoGainHits");
+        }
+
         aida.histogram1D("Run Number", 750, 10000, 10750).fill(event.getRunNumber());
         // single muon analysis
         if (event.hasCollection(ReconstructedParticle.class, "FinalStateParticles")) {
@@ -187,11 +194,21 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             aida.histogram2D("cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
             aida.histogram1D(ix + " " + iy + " " + type + " crystal energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
 
-            // Get the channel data.
-            EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(seed.getCellID()));
-            // gain is defined as MeV/integrated ADC
-            double energyOverGain = seed.getCorrectedEnergy() / (channelData.getGain().getGain() * EcalUtils.MeV);
-            aida.histogram1D(ix + " " + iy + " " + type + " crystal ADC sum", 100, 500., 2000.).fill(energyOverGain);
+            // compare to recon where gain was set to 1.
+            if (noGainCalHits != null) {
+                for (CalorimeterHit ngh : noGainCalHits) {
+                    if (ngh.getCellID() == seed.getCellID()) {
+                        aida.histogram1D(ix + " " + iy + " " + type + " no gain ADC sum",50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
+                        aida.histogram1D(runNumber + " " + ix + " " + iy + " " + type + " no gain ADC sum", 50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
+                    }
+                }
+            } else {
+                // Get the channel data.
+                EcalChannelConstants channelData = ecalConditions.getChannelConstants(ecalConditions.getChannelCollection().findGeometric(seed.getCellID()));
+                // gain is defined as MeV/integrated ADC
+                double energyOverGain = seed.getCorrectedEnergy() / (channelData.getGain().getGain() * EcalUtils.MeV);
+                aida.histogram1D(ix + " " + iy + " " + type + " crystal ADC sum", 100, 500., 2000.).fill(energyOverGain);
+            }
             aida.tree().cd("..");
         }
     }
