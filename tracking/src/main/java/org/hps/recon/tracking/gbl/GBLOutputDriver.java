@@ -25,6 +25,8 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseTrack;
+import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.TrackerHit;
@@ -219,6 +221,7 @@ public class GBLOutputDriver extends Driver {
     }
 
     private void doBasicGBLtrack(Track trk) {
+        
         TrackState trackState = trk.getTrackStates().get(0);
 
         String isTop = "_bottom";
@@ -254,28 +257,35 @@ public class GBLOutputDriver extends Driver {
         FillGBLTrackPlot(trkpFolder+"trk_extr_bs_y",isTop,charge,trkTgt.y());
         
         //Transform z to the beamspot plane
-        
         //Get the PathToPlane
         
         BaseTrackState ts_bs = TrackUtils.getTrackExtrapAtVtxSurfRK(trackState,bFieldMap,0.,bsZ);
-         
+
+
+        //Get the track parameters wrt the beamline using helix
+        double [] beamLine = new double [] {bsZ,0};
+        double [] helixParametersAtBS = TrackUtils.getParametersAtNewRefPoint(beamLine, trackState);
+
+                  
         FillGBLTrackPlot(trkpFolder+"trk_extr_bs_x_rk",isTop,charge,ts_bs.getReferencePoint()[1]);
         FillGBLTrackPlot(trkpFolder+"trk_extr_bs_y_rk",isTop,charge,ts_bs.getReferencePoint()[2]);
 
         //Ill defined - should be defined wrt bsX and bsY
         FillGBLTrackPlot(trkpFolder+"d0_vs_bs_rk",isTop,charge,ts_bs.getD0());
+        FillGBLTrackPlot(trkpFolder+"d0_vs_bs_extrap",isTop,charge,helixParametersAtBS[BaseTrack.D0]);
         
         double s = HelixUtils.PathToXPlane(TrackUtils.getHTF(trackState),bsZ,0.,0).get(0);
         FillGBLTrackPlot(trkpFolder+"z0_vs_bs",isTop,charge,trackState.getZ0() + s*trackState.getTanLambda());
         FillGBLTrackPlot(trkpFolder+"z0_vs_bs_rk",isTop,charge,ts_bs.getZ0());
-
+        FillGBLTrackPlot(trkpFolder+"z0_vs_bs_extrap",isTop,charge,helixParametersAtBS[BaseTrack.Z0]);
+        
         //TH2D - Filling
         FillGBLTrackPlot(trkpFolder+"d0_vs_phi",isTop,charge,trackState.getPhi(),trackState.getD0());
         FillGBLTrackPlot(trkpFolder+"d0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getD0());
         FillGBLTrackPlot(trkpFolder+"d0_vs_p",isTop,charge,trackp,trackState.getD0());
         
         //Ill defined - should be defined wrt bsX and bsY
-        FillGBLTrackPlot(trkpFolder+"d0bs_vs_p",isTop,charge,trackp,trackState.getD0());
+        FillGBLTrackPlot(trkpFolder+"d0bs_vs_p",isTop,charge,trackp,helixParametersAtBS[BaseTrack.D0]);
         
         FillGBLTrackPlot(trkpFolder+"z0_vs_p",isTop,charge,trackp,trackState.getZ0()); 
         FillGBLTrackPlot(trkpFolder+"z0bs_vs_p",isTop,charge,trackp,ts_bs.getZ0()); 
@@ -600,7 +610,9 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_bs_x_rk"+vol+charge, 2*nbins_t, -5, 5);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_bs_y_rk"+vol+charge, 2*nbins_t, -3, 3);
                 aidaGBL.histogram1D(trkpFolder+"d0_vs_bs_rk"+vol+charge, 2*nbins_t, -5, 5);
+                aidaGBL.histogram1D(trkpFolder+"d0_vs_bs_extrap"+vol+charge, 2*nbins_t, -5, 5);
                 aidaGBL.histogram1D(trkpFolder+"z0_vs_bs_rk"+vol+charge, 2*nbins_t, -z0bsmax, z0bsmax);
+                aidaGBL.histogram1D(trkpFolder+"z0_vs_bs_extrap"+vol+charge, 2*nbins_t, -z0bsmax, z0bsmax);
                 aidaGBL.histogram1D(trkpFolder+"z0_vs_bs"+vol+charge, 2*nbins_t, -z0bsmax, z0bsmax);
                 
                 
