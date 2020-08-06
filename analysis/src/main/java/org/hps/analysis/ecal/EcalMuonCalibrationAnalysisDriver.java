@@ -143,6 +143,8 @@ public class EcalMuonCalibrationAnalysisDriver {
         tst.createRegions(1, 10);
 //        tst.setParameter("plotterWidth", "1600");
 //        tst.setParameter("plotterHeight", "900");
+//        String plotToFit = "crystal energy";
+        String plotToFit = "no gain ADC sum";
         for (String type : types) {
             for (int indexx = 1; indexx < 24; ++indexx) {
                 int ix = indexx;
@@ -155,7 +157,7 @@ public class EcalMuonCalibrationAnalysisDriver {
 //                        region++;
 //                    }
 
-                    String histoName = ix + " " + iy + " " + type + " crystal energy";
+                    String histoName = ix + " " + iy + " " + type + " " + plotToFit;
                     if (objectNameList.contains("/" + plotDir + "/clusterAnalysis/" + histoName)) {
                         IHistogram1D hist = (IHistogram1D) tree.find("/" + plotDir + "/clusterAnalysis/" + histoName);
 
@@ -164,6 +166,15 @@ public class EcalMuonCalibrationAnalysisDriver {
                             par[0] = hist.maxBinHeight();
                             par[1] = ix < 0 ? 0.176 : 0.184;
                             par[2] = 0.02;
+                            double fitPar1lo = 0.1;
+                            double fitPar1hi = 0.3;
+                            if (plotToFit.equals("no gain ADC sum")) {
+                                par[1] = hist.mean();
+                                par[2] = hist.rms();
+                                fitPar1lo = 0.6;
+                                fitPar1hi = 3.0;
+                            }
+                            
                             if (plotDir.equals("mc")) {
                                 par[1] = hist.mean();
 //                                par[2] = hist.rms();
@@ -200,7 +211,7 @@ public class EcalMuonCalibrationAnalysisDriver {
                                 System.out.println(histoName + " has " + hist.allEntries() + " entries: " + parNames[0] + " : " + fitPars[0] + " " + parNames[1] + " : " + fitPars[1] + " " + parNames[2] + " : " + fitPars[2]);
                                 //plotter.region(0).plot(hist, dataStyle);
                                 plotter.region(0).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
-                                if (fitPars[1] > 0.1 && fitPars[1] < 0.3) { // only continue with "good" fits
+                                if (fitPars[1] > fitPar1lo && fitPars[1] < fitPar1hi) { // only continue with "good" fits
                                     aida.histogram1D(type + " ECal Row " + iy + " MIP mean", 47, -23.5, 23.5).fill(ix, fitPars[1]);
                                     aida.histogram2D("Cluster ix iy MIP peak mean energy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy, fitPars[1]);
                                     aida.histogram2D(type + " Cluster ix iy MIP peak mean energy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy, fitPars[1]);

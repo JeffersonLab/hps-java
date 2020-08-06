@@ -147,8 +147,17 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                             aida.tree().mkdirs("dimuon");
                             aida.tree().cd("dimuon");
                             aida.histogram1D("mu+ track momentum", 100, 0., 5.).fill(muPlus.getMomentum().magnitude());
+                            if (TriggerModule.inFiducialRegion(muPlus.getClusters().get(0))) {
+                                aida.histogram1D("fiducial mu+ track momentum", 100, 0., 5.).fill(muPlus.getMomentum().magnitude());
+                            }
                             aida.histogram1D("mu- track momentum", 100, 0., 5.).fill(muMinus.getMomentum().magnitude());
+                            if (TriggerModule.inFiducialRegion(muMinus.getClusters().get(0))) {
+                                aida.histogram1D("fiducial mu- track momentum", 100, 0., 5.).fill(muMinus.getMomentum().magnitude());
+                            }
                             aida.histogram2D("mu+ vs mu- track momentum", 100, 0., 5., 100, 0., 5.).fill(muPlus.getMomentum().magnitude(), muMinus.getMomentum().magnitude());
+                            if (TriggerModule.inFiducialRegion(clusters[0]) && TriggerModule.inFiducialRegion(clusters[1])) {
+                                aida.histogram2D("fiducial mu+ vs fiducial mu- track momentum", 100, 0., 5., 100, 0., 5.).fill(muPlus.getMomentum().magnitude(), muMinus.getMomentum().magnitude());
+                            }
                             analyzeCluster(muPlus.getClusters().get(0), "mu+", muPlus.getMomentum().magnitude());
                             analyzeCluster(muMinus.getClusters().get(0), "mu-", muMinus.getMomentum().magnitude());
                             aida.tree().cd("..");
@@ -185,8 +194,16 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             aida.histogram1D(fid + type + " single-crystal cluster track momentum", 100, 0., 5.).fill(trackMomentum);
             if (type.equals("mu+")) {
                 aida.histogram2D(fid + type + " single-crystal cluster track momentum vs ix", 17, 5.5, 22.5, 50, 0., 4.).fill(ix, trackMomentum);
+                aida.profile1D(fid + type + " single-crystal cluster track momentum vs ix profile", 17, 5.5, 22.5).fill(ix, trackMomentum);
+                if (ix > 5 && ix < 23) {
+                    aida.histogram1D(fid + type + " single-crystal cluster track momentum ix " + ix, 50, 0., 4.).fill(trackMomentum);
+                }
             } else {
                 aida.histogram2D(fid + type + " single-crystal cluster track momentum vs ix", 17, -22.5, -5.5, 50, 0., 4.).fill(ix, trackMomentum);
+                aida.profile1D(fid + type + " single-crystal cluster track momentum vs ix profile", 17, -22.5, -5.5).fill(ix, trackMomentum);
+                if (ix > -23 && ix < -5) {
+                    aida.histogram1D(fid + type + " single-crystal cluster track momentum ix " + ix, 50, 0., 4.).fill(trackMomentum);
+                }
             }
 
             aida.histogram2D(fid + "cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
@@ -198,7 +215,7 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             if (noGainCalHits != null) {
                 for (CalorimeterHit ngh : noGainCalHits) {
                     if (ngh.getCellID() == seed.getCellID()) {
-                        aida.histogram1D(ix + " " + iy + " " + type + " no gain ADC sum",50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
+                        aida.histogram1D(ix + " " + iy + " " + type + " no gain ADC sum", 50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
                         aida.histogram1D(runNumber + " " + ix + " " + iy + " " + type + " no gain ADC sum", 50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
                     }
                 }

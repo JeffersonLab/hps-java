@@ -39,6 +39,7 @@ public class EventAnalysis2019 extends Driver {
     IProfile1D zProfileBottomMatched;
     IProfile1D zProfileBottomGBL;
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
+    List<Cluster> ecalClusters = null;
 
     protected void detectorChanged(Detector detector) {
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
@@ -64,6 +65,14 @@ public class EventAnalysis2019 extends Driver {
         String dir = "FinalState ReconstructedParticle Analysis";
         aida.tree().mkdirs(dir);
         aida.tree().cd(dir);
+        ecalClusters = event.get(Cluster.class, "EcalClustersCorr");
+        aida.histogram1D("Number of Clusters in Event", 10, 0., 10.).fill(ecalClusters.size());
+        for (Cluster cluster : ecalClusters) {
+            double[] cPos = cluster.getPosition();
+            aida.histogram2D("cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cPos[0], cPos[1]);
+            String half = cluster.getPosition()[1] > 0. ? "Top " : "Bottom ";
+            aida.histogram1D(half + "Cluster Energy", 100, 0., 6.).fill(cluster.getEnergy());
+        }
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, "FinalStateParticles");
         for (ReconstructedParticle rp : rpList) {
             int pdgId = rp.getParticleIDUsed().getPDG();
@@ -73,16 +82,28 @@ public class EventAnalysis2019 extends Driver {
 //                continue;
 //            }
                 Track t = rp.getTracks().get(0);
+
+//                TrackState trackState = t.getTrackStates().get(0);
+//                double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
+//                FillGBLTrackPlot(trkpFolder + "d0", isTop, charge, trackState.getD0());
+//                FillGBLTrackPlot(trkpFolder + "z0", isTop, charge, trackState.getZ0());
+//                FillGBLTrackPlot(trkpFolder + "phi", isTop, charge, trackState.getPhi());
+//                FillGBLTrackPlot(trkpFolder + "tanLambda", isTop, charge, trackState.getTanLambda());
+//                FillGBLTrackPlot(trkpFolder + "p", isTop, charge, trackp);
+//                FillGBLTrackPlot(trkpFolder + "Chi2", isTop, charge, trk.getChi2());
                 int nHits = t.getTrackerHits().size();
-                String id = pdgId == 11 ? "electron" : "positron";
+                String id = pdgId == 11 ? "electron " : "positron ";
                 Hep3Vector pmom = rp.getMomentum();
                 double thetaY = atan2(pmom.y(), pmom.z());//asin(pmom.y() / pmom.magnitude());
                 double z0 = t.getTrackStates().get(0).getZ0();
+                double d0 = t.getTrackStates().get(0).getD0();
                 String torb = isTopTrack(t) ? " top " : "bottom ";
                 aida.histogram1D(trackType + torb + id + " track momentum", 100, 0., 10.).fill(rp.getMomentum().magnitude());
-                
+
                 aida.cloud1D(trackType + torb + id + " |thetaY|").fill(abs(thetaY));
-                aida.histogram1D(trackType + torb + id + " z0", 100, -2., 2.).fill(z0);
+                aida.histogram1D(trackType + torb + id + nHits + " hits z0", 100, -2., 2.).fill(z0);
+                aida.histogram1D(trackType + torb + id + " d0", 100, -5., 5.).fill(d0);
+                aida.histogram1D(trackType + torb + id + nHits + " hits d0", 100, -5., 5.).fill(d0);
                 aida.cloud2D(trackType + torb + id + " |thetaY| vs z0").fill(abs(thetaY), z0);
                 aida.profile1D(trackType + torb + id + " |thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
                 if (trackType.equals("MatchedTrack ") && torb.equals("bottom ") && id.equals("electron")) {
@@ -91,7 +112,7 @@ public class EventAnalysis2019 extends Driver {
                 if (trackType.equals("GBL ") && torb.equals("bottom ") && id.equals("electron")) {
                     zProfileBottomGBL.fill(abs(thetaY), z0);
                 }
-
+                aida.histogram1D(trackType + torb + id + " track momentum with " + nHits + " hits", 100, 0., 10.).fill(rp.getMomentum().magnitude());
                 List<Cluster> clusters = rp.getClusters();
                 if (!clusters.isEmpty()) {
                     Cluster c = clusters.get(0);
@@ -100,7 +121,14 @@ public class EventAnalysis2019 extends Driver {
                     aida.histogram1D(trackType + torb + id + " cluster energy", 100, 0., 10.).fill(c.getEnergy());
                     aida.histogram1D(trackType + torb + id + " cluster energy over track momentum EoverP", 100, 0., 2.).fill(c.getEnergy() / rp.getMomentum().magnitude());
                     aida.histogram1D(trackType + torb + id + " track momentum with cluster", 100, 0., 10.).fill(rp.getMomentum().magnitude());
-                    aida.histogram1D(trackType + torb + id + " track momentum with cluster "+nHits+" hits", 100, 0., 10.).fill(rp.getMomentum().magnitude());
+                    aida.histogram1D(trackType + torb + id + " track momentum with cluster " + nHits + " hits", 100, 0., 10.).fill(rp.getMomentum().magnitude());
+                }
+                if (nHits == 7) {
+                    aida.tree().mkdirs("7 hit tracks");
+                    aida.tree().cd("7 hit tracks");
+                    plotTrackerHit2DPosition(t);
+                    aida.histogram2D(trackType + torb + id + " momentum vs d0", 100, 3., 7., 50, -3., 4.).fill(rp.getMomentum().magnitude(), d0);
+                    aida.tree().cd("..");
                 }
             }
             if (pdgId == 22) {
@@ -208,6 +236,34 @@ public class EventAnalysis2019 extends Driver {
             if (hit.getDetectorElement() == null) {
                 throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
             }
+        }
+    }
+
+    public void plotTrackerHit2DPosition(Track t) {
+        List<TrackerHit> hits = t.getTrackerHits();
+        String torb = isTopTrack(t) ? "top " : "bottom ";
+        double d0 = t.getTrackStates().get(0).getD0();
+        double chisq = t.getChi2();
+        String type = "low d0";
+        if (isTopTrack(t) && d0 > 1.5) {
+            type = "high d0";
+        }
+        if (!isTopTrack(t) && d0 > 0) {
+            type = "high d0";
+        }
+        double[] cPos = ecalClusters.get(0).getPosition();
+        aida.histogram2D("cluster x vs y " + type, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cPos[0], cPos[1]);
+        aida.histogram1D(torb + " track chisq " + type, 100, 0., 200.).fill(chisq);
+        for (TrackerHit h : hits) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+            int layer = sensor.getLayerNumber();
+            String name = sensor.getName();
+            double[] pos = h.getPosition();
+            if (layer == 1) {
+                aida.cloud2D(name + " layer " + layer + " x vs d0", 100000).fill(pos[1], d0); // silly-ass HPS track coordinates.  
+            }
+            aida.cloud2D(name + " layer " + layer + " x vs y", 100000).fill(pos[1], pos[2]); // silly-ass HPS track coordinates.
+            aida.cloud2D(name + " layer " + layer + " x vs y " + type, 100000).fill(pos[1], pos[2]); // silly-ass HPS track coordinates.
         }
     }
 }
