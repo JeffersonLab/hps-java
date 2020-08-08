@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math3.util.Pair;
+import org.apache.commons.math.util.FastMath;
 import org.hps.recon.tracking.EventQuality.Quality;
 //import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
@@ -142,8 +143,15 @@ public class TrackUtils {
         double px = momentum.x();
         double py = momentum.y();
         double pz = momentum.z();
-
+        
+        //wrong =
         double R = charge * momentum.magnitude() / (Constants.fieldConversion * BField);
+        
+        //correct
+        //double pt = Math.sqrt(px*px + py*py);
+        //double R = charge * pt / (Constants.fieldConversion * BField);
+        
+
         double tanL = calculateTanLambda(pz, momentum.magnitude());
         double phi = calculatePhi(px, py);
         //reference position is at x=pointX, y=pointY, z=0
@@ -188,7 +196,10 @@ public class TrackUtils {
         //Slope in the Dz/Ds sense, tanL Calculation
         double tanL = pz / pt;
         //  Azimuthal direction at point
-        double phi = Math.atan2(py, px);
+        //double phi = Math.atan2(py, px);
+        
+        double phi_fast = FastMath.atan2(py,px);
+                
         //reference position is at x=pointX, y=pointY, z=0
         //so dca=0, z0=pointZ
         double dca = 0;
@@ -272,7 +283,10 @@ public class TrackUtils {
         if (curvature != 0) {
             double R = 1.0 / curvature;
             // calculate new phi
-            phinew = Math.atan2(sinphi - dx / (R - dca), cosphi + dy / (R - dca));
+            //phinew = Math.atan2(sinphi - dx / (R - dca), cosphi + dy / (R - dca));
+            //System.out.println("PF::DEBUG::phinew:="+phinew);
+            phinew = FastMath.atan2(sinphi - dx / (R - dca), cosphi + dy / (R - dca));
+            
 
             // difference in phi
             // watch out for ambiguity        
@@ -423,7 +437,7 @@ public class TrackUtils {
     public static double getPhi(TrackState track, Hep3Vector position) {
         double x = Math.sin(getPhi0(track)) - (1 / getR(track)) * (position.x() - getX0(track));
         double y = Math.cos(getPhi0(track)) + (1 / getR(track)) * (position.y() - getY0(track));
-        return Math.atan2(x, y);// mg 9/20/17...I think this is the wrong order...should be atan2(y,x)
+        return FastMath.atan2(x, y);// mg 9/20/17...I think this is the wrong order...should be atan2(y,x)
     }
 
     public static double getX0(TrackState track) {
@@ -1720,15 +1734,15 @@ public class TrackUtils {
     }
 
     public static double calculatePhi(double x, double y, double xc, double yc, double sign) {
-        return Math.atan2(y - yc, x - xc) - sign * Math.PI / 2;
+        return FastMath.atan2(y - yc, x - xc) - sign * Math.PI / 2;
     }
 
     public static double calculatePhi(double px, double py) {
-        return Math.atan2(py, px);
+        return FastMath.atan2(py, px);
     }
 
     public static double calculateTanLambda(double pz, double p) {
-        return Math.atan2(pz, p);
+        return FastMath.atan2(pz, p);
     }
 
     public static double calculateCurvature(double p, double q, double B) {
@@ -1746,8 +1760,8 @@ public class TrackUtils {
      */
     public static Trajectory getTrajectory(Hep3Vector p0, org.lcsim.spacegeom.SpacePoint r0, double q, double B) {
         SpaceVector p = new CartesianVector(p0.v());
-        double phi = Math.atan2(p.y(), p.x());
-        double lambda = Math.atan2(p.z(), p.rxy());
+        double phi = FastMath.atan2(p.y(), p.x());
+        double lambda = FastMath.atan2(p.z(), p.rxy());
         double field = B * fieldConversion;
 
         if (q != 0 && field != 0) {
@@ -1823,7 +1837,7 @@ public class TrackUtils {
     }
 
     public static double ArcTan(double x, double y) {
-        return Math.atan2(y, x);//Java takes the x,y in opposite order
+        return FastMath.atan2(y, x);//Java takes the x,y in opposite order
     }
 
     public static Hep3Vector getMomentum(double omega, double phi0, double tanL, double magneticField) {
