@@ -1374,11 +1374,9 @@ class KalmanPatRecHPS {
     
     static Comparator<Pair<Integer, Double>> pairComparator = new Comparator<Pair<Integer, Double>>() {
         public int compare(Pair<Integer, Double> p1, Pair<Integer, Double> p2) {
-            if (p1.getSecondElement() < p2.getSecondElement()) {
-                return 1;
-            } else {
-                return -1;
-            }
+            Double p1_2 = new Double(p1.getSecondElement());
+            Double p2_2 = new Double(p2.getSecondElement());
+            return p2_2.compareTo(p1_2);
         }
     };
     

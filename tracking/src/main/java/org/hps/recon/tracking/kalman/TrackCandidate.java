@@ -348,13 +348,10 @@ class TrackCandidate {
             double p2 = 0.;
             if (!t2.good) p2 = 9.9e6; 
             
-            double chi1 = t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/12.) + p1;
-            double chi2 = t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/12.) + p2;
-            if (chi1 < chi2) {
-                return -1;
-            } else {
-                return +1;
-            }
+            Double chi1 = new Double(t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/12.) + p1);
+            Double chi2 = new Double(t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/12.) + p2);
+            
+            return chi1.compareTo(chi2);
         }
     };
 
