@@ -12,7 +12,6 @@ import org.apache.commons.math.util.FastMath;
 
 import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-import org.lcsim.fit.helicaltrack.HitUtils;
 
 //ejml
 import org.ejml.data.DMatrix3;
