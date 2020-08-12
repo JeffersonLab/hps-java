@@ -71,6 +71,10 @@ import org.lcsim.util.swim.Helix;
 import org.lcsim.util.swim.Line;
 import org.lcsim.util.swim.Trajectory;
 
+
+//ejml
+import org.ejml.data.DMatrix3;
+
 /**
  * Assorted helper functions for the track and helix objects in lcsim. Re-use as
  * much of HelixUtils as possible.
@@ -198,7 +202,7 @@ public class TrackUtils {
         //  Azimuthal direction at point
         //double phi = Math.atan2(py, px);
         
-        double phi_fast = FastMath.atan2(py,px);
+        double phi = FastMath.atan2(py,px);
                 
         //reference position is at x=pointX, y=pointY, z=0
         //so dca=0, z0=pointZ
@@ -519,13 +523,19 @@ public class TrackUtils {
         if (Math.abs(point_on_plane.x() - helfit.xc()) > Math.abs(helfit.R()))
             return null;
         Hep3Vector B = new BasicHep3Vector(0, 0, 1);
+        DMatrix3 B_ejml = new DMatrix3(B.x(),B.y(),B.z());
+        DMatrix3 unit_vec_normal_to_plane_ejml = new DMatrix3(unit_vec_normal_to_plane.x(), unit_vec_normal_to_plane.y(), unit_vec_normal_to_plane.z());
+        DMatrix3 point_on_plane_ejml = new DMatrix3(point_on_plane.x(), point_on_plane.y(), point_on_plane.z());
+        
         WTrack wtrack = new WTrack(helfit, bfield); //
         if (initial_s != 0 && initial_s != Double.NaN)
-            wtrack.setTrackParameters(wtrack.getHelixParametersAtPathLength(initial_s, B));
+            //wtrack.setTrackParameters(wtrack.getHelixParametersAtPathLength(initial_s, B));
+            wtrack.setTrackParameters(wtrack.getHelixParametersAtPathLength_ejml(initial_s, B_ejml));
         if (debug)
             System.out.printf("getHelixPlaneIntercept:find intercept between plane defined by point on plane %s, unit vec %s, bfield %.3f, h=%s and WTrack \n%s \n", point_on_plane.toString(), unit_vec_normal_to_plane.toString(), bfield, B.toString(), wtrack.toString());
         try {
-            Hep3Vector intercept_point = wtrack.getHelixAndPlaneIntercept(point_on_plane, unit_vec_normal_to_plane, B);
+            //Hep3Vector intercept_point = wtrack.getHelixAndPlaneIntercept(point_on_plane, unit_vec_normal_to_plane, B);
+            Hep3Vector intercept_point = wtrack.getHelixAndPlaneIntercept_ejml(point_on_plane_ejml, unit_vec_normal_to_plane_ejml, B_ejml);
             if (debug)
                 System.out.printf("getHelixPlaneIntercept: found intercept point at %s\n", intercept_point.toString());
             return intercept_point;
