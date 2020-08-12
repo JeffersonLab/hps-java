@@ -503,14 +503,6 @@ public class WTrack {
         // List<WTrack> tracks = new ArrayList<WTrack>();
         WTrack trk = this;
 
-        DMatrix3 xp_ejml = new DMatrix3();
-        DMatrix3 eta_ejml = new DMatrix3();
-        DMatrix3 h_ejml = new DMatrix3();
-        
-        HitUtils.H3VToDM3(xp,xp_ejml);
-        HitUtils.H3VToDM3(eta,eta_ejml);
-        HitUtils.H3VToDM3(h,h_ejml);
-
         while (iteration <= max_iterations_intercept && Math.abs(step) > epsilon_intercept) {
 
             if (_debug) {
@@ -522,15 +514,9 @@ public class WTrack {
 
             if (trk.goingForward()) {
 
-                step = getPathLengthToPlaneApprox_ejml(xp_ejml, eta_ejml, h_ejml);
-                
-                System.out.println("PF::WTRACKOPT::step_ejml\n"+step);
-
                 // Start by approximating the path length to the point
                 step = getPathLengthToPlaneApprox(xp, eta, h);
-                System.out.println("PF::WTRACKOPT::step\n"+step);
                 
-
                 if (step == Double.NaN)
                     return null;
 
@@ -540,11 +526,6 @@ public class WTrack {
                 // Find the track parameters at this point
                 
                 double[] params = getHelixParametersAtPathLength(step, h);
-
-                System.out.println("PF::params="+params[0]+" "+params[1]+" "+params[2]+" "+params[3]+" "+params[4]+" "+params[5]+" "+params[6]);
-
-                params = getHelixParametersAtPathLength_ejml(step, h_ejml);
-                System.out.println("PF::params_ejml="+params[0]+" "+params[1]+" "+params[2]+" "+params[3]+" "+params[4]+" "+params[5]+" "+params[6]);
 
                 // update the track parameters
                 trk.setTrackParameters(params);
