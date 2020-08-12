@@ -93,7 +93,9 @@ public class GBLRefitterDriver extends Driver {
     private List<SiSensor> sensors = new ArrayList<SiSensor>();
     private boolean debugAlignmentDs = false;
     private boolean compositeAlign = false;
-    private boolean constrainedFit = true;
+    private boolean constrainedFit = false;
+    private boolean constrainedD0Fit = false;
+    private boolean constrainedZ0Fit = false;
     private boolean usePoints = true;
     
     //Calculator for Frame to Frame derivatives
@@ -317,27 +319,37 @@ public class GBLRefitterDriver extends Driver {
                 //Bias the FEEs to beam energy. Correct the curvature by projecting on  X / Y plane
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
                 double targetpT = 4.55 * Math.cos(Math.atan(tanLambda));
-                double pt_bias = targetpT - pt; 
+                //System.out.println("TargetpT: " + targetpT + " tanLambda = " + tanLambda);
+                double pt_bias = targetpT - pt;
+                //System.out.println("pT bias: " + pt_bias);
                 double corrected_pt = pt+pt_bias;
+                
                 double corrected_c = sign*(bfield*momentum_param)/(corrected_pt);
                 trk_prms[BaseTrack.OMEGA] = corrected_c;
                 ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
             }
 
-            boolean constrainedD0Fit = false;
-            
             if (constrainedD0Fit) {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double d0 = trk_prms[BaseTrack.D0];
                 double targetd0 = 0.;
-                double d0bias = targetd0 - d0;
+                //double d0bias = targetd0 - d0;
+               
+                double d0bias = 0.;
+                if (trk_prms[BaseTrack.TANLAMBDA] > 0)  {
+                    d0bias = -0.887;
+                }
+                else {
+                    d0bias = 1.58;
+                }
                 double corrected_d0 = d0+d0bias;
                 trk_prms[BaseTrack.D0] = corrected_d0;
+                //System.out.println("d0" + d0);
+                //System.out.println("corrected_d0" + trk_prms[BaseTrack.D0);
+                
                 ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
             }
-
-            boolean constrainedZ0Fit = false;
 
             if (constrainedZ0Fit) {
                 double [] trk_prms = track.getTrackParameters();
@@ -565,7 +577,12 @@ public class GBLRefitterDriver extends Driver {
                     else {
                         //Seed constrained fit 
                         SymMatrix seedPrecision = new SymMatrix(5);
+                        //seed matrix q/p, yT', xT', xT, yT 
+                        
+                        //q/p constraint
                         seedPrecision.set(0,0,1000000);
+                        //d0 constraint
+                        seedPrecision.set(3,3,1000000);
                         trajForMPII = new GblTrajectory(points_on_traj,1,seedPrecision,true,true,true);
                     }
                     
