@@ -266,7 +266,9 @@ public class GBLRefitterDriver extends Driver {
 
         //Assign the mothers to the sensors
         //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
-        MakeAlignmentTree("alignable_fullmodule");
+        
+
+        MakeAlignmentTree("alignable_fullmodule"); 
 
         //Dump the constrain file
         MakeAlignmentConstraintFile();
@@ -1003,8 +1005,9 @@ public class GBLRefitterDriver extends Driver {
                     //Add the alignable mother to the sensor
                     ((HpsSiSensor)sensor).setAdeMother(ade);
                     
-                    //Add the sensor to the children of the alignable detector element
-                    ade.getChildren().add(sensor);
+                    //Add the sensor to the children of the alignable detector element --  Redundant?!
+                    //if (!ade.getName().contains("base"))
+                    //  ade.getChildren().add(sensor);
                 }
             }//loop on ades
         }//loop on sensors
