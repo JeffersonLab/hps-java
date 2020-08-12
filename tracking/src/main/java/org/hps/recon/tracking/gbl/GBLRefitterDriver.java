@@ -266,9 +266,7 @@ public class GBLRefitterDriver extends Driver {
 
         //Assign the mothers to the sensors
         //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
-        
-
-        MakeAlignmentTree("alignable_fullmodule"); 
+        MakeAlignmentTree("alignable_fullmodule");
 
         //Dump the constrain file
         MakeAlignmentConstraintFile();
@@ -279,10 +277,9 @@ public class GBLRefitterDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
-
         if (!event.hasCollection(Track.class, inputCollectionName))
             return;
-
+        
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
         // System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());

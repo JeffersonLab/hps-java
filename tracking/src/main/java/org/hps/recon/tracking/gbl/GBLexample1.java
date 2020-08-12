@@ -143,8 +143,8 @@ public class GBLexample1 {
         for (int iTry = 1; iTry<=nTry; iTry+=1) {
             for (int i = 0; i<5; i+=1) {
                 
+                clPar.set(i, clErr.get(i)*norm_sample);
                 //clPar.set(i, clErr.get(i)*norm.sample());
-                clPar.set(i, clErr.get(i)*0.5);
                 //System.out.println("clPar " + i + " " + clPar.get(i));
                 //aida.histogram1D("clPar_true_"+String.valueOf(i)).fill(clPar.get(i));
             }
@@ -219,8 +219,8 @@ public class GBLexample1 {
                 }
                 
                 for (int i=0; i<2; i+=1) {
+                    meas.set(i,meas.get(i)+measErr.get(i) * norm_sample);
                     //meas.set(i,meas.get(i)+measErr.get(i) * norm.sample());
-                    meas.set(i,meas.get(i)+measErr.get(i) * 0.5);
                 }
                 
                 if (debug) {
@@ -260,8 +260,8 @@ public class GBLexample1 {
                     
                     //Only change the slopes
                     for (int i =0; i<2; i+=1) {
+                        double dslope = scatErr.get(i)*norm_sample;
                         //double dslope = scatErr.get(i)*norm.sample();
-                        double dslope = scatErr.get(i)*0.5;
                         double slope  = clPar.get(i + 1);
                         double dslope_prec = scatErr.get(i) * scatErr.get(i);
                         double slope_prec = clCov.get(i+1, i+1);
@@ -307,8 +307,8 @@ public class GBLexample1 {
             aida.histogram1D("Chi2").fill(dVals[0]);
             aida.histogram1D("Ndf").fill(iVals[0]);
             aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
-            
-
+        
+        
             if (debug) {
                 traj.printTrajectory(1);
                 traj.printPoints(1);
@@ -366,7 +366,7 @@ public class GBLexample1 {
             for (int i_u=0; i_u<numData_u[0];i_u++) {
                 System.out.printf("Example1::measResults %d %d %f %f %f \n",ulabel, i_u, aResiduals_u.get(i_u),aMeasErrors_u.get(i_u),aResErrors_u.get(i_u));
             }
-
+            
             System.out.println("Checking biased residual again");
             traj.fit(dVals_u,iVals_u,"");
             aResiduals_u.clear();
