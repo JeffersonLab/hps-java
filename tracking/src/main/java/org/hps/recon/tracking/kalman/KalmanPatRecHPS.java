@@ -45,9 +45,13 @@ class KalmanPatRecHPS {
     private int nModules;
     private KalmanParams kPar;
     private Logger logger;
+    private double [] zh;
+    private double [] yh;
+    private boolean [] ah;
 
     KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, KalmanParams kPar) {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
+        
         logger = Logger.getLogger(KalmanPatRecHPS.class.getName());
         this.topBottom = topBottom;
         this.eventNumber = eventNumber;
@@ -55,7 +59,13 @@ class KalmanPatRecHPS {
         else logger.setLevel(Level.INFO);
         this.verbose = (logger.getLevel()==Level.FINER || logger.getLevel()==Level.FINEST);
         this.kPar = kPar;
+        final boolean verbose = false;  // For optimization; remove this if you want debug printout from this method
 
+        // Some arrays for making preliminary cuts on seeds
+        zh = new double[5];    // global z coordinate of axial hit
+        yh = new double[5];    // global y coordinate of axial hit
+        ah = new boolean[5];   // true if stereo layer, false for axial
+        
         TkrList = new ArrayList<KalTrack>();
         nModules = data.size();
         int tkID = 100*topBottom + 1;
@@ -82,8 +92,10 @@ class KalmanPatRecHPS {
             }
             moduleList.get(thisSi.Layer).add(thisSi);
         }
+
+        // Arrays for covariance matrix propagation
         yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
-        XLscat = new ArrayList<Double>(numLayers);
+        XLscat = new ArrayList<Double>(numLayers); // Thicknesses of the scattering layers, in radiation lengths
         
         if (verbose) System.out.format("Entering KalmanPatRecHPS for event %d, top-bottom=%d with %d modules, for %d trials.\n", 
                                          eventNumber, topBottom, nModules, kPar.nTrials);
@@ -163,15 +175,59 @@ class KalmanPatRecHPS {
                 ArrayList<SeedTrack> seedList = new ArrayList<SeedTrack>();
                 int[] idx = new int[nLyrs];
                 for (idx[0] = 0; idx[0] < lyrHits.get(list[0]).size(); idx[0]++) {
-                    if (lyrHits.get(list[0]).get(idx[0]).hit.tracks.size() > 0) continue; // don't use hits already on KalTrack tracks
+                    KalHit kht = lyrHits.get(list[0]).get(idx[0]);
+                    Measurement hit = kht.hit;
+                    if (hit.tracks.size() > 0) continue; // don't use hits already on KalTrack tracks
+                    SiModule mod = kht.module;
+                    ah[0] = mod.isStereo;
+                    if (mod.isStereo) {
+                        zh[0] = mod.toGlobal(new Vec(0.,hit.v,0.)).v[2];
+                        yh[0] = mod.p.X().v[1];
+                    }                 
                     for (idx[1] = 0; idx[1] < lyrHits.get(list[1]).size(); idx[1]++) {
-                        if (lyrHits.get(list[1]).get(idx[1]).hit.tracks.size() > 0) continue;
+                        kht = lyrHits.get(list[1]).get(idx[1]);
+                        hit = kht.hit;
+                        if (hit.tracks.size() > 0) continue;
+                        mod = kht.module;
+                        ah[1] = mod.isStereo;
+                        if (!mod.isStereo) {
+                            zh[1] = mod.toGlobal(new Vec(0.,hit.v,0.)).v[2];
+                            yh[1] = mod.p.X().v[1];
+                            if (seedNoGood(1, trial)) continue;
+                        }
                         for (idx[2] = 0; idx[2] < lyrHits.get(list[2]).size(); idx[2]++) {
-                            if (lyrHits.get(list[2]).get(idx[2]).hit.tracks.size() > 0) continue;
+                            kht = lyrHits.get(list[2]).get(idx[2]);
+                            hit = kht.hit;
+                            if (hit.tracks.size() > 0) continue;
+                            mod = kht.module;
+                            ah[2] = mod.isStereo;
+                            if (!mod.isStereo) {
+                                zh[2] = mod.toGlobal(new Vec(0.,hit.v,0.)).v[2];
+                                yh[2] = mod.p.X().v[1];
+                                if (seedNoGood(2, trial)) continue;
+                            }
                             for (idx[3] = 0; idx[3] < lyrHits.get(list[3]).size(); idx[3]++) {
-                                if (lyrHits.get(list[3]).get(idx[3]).hit.tracks.size() > 0) continue;
+                                kht = lyrHits.get(list[3]).get(idx[3]);
+                                hit = kht.hit;
+                                if (hit.tracks.size() > 0) continue;
+                                mod = kht.module;
+                                ah[3] = mod.isStereo;
+                                if (!mod.isStereo) {
+                                    zh[3] = mod.toGlobal(new Vec(0.,hit.v,0.)).v[2];
+                                    yh[3] = mod.p.X().v[1];
+                                    if (seedNoGood(3, trial)) continue;
+                                }
                                 for (idx[4] = 0; idx[4] < lyrHits.get(list[4]).size(); idx[4]++) {
-                                    if (lyrHits.get(list[4]).get(idx[4]).hit.tracks.size() > 0) continue;
+                                    kht = lyrHits.get(list[4]).get(idx[4]);
+                                    hit = kht.hit;
+                                    if (hit.tracks.size() > 0) continue;
+                                    mod = kht.module;
+                                    ah[4] = mod.isStereo;
+                                    if (!mod.isStereo) {
+                                        zh[4] = mod.toGlobal(new Vec(0.,hit.v,0.)).v[2];
+                                        yh[4] = mod.p.X().v[1];
+                                        if (seedNoGood(4, trial)) continue;
+                                    }
                                     ArrayList<KalHit> hitList = new ArrayList<KalHit>(5);
                                     for (int i = 0; i < nLyrs; i++) {
                                         hitList.add(lyrHits.get(list[i]).get(idx[i]));
@@ -1318,26 +1374,26 @@ class KalmanPatRecHPS {
     
     static Comparator<Pair<Integer, Double>> pairComparator = new Comparator<Pair<Integer, Double>>() {
         public int compare(Pair<Integer, Double> p1, Pair<Integer, Double> p2) {
-            if (p1.getSecondElement() < p2.getSecondElement()) {
-                return 1;
-            } else {
-                return -1;
-            }
+            Double p1_2 = new Double(p1.getSecondElement());
+            Double p2_2 = new Double(p2.getSecondElement());
+            return p2_2.compareTo(p1_2);
         }
     };
     
-    // Quick check on where the seed track is heading
-    /*
-    private boolean seedNoGood(int nLyr1, int nHit1, int nLyr2, int nHit2) {
-        double y1 = data.get(nLyr1).p.X().v[1];
-        double y2 = data.get(nLyr2).p.X().v[1];
-        double z1 = data.get(nLyr1).toGlobal(new Vec(0., data.get(nLyr1).hits.get(nHit1).v, 0.)).v[2];
-        double z2 = data.get(nLyr2).toGlobal(new Vec(0., data.get(nLyr2).hits.get(nHit2).v, 0.)).v[2];
-        double slope = (z2 - z1) / (y2 - y1);
-        double zIntercept = z1 - slope * y1;
-        if (Math.abs(zIntercept) > dRhoMax) return true;
-        if (slope > tanlMax) return true;
+    // Quick check on where the seed track is heading, using only the two axial layers in the seed
+    private boolean seedNoGood(int j, int iter) {
+        // j must point to an axial layer in the seed.
+        // Find the previous axial layer, if there is one. . .
+        for (int i=0; i<j; ++i) {
+            if (!ah[i]) {
+                double slope = (zh[j] - zh[i]) / (yh[j] - yh[i]);
+                double zIntercept = zh[i] - slope * zh[j];
+                //System.out.format("seedNoGood: i=%d lyr=%d, j=%d, lyr=%d slope=%10.5f, zInt=%10.5f\n", i, lyrs[i], j, lyrs[j], slope, zIntercept);
+                if (Math.abs(zIntercept) > 1.1*kPar.dRhoMax[iter]) return true;
+                if (Math.abs(slope) > 1.1*kPar.tanlMax[iter]) return true;
+                return false;
+            }
+        }
         return false;
     }
-    */
 }

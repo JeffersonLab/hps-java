@@ -17,7 +17,7 @@ class HelixState {
     Vec origin;                 // Origin of the local field coordinates in the global system.
     SquareMatrix C;             // Helix covariance matrix 
     double B;                   // Magnetic field magnitude at origin
-    private Vec tB;             // Magnetic field direction at origin
+    Vec tB;                     // Magnetic field direction at origin
     double alpha;               // Conversion from 1/K to radius R
     private double c;           // Speed of light
     private Logger logger;

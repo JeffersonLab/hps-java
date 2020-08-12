@@ -199,43 +199,13 @@ public class KalmanPatRecDriver extends Driver {
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
         // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
         
-        kPar.clrStrategies();
-        int[] list0 = {6, 7, 8, 9, 10};
-        int[] list1 = {4, 5, 6, 7, 8};
-        int[] list2 = {5, 6, 8, 9, 10};
-        int[] list3 = {5, 6, 7, 8, 10};
-        int[] list4 = { 3, 6, 8, 9, 10 };
-        int[] list5 = { 4, 5, 8, 9, 10 };
-        int[] list6 = { 4, 6, 7, 8, 9 };
-        int[] list7 = { 4, 6, 7, 9, 10 };
-        int[] list8 = { 2, 5, 8, 9, 12};
-        int[] list9 = { 8, 10, 11, 12, 13};
-        int[] list10 = {6, 9, 10, 11, 12};
-        int[] list11 = {6, 7, 9, 10, 12};
-        int[] list12 = {2, 3, 4, 5, 6};
-        int[] list13 = {2, 4, 5, 6, 7};
-        int[] list14 = {6, 7, 8, 10, 11};
-        int[] list15 = {1, 2, 4, 5, 6};
-        int[] list16 = {0, 1, 2, 3, 4};
-        int[] list17 = {0, 3, 4, 5, 6};
-        kPar.addStrategy(list0);
-        kPar.addStrategy(list1);
-        kPar.addStrategy(list2);
-        kPar.addStrategy(list3);
-        kPar.addStrategy(list4);
-        kPar.addStrategy(list5);
-        kPar.addStrategy(list6);
-        kPar.addStrategy(list7);
-        kPar.addStrategy(list8);
-        kPar.addStrategy(list9);
-        kPar.addStrategy(list10);
-        kPar.addStrategy(list11);
-        kPar.addStrategy(list12);
-        kPar.addStrategy(list13);
-        kPar.addStrategy(list14);
-        kPar.addStrategy(list15);
-        kPar.addStrategy(list16);
-        kPar.addStrategy(list17);
+        //int[] list15 = {1, 2, 4, 5, 6};
+        //int[] list16 = {0, 1, 2, 3, 4};
+        //int[] list17 = {0, 3, 4, 5, 6};
+        //kPar.addStrategy(list15);
+        //kPar.addStrategy(list16);
+        //kPar.addStrategy(list17);
+        System.out.println("KalmanPatRecDriver: done with configuration changes.");
         
         System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
     }

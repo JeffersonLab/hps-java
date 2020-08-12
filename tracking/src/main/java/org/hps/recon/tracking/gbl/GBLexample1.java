@@ -386,7 +386,6 @@ public class GBLexample1 {
         System.out.printf("Time elapsed %f ms\n", (double)duration/1000000.);
         System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
         System.out.printf("Tracks Fitted  %d \n", numFit);
-        
         if (outputPlots != null) {
             try {
                 aida.saveAs(outputPlots);

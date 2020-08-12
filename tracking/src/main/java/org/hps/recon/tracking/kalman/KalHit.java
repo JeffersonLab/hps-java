@@ -45,6 +45,7 @@ class KalHit {
     // Comparator function for sorting hits on a track candidate
     static Comparator<KalHit> HitComparator = new Comparator<KalHit>() {
         public int compare(KalHit h1, KalHit h2) {
+            if (h1 == h2) return 0;
             int lyr1 = h1.module.Layer;
             int lyr2 = h2.module.Layer;
             if (lyr1 < lyr2) {

@@ -245,7 +245,7 @@ public class GBLRefitterDriver extends Driver {
         
         //GBLexampleJna1 examplejna1 = new GBLexampleJna1();
         //examplejna1.runExample();
-        
+
         //Alignment Manager  - Get the composite structures.
         IDetectorElement detectorElement = detector.getDetectorElement();
         Alignabledes = detectorElement.findDescendants(AlignableDetectorElement.class);
@@ -279,7 +279,6 @@ public class GBLRefitterDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
-        
         if (!event.hasCollection(Track.class, inputCollectionName))
             return;
         
@@ -1020,8 +1019,9 @@ public class GBLRefitterDriver extends Driver {
                     //Add the alignable mother to the sensor
                     ((HpsSiSensor)sensor).setAdeMother(ade);
                     
-                    //Add the sensor to the children of the alignable detector element
-                    ade.getChildren().add(sensor);
+                    //Add the sensor to the children of the alignable detector element --  Redundant?!
+                    //if (!ade.getName().contains("base"))
+                    //  ade.getChildren().add(sensor);
                 }
             }//loop on ades
         }//loop on sensors

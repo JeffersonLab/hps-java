@@ -25,7 +25,7 @@ public class KalTrack {
     Map<Integer, MeasurementSite> millipedeMap;
     Map<Integer, MeasurementSite> lyrMap;
     public int eventNumber;
-    private HelixState helixAtOrigin;
+    HelixState helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
     private Vec originPoint;
@@ -158,6 +158,38 @@ public class KalTrack {
             }
         }
         return interceptMomVects;
+    }
+    
+    // Calculate and return the intersection point of the Kaltrack with an SiModule.
+    // Local sensor coordinates (u,v) are returned. 
+    // The global intersection can be returned via rGbl if an array of length 3 is passed.
+    public double [] moduleIntercept(SiModule mod, double [] rGbl) {
+        HelixState hx = null;
+        for (MeasurementSite site : SiteList) {
+            if (site.m == mod) hx = site.aS.helix;
+        }
+        if (hx == null) {
+            int mxLayer = -1;
+            for (MeasurementSite site : SiteList) {
+                if (site.m.Layer > mod.Layer) continue;
+                if (site.m.Layer > mxLayer) {
+                    mxLayer = site.m.Layer;
+                    hx = site.aS.helix;
+                }
+            }
+        }
+        if (hx == null) hx = SiteList.get(0).aS.helix;
+        double phiS = hx.planeIntersect(mod.p);
+        if (Double.isNaN(phiS)) phiS = 0.;
+        Vec intGlb = hx.toGlobal(hx.atPhi(phiS));
+        if (rGbl != null) {
+            rGbl[0] = intGlb.v[0];
+            rGbl[1] = intGlb.v[1];
+            rGbl[2] = intGlb.v[2];
+        }
+        Vec intLcl = mod.toLocal(intGlb);
+        double [] rtnArray = {intLcl.v[0], intLcl.v[1]};
+        return rtnArray;
     }
     
     private void makeLyrMap() {
@@ -501,6 +533,11 @@ public class KalTrack {
         return Cp.clone();
     }
 
+    public double[] originPivot() {
+        if (propagated) return helixAtOrigin.X0.v.clone();
+        else return null;
+    }
+    
     public double[] originP() {
         if (!propagated) { originHelix(); }
         return originMomentum.v.clone();
@@ -519,6 +556,324 @@ public class KalTrack {
     public double[] originHelixParms() {
         if (propagated) return helixAtOrigin.a.v.clone();
         else return null;
+    }
+    
+    //Update the helix parameters at the "origin" by using the target position or vertex as a constraint
+    public HelixState originConstraint(double [] vtx, double [][] vtxCov) {
+        final boolean verbose = false;
+        if (!propagated) originHelix();
+        
+        // Transform the inputs in the the helix field-oriented coordinate system
+        Vec v = helixAtOrigin.toLocal(new Vec(3,vtx));
+        SquareMatrix Cov = helixAtOrigin.Rot.rotate(new SquareMatrix(3,vtxCov));
+        Vec X0 = helixAtOrigin.X0;
+        double phi = phiDOCA(helixAtOrigin.a, v, X0, alpha);
+        if (verbose) {  // Test the DOCA algorithm
+            Vec rDoca = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
+            System.out.format("originConstraint: phi of DOCA=%10.5e\n", phi);
+            rDoca.print("  DOCA point");
+            double doca = rDoca.dif(v).mag();
+            System.out.format("      Minimum doca=%10.7f\n", doca);
+            for (double p=phi-0.0001; p<phi+0.0001; p += 0.000001) {
+                rDoca = HelixState.atPhi(X0, helixAtOrigin.a, p, alpha);
+                doca = rDoca.dif(v).mag();
+                System.out.format("   phi=%10.5e, doca=%10.7f\n", p,doca);
+            }
+            
+            double delPhi = 0.00001;
+            double f = fDOCA(phi, helixAtOrigin.a, v, X0, alpha);
+            double df1 = fDOCA(phi + delPhi, helixAtOrigin.a, v, X0, alpha) - f;
+            double deriv = dfDOCAdPhi(phi, helixAtOrigin.a, v, X0, alpha);
+            double df2 = deriv * delPhi;
+            System.out.format("Test of fDOCA derivative: df exact = %11.7f; df from derivative = %11.7f\n", df1, df2);
+        }
+        double [][] H = buildH(helixAtOrigin.a, v, X0, phi, alpha);
+        Vec pntDOCA = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
+        if (verbose) {
+            matrixPrint("H", H, 3, 5);
+            
+            // Derivative test
+            HelixState hx = helixAtOrigin.copy();
+            double daRel[] = { -0.04, 0.03, -0.16, -0.02, -0.015 };
+            for (int i=0; i<5; ++i) daRel[i] = daRel[i]/100.;
+            for (int i = 0; i < 5; i++) { hx.a.v[i] = hx.a.v[i] * (1.0 + daRel[i]); }
+            Vec da = new Vec(hx.a.v[0] * daRel[0], hx.a.v[1] * daRel[1], hx.a.v[2] * daRel[2], hx.a.v[3] * daRel[3], hx.a.v[4] * daRel[4]);
+
+            double phi2 = phiDOCA(hx.a, v, X0, alpha);
+            Vec newX = HelixState.atPhi(X0, hx.a, phi2, alpha);
+            Vec dxTrue = newX.dif(pntDOCA);
+            dxTrue.print("originConstraint derivative test actual difference");
+            
+            Vec dx = new Vec(3);
+            for (int i=0; i<3; ++i) {
+                for (int j=0; j<5; ++j) {
+                    dx.v[i] += H[i][j]*da.v[j];
+                }
+            }
+            dx.print("difference from H derivative matrix");
+            for (int i=0; i<3; ++i) {
+                double err = 100.*(dxTrue.v[i] - dx.v[i])/dxTrue.v[i]; 
+                System.out.format("      Coordiante %d: percent difference = %10.6f\n", i, err);
+            }
+            helixAtOrigin.C.print("helix covariance");
+        }
+        SquareMatrix Ginv = new SquareMatrix(3);
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<3; ++j) {
+                Ginv.M[i][j] = Cov.M[i][j];
+                for (int k=0; k<5; ++k) {
+                    for (int l=0; l<5; ++l) {
+                        Ginv.M[i][j] += H[i][k] * helixAtOrigin.C.M[k][l] * H[j][l];
+                    }
+                }
+            }
+        }
+        SquareMatrix G = Ginv.invert();
+        double [][] K = new double[5][3];  // Kalman gain matrix
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<3; ++j) {
+                for (int k=0; k<5; ++k) {
+                    for (int l=0; l<3; ++l) {
+                        K[i][j] += helixAtOrigin.C.M[i][k] * H[l][k] * G.M[l][j];
+                    }
+                }
+            }
+        }
+        if (verbose) {
+            Ginv.print("G inverse");
+            G.print("G");
+            G.multiply(Ginv).print("G times its inverse");
+            matrixPrint("K", K, 5, 3);
+        }
+        double [] newHelixParms = new double[5];
+        double [][] newHelixCov = new double[5][5]; 
+        for (int i=0; i<5; ++i) {
+            newHelixParms[i] = helixAtOrigin.a.v[i];
+            for (int j=0; j<3; ++j) {
+                newHelixParms[i] += K[i][j] * (vtx[j] - pntDOCA.v[j]);
+            }
+            for (int j=0; j<5; ++j) {
+                newHelixCov[i][j] = helixAtOrigin.C.M[i][j];
+                for (int k=0; k<3; ++k) {
+                    for (int l=0; l<5; ++l) {
+                        newHelixCov[i][j] -= K[i][k] * H[k][l] * helixAtOrigin.C.M[l][j];
+                    }
+                }
+            }
+        }
+        if (verbose) {
+            // Test alternative formulation
+            SquareMatrix Vinv = Cov.invert();
+            SquareMatrix Cinv = helixAtOrigin.C.invert();
+            for (int i=0; i<5; ++i) {
+                for (int j=0; j<5; ++j) {
+                    for (int k=0; k<3; ++k) {
+                        for (int l=0; l<3; ++l) {
+                            Cinv.M[i][j] += H[k][i] * Vinv.M[k][l] * H[l][j];
+                        }
+                    }
+                }
+            }
+            SquareMatrix Calt = Cinv.invert();
+            Calt.print("Alternative filtered covariance");
+            double [][] Kp = new double[5][3];
+            for (int i=0; i<5; ++i) {
+                for (int j=0; j<3; ++j) {
+                    for (int k=0; k<5; ++k) {
+                        for (int l=0; l<3; ++l) {
+                            Kp[i][j] += Calt.M[i][k] * H[l][k] * Vinv.M[l][j];
+                        }
+                    }
+                }
+            }
+            matrixPrint("alternative K", Kp, 5, 3);
+        }
+        return new HelixState(new Vec(5,newHelixParms), X0, helixAtOrigin.origin, new SquareMatrix(5,newHelixCov), helixAtOrigin.B, helixAtOrigin.tB);
+    }
+    
+    private static void matrixPrint(String s, double [][] A, int M, int N) {
+        System.out.format("Dump of %d by %d matrix %s:\n", M, N, s);
+        for (int i=0; i<M; ++i) {
+            for (int j=0; j<N; ++j) {
+                System.out.format(" %10.5f", A[i][j]);
+            }
+            System.out.format("\n");
+        }
+    }
+    
+    //Find the helix turning alpha phi for the point on the helix 'a' closest to the point 'v'
+    private static double phiDOCA(Vec a, Vec v, Vec X0, double alpha) {
+        
+        Plane p = new Plane(v, new Vec(0.,1.,0.));
+        HelixPlaneIntersect hpa = new HelixPlaneIntersect();
+        double phiInt = hpa.planeIntersect(a, X0, alpha, p);
+        if (Double.isNaN(phiInt)) {
+            phiInt = 0.;
+        } 
+        double dphi = 0.1;
+        double accuracy = 0.0000001;
+        double phiDoca = rtSafe(phiInt, phiInt-dphi, phiInt+dphi, accuracy, a, v, X0, alpha);
+
+        return phiDoca;
+    }
+
+    // Safe Newton-Raphson zero finding from Numerical Recipes in C, used here to solve for the point of closest approach.
+    private static double rtSafe(double xGuess, double x1, double x2, double xacc, Vec a, Vec v, Vec X0, double alpha) {
+        // Here xGuess is a starting guess for the phi angle of the helix DOCA point
+        // x1 and x2 give a range for the value of the solution
+        // xacc specifies the accuracy needed
+        // The output is an accurate result for the phi of the DOCA point
+        double df, dx, dxold, f, fh, fl;
+        double temp, xh, xl, rts;
+        int MAXIT = 100;
+
+        if (xGuess <= x1 || xGuess >= x2) {
+            System.out.format("KalTrack.rtsafe: initial guess needs to be bracketed.");
+            return xGuess;
+        }
+        fl = fDOCA(x1, a, v, X0, alpha);
+        fh = fDOCA(x2, a, v, X0, alpha);
+        int nTry = 0;
+        while (fl*fh > 0.0) {
+            if (nTry == 5) {
+                System.out.format("KalTrack.rtsafe: Root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f, x1=%12.5f x2=%12.5f xGuess=%12.5f", 
+                        fl, fh, alpha, x1, x2, xGuess);
+                return xGuess;
+            }
+            x1 -= 0.01;
+            x2 += 0.01;
+            fl = fDOCA(x1, a, v, X0, alpha);
+            fh = fDOCA(x2, a, v, X0, alpha);
+            nTry++;
+        }
+        //if (nTry > 0) System.out.format("KalTrack.rtsafe: %d tries needed to bracket solution.\n", nTry);
+        if (fl == 0.) return x1;
+        if (fh == 0.) return x2;
+        if (fl < 0.0) {
+            xl = x1;
+            xh = x2;
+        } else {
+            xh = x1;
+            xl = x2;
+        }
+        rts = xGuess;
+        dxold = Math.abs(x2 - x1);
+        dx = dxold;
+        f = fDOCA(rts, a, v, X0, alpha);
+        df = dfDOCAdPhi(rts,a, v, X0, alpha);
+        for (int j = 1; j <= MAXIT; j++) {
+            if ((((rts - xh) * df - f) * ((rts - xl) * df - f) > 0.0) || (Math.abs(2.0 * f) > Math.abs(dxold * df))) {
+                dxold = dx;
+                dx = 0.5 * (xh - xl); // Use bisection if the Newton-Raphson method is going bonkers
+                rts = xl + dx;
+                if (xl == rts) return rts;
+            } else {
+                dxold = dx;
+                dx = f / df; // Newton-Raphson method
+                temp = rts;
+                rts -= dx;
+                if (temp == rts) return rts;
+            }
+            if (Math.abs(dx) < xacc) {
+                // System.out.format("KalTrack.rtSafe: solution converged in %d iterations.\n",
+                // j);
+                return rts;
+            }
+            f = fDOCA(rts, a, v, X0, alpha);
+            df = dfDOCAdPhi(rts,a, v, X0, alpha);
+            if (f < 0.0) {
+                xl = rts;
+            } else {
+                xh = rts;
+            }
+        }
+        System.out.format("KalTrack.rtsafe: maximum number of iterations exceeded.");
+        return rts;
+    }
+    
+    // Function that is zero when the helix turning angle phi is at the point of closest approach to v
+    private static double fDOCA(double phi, Vec a, Vec v, Vec X0, double alpha) {
+        Vec t = tangentVec(a, phi, alpha);
+        Vec x = HelixState.atPhi(X0, a, phi, alpha);
+        return (v.dif(x)).dot(t);
+    }
+    
+    // derivative of the fDOCA function with respect to phi, for the zero-finding algorithm
+    private static double dfDOCAdPhi(double phi, Vec a, Vec v, Vec X0, double alpha) {
+        Vec x = HelixState.atPhi(X0, a, phi, alpha);
+        Vec dxdphi = dXdPhi(a, phi, alpha);
+        Vec t = tangentVec(a, phi, alpha);
+        Vec dtdphi = dTangentVecDphi(a, phi, alpha);
+        Vec dfdt = v.dif(x);
+        double dfdphi = -t.dot(dxdphi) + dfdt.dot(dtdphi);
+        return dfdphi;
+    }
+    
+    // Derivatives of position along a helix with respect to the turning angle phi
+    private static Vec dXdPhi(Vec a, double phi, double alpha) {
+        return new Vec((alpha / a.v[2]) * Math.sin(a.v[1] + phi), -(alpha / a.v[2]) * Math.cos(a.v[1] + phi),
+                -(alpha / a.v[2]) * a.v[4]);
+    }
+    
+    // A vector tangent to the helix 'a' at the alpha phi
+    private static Vec tangentVec(Vec a, double phi, double alpha) {
+        return new Vec((alpha/a.v[2])*Math.sin(a.v[1]+phi), -(alpha/a.v[2])*Math.cos(a.v[1]+phi), -(alpha/a.v[2])*a.v[4]);
+    }
+    
+    private static Vec dTangentVecDphi(Vec a, double phi, double alpha) {
+        return new Vec((alpha/a.v[2])*Math.cos(a.v[1]+phi), (alpha/a.v[2])*Math.sin(a.v[2]+phi), 0.);
+    }
+    
+    //Derivative matrix for the helix 'a' point of closet approach to point 'v'
+    private static double [][] buildH(Vec a, Vec v, Vec X0, double phi, double alpha) {
+        // a = helix parameters
+        // X0 = pivot point of helix
+        // phi = angle along helix to the point of closet approach
+        // v = 3D point for which we are finding the DOCA (the "measurement" point)
+        // alpha = constant to convert from curvature to 1/pt
+        
+        Vec x = HelixState.atPhi(X0, a, phi, alpha);
+        Vec dxdphi = dXdPhi(a, phi, alpha);
+        Vec t = tangentVec(a, phi, alpha);
+        Vec dtdphi = dTangentVecDphi(a, phi, alpha);
+        Vec dfdt = v.dif(x);
+        double dfdphi = -t.dot(dxdphi) + dfdt.dot(dtdphi);
+        double [][] dtda = new double[3][5];
+        dtda[0][1] = (alpha/a.v[2])*Math.cos(a.v[1]+phi);
+        dtda[0][2] = (-alpha/(a.v[2]*a.v[2]))*Math.sin(a.v[1]+phi);
+        dtda[1][1] = (alpha/a.v[2])*Math.sin(a.v[1]+phi);
+        dtda[1][2] = (alpha/(a.v[2]*a.v[2]))*Math.cos(a.v[1]+phi);
+        dtda[2][2] = (alpha/(a.v[2]*a.v[2]))*a.v[4];
+        dtda[2][4] = -alpha/a.v[2];
+        
+        double [][] dxda = new double[3][5];
+        dxda[0][0] = Math.cos(a.v[1]);
+        dxda[1][0] = Math.sin(a.v[1]);
+        dxda[0][1] = -(a.v[0] + alpha / a.v[2]) * Math.sin(a.v[1]) + (alpha / a.v[2]) * Math.sin(a.v[1] + phi);
+        dxda[1][1] = (a.v[0] + alpha / a.v[2]) * Math.cos(a.v[1]) - (alpha / a.v[2]) * Math.cos(a.v[1] + phi);
+        dxda[0][2] = -(alpha / (a.v[2] * a.v[2])) * (Math.cos(a.v[1]) - Math.cos(a.v[1] + phi));
+        dxda[1][2] = -(alpha / (a.v[2] * a.v[2])) * (Math.sin(a.v[1]) - Math.sin(a.v[1] + phi));
+        dxda[2][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4] * phi;
+        dxda[2][3] = 1.0;
+        dxda[2][4] = -(alpha / a.v[2]) * phi;
+        
+        Vec dfda = new Vec(5);
+        Vec dphida = new Vec(5);
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<3; ++j) {
+                dfda.v[i] += -t.v[j]*dxda[j][i] + dfdt.v[j]*dtda[j][i];
+            }
+            dphida.v[i] = -dfda.v[i]/dfdphi;
+        }
+        
+        double [][] H = new double[3][5];
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<5; ++j) {
+                H[i][j] = dxdphi.v[i]*dphida.v[j] + dxda[i][j];
+            }           
+        }
+        
+        return H;
     }
 
     public double helixErr(int i) {
@@ -778,13 +1133,9 @@ public class KalTrack {
     // Comparator function for sorting tracks by quality
     static Comparator<KalTrack> TkrComparator = new Comparator<KalTrack>() {
         public int compare(KalTrack t1, KalTrack t2) {
-            double chi1 = t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.);
-            double chi2 = t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.);
-            if (chi1 < chi2) {
-                return -1;
-            } else {
-                return +1;
-            }
+            Double chi1 = new Double(t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.));
+            Double chi2 = new Double(t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.));
+            return chi1.compareTo(chi2);
         }
     };
 
