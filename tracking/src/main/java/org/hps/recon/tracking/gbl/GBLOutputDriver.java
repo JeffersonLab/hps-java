@@ -26,7 +26,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseTrack;
-import org.lcsim.fit.helicaltrack.HelicalTrackFit;
+//import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.TrackerHit;
@@ -159,7 +159,7 @@ public class GBLOutputDriver extends Driver {
             }
             doBasicGBLtrack(trk);
             doGBLresiduals(trk, sensorHits,event);
-            doMTresiduals(matchedTrack, sensorHits);
+            //doMTresiduals(matchedTrack, sensorHits);
             if (b_doGBLkinks)
                 doGBLkinks(trk,gblKink, sensorNums);
         }
@@ -225,9 +225,19 @@ public class GBLOutputDriver extends Driver {
         TrackState trackState = trk.getTrackStates().get(0);
 
         String isTop = "_bottom";
-        if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
+        //if (trk.getTrackerHits().get(0).getPosition()[2] > 0) {
+        //  isTop = "_top";
+        //}
+
+        if (trk.getType()==1 && trk.getTrackerHits().size() < 12) {
+            return;
+        }
+        
+        if (trackState.getTanLambda() > 0) {
             isTop = "_top";
         }
+        
+        
         
         String charge = "_pos";
         if (trk.getCharge()<0)
@@ -602,7 +612,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t,0,100);
-                aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,14,0,14);
+                aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_x"+vol+charge,nbins_t,-3,3);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_y"+vol+charge,nbins_t,-3,3);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_bs_x"+vol+charge, 2*nbins_t, -5, 5);
