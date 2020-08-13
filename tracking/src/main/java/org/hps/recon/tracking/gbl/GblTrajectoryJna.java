@@ -26,7 +26,11 @@ public class GblTrajectoryJna {
         void GblTrajectory_fit(Pointer self, DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, char [] optionList, int aLabel);
         void GblTrajectory_addPoint(Pointer self, Pointer point);
         int GblTrajectory_isValid(Pointer self);
-        //void GblTrajectory_milleOut(Pointer self);
+        void GblTrajectory_printTrajectory(Pointer self, int level);
+        void GblTrajectory_printData(Pointer self);
+        void GblTrajectory_printPoints(Pointer self, int level);
+        
+        void GblTrajectory_milleOut(Pointer self, Pointer millebinary);
         
     }
     
@@ -75,8 +79,6 @@ public class GblTrajectoryJna {
         self = GblTrajectoryInterface.INSTANCE.GblTrajectoryCtorPtrArraySeed(ppoints, points.size(), aLabel, seedArray, flagCurv, flagU1dir, flagU2dir);
         
     }
-
-    
     
     
     public void fit(DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, String optionList) {
@@ -100,11 +102,23 @@ public class GblTrajectoryJna {
         return GblTrajectoryInterface.INSTANCE.GblTrajectory_isValid(self);
         
     }
-    
-    /*
-    public void milleOut() {       
-        return GblTrajectoryInterface.INSTANCE.GblTrajectory_milleOut(self);
+
+    public void printTrajectory(int level) {
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_printTrajectory(self,level);
     }
-    */
+    
+    public void printData() {
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_printData(self);
+    }
+
+    public void printPoints(int level) {
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_printPoints(self,level);
+    }
+    
+    
+    public void milleOut(MilleBinaryJna millebinary) {       
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_milleOut(self, millebinary.getPtr());
+    }
+    
         
 }

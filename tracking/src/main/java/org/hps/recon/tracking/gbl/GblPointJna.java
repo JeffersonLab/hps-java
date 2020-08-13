@@ -4,6 +4,8 @@ import com.sun.jna.Library;
 import com.sun.jna.Native; 
 import com.sun.jna.Pointer; 
 
+import java.util.List;
+
 //import jeigen.DenseMatrix;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -25,6 +27,7 @@ public class GblPointJna {
         void GblPoint_addScatterer(Pointer self, double[] resArray, double[] precArray);
         
         void GblPoint_printPoint(Pointer self, int i);
+        void GblPoint_addGlobals(Pointer self, int[] labels, int nlabels, double[] derArray);
         
     }
     
@@ -37,6 +40,15 @@ public class GblPointJna {
         if (m.getRowDimension() != 5 || m.getColumnDimension() != 5) 
             throw new RuntimeException("GBLPoint:: Malformed point. JacobianP2P needs to be a 5x5 matrix. ");
         self = GblPointInterface.INSTANCE.GblPointCtor(array); 
+    }
+
+    public void addGlobals(List<Integer> labels, Matrix globalDers) {
+        double [] gders = globalDers.getRowPackedCopy(); 
+        int  [] glabels = new int[labels.size()];
+        for (int ilabel=0; ilabel<labels.size(); ilabel++) {
+            glabels[ilabel]=labels.get(ilabel);
+        }
+        GblPointInterface.INSTANCE.GblPoint_addGlobals(self, glabels, labels.size(), gders);
     }
     
     public int hasMeasurement() {
