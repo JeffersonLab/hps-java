@@ -17,6 +17,7 @@ import org.hps.recon.tracking.TrackType;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
+import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
@@ -364,15 +365,44 @@ public class TridentAnalysis extends Driver {
                 aida.histogram1D("trident pZ 1 V0 and 1 Vc", 100, 0., 10.).fill(tridentVec.z());
 
                 if (tridentVec.z() > 4.0 && tridentVec.z() < 5.2) {
+                    Hep3Vector v0Pos = V0Gbl.getReferencePoint();
                     aida.histogram1D("trident energy tight", 100, 0.0, 10.).fill(trident.t());
                     aida.histogram1D("trident pX tight unrotated", 100, -0.2, 0.2).fill(trident.v3().x());
                     aida.histogram1D("trident pX tight", 100, -0.2, 0.2).fill(tridentVec.x());
                     aida.histogram1D("trident pY tight", 100, -0.2, 0.2).fill(tridentVec.y());
                     aida.histogram1D("trident pZ tight", 100, 0., 10.).fill(tridentVec.z());
-                    Hep3Vector v0Pos = V0Gbl.getReferencePoint();
                     aida.histogram1D("V0 x", 100, -2., 2.).fill(v0Pos.x());
                     aida.histogram1D("V0 y", 100, -2., 2.).fill(v0Pos.y());
                     aida.histogram1D("V0 z", 100, -20., 20.).fill(v0Pos.z());
+
+                    // check on clusters
+                    if (!electrons.get(0).getClusters().isEmpty() && !electrons.get(1).getClusters().isEmpty() && !positrons.get(0).getClusters().isEmpty()) {
+                        Cluster ec1 = electrons.get(0).getClusters().get(0);
+                        Cluster ec2 = electrons.get(1).getClusters().get(0);
+                        Cluster pc1 = positrons.get(0).getClusters().get(0);
+                        double eSum = ec1.getEnergy()+ec2.getEnergy()+pc1.getEnergy();
+                        
+                        double te1 = ClusterUtilities.findSeedHit(ec1).getTime();
+                        double te2 = ClusterUtilities.findSeedHit(ec2).getTime();
+                        double tp1 = ClusterUtilities.findSeedHit(pc1).getTime();
+                        aida.histogram1D("delta cluster time ele1 ele2", 50, -5., 5.).fill(te1 - te2);
+                        aida.histogram1D("delta cluster time ele1 pos1", 50, -5., 5.).fill(te1 - tp1);
+                        aida.histogram1D("delta cluster time ele2 pos1", 50, -5., 5.).fill(te2 - tp1);
+                        double dt1 = te1 - te2;
+                        double dt2 = te1 - tp1;
+                        double dt3 = te2 - tp1;
+// require all three clusters to be in time
+                        if (abs(dt1) < 5 && abs(dt2) < 5 && abs(dt3) < 5) {
+                            aida.histogram1D("trident cluster energy sum tight cluster cut", 100, 0.0, 10.).fill(eSum);
+                            aida.histogram1D("trident energy tight cluster cut", 100, 0.0, 10.).fill(trident.t());
+                            aida.histogram1D("trident pX tight cluster cut", 100, -0.2, 0.2).fill(tridentVec.x());
+                            aida.histogram1D("trident pY tight cluster cut", 100, -0.2, 0.2).fill(tridentVec.y());
+                            aida.histogram1D("trident pZ tight cluster cut", 100, 0., 10.).fill(tridentVec.z());
+                            aida.histogram1D("V0 x cluster cut", 100, -2., 2.).fill(v0Pos.x());
+                            aida.histogram1D("V0 y cluster cut", 100, -2., 2.).fill(v0Pos.y());
+                            aida.histogram1D("V0 z cluster cut", 100, -20., 20.).fill(v0Pos.z());
+                        }
+                    }
                     skipEvent = false;
 //                    List<BilliorTrack> tracksToVertex = new ArrayList<>();
 //                    tracksToVertex.add(new BilliorTrack(electrons.get(0).getTracks().get(0)));
