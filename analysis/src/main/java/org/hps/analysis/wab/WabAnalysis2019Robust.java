@@ -50,7 +50,7 @@ public class WabAnalysis2019Robust extends Driver {
     private int _nReconstructedParticles = 2;
     private AIDA aida = AIDA.defaultInstance();
 
-    boolean _analyzeWabTrackingEfficiency = false;
+    boolean _analyzeWabTrackingEfficiency = true;
     RelationalTable hitToStrips;
     RelationalTable hitToRotated;
 
@@ -58,6 +58,7 @@ public class WabAnalysis2019Robust extends Driver {
 
     private boolean _analyzeTwoEcalClusters = true;
     boolean _analyzeReconstructedElectronPhoton = true;
+    boolean _analyzeReconstructedTwoPhoton = true;
     double esumCut = 3.0;
 
     boolean isMC;
@@ -70,6 +71,8 @@ public class WabAnalysis2019Robust extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        // get the ReconstructedParticles in this event
+        List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, _reconstructedParticleCollectionName);
         // skim candidates based only on calorimeter clusters
         if (_analyzeTwoEcalClusters) {
             List<Cluster> ecalClusters = event.get(Cluster.class, _ecalClusterCollectionName);
@@ -111,11 +114,14 @@ public class WabAnalysis2019Robust extends Driver {
                                 aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1", 100, 0., 5.).fill(e1);
                                 aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e2", 100, 0., 5.).fill(e2);
                                 aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
-                                aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1 + e2", 100, esumCut, 5.).fill(esum);
+                                aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1 + e2", 100, 0., 5.).fill(esum);
                                 aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster1 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
                                 aida.histogram2D("two fiducial opposite esum > " + esumCut + " cluster2 x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
-                                if (_analyzeWabTrackingEfficiency) {
-                                    analyzeWabTrackingEfficiency(event);
+                                if (rps.size() == 2) {
+                                    aida.histogram1D("two fiducial opposite esum > " + esumCut + " cluster e1 + e2 2 RPs", 100, 0., 5.).fill(esum);
+                                    if (_analyzeWabTrackingEfficiency) {
+                                        analyzeWabTrackingEfficiency(event);
+                                    }
                                 }
                             }
                             skipEvent = false;
@@ -136,11 +142,10 @@ public class WabAnalysis2019Robust extends Driver {
         }//end of loop over analyze two clusters
 
         if (_analyzeReconstructedElectronPhoton) { // select one electron and one photon.
-            // get the ReconstructedParticles in this event
-            List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, _reconstructedParticleCollectionName);
             // now add in the FEE candidates
-            rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
-
+//            rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+            aida.tree().mkdirs("electron-photon analysis");
+            aida.tree().cd("electron-photon analysis");
             // any MC information?
             isMC = event.hasCollection(MCParticle.class, "MCParticle");
             List<MCParticle> mcParts = null;
@@ -275,12 +280,18 @@ public class WabAnalysis2019Robust extends Driver {
                                 aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
                                 if (electronIsFiducial && photonIsFiducial) {
 //                                    if (nHits > 6 && topOrBottom.equals(" bottom ")) {
+                                    aida.histogram1D("Final Fiducial " + topOrBottom + "Electron momentum + Fiducial photon Energy", 100, 0.0, 5.0).fill(eMomentum + pEnergy);
+                                    aida.histogram1D("Final Fiducial " + topOrBottom + "Electron energy + Fiducial photon Energy", 100, 0.0, 5.0).fill(eEnergy + pEnergy);
+                                    aida.histogram1D("Final Fiducial Electron energy + Fiducial photon Energy", 100, 0.0, 5.0).fill(eEnergy + pEnergy);
+
                                     aida.histogram1D("Final " + nHits + " hits Fiducial " + topOrBottom + "Electron momentum + Fiducial photon Energy", 100, 2.0, 7.0).fill(eMomentum + pEnergy);
                                     aida.histogram1D("Final " + nHits + " hits Fiducial " + topOrBottom + "Electron energy + Fiducial photon Energy", 100, 2.0, 7.0).fill(eEnergy + pEnergy);
                                     aida.histogram2D("Final Electron Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(eClus.getPosition()[0], eClus.getPosition()[1]);
                                     aida.histogram2D("Final Photon Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pClus.getPosition()[0], pClus.getPosition()[1]);
                                     aida.histogram2D("Final Electron Cluster Energy vs Photon Cluster Energy", 100, 0., 4., 100, 0., 4).fill(eEnergy, pEnergy);
-
+                                    if (rps.size() == 2) {
+                                        aida.histogram1D("Final Fiducial Electron energy + Fiducial photon Energy 2 RPs", 100, 0.0, 5.0).fill(eEnergy + pEnergy);
+                                    }
 //                                    }
                                 }
                                 if (photonIsFiducial) {
@@ -292,6 +303,82 @@ public class WabAnalysis2019Robust extends Driver {
                     }
                 }
             }
+            aida.tree().cd("..");
+        }
+
+        if (_analyzeReconstructedTwoPhoton) { // select two and only two photons.
+            aida.tree().mkdirs("two-photon analysis");
+            aida.tree().cd("two-photon analysis");
+            // quick and dirty RP analysis
+            List<ReconstructedParticle> photons = new ArrayList<>();
+            for (ReconstructedParticle rp : rps) {
+                if (rp.getParticleIDUsed().getPDG() == 22) {
+                    photons.add(rp);
+                }
+            }
+
+            double eSumMin = 3.0;
+            if (photons.size() > 1) {
+                // get the photon pair whose sum is greater that eSumMin
+                // 
+                int nPairs = 0;
+                int n = photons.size();
+                ReconstructedParticle[] photonList = new ReconstructedParticle[n];
+                photonList = photons.toArray(photonList);
+                ReconstructedParticle photon1 = null;
+                ReconstructedParticle photon2 = null;
+                for (int i = 0; i < n; i++) {
+                    ReconstructedParticle p1 = photonList[i];
+                    for (int j = i + 1; j < n; j++) {
+                        ReconstructedParticle p2 = photonList[j];
+                        Cluster cl1 = p1.getClusters().get(0);
+                        Cluster cl2 = p2.getClusters().get(0);
+                        Hep3Vector pos1 = new BasicHep3Vector(cl1.getPosition());
+                        Hep3Vector pos2 = new BasicHep3Vector(cl2.getPosition());
+                        // check opposite hemispheres
+                        if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
+                            // check fiducial
+                            if (isFiducial(ClusterUtilities.findSeedHit(cl1)) && isFiducial(ClusterUtilities.findSeedHit(cl2))) {
+                                // check esum
+                                if (p1.getEnergy() + p2.getEnergy() > eSumMin) {
+                                    double e1 = cl1.getEnergy();
+                                    double e2 = cl2.getEnergy();
+
+                                    double esum = e1 + e2;
+                                    aida.histogram2D("two photon e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                    aida.histogram1D("two photon e1 + e2", 100, 0., 5.).fill(esum);
+                                    if (rps.size() == 2) {
+                                        aida.histogram1D("two photon e1 + e2 2 RPs", 100, 0., 5.).fill(esum);
+                                    }
+                                    double p1Time = ClusterUtilities.getSeedHitTime(cl1);
+                                    double p2Time = ClusterUtilities.getSeedHitTime(cl2);
+                                    aida.histogram1D("Two photon delta time", 100, -5., 5.).fill(p1Time - p2Time);
+                                    aida.histogram2D("Photon x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                                    aida.histogram2D("Photon x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                                    // -ive x is electron side
+                                    if (pos1.x() < 0) {
+                                        if (pos1.y() > 0) {
+                                            aida.histogram1D("top missing track cluster e1 + e2", 100, 0., 5.).fill(esum);
+                                        } else {
+                                            aida.histogram1D("bottom missing track cluster e1 + e2", 100, 0., 5.).fill(esum);
+                                        }
+                                    }
+                                    if (pos2.x() < 0) {
+                                        if (pos2.y() > 0) {
+                                            aida.histogram1D("top missing track cluster e1 + e2", 100, 0., 5.).fill(esum);
+                                        } else {
+                                            aida.histogram1D("bottom missing track cluster e1 + e2", 100, 0., 5.).fill(esum);
+                                        }
+                                    }
+                                    nPairs++;
+                                }
+                            } // end of fiducial check
+                        } // end check on esum
+                    } // loop over 2nd photon
+                } // loop over first photon
+                aida.histogram1D("number of high esum fiducial opposite side photon pairs", 10, 0., 10.).fill(nPairs);
+            } // end of check on number of photons
+            aida.tree().cd("..");
         }
         if (skipEvent) {
             throw new Driver.NextEventException();
@@ -493,6 +580,10 @@ public class WabAnalysis2019Robust extends Driver {
         _analyzeReconstructedElectronPhoton = b;
     }
 
+    public void setAnalyzeReconstructedTwoPhoton(boolean b) {
+        _analyzeReconstructedTwoPhoton = b;
+    }
+
     public void setEsumCut(double d) {
         esumCut = d;
     }
@@ -519,12 +610,10 @@ public class WabAnalysis2019Robust extends Driver {
         String type = "unknown";
 
         // get the ReconstructedParticles in this event
-        List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class,
-                "FinalStateParticles");
+        List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, "FinalStateParticles");
         // now add in the FEE candidates
-        rps.addAll(event.get(ReconstructedParticle.class,
-                "OtherElectrons"));
-        if (rps.size() > 3) {
+//        rps.addAll(event.get(ReconstructedParticle.class, "OtherElectrons"));
+        if (rps.size() > 2) {
             return; //currently allow both matched and gbl tracks
         }
         int[] pdgIds = new int[2];
@@ -588,14 +677,23 @@ public class WabAnalysis2019Robust extends Driver {
             isEP = true;
             type = "ep";
         }
+        if (twoRPs.size() == 2) {
+            aida.histogram1D("all esum", 100, 0., 5.).fill(twoRPs.get(0).getEnergy() + twoRPs.get(1).getEnergy());
+            aida.histogram1D(type + " esum", 100, 0., 5.).fill(twoRPs.get(0).getEnergy() + twoRPs.get(1).getEnergy());
+        }
+
 //        System.out.println("type " + type);
-        aida.tree().mkdirs(type);
-        aida.tree().cd(type);
+        aida.tree()
+                .mkdirs(type);
+        aida.tree()
+                .cd(type);
         //start by comparing egamma to gammagamma and assume that the electron track is missing in the latter sample.
         for (ReconstructedParticle rp : twoRPs) {
             analyzeReconstructedParticle(rp);
         }
-        aida.tree().cd("..");
+
+        aida.tree()
+                .cd("..");
     }
 
     void analyzeReconstructedParticle(ReconstructedParticle rp) {
