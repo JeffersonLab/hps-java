@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
-import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+//import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 
@@ -31,28 +31,53 @@ public class HpsGblTrajectoryCreator {
     public HpsGblTrajectoryCreator() {
         // System.out.println("level " + LOGGER.getLevel().toString());
     }
-    
-    public GblTrajectoryJna CreateGblTrajectoryJna(List<GBLStripClusterData> hits, double bfac) {
-        // path length along trajectory
-        double s = 0.;
-        int iLabel;
 
-        // jacobian to transport errors between points along the path
-        Matrix jacPointToPoint = new Matrix(5, 5);
-        jacPointToPoint.UnitMatrix();
-        // Vector of the strip clusters used for the GBL fit
-        List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
-        // Save the association between strip cluster and label, and between label and path length
+    public List<GblPointJna> MakeGblPointsList(List<GBLStripClusterData> hits, GBLBeamSpotPoint bs, double bfac) {
+        
+        
+        // Save the association between strip cluster and label, and between label and path length - useless here.
         Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
         Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
+        List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
         
-        // start trajectory at refence point (s=0) - this point has no measurement
-        GblPointJna ref_point = new GblPointJna(jacPointToPoint);
-        listOfPoints.add(ref_point);
+        int iLabel = 0;
+        double s = 0.;
+        Matrix jacPointToPoint = new Matrix(5,5);
+        jacPointToPoint.UnitMatrix();
+                
+        if (bs != null) {
+
+            double cosL_bs = 1. / Math.sqrt(1. + bs._tanLambda*bs._tanLambda); 
+            //double s = 0.;
+            s = bs._arcLength / cosL_bs;
+                        
+            //start trajectory at the beamspot
+            jacPointToPoint = gblSimpleJacobianLambdaPhi(bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
         
-        // save path length to each point
-        iLabel = listOfPoints.size();
-        pathLengthMap.put(iLabel, s);
+        
+            GblPointJna bs_point = new GblPointJna(jacPointToPoint);
+            bs_point.addMeasurement(bs._projL2m,bs._aResidual,bs._aPrecision,0.);
+            listOfPoints.add(bs_point);
+            iLabel=listOfPoints.size();
+            pathLengthMap.put(iLabel, s);
+        
+            //jacPointToPoint.UnitMatrix(); 
+            jacPointToPoint = gblSimpleJacobianLambdaPhi(0. - bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
+            GblPointJna ref_point = new GblPointJna(jacPointToPoint);
+            listOfPoints.add(ref_point);
+            iLabel = listOfPoints.size();
+            pathLengthMap.put(iLabel,0.);
+            
+        } else {
+            
+            GblPointJna ref_point = new GblPointJna(jacPointToPoint);
+            listOfPoints.add(ref_point);
+            iLabel = listOfPoints.size();
+            pathLengthMap.put(iLabel,0.);
+        }
+        
+        s = 0.;
+        
         
         // Loop over strips
         int n_strips = hits.size();
@@ -267,6 +292,7 @@ public class HpsGblTrajectoryCreator {
             
         } // strips
         
+        /*
         // create the trajectory
         GblTrajectoryJna traj = null;
         
@@ -291,17 +317,18 @@ public class HpsGblTrajectoryCreator {
             }
                         
             if (traj.isValid() == 0 ) {
-                System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
+                System.out.println("HpsGblTrajectoryCreator " + " Invalid GblTrajectory -> skip");
+                return null;
             }
             
             // print the trajectory
             
-            //if (debug) {
-            System.out.println("HpsGblTrajectoryCreator::Gbl Trajectory ");
-            traj.printTrajectory(1);
-            traj.printData();
-            traj.printPoints(4);
-            //}
+            if (_debug) {
+                System.out.println("HpsGblTrajectoryCreator::Gbl Trajectory ");
+                traj.printTrajectory(1);
+                //traj.printData();
+                traj.printPoints(4);
+            }
             
             
             return traj;
@@ -311,8 +338,12 @@ public class HpsGblTrajectoryCreator {
             System.out.println("HpsGblFitter: Invalid GblTrajectory -> skip"); 
             return null;
         }
-    }
+        */
 
+        return listOfPoints;
+        
+    }
+    
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /**
          * Simple jacobian: quadratic in arc length difference. using lambda phi as directions

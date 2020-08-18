@@ -282,8 +282,63 @@ public class GblUtils {
             }
         } else {
             throw new UnsupportedOperationException(
-                    "Should not happen. This problem is only solved with the MaterialSupervisor.");
+                "Should not happen. This problem is only solved with the MaterialSupervisor.");
         }
+    }
+
+
+    /**
+     * Form a virtual layer at the target location
+     * Use the helix analytical extrapolation to beamspot
+     * These computations are in tracking frame
+     */
+    
+    public static GBLBeamSpotPoint gblMakeBsPoint(HelicalTrackFit htf, double [] bsLocation, double[] udir, double [] vdir, double [] error)  {
+        //Using the GBL package for prediction and change of reference
+        //Need to use -1/R and -d0 as it uses different conventions 
+            
+        GblSimpleHelix gblHelix = new GblSimpleHelix(-1/htf.R(), htf.phi0(), -htf.dca(), htf.slope(), htf.z0());
+        GblHelixPrediction gblHelixPrediction = gblHelix.getPrediction(bsLocation, udir,vdir);
+
+        double prediction [] = new double[2];
+        gblHelixPrediction.getMeasPred(prediction);
+            
+        //Curvilinear frame, UV Plane 
+        Matrix uvDir_gbl = gblHelixPrediction.getCurvilinearDirs();
+            
+        //Global to measurement transformation
+            
+        Matrix mDir = new Matrix(2,3);
+            
+        mDir.set(0,2,udir[2]);
+        mDir.set(1,0,vdir[0]);
+        mDir.set(1,1,vdir[1]);
+
+        //measurement to global 
+        Matrix mDirT = mDir.copy().transpose();
+            
+        //measurement to curvilinear frame.
+        Matrix proM2l = uvDir_gbl.times(mDirT);
+
+        //Curvilinear to measurement. 
+        Matrix proL2m = proM2l.copy().inverse();
+            
+        //Create the jacobian point to point
+        double sArc2D = gblHelixPrediction.getArcLength();
+            
+        Hep3Vector bsLocation_3v = new BasicHep3Vector(bsLocation[0],bsLocation[1],bsLocation[2]);
+        Vector aResidual = new Vector(2);
+        //Notice the minus sign. The residual is defined as meas - pred
+        aResidual.set(0,-prediction[0]); //Y
+        aResidual.set(1,-prediction[1]); //X
+
+        Vector aPrecision = new Vector(2);
+        aPrecision.set(0,1./(error[0]*error[0])); 
+        aPrecision.set(1,1./(error[1]*error[1])); 
+           
+        return  new GBLBeamSpotPoint(bsLocation_3v, aResidual,
+                                     aPrecision, proL2m,sArc2D,htf.slope(),htf.phi0() - sArc2D/htf.R());
+            
     }
     
 
@@ -341,11 +396,9 @@ public class GblUtils {
          * alpha * Q * VdotI * NdotV / TdotI); covariance_gbl.print(15, 13);
          */
 
-        // Sho's magic below.
-
         // Use projection matrix
         // TODO should this not be the corrected helix?
-        // It's a very small effect, but yes as lambda gets corrected and the Projection depends on lambda (only).
+        // It's a very small effect, but yes since lambda gets corrected and the Projection depends on lambda (only).
         // PF::08/07/2020
         
         //Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);

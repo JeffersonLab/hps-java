@@ -1,5 +1,11 @@
 package org.hps.recon.tracking.gbl;
 
+/**
+ * @author PF <pbutti@slac.stanford.edu>
+ *
+ */
+
+
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
@@ -11,7 +17,10 @@ import com.sun.jna.ptr.DoubleByReference;
 import java.util.List;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
-//import org.hps.recon.tracking.gbl.matrix.Vector;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+import org.hps.recon.tracking.gbl.matrix.Vector;
+
+
 
 
 public class GblTrajectoryJna {
@@ -29,7 +38,8 @@ public class GblTrajectoryJna {
         void GblTrajectory_printTrajectory(Pointer self, int level);
         void GblTrajectory_printData(Pointer self);
         void GblTrajectory_printPoints(Pointer self, int level);
-        
+        void GblTrajectory_getResults(Pointer self, int aSignedLabel, double[] localPar, int[] nLocalPar,
+                                      double[] localCov, int[] sizeLocalCov);
         void GblTrajectory_milleOut(Pointer self, Pointer millebinary);
         
     }
@@ -115,6 +125,27 @@ public class GblTrajectoryJna {
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printPoints(self,level);
     }
     
+    //!! Only 5-localPar and 5x5 local Cov for the moment
+    public void getResults(int aSignedLabel, Vector localPar, SymMatrix localCov) {
+        
+        double[] d_localPar = new double[5];
+        double[] d_localCov = new double[25];
+        int[] nLocalPar = new int[1];
+        int[] sizeLocalCov = new int[1];
+        
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_getResults(self,aSignedLabel,d_localPar,nLocalPar,d_localCov,sizeLocalCov);
+        
+        for (int i=0; i<5;  i++) {
+            localPar.set(i,d_localPar[i]);
+        }
+        
+        for (int i=0; i<5; i++) {
+            for (int j=0; j<5; j++) {
+                localCov.set(i,j,d_localCov[i+5*j]);
+            }
+        }
+    }
+
     
     public void milleOut(MilleBinaryJna millebinary) {       
         GblTrajectoryInterface.INSTANCE.GblTrajectory_milleOut(self, millebinary.getPtr());

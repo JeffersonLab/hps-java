@@ -5,6 +5,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer; 
 
 import java.util.List;
+import java.util.ArrayList;
 
 //import jeigen.DenseMatrix;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -28,6 +29,9 @@ public class GblPointJna {
         
         void GblPoint_printPoint(Pointer self, int i);
         void GblPoint_addGlobals(Pointer self, int[] labels, int nlabels, double[] derArray);
+        void GblPoint_getGlobalLabels(Pointer self, int[] labels);
+        int GblPoint_getNumGlobals(Pointer self);
+        void GblPoint_getGlobalDerivatives(Pointer self, double[] derArray);
         
     }
     
@@ -92,11 +96,48 @@ public class GblPointJna {
     public Pointer getPtr() {
         return self;
     }
-
-    public GblPointJna(double matrix[][]) { 
-        //do nothing for the moment
-        //The 2d should be unpacked here.
-        //self = GblPointInterface.INSTANCE.GblPointCtor(matrixArray); 
+    
+    public int getNumGlobals() {
+        return GblPointInterface.INSTANCE.GblPoint_getNumGlobals(self);
     }
+    
+    public List<Integer> getGlobalLabels(){ 
+        
+        int nlabels = getNumGlobals();
+        int [] labels = new int[nlabels];
+        List<Integer> glabels = new ArrayList<Integer>();
+
+        GblPointInterface.INSTANCE.GblPoint_getGlobalLabels(self, labels);
+        
+        for (int i=0; i<nlabels; i++) {
+            glabels.add(labels[i]);
+            //System.out.println(glabels.get(i));
+        }
+        
+        
+
+        return glabels;
+    }
+
+    public Matrix getGlobalDerivatives() {
+        
+        int ngders = getNumGlobals();
+        
+        Matrix gders = new Matrix(1,ngders);
+        double [] ders = new double[ngders];
+        
+        GblPointInterface.INSTANCE.GblPoint_getGlobalDerivatives(self, ders);
+        
+        for (int igd = 0; igd<ngders; igd++) {
+            gders.set(0,igd,ders[igd]);
+        }
+        
+        
+        //System.out.println("Derivatives");
+        //gders.print(6,6);
+        
+        return gders;
+    }
+    
     
 }
