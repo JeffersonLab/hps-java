@@ -18,7 +18,7 @@ import hep.physics.vec.Hep3Vector;
 //import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 //import hep.physics.vec.BasicHep3Matrix;
-//import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 //import org.hps.recon.tracking.gbl.matrix.Vector;
 //import hep.physics.matrix.SymmetricMatrix;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -406,17 +406,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
             }
 
-            //Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
-            //if (newTrackTraj == null) {
-            //  System.out.println("GBLRefitterDriver::process() -- Aborted refit of track -- null pointer for newTrackTraj returned from MakeGblTracks.refitTrackWithTraj .");
-            //  continue;
-            //}
-            //Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();
-            
-            //if (newTrack == null)
-            //  continue;
-            //Track gblTrk = newTrack.getFirst();
-
             //if (enableStandardCuts && gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
             //    continue;
             
@@ -484,12 +473,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //Create a trajectory with the beamspot 
             List<GblPointJna> points_on_traj = new ArrayList<GblPointJna>();
             
-            //points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
+            points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
 
-            points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
+            //points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
             
             /*
-
 
             gbltraj.fit(Chi2, Ndf, lostWeight,"");
             //System.out.println("fit result jna: Chi2=" + Chi2.getValue() + " Ndf=" + Ndf.getValue() + " Lost=" + lostWeight.getValue());
@@ -740,27 +728,30 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             all_labels.addAll(labels);
                             all_labels.addAll(c_labGlobal);
                             
-                            gblpoint.addGlobals(all_labels,allDer);
+                            
                             
                             if (debugAlignmentDs) {
                                 System.out.println("PF:: Labels and derivatives");
                                 
                                 //Print all data to be written to the binary:
                                 System.out.println(all_labels.toString());
-                                allDer.print(12,6);
+                                allDer.print(18,6);
                                 System.out.println("========================");
                             }
+                            
+                            gblpoint.addGlobals(all_labels,allDer);
+                            
                             
                         }//labels > 0
                     }//point loop
                     
-                    /*
+                    
                     //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
 
-                    GblTrajectory trajForMPII = null;
+                    GblTrajectoryJna trajForMPII = null;
                     
                     if (!constrainedFit) {
-                        trajForMPII =  new GblTrajectory(points_on_traj);
+                        trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
                     }
                     
                     else {
@@ -772,26 +763,20 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         seedPrecision.set(0,0,1000000);
                         //d0 constraint
                         seedPrecision.set(3,3,1000000);
-                        trajForMPII = new GblTrajectory(points_on_traj,1,seedPrecision,true,true,true);
+                        trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
                     }
                     
                     if (debugAlignmentDs)
                         trajForMPII.printData();
                     
                     trajForMPII.milleOut(mille);
-                    */
+                    
                     
                 }//usePoints
                 
             }//alitest
             
             
-            
-            //if (writeMilleBinary && !compositeAlign)
-            //   if (gblTrk.getChi2() < writeMilleChi2Cut)
-            //      newTrackTraj.getSecond().get_traj().milleOut(mille);
-            
-
             
             /*
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));

@@ -47,6 +47,7 @@ public class GblPointJna {
     }
 
     public void addGlobals(List<Integer> labels, Matrix globalDers) {
+        
         double [] gders = globalDers.getRowPackedCopy(); 
         int  [] glabels = new int[labels.size()];
         for (int ilabel=0; ilabel<labels.size(); ilabel++) {
