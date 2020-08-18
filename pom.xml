@@ -115,6 +115,7 @@
     <module>datacat</module>
     <module>detector-data</module>
     <module>detector-model</module>
+    <module>digi</module>
     <module>distribution</module>
     <module>ecal-event-display</module>
     <module>ecal-readout-sim</module>
@@ -318,6 +319,11 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-datacat</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-digi</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
