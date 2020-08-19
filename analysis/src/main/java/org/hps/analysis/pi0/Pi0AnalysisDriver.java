@@ -2,6 +2,8 @@ package org.hps.analysis.pi0;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
+import static java.lang.Math.acos;
 import java.util.ArrayList;
 import java.util.List;
 import org.hps.record.triggerbank.TriggerModule;
@@ -95,10 +97,18 @@ public class Pi0AnalysisDriver extends Driver {
                             double e2 = cl2.getEnergy();
                             Hep3Vector pos2 = new BasicHep3Vector(cl2.getPosition());
                             double esum = e1 + e2;
+                            double theta = acos(VecOp.dot(pos1, pos2) / (pos1.magnitude() * pos2.magnitude()));
                             //opposite hemispheres
                             if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
                                 aida.histogram1D("two fiducial photon mass opposite", 200, 0.0, 0.5).fill(vec.mass());
                                 aida.histogram1D("two fiducial photon esum opposite", 100, 0.0, 5.0).fill(esum);
+                                aida.histogram1D("theta", 100, 0., 0.4).fill(theta);
+                                aida.histogram1D("e1", 100, 0., 5.).fill(e1);
+                                aida.histogram1D("e2", 100, 0., 5.).fill(e2);
+                                aida.histogram2D("e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                aida.histogram2D("two fiducial photon opposite mass vs esum ", 100, 0.0, 0.5, 100, 0.0, 5.0).fill(vec.mass(), esum);
+                                aida.histogram2D("two fiducial photon opposite theta vs esum ", 100, 0.0, 0.4, 100, 0.0, 5.0).fill(theta, esum);
+                                aida.histogram2D("two fiducial photon opposite mass vs theta ", 100, 0.0, 0.5, 100, 0.0, 0.4).fill(vec.mass(), theta);
                             }
                         }
                     }
