@@ -131,7 +131,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         compositeAlign = val;
     }
 
-    public void constrainedFit (boolean val) {
+    public void setConstrainedFit (boolean val) {
         constrainedFit = val;
     }
 
@@ -473,9 +473,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //Create a trajectory with the beamspot 
             List<GblPointJna> points_on_traj = new ArrayList<GblPointJna>();
             
-            points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
+            //points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
 
-            //points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
+            points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
             
             /*
 
@@ -762,7 +762,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         //q/p constraint
                         seedPrecision.set(0,0,1000000);
                         //d0 constraint
-                        seedPrecision.set(3,3,1000000);
+                        //seedPrecision.set(3,3,1000000);
                         trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
                     }
                     
