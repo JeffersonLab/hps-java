@@ -356,6 +356,24 @@ public class SimpleGBLTrajAliDriver extends Driver {
             if (temp.size() == 0)
                 //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                 continue;
+
+
+           
+            if (enableAlignmentCuts) {
+                
+                //At least 3.5 GeV
+                Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+                                
+                if (momentum.magnitude() < 3.5)
+                    continue;
+                //At least 6 hits
+                if (track.getTrackerHits().size() < 6) 
+                    continue;
+                
+            }
+            
+            
+            
             
             //Track biasing example
             if (constrainedFit) {
@@ -554,21 +572,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //localCov.print(5,5);
             //gblTraj_jna.milleOut(mille);
 
-            */
-            
-            /*
-            if (enableAlignmentCuts) {
-                
-                //At least 1 GeV
-                Hep3Vector momentum = new BasicHep3Vector(gblTrk.getTrackStates().get(0).getMomentum());
-                                
-                if (momentum.magnitude() < 1)
-                    continue;
-                //At least 6 hits
-                if (gblTrk.getTrackerHits().size() < 6) 
-                    continue;
-                
-            }
             */
             
             //Check the rw derivatives
