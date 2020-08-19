@@ -62,11 +62,11 @@ public class HpsGblTrajectoryCreator {
             pathLengthMap.put(iLabel, s);
         
             //jacPointToPoint.UnitMatrix(); 
-            jacPointToPoint = gblSimpleJacobianLambdaPhi(0. - bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
-            GblPointJna ref_point = new GblPointJna(jacPointToPoint);
-            listOfPoints.add(ref_point);
-            iLabel = listOfPoints.size();
-            pathLengthMap.put(iLabel,0.);
+            //jacPointToPoint = gblSimpleJacobianLambdaPhi(0. - bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
+            //GblPointJna ref_point = new GblPointJna(jacPointToPoint);
+            //listOfPoints.add(ref_point);
+            //iLabel = listOfPoints.size();
+            //pathLengthMap.put(iLabel,0.);
             
         } else {
             

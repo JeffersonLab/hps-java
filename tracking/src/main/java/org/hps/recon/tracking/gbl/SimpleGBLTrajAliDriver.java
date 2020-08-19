@@ -115,6 +115,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private boolean debugAlignmentDs = false;
     private boolean compositeAlign = false;
     private boolean constrainedFit = false;
+    private boolean constrainedBSFit = false;
     private boolean constrainedD0Fit = false;
     private boolean constrainedZ0Fit = false;
     private boolean usePoints = true;
@@ -134,6 +135,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setConstrainedFit (boolean val) {
         constrainedFit = val;
     }
+
+    public void setConstrainedBSFit (boolean val) {
+        constrainedBSFit = val;
+    } 
 
     public void setUsePoints (boolean val) {
         usePoints = val;
@@ -473,9 +478,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //Create a trajectory with the beamspot 
             List<GblPointJna> points_on_traj = new ArrayList<GblPointJna>();
             
-            //points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
-
-            points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
+            if (constrainedBSFit)  {
+                points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
+            }
+            else  {
+                points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
+            }
             
             /*
 
@@ -760,7 +768,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         //seed matrix q/p, yT', xT', xT, yT 
                         
                         //q/p constraint
-                        seedPrecision.set(0,0,1000000);
+                        //seedPrecision.set(0,0,1000000);
+                        seedPrecision.set(0,0,100);
+                        
                         //d0 constraint
                         //seedPrecision.set(3,3,1000000);
                         trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
