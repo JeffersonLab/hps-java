@@ -156,7 +156,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
         // System.out.printf("%s: Built %d JAVA geometry objects\n",
         // getClass().getSimpleName(),javaSurveyVolumes.size());
 
-        if (isDebug() || true) {
+        if (isDebug()) {
             System.out.printf("%s: DONE building the JAVA geometry objects\n", getClass().getSimpleName());
             System.out.printf("%s: List of all the JAVA geometry objects built\n", this.getClass().getSimpleName());
             for (JavaSurveyVolume bg : javaSurveyVolumes) {
