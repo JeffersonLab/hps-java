@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 //import org.hps.recon.tracking.HpsHelicalTrackFit;
 
 import hep.physics.vec.Hep3Vector;
-//import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 //import hep.physics.vec.BasicHep3Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
