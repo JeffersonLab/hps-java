@@ -116,6 +116,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private boolean compositeAlign = false;
     private boolean constrainedFit = false;
     private boolean constrainedBSFit = false;
+    private double bsZ = -7.5;
     private boolean constrainedD0Fit = false;
     private boolean constrainedZ0Fit = false;
     private boolean usePoints = true;
@@ -134,6 +135,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     public void setConstrainedFit (boolean val) {
         constrainedFit = val;
+    }
+
+    public void setBsZ(double val) {
+        bsZ = val;
     }
 
     public void setConstrainedBSFit (boolean val) {
@@ -418,7 +423,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
             //Add the beamspot constraint
 
-            double bsZ = -7.5;
+            
             HelicalTrackFit htf = TrackUtils.getHTF(track);
             
             double bfac = Constants.fieldConversion * bfield;
