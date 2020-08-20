@@ -3,10 +3,13 @@ package org.hps.analysis.pi0;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
+import static java.lang.Math.abs;
 import static java.lang.Math.acos;
 import java.util.ArrayList;
 import java.util.List;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.record.triggerbank.TriggerModule;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -92,23 +95,43 @@ public class Pi0AnalysisDriver extends Driver {
                         aida.histogram1D("two-photon mass fine", 200, 0.0, 0.5).fill(vec.mass());
                         if (TriggerModule.inFiducialRegion(cl1) && TriggerModule.inFiducialRegion(cl2)) {
                             aida.histogram1D("two fiducial photon fine", 200, 0.0, 0.5).fill(vec.mass());
+
                             double e1 = cl1.getEnergy();
+                            CalorimeterHit seed1 = ClusterUtilities.findSeedHit(cl1);
                             Hep3Vector pos1 = new BasicHep3Vector(cl1.getPosition());
+
                             double e2 = cl2.getEnergy();
+                            CalorimeterHit seed2 = ClusterUtilities.findSeedHit(cl2);
                             Hep3Vector pos2 = new BasicHep3Vector(cl2.getPosition());
+
                             double esum = e1 + e2;
                             double theta = acos(VecOp.dot(pos1, pos2) / (pos1.magnitude() * pos2.magnitude()));
                             //opposite hemispheres
                             if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
-                                aida.histogram1D("two fiducial photon mass opposite", 200, 0.0, 0.5).fill(vec.mass());
-                                aida.histogram1D("two fiducial photon esum opposite", 100, 0.0, 5.0).fill(esum);
-                                aida.histogram1D("theta", 100, 0., 0.4).fill(theta);
-                                aida.histogram1D("e1", 100, 0., 5.).fill(e1);
-                                aida.histogram1D("e2", 100, 0., 5.).fill(e2);
-                                aida.histogram2D("e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
-                                aida.histogram2D("two fiducial photon opposite mass vs esum ", 100, 0.0, 0.5, 100, 0.0, 5.0).fill(vec.mass(), esum);
-                                aida.histogram2D("two fiducial photon opposite theta vs esum ", 100, 0.0, 0.4, 100, 0.0, 5.0).fill(theta, esum);
-                                aida.histogram2D("two fiducial photon opposite mass vs theta ", 100, 0.0, 0.5, 100, 0.0, 0.4).fill(vec.mass(), theta);
+                                // in time
+                                double p1Time = ClusterUtilities.getSeedHitTime(cl1);
+                                double p2Time = ClusterUtilities.getSeedHitTime(cl2);
+                                double deltaTime = p1Time - p2Time;
+                                aida.histogram1D("Two photon delta time", 100, -5., 5.).fill(deltaTime);
+                                if (abs(deltaTime) < 5.) {
+                                    aida.histogram1D("two fiducial photon mass opposite", 200, 0.0, 0.5).fill(vec.mass());
+                                    aida.histogram1D("two fiducial photon esum opposite", 100, 0.0, 5.0).fill(esum);
+                                    aida.histogram1D("theta", 100, 0., 0.4).fill(theta);
+                                    aida.histogram1D("e1", 100, 0., 5.).fill(e1);
+                                    aida.histogram1D("e2", 100, 0., 5.).fill(e2);
+                                    aida.histogram2D("e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                    aida.histogram2D("two fiducial photon opposite mass vs esum ", 100, 0.0, 0.5, 100, 0.0, 5.0).fill(vec.mass(), esum);
+                                    aida.histogram2D("two fiducial photon opposite theta vs esum ", 100, 0.0, 0.4, 100, 0.0, 5.0).fill(theta, esum);
+                                    aida.histogram2D("two fiducial photon opposite mass vs theta ", 100, 0.0, 0.5, 100, 0.0, 0.4).fill(vec.mass(), theta);
+                                    aida.histogram2D("two fiducial photon opposite cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                                    aida.histogram2D("two fiducial photon opposite cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                                    int ix1 = seed1.getIdentifierFieldValue("ix");
+                                    int iy1 = seed1.getIdentifierFieldValue("iy");
+                                    aida.histogram2D("cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix1, iy1);
+                                    int ix2 = seed2.getIdentifierFieldValue("ix");
+                                    int iy2 = seed2.getIdentifierFieldValue("iy");
+                                    aida.histogram2D("cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix2, iy2);
+                                }
                             }
                         }
                     }
