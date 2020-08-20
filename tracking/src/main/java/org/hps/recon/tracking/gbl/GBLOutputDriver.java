@@ -412,14 +412,14 @@ public class GBLOutputDriver extends Driver {
                 }
             }
         } else {
-            System.out.println("null TrackResidualsGBL Data Relations.");
+            //System.out.println("null TrackResidualsGBL Data Relations.");
             //Failed finding TrackResidualsGBL
             return;
         }
         
         GenericObject trackRes = (GenericObject) trackResidualsTable.from(trk);
         if (trackRes == null) {
-            System.out.println("null TrackResidualsGBL Data.");
+            //System.out.println("null TrackResidualsGBL Data.");
             return;
         }
         
