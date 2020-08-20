@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 //import org.hps.recon.tracking.HpsHelicalTrackFit;
 
 import hep.physics.vec.Hep3Vector;
-//import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 //import hep.physics.vec.BasicHep3Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -772,7 +772,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         
                         //q/p constraint
                         //seedPrecision.set(0,0,1000000);
-                        seedPrecision.set(0,0,100);
+                        seedPrecision.set(0,0,10000);
                         
                         //d0 constraint
                         //seedPrecision.set(3,3,1000000);
