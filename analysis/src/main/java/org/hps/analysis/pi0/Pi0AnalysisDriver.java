@@ -127,6 +127,7 @@ public class Pi0AnalysisDriver extends Driver {
                                 aida.histogram2D("two fiducial photon opposite mass vs esum ", 100, 0.0, 0.5, 100, 0.0, 5.0).fill(vec.mass(), esum);
                                 aida.histogram2D("two fiducial photon opposite theta vs esum ", 100, 0.0, 0.4, 100, 0.0, 5.0).fill(theta, esum);
                                 aida.histogram2D("two fiducial photon opposite esum vs theta (degrees)", 100, 0.0, 5.0, 100, 0.0, 30.0).fill(esum, toDegrees(theta));
+                                aida.histogram2D("two fiducial photon opposite esum vs theta (degrees) fine", 100, 0.5, 3.0, 100, 3.0, 13.0).fill(esum, toDegrees(theta));
                                 aida.histogram2D("two fiducial photon opposite esum vs mass", 100, 0.0, 5.0, 100, 0.0, 0.25).fill(esum, vec.mass());
                                 aida.histogram2D("two fiducial photon opposite mass vs theta ", 100, 0.0, 0.5, 100, 0.0, 0.4).fill(vec.mass(), theta);
                                 aida.histogram2D("two fiducial photon opposite cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
