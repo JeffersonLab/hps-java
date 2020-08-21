@@ -107,6 +107,7 @@ public class Pi0AnalysisDriver extends Driver {
 
                             double esum = e1 + e2;
                             double theta = acos(VecOp.dot(pos1, pos2) / (pos1.magnitude() * pos2.magnitude()));
+                            double thetaDegrees = toDegrees(theta);
                             //opposite hemispheres
                             //if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
                             // in time
@@ -138,6 +139,18 @@ public class Pi0AnalysisDriver extends Driver {
                                 int ix2 = seed2.getIdentifierFieldValue("ix");
                                 int iy2 = seed2.getIdentifierFieldValue("iy");
                                 aida.histogram2D("cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix2, iy2);
+                                // cut on esum vs theta
+                                double ycut = -5 * esum + 10.5;
+                                if (thetaDegrees > ycut) {
+                                    aida.histogram2D("two fiducial photon opposite esum vs theta (degrees) fine thetaCut", 100, 0.5, 3.0, 100, 3.0, 13.0).fill(esum, toDegrees(theta));
+                                    aida.histogram2D("two fiducial photon opposite esum vs mass thetaCut", 100, 0.0, 5.0, 100, 0.0, 0.25).fill(esum, vec.mass());
+                                    //esum cut
+                                    if (esum < 3.) {
+                                        aida.histogram2D("two fiducial photon opposite esum vs theta (degrees) fine thetaCut esumCut", 100, 0.5, 3.0, 100, 3.0, 13.0).fill(esum, toDegrees(theta));
+                                        aida.histogram2D("two fiducial photon opposite esum vs mass thetaCut esumCut", 100, 0.0, 5.0, 100, 0.0, 0.25).fill(esum, vec.mass());
+                                        aida.histogram1D("two fiducial photon mass thetaCut esumCut", 200, 0.0, 0.5).fill(vec.mass());
+                                    }
+                                }
                             }
                             //}
                         }
