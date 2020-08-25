@@ -2,6 +2,8 @@ package org.hps.analysis.examples;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.BasicHep3Matrix;
+//import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.VecOp;
 
 import java.util.List;
@@ -78,7 +80,10 @@ public class PrintGeometryDriver extends Driver {
             System.out.printf("Get Sensors local to global transformation\n");
             ITransform3D localToGlobal = sensor.getGeometry().getLocalToGlobal();
             System.out.printf(localToGlobal.toString()+"\n");
-            
+            System.out.printf("Get Sensor Origin in SVT FRAME [rot -30.5mrad]");
+            BasicHep3Matrix rotMat = new BasicHep3Matrix(0.99953, 0. ,-0.030495, 0., 1., 0., +0.030495, 0., 0.99953);
+            System.out.println("PF::DEBUG::ROTATION GLOB-SVT::\n"+rotMat.toString());
+            System.out.println(VecOp.mult(rotMat,position));
         }
         System.out.printf("%s: ###########################################################\n", this.getClass()
                 .getSimpleName());

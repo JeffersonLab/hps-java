@@ -403,10 +403,14 @@ public class GblUtils {
         
         //Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);
         double tanLambda = helicalTrackFitAtIPCorrected.slope();
-
-        //Hep3Matrix perToClPrj   = getPerToClPrj(helicalTrackFitAtIPCorrected);
         
-        Hep3Matrix perToClPrj    = getSimplePerToClPrj(tanLambda);
+        
+        Hep3Matrix perToClPrj   = getPerToClPrj(helicalTrackFitAtIPCorrected);
+        
+        //This has been checked and is equivalent to perToClPrj. In some cases the matrix is indetermined tho. 
+        //TODO::Check those cases. For the moment back to the old computation
+        
+        //Hep3Matrix perToClPrj    = getSimplePerToClPrj(tanLambda);
         
         //System.out.println("PF::DEBUG:: PerTOCl");
         //System.out.println(((BasicHep3Matrix)perToClPrj).toString());
