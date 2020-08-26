@@ -250,6 +250,9 @@ public class GBLOutputDriver extends Driver {
         FillGBLTrackPlot(trkpFolder+"phi",isTop,charge,trackState.getPhi());
         FillGBLTrackPlot(trkpFolder+"tanLambda",isTop,charge,trackState.getTanLambda());
         FillGBLTrackPlot(trkpFolder+"p",isTop,charge,trackp);
+        if (trk.getTrackerHits().size()==7)
+            FillGBLTrackPlot(trkpFolder+"p7h",isTop,charge,trackp);
+
         FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
                 
         aidaGBL.histogram1D(trkpFolder+"nHits" + isTop).fill(trk.getTrackerHits().size());
@@ -610,6 +613,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.3,0.3);
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p7h"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t*2,0,200);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
