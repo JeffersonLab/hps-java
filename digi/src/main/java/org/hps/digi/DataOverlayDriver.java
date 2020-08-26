@@ -28,6 +28,11 @@ import org.lcsim.util.Driver;
  * </p>
  *
  * <p>
+ * New collections will be created in the target output event if
+ * they do not exist.
+ * </p>
+ *
+ * <p>
  * Example collections from 2019 data...
  * </p>
  *
@@ -44,9 +49,10 @@ import org.lcsim.util.Driver;
  * --------------------------------------------------
  * </pre>
  *
- * Only RawTrackerHit collections are handled for now.
- *
- * Hit times are hard-coded to zero (they are zero in the data as well).
+ * <p>
+ * Hit times for RawTrackerHit output collections are hard-coded to zero for now
+ * (they are always zero in the data as well).
+ * </p>
  *
  * @author Jeremy McCormick, SLAC
  */
@@ -70,10 +76,20 @@ public class DataOverlayDriver extends Driver {
     class EndOfDataException extends Exception {
     }
 
+    /**
+     * Add path to an input file.
+     *
+     * @param inputFile path to an input file
+     */
     public void setInputFile(String inputFile) {
         this.inputFilePaths.add(inputFile);
     }
 
+    /**
+     * Add paths to input files as a list.
+     *
+     * @param inputFiles list of input file paths
+     */
     public void setInputFiles(List<String> inputFiles) {
         this.inputFilePaths.addAll(inputFiles);
     }
@@ -122,23 +138,45 @@ public class DataOverlayDriver extends Driver {
         try {
             LOGGER.fine("Processing event: " + event.getEventNumber());
             EventHeader overlayEvent = this.readNextEvent();
-            LOGGER.fine("Read overlay event: " + event.getEventNumber());
+            LOGGER.fine("Read overlay event: " + overlayEvent.getEventNumber());
             this.overlayEvent(overlayEvent, event);
         } catch (EndOfDataException e) {
             throw new RuntimeException("Ran out of overlay events!");
         }
     }
 
-    private void overlayEvent(EventHeader overlay, EventHeader event) {
-        LOGGER.fine("Overlaying event " + overlay.getEventNumber() + " onto primary event " + event.getEventNumber());
+    /**
+     * Overlay source event onto target.
+     *
+     * Collections in source not present in the target will be copied as new collections.
+     *
+     * If raw data collections are present in the target, source collections will be merged
+     * and ADC values added together for matching hits using the cell ID.
+     *
+     * @param overlayEvent the source event, typically pulser data
+     * @param targetEvent the target event, typically a SLIC signal event
+     */
+    private void overlayEvent(EventHeader overlayEvent, EventHeader targetEvent) {
+        LOGGER.fine("Overlaying event " + overlayEvent.getEventNumber() + " onto primary event " + targetEvent.getEventNumber());
         for (String collName : COLLECTION_NAMES) {
-            List<RawTrackerHit> overlayHits = overlay.get(RawTrackerHit.class, collName);
-            LOGGER.finer("Overlay " + collName + ": " + overlayHits.size());
-            List<RawTrackerHit> hits = event.get(RawTrackerHit.class, collName);
-            LOGGER.finer("Primary " + collName + ": " + hits.size());
-            List<RawTrackerHit> newHits = this.mergeRawTrackerHitCollections(overlayHits, hits);
-            LOGGER.finer("Merged " + collName + ": " + newHits.size() + '\n');
-            event.put(collName, newHits, RawTrackerHit.class, event.getMetaData(hits).getFlags());
+            if (!targetEvent.hasCollection(RawTrackerHit.class, collName)) {
+                // Copy raw data collection into output event.
+                LOGGER.finer("Adding new raw data collection to output event: " + collName);
+                List<RawTrackerHit> overlayColl = overlayEvent.get(RawTrackerHit.class, collName);
+                targetEvent.put(collName,
+                        overlayEvent.get(RawTrackerHit.class, collName),
+                        RawTrackerHit.class,
+                        overlayEvent.getMetaData(overlayColl).getFlags());
+            } else {
+                // Add ADC values for matching collections and add the new collection to the event.
+                List<RawTrackerHit> overlayHits = overlayEvent.get(RawTrackerHit.class, collName);
+                LOGGER.finer("Overlay " + collName + ": " + overlayHits.size());
+                List<RawTrackerHit> hits = targetEvent.get(RawTrackerHit.class, collName);
+                LOGGER.finer("Primary " + collName + ": " + hits.size());
+                List<RawTrackerHit> newHits = this.mergeRawTrackerHitCollections(overlayHits, hits);
+                LOGGER.finer("Merged " + collName + ": " + newHits.size() + '\n');
+                targetEvent.put(collName, newHits, RawTrackerHit.class, targetEvent.getMetaData(hits).getFlags());
+            }
         }
     }
 
