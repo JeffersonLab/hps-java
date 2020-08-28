@@ -160,7 +160,7 @@ public class KalmanInterface {
         SeedTrackLayers.add(5);
         
         if (uniformB) {
-            logger.log(Level.INFO, "KalmanInterface WARNING: the magnetic field is set to a uniform value.");
+            logger.log(Level.WARNING, "KalmanInterface WARNING: the magnetic field is set to a uniform value.");
         }
         
         // Transformation from HPS SVT tracking coordinates to Kalman global coordinates
@@ -295,7 +295,7 @@ public class KalmanInterface {
         double phiInt = helixState.planeIntersect(pln);
         if (Double.isNaN(phiInt)) {
             Logger logger = Logger.getLogger(KalmanInterface.class.getName());
-            logger.warning(String.format("toTrackState: no intersection with the plane at %s",pln.toString()));
+            logger.fine(String.format("toTrackState: no intersection with the plane at %s",pln.toString()));
             phiInt = 0.;
         }
         // Transforms helix to a pivot point on the helix itself (so rho0 and z0 become zero)
@@ -449,7 +449,7 @@ public class KalmanInterface {
             return null;
         }
         if (kT.covNaN()) {
-            logger.log(Level.INFO, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
+            logger.log(Level.FINE, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
             return null;
         }
         
@@ -1110,9 +1110,9 @@ public class KalmanInterface {
     // Method to drive the Kalman-Filter based pattern recognition
     public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event, IDDecoder decoder) {
         if (!fillAllMeasurements(event)) {
-            System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d; try sim hits\n",event.getEventNumber());
+            if (verbose) System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d; try sim hits\n",event.getEventNumber());
             if (!fillAllSimHits(event, decoder)) {
-                System.out.format("KalmanInterface.KalmanPatRec: failed to fill sim SVT hits for event %d.\n",event.getEventNumber());
+                if (verbose) System.out.format("KalmanInterface.KalmanPatRec: failed to fill sim SVT hits for event %d.\n",event.getEventNumber());
                 return null;
             }
         }
@@ -1182,6 +1182,33 @@ public class KalmanInterface {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
+        double vPos = 0.9;
+        for (Track tkr : tracksGBL) {
+            double [] a = new double[5];
+            for (int i=0; i<5; ++i) {
+                a[i] = tkr.getTrackStates().get(0).getParameter(i);
+            }
+            double Q = tkr.getCharge();
+            double chi2 = tkr.getChi2();
+            int nHits = tkr.getTrackerHits().size();
+            String s = String.format("Track %d, Q=%4.1f, %d hits, chi^2=%7.1f, helix=%8.3f %8.3f %8.3f %8.3f %8.3f", tracksGBL.indexOf(tkr),  
+                    Q, nHits, chi2, a[0], a[1], a[2], a[3], a[4]);
+            printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
+            vPos = vPos - 0.03;
+        }
+        
+        for (Track tkr : tracksGBL) {
+            printWriter3.format("$tkr%d << EOD\n", tracksGBL.indexOf(tkr));
+            for (TrackState state : tkr.getTrackStates()) {
+                int loc = state.getLocation();
+                if (loc != state.AtIP && loc != state.AtCalorimeter && loc != state.AtOther && loc != state.AtVertex) {
+                    double [] pnt = state.getReferencePoint();
+                    printWriter3.format(" %10.6f %10.6f %10.6f\n", pnt[0], pnt[2], -pnt[1]);
+                }
+            }
+            printWriter3.format("EOD\n");
+        }       
+        
         for (Track tkr : tracksGBL) {
             printWriter3.format("$tkp%d << EOD\n", tracksGBL.indexOf(tkr));
             List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
@@ -1209,6 +1236,7 @@ public class KalmanInterface {
         printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
         for (Track tkr : tracksGBL) {
             printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tracksGBL.indexOf(tkr));
+            //printWriter3.format(", $tkr%d u 1:2:3 with lines lw 3", tracksGBL.indexOf(tkr));
         }
         printWriter3.format("\n");
         printWriter3.close();

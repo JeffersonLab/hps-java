@@ -24,7 +24,7 @@ class MeasurementSite {
     private double dEdx; // in GeV/mm
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
-    private boolean verbose;
+    final private boolean verbose;
     private Logger logger;
     double B;
 
@@ -90,7 +90,7 @@ class MeasurementSite {
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
-        verbose = (logger.getLevel()==Level.FINEST);
+        verbose = false;
     }
 
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
@@ -124,8 +124,12 @@ class MeasurementSite {
         double [] dT = {-1000., 1000.};
         return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, dT);
     }
+    
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange) {
+        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, tRange, false);
+    }
 
-    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange) { // Create predicted state vector by propagating from previous site
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, boolean verbose2) { // Create predicted state vector by propagating from previous site
         // pS = state vector that we are predicting from
         // mPS = Si module that we are predicting from, if any
         // tRange = allowed time range [tmin,tmax] for picking up a hit
@@ -133,6 +137,7 @@ class MeasurementSite {
         // pickup = whether we are doing pattern recognition here and need to pick up hits to add to the track
         int returnFlag = 0;
         double phi = pS.helix.planeIntersect(m.p);
+        if (verbose) verbose2 = true;
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
             if (verbose) {
                 System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n", thisSite);
@@ -251,7 +256,6 @@ class MeasurementSite {
         }
 
         // Loop over hits and find the one that is closest, unless the hit has been specified
-        boolean verbose2 = (verbose || logger.getLevel()==Level.FINER);
         int nHits = m.hits.size();
         if (nHits > 0) {
             double minResid = 999.;
@@ -342,6 +346,7 @@ class MeasurementSite {
                         if (verbose2) System.out.format("  MeasurementSite.makePrediction: adding hit number %d with t=%8.2f\n", hitID, hitTime);
                     } else {
                         chi2inc = 0.;
+                        if (verbose2) System.out.format("   MeasurementSite.makePrediction: rejecting hit %d with t=%8.2f cutval=%10.6f, t-range=%9.3f-%9.3f\n", hitID, hitTime,cutVal,tRange[0],tRange[1]);
                     }
                 }
                 if (verbose) {
@@ -376,7 +381,7 @@ class MeasurementSite {
 
         // double phiCheck = aF.planeIntersect(m.p);
         // System.out.format("MeasurementSite.filter: phi = %10.7f, phi check = %10.7f\n",phiF, phiCheck);
-        boolean verbose2 = (logger.getLevel()==Level.FINER);
+        final boolean verbose2 = false;
         if (Double.isNaN(phiF)) { // There may be no intersection if the momentum is too low!
             if (verbose2) {
                 System.out.format("MeasurementSite.filter: no intersection of helix with the plane exists at layer %d detector %d\n", m.Layer, m.detector);

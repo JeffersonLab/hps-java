@@ -115,7 +115,7 @@ class TrackCandidate {
     }
     
     boolean reFit() {
-        boolean verbose = (logger.getLevel()==Level.FINER || logger.getLevel()==Level.FINEST);
+        final boolean verbose = false;
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
 
         boolean failure = false;

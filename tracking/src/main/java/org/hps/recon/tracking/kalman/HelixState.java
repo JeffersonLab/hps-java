@@ -519,7 +519,7 @@ class HelixState {
             Plane plnLocal = pln.toLocal(RM, Origin); // Transform the plane to local coordinates
             double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with the plane
             if (Double.isNaN(dphi)) {
-                logger.log(Level.WARNING, String.format("No intersection with the plane at step=%d\n", step));
+                logger.log(Level.FINE, String.format("No intersection with the plane at step=%d\n", step));
                 return false;
             }
             Vec newPivot = atPhi(Pivot, newHelix, dphi, localAlpha);
