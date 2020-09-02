@@ -90,7 +90,7 @@ public class PropagatedTrackState {
         Plane refPln = new Plane(refPnt, new Vec(0.,1.,0.));
         double phi = hpi.planeIntersect(helixParams, pivotOrig, alphaCenter, refPln);
         if (Double.isNaN(phi)) {
-            logger.warning("There is no intersection of the helix with a plane at reference point " + refPnt.toString());
+            logger.fine("There is no intersection of the helix with a plane at reference point " + refPnt.toString());
             return;
         }
         if (debug) System.out.format("Helix turning angle to the reference point = %10.6f\n", phi);
@@ -204,7 +204,7 @@ public class PropagatedTrackState {
     public double [] getIntersection() {
         double phi = newHelixState.planeIntersect(destinationPlane);
         if (Double.isNaN(phi)) {
-            logger.warning("getIntersection: there is no intersection with the plane " + destinationPlane.toString());
+            logger.fine("getIntersection: there is no intersection with the plane " + destinationPlane.toString());
             phi = 0.;
         }
         xPlane = newHelixState.atPhi(phi);

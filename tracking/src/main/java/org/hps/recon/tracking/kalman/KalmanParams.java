@@ -10,6 +10,7 @@ public class KalmanParams {
     int nTrials;                    // Number of iterations through the entire pattern recognition
     int nIterations;                // Number of Kalman-fit iterations in the final fit
     double[] kMax; 
+    double kMin;
     double[] tanlMax; 
     double[] dRhoMax; 
     double[] dzMax;
@@ -31,6 +32,7 @@ public class KalmanParams {
     double [] beamSpot;
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private Logger logger;
+    int maxListIter1;
     
     KalmanParams() {
         
@@ -53,6 +55,7 @@ public class KalmanParams {
         nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
         kMax[0] = 3.0;      // Maximum curvature for seed
         kMax[1] = 6.0;      
+        kMin = 0.;          // Minimum curvature for seed
         tanlMax[0] = 0.08;  // Maximum tan(lambda) for seed
         tanlMax[1] = 0.12;
         dRhoMax[0] = 15.;   // Maximum dRho at target plane for seed
@@ -64,7 +67,7 @@ public class KalmanParams {
         minHits0 = 5;       // Minimum number of hits in the initial outward filtering (including 5 from the seed)
         minHits1[0] = 7;    // Minimum number of hits for a good track
         minHits1[1] = 6;
-        mxChi2Inc = 2.;     // Maximum increment to the chi^2 to add a hit to a completed track 
+        mxChi2Inc = 5.;     // Maximum increment to the chi^2 to add a hit to a completed track 
         minChi2IncBad = 10.; // Threshold for removing a bad hit from a track candidate
         mxResid[0] = 50.;   // Maximum residual, in units of detector resolution, for picking up a hit
         mxResid[1] = 100.;
@@ -99,6 +102,8 @@ public class KalmanParams {
         final int[] list12 = {2, 3, 4, 5, 6};
         final int[] list13 = {2, 4, 5, 6, 7};
         final int[] list14 = {6, 7, 8, 10, 11};
+        final int[] list15 = {1, 2, 3, 4, 6};
+        final int[] list16 = {2, 3, 4, 5, 6};
         lyrList[0].add(list0);
         lyrList[0].add(list1);
         lyrList[0].add(list2);
@@ -114,6 +119,9 @@ public class KalmanParams {
         lyrList[0].add(list12);
         lyrList[0].add(list13);
         lyrList[0].add(list14);
+        lyrList[0].add(list15);
+        lyrList[0].add(list16);
+        maxListIter1 = 14;           // The maximum index for lyrList for the first iteration
         
         // Beam spot defaults to the origin. For now, at least, must be set to the proper value by the user.
         beamSpot = new double[3];
@@ -209,6 +217,14 @@ public class KalmanParams {
         logger.log(Level.INFO,String.format("Setting the maximum 1/pt to %8.2f.", kMx));
         kMax[1] = kMx;
         kMax[0] = Math.min(kMax[0], 0.6*kMx);
+    }
+    
+    void setMinK(double kMn) {
+        if (kMn < 0.) {
+            logger.log(Level.WARNING,String.format("Min 1/pt of %8.2f not allowed.", kMn));
+            return;
+        }
+        kMin = kMn;
     }
     
     public void setMxResid(double mxR) {

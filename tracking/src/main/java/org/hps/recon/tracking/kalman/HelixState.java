@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.math.util.FastMath;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
 
@@ -86,8 +87,8 @@ class HelixState {
     }
 
     static Vec atPhi(Vec X0, Vec a, double phi, double alpha) {
-        double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * Math.cos(a.v[1]) - (alpha / a.v[2]) * Math.cos(a.v[1] + phi);
-        double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (alpha / a.v[2]) * Math.sin(a.v[1] + phi);
+        double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * FastMath.cos(a.v[1]) - (alpha / a.v[2]) * FastMath.cos(a.v[1] + phi);
+        double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * FastMath.sin(a.v[1]) - (alpha / a.v[2]) * FastMath.sin(a.v[1] + phi);
         double z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
         return new Vec(x, y, z);
     }
@@ -99,8 +100,8 @@ class HelixState {
     }
     
     static Vec getMom(double phi, Vec a) {
-        double px = -Math.sin(a.v[1] + phi) / Math.abs(a.v[2]);
-        double py = Math.cos(a.v[1] + phi) / Math.abs(a.v[2]);
+        double px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
+        double py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
         double pz = a.v[4] / Math.abs(a.v[2]);
         return new Vec(px, py, pz);
     }
@@ -114,7 +115,7 @@ class HelixState {
     
     // Return errors on the helix parameters at the present pivot point
     Vec helixErrors() {
-        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]), Math.sqrt(C.M[4][4]));
+        return new Vec(FastMath.sqrt(C.M[0][0]), FastMath.sqrt(C.M[1][1]), FastMath.sqrt(C.M[2][2]), FastMath.sqrt(C.M[3][3]), FastMath.sqrt(C.M[4][4]));
     }
     
     // Derivative matrix for the pivot transform (without energy loss or field rotations)
@@ -124,17 +125,17 @@ class HelixState {
     
     static SquareMatrix makeF(Vec aP, Vec a, double alpha) {
         double[][] f = new double[5][5];
-        f[0][0] = Math.cos(aP.v[1] - a.v[1]);
-        f[0][1] = (a.v[0] + alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]);
-        f[0][2] = (alpha / (a.v[2] * a.v[2])) * (1.0 - Math.cos(aP.v[1] - a.v[1]));
-        f[1][0] = -Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[1][1] = (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[1][2] = (alpha / (a.v[2] * a.v[2])) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
+        f[0][0] = FastMath.cos(aP.v[1] - a.v[1]);
+        f[0][1] = (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]);
+        f[0][2] = (alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1]));
+        f[1][0] = -FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
+        f[1][1] = (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
+        f[1][2] = (alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
         f[2][2] = 1.0;
-        f[3][0] = (alpha / a.v[2]) * a.v[4] * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[3][1] = (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * Math.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        f[3][0] = (alpha / a.v[2]) * a.v[4] * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
+        f[3][1] = (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4]
-                * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * Math.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+                * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         f[3][3] = 1.0;
         f[3][4] = -(alpha / a.v[2]) * (aP.v[1] - a.v[1]);
         f[4][4] = 1.0;
@@ -144,8 +145,8 @@ class HelixState {
     
     // Momentum at the start of the given helix (point closest to the pivot)
     static Vec aTOp(Vec a) {
-        double px = -Math.sin(a.v[1]) / Math.abs(a.v[2]);
-        double py = Math.cos(a.v[1]) / Math.abs(a.v[2]);
+        double px = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
+        double py = FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
         double pz = a.v[4] / Math.abs(a.v[2]);
         return new Vec(px, py, pz);
     }
@@ -153,9 +154,9 @@ class HelixState {
     // Transform from momentum at helix starting point back to the helix parameters
     // drho and dz are not modified
     static Vec pTOa(Vec p, double drho, double dz, double Q) {
-        double phi0 = Math.atan2(-p.v[0], p.v[1]);
-        double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
-        double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double phi0 = FastMath.atan2(-p.v[0], p.v[1]);
+        double K = Q / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double tanl = p.v[2] / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
 
         return new Vec(drho, phi0, K, dz, tanl);
     }
@@ -196,10 +197,10 @@ class HelixState {
         }
 
         SquareMatrix dpda = new SquareMatrix(3);
-        dpda.M[0][0] = -Math.cos(a.v[1]) / Math.abs(a.v[2]);
-        dpda.M[0][1] = Math.sin(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
-        dpda.M[1][0] = -Math.sin(a.v[1]) / Math.abs(a.v[2]);
-        dpda.M[1][1] = -Math.cos(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
+        dpda.M[0][0] = -FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
+        dpda.M[0][1] = FastMath.sin(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
+        dpda.M[1][0] = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
+        dpda.M[1][1] = -FastMath.cos(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
         dpda.M[2][1] = -a.v[4] / (a.v[2] * Math.abs(a.v[2]));
         dpda.M[2][2] = 1. / Math.abs(a.v[2]);
 
@@ -213,7 +214,7 @@ class HelixState {
         double Q = Math.signum(a.v[2]);
         SquareMatrix dadp = new SquareMatrix(3);
         double pt2 = p_prime.v[0] * p_prime.v[0] + p_prime.v[1] * p_prime.v[1];
-        double pt = Math.sqrt(pt2);
+        double pt = FastMath.sqrt(pt2);
         dadp.M[0][0] = -p_prime.v[1] / pt2;
         dadp.M[0][1] = p_prime.v[0] / pt2;
         dadp.M[1][0] = -Q * p_prime.v[0] / (pt2 * pt);
@@ -276,8 +277,8 @@ class HelixState {
 
     static Vec pivotTransform(Vec pivot, Vec a, Vec X0, double alpha, double deltaEoE) {
         double K = a.v[2] * (1.0 - deltaEoE); // Lose energy before propagating
-        double xC = X0.v[0] + (a.v[0] + alpha / K) * Math.cos(a.v[1]); // Center of the helix circle
-        double yC = X0.v[1] + (a.v[0] + alpha / K) * Math.sin(a.v[1]);
+        double xC = X0.v[0] + (a.v[0] + alpha / K) * FastMath.cos(a.v[1]); // Center of the helix circle
+        double yC = X0.v[1] + (a.v[0] + alpha / K) * FastMath.sin(a.v[1]);
         // if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n",
         // xC, yC);
 
@@ -286,15 +287,15 @@ class HelixState {
         aP[2] = K;
         aP[4] = a.v[4];
         if (K > 0) {
-            aP[1] = Math.atan2(yC - pivot.v[1], xC - pivot.v[0]);
+            aP[1] = FastMath.atan2(yC - pivot.v[1], xC - pivot.v[0]);
         } else {
-            aP[1] = Math.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
+            aP[1] = FastMath.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
         }
-        aP[0] = (xC - pivot.v[0]) * Math.cos(aP[1]) + (yC - pivot.v[1]) * Math.sin(aP[1]) - alpha / K;
+        aP[0] = (xC - pivot.v[0]) * FastMath.cos(aP[1]) + (yC - pivot.v[1]) * FastMath.sin(aP[1]) - alpha / K;
         aP[3] = X0.v[2] - pivot.v[2] + a.v[3] - (alpha / K) * (aP[1] - a.v[1]) * a.v[4];
 
-        // xC = pivot.v[0] + (aP[0]+alpha/aP[2])*Math.cos(aP[1]);
-        // yC = pivot.v[1] + (aP[0]+alpha/aP[2])*Math.sin(aP[1]);
+        // xC = pivot.v[0] + (aP[0]+alpha/aP[2])*FastMath.cos(aP[1]);
+        // yC = pivot.v[1] + (aP[0]+alpha/aP[2])*FastMath.sin(aP[1]);
 
         return new Vec(5, aP);
     }
@@ -359,9 +360,9 @@ class HelixState {
             xPlane.print("RK helix intersection with final plane");
             XplaneLocal.print("RK helix intersection with final plane in local system");
             pInt.print("RK momentum at helix intersection");
-            double pTanL = pInt.v[2]/Math.sqrt(pInt.v[0]*pInt.v[0]+pInt.v[1]*pInt.v[1]);
+            double pTanL = pInt.v[2]/FastMath.sqrt(pInt.v[0]*pInt.v[0]+pInt.v[1]*pInt.v[1]);
             Vec pLoc = targetRot.rotate(pInt);
-            double pTanLlocal = pLoc.v[2]/Math.sqrt(pLoc.v[0]*pLoc.v[0]+pLoc.v[1]*pLoc.v[1]);
+            double pTanLlocal = pLoc.v[2]/FastMath.sqrt(pLoc.v[0]*pLoc.v[0]+pLoc.v[1]*pLoc.v[1]);
             System.out.format("from momentum, global tan(lambda)=%10.6f, local tan(lambda)=%10.6f\n",pTanL,pTanLlocal);
             helixAtIntersect.print("helix at final-plane intersection");
             helixAtTarget.print("helix with pivot at final plane");
@@ -384,11 +385,11 @@ class HelixState {
             transHelix.print("helixStepper helix at final plane");
             C.print("original covariance");
             System.out.println("    Errors: ");
-            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", Math.sqrt(C.M[i][i])); }
+            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(C.M[i][i])); }
             System.out.println("\n");
             newCovariance.print("transformed covariance");
             System.out.println("    Errors: ");
-            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", Math.sqrt(newCovariance.M[i][i])); }
+            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(newCovariance.M[i][i])); }
             System.out.println("\n");
         }
         
@@ -409,7 +410,7 @@ class HelixState {
 
     static double projMSangle(double p, double XL) {
         if (XL <= 0.) return 0.;
-        return (0.0136 / Math.abs(p)) * Math.sqrt(XL) * (1.0 + 0.038 * Math.log(XL));
+        return (0.0136 / Math.abs(p)) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
     }
 
     boolean helixStepper(double maxStep, ArrayList<Double> yScat, ArrayList<Double> XL, SquareMatrix Covariance, Vec finalHelix, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
@@ -519,7 +520,7 @@ class HelixState {
             Plane plnLocal = pln.toLocal(RM, Origin); // Transform the plane to local coordinates
             double dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); // Find the helix intersection with the plane
             if (Double.isNaN(dphi)) {
-                logger.log(Level.WARNING, String.format("No intersection with the plane at step=%d\n", step));
+                logger.log(Level.FINE, String.format("No intersection with the plane at step=%d\n", step));
                 return false;
             }
             Vec newPivot = atPhi(Pivot, newHelix, dphi, localAlpha);
