@@ -32,6 +32,7 @@ public class KalmanParams {
     double [] beamSpot;
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private Logger logger;
+    int maxListIter1;
     
     KalmanParams() {
         
@@ -101,6 +102,8 @@ public class KalmanParams {
         final int[] list12 = {2, 3, 4, 5, 6};
         final int[] list13 = {2, 4, 5, 6, 7};
         final int[] list14 = {6, 7, 8, 10, 11};
+        final int[] list15 = {1, 2, 3, 4, 6};
+        final int[] list16 = {2, 3, 4, 5, 6};
         lyrList[0].add(list0);
         lyrList[0].add(list1);
         lyrList[0].add(list2);
@@ -116,6 +119,9 @@ public class KalmanParams {
         lyrList[0].add(list12);
         lyrList[0].add(list13);
         lyrList[0].add(list14);
+        lyrList[0].add(list15);
+        lyrList[0].add(list16);
+        maxListIter1 = 14;           // The maximum index for lyrList for the first iteration
         
         // Beam spot defaults to the origin. For now, at least, must be set to the proper value by the user.
         beamSpot = new double[3];

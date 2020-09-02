@@ -4,6 +4,8 @@ import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.math.util.FastMath;
+
 //Kalman fit measurement site, one for each silicon-strip detector with hits
 class MeasurementSite {
     SiModule m; // Si detector hit data
@@ -96,18 +98,18 @@ class MeasurementSite {
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
         if (aP == null || aF == null) return -999.;
         Vec p1 = aP.helix.getMom(0.);
-        double t1 = Math.atan2(p1.v[0], p1.v[1]);
+        double t1 = FastMath.atan2(p1.v[0], p1.v[1]);
         Vec p2 = aF.helix.getMom(0.);
-        double t2 = Math.atan2(p2.v[0], p2.v[1]);
+        double t2 = FastMath.atan2(p2.v[0], p2.v[1]);
         return t1 - t2;
     }
 
     double scatZ() { // scattering angle in the z,y plane for the filtered state vector
         if (aP == null || aF == null) return -999.;
         Vec p1 = aP.helix.getMom(0.);
-        double t1 = Math.atan2(p1.v[2], p1.v[1]);
+        double t1 = FastMath.atan2(p1.v[2], p1.v[1]);
         Vec p2 = aF.helix.getMom(0.);
-        double t2 = Math.atan2(p2.v[2], p2.v[1]);
+        double t2 = FastMath.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
 
@@ -191,12 +193,12 @@ class MeasurementSite {
             double ct = pMom.unitVec().dot(mPs.p.T()); // cos(theta) at the **previous** site
             double radius = Math.abs(alpha/pS.helix.a.v[2]);
             XL = mPs.thickness / radLen / Math.abs(ct); // Si scattering thickness at previous site
-            arcLength = radius*phi*Math.sqrt(1.0 + pS.helix.a.v[4] * pS.helix.a.v[4]);
+            arcLength = radius*phi*FastMath.sqrt(1.0 + pS.helix.a.v[4] * pS.helix.a.v[4]);
             if (verbose) {
                 double dx = m.p.X().v[0]-mPs.p.X().v[0];
                 double dy = m.p.X().v[1]-mPs.p.X().v[1];
                 double dz = m.p.X().v[2]-mPs.p.X().v[2];
-                double distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                double distance = FastMath.sqrt(dx*dx + dy*dy + dz*dz);
                 System.out.format("MeasurementSite.predict: arc length=%10.5f, distance=%10.5f\n", arcLength, distance);
             }
         }
@@ -331,7 +333,7 @@ class MeasurementSite {
                 double cutVal = Math.abs(aP.r / m.hits.get(theHit).sigma);
                 if (verbose2) {
                     System.out.format("  MeasurementSite.makePrediction: Lyr %d det %d: do we add hit with residual=%10.5f, err=%10.5f, chi2inc=%10.5f, %10.5f<%10.5f?, t=%8.2f\n",
-                            m.Layer, m.detector, aP.r, Math.sqrt(aP.R), chi2inc, cutVal, cut, m.hits.get(theHit).time);
+                            m.Layer, m.detector, aP.r, FastMath.sqrt(aP.R), chi2inc, cutVal, cut, m.hits.get(theHit).time);
                 }
 
                 if (hitNumber >= 0) { // Use the hit no matter what if it was handed to us
@@ -423,7 +425,7 @@ class MeasurementSite {
         chi2inc = (aF.r * aF.r) / aF.R;
 
         if (verbose2) {
-            System.out.format("  MeasurementSite.filter: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%10.6f\n", hit.v, aF.mPred, aF.r, Math.sqrt(aF.R), chi2inc); 
+            System.out.format("  MeasurementSite.filter: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%10.6f\n", hit.v, aF.mPred, aF.r, FastMath.sqrt(aF.R), chi2inc); 
         }
         filtered = true;
         return true;
@@ -539,7 +541,7 @@ class MeasurementSite {
         this.chi2inc = (this.aS.r * this.aS.r) / this.aS.R;
 
         logger.log(Level.FINEST, String.format("  MeasurementSite.smooth: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%8.5f", 
-                hit.v, aS.mPred, aS.r, Math.sqrt(aS.R), chi2inc));
+                hit.v, aS.mPred, aS.r, FastMath.sqrt(aS.R), chi2inc));
         this.smoothed = true;
         return true;
     }
@@ -580,15 +582,15 @@ class MeasurementSite {
             // R.print("in buildH");
             // p.print("in buildH");
         }
-        Vec dxdphi = new Vec((alpha / S.helix.a.v[2]) * Math.sin(S.helix.a.v[1] + phi), -(alpha / S.helix.a.v[2]) * Math.cos(S.helix.a.v[1] + phi),
+        Vec dxdphi = new Vec((alpha / S.helix.a.v[2]) * FastMath.sin(S.helix.a.v[1] + phi), -(alpha / S.helix.a.v[2]) * FastMath.cos(S.helix.a.v[1] + phi),
                 -(alpha / S.helix.a.v[2]) * S.helix.a.v[4]);
         double[][] dxda = new double[3][5];
-        dxda[0][0] = Math.cos(S.helix.a.v[1]);
-        dxda[1][0] = Math.sin(S.helix.a.v[1]);
-        dxda[0][1] = -(S.helix.a.v[0] + alpha / S.helix.a.v[2]) * Math.sin(S.helix.a.v[1]) + (alpha / S.helix.a.v[2]) * Math.sin(S.helix.a.v[1] + phi);
-        dxda[1][1] = (S.helix.a.v[0] + alpha / S.helix.a.v[2]) * Math.cos(S.helix.a.v[1]) - (alpha / S.helix.a.v[2]) * Math.cos(S.helix.a.v[1] + phi);
-        dxda[0][2] = -(alpha / (S.helix.a.v[2] * S.helix.a.v[2])) * (Math.cos(S.helix.a.v[1]) - Math.cos(S.helix.a.v[1] + phi));
-        dxda[1][2] = -(alpha / (S.helix.a.v[2] * S.helix.a.v[2])) * (Math.sin(S.helix.a.v[1]) - Math.sin(S.helix.a.v[1] + phi));
+        dxda[0][0] = FastMath.cos(S.helix.a.v[1]);
+        dxda[1][0] = FastMath.sin(S.helix.a.v[1]);
+        dxda[0][1] = -(S.helix.a.v[0] + alpha / S.helix.a.v[2]) * FastMath.sin(S.helix.a.v[1]) + (alpha / S.helix.a.v[2]) * FastMath.sin(S.helix.a.v[1] + phi);
+        dxda[1][1] = (S.helix.a.v[0] + alpha / S.helix.a.v[2]) * FastMath.cos(S.helix.a.v[1]) - (alpha / S.helix.a.v[2]) * FastMath.cos(S.helix.a.v[1] + phi);
+        dxda[0][2] = -(alpha / (S.helix.a.v[2] * S.helix.a.v[2])) * (FastMath.cos(S.helix.a.v[1]) - FastMath.cos(S.helix.a.v[1] + phi));
+        dxda[1][2] = -(alpha / (S.helix.a.v[2] * S.helix.a.v[2])) * (FastMath.sin(S.helix.a.v[1]) - FastMath.sin(S.helix.a.v[1] + phi));
         dxda[2][2] = (alpha / (S.helix.a.v[2] * S.helix.a.v[2])) * S.helix.a.v[4] * phi;
         dxda[2][3] = 1.0;
         dxda[2][4] = -(alpha / S.helix.a.v[2]) * phi;

@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.math.util.FastMath;
+
 class TrackCandidate {
     int ID;
     private Map<Measurement, KalHit> hitMap;
@@ -288,11 +290,11 @@ class TrackCandidate {
         StateVector aS = site0.aS;
         if (aS == null) aS = site0.aF;
         Vec p = aS.helix.a;
-        double edrho = Math.sqrt(aS.helix.C.M[0][0]);
-        double ephi0 = Math.sqrt(aS.helix.C.M[1][1]);
-        double eK = Math.sqrt(aS.helix.C.M[2][2]);
-        double eZ0 = Math.sqrt(aS.helix.C.M[3][3]);
-        double etanl = Math.sqrt(aS.helix.C.M[4][4]);
+        double edrho = FastMath.sqrt(aS.helix.C.M[0][0]);
+        double ephi0 = FastMath.sqrt(aS.helix.C.M[1][1]);
+        double eK = FastMath.sqrt(aS.helix.C.M[2][2]);
+        double eZ0 = FastMath.sqrt(aS.helix.C.M[3][3]);
+        double etanl = FastMath.sqrt(aS.helix.C.M[4][4]);
         str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
         str=str+String.format("              for origin at %s and pivot=%s\n", aS.helix.origin.toString(), aS.helix.X0.toString());

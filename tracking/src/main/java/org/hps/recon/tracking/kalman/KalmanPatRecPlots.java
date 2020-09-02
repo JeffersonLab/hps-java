@@ -229,12 +229,14 @@ class KalmanPatRecPlots {
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
+        int minHits = 999;
         int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) continue;
             for (KalTrack kTk : kPat.TkrList) {
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
+                if (kTk.nHits < minHits) minHits = kTk.nHits;
                 
                 // Vertex constraint
                 double [] vtx = {0.1735, -3.168, 0.1687};
@@ -662,9 +664,9 @@ class KalmanPatRecPlots {
             } //loop on GBL Tracks
         } //check if event has GBLTracks
         
-        if (nPlotted < numEvtPlots && nGBL > 3) {
+        if (nPlotted < numEvtPlots) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
-            KI.plotGBLtracks(outputGnuPlotDir, event);
+            //KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;
         }
         

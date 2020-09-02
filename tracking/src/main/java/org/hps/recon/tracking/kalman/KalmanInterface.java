@@ -25,6 +25,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import org.apache.commons.math.util.FastMath;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
@@ -376,7 +377,7 @@ public class KalmanInterface {
             // Arc length along helix from the previous site
             clstr.setPath3D(site.arcLength);
             double tanL = site.aS.helix.a.v[4];
-            clstr.setPath(site.arcLength/Math.sqrt(1.+tanL*tanL));
+            clstr.setPath(site.arcLength/FastMath.sqrt(1.+tanL*tanL));
             
             // Direction cosines of the sensor axes in the HPS tracking coordinate system
             Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V().scale(-1.0)));
@@ -395,23 +396,23 @@ public class KalmanInterface {
             clstr.setTrackDir(trackDir);
             
             // Phi and lambda of the track (assuming standard spherical polar coordinates)
-            double phi = Math.atan2(trackDir.y(), trackDir.x());
+            double phi = FastMath.atan2(trackDir.y(), trackDir.x());
             double ct = trackDir.z()/trackDir.magnitude();
-            double tanLambda = ct/Math.sqrt(1-ct*ct);  // Should be very much the same as tanL above, after accounting for the field tilt
+            double tanLambda = ct/FastMath.sqrt(1-ct*ct);  // Should be very much the same as tanL above, after accounting for the field tilt
             if (verbose) {
                 Vec tilted = site.aS.helix.Rot.inverseRotate(new Vec(0.,0.,1.));
-                double tiltAngle = Math.acos(tilted.v[2]);
+                double tiltAngle = FastMath.acos(tilted.v[2]);
                 System.out.format("KalmanInterface.createGBLStripClusterData: layer=%d det=%d tanL=%10.6f, tanLambda=%10.6f, tilt=%10.6f, sum=%10.6f\n", 
                         site.m.Layer, site.m.detector, -tanL, tanLambda, tiltAngle, tiltAngle+tanLambda);
             }
             clstr.setTrackPhi(phi);
-            clstr.setTrackLambda(Math.atan(tanLambda));
+            clstr.setTrackLambda(FastMath.atan(tanLambda));
             
             // Measured value in the sensor coordinates (u-value in the HPS system)
             double uMeas, uMeasErr;
             if (site.hitID >= 0) {
                 uMeas = site.m.hits.get(site.hitID).v; 
-                uMeasErr = Math.sqrt(site.aS.R);
+                uMeasErr = FastMath.sqrt(site.aS.R);
             } else {
                 uMeas = -999.;
                 uMeasErr = -9999.;
@@ -891,7 +892,7 @@ public class KalmanInterface {
                 }
                 
                 double umeas = localHit.getPosition()[0];
-                double du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
+                double du = FastMath.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
                 double time = localHit.getTime();
 
                 // If HPS measured coordinate axis is opposite to Kalman measured coordinate axis
@@ -993,7 +994,7 @@ public class KalmanInterface {
                 // SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
 
                 double umeas = local.getPosition()[0];
-                double du = Math.sqrt(local.getCovarianceAsMatrix().diagonal(0));
+                double du = FastMath.sqrt(local.getCovarianceAsMatrix().diagonal(0));
 
                 // if hps measured coord axis is opposite to kalman measured coord axis
                 // This really should not happen, as the Kalman axis is copied directly from the hps geometry.

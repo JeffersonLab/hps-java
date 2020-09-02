@@ -63,6 +63,12 @@ class KalmanPatRecHPS {
         yh = new double[5];    // global y coordinate of axial hit
         ah = new boolean[5];   // true if stereo layer, false for axial
         
+        double [] vtx = {0., -10., 0.};
+        double [][] vtxCov = new double[3][3];
+        vtxCov[0][0] = 1.0;
+        vtxCov[1][1] = 9.0;
+        vtxCov[2][2] = 0.25;
+        
         TkrList = new ArrayList<KalTrack>();
         nModules = data.size();
         int tkID = 100*topBottom + 1;
@@ -159,6 +165,7 @@ class KalmanPatRecHPS {
             }
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
             for (int[] list : kPar.lyrList[topBottom]) {
+                if (trial == 0 && kPar.lyrList[topBottom].indexOf(list) > kPar.maxListIter1) continue;
                 int nLyrs = list.length;
                 int middleLyr = 2;
                 if (moduleList.get(list[middleLyr]).size() == 0) continue;  // Skip seed if there is no hit in the middle layer
@@ -177,7 +184,7 @@ class KalmanPatRecHPS {
                     if (hit.tracks.size() > 0) continue; // don't use hits already on KalTrack tracks
                     SiModule mod = kht.module;
                     ah[0] = mod.isStereo;
-                    if (mod.isStereo) {
+                    if (!mod.isStereo) {
                         zh[0] = mod.toGlobal(new Vec(0.,hit.v,0.)).v[2];
                         yh[0] = mod.p.X().v[1];
                     }                 
@@ -1049,6 +1056,18 @@ class KalmanPatRecHPS {
                         if (verbose) System.out.format("KalmanPatRecHPS: propagating track %d to the origin failed!\n", tkr.ID);
                         goodFit = false;
                     };
+                }
+                if (goodFit) { // For tracks with few hits, include an origin constraint
+                    if (tkr.nHits == 5) {
+                        HelixState constrHelix = tkr.originConstraint(vtx, vtxCov);
+                        double chi2inc = tkr.chi2incOrigin();
+                        if (chi2inc <= 1.0) {
+                            tkr.helixAtOrigin = constrHelix;
+                            tkr.chi2 += chi2inc;
+                        } else {
+                            goodFit = false;
+                        }
+                    }
                 }
             }
             if (!goodFit) {

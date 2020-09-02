@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.math.util.FastMath;
 import org.hps.util.Pair;
 
 // Track followed and fitted by the Kalman filter
@@ -43,6 +45,7 @@ public class KalTrack {
     private Logger logger;
     final private boolean debug;
     private KalmanParams kPar;
+    private double chi2incVtx;
 
     KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
@@ -222,11 +225,11 @@ public class KalTrack {
         double phiS1 = s1.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS1)) return -999.;
         Vec p1 = s1.aS.helix.getMom(phiS1);
-        double t1 = Math.atan2(p1.v[0], p1.v[1]);
+        double t1 = FastMath.atan2(p1.v[0], p1.v[1]);
         double phiS2 = s2.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS2)) return -999.;
         Vec p2 = s2.aS.helix.getMom(phiS2);
-        double t2 = Math.atan2(p2.v[0], p2.v[1]);
+        double t2 = FastMath.atan2(p2.v[0], p2.v[1]);
         return t1 - t2;
     }
 
@@ -243,11 +246,11 @@ public class KalTrack {
         double phiS1 = s1.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS1)) return -999.;
         Vec p1 = s1.aS.helix.Rot.inverseRotate(s1.aS.helix.getMom(phiS1));
-        double t1 = Math.atan2(p1.v[2], p1.v[1]);
+        double t1 = FastMath.atan2(p1.v[2], p1.v[1]);
         double phiS2 = s2.aS.helix.planeIntersect(s2.m.p);
         if (Double.isNaN(phiS2)) return -999.;
         Vec p2 = s2.aS.helix.Rot.inverseRotate(s2.aS.helix.getMom(phiS2));
-        double t2 = Math.atan2(p2.v[2], p2.v[1]);
+        double t2 = FastMath.atan2(p2.v[2], p2.v[1]);
         return t1 - t2;
     }
 
@@ -260,7 +263,7 @@ public class KalTrack {
             double vpred = S.h(S.aS, S.m, phiS);
             for (Measurement hit : S.m.hits) {
                 for (KalTrack tkr : hit.tracks) { 
-                    if (tkr.equals(this)) c2 += Math.pow((vpred - hit.v) / hit.sigma, 2);
+                    if (tkr.equals(this)) c2 += FastMath.pow((vpred - hit.v) / hit.sigma, 2);
                 }
             }
         }
@@ -376,7 +379,7 @@ public class KalTrack {
                 double residual = site.m.hits.get(hitID).v - site.aS.mPred;
                 Pair<Double,Double> unBiasedResid = unbiasedResidual(site);
                 str=str+String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f+-%9.5f, error=%9.5f \n", interceptVec.toString(),
-                        interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, residual, unBiasedResid.getFirstElement(), unBiasedResid.getSecondElement(), Math.sqrt(site.aS.R));
+                        interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, residual, unBiasedResid.getFirstElement(), unBiasedResid.getSecondElement(), FastMath.sqrt(site.aS.R));
             }
         }
         str=str+String.format("End of printing for KalTrack %s ID %d in event %d\n\n", s, ID, eventNumber);
@@ -665,6 +668,13 @@ public class KalTrack {
                 }
             }
         }
+        // Calculate the chi-squared contribution
+        Vec newHelix = new Vec(5,newHelixParms);
+        phi = phiDOCA(newHelix, v, X0, alpha);
+        SquareMatrix CovInv = Cov.invert();
+        pntDOCA = HelixState.atPhi(X0, newHelix, phi, alpha);
+        Vec err = pntDOCA.dif(v);
+        chi2incVtx = err.dot(err.leftMultiply(CovInv));
         if (verbose) {
             // Test alternative formulation
             SquareMatrix Vinv = Cov.invert();
@@ -692,7 +702,11 @@ public class KalTrack {
             }
             matrixPrint("alternative K", Kp, 5, 3);
         }
-        return new HelixState(new Vec(5,newHelixParms), X0, helixAtOrigin.origin, new SquareMatrix(5,newHelixCov), helixAtOrigin.B, helixAtOrigin.tB);
+        return new HelixState(newHelix, X0, helixAtOrigin.origin, new SquareMatrix(5,newHelixCov), helixAtOrigin.B, helixAtOrigin.tB);
+    }
+    
+    public double chi2incOrigin() {
+        return chi2incVtx;
     }
     
     private static void matrixPrint(String s, double [][] A, int M, int N) {
@@ -815,17 +829,17 @@ public class KalTrack {
     
     // Derivatives of position along a helix with respect to the turning angle phi
     private static Vec dXdPhi(Vec a, double phi, double alpha) {
-        return new Vec((alpha / a.v[2]) * Math.sin(a.v[1] + phi), -(alpha / a.v[2]) * Math.cos(a.v[1] + phi),
+        return new Vec((alpha / a.v[2]) * FastMath.sin(a.v[1] + phi), -(alpha / a.v[2]) * FastMath.cos(a.v[1] + phi),
                 -(alpha / a.v[2]) * a.v[4]);
     }
     
     // A vector tangent to the helix 'a' at the alpha phi
     private static Vec tangentVec(Vec a, double phi, double alpha) {
-        return new Vec((alpha/a.v[2])*Math.sin(a.v[1]+phi), -(alpha/a.v[2])*Math.cos(a.v[1]+phi), -(alpha/a.v[2])*a.v[4]);
+        return new Vec((alpha/a.v[2])*FastMath.sin(a.v[1]+phi), -(alpha/a.v[2])*FastMath.cos(a.v[1]+phi), -(alpha/a.v[2])*a.v[4]);
     }
     
     private static Vec dTangentVecDphi(Vec a, double phi, double alpha) {
-        return new Vec((alpha/a.v[2])*Math.cos(a.v[1]+phi), (alpha/a.v[2])*Math.sin(a.v[2]+phi), 0.);
+        return new Vec((alpha/a.v[2])*FastMath.cos(a.v[1]+phi), (alpha/a.v[2])*FastMath.sin(a.v[2]+phi), 0.);
     }
     
     //Derivative matrix for the helix 'a' point of closet approach to point 'v'
@@ -843,20 +857,20 @@ public class KalTrack {
         Vec dfdt = v.dif(x);
         double dfdphi = -t.dot(dxdphi) + dfdt.dot(dtdphi);
         double [][] dtda = new double[3][5];
-        dtda[0][1] = (alpha/a.v[2])*Math.cos(a.v[1]+phi);
-        dtda[0][2] = (-alpha/(a.v[2]*a.v[2]))*Math.sin(a.v[1]+phi);
-        dtda[1][1] = (alpha/a.v[2])*Math.sin(a.v[1]+phi);
-        dtda[1][2] = (alpha/(a.v[2]*a.v[2]))*Math.cos(a.v[1]+phi);
+        dtda[0][1] = (alpha/a.v[2])*FastMath.cos(a.v[1]+phi);
+        dtda[0][2] = (-alpha/(a.v[2]*a.v[2]))*FastMath.sin(a.v[1]+phi);
+        dtda[1][1] = (alpha/a.v[2])*FastMath.sin(a.v[1]+phi);
+        dtda[1][2] = (alpha/(a.v[2]*a.v[2]))*FastMath.cos(a.v[1]+phi);
         dtda[2][2] = (alpha/(a.v[2]*a.v[2]))*a.v[4];
         dtda[2][4] = -alpha/a.v[2];
         
         double [][] dxda = new double[3][5];
-        dxda[0][0] = Math.cos(a.v[1]);
-        dxda[1][0] = Math.sin(a.v[1]);
-        dxda[0][1] = -(a.v[0] + alpha / a.v[2]) * Math.sin(a.v[1]) + (alpha / a.v[2]) * Math.sin(a.v[1] + phi);
-        dxda[1][1] = (a.v[0] + alpha / a.v[2]) * Math.cos(a.v[1]) - (alpha / a.v[2]) * Math.cos(a.v[1] + phi);
-        dxda[0][2] = -(alpha / (a.v[2] * a.v[2])) * (Math.cos(a.v[1]) - Math.cos(a.v[1] + phi));
-        dxda[1][2] = -(alpha / (a.v[2] * a.v[2])) * (Math.sin(a.v[1]) - Math.sin(a.v[1] + phi));
+        dxda[0][0] = FastMath.cos(a.v[1]);
+        dxda[1][0] = FastMath.sin(a.v[1]);
+        dxda[0][1] = -(a.v[0] + alpha / a.v[2]) * FastMath.sin(a.v[1]) + (alpha / a.v[2]) * FastMath.sin(a.v[1] + phi);
+        dxda[1][1] = (a.v[0] + alpha / a.v[2]) * FastMath.cos(a.v[1]) - (alpha / a.v[2]) * FastMath.cos(a.v[1] + phi);
+        dxda[0][2] = -(alpha / (a.v[2] * a.v[2])) * (FastMath.cos(a.v[1]) - FastMath.cos(a.v[1] + phi));
+        dxda[1][2] = -(alpha / (a.v[2] * a.v[2])) * (FastMath.sin(a.v[1]) - FastMath.sin(a.v[1] + phi));
         dxda[2][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4] * phi;
         dxda[2][3] = 1.0;
         dxda[2][4] = -(alpha / a.v[2]) * phi;
@@ -881,7 +895,7 @@ public class KalTrack {
     }
 
     public double helixErr(int i) {
-        return Math.sqrt(helixAtOrigin.C.M[i][i]);
+        return FastMath.sqrt(helixAtOrigin.C.M[i][i]);
     }
 
     public double[] rotateToGlobal(double[] x) {
@@ -1112,10 +1126,10 @@ public class KalTrack {
         double[][] M = new double[3][5];
         double K = Math.abs(a.v[2]);
         double sgn = Math.signum(a.v[2]);
-        M[0][1] = -Math.cos(a.v[1]) / K;
-        M[1][1] = -Math.sin(a.v[1]) / K;
-        M[0][2] = sgn * Math.sin(a.v[1]) / (K * K);
-        M[1][2] = -sgn * Math.sin(a.v[1]) / (K * K);
+        M[0][1] = -FastMath.cos(a.v[1]) / K;
+        M[1][1] = -FastMath.sin(a.v[1]) / K;
+        M[0][2] = sgn * FastMath.sin(a.v[1]) / (K * K);
+        M[1][2] = -sgn * FastMath.sin(a.v[1]) / (K * K);
         M[2][4] = 1. / K;
         M[2][2] = -sgn * a.v[4] / (K * K);
         return M;
@@ -1125,10 +1139,10 @@ public class KalTrack {
     // covariance of the point of closest approach to the origin (i.e. at phi=0)
     static double[][] DxTOa(Vec a) {
         double[][] M = new double[3][5];
-        M[0][0] = Math.cos(a.v[1]);
-        M[0][1] = -a.v[0] * Math.sin(a.v[1]);
-        M[1][0] = Math.sin(a.v[1]);
-        M[1][1] = a.v[0] * Math.cos(a.v[1]);
+        M[0][0] = FastMath.cos(a.v[1]);
+        M[0][1] = -a.v[0] * FastMath.sin(a.v[1]);
+        M[1][0] = FastMath.sin(a.v[1]);
+        M[1][1] = a.v[0] * FastMath.cos(a.v[1]);
         M[2][3] = 1.0;
         return M;
     }
