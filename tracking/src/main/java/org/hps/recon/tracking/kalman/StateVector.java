@@ -114,7 +114,7 @@ class StateVector {
     String toString(String s) {
         String str = String.format(">>>Dump of state vector %s %d  %d\n", s, kUp, kLow);
         str = str + helix.toString(" ");
-        if (F != null) str = str + F.toString();
+        if (F != null) str = str + "Propagator matrix: " + F.toString();
         double sigmas;
         if (R > 0.) {
             sigmas = r / Math.sqrt(R);
@@ -338,6 +338,7 @@ class StateVector {
                     snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         StateVector sS = this.copy();
 
+        // solver.setA defines the input matrix and checks whether it is singular. A copy is needed because the input gets modified.
         if (!solver.setA(snP.helix.C.copy())) {
             logger.severe("StateVector:smooth, inversion of the covariance matrix failed");
             snP.helix.C.print();
@@ -345,7 +346,7 @@ class StateVector {
             invrs.print("inverse");
             invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?");
             
-            for (int i=0; i<5; ++i) {
+            for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
                 for (int j=0; j<5; ++j) {
                     if (i == j) {
                         Cinv.unsafe_set(i,j,1.0/Cinv.unsafe_get(i,j));
@@ -354,8 +355,9 @@ class StateVector {
                     }
                 }
             }          
+        } else {
+            solver.invert(Cinv);
         }
-        solver.invert(Cinv);
         if (debug) {
             System.out.println("StateVector:smooth, inverse of the covariance:");
             Cinv.print("%11.6e");
@@ -367,14 +369,53 @@ class StateVector {
         CommonOps_DDRM.mult(tempM, Cinv, tempA);
 
         vecToM(snS.helix.a.dif(snP.helix.a), tempV);
+        if (debug) {
+            System.out.format("Predicted helix covariance: ");
+            snP.helix.C.print();
+            System.out.format("This helix covariance: ");
+            helix.C.print();
+            System.out.format("Matrix F ");
+            sS.F.print();
+            System.out.format("tempM ");
+            tempM.print();
+            System.out.format("tempA ");
+            tempA.print();
+            System.out.format("Difference of helix parameters tempV: ");
+            tempV.print();
+        }
         CommonOps_DDRM.mult(tempA, tempV, tempV2);
         sS.helix.a = helix.a.sum(mToVec(tempV2));
+        if (debug) {
+            System.out.format("tempV2 ");
+            tempV2.print();
+            sS.helix.a.print("new helix parameters");
+        }
 
         CommonOps_DDRM.subtract(snS.helix.C, snP.helix.C, tempM);
         CommonOps_DDRM.multTransB(tempM, tempA, Cinv);
         CommonOps_DDRM.mult(tempA, Cinv, tempM);
         CommonOps_DDRM.add(helix.C, tempM, sS.helix.C);
 
+        if (debug) {
+            SquareMatrix ColdsnP = mToS(snP.helix.C);
+            SquareMatrix CnInv = ColdsnP.invert();
+            CnInv.print("Old covariance inverse");
+            SquareMatrix Fold = mToS(sS.F);
+            SquareMatrix Cold = mToS(helix.C);
+            SquareMatrix A = (Cold.multiply(Fold.transpose())).multiply(CnInv);
+            Cold.multiply(Fold.transpose()).print("Old tempM");
+            A.print("Old matrix A");
+
+            Vec diff = snS.helix.a.dif(snP.helix.a);
+            Vec aOld = helix.a.sum(diff.leftMultiply(A));
+            aOld.print("Old resulting helix parameters");
+
+            SquareMatrix ColdsnS = mToS(snS.helix.C);
+            SquareMatrix Cdiff = ColdsnS.dif(ColdsnP);
+            SquareMatrix Cresult = Cold.sum(Cdiff.similarity(A));
+            Cresult.print("Old resulting covariance");
+        }
+        
         if (debug) sS.print("Smoothed");
         return sS;
     }
@@ -415,5 +456,13 @@ class StateVector {
             }
         }
     }
-    
+    private static SquareMatrix mToS(DMatrixRMaj M) {
+        SquareMatrix S= new SquareMatrix(5);
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                S.M[i][j] = M.unsafe_get(i, j);
+            }
+        }
+        return S;
+    }
 }
