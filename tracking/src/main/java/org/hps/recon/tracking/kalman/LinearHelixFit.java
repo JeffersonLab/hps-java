@@ -90,7 +90,8 @@ class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a
     void print(int N, double[] x, double[] y, double[] z, double[] v, double[] s) {
         System.out.format("LinearHelixFit2: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.get(2,0), a.get(3,0), a.get(4,0));
         System.out.format("LinearHelixFit2:     line a=%10.7f   b=%10.7f\n", a.get(0,0), a.get(1,0));
-        C.print("LinearHelixFit2 covariance");
+        System.out.println("LinearHelixFit2 covariance:");
+        C.print();
         System.out.format(
                 "LinearHelixFit2: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n",
                 chi2);

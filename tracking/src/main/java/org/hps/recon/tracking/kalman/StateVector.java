@@ -17,7 +17,7 @@ class StateVector {
     double mPred;       // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r;           // Predicted, filtered, or smoothed residual at site kLow
     double R;           // Covariance of residual
-    final static private boolean debug = false;
+    final static private boolean debug = true;
     DMatrixRMaj F;     // Propagator matrix to propagate from this site to the next site
     private static Logger logger;
     private DMatrixRMaj K;      // Kalman gain matrix
@@ -222,11 +222,11 @@ class StateVector {
         // sigmaMS is the rms of the projected scattering angle
         if (XL == 0.) {
             Cinv.set(this.helix.C);
-            if (debug) System.out.format("StateVector.predict: XL=%9.6f", XL);
+            if (debug) System.out.format("StateVector.predict: XL=%9.6f\n", XL);
         } else {
             double momentum = (1.0 / helix.a.v[2]) * Math.sqrt(1.0 + helix.a.v[4] * helix.a.v[4]);
             double sigmaMS = HelixState.projMSangle(momentum, XL);
-            if (debug) System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e", momentum, XL, sigmaMS);
+            if (debug) System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS);
             this.helix.getQ(sigmaMS, Q);
             CommonOps_DDRM.add(this.helix.C, Q, Cinv);
         }
@@ -254,8 +254,10 @@ class StateVector {
         if (debug) {
             System.out.format("StateVector.filter: kLow=%d\n", kLow);
             System.out.format("StateVector.filter: V=%12.4e,  denom=%12.4e\n", V, denom);
-            K.print("Kalman gain matrix in StateVector.filter");
-            H.print("matrix H in StateVector.filter");
+            System.out.format("Kalman gain matrix in StateVector.filter: ");
+            K.print();
+            System.out.format("matrix H in StateVector.filter");
+            H.print();
             System.out.format("StateVector.filter: k dot H = %10.7f\n", CommonOps_DDRM.dot(K, H));
             // Alternative calculation of K (sanity check that it gives the same result):
             DMatrixRMaj D = new DMatrixRMaj(5,5);
@@ -332,7 +334,7 @@ class StateVector {
 
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
-        if (debug) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d", kLow, kUp,
+        if (debug) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp,
                     snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         StateVector sS = this.copy();
 
@@ -354,6 +356,13 @@ class StateVector {
             }          
         }
         solver.invert(Cinv);
+        if (debug) {
+            System.out.println("StateVector:smooth, inverse of the covariance:");
+            Cinv.print("%11.6e");
+            CommonOps_DDRM.mult(snP.helix.C, Cinv, tempM);
+            System.out.format("Unit matrix?? ");
+            tempM.print();
+        }
         CommonOps_DDRM.multTransB(helix.C, sS.F, tempM);
         CommonOps_DDRM.mult(tempM, Cinv, tempA);
 
@@ -366,6 +375,7 @@ class StateVector {
         CommonOps_DDRM.mult(tempA, Cinv, tempM);
         CommonOps_DDRM.add(helix.C, tempM, sS.helix.C);
 
+        if (debug) sS.print("Smoothed");
         return sS;
     }
 

@@ -35,7 +35,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 100; // The number of test events to generate for fitting
+        int nTrials = 1; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -715,7 +715,10 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
             CommonOps_DDRM.scale(10., initialCovariance);
 
-            if (verbose) initialCovariance.print("initial covariance guess");
+            if (verbose) {
+                System.out.format("Initial covariance guess:");
+                initialCovariance.print();
+            }
             // Run the Kalman fit
             KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
                     initialHelixGuess, initialCovariance, kPar, fM);
