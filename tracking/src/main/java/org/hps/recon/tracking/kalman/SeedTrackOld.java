@@ -7,32 +7,32 @@ import java.util.Comparator;
 
 import org.apache.commons.math.util.FastMath;
 import org.ejml.data.DMatrixRMaj;
-import org.ejml.dense.row.CommonOps_DDRM;
 
 // Fit a line/parabola approximation of a helix to a set of measurement points.
 // The line and parabola are fit simultaneously in order to handle properly the stereo layers.
 // The pivot of the helix is assumed to be the origin of the coordinate system, but the
 // coordinate system in which the helix is described may be rotated slightly with respect to
 // the global coordinates, in order to optimize its alignment with the field.
-class SeedTrack {
+class SeedTrackOld {
     boolean success;
     ArrayList<KalHit> hits; // Save information for the hit used in each layer
     private double drho, phi0, K, dz, tanl; // Helix parameters derived from the line/parabola fits
     private Vec hParm; // Final helix parameters rotated into the field frame
     // private RotMatrix Rot; // Orthogonal transformation from global to helix
     // (B-field) coordinates
-    private DMatrixRMaj C; // Covariance of helix parameters
+    private SquareMatrix C; // Covariance of helix parameters
     private boolean verbose; // Set true to generate lots of debug printout
     private double alpha; // Conversion constant from 1/pt to helix radius
     private double R, xc, yc; // Radius and center of the "helix"
     private Vec sol; // Fitted polynomial coefficients
-    private DMatrixRMaj Csol; // Covariance matrix of the fitted polynomial coefficients
+    private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
     double yOrigin;
     double chi2;
     private Plane p0; // x,z plane at the target location
     int Nbending;
     int Nnonbending;
+    static int nCalls;
 
     double getAlpha() {
         return alpha;
@@ -60,7 +60,7 @@ class SeedTrack {
             Vec pInt = planeIntersection(p0);
             double xzDist = FastMath.sqrt(pInt.v[0]*pInt.v[0] + pInt.v[2]*pInt.v[2]);
             str=str+String.format("  Distance from origin in X,Z at y= %8.2f is %10.5f. Intersection=%s\n", yP, xzDist, pInt.toString());
-            str = str + "Covariance: " + C.toString();
+            str = str + C.toString("  seed track covariance");
         } else {
             str = String.format("Seed track %s fit unsuccessful.\n", s);
         }
@@ -68,7 +68,7 @@ class SeedTrack {
     }
 
     // Older interface
-    SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
+    SeedTrackOld(ArrayList<SiModule> data, // List of Si modules with data
             double yOrigin, // New origin along beam to use for the fit
             ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
             boolean verbose // Set true for lots of debug printout
@@ -84,7 +84,8 @@ class SeedTrack {
     }
 
     // Newer interface
-    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, double yTarget, boolean verbose) {
+    SeedTrackOld(ArrayList<KalHit> hitList, double yOrigin, double yTarget) {
+        boolean verbose = false;
         SeedTracker(hitList, yOrigin, yTarget, verbose);
     }
 
@@ -93,7 +94,10 @@ class SeedTrack {
         // yTarget is the location along the beam of the target itself
 
         p0 = new Plane(new Vec(0., yTarget, 0.), new Vec(0., 1., 0.));  // create plane at the target position
+        if (nCalls<3) verbose = true;
+        else verbose = false;
         this.verbose = verbose;
+        nCalls++;
         this.yOrigin = yOrigin;
         hits = new ArrayList<KalHit>(hitList.size());
         for (KalHit hit : hitList) {
@@ -215,6 +219,7 @@ class SeedTrack {
         double dphi0da = (2.0 * coef.v[2] / coef.v[1]) * square(FastMath.sin(phi0));
         double dphi0db = FastMath.sin(phi0) * FastMath.cos(phi0) / coef.v[1] - square(FastMath.sin(phi0));
         double dphi0dc = (2.0 * coef.v[0] / coef.v[1]) * square(FastMath.sin(phi0));
+        SquareMatrix D = new SquareMatrix(5);
         double temp = xc * FastMath.tan(phi0) / FastMath.cos(phi0);
 
         double slope = sol.v[1];
@@ -228,23 +233,18 @@ class SeedTrack {
         }
         // Some derivatives to transform the covariance from line and parabola
         // coefficients to helix parameters
-        double [][] M = new double[5][5];
-        M[0][2] = 1.0 / FastMath.cos(phi0) + temp * dphi0da;
-        M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / FastMath.cos(phi0) + temp * dphi0db;
-        M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / FastMath.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
-        M[1][2] = dphi0da;
-        M[1][3] = dphi0db;
-        M[1][4] = dphi0dc;
-        M[2][4] = -2.0 * alpha * sgn;
-        M[3][0] = 1.0;
-        M[3][1] = drho * FastMath.sin(phi0);
-        M[4][1] = FastMath.cos(phi0);
-        DMatrixRMaj D = new DMatrixRMaj(M);
-        Csol = fit.covariance();
-        DMatrixRMaj Mint = new DMatrixRMaj(5);
-        CommonOps_DDRM.multTransB(Csol,D,Mint);
-        C = new DMatrixRMaj(5);
-        CommonOps_DDRM.mult(D, Mint, C);
+        D.M[0][2] = 1.0 / FastMath.cos(phi0) + temp * dphi0da;
+        D.M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / FastMath.cos(phi0) + temp * dphi0db;
+        D.M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / FastMath.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
+        D.M[1][2] = dphi0da;
+        D.M[1][3] = dphi0db;
+        D.M[1][4] = dphi0dc;
+        D.M[2][4] = -2.0 * alpha * sgn;
+        D.M[3][0] = 1.0;
+        D.M[3][1] = drho * FastMath.sin(phi0);
+        D.M[4][1] = FastMath.cos(phi0);
+        Csol = KalTrack.mToS(fit.covariance());
+        C = Csol.similarity(D); // Covariance of helix parameters
         if (verbose) { D.print("line/parabola to helix derivatives"); }
 
         // Note that the non-bending plane is assumed to be y,z (B field in z
@@ -286,7 +286,7 @@ class SeedTrack {
     }
 
     DMatrixRMaj covariance() { // Return covariance matrix of the fitted helix parameters
-        return C;
+        return new DMatrixRMaj(C.M);
     }
 
     Vec solution() { // Return the 5 polynomial coefficients
@@ -298,23 +298,16 @@ class SeedTrack {
     }
 
     SquareMatrix solutionCovariance() { // Return covariance of the polynomial coefficients
-        SquareMatrix CM = new SquareMatrix(5);
-        for (int i=0; i<5; ++i) {
-            for (int j=0; j<5; ++j) {
-                CM.M[i][j] = Csol.unsafe_get(i,j);
-            }
-        }
-        return CM;
+        return Csol;
     }
 
     Vec solutionErrors() { // Return errors on the polynomial coefficients (for testing)
-        return new Vec(FastMath.sqrt(Csol.unsafe_get(0,0)), FastMath.sqrt(Csol.unsafe_get(1,1)), FastMath.sqrt(Csol.unsafe_get(2,2)), 
-                FastMath.sqrt(Csol.unsafe_get(3,3)), FastMath.sqrt(Csol.unsafe_get(4,4)));
+        return new Vec(FastMath.sqrt(Csol.M[0][0]), FastMath.sqrt(Csol.M[1][1]), FastMath.sqrt(Csol.M[2][2]), FastMath.sqrt(Csol.M[3][3]),
+                FastMath.sqrt(Csol.M[4][4]));
     }
 
     Vec errors() { // Return errors on the helix parameters
-        return new Vec(FastMath.sqrt(C.unsafe_get(0,0)), FastMath.sqrt(C.unsafe_get(1,1)), FastMath.sqrt(C.unsafe_get(2,2)), 
-                FastMath.sqrt(C.unsafe_get(3,3)), FastMath.sqrt(C.unsafe_get(4,4)));
+        return new Vec(FastMath.sqrt(C.M[0][0]), FastMath.sqrt(C.M[1][1]), FastMath.sqrt(C.M[2][2]), FastMath.sqrt(C.M[3][3]), FastMath.sqrt(C.M[4][4]));
     }
 
     private double[] parabolaToCircle(double sgn, Vec coef) { // Utility to convert from parabola coefficients to circle
@@ -340,7 +333,7 @@ class SeedTrack {
     }
 
     // Transformation of a helix from one B-field frame to another, by rotation R
-    private Vec rotateHelix(Vec a, RotMatrix R) {
+    Vec rotateHelix(Vec a, RotMatrix R) {
         // a = 5 helix parameters
         // R = 3 by 3 rotation matrix
         // The rotation is easily applied to the momentum vector, so first we transform
@@ -364,8 +357,8 @@ class SeedTrack {
     }
 
     // Comparator function for sorting seed tracks by curvature
-    static Comparator<SeedTrack> curvatureComparator = new Comparator<SeedTrack>() {
-        public int compare(SeedTrack t1, SeedTrack t2) {
+    static Comparator<SeedTrackOld> curvatureComparator = new Comparator<SeedTrackOld>() {
+        public int compare(SeedTrackOld t1, SeedTrackOld t2) {
             double K1 = Math.abs(t1.helixParams().v[2]);
             double K2 = Math.abs(t2.helixParams().v[2]);
             if (K1 > K2) {
@@ -377,8 +370,8 @@ class SeedTrack {
     };
 
     // Comparator function for sorting seeds by distance from origin in x,z plane at the target
-    static Comparator<SeedTrack> dRhoComparator = new Comparator<SeedTrack>() {
-        public int compare(SeedTrack t1, SeedTrack t2) {
+    static Comparator<SeedTrackOld> dRhoComparator = new Comparator<SeedTrackOld>() {
+        public int compare(SeedTrackOld t1, SeedTrackOld t2) {
             Vec pInt1 = t1.planeIntersection(t1.p0);
             Vec pInt2 = t2.planeIntersection(t2.p0);
 
@@ -398,7 +391,7 @@ class SeedTrack {
     };
 
     //Check if two seeds are compatible given a certain relative threshold
-    boolean isCompatibleTo(SeedTrack st, double rel_eps) {
+    boolean isCompatibleTo(SeedTrackOld st, double rel_eps) {
         Vec st_hp = st.helixParams();
         boolean compatible = true;
         for (int i=0; i<5; i++) {
@@ -410,6 +403,7 @@ class SeedTrack {
         return compatible;
     }
     
+
     Vec planeIntersection(Plane p) {
         double arg = (K / alpha) * ((drho + (alpha / K)) * FastMath.sin(phi0) - (p.X().v[1] - yOrigin));
         double phiInt = -phi0 + FastMath.asin(arg);

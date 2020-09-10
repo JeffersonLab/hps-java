@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.lcsim.event.TrackState;
 
@@ -24,7 +26,10 @@ public class PropagatedTrackState {
     private Plane destinationPlane;
     private HelixState newHelixState;
     private Vec xPlane;
-    static private RotMatrix toHpsGbl;
+    private static RotMatrix toHpsGbl;
+    private static DMatrixRMaj tempM;
+    private static DMatrixRMaj Ft;
+    private static boolean initialized;
       
     PropagatedTrackState (TrackState stateHPS, double [] location, double [] direction, List<SiStripPlane> detPlanes, org.lcsim.geometry.FieldMap fM) {
         logger = Logger.getLogger(PropagatedTrackState.class.getName());
@@ -41,10 +46,15 @@ public class PropagatedTrackState {
             this.location[i] = location[i];
         }
         
-        toHpsGbl = new RotMatrix();
-        toHpsGbl.M[0][0] = 1.0;
-        toHpsGbl.M[1][2] = -1.0;
-        toHpsGbl.M[2][1] = 1.0;
+        if (!initialized) {
+            toHpsGbl = new RotMatrix();
+            toHpsGbl.M[0][0] = 1.0;
+            toHpsGbl.M[1][2] = -1.0;
+            toHpsGbl.M[2][1] = 1.0;
+            tempM = new DMatrixRMaj(5,5);
+            Ft = new DMatrixRMaj(5,5);
+            initialized = true;
+        }
         
         if (debug) {
             System.out.format("Entering PropagatedTrackState for location %10.6f %10.6f %10.6f\n",location[0],location[1],location[2]);
@@ -77,7 +87,7 @@ public class PropagatedTrackState {
         }
         
         Vec helixParams = new Vec(5,KalmanInterface.unGetLCSimParams(stateHPS.getParameters(), alphaCenter));
-        SquareMatrix helixCov = new SquareMatrix(5, KalmanInterface.ungetLCSimCov(stateHPS.getCovMatrix(), alphaCenter));
+        DMatrixRMaj helixCov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(stateHPS.getCovMatrix(), alphaCenter));
         Vec pivotOrig = new Vec(0.,0.,0.);
         if (debug) {
             helixParams.print("helix parameters for pivot at origin");
@@ -108,13 +118,15 @@ public class PropagatedTrackState {
             Vec pMom = HelixState.getMom(0., helixParamsPivoted);
             pMom.print(String.format("initial momentum from pivoted helix, p=%10.6f",pMom.mag()));
         }
-        SquareMatrix F = HelixState.makeF(helixParamsPivoted, helixParams, alpha);
+        DMatrixRMaj F = HelixState.makeF(helixParamsPivoted, helixParams, alpha);
        
         // Then rotate the helix into the B-field reference frame
-        SquareMatrix fRot = new SquareMatrix(5);
+        DMatrixRMaj fRot = new DMatrixRMaj(5,5);
         Vec newHelixParams = HelixState.rotateHelix(helixParamsPivoted, Rot, fRot); 
-        SquareMatrix Ft = F.multiply(fRot);              
-        SquareMatrix newHelixCov = helixCov.similarity(Ft);   
+        CommonOps_DDRM.mult(F, fRot, Ft); 
+        CommonOps_DDRM.multTransB(helixCov, Ft, tempM);
+        DMatrixRMaj newHelixCov = new DMatrixRMaj(5,5);
+        CommonOps_DDRM.mult(Ft, tempM, newHelixCov);   
         if (debug) {
             newHelixParams.print("helix parameters rotated into the local B-field frame");
             Vec pMom= HelixState.getMom(0., newHelixParams);
@@ -214,8 +226,10 @@ public class PropagatedTrackState {
     
     public double [][] getIntersectionCov() {
         Vec helixAtInt = getIntersectionHelix();
-        SquareMatrix F = newHelixState.makeF(helixAtInt);
-        SquareMatrix covAtInt = newHelixState.C.similarity(F);
+        DMatrixRMaj F = newHelixState.makeF(helixAtInt);
+        CommonOps_DDRM.multTransB(newHelixState.C, F, tempM);
+        DMatrixRMaj covAtInt = new DMatrixRMaj(5,5);
+        CommonOps_DDRM.mult(F, tempM, covAtInt);
         double [][] Dx = KalTrack.DxTOa(helixAtInt);
         double [][] Cx = new double[3][3];
         for (int i = 0; i < 3; i++) {
@@ -223,7 +237,7 @@ public class PropagatedTrackState {
                 Cx[i][j] = 0.;
                 for (int k = 0; k < 5; k++) {
                     for (int l = 0; l < 5; l++) {
-                        Cx[i][j] += Dx[i][k] * covAtInt.M[k][l] * Dx[j][l];
+                        Cx[i][j] += Dx[i][k] * covAtInt.unsafe_get(k,l) * Dx[j][l];
                     }
                 }
             }

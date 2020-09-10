@@ -494,7 +494,7 @@ class PatRecTest {
             vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
             vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
             vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
-            //KalScatteredElectronFinder scatElec = new KalScatteredElectronFinder(SiModules, vtx.v, vtxCov.M, eventNumber);
+
             long startTime = System.nanoTime();
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
             long endTime = System.nanoTime();
