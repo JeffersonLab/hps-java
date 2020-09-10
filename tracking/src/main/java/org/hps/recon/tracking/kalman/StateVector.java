@@ -290,6 +290,19 @@ class StateVector {
 
         SquareMatrix Cdiff = snS.helix.C.dif(snP.helix.C);
         sS.helix.C = helix.C.sum(Cdiff.similarity(A));
+        if (verbose) {
+            sS.F.print("F matrix");
+            snP.helix.C.print("predicted covariance");
+            helix.C.print("this covariance");
+            CnInv.print("inverse of covariance");
+            A.print("A matrix");
+            helix.C.multiply(sS.F.transpose()).print("M matrix");
+            helix.a.print(" this helix parameters");
+            snP.helix.a.print(" predicted helix parameters");
+            diff.print("helix parameter differences");
+            Cdiff.similarity(A).print("Cdiff similarity transformed");
+            snS.helix.C.print("smoothed covariance snS.C");
+        }
 
         if (verbose) sS.print("Smoothed");
         return sS;
