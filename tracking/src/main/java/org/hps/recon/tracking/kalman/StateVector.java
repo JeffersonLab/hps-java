@@ -11,7 +11,7 @@ class StateVector {
     double mPred;       // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r;           // Predicted, filtered, or smoothed residual at site kLow
     double R;           // Covariance of residual
-    final private boolean verbose;
+    final private static boolean verbose = true;
     SquareMatrix F;     // Propagator matrix to propagate from this site to the next site
     private Logger logger;
 
@@ -19,7 +19,6 @@ class StateVector {
     StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin) {
         // Here tB is the B field direction, while B is the magnitude
         logger = Logger.getLogger(StateVector.class.getName());
-        verbose = false;
         if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
         helix = new HelixState(helixParams, pivot, origin, Cov, B, tB);
         kLow = site;
@@ -29,7 +28,6 @@ class StateVector {
     // Constructor for a new blank state vector with a new B field
     StateVector(int site, double B, Vec tB, Vec origin) {
         logger = Logger.getLogger(StateVector.class.getName());
-        verbose = false;
         helix = new HelixState(B, tB, origin);
         kLow = site;
     }
@@ -38,7 +36,6 @@ class StateVector {
     StateVector(int site) {
         kLow = site;
         logger = Logger.getLogger(StateVector.class.getName());
-        verbose = false;
         helix = new HelixState();
     }
 

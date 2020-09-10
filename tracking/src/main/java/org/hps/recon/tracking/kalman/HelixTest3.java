@@ -32,7 +32,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 1; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
