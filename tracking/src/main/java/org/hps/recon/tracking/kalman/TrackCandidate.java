@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.util.FastMath;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 class TrackCandidate {
     int ID;
@@ -129,7 +130,7 @@ class TrackCandidate {
                                        startSite.m.Layer, startSite.m.detector, sHstart.helix.a.toString());
         do {
             StateVector sH = sHstart;
-            sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
+            CommonOps_DDRM.scale(100., sH.helix.C); // Blow up the initial covariance matrix to avoid double counting measurements
             
             SiModule prevMod = null;
             chi2f = 0.;
@@ -243,7 +244,7 @@ class TrackCandidate {
             MeasurementSite currentSite = sites.get(idx);
             //if (currentSite.aF == null || currentSite.hitID < 0) continue;
             if (nextSite == null) {
-                currentSite.aS = currentSite.aF.copy();
+                currentSite.aS = currentSite.aF;
                 currentSite.smoothed = true;
             } else {
                 currentSite.smooth(nextSite);
@@ -290,11 +291,11 @@ class TrackCandidate {
         StateVector aS = site0.aS;
         if (aS == null) aS = site0.aF;
         Vec p = aS.helix.a;
-        double edrho = FastMath.sqrt(aS.helix.C.M[0][0]);
-        double ephi0 = FastMath.sqrt(aS.helix.C.M[1][1]);
-        double eK = FastMath.sqrt(aS.helix.C.M[2][2]);
-        double eZ0 = FastMath.sqrt(aS.helix.C.M[3][3]);
-        double etanl = FastMath.sqrt(aS.helix.C.M[4][4]);
+        double edrho = FastMath.sqrt(aS.helix.C.unsafe_get(0, 0));
+        double ephi0 = FastMath.sqrt(aS.helix.C.unsafe_get(1, 1));
+        double eK = FastMath.sqrt(aS.helix.C.unsafe_get(2, 2));
+        double eZ0 = FastMath.sqrt(aS.helix.C.unsafe_get(3, 3));
+        double etanl = FastMath.sqrt(aS.helix.C.unsafe_get(4, 4));
         str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
         str=str+String.format("              for origin at %s and pivot=%s\n", aS.helix.origin.toString(), aS.helix.X0.toString());

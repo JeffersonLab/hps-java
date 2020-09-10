@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+
 //Driver program for executing a Kalman fit.  This version starts at layer N, filters to layer 0,
 //then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
 //back to layer 0. The code assumes that the SiModules hold all the hits to be fit and only those hits.
@@ -25,7 +28,7 @@ class KalmanTrackFit2 {
             int nIterations, // Number of fit iterations requested
             Vec pivot, // Pivot point for the starting "guess" helix
             Vec helixParams, // 5 helix parameters for the starting "guess" helix
-            SquareMatrix C, // Full covariance matrix for the starting "guess" helix
+            DMatrixRMaj C, // Full covariance matrix for the starting "guess" helix
             KalmanParams kPar,
             org.lcsim.geometry.FieldMap fM) {
 
@@ -137,7 +140,7 @@ class KalmanTrackFit2 {
                 } else {
                     sH = startSite.aF.copy();
                 }
-                sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
+                CommonOps_DDRM.scale(100., sH.helix.C); // Blow up the initial covariance matrix to avoid double counting measurements
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
@@ -183,9 +186,6 @@ class KalmanTrackFit2 {
                     previousSite.aF.helix.a.print("old filtered helix");
                     newSite.aP.helix.a.print("new predicted helix");
                     newSite.aF.helix.a.print("new filtered helix");
-                    previousSite.aF.helix.C.print("old filtered covariance");
-                    newSite.aP.helix.C.print("new predicted covariance");
-                    newSite.aF.helix.C.print("new filtered covariance");
                 }
                 // if (verbose) {
                 // newSite.print(String.format("Iteration %d: filtering", iteration));

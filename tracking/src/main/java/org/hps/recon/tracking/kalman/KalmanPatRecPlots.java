@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
+import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -215,7 +216,7 @@ class KalmanPatRecPlots {
                         //eCalPos.print("ECAL cluster position");
                         //lastSite.aS.helix.print("helix at last layer");
                         HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm);
-                        if (helixAtEcal.C.isNaN()) continue;
+                        if (MatrixFeatures_DDRM.hasNaN(helixAtEcal.C)) continue;
                         Vec intPnt = helixAtEcal.getRKintersection();
                         //helixAtEcal.print("helix at ECAL cluster");
                         //intPnt.print("RK intersection point");

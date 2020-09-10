@@ -7,16 +7,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.util.FastMath;
+import org.ejml.data.DMatrix3x3;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+import org.ejml.dense.fixed.CommonOps_DDF3;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
 
 // Helix description for the Kalman filter
-class HelixState {
+class HelixState implements Cloneable {
     Vec a;                      // Helix parameters: rho0, phi0, K, z0, tan(lambda)
     Vec X0;                     // Pivot point of helix in the B-field reference frame (local field coordinates)
     RotMatrix Rot;              // Rotation from the global coordinates to the local field coordinates 
     Vec origin;                 // Origin of the local field coordinates in the global system.
-    SquareMatrix C;             // Helix covariance matrix 
+    DMatrixRMaj C;      // Helix covariance matrix 
     double B;                   // Magnetic field magnitude at origin
     Vec tB;                     // Magnetic field direction at origin
     double alpha;               // Conversion from 1/K to radius R
@@ -25,7 +29,17 @@ class HelixState {
     private HelixPlaneIntersect hpi;
     private Vec xPlaneRK;
     
-    HelixState(Vec a, Vec X0, Vec origin, SquareMatrix C, double B, Vec tB) {
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            logger.severe("HelixState: unable to clone!");
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    HelixState(Vec a, Vec X0, Vec origin, DMatrixRMaj C, double B, Vec tB) {
         logger = Logger.getLogger(HelixState.class.getName());
         this.a = a;
         this.X0 = X0;
@@ -74,7 +88,7 @@ class HelixState {
         String str;
         str = String.format("HelixState %s: helix parameters=%s,  pivot=%s\n", s, a.toString(), X0.toString());
         str = str + String.format("   Origin=%s,  B=%10.6f in direction %s\n", origin.toString(), B, tB.toString());
-        str = str + C.toString("covariance");
+        str = str + "Covariance:" + C.toString();
         str = str + Rot.toString("from global coordinates to field coordinates");
         str = str + "End of HelixState dump\n";
         return str;
@@ -115,15 +129,16 @@ class HelixState {
     
     // Return errors on the helix parameters at the present pivot point
     Vec helixErrors() {
-        return new Vec(FastMath.sqrt(C.M[0][0]), FastMath.sqrt(C.M[1][1]), FastMath.sqrt(C.M[2][2]), FastMath.sqrt(C.M[3][3]), FastMath.sqrt(C.M[4][4]));
+        return new Vec(FastMath.sqrt(C.unsafe_get(0,0)), FastMath.sqrt(C.unsafe_get(1,1)), FastMath.sqrt(C.unsafe_get(2,2)), 
+                FastMath.sqrt(C.unsafe_get(3,3)), FastMath.sqrt(C.unsafe_get(4,4)));
     }
     
     // Derivative matrix for the pivot transform (without energy loss or field rotations)
-    SquareMatrix makeF(Vec aP) {
+    DMatrixRMaj makeF(Vec aP) {
         return makeF(aP, a, alpha);
     }
     
-    static SquareMatrix makeF(Vec aP, Vec a, double alpha) {
+    static DMatrixRMaj makeF(Vec aP, Vec a, double alpha) {
         double[][] f = new double[5][5];
         f[0][0] = FastMath.cos(aP.v[1] - a.v[1]);
         f[0][1] = (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]);
@@ -140,7 +155,7 @@ class HelixState {
         f[3][4] = -(alpha / a.v[2]) * (aP.v[1] - a.v[1]);
         f[4][4] = 1.0;
 
-        return new SquareMatrix(5, f);
+        return new DMatrixRMaj(f);
     }
     
     // Momentum at the start of the given helix (point closest to the pivot)
@@ -179,7 +194,7 @@ class HelixState {
     // Warning: the pivot point has to be transformed too! Here we assume that the new pivot point
     // will be on the helix at phi=0, so drho and dz will always be returned as zero. Therefore, before
     // calling this routine, make sure that the current pivot point is on the helix (drho=dz=0)
-    static Vec rotateHelix(Vec a, RotMatrix R, SquareMatrix fRot) {
+    static Vec rotateHelix(Vec a, RotMatrix R, DMatrixRMaj fRot) {
         // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
         // The values for fRot, the corresponding derivative matrix, are also calculated and returned.
@@ -196,46 +211,46 @@ class HelixState {
             System.out.format("in rotateHelix: p=%10.7f,  prot=%10.7f\n", phlx.mag(), p_prime.mag());
         }
 
-        SquareMatrix dpda = new SquareMatrix(3);
-        dpda.M[0][0] = -FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
-        dpda.M[0][1] = FastMath.sin(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
-        dpda.M[1][0] = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
-        dpda.M[1][1] = -FastMath.cos(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
-        dpda.M[2][1] = -a.v[4] / (a.v[2] * Math.abs(a.v[2]));
-        dpda.M[2][2] = 1. / Math.abs(a.v[2]);
+        double dpda00 = -FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
+        double dpda01 = FastMath.sin(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
+        double dpda10 = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
+        double dpda11 = -FastMath.cos(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
+        double dpda21 = -a.v[4] / (a.v[2] * Math.abs(a.v[2]));
+        double dpda22 = 1. / Math.abs(a.v[2]);
+        DMatrix3x3 dpda = new DMatrix3x3(dpda00,dpda01,0., dpda10,dpda11,0., 0.,dpda21,dpda22);
 
-        SquareMatrix dprimedp = new SquareMatrix(3);
-        for (int i = 0; i < 3; i++) { 
-            for (int j = 0; j < 3; j++) { 
-                dprimedp.M[i][j] = R.M[i][j]; 
-            } 
-        }
+        DMatrix3x3 dprimedp = new DMatrix3x3(R.M[0][0],R.M[0][1],R.M[0][2], R.M[1][0],R.M[1][1],R.M[1][2], R.M[2][0],R.M[2][1],R.M[2][2]);
 
         double Q = Math.signum(a.v[2]);
-        SquareMatrix dadp = new SquareMatrix(3);
         double pt2 = p_prime.v[0] * p_prime.v[0] + p_prime.v[1] * p_prime.v[1];
         double pt = FastMath.sqrt(pt2);
-        dadp.M[0][0] = -p_prime.v[1] / pt2;
-        dadp.M[0][1] = p_prime.v[0] / pt2;
-        dadp.M[1][0] = -Q * p_prime.v[0] / (pt2 * pt);
-        dadp.M[1][1] = -Q * p_prime.v[1] / (pt2 * pt);
-        dadp.M[2][0] = -p_prime.v[0] * p_prime.v[2] / (pt2 * pt);
-        dadp.M[2][1] = -p_prime.v[1] * p_prime.v[2] / (pt2 * pt);
-        dadp.M[2][2] = 1.0 / (pt);
+        
+        double dadp00 = -p_prime.v[1] / pt2;
+        double dadp01 = p_prime.v[0] / pt2;
+        double dadp10 = -Q * p_prime.v[0] / (pt2 * pt);
+        double dadp11 = -Q * p_prime.v[1] / (pt2 * pt);
+        double dadp20 = -p_prime.v[0] * p_prime.v[2] / (pt2 * pt);
+        double dadp21 = -p_prime.v[1] * p_prime.v[2] / (pt2 * pt);
+        double dadp22 = 1.0 / (pt);
+        DMatrix3x3 dadp = new DMatrix3x3(dadp00,dadp01,0., dadp10,dadp11,0., dadp20, dadp21, dadp22);
 
-        SquareMatrix prod = dadp.multiply(dprimedp.multiply(dpda));
+        DMatrix3x3 c = new DMatrix3x3();
+        CommonOps_DDF3.mult(dprimedp, dpda, c);
+        DMatrix3x3 prod = new DMatrix3x3();
+        CommonOps_DDF3.mult(dadp,c,prod);
 
-        fRot.M[0][0] = 1.0;
-        fRot.M[1][1] = prod.M[0][0];
-        fRot.M[1][2] = prod.M[0][1];
-        fRot.M[1][4] = prod.M[0][2];
-        fRot.M[2][1] = prod.M[1][0];
-        fRot.M[2][2] = prod.M[1][1];
-        fRot.M[2][4] = prod.M[1][2];
-        fRot.M[3][3] = 1.0;
-        fRot.M[4][1] = prod.M[2][0];
-        fRot.M[4][2] = prod.M[2][1];
-        fRot.M[4][4] = prod.M[2][2];
+        fRot.zero();
+        fRot.unsafe_set(0, 0, 1.0);
+        fRot.unsafe_set(1, 1, prod.unsafe_get(0, 0));
+        fRot.unsafe_set(1, 2, prod.unsafe_get(0, 1));
+        fRot.unsafe_set(1, 4, prod.unsafe_get(0, 2));
+        fRot.unsafe_set(2, 1, prod.unsafe_get(1, 0));
+        fRot.unsafe_set(2, 2, prod.unsafe_get(1, 1));
+        fRot.unsafe_set(2, 4, prod.unsafe_get(1, 2));
+        fRot.unsafe_set(3, 3, 1.0);
+        fRot.unsafe_set(4, 1, prod.unsafe_get(2, 0));
+        fRot.unsafe_set(4, 2, prod.unsafe_get(2, 1));
+        fRot.unsafe_set(4, 4, prod.unsafe_get(2, 2));
 
         /*
          * if (verbose) { // derivative test Vec da = a.scale(0.005); Vec apda =
@@ -374,22 +389,17 @@ class HelixState {
         double stepSize = 20.0;
         // Step from the origin of this StateVector to pln.X(), both in global coordinates
         Vec transHelix = new Vec(5);
-        SquareMatrix newCovariance = new SquareMatrix(5);
+        DMatrixRMaj newCovariance = new DMatrixRMaj(5,5);
         if (!helixStepper(stepSize, yScat, XL, newCovariance, transHelix, pln.X(), fM)) {
-            for (int i=0; i<5; ++i) {
-                for (int j=0; j<5; ++j) {
-                    newCovariance.M[i][j] = this.C.M[i][j];
-                }
-            }
+            newCovariance.set(this.C);
         } else if (debug) {
             transHelix.print("helixStepper helix at final plane");
-            C.print("original covariance");
             System.out.println("    Errors: ");
-            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(C.M[i][i])); }
+            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(C.get(i,i))); }
             System.out.println("\n");
             newCovariance.print("transformed covariance");
             System.out.println("    Errors: ");
-            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(newCovariance.M[i][i])); }
+            for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(newCovariance.get(i,i))); }
             System.out.println("\n");
         }
         
@@ -413,7 +423,7 @@ class HelixState {
         return (0.0136 / Math.abs(p)) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
     }
 
-    boolean helixStepper(double maxStep, ArrayList<Double> yScat, ArrayList<Double> XL, SquareMatrix Covariance, Vec finalHelix, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
+    boolean helixStepper(double maxStep, ArrayList<Double> yScat, ArrayList<Double> XL, DMatrixRMaj Covariance, Vec finalHelix, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
         // The old and new origin points are in global coordinates. The old helix and old pivot are defined
         // in a coordinate system aligned with the field and centered at the old origin. The returned
         // helix will be in a coordinate system aligned with the local field at the new origin, and the
@@ -463,8 +473,8 @@ class HelixState {
         Vec newHelix = this.a.copy();
         Vec Pivot = this.X0.copy();
         Vec Origin = this.origin.copy(); // In global coordinates
-        SquareMatrix fRot = new SquareMatrix(5);
-        SquareMatrix Cov = this.C;
+        DMatrixRMaj fRot = new DMatrixRMaj(5,5);
+        DMatrixRMaj Cov = this.C.copy();
         Vec pMom = getMom(0.,newHelix);
         double momentum = pMom.mag();
         double ct = pMom.v[1]/momentum;
@@ -480,7 +490,8 @@ class HelixState {
             }
         }
         double sigmaMS = projMSangle(momentum, thisXL/ct);
-        SquareMatrix Q = this.getQ(sigmaMS);
+        DMatrixRMaj Q = new DMatrixRMaj(5,5);
+        this.getQ(sigmaMS, Q);
         Vec yhat = new Vec(0., 1., 0.);
         if (debug) {
             System.out.format("Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n", 
@@ -499,8 +510,6 @@ class HelixState {
             this.origin.print("old origin");
             this.X0.print("old pivot");
             this.a.print("old helix");
-            Cov.print("old helix covariance");
-            Q.print("Qmcs");
             newOrigin.print("new origin");
             RM.print("to transform to the local field frame");
             Plane pln = new Plane(newOrigin, yhat);
@@ -511,7 +520,9 @@ class HelixState {
             Vec newHelix0 = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.);
             newHelix0.print("Pivot transform to final plane in a single step");
         }
-        Cov = Cov.sum(Q);
+        CommonOps_DDRM.addEquals(Cov,Q);
+        DMatrixRMaj cIntermediate = new DMatrixRMaj(5,5);
+        DMatrixRMaj Ft = new DMatrixRMaj(5,5);
         for (int step = 0; step < stepPnts.size(); ++step) {
             Pair<Double, Double> thisStep = stepPnts.get(step);
             double yInt = thisStep.getFirstElement();
@@ -538,9 +549,8 @@ class HelixState {
                 System.out.format("    New delta-phi=%13.10f; should be zero!\n", dphi);
                 Vec newPoint = atPhi(newPivot, newHelixPivoted, dphi, localAlpha);
                 newPoint.print("new point of intersection, should be same as the old");
-                Cov.print("covariance before transform");
             }
-            SquareMatrix F = makeF(newHelixPivoted, newHelix, localAlpha);
+            DMatrixRMaj F = makeF(newHelixPivoted, newHelix, localAlpha);
             newHelix = newHelixPivoted;
 
             // Rotate the helix into the field system at the new origin
@@ -559,17 +569,17 @@ class HelixState {
             localAlpha = 1.0e12 / c / Bmag;
             RotMatrix deltaRM = RMnew.multiply(RM.invert());    // New coordinate system is rotated to align with local field
             newHelix = rotateHelix(newHelix, deltaRM, fRot);    // Rotate the helix into the new local field coordinate system
-            SquareMatrix Ft = F.multiply(fRot);              
-            Cov = Cov.similarity(Ft);                           // Here we propagate the covariance matrix
+            CommonOps_DDRM.mult(F, fRot, Ft);
+            CommonOps_DDRM.multTransB(Cov, Ft, cIntermediate);   // Similarity transformation to propagate the covariance matrix
+            CommonOps_DDRM.mult(Ft,cIntermediate,Cov);
             // Add in multiple scattering if we are here passing through a plane with material
-            Q = null;
             if (thisXL > 0.) {                
                 pMom = getMom(0.,newHelix);
                 momentum = pMom.mag();
                 ct = pMom.v[1]/momentum;
                 sigmaMS = projMSangle(momentum, thisXL/ct);
-                Q = this.getQ(sigmaMS);
-                Cov = Cov.sum(Q);
+                this.getQ(sigmaMS, Q);
+                CommonOps_DDRM.addEquals(Cov, Q);
             }
 
             // In the next step the pivot will be right at the origin of the local system, except for the last step
@@ -582,10 +592,6 @@ class HelixState {
                 deltaRM.print("rotation to field system");
                 Origin.print("intermediate origin in global system");
                 newHelix.print("new helix after rotation");
-                fRot.print("transform of rotation");
-                Ft.print("transform matrix");
-                Cov.print("covariance after rotation");
-                if (Q != null) Q.print("multiple scattering matrix");
             }
             RM = RMnew;
         }
@@ -593,8 +599,9 @@ class HelixState {
         Vec newOriginLocal = new Vec(0.,0.,0.);
         Vec oldPivot = RM.rotate(Origin.dif(newOrigin));
         Vec finalHx = pivotTransform(newOriginLocal, newHelix, oldPivot, localAlpha, 0.);
-        SquareMatrix F = makeF(finalHx, newHelix, localAlpha);
-        Cov = Cov.similarity(F);
+        DMatrixRMaj F = makeF(finalHx, newHelix, localAlpha);
+        CommonOps_DDRM.multTransB(Cov, F, cIntermediate); 
+        CommonOps_DDRM.mult(F,cIntermediate,Cov);
         if (debug) {
             Origin.print("helixStepper final origin and pivot on helix");
             oldPivot.print("  final origin in final local coordinate system");
@@ -602,14 +609,9 @@ class HelixState {
             newOriginLocal.print("final origin on helix in local coordinates");
             newHelix.print("helix before pivot transform");
             finalHx.print("final helix");
-            Cov.print("transformed covariance");
         }
-        for (int i = 0; i < 5; ++i) { 
-            finalHelix.v[i] = finalHx.v[i];
-            for (int j = 0; j < 5; ++j) { 
-                Covariance.M[i][j] = Cov.M[i][j]; 
-            } 
-        }
+        Covariance.set(Cov);
+
         return true;
     }
     
@@ -624,7 +626,7 @@ class HelixState {
      
     // Transform a helix from one pivot to another through a non-uniform B field in several steps
     // Deprecated original version without scattering planes
-    Vec helixStepper(int nSteps, SquareMatrix Covariance, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
+    Vec helixStepper(int nSteps, DMatrixRMaj Covariance, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
         double maxStep = Math.abs(newOrigin.v[1]-origin.v[1])/(double)nSteps;
         ArrayList<Double> yScats = new ArrayList<Double>();
         ArrayList<Double> XL = new ArrayList<Double>();
@@ -646,14 +648,10 @@ class HelixState {
 
     // Multiple scattering matrix; assume a single thin scattering layer at the
     // beginning of the helix propagation
-    SquareMatrix getQ(double sigmaMS) {
-        double[][] q = new double[5][5];
-
+    void getQ(double sigmaMS, DMatrixRMaj Q) {
         double V = sigmaMS * sigmaMS;
-        q[1][1] = V * (1.0 + a.v[4] * a.v[4]);
-        q[4][4] = V * (1.0 + a.v[4] * a.v[4]) * (1.0 + a.v[4] * a.v[4]);
-        // All other elements are zero
-
-        return new SquareMatrix(5, q);
+        Q.unsafe_set(1, 1,  V * (1.0 + a.v[4] * a.v[4]));
+        Q.unsafe_set(4, 4, V * (1.0 + a.v[4] * a.v[4]) * (1.0 + a.v[4] * a.v[4]));
+        // All other elements are always zero, so don't need to be reset
     }
 }
