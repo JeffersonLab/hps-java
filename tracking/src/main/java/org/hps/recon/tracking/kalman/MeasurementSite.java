@@ -29,7 +29,7 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     double B;
-    final static private boolean debug = false;
+    final static private boolean debug = true;
     private static Logger logger;
     private static DMatrixRMaj tempV;
     private static boolean initialized;
