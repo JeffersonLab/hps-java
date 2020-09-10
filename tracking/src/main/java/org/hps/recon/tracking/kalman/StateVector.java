@@ -11,7 +11,7 @@ class StateVector {
     double mPred;       // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r;           // Predicted, filtered, or smoothed residual at site kLow
     double R;           // Covariance of residual
-    final private static boolean verbose = true;
+    final private static boolean verbose = false;
     SquareMatrix F;     // Propagator matrix to propagate from this site to the next site
     private Logger logger;
 
@@ -291,6 +291,7 @@ class StateVector {
         SquareMatrix Cdiff = snS.helix.C.dif(snP.helix.C);
         sS.helix.C = helix.C.sum(Cdiff.similarity(A));
 
+        if (verbose) sS.print("Smoothed");
         return sS;
     }
 
