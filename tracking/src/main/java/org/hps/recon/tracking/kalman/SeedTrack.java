@@ -245,7 +245,10 @@ class SeedTrack {
         CommonOps_DDRM.multTransB(Csol,D,Mint);
         C = new DMatrixRMaj(5);
         CommonOps_DDRM.mult(D, Mint, C);
-        if (verbose) { D.print("line/parabola to helix derivatives"); }
+        if (verbose) { 
+            System.out.println("line/parabola to helix derivatives:");
+            D.print();
+        }
 
         // Note that the non-bending plane is assumed to be y,z (B field in z
         // direction), and the track is assumed to start out more-or-less
