@@ -513,7 +513,10 @@ class MeasurementSite {
         }        
 
         this.aS = this.aF.smooth(nS.aS, nS.aP);
-        if (hitID < 0) { return true; }
+        if (hitID < 0) { 
+            smoothed = true;
+            return true; 
+        }
 
         Measurement hit = this.m.hits.get(hitID);
         double V = hit.sigma * hit.sigma;
