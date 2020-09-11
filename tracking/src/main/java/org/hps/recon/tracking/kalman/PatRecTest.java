@@ -496,10 +496,10 @@ class PatRecTest {
             vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
             vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
 
-            long startTime = System.nanoTime();
+            long startTimeF = System.nanoTime();
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
-            long endTime = System.nanoTime();
-            double runTime = (double)(endTime - startTime)/1000000.;
+            long endTimeF = System.nanoTime();
+            double runTime = (double)(endTimeF - startTimeF)/1000000.;
             executionTime += runTime;
             if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;
@@ -741,7 +741,11 @@ class PatRecTest {
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+<<<<<<< HEAD
         System.out.format("Elapsed time for executing the Kalman filter = %10.3f ms\n", executionTime);
+=======
+        System.out.format("Elapsed time for Kalman Pattern Recognition = %10.4f ms\n", executionTime);
+>>>>>>> Got the new matrix Kalman code working with the pattern recognition.
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
