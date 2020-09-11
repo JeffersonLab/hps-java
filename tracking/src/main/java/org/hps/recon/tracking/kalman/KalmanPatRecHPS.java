@@ -614,7 +614,6 @@ class KalmanPatRecHPS {
                     for (MeasurementSite site : candidateTrack.sites) {
                         if (site.aS != null) startSite = site;
                     }
-                    DMatrixRMaj Cov = startSite.aS.helix.C;
                     if (MatrixFeatures_DDRM.hasNaN(startSite.aS.helix.C)) {
                         if (debug) System.out.format("KalmanPatRecHPs: candidate %d covariance is NaN!\n", candidateTrack.ID);
                         candidateTrack.good = false;

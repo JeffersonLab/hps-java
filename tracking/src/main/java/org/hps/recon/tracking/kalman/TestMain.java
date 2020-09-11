@@ -18,7 +18,6 @@ public class TestMain {
             path = args[0];
         }
         System.out.format("TestMain: standalone test of Kalman fitter code\n");
-
         //HelixTest3 t1 = new HelixTest3(path);
         PatRecTest t1 = new PatRecTest(path);
     }
