@@ -1131,7 +1131,7 @@ class KalmanPatRecHPS {
         MeasurementSite nextSite = null;
         for (int idxS = filteredTkr.sites.size() - 1; idxS >= 0; idxS--) {
             MeasurementSite currentSite = filteredTkr.sites.get(idxS);
-            if (nextSite == null) {
+            if (nextSite == null) {   // The outermost site with a hit is already smoothed by definition
                 if (currentSite.hitID < 0) continue;
                 currentSite.aS = currentSite.aF;
                 currentSite.smoothed = true;
