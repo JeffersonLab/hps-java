@@ -44,7 +44,7 @@ class KalmanPatRecHPS {
     private ArrayList<Double> XLscat;
 
     private int eventNumber;
-    final static private boolean debug = false;
+    final static private boolean debug = true;
     private int nModules;
     private KalmanParams kPar;
     private Logger logger;
@@ -1140,6 +1140,7 @@ class KalmanPatRecHPS {
             }
             filteredTkr.chi2s += Math.max(currentSite.chi2inc, 0.);
 
+            currentSite.print("smoothing");
             nextSite = currentSite;
             if (verbose) currentSite.print("smoothed");
         }

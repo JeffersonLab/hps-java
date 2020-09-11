@@ -39,8 +39,6 @@ class StateVector {
         helix = new HelixState(helixParams, pivot, origin, Cov, B, tB);
         kLow = site;
         kUp = kLow;
-        K = new DMatrixRMaj(5,1);
-        F = new DMatrixRMaj(5,5);
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -59,8 +57,6 @@ class StateVector {
     StateVector(int site, double B, Vec tB, Vec origin) {
         helix = new HelixState(B, tB, origin);
         kLow = site;
-        K = new DMatrixRMaj(5);
-        F = new DMatrixRMaj(5,5);
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -78,9 +74,6 @@ class StateVector {
     // Constructor for a new completely blank state vector
     StateVector(int site) {
         kLow = site;
-        helix = new HelixState();
-        K = new DMatrixRMaj(5);
-        F = new DMatrixRMaj(5,5);
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -171,6 +164,7 @@ class StateVector {
             helix.X0.print("old pivot");
         }
 
+        F = new DMatrixRMaj(5,5);
         this.helix.makeF(aPrime.helix.a, F); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
             double factor = 1.0 - deltaEoE;
@@ -263,6 +257,7 @@ class StateVector {
         CommonOps_DDRM.mult(helix.C, H, tempV);
         double denom = V + CommonOps_DDRM.dot(H, tempV);
         CommonOps_DDRM.scale(1.0/denom, helix.C, tempM);
+        K = new DMatrixRMaj(5,1);
         CommonOps_DDRM.mult(tempM, H, K);  //  Kalman gain matrix
         if (debug) {
             System.out.format("StateVector.filter: kLow=%d\n", kLow);
@@ -328,7 +323,7 @@ class StateVector {
         CommonOps_DDRM.mult(helix.C, H, tempV);
         double denom = -V + CommonOps_DDRM.dot(H, tempV);
         CommonOps_DDRM.scale(1.0/denom, helix.C, tempM);
-        DMatrixRMaj Kstar = new DMatrixRMaj(5);
+        DMatrixRMaj Kstar = new DMatrixRMaj(5,1);
         CommonOps_DDRM.mult(tempM, H, Kstar);   // Kalman gain matrix
 
         CommonOps_DDRM.scale(r, Kstar, tempV);

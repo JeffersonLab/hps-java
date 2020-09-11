@@ -94,9 +94,6 @@ class KalmanTrackFit2 {
                 }
                 ;
 
-                // if (verbose) {
-                // newSite.print("initial filtering");
-                // }
                 if (m.Layer >= 0 && hitNumber >= 0) chi2f += newSite.chi2inc;
 
                 sites.add(newSite);
@@ -105,6 +102,7 @@ class KalmanTrackFit2 {
             }
             if (!success) { return; }
             if (verbose) {
+                for (MeasurementSite site : sites) site.print("initial filtering");
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
                 newSite.aF.helix.a.print("filtered helix parameters at innermost site.");
                 System.out.format("    The innermost site is at layer %d\n", newSite.m.Layer);
@@ -242,9 +240,9 @@ class KalmanTrackFit2 {
                     if (iteration == nIterations - 1) nHits++;
                 }
 
-                // if (verbose) {
-                // currentSite.print(String.format("Iteration %d smoothing", iteration));
-                // }
+                if (verbose) {
+                    currentSite.print(String.format("Iteration %d smoothing", iteration));
+                }
                 nextSite = currentSite;
             }
 
