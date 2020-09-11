@@ -32,7 +32,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1; // The number of test events to generate for fitting
+        int nTrials = 10000; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -42,6 +42,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double [] vtxRes = {0.1, 0.5, 0.05};
 
         boolean verbose = nTrials < 2;
+        double executionTime = 0.;
         
         double eCalLoc = 1394.;
         
@@ -710,8 +711,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
             if (verbose) { initialCovariance.print("initial covariance guess"); }
             // Run the Kalman fit
+            long startTime = System.nanoTime();
             KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
                     initialHelixGuess, initialCovariance, kPar, fM);
+            long endTime = System.nanoTime();
+            double runTime = (double)(endTime - startTime)/1000000.;
+            executionTime += runTime;
             if (!kF.success) continue;
             KalTrack KalmanTrack = kF.tkr;
             if (KalmanTrack == null) continue;
@@ -1090,6 +1095,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+        System.out.format("Elapsed time for executing the Kalman filter = %10.3f ms\n", executionTime);
 
         hGaus.plot(path + "Gaussian.gp", true, "gaus", " ");
         hReducedErr.plot(path + "ReducedErr.gp", true, " ", " ");
