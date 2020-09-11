@@ -26,7 +26,7 @@ class PatRecTest {
 
         int nTrials = 2;              // The number of test eventNumbers to generate for pattern recognition and fitting
         int mxPlot = 10;                // Maximum number of single event plots
-        int [] eventToPrint = {};
+        int [] eventToPrint = {0,1};
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
