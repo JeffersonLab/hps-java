@@ -47,6 +47,7 @@ class SeedTrack {
     private static DMatrixRMaj a;  // Solution vector (line coefficients followed by parabola coefficients
     private static double [] vpred;
     private static final boolean debug = false; // Set true to generate lots of debug printout
+    //private static int nCalls;
 
     double getAlpha() {
         return alpha;
@@ -106,6 +107,9 @@ class SeedTrack {
     private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, double yTarget) {
         // yOrigin is the location along the beam about which we fit the seed helix
         // yTarget is the location along the beam of the target itself
+        //if (nCalls < 3) debug = true;
+        //else debug = false;
+        //nCalls++;
 
         p0 = new Plane(new Vec(0., yTarget, 0.), new Vec(0., 1., 0.));  // create plane at the target position
         this.yOrigin = yOrigin;
@@ -421,7 +425,7 @@ class SeedTrack {
         return compatible;
     }
     
-    private Vec planeIntersection(Plane p) {
+    Vec planeIntersection(Plane p) {
         double arg = (K / alpha) * ((drho + (alpha / K)) * FastMath.sin(phi0) - (p.X().v[1] - yOrigin));
         double phiInt = -phi0 + FastMath.asin(arg);
         return atPhi(phiInt);
@@ -434,7 +438,7 @@ class SeedTrack {
         return new Vec(x, y, z);
     }
 
-    private double[] pivotTransform(double[] pivot) {
+    double[] pivotTransform(double[] pivot) {
         Vec X0 = new Vec(0., yOrigin, 0.);
         double xC = X0.v[0] + (drho + alpha / K) * FastMath.cos(phi0); // Center of the helix circle
         double yC = X0.v[1] + (drho + alpha / K) * FastMath.sin(phi0);
@@ -462,6 +466,23 @@ class SeedTrack {
         // delta = offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)
         // R2 = 2nd row of the general rotation from the global system to the local detector system
 
+        A[0][0] = 0.;
+        A[0][1] = 0.;
+        A[0][2] = 0.;
+        A[0][3] = 0.;
+        A[0][4] = 0.;
+        A[1][1] = 0.;
+        A[1][4] = 0.;
+        A[2][2] = 0.;
+        A[2][3] = 0.;
+        A[2][4] = 0.;
+        A[3][4] = 0.;
+        A[4][4] = 0.;
+        B[0] = 0.;
+        B[1] = 0.;
+        B[2] = 0.;
+        B[3] = 0.;
+        B[4] = 0.;
         for (int i = 0; i < N; i++) {
             double R10 = R2[i][0];
             double R11 = R2[i][1];

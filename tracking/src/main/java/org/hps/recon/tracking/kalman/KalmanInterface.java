@@ -1045,7 +1045,7 @@ public class KalmanInterface {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
         if (debug) System.out.printf("firstHitZ %f \n", firstHitZ);
-        return new SeedTrack(trackHitsKalman, firstHitZ, 0., debug);
+        return new SeedTrack(trackHitsKalman, firstHitZ, 0.);
     }
 
     // Method to refit an existing track's hits, using the Kalman seed-track to initialize the Kalman Filter.
