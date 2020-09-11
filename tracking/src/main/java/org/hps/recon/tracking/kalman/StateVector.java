@@ -41,6 +41,7 @@ class StateVector {
         kLow = site;
         kUp = kLow;
         K = new DMatrixRMaj(5,1);
+        F = new DMatrixRMaj(5,5);
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -60,6 +61,7 @@ class StateVector {
         helix = new HelixState(B, tB, origin);
         kLow = site;
         K = new DMatrixRMaj(5);
+        F = new DMatrixRMaj(5,5);
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -79,6 +81,7 @@ class StateVector {
         kLow = site;
         helix = new HelixState();
         K = new DMatrixRMaj(5);
+        F = new DMatrixRMaj(5,5);
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -93,7 +96,6 @@ class StateVector {
         }
     }
 
-    // Deep copy of the state vector
     StateVector copy() {
         StateVector q = new StateVector(kLow);
         q.helix = (HelixState)helix.clone();   // Shallow copy the HelixState
@@ -104,6 +106,19 @@ class StateVector {
         q.r = r;
         q.K = K;
         return q;
+    }
+    
+    StateVector deepCopy() {
+        StateVector q = new StateVector(kLow);
+        q.helix = (HelixState)helix.copy();   // Shallow copy the HelixState
+        q.kUp = kUp;
+        if (F != null) q.F = F.copy();
+        else q.F = F;
+        q.mPred = mPred;
+        q.R = R;
+        q.r = r;
+        q.K = K;
+        return q;        
     }
 
     // Debug printout of the state vector
@@ -157,7 +172,7 @@ class StateVector {
             helix.X0.print("old pivot");
         }
 
-        F = this.helix.makeF(aPrime.helix.a); // Calculate derivatives of the pivot transform
+        this.helix.makeF(aPrime.helix.a, F); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
             double factor = 1.0 - deltaEoE;
             for (int i = 0; i < 5; i++) F.unsafe_set(i, 2, F.unsafe_get(i,2)*factor);  
@@ -187,18 +202,17 @@ class StateVector {
             tempM.print();
         }
         CommonOps_DDRM.mult(tempM, F, tempA);
-        F = tempA;
 
         // Test the derivatives
         /*
         if (debug) {
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
-            StateVector aPda = this.copy();
+            StateVector aPda = this.deepCopy();
             for (int i = 0; i < 5; i++) {
                 aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
             }
             Vec da = aPda.a.dif(a);
-            StateVector aPrimeNew = this.copy();
+            StateVector aPrimeNew = this.deepCopy();
             aPrimeNew.a = aPda.pivotTransform(pivot);
             RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
             SquareMatrix fRotTmp = new SquareMatrix(5);
@@ -232,9 +246,9 @@ class StateVector {
         }
 
         // Now propagate the multiple scattering matrix and covariance matrix to the new site
-        CommonOps_DDRM.multTransB(Cinv, F, tempM);
+        CommonOps_DDRM.multTransB(Cinv, tempA, tempM);
         aPrime.helix.C = new DMatrixRMaj(5,5);
-        CommonOps_DDRM.mult(F, tempM, aPrime.helix.C);
+        CommonOps_DDRM.mult(tempA, tempM, aPrime.helix.C);
 
         return aPrime;
     }
@@ -342,10 +356,9 @@ class StateVector {
         if (!solver.setA(snP.helix.C.copy())) {
             logger.severe("StateVector:smooth, inversion of the covariance matrix failed");
             snP.helix.C.print();
-            SquareMatrix invrs = KalTrack.mToS(snP.helix.C).invert();
-            invrs.print("inverse");
-            invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?");
-            
+            //SquareMatrix invrs = KalTrack.mToS(snP.helix.C).invert();
+            //invrs.print("inverse");
+            //invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?");            
             for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
                 for (int j=0; j<5; ++j) {
                     if (i == j) {
@@ -395,26 +408,6 @@ class StateVector {
         CommonOps_DDRM.multTransB(tempM, tempA, Cinv);
         CommonOps_DDRM.mult(tempA, Cinv, tempM);
         CommonOps_DDRM.add(helix.C, tempM, sS.helix.C);
-
-        if (debug) {
-            SquareMatrix ColdsnP = mToS(snP.helix.C);
-            SquareMatrix CnInv = ColdsnP.invert();
-            CnInv.print("Old covariance inverse");
-            SquareMatrix Fold = mToS(sS.F);
-            SquareMatrix Cold = mToS(helix.C);
-            SquareMatrix A = (Cold.multiply(Fold.transpose())).multiply(CnInv);
-            Cold.multiply(Fold.transpose()).print("Old tempM");
-            A.print("Old matrix A");
-
-            Vec diff = snS.helix.a.dif(snP.helix.a);
-            Vec aOld = helix.a.sum(diff.leftMultiply(A));
-            aOld.print("Old resulting helix parameters");
-
-            SquareMatrix ColdsnS = mToS(snS.helix.C);
-            SquareMatrix Cdiff = ColdsnS.dif(ColdsnP);
-            SquareMatrix Cresult = Cold.sum(Cdiff.similarity(A));
-            Cresult.print("Old resulting covariance");
-        }
         
         if (debug) sS.print("Smoothed");
         return sS;
@@ -435,7 +428,8 @@ class StateVector {
         // aP are the helix parameters for the new pivot point, assumed already to be
         // calculated by pivotTransform()
         // Note that no field rotation is assumed or accounted for here
-        DMatrixRMaj mF = helix.makeF(aP);
+        DMatrixRMaj mF = new DMatrixRMaj(5,5);
+        helix.makeF(aP, mF);
         CommonOps_DDRM.multTransB(helix.C, mF, tempM);
         CommonOps_DDRM.mult(mF, tempM, tempA);
         return tempA;
@@ -456,6 +450,7 @@ class StateVector {
             }
         }
     }
+/*
     private static SquareMatrix mToS(DMatrixRMaj M) {
         SquareMatrix S= new SquareMatrix(5);
         for (int i=0; i<5; ++i) {
@@ -465,4 +460,5 @@ class StateVector {
         }
         return S;
     }
+*/
 }

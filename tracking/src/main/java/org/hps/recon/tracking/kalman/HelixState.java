@@ -134,28 +134,27 @@ class HelixState implements Cloneable {
     }
     
     // Derivative matrix for the pivot transform (without energy loss or field rotations)
-    DMatrixRMaj makeF(Vec aP) {
-        return makeF(aP, a, alpha);
+    void makeF(Vec aP, DMatrixRMaj F) {
+        makeF(aP, F, a, alpha);
     }
     
-    static DMatrixRMaj makeF(Vec aP, Vec a, double alpha) {
-        double[][] f = new double[5][5];
-        f[0][0] = FastMath.cos(aP.v[1] - a.v[1]);
-        f[0][1] = (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]);
-        f[0][2] = (alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1]));
-        f[1][0] = -FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[1][1] = (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[1][2] = (alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[2][2] = 1.0;
-        f[3][0] = (alpha / a.v[2]) * a.v[4] * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]);
-        f[3][1] = (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        f[3][2] = (alpha / (a.v[2] * a.v[2])) * a.v[4]
-                * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        f[3][3] = 1.0;
-        f[3][4] = -(alpha / a.v[2]) * (aP.v[1] - a.v[1]);
-        f[4][4] = 1.0;
+    static void makeF(Vec aP, DMatrixRMaj F, Vec a, double alpha) {
+        F.unsafe_set(0, 0, FastMath.cos(aP.v[1] - a.v[1]));
+        F.unsafe_set(0, 1, (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]));
+        F.unsafe_set(0, 2, (alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1])));
+        F.unsafe_set(1, 0, -FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        F.unsafe_set(1, 1, (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        F.unsafe_set(1, 2, (alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        F.unsafe_set(2, 2,  1.0);
+        F.unsafe_set(3, 0, (alpha / a.v[2]) * a.v[4] * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        F.unsafe_set(3, 1, (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
+        F.unsafe_set(3, 2, (alpha / (a.v[2] * a.v[2])) * a.v[4]
+                * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
+        F.unsafe_set(3, 3, 1.0);
+        F.unsafe_set(3, 4, -(alpha / a.v[2]) * (aP.v[1] - a.v[1]));
+        F.unsafe_set(4, 4, 1.0);
 
-        return new DMatrixRMaj(f);
+        // All other values are always zero
     }
     
     // Momentum at the start of the given helix (point closest to the pivot)
@@ -523,6 +522,7 @@ class HelixState implements Cloneable {
         CommonOps_DDRM.addEquals(Cov,Q);
         DMatrixRMaj cIntermediate = new DMatrixRMaj(5,5);
         DMatrixRMaj Ft = new DMatrixRMaj(5,5);
+        DMatrixRMaj F = new DMatrixRMaj(5,5);
         for (int step = 0; step < stepPnts.size(); ++step) {
             Pair<Double, Double> thisStep = stepPnts.get(step);
             double yInt = thisStep.getFirstElement();
@@ -549,8 +549,8 @@ class HelixState implements Cloneable {
                 System.out.format("    New delta-phi=%13.10f; should be zero!\n", dphi);
                 Vec newPoint = atPhi(newPivot, newHelixPivoted, dphi, localAlpha);
                 newPoint.print("new point of intersection, should be same as the old");
-            }
-            DMatrixRMaj F = makeF(newHelixPivoted, newHelix, localAlpha);
+            }           
+            makeF(newHelixPivoted, F, newHelix, localAlpha);
             newHelix = newHelixPivoted;
 
             // Rotate the helix into the field system at the new origin
@@ -599,7 +599,7 @@ class HelixState implements Cloneable {
         Vec newOriginLocal = new Vec(0.,0.,0.);
         Vec oldPivot = RM.rotate(Origin.dif(newOrigin));
         Vec finalHx = pivotTransform(newOriginLocal, newHelix, oldPivot, localAlpha, 0.);
-        DMatrixRMaj F = makeF(finalHx, newHelix, localAlpha);
+        makeF(finalHx, F, newHelix, localAlpha);
         CommonOps_DDRM.multTransB(Cov, F, cIntermediate); 
         CommonOps_DDRM.mult(F,cIntermediate,Cov);
         if (debug) {
