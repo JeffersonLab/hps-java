@@ -1,6 +1,7 @@
 package org.hps.recon.tracking.kalman;
 
-//package kalman;
+// Deprecated. The LinearHelixFit code was integrated into SeedTrack as a method of that class, for better efficiency.
+
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
