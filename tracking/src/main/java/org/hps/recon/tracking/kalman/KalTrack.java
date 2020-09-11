@@ -498,7 +498,7 @@ public class KalTrack {
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
         helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield);
         if (covNaN()) return false;
-        if (!solver.setA(helixAtOrigin.C)) {
+        if (!solver.setA(helixAtOrigin.C.copy())) {
             logger.severe("KalTrack:originHelix, cannot invert the covariance matrix");
             return false;
         }

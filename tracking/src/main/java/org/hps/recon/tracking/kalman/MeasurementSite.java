@@ -29,7 +29,7 @@ class MeasurementSite {
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
     double B;
-    final static private boolean debug = true;
+    final static private boolean debug = false;
     private static Logger logger;
     private static DMatrixRMaj tempV;
     private static boolean initialized;
@@ -242,7 +242,32 @@ class MeasurementSite {
         // This calculates the H corresponding to using aP in h( , , ). It is kind of trivial, because
         // aP are helix parameters for a pivot right at the predicted intersection point, on the helix. 
         // Hence the prediction at that point does not depend on the helix parameters at all.
-        buildH(aP);
+        buildH(aP, H);
+        
+        // Test of the H vector, by comparing with a numerical difference. If this is done with the H
+        // calculated from aP, comparing with h calculated from aP, then the difference is always zero.
+        // By comparing with the less trivial case of h and H calculated from pS, we verify here that
+        // the derivatives are correct.
+        
+        if (debug) {
+            System.out.format("H corresponding to aP ");
+            H.print();
+            DMatrixRMaj H3m = new DMatrixRMaj(5,1);
+            buildH(pS, H3m);
+            Vec H3 = StateVector.mToVec(H3m);
+            H3.print("H corresponding to pS");
+            double mPredaP = h(aP, m); // This should give exactly the same result as for aP.mPred above
+            System.out.format("Predicted m: from pS=%10.5f;  from aP=%10.5f\n", mPredaP, aP.mPred);
+
+            StateVector tS = pS.deepCopy();
+            Vec da = new Vec(5);
+            double[] del = { 0.009, -0.005, -0.01, 0.013, 0.011 };
+            for (int i = 0; i < 5; i++) { da.v[i] = pS.helix.a.v[i] * del[i]; }
+            tS.helix.a = tS.helix.a.sum(da);
+            double dxTrue = h(tS, m) - h(pS, m);
+            double dxH = H3.dot(da);
+            System.out.format("Measurementsite.predict: dm True=%10.5f,   dm approx by H=%10.5f\n\n", dxTrue, dxH);
+        }        
 
         // Loop over hits and find the one that is closest, unless the hit has been specified
         int nHits = m.hits.size();
@@ -376,11 +401,11 @@ class MeasurementSite {
         aF.r = hit.v - aF.mPred;
 
         // Recalculate H using the filtered state vector (this makes a minor difference)
-        buildH(aF);
+        buildH(aF, H);
 
         // Another numerical test of the derivatives in H
         if (debug) {
-            StateVector tS = aF.copy();
+            StateVector tS = aF.deepCopy();
             Vec da = new Vec(5);
             double[] del = { 0.009, -0.005, -0.01, 0.013, 0.011 };
             for (int i = 0; i < 5; i++) { da.v[i] = aF.helix.a.v[i] * del[i]; }
@@ -507,7 +532,7 @@ class MeasurementSite {
 
         // Recalculate H using the smoothed helix parameters. Usually this makes little difference, but with the
         // non-uniform field this seems to reduce tails significantly in residuals of the last SVT layers.
-        buildH(aS);
+        buildH(aS, H);
 
         CommonOps_DDRM.mult(aS.helix.C, H, tempV);
         aS.R = V - CommonOps_DDRM.dot(H, tempV);
@@ -548,7 +573,7 @@ class MeasurementSite {
     }
 
     // Create the derivative matrix for prediction of the measurement from the helix
-    private void buildH(StateVector S) {
+    private void buildH(StateVector S, DMatrixRMaj H) {
         double phi = S.helix.planeIntersect(m.p);
 
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low, but highly unlikely here.
@@ -557,6 +582,9 @@ class MeasurementSite {
         }
         if (debug) {
             System.out.format("MeasurementSite.buildH: phi=%10.7f\n", phi);
+            // S.print("given to buildH");
+            // R.print("in buildH");
+            // p.print("in buildH");
         }
         Vec dxdphi = new Vec((alpha / S.helix.a.v[2]) * FastMath.sin(S.helix.a.v[1] + phi), -(alpha / S.helix.a.v[2]) * FastMath.cos(S.helix.a.v[1] + phi),
                 -(alpha / S.helix.a.v[2]) * S.helix.a.v[4]);
@@ -585,12 +613,12 @@ class MeasurementSite {
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 3; j++) {
                 DxDa[j][i] = dxdphi.v[j] * dphida[i] + dxda[j][i];
-                // if (debug) System.out.format(" %d %d DxDa=%10.7f\n", j,i,DxDa[j][i]);
+                // if (verbose) System.out.format(" %d %d DxDa=%10.7f\n", j,i,DxDa[j][i]);
             }
         }
         RotMatrix Rt = m.Rinv.multiply(S.helix.Rot.invert());
-        for (int i = 0; i < 5; i++) {
-            double HHi = 0.;
+        for (int i = 0; i < 5; i++) { 
+            double HHi = 0;
             for (int j = 0; j < 3; j++) { 
                 HHi += Rt.M[1][j] * DxDa[j][i]; 
             }
@@ -599,7 +627,7 @@ class MeasurementSite {
 
         // Testing the derivatives
         if (debug) {
-            StateVector sVp = S.copy();
+            StateVector sVp = S.deepCopy();
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
             for (int i = 0; i < 5; i++) { sVp.helix.a.v[i] = sVp.helix.a.v[i] * (1.0 + daRel[i]); }
             Vec da = new Vec(S.helix.a.v[0] * daRel[0], S.helix.a.v[1] * daRel[1], S.helix.a.v[2] * daRel[2], S.helix.a.v[3] * daRel[3], S.helix.a.v[4] * daRel[4]);
@@ -632,7 +660,7 @@ class MeasurementSite {
             x2Local.print("x2Local");
             System.out.format("mP1=%10.5f,   mP2=%10.5f\n", mP1, mP2);
             double dm = 0.;
-            for (int i = 0; i < 5; i++) { dm += H.get(i, 0) * da.v[i]; }
+            for (int i = 0; i < 5; i++) { dm += H.get(i,0) * da.v[i]; }
             System.out.format("Test of H matrix: dm=%10.8f,  dmExact=%10.8f\n\n", dm, dmExact);
         }
     }

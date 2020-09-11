@@ -307,7 +307,8 @@ public class KalmanInterface {
         // Transforms helix to a pivot point on the helix itself (so rho0 and z0 become zero)
         Vec newPivot = helixState.atPhi(phiInt);
         Vec helixParamsPivoted = helixState.pivotTransform(newPivot);
-        DMatrixRMaj F = helixState.makeF(helixParamsPivoted);
+        DMatrixRMaj F = new DMatrixRMaj(5,5);
+        helixState.makeF(helixParamsPivoted, F);
         if (debug) {
             System.out.format("Entering KalmanInterface.toTrackState for location %d\n", loc);
             helixState.print("provided");
@@ -338,7 +339,7 @@ public class KalmanInterface {
         // Pivot transform to the final pivot at the origin
         Vec finalPivot = new Vec(0.,0.,0.);
         Vec finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
-        F = HelixState.makeF(finalHelixParams, helixParamsRotated, alphaCenter);
+        HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
         CommonOps_DDRM.multTransB(covRotated, F, tempM);
         CommonOps_DDRM.mult(F, tempM, covRotated);
         if (debug) {
