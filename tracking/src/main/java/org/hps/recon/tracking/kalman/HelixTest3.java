@@ -45,6 +45,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double [] vtxRes = {0.1, 0.5, 0.05};
 
         boolean verbose = nTrials < 2;
+        double executionTime = 0.;
         
         double eCalLoc = 1394.;
         
@@ -720,8 +721,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 initialCovariance.print();
             }
             // Run the Kalman fit
+            long startTimeF = System.nanoTime();
             KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
                     initialHelixGuess, initialCovariance, kPar, fM);
+            long endTimeF = System.nanoTime();
+            double runTime = (double)(endTimeF - startTimeF)/1000000.;
+            executionTime += runTime;
             if (!kF.success) continue;
             KalTrack KalmanTrack = kF.tkr;
             if (KalmanTrack == null) continue;
@@ -1108,6 +1113,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double endTime = (double)(ldt.getMinute())*60. + (double)(ldt.getSecond()) + (double)(ldt.getNano())/1e9;
         double elapsedTime = endTime - startTime;
         System.out.format("Total elapsed time = %10.5f\n", elapsedTime);
+        System.out.format("Elapsed time for Kalman Filter = %10.4f ms\n", executionTime);
 
         hGaus.plot(path + "Gaussian.gp", true, "gaus", " ");
         hReducedErr.plot(path + "ReducedErr.gp", true, " ", " ");
