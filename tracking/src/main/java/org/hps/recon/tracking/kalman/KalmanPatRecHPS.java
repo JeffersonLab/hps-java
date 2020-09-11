@@ -266,7 +266,7 @@ class KalmanPatRecHPS {
                                     if (redundantSeed) continue;
                                     
                                     // Fit the seed to extract helix parameters
-                                    SeedTrack seed = new SeedTrack(hitList, yOrigin, kPar.beamSpot[1], false);
+                                    SeedTrack seed = new SeedTrack(hitList, yOrigin, kPar.beamSpot[1]);
                                     if (!seed.success) continue;
                                     
                                     // Cuts on the seed quality
