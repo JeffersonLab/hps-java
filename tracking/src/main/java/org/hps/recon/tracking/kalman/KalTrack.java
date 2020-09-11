@@ -499,8 +499,18 @@ public class KalTrack {
         helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield);
         if (covNaN()) return false;
         if (!solver.setA(helixAtOrigin.C.copy())) {
-            logger.severe("KalTrack:originHelix, cannot invert the covariance matrix");
-            return false;
+            logger.fine("KalTrack:originHelix, cannot invert the covariance matrix");
+            for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
+                for (int j=0; j<5; ++j) {
+                    if (i == j) {
+                        Cinv.unsafe_set(i,j,1.0/Cinv.unsafe_get(i,j));
+                    } else {
+                        Cinv.unsafe_set(i, j, 0.); 
+                    }
+                }
+            }          
+        } else {
+            solver.invert(Cinv);
         }
         solver.invert(Cinv);
 

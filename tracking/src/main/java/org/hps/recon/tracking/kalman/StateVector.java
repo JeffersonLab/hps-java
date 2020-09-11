@@ -90,7 +90,7 @@ class StateVector {
 
     StateVector copy() {
         StateVector q = new StateVector(kLow);
-        q.helix = (HelixState)helix.clone();   // Shallow copy the HelixState
+        q.helix = (HelixState)helix.copy();      // Deep copy
         q.kUp = kUp;
         q.F = F;  // Don't deep copy the F matrix
         q.mPred = mPred;
@@ -98,19 +98,6 @@ class StateVector {
         q.r = r;
         q.K = K;
         return q;
-    }
-    
-    StateVector deepCopy() {
-        StateVector q = new StateVector(kLow);
-        q.helix = (HelixState)helix.copy();   // Shallow copy the HelixState
-        q.kUp = kUp;
-        if (F != null) q.F = F.copy();
-        else q.F = F;
-        q.mPred = mPred;
-        q.R = R;
-        q.r = r;
-        q.K = K;
-        return q;        
     }
 
     // Debug printout of the state vector
@@ -200,12 +187,12 @@ class StateVector {
         /*
         if (debug) {
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
-            StateVector aPda = this.deepCopy();
+            StateVector aPda = this.Copy();
             for (int i = 0; i < 5; i++) {
                 aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
             }
             Vec da = aPda.a.dif(a);
-            StateVector aPrimeNew = this.deepCopy();
+            StateVector aPrimeNew = this.Copy();
             aPrimeNew.a = aPda.pivotTransform(pivot);
             RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
             SquareMatrix fRotTmp = new SquareMatrix(5);
@@ -348,8 +335,8 @@ class StateVector {
 
         // solver.setA defines the input matrix and checks whether it is singular. A copy is needed because the input gets modified.
         if (!solver.setA(snP.helix.C.copy())) {
-            logger.severe("StateVector:smooth, inversion of the covariance matrix failed");
-            snP.helix.C.print();
+            logger.fine("StateVector:smooth, inversion of the covariance matrix failed");
+            //snP.helix.C.print();
             //SquareMatrix invrs = KalTrack.mToS(snP.helix.C).invert();
             //invrs.print("inverse");
             //invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?");            

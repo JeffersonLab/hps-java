@@ -259,7 +259,7 @@ class MeasurementSite {
             double mPredaP = h(aP, m); // This should give exactly the same result as for aP.mPred above
             System.out.format("Predicted m: from pS=%10.5f;  from aP=%10.5f\n", mPredaP, aP.mPred);
 
-            StateVector tS = pS.deepCopy();
+            StateVector tS = pS.copy();
             Vec da = new Vec(5);
             double[] del = { 0.009, -0.005, -0.01, 0.013, 0.011 };
             for (int i = 0; i < 5; i++) { da.v[i] = pS.helix.a.v[i] * del[i]; }
@@ -405,7 +405,7 @@ class MeasurementSite {
 
         // Another numerical test of the derivatives in H
         if (debug) {
-            StateVector tS = aF.deepCopy();
+            StateVector tS = aF.copy();
             Vec da = new Vec(5);
             double[] del = { 0.009, -0.005, -0.01, 0.013, 0.011 };
             for (int i = 0; i < 5; i++) { da.v[i] = aF.helix.a.v[i] * del[i]; }
@@ -630,7 +630,7 @@ class MeasurementSite {
 
         // Testing the derivatives
         if (debug) {
-            StateVector sVp = S.deepCopy();
+            StateVector sVp = S.copy();
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
             for (int i = 0; i < 5; i++) { sVp.helix.a.v[i] = sVp.helix.a.v[i] * (1.0 + daRel[i]); }
             Vec da = new Vec(S.helix.a.v[0] * daRel[0], S.helix.a.v[1] * daRel[1], S.helix.a.v[2] * daRel[2], S.helix.a.v[3] * daRel[3], S.helix.a.v[4] * daRel[4]);
