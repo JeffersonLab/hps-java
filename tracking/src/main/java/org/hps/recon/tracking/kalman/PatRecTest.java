@@ -24,9 +24,9 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 2;              // The number of test eventNumbers to generate for pattern recognition and fitting
-        int mxPlot = 10;                // Maximum number of single event plots
-        int [] eventToPrint = {0,1};
+        int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int mxPlot = 0;                // Maximum number of single event plots
+        int [] eventToPrint = {};
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
@@ -36,6 +36,7 @@ class PatRecTest {
         boolean uniformB = false;
         double hitEfficiency = 0.90;
         double [] vtxRes = {0.1, 0.5, 0.05};
+        double executionTime = 0.;
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -494,7 +495,11 @@ class PatRecTest {
             vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
             vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
             //KalScatteredElectronFinder scatElec = new KalScatteredElectronFinder(SiModules, vtx.v, vtxCov.M, eventNumber);
+            long startTime = System.nanoTime();
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
+            long endTime = System.nanoTime();
+            double runTime = (double)(endTime - startTime)/1000000.;
+            executionTime += runTime;
             if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;
                 PrintWriter printWriter3 = null;
@@ -735,6 +740,7 @@ class PatRecTest {
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+        System.out.format("Elapsed time for executing the Kalman filter = %10.3f ms\n", executionTime);
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
