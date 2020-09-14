@@ -71,6 +71,17 @@ public class GBLStripClusterData implements GenericObject {
         setId(id);
     }
 
+
+    public void print() {
+        for (int i = 0; i < GBLINT.BANK_INT_SIZE; ++i) {
+            System.out.println("bank int " + i+ " "+bank_int[i]);
+        }
+        for (int i = 0; i < GBLDOUBLE.BANK_DOUBLE_SIZE; ++i) {
+            System.out.println("bank double " + i+ " "+bank_double[i]);
+        }
+        
+    }
+
     /*
      * Constructor from GenericObject TODO add size checks for backwards compatability
      */

@@ -51,12 +51,22 @@ class Plane { // Description of a 2D plane in 3D space
     }
 
     void print(String s) {
-        System.out.format("Printout of plane %s\n", s);
-        x.print("       point=");
-        t.print("       direction=");
-        u.print("       uhat=");
-        v.print("       vhat=");
+        System.out.format("%s",this.toString(s));
     }
+    
+    String toString(String s) {
+        String str = String.format("Printout of plane %s\n", s);
+        str=str+"       point="+x.toString();
+        str=str+"       direction="+t.toString()+"\n";
+        str=str+"       uhat="+u.toString();
+        str=str+"       vhat="+v.toString()+"\n";
+        return str;
+    }
+    
+    public String toString() {
+        return String.format("pnt %s dir %s", x.toString(), t.toString());
+    }
+
 
     Vec U() { // unit vector in the plane perpendicular to t and the world z axis
         return u;

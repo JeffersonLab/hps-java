@@ -124,13 +124,18 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
     }
 
     void print(String s) {
-        System.out.format("The 3 by 3 rotation matrix %s:\n", s);
+        System.out.format("%s",this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str = String.format("The 3 by 3 rotation matrix %s:\n", s);
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) { 
-                System.out.format("  %10.8f", M[i][j]); 
+                str = str + String.format("  %10.8f", M[i][j]); 
             }
-            System.out.format("\n");
+            str = str + String.format("\n");
         }
+        return str;
     }
 
     Vec rotate(Vec V) { // Use the matrix to rotate a 3-D vector
@@ -142,6 +147,21 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
         }
         return Vp;
     }
+    
+    SquareMatrix rotate(SquareMatrix S) { // Use the matrix to rotate a 3 by 3 matrix
+        SquareMatrix Q = new SquareMatrix(3);
+        if (S.N != 3) System.out.format("RotMatrix rotate: the input matrix must be 3 by 3.\n");
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<3; ++j) {
+                for (int k=0; k<3; ++k) {
+                    for (int l=0; l<3; ++l) {
+                        Q.M[i][j] += M[k][i] * S.M[k][l] * M[l][j];
+                    }
+                }
+            }
+        }
+        return Q;
+    }
 
     Vec inverseRotate(Vec V) { // Use the matrix to rotate a 3-D vector in the opposite sense, using the
                                // inverse (i.e. transpose) of the rotation matrix
@@ -152,6 +172,21 @@ class RotMatrix { // 3 by 3 rotation matrix for the Kalman filter
             } 
         }
         return Vp;
+    }
+    
+    SquareMatrix inverseRotate(SquareMatrix S) { // Use the matrix to rotate a 3 by 3 matrix in the opposite sense
+        SquareMatrix Q = new SquareMatrix(3);
+        if (S.N != 3) System.out.format("RotMatrix rotate: the input matrix must be 3 by 3.\n");
+        for (int i=0; i<3; ++i) {
+            for (int j=0; j<3; ++j) {
+                for (int k=0; k<3; ++k) {
+                    for (int l=0; l<3; ++l) {
+                        Q.M[i][j] += M[i][k] * S.M[k][l] * M[j][l];
+                    }
+                }
+            }
+        }
+        return Q;
     }
 
 }

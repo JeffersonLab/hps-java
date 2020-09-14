@@ -1,6 +1,8 @@
 package org.hps.recon.tracking;
 
 import hep.physics.vec.Hep3Vector;
+//import hep.physics.vec.BasicHep3Vector;
+//import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
@@ -12,10 +14,16 @@ import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.IDetectorElement;
-import org.lcsim.detector.solids.Inside;
+//import org.lcsim.detector.solids.Inside;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
+import org.lcsim.fit.helicaltrack.HitUtils;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
+
+//ejml
+import org.ejml.data.DMatrix3;
+import org.ejml.data.DMatrix3x3;
+import org.ejml.dense.fixed.CommonOps_DDF3;
 
 /**
  * Extention of lcsim class to allow use of local classes. Finds scatter points
@@ -205,7 +213,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
         return scatters;
     }
-
+    
     /*
      * Returns interception between helix and plane Uses the origin x posiution of the plane and
      * extrapolates linearly to find teh intersection If inside use an iterative "exact" way to
@@ -235,6 +243,12 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (_debug) {
             System.out.printf("%s: position at x=origin is %s with path length %f and direction %s\n", this.getClass().getSimpleName(), pos.toString(), s_origin, direction.toString());
         }
+        
+        DMatrix3 pos_ejml = new DMatrix3();
+        HitUtils.H3VToDM3(pos,pos_ejml);
+        DMatrix3 direction_ejml = new DMatrix3();
+        HitUtils.H3VToDM3(direction, direction_ejml);
+                
 
         // Use this approximate position to get a first estimate if the helix intercepted the plane
         // This is only because the real intercept position is an iterative procedure and we'd
@@ -243,49 +257,121 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         // -> this is not very general, as it assumes that strips are (mostly) along y -> FIX
         // THIS!?
         // Transformation from tracking to detector frame
+        /*
         Hep3Vector pos_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos);
         Hep3Vector direction_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), direction);
+        */
 
+        DMatrix3x3 rotMatT2D_ejml = new DMatrix3x3();
+        HitUtils.H3x3MToDM3x3(CoordinateTransformations.getMatrixInverse(),rotMatT2D_ejml);
+        DMatrix3x3 rotMatD2T_ejml = new DMatrix3x3();
+        CommonOps_DDF3.transpose(rotMatT2D_ejml, rotMatD2T_ejml);
+        
+        DMatrix3 pos_det_ejml = new DMatrix3();
+        CommonOps_DDF3.mult(rotMatT2D_ejml,pos_ejml,pos_det_ejml);
+        
+        DMatrix3 direction_det_ejml = new DMatrix3();
+        CommonOps_DDF3.mult(rotMatT2D_ejml,direction_ejml,direction_det_ejml);
+        
+        /*
         if (_debug) {
             System.out.printf("%s: position in det frame %s and direction %s\n", this.getClass().getSimpleName(), pos_det.toString(), direction_det.toString());
         }
-
+        */
+        
         // Transformation from detector frame to sensor frame
-        Hep3Vector pos_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(pos_det);
-        Hep3Vector direction_sensor = plane.getSensor().getGeometry().getGlobalToLocal().rotated(direction_det);
+        //Hep3Vector pos_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(pos_det);
+        //Hep3Vector direction_sensor = plane.getSensor().getGeometry().getGlobalToLocal().rotated(direction_det);
+        
 
+        DMatrix3x3 rotG2L_ejml = new DMatrix3x3();
+        HitUtils.H3x3MToDM3x3(plane.getSensor().getGeometry().getGlobalToLocal().getRotation().getRotationMatrix(),rotG2L_ejml);
+        DMatrix3x3 rotL2G_ejml = new DMatrix3x3();
+        CommonOps_DDF3.transpose(rotG2L_ejml,rotL2G_ejml);
+            
+        DMatrix3 transG2L_ejml = new DMatrix3();
+        HitUtils.H3VToDM3(plane.getSensor().getGeometry().getGlobalToLocal().getTranslation().getTranslationVector(), transG2L_ejml);
+        
+        DMatrix3 transL2G_ejml = new DMatrix3();
+        HitUtils.H3VToDM3(plane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector(), transL2G_ejml);
+        
+        DMatrix3 pos_sensor_ejml = new DMatrix3();
+        CommonOps_DDF3.mult(rotG2L_ejml,pos_det_ejml,pos_sensor_ejml);
+        CommonOps_DDF3.addEquals(pos_sensor_ejml,transG2L_ejml);
+                
+        DMatrix3 direction_sensor_ejml = new DMatrix3();
+        CommonOps_DDF3.mult(rotG2L_ejml, direction_det_ejml,direction_sensor_ejml);
+
+        /*
         if (_debug) {
             System.out.printf("%s: position in sensor frame %s and direction %s\n", this.getClass().getSimpleName(), pos_sensor.toString(), direction_sensor.toString());
         }
-
+        */
+        
+        
         // find step in w to cross sensor plane
-        double delta_w = -1.0 * pos_sensor.z() / direction_sensor.z();
-
+        //double delta_w = -1.0 * pos_sensor.z() / direction_sensor.z();
+        double delta_w = -1.0 * pos_sensor_ejml.get(0,2) / direction_sensor_ejml.get(0,2);
+        
+        /*
         // find the point where it crossed the plane
         Hep3Vector pos_int = VecOp.add(pos_sensor, VecOp.mult(delta_w, direction_sensor));
         Hep3Vector pos_int_det = plane.getSensor().getGeometry().getLocalToGlobal().transformed(pos_int);
         // find the intercept in the tracking frame
         Hep3Vector pos_int_trk = VecOp.mult(CoordinateTransformations.getMatrix(), pos_int_det);
+        */
 
+        
+        DMatrix3 pos_int_det_ejml = new DMatrix3();
+        DMatrix3 pos_int_trk_ejml = new DMatrix3();
+
+        //Scale the direction sensor
+        CommonOps_DDF3.scale(delta_w,direction_sensor_ejml);
+        //Add to the pos sensor (pos_int)
+        CommonOps_DDF3.addEquals(pos_sensor_ejml,direction_sensor_ejml);
+
+        //Rotate back
+        CommonOps_DDF3.mult(rotL2G_ejml,pos_sensor_ejml,pos_int_det_ejml);
+
+        //Translate back
+        CommonOps_DDF3.addEquals(pos_int_det_ejml,transL2G_ejml);
+        
+        //To Tracking 
+        CommonOps_DDF3.mult(rotMatD2T_ejml,pos_int_det_ejml,pos_int_trk_ejml);
+        
+        //Comparison
+        //System.out.println("pos_int_trk = "+((BasicHep3Vector)pos_int_trk).toString());
+        //System.out.println("pos_int_trk_ejml = ");
+        //pos_int_trk_ejml.print();
+
+        //Convert to Hep3Vector
+        Hep3Vector pos_int_trk = HitUtils.DM3ToH3V(pos_int_trk_ejml);
+        
+        /*
         if (_debug) {
             System.out.printf("%s: take step %f to get intercept position in sensor frame %s (det: %s trk: %s)\n", this.getClass().getSimpleName(), delta_w, pos_int, pos_int_det.toString(), pos_int_trk.toString());
         }
+        */
 
+        
         boolean isInside = true;
-        if (Math.abs(pos_int.x()) > plane.getMeasuredDimension() / 2.0 + inside_tolerance) {
+        //if (Math.abs(pos_int.x()) > plane.getMeasuredDimension() / 2.0 + inside_tolerance) {
+        if (Math.abs(pos_sensor_ejml.get(0,0)) > plane.getMeasuredDimension() / 2.0 + inside_tolerance) {
             if (_debug) {
                 System.out.printf("%s: intercept is outside in u\n", this.getClass().getSimpleName());
             }
             isInside = false;
         }
 
-        if (Math.abs(pos_int.y()) > plane.getUnmeasuredDimension() / 2.0 + inside_tolerance) {
+        //if (Math.abs(pos_int.y()) > plane.getUnmeasuredDimension() / 2.0 + inside_tolerance) {
+        if (Math.abs(pos_sensor_ejml.get(1,0)) > plane.getUnmeasuredDimension() / 2.0 + inside_tolerance) {
             if (_debug) {
                 System.out.printf("%s: intercept is outside in v\n", this.getClass().getSimpleName());
             }
             isInside = false;
         }
-
+        
+        /*
         // Check if it's inside sensor and module and if it contradicts the manual calculation
         // For now: trust manual calculation and output warning if it's outside BOTH sensor AND module 
         if (_debug) {
@@ -313,6 +399,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 }
             }
         }
+        */
 
         if (!isInside) {
             return null;
@@ -347,27 +434,48 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         }
 
         // find position in sensor frame
-        Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk));
-
+        //Hep3Vector pos_iter_sensor = plane.getSensor().getGeometry().getGlobalToLocal().transformed(VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk));
+        
+        //Find the position in the sensor frame using ejml
+        
+        DMatrix3 pos_iter_trk_ejml = new DMatrix3();
+        HitUtils.H3VToDM3(pos_iter_trk,pos_iter_trk_ejml);
+        
+        DMatrix3 pos_iter_det_ejml = new DMatrix3();
+        CommonOps_DDF3.mult(rotMatT2D_ejml,pos_iter_trk_ejml,pos_iter_det_ejml);
+        
+        DMatrix3 pos_iter_sensor_ejml = new DMatrix3();
+        CommonOps_DDF3.mult(rotG2L_ejml,pos_iter_det_ejml,pos_iter_sensor_ejml);
+        CommonOps_DDF3.addEquals(pos_iter_sensor_ejml, transG2L_ejml);
+        
+        //System.out.println("pos_iter_sensor = "+((BasicHep3Vector)pos_iter_sensor).toString());
+        //pos_iter_sensor_ejml.print();
+        
+        /*
         if (_debug) {
             System.out.printf("%s: found iterative helix intercept in sensor coordinates at %s\n", this.getClass().getSimpleName(), pos_iter_sensor.toString());
         }
-
+        */
+        
+        
         isInside = true;
-        if (Math.abs(pos_iter_sensor.x()) > plane.getMeasuredDimension() / 2.0) {
+        //if (Math.abs(pos_iter_sensor.x()) > plane.getMeasuredDimension() / 2.0) {
+        if (Math.abs(pos_iter_sensor_ejml.get(0,0)) > plane.getMeasuredDimension() / 2.0) {
             if (this._debug) {
                 System.out.printf("%s: intercept is outside in u\n", this.getClass().getSimpleName());
             }
             isInside = false;
         }
-
-        if (Math.abs(pos_iter_sensor.y()) > plane.getUnmeasuredDimension() / 2.0) {
+        
+        //if (Math.abs(pos_iter_sensor.y()) > plane.getUnmeasuredDimension() / 2.0) {
+        if (Math.abs(pos_iter_sensor_ejml.get(1,0)) > plane.getUnmeasuredDimension() / 2.0) {
             if (this._debug) {
                 System.out.printf("%s: intercept is outside in v\n", this.getClass().getSimpleName());
             }
             isInside = false;
         }
-
+        
+        /*
         if (_debug) {
             Hep3Vector pos_iter_det = VecOp.mult(CoordinateTransformations.getMatrixInverse(), pos_iter_trk);
             Inside result_inside = plane.getDetectorElement().getGeometry().getPhysicalVolume().getMotherLogicalVolume().getSolid().inside(pos_iter_sensor);
@@ -396,7 +504,9 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
                 }
             }
         }
+        */
 
+        
         if (!isInside) {
             return null;
         }
@@ -404,7 +514,7 @@ public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.Mul
         if (_debug) {
             System.out.printf("%s: found intercept at %s \n", this.getClass().getSimpleName(), pos_iter_trk.toString());
         }
-
+        
         return pos_iter_trk;
     }
 

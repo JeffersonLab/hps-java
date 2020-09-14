@@ -83,7 +83,7 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         return Mt;
     }
 
-    SquareMatrix similarity(SquareMatrix F) { // F-transpose * M * F
+    SquareMatrix similarity(SquareMatrix F) { // F * M * F-transpose
         SquareMatrix Mp = new SquareMatrix(N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
@@ -134,31 +134,45 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
     }
 
     void print(String s) {
-        System.out.format("Printout of matrix %s  %d\n", s, N);
+        System.out.format("%s",this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str;
+        str = String.format("Printout of matrix %s  %d\n", s, N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                System.out.format("  %12.4e", M[i][j]);
+                str=str+String.format("  %12.4e", M[i][j]);
             }
-            System.out.format("\n");
+            str=str+String.format("\n");
         }
+        return str;
     }
 
     SquareMatrix copy() {
-        SquareMatrix Mc = new SquareMatrix(N);
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                Mc.M[i][j] = M[i][j];
-            }
+        double [][] newArray = new double [N][];
+        for (int i=0; i<N; ++i) {
+            newArray[i] = new double[N];
+            System.arraycopy(M[i], 0, newArray[i], 0, N);  // Doesn't really give any advantage for 5 by 5 arrays
         }
-        Mc.N = N;
-        return Mc;
+        return new SquareMatrix(N,newArray);
+//        SquareMatrix Mc = new SquareMatrix(N);
+//        for (int i = 0; i < N; i++) {
+//            for (int j = 0; j < N; j++) {
+//                Mc.M[i][j] = M[i][j];
+//            }
+//        }
+//        Mc.N = N;
+//        return Mc;
     }
 
     SquareMatrix invert() { // Inversion algorithm copied from "Numerical Methods in C"
-        SquareMatrix Minv = copy(); // Creates a new matrix; does not overwrite the original one
+        SquareMatrix Minv = this.copy(); // Creates a new matrix; does not overwrite the original one
+        return Minv.fastInvert();
+    }
 
+    SquareMatrix fastInvert( ) {
         int icol = 0, irow = 0;
-
         int[] indxc = new int[N];
         int[] indxr = new int[N];
         int[] ipiv = new int[N];
@@ -168,8 +182,8 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
                 if (ipiv[j] != 1) {
                     for (int k = 0; k < N; k++) {
                         if (ipiv[k] == 0) {
-                            if (Math.abs(Minv.M[j][k]) >= big) {
-                                big = Math.abs(Minv.M[j][k]);
+                            if (Math.abs(this.M[j][k]) >= big) {
+                                big = Math.abs(this.M[j][k]);
                                 irow = j;
                                 icol = k;
                             }
@@ -181,28 +195,28 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
             ++(ipiv[icol]);
             if (irow != icol) {
                 for (int l = 0; l < N; l++) {
-                    double c = Minv.M[irow][l];
-                    Minv.M[irow][l] = Minv.M[icol][l];
-                    Minv.M[icol][l] = c;
+                    double c = this.M[irow][l];
+                    this.M[irow][l] = this.M[icol][l];
+                    this.M[icol][l] = c;
                 }
             }
             indxr[i] = irow;
             indxc[i] = icol;
-            if (Minv.M[icol][icol] == 0.0) {
+            if (this.M[icol][icol] == 0.0) {
                 //System.out.format("Singular matrix in SquareMatrix.java method invert.\n");
-                return Minv;
+                return this;
             }
-            double pivinv = 1.0 / Minv.M[icol][icol];
-            Minv.M[icol][icol] = 1.0;
+            double pivinv = 1.0 / this.M[icol][icol];
+            this.M[icol][icol] = 1.0;
             for (int l = 0; l < N; l++) {
-                Minv.M[icol][l] *= pivinv;
+                this.M[icol][l] *= pivinv;
             }
             for (int ll = 0; ll < N; ll++) {
                 if (ll != icol) {
-                    double dum = Minv.M[ll][icol];
-                    Minv.M[ll][icol] = 0.0;
+                    double dum = this.M[ll][icol];
+                    this.M[ll][icol] = 0.0;
                     for (int l = 0; l < N; l++) {
-                        Minv.M[ll][l] -= Minv.M[icol][l] * dum;
+                        this.M[ll][l] -= this.M[icol][l] * dum;
                     }
                 }
             }
@@ -210,13 +224,13 @@ class SquareMatrix { // Simple matrix package strictly for N by N matrices neede
         for (int l = N - 1; l >= 0; l--) {
             if (indxr[l] != indxc[l]) {
                 for (int k = 0; k < N; k++) {
-                    double dum = Minv.M[k][indxr[l]];
-                    Minv.M[k][indxr[l]] = Minv.M[k][indxc[l]];
-                    Minv.M[k][indxc[l]] = dum;
+                    double dum = this.M[k][indxr[l]];
+                    this.M[k][indxr[l]] = this.M[k][indxc[l]];
+                    this.M[k][indxc[l]] = dum;
                 }
             }
         }
 
-        return Minv;
+        return this;
     }
 }

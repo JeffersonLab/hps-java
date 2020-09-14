@@ -8,7 +8,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
+
+import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
+import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.util.Pair;
 
 //This is for testing only and is not part of the Kalman fitting code
 class PatRecTest {
@@ -18,14 +24,19 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 100;              // The number of test eventNumbers to generate for pattern recognition and fitting
-        int mxPlot = 20;                // Maximum number of single event plots
-        int [] eventToPrint = {1,20};  // Range of events to print in detail and plot as an event display
+        int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int mxPlot = 0;                // Maximum number of single event plots
+        int [] eventToPrint = {};
         boolean perfect = false;
 
         boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = false;
         boolean noisy = true;
+        boolean smear = true;          // Smear initial momentum vector randomly
+        boolean uniformB = false;
+        double hitEfficiency = 0.90;
+        double [] vtxRes = {0.1, 0.5, 0.05};
+        double executionTime = 0.;
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -34,6 +45,7 @@ class PatRecTest {
 
         // Set pattern recognition parameters
         KalmanParams kPar = new KalmanParams();
+        kPar.setIterations(2);
         
         // Definition of the magnetic field
         String mapType = "binary";
@@ -41,7 +53,7 @@ class PatRecTest {
         String mapFile = "C:\\Users\\Robert\\Documents\\GitHub\\hps-java\\fieldmap\\209acm2_5kg_corrected_unfolded_scaled_1.04545_v4.bin";
         FieldMap fM = null;
         try {
-            fM = new FieldMap(mapFile, mapType, true, 21.17, 0., 457.2);       // for fitting tracks
+            fM = new FieldMap(mapFile, mapType, uniformB, 21.17, 0., 457.2);       // for fitting tracks
         } catch (IOException e) {
             System.out.format("Could not open or read the field map %s\n", mapFile);
             return;
@@ -134,7 +146,6 @@ class PatRecTest {
 
         int nLayers = 14; // Layer 0 not yet implemented here
         double resolution = 0.006; // SSD point resolution, in mm
-        double hitEfficiency = 0.98;
         double[] location = new double[nLayers];
         double[] xdet = new double[SiModules.size()];
         double[] ydet = new double[SiModules.size()];
@@ -152,12 +163,13 @@ class PatRecTest {
         }
 
         int nHelices = 2; // Number of helix tracks to simulate
+        if (!smear) nHelices = 1;
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
         double Phi = 91. * Math.PI / 180.;
         double Theta = 88.5 * Math.PI / 180.;
-
+        double energy0 = 2.4;
 
         // Define histograms
         Histogram hNtracks = new Histogram(10, 0., 1., "Number of tracks found and fitted", "tracks", "events");
@@ -188,12 +200,27 @@ class PatRecTest {
         Histogram[] hScatZY = new Histogram[nLayers];
         Histogram[] hResidS0 = new Histogram[nLayers];
         Histogram[] hResidS2 = new Histogram[nLayers];
+        Histogram[] hUnbias = new Histogram[nLayers];
+        Histogram[] hUnbiasSig = new Histogram[nLayers];
         for (int i = 2; i < nLayers; i++) {
             hScatXY[i] = new Histogram(100, -0.001, 0.00002, String.format("Scattering angle in xy for layer %d", i), "radians", "tracks");
             hScatZY[i] = new Histogram(100, -0.001, 0.00002, String.format("Scattering angle in xy for layer %d", i), "radians", "tracks");
             hResidS0[i] = new Histogram(100, -10., 0.2, String.format("Smoothed fit residual for plane %d", i), "sigmas", "hits");
             hResidS2[i] = new Histogram(100, -0.02, 0.0004, String.format("Smoothed fit residual for plane %d", i), "mm", "hits");
+            hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plant %d", i), "mm", "hits");
+            hUnbiasSig[i] = new Histogram(100, -10., 0.2, String.format("Unbiased residuals for layer %d", i), "sigmas", "hits");
         }
+        Histogram[] covEigenV = new Histogram[5];
+        covEigenV[0] = new Histogram(100, -0.05, 0.001, "Largest eigenvalue of track covariance", " ", "tracks");
+        covEigenV[1] = new Histogram(100, -0.005, 0.0001, "Second eigenvalue of track covariance", " ", "tracks");
+        covEigenV[2] = new Histogram(100, -0.0005, 0.00001, "Third eigenvalue of track covariance", " ", "tracks");
+        covEigenV[3] = new Histogram(100, -0.0000005, 0.0000000001, "Fourth eigenvalue of track covariance", " ", "tracks");
+        covEigenV[4] = new Histogram(100, -0.000000005, 0.000000000001, "Smalles eigenvalue of track covariance", " ", "tracks");
+        Histogram hNmcHt = new Histogram(10,0.,1.,"Bad variance number of MC tracks contributing to hit","N","tracks");
+        Histogram hNmcTk = new Histogram(10,0.,1.,"Bad variance number of MC tracks contributing to track","N","tracks");
+        Histogram hMCgood = new Histogram(5,0.,1.,"Bad variance number of bad or good tracks","goodness","tracks");
+        Histogram hBadLyr = new Histogram(20,0.,1.,"Bad variance, layer of bad hit","layer","tracks");
+        Histogram hBadnHits = new Histogram(20,0.,1.,"Bad variance, number of hits on tracks","hits","tracks");
         
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
@@ -206,22 +233,34 @@ class PatRecTest {
         int nPlot = 0;
         for (int eventNumber = 0; eventNumber < nTrials; eventNumber++) {
             if (Math.floorMod(eventNumber, 100)==0) System.out.format("Starting trial event %d\n", eventNumber);
-            verbose = (eventNumber >= eventToPrint[0] && eventNumber <= eventToPrint[1]);
-            
+            verbose = false;
+            for (int i : eventToPrint) {
+                if (eventNumber == i) {
+                    verbose = true;
+                    break;
+                }
+            }
             Vec[] initialDirection = new Vec[nHelices];
             for (int i = 0; i < nHelices; i++) {
-                if (rnd.nextGaussian() > 0.) Q[i] = 1.0;    // Randomize the momentum vectors
-                else Q[i] = -1.0;
-                p[i] = 2.4 + rnd.nextGaussian() * 0.02;
-                double PhiR = Phi + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
-                double ThetaR = Theta + rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+                double PhiR = Phi;
+                double ThetaR = Theta;
+                if (smear) {
+                    if (rnd.nextGaussian() > 0.) Q[i] = 1.0;    // Randomize the momentum vectors
+                    else Q[i] = -1.0;
+                    p[i] = energy0 + rnd.nextGaussian() * 0.02;
+                    PhiR += rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+                    ThetaR += rnd.nextGaussian() * 0.25 * Math.PI / 180.;
+                } else {
+                    Q[i] = 1.0;
+                    p[i] = energy0;
+                }
                 initialDirection[i] = new Vec(Math.cos(PhiR) * Math.sin(ThetaR), Math.sin(PhiR) * Math.sin(ThetaR), Math.cos(ThetaR));
                 if (verbose) initialDirection[i].print("initial particle direction");
             }
-            double[] drho = new double[nHelices]; // { -0., 0., 1. }; // Helix parameters
-            double[] dz = new double[nHelices]; // { 5.0, 1.0, 4.0 };
-            double[] phi0 = new double[nHelices]; // { 0.0, 0.04, 0.05 };
-            double[] tanl = new double[nHelices]; // { 0.1, 0.12, 0.13 };
+            double[] drho = new double[nHelices]; // Helix parameters
+            double[] dz = new double[nHelices]; 
+            double[] phi0 = new double[nHelices]; 
+            double[] tanl = new double[nHelices]; 
             double[] K = new double[nHelices];
             Helix[] TkInitial = new Helix[nHelices];
             Vec[] helixMCtrue = new Vec[nHelices];
@@ -447,8 +486,20 @@ class PatRecTest {
             }
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
-            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar, verbose);
-            if (nPlot < mxPlot && verbose) {
+            Vec vtx = helixOrigin.copy();
+            for (int i=0; i<3; ++i) {
+                vtx.v[i] += rnd.nextGaussian() * vtxRes[i];
+            }
+            SquareMatrix vtxCov = new SquareMatrix(3);
+            vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
+            vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
+            vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
+            long startTimeF = System.nanoTime();
+            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
+            long endTimeF = System.nanoTime();
+            double runTime = (double)(endTimeF - startTimeF)/1000000.;
+            executionTime += runTime;
+            if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;
                 PrintWriter printWriter3 = null;
                 String fn = String.format("%shelix3_%d.gp", path, eventNumber);
@@ -480,10 +531,10 @@ class PatRecTest {
                     for (MeasurementSite site : tkr.SiteList) {
                         StateVector aS = site.aS;
                         SiModule m = site.m;
-                        double phiS = aS.planeIntersect(m.p);
+                        double phiS = aS.helix.planeIntersect(m.p);
                         if (Double.isNaN(phiS)) continue;
-                        Vec rLocal = aS.atPhi(phiS);
-                        Vec rGlobal = aS.toGlobal(rLocal);
+                        Vec rLocal = aS.helix.atPhi(phiS);
+                        Vec rGlobal = aS.helix.toGlobal(rLocal);
                         printWriter3.format(" %10.6f %10.6f %10.6f\n", rGlobal.v[0], rGlobal.v[1], rGlobal.v[2]);
                         // Vec rDetector = m.toLocal(rGlobal);
                         // double vPred = rDetector.v[1];
@@ -526,6 +577,20 @@ class PatRecTest {
             int nTracks = patRec.TkrList.size();
             hNtracks.entry(nTracks);
             for (KalTrack tkr : patRec.TkrList) {
+                // Check on the covariance matrix
+                Matrix C = new Matrix(tkr.originCovariance());
+                EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
+                double [] ev = eED.getRealEigenvalues();
+                for (int i=0; i<5; ++i) {
+                    covEigenV[i].entry(ev[i]);
+                    if (ev[i] < 0.) {
+                        System.out.format("Event %d, eigenvalue %d = %10.5e of covariance is negative!\n", eventNumber, i, ev[i]);
+                    }
+                }
+                if (eventNumber < 10) {
+                    Vec evV = new Vec(5,ev);
+                    evV.print("Eigenvalues of covariance");
+                }
                 tkr.sortSites(true);
                 if (verbose) {
                     System.out.format("Track %d, %d hits, chi^2=%10.5f, 1st layer=%d\n", tkr.ID, tkr.nHits, tkr.chi2,
@@ -537,13 +602,70 @@ class PatRecTest {
                 double[] momentum = tkr.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
                 hMomentum.entry(pMag);
+                Set<Integer> MCtks = new HashSet<Integer>();
+                int [] MCfreq = new int[nHelices];
+                int nH = 0;
                 for (MeasurementSite site : tkr.SiteList) {
                     int layer = site.m.Layer;
                     hScatXY[layer].entry(tkr.scatX(layer));
                     hScatZY[layer].entry(tkr.scatZ(layer));
                     hResidS0[layer].entry(site.aS.r/Math.sqrt(site.aS.R));
                     hResidS2[layer].entry(site.aS.r);
+                    if (site.hitID >= 0) {
+                        nH++;
+                        for (int iMC : site.m.hits.get(site.hitID).tksMC) {                    
+                            MCtks.add(iMC);
+                            MCfreq[iMC]++;
+                        }
+                    }
                 }
+                if (nH != tkr.nHits) System.out.format("Event %d, the number of hits %d in KalTrack is incorrect. Should be %d\n", eventNumber, tkr.nHits, nH);
+                int jMC = -1;
+                int mxMC = 0;
+                for (int i=0; i<MCfreq.length; ++i) {
+                    if (MCfreq[i]>mxMC) {
+                        mxMC = MCfreq[i];
+                        jMC = i;
+                    }
+                }
+                for (int layer=2; layer < nLayers; ++layer) {
+                    Pair<Double, Double> resid = tkr.unbiasedResidual(layer);
+                    if (resid.getSecondElement() > -999.) {                       
+                        double unbResid =  resid.getFirstElement();
+                        double variance = resid.getSecondElement();
+                        double sigma = Math.sqrt(variance);
+                        hUnbias[layer].entry(unbResid);
+                        hUnbiasSig[layer].entry(unbResid/sigma);
+                        /*
+                        if (variance < 0.) {
+                            System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f, lyrs:", 
+                                                eventNumber, layer, variance, tkr.chi2, tkr.nHits, unbResid);
+                            for (MeasurementSite site : tkr.SiteList) {
+                                if (site.hitID < 0) continue;
+                                System.out.format(" %d ", site.m.Layer);
+                            }
+                            System.out.format("\n");
+                            for (MeasurementSite site : tkr.SiteList) {
+                                if (site.m.Layer == layer) {
+                                    if (site.hitID >= 0) {
+                                        hNmcHt.entry(site.m.hits.get(site.hitID).tksMC.size());
+                                        hNmcTk.entry(MCtks.size());
+                                        int good = 0;
+                                        if (site.m.hits.get(site.hitID).tksMC.size()==1) {
+                                            if (site.m.hits.get(site.hitID).tksMC.get(0) == jMC) good = 1;                                               
+                                        }
+                                        hMCgood.entry(good);
+                                        hBadLyr.entry(layer);
+                                        hBadnHits.entry(tkr.nHits);
+                                    }
+                                    break;
+                                }
+                            }                           
+                        }
+                        */
+                    }
+                }
+
                 // Compare with the generated particles
                 if (!tkr.originHelix()) continue;
                 Vec helixAtOrigin = new Vec(5, tkr.originHelixParms());
@@ -589,13 +711,13 @@ class PatRecTest {
                 // Repeat comparison just after the first tracker plane 
                 if (tkr.SiteList.get(0).m.Layer == 2) {
                     StateVector S = tkr.SiteList.get(0).aS;
-                    Vec helixAtLayer1 = S.pivotTransform(TkSaved[iBest].X0);
+                    Vec helixAtLayer1 = S.helix.pivotTransform(TkSaved[iBest].X0);
                     trueErr = helixAtLayer1.dif(TkSaved[iBest].p);
-                    Vec helErrs = tkr.SiteList.get(0).aS.helixErrors();
+                    Vec helErrs = tkr.SiteList.get(0).aS.helix.helixErrors();
                     if (verbose) {
                         helixAtLayer1.print("reconstructed helix at layer 1");
-                        S.origin.print("reconstructed helix origin at layer 1");
-                        S.X0.print("reconstructed helix pivot at layer 1");
+                        S.helix.origin.print("reconstructed helix origin at layer 1");
+                        S.helix.X0.print("reconstructed helix pivot at layer 1");
                         TkSaved[iBest].p.print(String.format("generated helix at layer 1 for iBest=%d", iBest));
                         TkSaved[iBest].X0.print("generated helix pivot at layer 1");
                         TkSaved[iBest].origin.print("generated helix origin at layer 1");
@@ -617,6 +739,7 @@ class PatRecTest {
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+        System.out.format("Elapsed time for Kalman Pattern Recognition = %10.4f ms\n", executionTime);
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
@@ -647,7 +770,17 @@ class PatRecTest {
             hScatZY[layer].plot(path + String.format("ScatZY_%d.gp", layer), true, " ", " ");
             hResidS0[layer].plot(path + String.format("ResidS0_%d.gp", layer), true, " ", " ");
             hResidS2[layer].plot(path + String.format("ResidS2_%d.gp", layer), true, " ", " ");
+            hUnbias[layer].plot(path + String.format("residUnbiased1_%d.gp", layer), true, "gaus", " ");
+            hUnbiasSig[layer].plot(path + String.format("residUnbiased2_%d.gp", layer), true, "gaus", " ");
         }
+        for (int i=0; i<5; i++) {
+            covEigenV[i].plot(path + String.format("eigenvalue_%d.gp", i), true, " ", " ");
+        }
+        hNmcHt.plot(path + "NmcHt.gp",  true,  " ",  " ");
+        hNmcTk.plot(path + "NmcTk.gp",  true,  " ",  " "); 
+        hMCgood.plot(path + "MCgood.gp",  true,  " ",  " "); 
+        hBadLyr.plot(path + "BadLyr.gp",  true,  " ",  " "); 
+        hBadnHits.plot(path + "BadnHits.gp",  true,  " ",  " "); 
     }
 
 }

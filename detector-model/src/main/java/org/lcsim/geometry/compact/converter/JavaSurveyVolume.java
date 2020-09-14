@@ -42,7 +42,7 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
     public JavaSurveyVolume(SurveyVolume surveyVolume) {
         super(surveyVolume);
     }
-
+    
     /**
      * Construct a JAVA geometry object from its geometry definition and an already built logical volume. This is typically used by the tracking volume.
      * 
@@ -131,6 +131,9 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
 
         // Vector from origin to center of box locally
         Hep3Vector box_center_base_local = base.getCenter();
+        
+        if (box_center_base_local == null)
+            System.out.println("ERROR ERROR ERROR box_center_base_local is null");
 
         // find the physical mother i.e. not a ghost volume and compound transformations to it
         JavaSurveyVolume physMother = getPhysMother();
@@ -309,7 +312,7 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
         box = b;
     }
 
-    protected ITranslation3D getPos() {
+    public ITranslation3D getPos() {
         return pos;
     }
 
@@ -317,7 +320,7 @@ public class JavaSurveyVolume extends SurveyVolumeImpl {
         this.pos = iTranslation3D;
     }
 
-    protected IRotation3D getRot() {
+    public IRotation3D getRot() {
         return rot;
     }
 
