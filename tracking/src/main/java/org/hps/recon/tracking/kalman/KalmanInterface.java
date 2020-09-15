@@ -62,7 +62,8 @@ public class KalmanInterface {
     private List<SiStripPlane> detPlanes;
     double svtAngle;
     private org.lcsim.geometry.FieldMap fM;
-    KalmanParams kPar;
+    private KalmanParams kPar;
+    private KalmanPatRecHPS kPat;
     Random rnd;
     private static Logger logger;
     public static RotMatrix HpsSvtToKalman;
@@ -195,6 +196,7 @@ public class KalmanInterface {
         rnd.setSeed(rndSeed);
         
         kPar = new KalmanParams();
+        kPat = new KalmanPatRecHPS(kPar);
         
         Vec centerB = KalmanInterface.getField(new Vec(0., SVTcenter, 0.), fM);
         double conFac = 1.0e12 / c;
@@ -269,7 +271,7 @@ public class KalmanInterface {
 
     // Clear the event hit and track information without deleting the SiModule geometry information
     public void clearInterface() {
-        logger.info("Clearing the Kalman interface");
+        logger.fine("Clearing the Kalman interface");
         hitMap.clear();
         simHitMap.clear();
         trackHitsKalman.clear();
@@ -1118,18 +1120,18 @@ public class KalmanInterface {
     }
 
     // Method to drive the Kalman-Filter based pattern recognition
-    public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event, IDDecoder decoder) {
+    public ArrayList<KalTrack>[] KalmanPatRec(EventHeader event, IDDecoder decoder) {
+        ArrayList<KalTrack>[] outList = new ArrayList[2];
         if (!fillAllMeasurements(event)) {
-            if (debug) System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d; try sim hits\n",event.getEventNumber());
-            if (!fillAllSimHits(event, decoder)) {
-                if (debug) System.out.format("KalmanInterface.KalmanPatRec: failed to fill sim SVT hits for event %d.\n",event.getEventNumber());
-                return null;
+            if (debug) System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d\n",event.getEventNumber());
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                outList[topBottom] = new ArrayList<KalTrack>();
             }
+            return outList;  // Return empty track lists if there are no hits
         }
 
         int evtNum = event.getEventNumber();
         
-        ArrayList<KalmanPatRecHPS> outList = new ArrayList<KalmanPatRecHPS>(2);
         for (int topBottom=0; topBottom<2; ++topBottom) {
             ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
             for (SiModule SiM : SiMlist) {
@@ -1149,8 +1151,7 @@ public class KalmanInterface {
                 }
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar);
-            outList.add(kPat);
+            outList[topBottom] = kPat.kalmanPatRec(SiMoccupied, topBottom, evtNum);
         }
         return outList;
     }
@@ -1252,7 +1253,7 @@ public class KalmanInterface {
         printWriter3.close();
     }
     // This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
-    public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalmanPatRecHPS> patRecList) {
+    public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalTrack>[] patRecList) {
         
         PrintWriter printWriter3 = null;
         int eventNumber = event.getEventNumber();
@@ -1273,18 +1274,18 @@ public class KalmanInterface {
         printWriter3.format("set xlabel 'X'\n");
         printWriter3.format("set ylabel 'Y'\n");
         double vPos = 0.9;
-        for (KalmanPatRecHPS patRec : patRecList) {
-            for (KalTrack tkr : patRec.TkrList) {
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack tkr : patRecList[topBottom]) {
                 double [] a = tkr.originHelixParms();
                 String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f t=%6.1f", 
-                        patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4], tkr.getTime());
+                        topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4], tkr.getTime());
                 printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
                 vPos = vPos - 0.03;
             }
         }
-        for (KalmanPatRecHPS patRec : patRecList) {
-            for (KalTrack tkr : patRec.TkrList) {
-                printWriter3.format("$tkr%d_%d << EOD\n", tkr.ID, patRec.topBottom);
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack tkr : patRecList[topBottom]) {
+                printWriter3.format("$tkr%d_%d << EOD\n", tkr.ID, topBottom);
                 for (MeasurementSite site : tkr.SiteList) {
                     StateVector aS = site.aS;
                     SiModule module = site.m;
@@ -1312,8 +1313,8 @@ public class KalmanInterface {
                 printWriter3.format("EOD\n");
             }
 
-            for (KalTrack tkr : patRec.TkrList) {
-                printWriter3.format("$tkp%d_%d << EOD\n", tkr.ID, patRec.topBottom);
+            for (KalTrack tkr : patRecList[topBottom]) {
+                printWriter3.format("$tkp%d_%d << EOD\n", tkr.ID, topBottom);
                 for (MeasurementSite site : tkr.SiteList) {
                     SiModule module = site.m;
                     int hitID = site.hitID;
@@ -1355,9 +1356,9 @@ public class KalmanInterface {
         }
         printWriter3.format("EOD\n");
         printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
-        for (KalmanPatRecHPS patRec : patRecList) {
-            for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkr%d_%d u 1:2:3 with lines lw 3", tkr.ID, patRec.topBottom); }
-            for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkp%d_%d u 1:2:3 with points pt 7 ps 2", tkr.ID, patRec.topBottom); }
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack tkr : patRecList[topBottom]) { printWriter3.format(", $tkr%d_%d u 1:2:3 with lines lw 3", tkr.ID, topBottom); }
+            for (KalTrack tkr : patRecList[topBottom]) { printWriter3.format(", $tkp%d_%d u 1:2:3 with points pt 7 ps 2", tkr.ID, topBottom); }
         }
         printWriter3.format("\n");
         printWriter3.close();
