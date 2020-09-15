@@ -58,8 +58,6 @@ import org.lcsim.lcio.LCIOConstants;
  * the calorimeter. As such, it requires its implementing classes to
  * handle certain subdetector-specific tasks.
  * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Kyle McCarty <mccarty@jlab.org>
  * @author Tongtong Cao <caot@jlab.org>
  */
 public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends Subdetector> extends ReadoutDriver {
