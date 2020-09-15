@@ -34,8 +34,7 @@ import org.hps.util.Pair;
 
 class KalmanPatRecHPS {
 
-    ArrayList<KalTrack> TkrList; // Final good tracks
-    int topBottom;               // 0 for bottom tracker (+z), 1 for top (-z)
+    private ArrayList<KalTrack> TkrList; // Final good tracks
     
     private ArrayList<ArrayList<KalHit>> lyrHits;
     private ArrayList<ArrayList<SiModule>> moduleList;
@@ -44,33 +43,61 @@ class KalmanPatRecHPS {
     private ArrayList<Double> XLscat;
 
     private int eventNumber;
-    final static private boolean debug = false;
+    private final static boolean debug = false;
     private int nModules;
     private KalmanParams kPar;
     private Logger logger;
     private double [] zh;
     private double [] yh;
     private boolean [] ah;
+    private double [][] vtxCov;      // Vertex position covariance
+    private double [] vtx;           // Vertex position
+    private double rho;
+    private double radLen;
+    private int numLayers;
+    private int firstLayer;
+    private Plane p0;
 
-    KalmanPatRecHPS(ArrayList<SiModule> data, int topBottom, int eventNumber, KalmanParams kPar) {
-        // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
-        
+    KalmanPatRecHPS(KalmanParams kPar) {
+        this.kPar = kPar;     
         logger = Logger.getLogger(KalmanPatRecHPS.class.getName());
-        this.topBottom = topBottom;
-        this.eventNumber = eventNumber;
-        this.kPar = kPar;  
-
+        logger.info("KalmanPatRecHPS instance created.");
+        kPar.print();
+        vtx = new double[3];
+        vtx[0] = 0.;
+        vtx[1] = -10.;
+        vtx[2] = 0.;
+        vtxCov = new double[3][3];
+        vtxCov[0][0] = 1.0;
+        vtxCov[1][1] = 9.0;
+        vtxCov[2][2] = 0.25;
+        rho = 2.329;                   // Density of silicon in g/cm^2
+        radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
+        numLayers = 14;
+        firstLayer = kPar.firstLayer;
+        
         // Some arrays for making preliminary cuts on seeds
         zh = new double[5];    // global z coordinate of axial hit
         yh = new double[5];    // global y coordinate of axial hit
         ah = new boolean[5];   // true if stereo layer, false for axial
         
-        double [] vtx = {0., -10., 0.};
-        double [][] vtxCov = new double[3][3];
-        vtxCov[0][0] = 1.0;
-        vtxCov[1][1] = 9.0;
-        vtxCov[2][2] = 0.25;
+        // Arrays for covariance matrix propagation
+        yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
+        XLscat = new ArrayList<Double>(numLayers); // Thicknesses of the scattering layers, in radiation lengths
         
+        p0 = new Plane(new Vec(0., kPar.beamSpot[1], 0.), new Vec(0., 1., 0.));  // xy plane at the target position
+    }
+    
+    void patRecSetVtx(double [] vtx, double [][] vtxCov) {
+        this.vtx = vtx;
+        this.vtxCov = vtxCov;
+    }
+    
+    ArrayList<KalTrack> kalmanPatRec(ArrayList<SiModule> data, int topBottom, int eventNumber) {
+        // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
+        
+        this.eventNumber = eventNumber;        
+
         TkrList = new ArrayList<KalTrack>();
         nModules = data.size();
         int tkID = 100*topBottom + 1;
@@ -78,8 +105,6 @@ class KalmanPatRecHPS {
         // Make a list of hits for each tracker layer, 0 through 13
         // This is needed because one layer can have multiple SiModules
         // Also make a list of Si modules with hits in each layer
-        int numLayers = 14;
-        int firstLayer = kPar.firstLayer;
         lyrHits = new ArrayList<ArrayList<KalHit>>(numLayers);
         moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
         for (int lyr = 0; lyr < numLayers; lyr++) {
@@ -98,27 +123,25 @@ class KalmanPatRecHPS {
             moduleList.get(thisSi.Layer).add(thisSi);
         }
 
-        // Arrays for covariance matrix propagation
-        yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
-        XLscat = new ArrayList<Double>(numLayers); // Thicknesses of the scattering layers, in radiation lengths
-        
         if (debug) System.out.format("Entering KalmanPatRecHPS for event %d, top-bottom=%d with %d modules, for %d trials.\n", 
                                          eventNumber, topBottom, nModules, kPar.nTrials);
         
-        double rho = 2.329;                   // Density of silicon in g/cm^2
-        double radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
-        for (int lyr = 0; lyr < numLayers; lyr++) {
-            if (debug) {
-                System.out.format("Layer %d modules:  ", lyr);
-                for (SiModule thisSi : moduleList.get(lyr)) {
-                    System.out.format("det=%d %d hits, ", thisSi.detector, thisSi.hits.size());
+        if (yScat.size() != numLayers) {
+            yScat.clear();
+            XLscat.clear();
+            for (int lyr = 0; lyr < numLayers; lyr++) {
+                if (debug) {
+                    System.out.format("Layer %d modules:  ", lyr);
+                    for (SiModule thisSi : moduleList.get(lyr)) {
+                        System.out.format("det=%d %d hits, ", thisSi.detector, thisSi.hits.size());
+                    }
+                    System.out.format("\n");
                 }
-                System.out.format("\n");
-            }
-            if (moduleList.get(lyr).size() > 0) {
-                SiModule thisSi = moduleList.get(lyr).get(0);
-                yScat.add(thisSi.p.X().v[1]);
-                XLscat.add(thisSi.thickness/radLen);
+                if (moduleList.get(lyr).size() > 0) {
+                    SiModule thisSi = moduleList.get(lyr).get(0);
+                    yScat.add(thisSi.p.X().v[1]);
+                    XLscat.add(thisSi.thickness/radLen);
+                }
             }
         }
         if (debug) {
@@ -132,8 +155,6 @@ class KalmanPatRecHPS {
             }
         }
         
-        Plane p0 = new Plane(new Vec(0., kPar.beamSpot[1], 0.), new Vec(0., 1., 0.));  // xy plane at the target position
-
         if (debug) {
             System.out.format("  KalmanPatRecHPS: list of the seed strategies to be applied:\n");
             for (int[] list : kPar.lyrList[topBottom]) {
@@ -1089,6 +1110,7 @@ class KalmanPatRecHPS {
             }
             System.out.format("KalmanPatRecHPS done with event %d for top-bottom=%d\n\n", eventNumber, topBottom);
         }
+        return TkrList;
     }
 
     // Remove the worst hit from lousy track candidates

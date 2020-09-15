@@ -34,6 +34,32 @@ public class KalmanParams {
     private Logger logger;
     int maxListIter1;
     
+    public void print() {
+        System.out.format("\nKalmanParams: dump of the Kalman pattern recognition cuts and parameters\n");
+        System.out.println("  (In the case of two values, they refer to the two iterations.)");
+        System.out.format("  First layer in the tracking system: %d\n", firstLayer);
+        System.out.format("  Number of global iterations: %d\n", nTrials);
+        System.out.format("  Number of Kalman filter iterations per track in the final fits: %d\n", nIterations);
+        System.out.format("  Maximum seed curvature=%8.2f, %8.2f (1/GeV)\n", kMax[0], kMax[1]);
+        System.out.format("  Minimum seed curvature=%8.2f (1/GeV)\n", kMin);
+        System.out.format("  Maximum tan(lambda): %8.2f, %8.2f\n", tanlMax[0], tanlMax[1]);
+        System.out.format("  Maximum dRho at target plane for seeds: %8.2f, %8.2f (mm)\n", dRhoMax[0], dRhoMax[1]);
+        System.out.format("  Maximum dz at target plane for seeds: %8.2f, %8.2f (mm)\n", dzMax[0], dzMax[1]);
+        System.out.format("  Maximum chi^2/hit for a good track: %8.2f, %8.2f\n", chi2mx1[0], chi2mx1[1]);
+        System.out.format("  Minimum number of hits in the initial outward filtering: %d\n", minHits0);
+        System.out.format("  Minimum number of hits for a good track: %d, %d\n", minHits1[0], minHits1[1]);
+        System.out.format("  Minimum number of stereo hits: %d %d\n", minStereo[0], minStereo[1]);
+        System.out.format("  Minimum number of axial hits: %d\n",  minAxial);
+        System.out.format("  Maximum chi^2 increment to add a hit to a track: %8.2f\n", mxChi2Inc);
+        System.out.format("  Chi^2 increment threshold for removing a bad hit from a track candidate: %8.2f\n", minChi2IncBad);
+        System.out.format("  Maximum residual, in units of detector resolution, for picking up a hit: %8.2f, %8.2f\n", mxResid[0], mxResid[1]);
+        System.out.format("  Maximum residual, in units of detector resolution, for a hit to be shared: %8.2f\n", mxResidShare);
+        System.out.format("  Maximum chi^2 increment to keep a shared hit: %8.2f\n", mxChi2double);
+        System.out.format("  Maximum number of shared hits on a track: %d\n",  mxShared);
+        System.out.format("  Maximum time difference among the hits on a track: %8.2f ns\n", mxTdif);
+        System.out.format("  Threshold to remove redundant seeds (-1 to disable): %8.2f\n\n", seedCompThr);
+    }
+    
     KalmanParams() {
         
         logger = Logger.getLogger(KalmanParams.class.getName());;
