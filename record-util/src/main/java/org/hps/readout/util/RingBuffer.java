@@ -144,7 +144,7 @@ public abstract class RingBuffer<T, V> implements Iterable<T> {
      * @param value - The value to which all buffer entries should be
      * set.
      */
-    protected void setAll(T value) {
+    public void setAll(T value) {
         for(int i = 0; i < array.length; i++) {
             array[i] = value;
         }
