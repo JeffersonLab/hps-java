@@ -6,6 +6,8 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 import java.io.IOException;
 import static java.lang.Math.abs;
+import static java.lang.Math.acos;
+import static java.lang.Math.toDegrees;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -13,6 +15,7 @@ import java.util.logging.Logger;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -71,6 +74,8 @@ public class WabAnalysis2019Robust extends Driver {
 
     protected void process(EventHeader event) {
         boolean skipEvent = true;
+        // analyze all two-cluster pairs...
+        analyzeClusterPairs(event);
         // get the ReconstructedParticles in this event
         List<ReconstructedParticle> rps = event.get(ReconstructedParticle.class, _reconstructedParticleCollectionName);
         // skim candidates based only on calorimeter clusters
@@ -493,6 +498,127 @@ public class WabAnalysis2019Robust extends Driver {
 
         // If all checks fail, the cluster is in the fiducial region.
         return true;
+    }
+
+    void analyzeClusterPairs(EventHeader event) {
+        List<Cluster> ecalClusters = event.get(Cluster.class, "EcalClusters");
+        // let's start by requiring two and only two clusters, in opposite hemispheres, whose energies sum to the beam energy
+        aida.tree().mkdirs("cluster pair analysis");
+        aida.tree().cd("cluster pair analysis");
+        aida.histogram1D("number of clusters", 10, 0., 10.).fill(ecalClusters.size());
+        int nclusters = ecalClusters.size();
+        if (nclusters > 1) {
+            Cluster[] clusterArray = ecalClusters.toArray(new Cluster[0]);
+            for (int i = 0; i < nclusters - 1; ++i) {
+                Cluster cl1 = clusterArray[i];
+                double e1 = cl1.getEnergy(); // NOTE e1 is not always greater than e2... 
+                CalorimeterHit seed1 = ClusterUtilities.findSeedHit(cl1);
+                Cluster higherEnergy = cl1;
+                Hep3Vector pos1 = new BasicHep3Vector(cl1.getPosition());
+                aida.histogram1D("e1", 100, 0., 5.).fill(e1);
+                for (int j = i + 1; j <= nclusters - 1; ++j) {
+                    Cluster cl2 = clusterArray[j];
+                    Cluster lowerEnergy = cl2;
+                    double e2 = cl2.getEnergy();
+                    if (e2 > e1) {
+                        higherEnergy = cl2;
+                        lowerEnergy = cl1;
+                    }
+                    CalorimeterHit seed2 = ClusterUtilities.findSeedHit(cl2);
+                    Hep3Vector pos2 = new BasicHep3Vector(cl2.getPosition());
+
+                    double esum = e1 + e2;
+
+                    double theta = acos(VecOp.dot(pos1, pos2) / (pos1.magnitude() * pos2.magnitude()));
+                    double thetaDegrees = toDegrees(theta);
+
+                    aida.histogram1D("e2", 100, 0., 5.).fill(e2);
+                    aida.histogram2D("e1 vs e2", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                    aida.histogram1D("cluster pair esum", 100, 0.0, 5.0).fill(esum);
+
+                    // in time
+                    double p1Time = ClusterUtilities.getSeedHitTime(cl1);
+                    double p2Time = ClusterUtilities.getSeedHitTime(cl2);
+                    double deltaTime = p1Time - p2Time;
+//                    if (pos1.y() < 0.) {
+//                        deltaTime = -deltaTime;
+//                    }
+                    aida.histogram1D("cluster pair delta time", 100, -5., 5.).fill(deltaTime);
+                    aida.histogram2D("cluster pair x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                    aida.histogram2D("cluster pair x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                    if (abs(deltaTime) < 5.) {
+                        aida.histogram2D("e1 vs e2 in time", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                        aida.histogram1D("cluster pair esum in time", 100, 0.0, 5.0).fill(esum);
+                        aida.histogram2D("cluster pair x vs y in time", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                        aida.histogram2D("cluster pair x vs y in time", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                        aida.histogram2D("cluster pair esum vs theta (degrees) in time", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+
+                        if (TriggerModule.inFiducialRegion(cl1) && TriggerModule.inFiducialRegion(cl2)) {
+                            aida.histogram1D("e1 in time both fiducial", 100, 0., 5.).fill(e1);
+                            aida.histogram1D("e2 in time both fiducial", 100, 0., 5.).fill(e2);
+                            aida.histogram2D("e1 vs e2 in time both fiducial", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                            aida.histogram1D("cluster pair esum in time both fiducial", 100, 0.0, 5.0).fill(esum);
+                            aida.histogram2D("cluster pair cluster 1 x vs y in time both fiducial", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                            aida.histogram2D("cluster pair cluster 2 x vs y in time both fiducial", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                            aida.histogram2D("cluster pair x vs y in time both fiducial", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                            aida.histogram2D("cluster pair x vs y in time both fiducial", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                            aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                            //opposite hemispheres
+                            if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
+                                aida.histogram1D("cluster pair esum in time both fiducial opposite", 100, 0.0, 5.0).fill(esum);
+                                aida.histogram2D("e1 vs e2 in time both fiducial opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                aida.histogram1D("cluster pair esum in time both fiducial opposite " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
+                                aida.histogram2D("e1 vs e2 in time both fiducial opposite " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                aida.histogram1D("cluster pair delta time in time both fiducial opposite", 100, -5., 5.).fill(deltaTime);
+                                aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event", 100, -5., 5.).fill(deltaTime);
+                                if (esum > 3.) {
+                                    aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event esum>3", 100, -5., 5.).fill(deltaTime);
+                                }
+                            }
+                            // is higher energy cluster on electron side?
+                            if (higherEnergy.getPosition()[0] < 0.) { // pos1.x() < 0) {
+                                aida.histogram1D("e1 in time both fiducial higherEnergy x<0", 100, 0., 5.).fill(e1);
+                                aida.histogram1D("e2 in time both fiducial higherEnergy x<0", 100, 0., 5.).fill(e2);
+                                aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0", 100, 0.0, 5.0).fill(esum);
+                                aida.histogram2D("cluster pair cluster 1 x vs y in time both fiducial higherEnergy x<0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                                aida.histogram2D("cluster pair cluster 2 x vs y in time both fiducial higherEnergy x<0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                                aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x<0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                                aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x<0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                                aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x<0", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x<0 " + nclusters + " clusters in event", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                if (thetaDegrees > 8) {
+                                    aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8", 100, 0.0, 5.0).fill(esum);
+                                    aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                    aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
+                                    aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                    //opposite hemispheres
+                                    if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
+                                        aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 opposite", 100, 0.0, 5.0).fill(esum);
+                                        aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                        aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event opposite", 100, 0.0, 5.0).fill(esum);
+                                        aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                        aida.histogram1D("cluster pair delta time in time both fiducial higherEnergy x<0 theta>8 ", 100, -5., 5.).fill(deltaTime);
+                                    }
+                                }
+                            } else {
+                                aida.histogram1D("e1 in time both fiducial higherEnergy x>0", 100, 0., 5.).fill(e1);
+                                aida.histogram1D("e2 in time both fiducial higherEnergy x>0", 100, 0., 5.).fill(e2);
+                                aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x>0", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x>0", 100, 0.0, 5.0).fill(esum);
+                                aida.histogram2D("cluster pair cluster 1 x vs y in time both fiducial higherEnergy x>0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                                aida.histogram2D("cluster pair cluster 2 x vs y in time both fiducial higherEnergy x>0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                                aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x>0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
+                                aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x>0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
+                                aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x>0", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x>0 " + nclusters + " clusters in event", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        aida.tree().cd("..");
     }
 
     private void analyzeHitlayers(ReconstructedParticle rp) {
