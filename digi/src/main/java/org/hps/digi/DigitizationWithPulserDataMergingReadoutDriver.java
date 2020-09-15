@@ -377,7 +377,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     public void process(EventHeader event) {
         
         /*
-         * Get current SLIC hits and current raw hits in pulser data
+         * Get current SLIC hits and current raw hits in pulser data.
          */
         
         // Get current SLIC hits.
@@ -387,6 +387,16 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         // Get current raw hits in pulser data.
         Collection<RawTrackerHit> rawHits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
                 PulserDataCollectionName, RawTrackerHit.class);        
+        
+        // Once an overlaid event is input, reset adcBufferMap to ensure that other overlaid events do not affect the current event. 
+        if(hits.size()!=0 || rawHits.size()!=0) {
+            // Get the set of all possible channel IDs.
+            Set<Long> cells = getChannelIDs();
+            
+            // Reset adcBufferMap.
+            for(Long cellID : cells)
+                adcBufferMap.get(cellID).setAll((int) Math.round(getPedestalConditions(cellID)));
+        }
         
         /* To merge MC data with pulser data, three different cases are handled separately.
          * Case 1: If pulser data does not have a channel in MC data, directly buffer samples
@@ -443,10 +453,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
 
                 // Length of ADC sample array should be equal to setup for time window of ADC samples
                 if(adcSamples.length != pulserDataWindow) 
-                    throw new RuntimeException("Error: time window of pulser data is not correctly set.");
-                
-                // Sets all values in the buffer to pedestal
-                adcBuffer.setAll((int) Math.round(getPedestalConditions(rawHitID)));
+                    throw new RuntimeException("Error: time window of pulser data is not correctly set.");                
                 
                 // Buffer ADC samples in pulser data
                 for(int i = 0; i < pulserDataWindow; i++) 
@@ -478,10 +485,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
             IntegerRingBuffer adcBuffer = adcBufferMap.get(hitCellID);
 
             // Get the pedestal for the channel.
-            int pedestal = (int) Math.round(getPedestalConditions(hitCellID));
-            
-            // Sets all values in the buffer to pedestal
-            adcBuffer.setAll(pedestal);
+            int pedestal = (int) Math.round(getPedestalConditions(hitCellID));           
             
             // Get the buffer for the current truth hit's channel.
             DoubleRingBuffer voltageBuffer = voltageBufferMap.get(hitCellID);
