@@ -269,18 +269,12 @@ public class KalmanPatRecDriver extends Driver {
         }
         
         long startTime = System.nanoTime();
-        ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event, decoder);
+        ArrayList<KalTrack>[] kPatList = KI.KalmanPatRec(event, decoder);
         long endTime = System.nanoTime();
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
         nEvents++;
-        logger.log(Level.FINE,
-                "KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
-        
-        if (kPatList == null) {
-            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
-            return;
-        }
+        logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
@@ -299,13 +293,14 @@ public class KalmanPatRecDriver extends Driver {
         
         
         int nKalTracks = 0;
-        for (KalmanPatRecHPS kPat : kPatList) {
-            if (kPat == null) {
-                logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker for event %d.", evtNumb));
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            ArrayList<KalTrack> kPat = kPatList[topBottom];
+            if (kPat.size() == 0) {
+                logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: pattern recognition failed to find tracks in tracker %d for event %d.", topBottom, evtNumb));
                 return;
             }
-            for (KalTrack kTk : kPat.TkrList) {
-                if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
+            for (KalTrack kTk : kPat) {
+                if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",topBottom));
                 double [][] covar = kTk.originCovariance();
                 for (int ix=0; ix<5; ++ix) {
                     for (int iy=0; iy<5; ++iy) {

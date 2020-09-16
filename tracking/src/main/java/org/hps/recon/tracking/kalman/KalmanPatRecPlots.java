@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
+import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -163,7 +164,7 @@ class KalmanPatRecPlots {
         pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
     }
     
-    void process(EventHeader event, double runTime, ArrayList<KalmanPatRecHPS> kPatList, 
+    void process(EventHeader event, double runTime, ArrayList<KalTrack>[] kPatList, 
             List<Track> outputFullTracks, RelationalTable rawtomc) {
         
         aida.histogram1D("Kalman pattern recognition time").fill(runTime);
@@ -202,8 +203,8 @@ class KalmanPatRecPlots {
                     }
                 }
             }
-            for (KalmanPatRecHPS kPat : kPatList) {
-                for (KalTrack tkr : kPat.TkrList) {
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                for (KalTrack tkr : kPatList[topBottom]) {
                     if (tkr.nHits < 12) continue;
                     if (tkr.chi2/tkr.nHits > 2.) continue;
                     MeasurementSite lastSite = tkr.SiteList.get(tkr.SiteList.size()-1);
@@ -215,7 +216,7 @@ class KalmanPatRecPlots {
                         //eCalPos.print("ECAL cluster position");
                         //lastSite.aS.helix.print("helix at last layer");
                         HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm);
-                        if (helixAtEcal.C.isNaN()) continue;
+                        if (MatrixFeatures_DDRM.hasNaN(helixAtEcal.C)) continue;
                         Vec intPnt = helixAtEcal.getRKintersection();
                         //helixAtEcal.print("helix at ECAL cluster");
                         //intPnt.print("RK intersection point");
@@ -231,9 +232,8 @@ class KalmanPatRecPlots {
         
         int minHits = 999;
         int nKalTracks = 0;
-        for (KalmanPatRecHPS kPat : kPatList) {
-            if (kPat == null) continue;
-            for (KalTrack kTk : kPat.TkrList) {
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack kTk : kPatList[topBottom]) {
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
                 if (kTk.nHits < minHits) minHits = kTk.nHits;
@@ -477,9 +477,8 @@ class KalmanPatRecPlots {
                    
             // Make a list of recon hits for each Kalman track
             Map<KalTrack, Set<TrackerHit>> hitKalMap = new HashMap<KalTrack, Set<TrackerHit>>(nKalTracks);
-            for (KalmanPatRecHPS kPat : kPatList) {
-                if (kPat == null) continue;
-                for (KalTrack kTk : kPat.TkrList) {
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                for (KalTrack kTk : kPatList[topBottom]) {
                     Set<TrackerHit> hitsOnTk = new HashSet<TrackerHit>();
                     for (MeasurementSite site : kTk.SiteList) {
                         SiModule mod = site.m;
@@ -494,9 +493,8 @@ class KalmanPatRecPlots {
             }
             if (verbose) {
                 System.out.format("KalmanPatRecPlots: MC track vs Kaltrack matching for event %d\n", event.getEventNumber());
-                for (KalmanPatRecHPS kPat : kPatList) {
-                    if (kPat == null) continue;
-                    for (KalTrack kTk : kPat.TkrList) {
+                for (int topBottom=0; topBottom<2; ++topBottom) {
+                    for (KalTrack kTk : kPatList[topBottom]) {
                         System.out.format("  Kaltrack %d with %d hits: [", kTk.ID, kTk.nHits);
                         for (TrackerHit hpsHt : hitKalMap.get(kTk)) {
                             int ID = reconHits.indexOf(hpsHt);
@@ -520,9 +518,8 @@ class KalmanPatRecPlots {
                 if (nHits < 6) continue;          
                 KalTrack tkBest = null;
                 int nMost = 0;
-                for (KalmanPatRecHPS kPat : kPatList) {
-                    if (kPat == null) continue;
-                    for (KalTrack kTk : kPat.TkrList) {
+                for (int topBottom=0; topBottom<2; ++topBottom) {
+                    for (KalTrack kTk : kPatList[topBottom]) {
                         Set<TrackerHit> kalHitList = hitKalMap.get(kTk);
                         Set<TrackerHit> intersection = new HashSet<TrackerHit>(mcHitList);
                         intersection.retainAll(kalHitList);
@@ -672,8 +669,8 @@ class KalmanPatRecPlots {
         
         double maxTruErr = simHitRes(event);
         if (maxTruErr < 0.02) {
-            for (KalmanPatRecHPS kPat : kPatList) {
-                for (KalTrack kTk : kPat.TkrList) {
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                for (KalTrack kTk : kPatList[topBottom]) {
                     if (kTk.nHits < 12) continue;                    
                     aida.histogram1D("Kalman Track Chi2 with >=12 good hits").fill(kTk.chi2);                    
                 }

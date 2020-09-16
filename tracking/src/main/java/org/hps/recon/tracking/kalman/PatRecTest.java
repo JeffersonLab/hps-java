@@ -46,6 +46,7 @@ class PatRecTest {
         // Set pattern recognition parameters
         KalmanParams kPar = new KalmanParams();
         kPar.setIterations(2);
+        KalmanPatRecHPS patRec = new KalmanPatRecHPS(kPar);
         
         // Definition of the magnetic field
         String mapType = "binary";
@@ -485,7 +486,7 @@ class PatRecTest {
                 printWriter2.close();
             }
 
-            if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
+            if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRec.\n");
             Vec vtx = helixOrigin.copy();
             for (int i=0; i<3; ++i) {
                 vtx.v[i] += rnd.nextGaussian() * vtxRes[i];
@@ -494,11 +495,11 @@ class PatRecTest {
             vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
             vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
             vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
-            //KalScatteredElectronFinder scatElec = new KalScatteredElectronFinder(SiModules, vtx.v, vtxCov.M, eventNumber);
-            long startTime = System.nanoTime();
-            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
-            long endTime = System.nanoTime();
-            double runTime = (double)(endTime - startTime)/1000000.;
+            long startTimeF = System.nanoTime();
+            int topBottom = 0;
+            ArrayList<KalTrack> kPat = patRec.kalmanPatRec(SiModules, topBottom, eventNumber);
+            long endTimeF = System.nanoTime();
+            double runTime = (double)(endTimeF - startTimeF)/1000000.;
             executionTime += runTime;
             if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;
@@ -520,14 +521,14 @@ class PatRecTest {
                 printWriter3.format("set xlabel 'X'\n");
                 printWriter3.format("set ylabel 'Y'\n");
                 double vPos = 0.9;
-                for (KalTrack tkr : patRec.TkrList) {
+                for (KalTrack tkr : kPat) {
                     double [] a = tkr.originHelixParms();
                     String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f", 
-                            patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
+                            topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
                     printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
                     vPos = vPos - 0.03;
                 }
-                for (KalTrack tkr : patRec.TkrList) {
+                for (KalTrack tkr : kPat) {
                     printWriter3.format("$tkr%d << EOD\n", tkr.ID);
                     for (MeasurementSite site : tkr.SiteList) {
                         StateVector aS = site.aS;
@@ -545,7 +546,7 @@ class PatRecTest {
                     }
                     printWriter3.format("EOD\n");
                 }
-                for (KalTrack tkr : patRec.TkrList) {
+                for (KalTrack tkr : kPat) {
                     printWriter3.format("$tkp%d << EOD\n", tkr.ID);
                     for (MeasurementSite site : tkr.SiteList) {
                         SiModule m = site.m;
@@ -569,15 +570,15 @@ class PatRecTest {
                 }
                 printWriter3.format("EOD\n");
                 printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
-                for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkr%d u 1:2:3 with lines lw 3", tkr.ID); }
-                for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tkr.ID); }
+                for (KalTrack tkr : kPat) { printWriter3.format(", $tkr%d u 1:2:3 with lines lw 3", tkr.ID); }
+                for (KalTrack tkr : kPat) { printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tkr.ID); }
                 printWriter3.format("\n");
                 printWriter3.close();
             }
             // Analysis of the tracking results
-            int nTracks = patRec.TkrList.size();
+            int nTracks = kPat.size();
             hNtracks.entry(nTracks);
-            for (KalTrack tkr : patRec.TkrList) {
+            for (KalTrack tkr : kPat) {
                 // Check on the covariance matrix
                 Matrix C = new Matrix(tkr.originCovariance());
                 EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
@@ -740,7 +741,8 @@ class PatRecTest {
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
-        System.out.format("Elapsed time for executing the Kalman filter = %10.3f ms\n", executionTime);
+        System.out.format("Elapsed time for Kalman Pattern Recognition = %10.4f ms\n", executionTime);
+
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
