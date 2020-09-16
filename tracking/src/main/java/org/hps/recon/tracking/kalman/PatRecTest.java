@@ -743,11 +743,7 @@ class PatRecTest {
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
-<<<<<<< HEAD
-        System.out.format("Elapsed time for executing the Kalman filter = %10.3f ms\n", executionTime);
-=======
         System.out.format("Elapsed time for Kalman Pattern Recognition = %10.4f ms\n", executionTime);
->>>>>>> Got the new matrix Kalman code working with the pattern recognition.
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");

@@ -1,10 +1,5 @@
 package org.hps.recon.tracking.kalman;
 
-import org.ejml.data.DMatrixRMaj;
-import org.ejml.dense.row.CommonOps_DDRM;
-import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
-import org.ejml.interfaces.linsol.LinearSolverDense;
-
 //This is for testing only and is not part of the Kalman fitting code
 public class TestMain {
 
