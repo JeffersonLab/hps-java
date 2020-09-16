@@ -36,7 +36,6 @@ class StateVector {
     StateVector(int site, Vec helixParams, DMatrixRMaj Cov, Vec pivot, double B, Vec tB, Vec origin) {
         // Here tB is the B field direction, while B is the magnitude       
         if (debug) System.out.format("StateVector: constructing an initial state vector\n");
->>>>>>> origin/iss727
         helix = new HelixState(helixParams, pivot, origin, Cov, B, tB);
         kLow = site;
         kUp = kLow;
