@@ -2,6 +2,11 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.logging.Logger;
 
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
+import org.ejml.interfaces.linsol.LinearSolverDense;
+
 //State vector (projected, filtered, or smoothed) for the Kalman filter
 class StateVector {
 
@@ -11,43 +16,87 @@ class StateVector {
     double mPred;       // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r;           // Predicted, filtered, or smoothed residual at site kLow
     double R;           // Covariance of residual
-    final private static boolean verbose = false;
-    SquareMatrix F;     // Propagator matrix to propagate from this site to the next site
-    private Logger logger;
+    final static private boolean debug = false;
+    DMatrixRMaj F;     // Propagator matrix to propagate from this site to the next site
+    private static Logger logger;
+    private DMatrixRMaj K;      // Kalman gain matrix
+    
+    // Working arrays for efficiency, to avoid creating temporary working space over and over
+    private static DMatrixRMaj tempV;
+    private static DMatrixRMaj tempV2;
+    private static DMatrixRMaj tempM;
+    private static DMatrixRMaj tempA;
+    private static DMatrixRMaj Cinv;
+    private static DMatrixRMaj Q;      // Multiple scattering matrix, zero except (1,1) and (4,4)
+    private static DMatrixRMaj U;      // Unit matrix
+    private static LinearSolverDense<DMatrixRMaj> solver;
+    private static boolean initialized;
 
     // Constructor for the initial state vector used to start the Kalman filter.
-    StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin) {
-        // Here tB is the B field direction, while B is the magnitude
-        logger = Logger.getLogger(StateVector.class.getName());
-        if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
+    StateVector(int site, Vec helixParams, DMatrixRMaj Cov, Vec pivot, double B, Vec tB, Vec origin) {
+        // Here tB is the B field direction, while B is the magnitude       
+        if (debug) System.out.format("StateVector: constructing an initial state vector\n");
         helix = new HelixState(helixParams, pivot, origin, Cov, B, tB);
         kLow = site;
         kUp = kLow;
+        if (!initialized) {  // Initialize the static working arrays on the first call
+            logger = Logger.getLogger(StateVector.class.getName());
+            tempV = new DMatrixRMaj(5,1);
+            tempV2 = new DMatrixRMaj(5,1);
+            tempM = new DMatrixRMaj(5,5);
+            tempA = new DMatrixRMaj(5,5);
+            Q = new DMatrixRMaj(5,5);
+            U = CommonOps_DDRM.identity(5,5);
+            Cinv = new DMatrixRMaj(5,5);
+            solver = LinearSolverFactory_DDRM.symmPosDef(5);
+            initialized = true;
+        }
     }
 
     // Constructor for a new blank state vector with a new B field
     StateVector(int site, double B, Vec tB, Vec origin) {
-        logger = Logger.getLogger(StateVector.class.getName());
         helix = new HelixState(B, tB, origin);
         kLow = site;
+        if (!initialized) {  // Initialize the static working arrays on the first call
+            logger = Logger.getLogger(StateVector.class.getName());
+            tempV = new DMatrixRMaj(5,1);
+            tempV2 = new DMatrixRMaj(5,1);
+            tempM = new DMatrixRMaj(5,5);
+            tempA = new DMatrixRMaj(5,5);
+            Q = new DMatrixRMaj(5,5);
+            U = CommonOps_DDRM.identity(5,5);
+            Cinv = new DMatrixRMaj(5,5);
+            solver = LinearSolverFactory_DDRM.symmPosDef(5);
+            initialized = true;
+        }
     }
 
     // Constructor for a new completely blank state vector
     StateVector(int site) {
         kLow = site;
-        logger = Logger.getLogger(StateVector.class.getName());
-        helix = new HelixState();
+        if (!initialized) {  // Initialize the static working arrays on the first call
+            logger = Logger.getLogger(StateVector.class.getName());
+            tempV = new DMatrixRMaj(5,1);
+            tempV2 = new DMatrixRMaj(5,1);
+            tempM = new DMatrixRMaj(5,5);
+            tempA = new DMatrixRMaj(5,5);
+            Q = new DMatrixRMaj(5,5);
+            U = CommonOps_DDRM.identity(5,5);
+            Cinv = new DMatrixRMaj(5,5);
+            solver = LinearSolverFactory_DDRM.symmPosDef(5);
+            initialized = true;
+        }
     }
 
-    // Deep copy of the state vector
     StateVector copy() {
         StateVector q = new StateVector(kLow);
-        q.helix = helix.copy();
+        q.helix = (HelixState)helix.copy();      // Deep copy
         q.kUp = kUp;
-        if (F != null) q.F = F.copy();
+        q.F = F;  // Don't deep copy the F matrix
         q.mPred = mPred;
         q.R = R;
         q.r = r;
+        q.K = K;
         return q;
     }
 
@@ -59,7 +108,7 @@ class StateVector {
     String toString(String s) {
         String str = String.format(">>>Dump of state vector %s %d  %d\n", s, kUp, kLow);
         str = str + helix.toString(" ");
-        if (F != null) str = str + F.toString("for the propagator");
+        if (F != null) str = str + "Propagator matrix: " + F.toString();
         double sigmas;
         if (R > 0.) {
             sigmas = r / Math.sqrt(R);
@@ -95,17 +144,18 @@ class StateVector {
         } else {
             aPrime.helix.a = this.helix.pivotTransform(pivot, deltaEoE);
         }
-        if (verbose) { // drho and dz are indeed always zero here
+        if (debug) { // drho and dz are indeed always zero here
             aPrime.helix.a.print("StateVector predict: pivot transformed helix; should have zero drho and dz");
             helix.a.print("old helix");
             pivot.print("new pivot");
             helix.X0.print("old pivot");
         }
 
-        F = this.helix.makeF(aPrime.helix.a); // Calculate derivatives of the pivot transform
+        F = new DMatrixRMaj(5,5);
+        this.helix.makeF(aPrime.helix.a, F); // Calculate derivatives of the pivot transform
         if (deltaE != 0.) {
             double factor = 1.0 - deltaEoE;
-            for (int i = 0; i < 5; i++) { F.M[i][2] *= factor; }
+            for (int i = 0; i < 5; i++) F.unsafe_set(i, 2, F.unsafe_get(i,2)*factor);  
         }
 
         // Transform to the coordinate system of the field at the new site
@@ -114,8 +164,7 @@ class StateVector {
 
         // Calculate the matrix for the net rotation from the old site coordinates to the new site coordinates
         RotMatrix Rt = aPrime.helix.Rot.multiply(this.helix.Rot.invert());
-        SquareMatrix fRot = new SquareMatrix(5);
-        if (verbose) {
+        if (debug) {
             aPrime.helix.Rot.print("aPrime rotation matrix");
             this.helix.Rot.print("this rotation matrix");
             Rt.print("rotation from old local frame to new local frame");
@@ -126,23 +175,24 @@ class StateVector {
         // dz and drho will remain unchanged at zero
         // phi0 and tanl(lambda) change, as does kappa (1/pt). However, |p| should be unchanged by the rotation.
         // This call to rotateHelix also calculates the derivative matrix fRot
-        aPrime.helix.a = HelixState.rotateHelix(aPrime.helix.a, Rt, fRot);
-        if (verbose) {
+        aPrime.helix.a = HelixState.rotateHelix(aPrime.helix.a, Rt, tempM);
+        if (debug) {
             aPrime.helix.a.print("StateVector:predict helix after rotation");
-            fRot.print("fRot from StateVector:predict");
+            System.out.println("fRot from StateVector:predict");
+            tempM.print();
         }
-        F = fRot.multiply(F);
+        CommonOps_DDRM.mult(tempM, F, tempA);
 
         // Test the derivatives
         /*
-        if (verbose) {
+        if (debug) {
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
-            StateVector aPda = copy();
+            StateVector aPda = this.Copy();
             for (int i = 0; i < 5; i++) {
                 aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
             }
             Vec da = aPda.a.dif(a);
-            StateVector aPrimeNew = copy();
+            StateVector aPrimeNew = this.Copy();
             aPrimeNew.a = aPda.pivotTransform(pivot);
             RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
             SquareMatrix fRotTmp = new SquareMatrix(5);
@@ -164,88 +214,88 @@ class StateVector {
 
         // Add the multiple scattering contribution for the silicon layer
         // sigmaMS is the rms of the projected scattering angle
-        SquareMatrix Ctot;
         if (XL == 0.) {
-            Ctot = this.helix.C;
-            if (verbose) System.out.format("StateVector.predict: XL=%9.6f", XL);
+            Cinv.set(this.helix.C);
+            if (debug) System.out.format("StateVector.predict: XL=%9.6f\n", XL);
         } else {
             double momentum = (1.0 / helix.a.v[2]) * Math.sqrt(1.0 + helix.a.v[4] * helix.a.v[4]);
             double sigmaMS = HelixState.projMSangle(momentum, XL);
-            if (verbose) System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e", momentum, XL, sigmaMS);
-            Ctot = this.helix.C.sum(this.helix.getQ(sigmaMS));
+            if (debug) System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS);
+            this.helix.getQ(sigmaMS, Q);
+            CommonOps_DDRM.add(this.helix.C, Q, Cinv);
         }
 
         // Now propagate the multiple scattering matrix and covariance matrix to the new site
-        aPrime.helix.C = Ctot.similarity(F);
+        CommonOps_DDRM.multTransB(Cinv, tempA, tempM);
+        aPrime.helix.C = new DMatrixRMaj(5,5);
+        CommonOps_DDRM.mult(tempA, tempM, aPrime.helix.C);
 
-        // Temporary test of fine stepping the pivot transform (for uniform field)
-        // Verified that taking multiple steps gives the same result for both the helix parameters
-        // and the covariance matrix compared to making a single step, for uniform field.
-        /*
-        int Ntr = 5;
-        Vec delta = (pivot.dif(X0)).scale(1.0/(double)Ntr);
-        Vec oldPivot = X0;
-        Vec oldHelix = a;
-        System.out.format("Fine stepping test:\n");
-        pivot.print("target new pivot");
-        delta.print("delta");
-        oldPivot.print("oldPivot");
-        oldHelix.print("oldHelix");
-        SquareMatrix oldC = Ctot;
-        oldC.print("old C");
-        for (int itr=0; itr<Ntr; itr++) {
-            Vec newPivot = oldPivot.sum(delta);
-            Vec newHelix = StateVector.pivotTransform(newPivot, oldHelix, oldPivot, alpha, 0.);
-            SquareMatrix Ftmp = StateVector.makeF(newHelix, oldHelix, alpha);
-            SquareMatrix newC = oldC.similarity(Ftmp);
-            System.out.format("Fine stepping test itr=%d\n", itr);
-            newPivot.print("newPivot");
-            newHelix.print("newHelix");
-            newC.print("newC");
-            oldPivot = newPivot;
-            oldHelix = newHelix;
-            oldC = newC;
-        }
-        aPrime.a.print("transformed helix");
-        aPrime.C.print("transformed covariance");
-        */
         return aPrime;
     }
 
     // Create a filtered state vector from a predicted state vector
-    StateVector filter(Vec H, double V) {
+    StateVector filter(DMatrixRMaj H, double V) {
         // H = prediction matrix (5-vector)
         // V = hit variance (1/sigma^2)
 
-        StateVector aPrime = copy();
+        StateVector aPrime = this.copy();
         aPrime.kUp = kLow;
 
-        double denom = V + H.dot(H.leftMultiply(helix.C));
-        Vec K = H.leftMultiply(helix.C).scale(1.0 / denom); // Kalman gain matrix
-        if (verbose) {
+        CommonOps_DDRM.mult(helix.C, H, tempV);
+        double denom = V + CommonOps_DDRM.dot(H, tempV);
+        CommonOps_DDRM.scale(1.0/denom, helix.C, tempM);
+        K = new DMatrixRMaj(5,1);
+        CommonOps_DDRM.mult(tempM, H, K);  //  Kalman gain matrix
+        if (debug) {
             System.out.format("StateVector.filter: kLow=%d\n", kLow);
             System.out.format("StateVector.filter: V=%12.4e,  denom=%12.4e\n", V, denom);
-            K.print("Kalman gain matrix in StateVector.filter");
-            H.print("matrix H in StateVector.filter");
-            System.out.format("StateVector.filter: k dot H = %10.7f\n", K.dot(H));
+            System.out.format("Kalman gain matrix in StateVector.filter: ");
+            K.print();
+            System.out.format("matrix H in StateVector.filter");
+            H.print();
+            System.out.format("StateVector.filter: k dot H = %10.7f\n", CommonOps_DDRM.dot(K, H));
             // Alternative calculation of K (sanity check that it gives the same result):
-            SquareMatrix D = helix.C.invert().sum(H.scale(1.0 / V).product(H));
-            Vec Kalt = H.scale(1.0 / V).leftMultiply(D.invert());
-            Kalt.print("alternate Kalman gain matrix");
+            DMatrixRMaj D = new DMatrixRMaj(5,5);
+            CommonOps_DDRM.invert(helix.C, D);
+            DMatrixRMaj Dp = new DMatrixRMaj(5,5);
+            for (int i=0; i<5; ++i) {
+                for (int j=0; j<5; ++j) {
+                    Dp.unsafe_set(i, j, H.unsafe_get(i, 0)*H.unsafe_get(j, 0)/V);
+                }
+            }
+            CommonOps_DDRM.addEquals(D, Dp);
+            CommonOps_DDRM.invert(D);
+            DMatrixRMaj Hs = new DMatrixRMaj(5);
+            CommonOps_DDRM.scale(1.0/V, H, Hs);
+            DMatrixRMaj Kalt = new DMatrixRMaj(5);
+            CommonOps_DDRM.mult(D, Hs, Kalt);
+            System.out.println("Alternative Kalman gain matrix:");
+            Kalt.print();
         }
 
-        aPrime.helix.a = helix.a.sum(K.scale(r));
-        SquareMatrix U = new SquareMatrix(5, 1.0);
-        aPrime.helix.C = (U.dif(K.product(H))).multiply(helix.C);
+        CommonOps_DDRM.scale(r, K, tempV);
+        aPrime.helix.a = helix.a.sum(mToVec(tempV));
+        directProd(K, H, tempM);
+        CommonOps_DDRM.scale(-1.0, tempM);
+        CommonOps_DDRM.addEquals(tempM, U);
+        aPrime.helix.C = new DMatrixRMaj(5,5);
+        CommonOps_DDRM.mult(tempM, helix.C, aPrime.helix.C);
 
-        if (verbose) {
-            aPrime.helix.C.print("filtered covariance (gain-matrix formalism) in StateVector.filter");
+        if (debug) {
+            System.out.println("filtered covariance (gain-matrix formalism) in StateVector.filter:");
+            aPrime.helix.C.print();
             // Alternative calculation of filtered covariance (sanity check that it gives
             // the same result):
-            SquareMatrix D = helix.C.invert().sum(H.scale(1.0 / V).product(H));
-            SquareMatrix Calt = D.invert();
-            Calt.print("alternate (weighted-means formalism) filtered covariance in StateVector.filter");
-            aPrime.helix.C.multiply(D).print("unit matrix??");
+            DMatrixRMaj Cinv = new DMatrixRMaj(25);
+            CommonOps_DDRM.invert(helix.C, Cinv);
+            DMatrixRMaj Hscaled = new DMatrixRMaj(5);
+            CommonOps_DDRM.scale(1.0/V, H, Hscaled);
+            directProd(Hscaled,H,tempM);
+            DMatrixRMaj D = new DMatrixRMaj(5);
+            CommonOps_DDRM.add(Cinv,tempM,D);
+            CommonOps_DDRM.invert(D);
+            System.out.println("alternate (weighted-means formalism) filtered covariance in StateVector.filter");
+            D.print();
             helix.a.print("predicted helix parameters");
             aPrime.helix.a.print("filtered helix parameters (gain matrix formalism)");
         }
@@ -256,55 +306,91 @@ class StateVector {
     }
 
     // Modify the state vector by removing the hit information
-    Vec inverseFilter(Vec H, double V, SquareMatrix Cnew) {
-        double denom = -V + H.dot(H.leftMultiply(helix.C));
-        Vec Kstar = H.leftMultiply(helix.C).scale(1.0 / denom); // Kalman gain matrix
+    Vec inverseFilter(DMatrixRMaj H, double V, DMatrixRMaj Cnew) {
+        CommonOps_DDRM.mult(helix.C, H, tempV);
+        double denom = -V + CommonOps_DDRM.dot(H, tempV);
+        CommonOps_DDRM.scale(1.0/denom, helix.C, tempM);
+        DMatrixRMaj Kstar = new DMatrixRMaj(5,1);
+        CommonOps_DDRM.mult(tempM, H, Kstar);   // Kalman gain matrix
 
-        Vec aNew = helix.a.sum(Kstar.scale(r));
-        SquareMatrix U = new SquareMatrix(5, 1.0);
-        SquareMatrix Cstar = (U.dif(Kstar.product(H))).multiply(helix.C);
-        if (verbose) {
+        CommonOps_DDRM.scale(r, Kstar, tempV);
+        Vec aNew = helix.a.sum(mToVec(tempV));
+        directProd(Kstar, H, tempM);
+        CommonOps_DDRM.scale(-1.0, tempM);
+        CommonOps_DDRM.addEquals(tempM, U);
+        CommonOps_DDRM.mult(tempM, helix.C, Cnew);
+        if (debug) {
             System.out.format("StateVector.inverseFilter: V=%12.4e,  denom=%12.4e\n", V, denom);
-            Kstar.print("Kalman gain matrix in StateVector.inverseFilter");
-            H.print("matrix H in StateVector.inverseFilter");
             helix.a.print("old helix");
             aNew.print(" new helix in StateVector.inverseFilter");
-            helix.C.print("old covariance");
-            Cnew.print(" new covariance in StateVector.inverseFilter");
         }
-        Cnew.M = Cstar.M;
         return aNew;
     }
 
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
-        if (verbose) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d", kLow, kUp,
+        if (debug) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp,
                     snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         StateVector sS = this.copy();
 
-        SquareMatrix CnInv = snP.helix.C.invert();
-        SquareMatrix A = (helix.C.multiply(sS.F.transpose())).multiply(CnInv);
+        // solver.setA defines the input matrix and checks whether it is singular. A copy is needed because the input gets modified.
+        if (!solver.setA(snP.helix.C.copy())) {
+            logger.fine("StateVector:smooth, inversion of the covariance matrix failed");
+            //snP.helix.C.print();
+            //SquareMatrix invrs = KalTrack.mToS(snP.helix.C).invert();
+            //invrs.print("inverse");
+            //invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?");            
+            for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
+                for (int j=0; j<5; ++j) {
+                    if (i == j) {
+                        Cinv.unsafe_set(i,j,1.0/Cinv.unsafe_get(i,j));
+                    } else {
+                        Cinv.unsafe_set(i, j, 0.); 
+                    }
+                }
+            }          
+        } else {
+            solver.invert(Cinv);
+        }
+        if (debug) {
+            System.out.println("StateVector:smooth, inverse of the covariance:");
+            Cinv.print("%11.6e");
+            CommonOps_DDRM.mult(snP.helix.C, Cinv, tempM);
+            System.out.format("Unit matrix?? ");
+            tempM.print();
+        }
+        CommonOps_DDRM.multTransB(helix.C, sS.F, tempM);
+        CommonOps_DDRM.mult(tempM, Cinv, tempA);
 
-        Vec diff = snS.helix.a.dif(snP.helix.a);
-        sS.helix.a = helix.a.sum(diff.leftMultiply(A));
-
-        SquareMatrix Cdiff = snS.helix.C.dif(snP.helix.C);
-        sS.helix.C = helix.C.sum(Cdiff.similarity(A));
-        if (verbose) {
-            sS.F.print("F matrix");
-            snP.helix.C.print("predicted covariance");
-            helix.C.print("this covariance");
-            CnInv.print("inverse of covariance");
-            A.print("A matrix");
-            helix.C.multiply(sS.F.transpose()).print("M matrix");
-            helix.a.print(" this helix parameters");
-            snP.helix.a.print(" predicted helix parameters");
-            diff.print("helix parameter differences");
-            Cdiff.similarity(A).print("Cdiff similarity transformed");
-            snS.helix.C.print("smoothed covariance snS.C");
+        vecToM(snS.helix.a.dif(snP.helix.a), tempV);
+        if (debug) {
+            System.out.format("Predicted helix covariance: ");
+            snP.helix.C.print();
+            System.out.format("This helix covariance: ");
+            helix.C.print();
+            System.out.format("Matrix F ");
+            sS.F.print();
+            System.out.format("tempM ");
+            tempM.print();
+            System.out.format("tempA ");
+            tempA.print();
+            System.out.format("Difference of helix parameters tempV: ");
+            tempV.print();
+        }
+        CommonOps_DDRM.mult(tempA, tempV, tempV2);
+        sS.helix.a = helix.a.sum(mToVec(tempV2));
+        if (debug) {
+            System.out.format("tempV2 ");
+            tempV2.print();
+            sS.helix.a.print("new helix parameters");
         }
 
-        if (verbose) sS.print("Smoothed");
+        CommonOps_DDRM.subtract(snS.helix.C, snP.helix.C, tempM);
+        CommonOps_DDRM.multTransB(tempM, tempA, Cinv);
+        CommonOps_DDRM.mult(tempA, Cinv, tempM);
+        CommonOps_DDRM.add(helix.C, tempM, sS.helix.C);
+        
+        if (debug) sS.print("Smoothed");
         return sS;
     }
 
@@ -312,18 +398,48 @@ class StateVector {
     Vec helixErrors(Vec aPrime) {
         // aPrime are the helix parameters for a pivot at the global origin, assumed
         // already to be calculated by pivotTransform()
-        SquareMatrix tC = covariancePivotTransform(aPrime);
-        return new Vec(Math.sqrt(tC.M[0][0]), Math.sqrt(tC.M[1][1]), Math.sqrt(tC.M[2][2]), Math.sqrt(tC.M[3][3]), Math.sqrt(tC.M[4][4]));
+        DMatrixRMaj tC = covariancePivotTransform(aPrime);
+        return new Vec(Math.sqrt(tC.unsafe_get(0,0)), Math.sqrt(tC.unsafe_get(1,1)), Math.sqrt(tC.unsafe_get(2,2)), 
+                Math.sqrt(tC.unsafe_get(3,3)), Math.sqrt(tC.unsafe_get(4,4)));
     }
 
     // Transform the helix covariance to new pivot point (specified in local
     // coordinates)
-    SquareMatrix covariancePivotTransform(Vec aP) {
+    DMatrixRMaj covariancePivotTransform(Vec aP) {
         // aP are the helix parameters for the new pivot point, assumed already to be
         // calculated by pivotTransform()
         // Note that no field rotation is assumed or accounted for here
-        SquareMatrix mF = helix.makeF(aP);
-        return helix.C.similarity(mF);
+        DMatrixRMaj mF = new DMatrixRMaj(5,5);
+        helix.makeF(aP, mF);
+        CommonOps_DDRM.multTransB(helix.C, mF, tempM);
+        CommonOps_DDRM.mult(mF, tempM, tempA);
+        return tempA;
     }    
     
+    static void vecToM(Vec a, DMatrixRMaj m) {
+        for (int i=0; i<a.N; ++i) {
+            m.unsafe_set(i, 0, a.v[i]);
+        }
+    }
+    static Vec mToVec(DMatrixRMaj M) {
+        return new Vec(M.unsafe_get(0, 0), M.unsafe_get(1, 0), M.unsafe_get(2, 0), M.unsafe_get(3, 0), M.unsafe_get(4, 0));
+    }
+    private static void directProd(DMatrixRMaj a, DMatrixRMaj b, DMatrixRMaj c) {
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                c.unsafe_set(i, j, a.unsafe_get(i, 0)*b.unsafe_get(j, 0));
+            }
+        }
+    }
+/*
+    private static SquareMatrix mToS(DMatrixRMaj M) {
+        SquareMatrix S= new SquareMatrix(5);
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                S.M[i][j] = M.unsafe_get(i, j);
+            }
+        }
+        return S;
+    }
+*/
 }

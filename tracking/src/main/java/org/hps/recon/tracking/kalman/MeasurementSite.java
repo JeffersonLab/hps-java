@@ -5,6 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.util.FastMath;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 //Kalman fit measurement site, one for each silicon-strip detector with hits
 class MeasurementSite {
@@ -18,7 +20,7 @@ class MeasurementSite {
     StateVector aS; // Smoothed state vector
     boolean smoothed; // True if the smoothed state vector has been built
     double chi2inc; // chi^2 increment for this site
-    Vec H; // Derivatives of the transformation from state vector to measurement
+    DMatrixRMaj H; // Derivatives of the transformation from state vector to measurement
     double arcLength; // Arc length from the previous measurement
     private double conFac; // Conversion from B to alpha
     private double alpha;
@@ -26,9 +28,11 @@ class MeasurementSite {
     private double dEdx; // in GeV/mm
     private double mxResid; // Maximum residual for adding a hit
     private double mxResidShare; // Maximum residual for a shared hit
-    final private boolean verbose;
-    private Logger logger;
     double B;
+    final static private boolean debug = false;
+    private static Logger logger;
+    private static DMatrixRMaj tempV;
+    private static boolean initialized;
 
     // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
     // will never have a hit and thus will be handled the same as physical layers that lack hits
@@ -62,7 +66,7 @@ class MeasurementSite {
         if (predicted) str = str + aP.toString("predicted");
         if (filtered) str = str + aF.toString("filtered");
         if (smoothed) str = str + aS.toString("smoothed");
-        if (H != null) str = str + H.toString("matrix of the transformation from state vector to measurement");
+        if (H != null) str = str + "matrix of the transformation from state vector to measurement:" + H.toString();
         str=str+String.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
         if (m.Layer < 0) {
             str=str+String.format("End of dump of dummy measurement site %d<<\n", thisSite);
@@ -76,8 +80,7 @@ class MeasurementSite {
         this.thisSite = thisSite;
         this.mxResid = mxResid;
         this.mxResidShare = mxResidShare;
-        this.m = data;
-        logger = Logger.getLogger(MeasurementSite.class.getName());
+        this.m = data;       
         hitID = -1;
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
@@ -92,7 +95,12 @@ class MeasurementSite {
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
-        verbose = false;
+        H = new DMatrixRMaj(5,1);
+        if (!initialized) {
+            tempV = new DMatrixRMaj(5,1);
+            logger = Logger.getLogger(MeasurementSite.class.getName());
+            initialized = true;
+        }
     }
 
     double scatX() { // scattering angle in the x,y plane for the filtered state vector
@@ -139,9 +147,9 @@ class MeasurementSite {
         // pickup = whether we are doing pattern recognition here and need to pick up hits to add to the track
         int returnFlag = 0;
         double phi = pS.helix.planeIntersect(m.p);
-        if (verbose) verbose2 = true;
+        if (debug) verbose2 = true;
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low!
-            if (verbose) {
+            if (debug) {
                 System.out.format("MeasurementSite.makePrediction: no intersection of helix with the plane exists. Site=%d\n", thisSite);
                 m.p.print("of intersection");
                 pS.print("missing plane");
@@ -150,7 +158,7 @@ class MeasurementSite {
         }
 
         Vec X0 = pS.helix.atPhi(phi); // Intersection point in local field coordinate system of pS
-        if (verbose) {
+        if (debug) {
             pS.helix.a.print("helix parameters in makePrediction");
             X0.print("intersection in local coordinates in makePrediction");
             pS.helix.toGlobal(X0).print("intersection in global coordinates in makePrediction");
@@ -178,7 +186,7 @@ class MeasurementSite {
         Vec Bfield = KalmanInterface.getField(pS.helix.toGlobal(X0), m.Bfield);
         double B = Bfield.mag();
         Vec tB = Bfield.unitVec(B);
-        if (verbose) {
+        if (debug) {
             origin.print("new origin in MeasurementSite.makePrediction");
             Bfield.print("B field at pivot in MeasurementSite.makePrediction");
         }
@@ -194,7 +202,7 @@ class MeasurementSite {
             double radius = Math.abs(alpha/pS.helix.a.v[2]);
             XL = mPs.thickness / radLen / Math.abs(ct); // Si scattering thickness at previous site
             arcLength = radius*phi*FastMath.sqrt(1.0 + pS.helix.a.v[4] * pS.helix.a.v[4]);
-            if (verbose) {
+            if (debug) {
                 double dx = m.p.X().v[0]-mPs.p.X().v[0];
                 double dy = m.p.X().v[1]-mPs.p.X().v[1];
                 double dz = m.p.X().v[2]-mPs.p.X().v[2];
@@ -203,7 +211,7 @@ class MeasurementSite {
             }
         }
         aP = pS.predict(thisSite, X0, B, tB, origin, XL, deltaE);
-        if (verbose) {
+        if (debug) {
             pS.helix.a.print("original helix in MeasurementSite.makePrediction");
             pS.helix.X0.print("original helix pivot point");
             //pS.toGlobal(pS.X0).print("original pivot in global coordinates");
@@ -219,7 +227,7 @@ class MeasurementSite {
             // aP.toGlobal(X02).print("intersection in global coordinates from new helix");
         }
 
-        if (verbose) {
+        if (debug) {
             System.out.format("MeasurementSite.makePrediction: old helix intersects plane at phi=%10.7f\n", phi);
             Vec rGlobalOld = pS.helix.toGlobal(pS.helix.atPhi(phi));
             rGlobalOld.print("global intersection with old helix from measurementSite.makePrediction");
@@ -234,15 +242,19 @@ class MeasurementSite {
         // This calculates the H corresponding to using aP in h( , , ). It is kind of trivial, because
         // aP are helix parameters for a pivot right at the predicted intersection point, on the helix. 
         // Hence the prediction at that point does not depend on the helix parameters at all.
-        H = new Vec(5, buildH(aP));
-
+        buildH(aP, H);
+        
         // Test of the H vector, by comparing with a numerical difference. If this is done with the H
         // calculated from aP, comparing with h calculated from aP, then the difference is always zero.
         // By comparing with the less trivial case of h and H calculated from pS, we verify here that
         // the derivatives are correct.
-        if (verbose) {
-            H.print("H corresponding to aP");
-            Vec H3 = new Vec(5, buildH(pS));
+        
+        if (debug) {
+            System.out.format("H corresponding to aP ");
+            H.print();
+            DMatrixRMaj H3m = new DMatrixRMaj(5,1);
+            buildH(pS, H3m);
+            Vec H3 = StateVector.mToVec(H3m);
             H3.print("H corresponding to pS");
             double mPredaP = h(aP, m); // This should give exactly the same result as for aP.mPred above
             System.out.format("Predicted m: from pS=%10.5f;  from aP=%10.5f\n", mPredaP, aP.mPred);
@@ -255,7 +267,7 @@ class MeasurementSite {
             double dxTrue = h(tS, m) - h(pS, m);
             double dxH = H3.dot(da);
             System.out.format("Measurementsite.predict: dm True=%10.5f,   dm approx by H=%10.5f\n\n", dxTrue, dxH);
-        }
+        }        
 
         // Loop over hits and find the one that is closest, unless the hit has been specified
         int nHits = m.hits.size();
@@ -277,7 +289,7 @@ class MeasurementSite {
                         //    continue;
                         //}
                         double residual = m.hits.get(i).v - aP.mPred;
-                        if (verbose) {
+                        if (debug) {
                             double ctv = residual/m.hits.get(i).sigma;
                             System.out.format("  MeasurementSite.makePrediction: Found unused hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, mxResid); 
                         }
@@ -290,7 +302,7 @@ class MeasurementSite {
                     if (theHit < 0 && sharingOK) {  // Look for good shared hits
                         for (int i = 0; i < nHits; i++) {
                             double residual = m.hits.get(i).v - aP.mPred;
-                            if (verbose) {                         
+                            if (debug) {                         
                                 double ctv = residual/m.hits.get(i).sigma;
                                 System.out.format("  MeasurementSite.makePrediction: Found used hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, mxResid); 
                             }
@@ -305,7 +317,7 @@ class MeasurementSite {
             }
             if (theHit >= 0) {
                 aP.r = m.hits.get(theHit).v - aP.mPred;
-                if (verbose) {
+                if (debug) {
                     if (hitNumber >= 0) {
                         System.out.format("MeasurementSite.makePrediction: specified hit=%d with residual=%10.7f\n", theHit, minResid);
                     } else {
@@ -318,17 +330,9 @@ class MeasurementSite {
                     System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
                 }
 
-                aP.R = m.hits.get(theHit).sigma * m.hits.get(theHit).sigma + H.dot(H.leftMultiply(aP.helix.C));
-                if (verbose) {
-                    H.print("H in MeasurementSite.makePrediction");
-                    Vec H2 = new Vec(5, buildH(pS));
-                    H2.print("H made using old statevector");
-                    aP.helix.C.print("covariance");
-                    double exRes = m.hits.get(0).sigma * m.hits.get(0).sigma + H2.dot(H2.leftMultiply(pS.helix.C));
-                    System.out.format(
-                            "MeasurementSite.makePrediction: expected residual = %12.5e; from old state vector = %12.5e, sigma=%12.5e\n", aP.R,
-                            exRes, m.hits.get(0).sigma);
-                }
+                CommonOps_DDRM.mult(aP.helix.C, H, tempV);
+                aP.R = m.hits.get(theHit).sigma * m.hits.get(theHit).sigma + CommonOps_DDRM.dot(H, tempV);
+
                 chi2inc = aP.r * aP.r / aP.R;
                 double cutVal = Math.abs(aP.r / m.hits.get(theHit).sigma);
                 if (verbose2) {
@@ -351,7 +355,7 @@ class MeasurementSite {
                         if (verbose2) System.out.format("   MeasurementSite.makePrediction: rejecting hit %d with t=%8.2f cutval=%10.6f, t-range=%9.3f-%9.3f\n", hitID, hitTime,cutVal,tRange[0],tRange[1]);
                     }
                 }
-                if (verbose) {
+                if (debug) {
                     System.out.format("MeasurementSite.makePrediction: chi2 increment=%12.5e, hitID=%d, theHit=%d, mxResid=%12.5e, rF=%d\n",
                             chi2inc, hitID, theHit, cut, returnFlag);
                 }
@@ -397,24 +401,24 @@ class MeasurementSite {
         aF.r = hit.v - aF.mPred;
 
         // Recalculate H using the filtered state vector (this makes a minor difference)
-        H = new Vec(5, buildH(aF));
+        buildH(aF, H);
 
         // Another numerical test of the derivatives in H
-        if (verbose) {
-            H.print("H corresponding to aF");
-
+        if (debug) {
             StateVector tS = aF.copy();
             Vec da = new Vec(5);
             double[] del = { 0.009, -0.005, -0.01, 0.013, 0.011 };
             for (int i = 0; i < 5; i++) { da.v[i] = aF.helix.a.v[i] * del[i]; }
             tS.helix.a = tS.helix.a.sum(da);
             double dxTrue = h(tS, m) - aF.mPred;
-            double dxH = H.dot(da);
+            Vec Hv = StateVector.mToVec(H);
+            double dxH = Hv.dot(da);
             System.out.format("Measurementsite.predict: dm True=%10.5f,   dm approx by H=%10.5f\n\n", dxTrue, dxH);
         }
 
         // Calculate the filtered covariance of the residual
-        aF.R = V - H.dot(H.leftMultiply(aF.helix.C));
+        CommonOps_DDRM.mult(aF.helix.C, H, tempV);
+        aF.R = V - CommonOps_DDRM.dot(H, tempV);
 
         //System.out.format("MeasurmentSite.filter: R=%10.8f\n", aF.R);
         if (aF.R < 0) {
@@ -453,12 +457,12 @@ class MeasurementSite {
         int theHit = -1;
         double [] tRange = {tkr.tMax - mxTdif, tkr.tMin + mxTdif};
         hitList: for (int hitidx = 0; hitidx < m.hits.size(); hitidx++) {
-            if (verbose) System.out.format("MeasurementSite.addHit: trying hit %d.  OldID=%d\n", hitidx, oldID);
+            if (debug) System.out.format("MeasurementSite.addHit: trying hit %d.  OldID=%d\n", hitidx, oldID);
             if (hitidx == oldID) {
                 continue; // don't add a hit that was just removed
             }
             Measurement hit = m.hits.get(hitidx);
-            if (verbose) hit.print("to try");
+            if (debug) hit.print("to try");
             for (KalTrack tkOther: hit.tracks) {
                 if (tkOther != tkr) continue hitList; // ignore already used hits
             }
@@ -476,7 +480,7 @@ class MeasurementSite {
             double residual = hit.v - mPred;
             double var = hit.sigma * hit.sigma;
             double chi2inc = (residual * residual) / var;
-            if (verbose) System.out.format("MeasurementSite.addHit:residual=%10.5f, variance=%10.5f, chi2inc=%10.5f\n", residual, var, chi2inc);
+            if (debug) System.out.format("MeasurementSite.addHit:residual=%10.5f, variance=%10.5f, chi2inc=%10.5f\n", residual, var, chi2inc);
             if (chi2inc < chi2incMin) {
                 chi2incMin = chi2inc;
                 theHit = hitidx;
@@ -487,9 +491,9 @@ class MeasurementSite {
             if (chi2incMin < mxResid*mxResid && hit.time < tRange[1] && hit.time > tRange[0]) {
                 hitID = theHit;
                 if (filter()) {
-                    if (verbose) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
+                    if (debug) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
                     if (chi2inc < cut) {
-                        if (verbose) {
+                        if (debug) {
                             System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
                             hit.print("short");
                             System.out.format("\n");
@@ -526,25 +530,26 @@ class MeasurementSite {
             logger.log(Level.FINE, "MeasurementSite.smooth: no intersection of helix with the plane exists.");
             return false;
         }
-        this.aS.mPred = this.h(aS, m, phiS);
-        this.aS.r = hit.v - this.aS.mPred;
+        aS.mPred = h(aS, m, phiS);
+        aS.r = hit.v - aS.mPred;
 
         // Recalculate H using the smoothed helix parameters. Usually this makes little difference, but with the
         // non-uniform field this seems to reduce tails significantly in residuals of the last SVT layers.
-        H = new Vec(5, buildH(aS));
+        buildH(aS, H);
 
-        this.aS.R = V - this.H.dot(this.H.leftMultiply(this.aS.helix.C));
-        if (this.aS.R < 0) {
-            if (verbose) System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", this.aS.R);
+        CommonOps_DDRM.mult(aS.helix.C, H, tempV);
+        aS.R = V - CommonOps_DDRM.dot(H, tempV);
+        if (aS.R < 0) {
+            if (debug) System.out.format("MeasurementSite.smooth, measurement covariance %12.4e is negative\n", aS.R);
             //aS.print("the smoothed state");
             //nS.print("the next site in the chain");
-            this.aS.R = 0.25*V;  // A negative covariance makes no sense, hence this fudge
+            aS.R = 0.25*V;  // A negative covariance makes no sense, hence this fudge
         }
 
-        this.chi2inc = (this.aS.r * this.aS.r) / this.aS.R;
+        chi2inc = (aS.r * aS.r) / aS.R;
 
-        logger.log(Level.FINEST, String.format("  MeasurementSite.smooth: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%8.5f", 
-                hit.v, aS.mPred, aS.r, FastMath.sqrt(aS.R), chi2inc));
+        if (debug) System.out.format("  MeasurementSite.smooth: hit=%10.6f pred=%10.6f resid=%10.7f err=%10.7f chi2inc=%8.5f", 
+                hit.v, aS.mPred, aS.r, FastMath.sqrt(aS.R), chi2inc);
         this.smoothed = true;
         return true;
     }
@@ -561,7 +566,7 @@ class MeasurementSite {
     double h(StateVector pS, SiModule siM, double phi) { // Shortcut call in case phi is already known
         Vec rGlobal = pS.helix.toGlobal(pS.helix.atPhi(phi));
         Vec rLocal = siM.toLocal(rGlobal); // Rotate into the detector coordinate system
-        if (verbose) {
+        if (debug) {
             rGlobal.print("MeasurementSite.h: global intersection");
             rLocal.print("MeasurementSite.h: local intersection");
             System.out.format("MeasurementSite.h: phi=%12.5e, detector coordinate out of the plane = %10.7f, h=%10.7f\n", phi, rLocal.v[2],
@@ -571,15 +576,14 @@ class MeasurementSite {
     }
 
     // Create the derivative matrix for prediction of the measurement from the helix
-    private double[] buildH(StateVector S) {
-        double[] HH = new double[5];
+    private void buildH(StateVector S, DMatrixRMaj H) {
         double phi = S.helix.planeIntersect(m.p);
 
         if (Double.isNaN(phi)) { // There may be no intersection if the momentum is too low, but highly unlikely here.
             logger.log(Level.FINE, "MeasurementSite.buildH: no intersection of helix with the plane exists.");
-            return HH;
+            return;
         }
-        if (verbose) {
+        if (debug) {
             System.out.format("MeasurementSite.buildH: phi=%10.7f\n", phi);
             // S.print("given to buildH");
             // R.print("in buildH");
@@ -617,13 +621,15 @@ class MeasurementSite {
         }
         RotMatrix Rt = m.Rinv.multiply(S.helix.Rot.invert());
         for (int i = 0; i < 5; i++) { 
+            double HHi = 0;
             for (int j = 0; j < 3; j++) { 
-                HH[i] += Rt.M[1][j] * DxDa[j][i]; 
-            } 
+                HHi += Rt.M[1][j] * DxDa[j][i]; 
+            }
+            H.unsafe_set(i, 0, HHi);
         }
 
         // Testing the derivatives
-        if (verbose) {
+        if (debug) {
             StateVector sVp = S.copy();
             double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
             for (int i = 0; i < 5; i++) { sVp.helix.a.v[i] = sVp.helix.a.v[i] * (1.0 + daRel[i]); }
@@ -657,10 +663,9 @@ class MeasurementSite {
             x2Local.print("x2Local");
             System.out.format("mP1=%10.5f,   mP2=%10.5f\n", mP1, mP2);
             double dm = 0.;
-            for (int i = 0; i < 5; i++) { dm += HH[i] * da.v[i]; }
+            for (int i = 0; i < 5; i++) { dm += H.get(i,0) * da.v[i]; }
             System.out.format("Test of H matrix: dm=%10.8f,  dmExact=%10.8f\n\n", dm, dmExact);
         }
-        return HH;
     }
 
     // Comparator functions for sorting measurement sites by layer number
