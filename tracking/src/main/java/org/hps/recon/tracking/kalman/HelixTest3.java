@@ -1114,7 +1114,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         double endTime = (double)(ldt.getMinute())*60. + (double)(ldt.getSecond()) + (double)(ldt.getNano())/1e9;
         double elapsedTime = endTime - startTime;
         System.out.format("Total elapsed time = %10.5f\n", elapsedTime);
-        System.out.format("Elapsed time for executing the Kalman filter = %10.3f ms\n", executionTime);
+
+        System.out.format("Elapsed time for Kalman Filter = %10.4f ms\n", executionTime);
 
         hGaus.plot(path + "Gaussian.gp", true, "gaus", " ");
         hReducedErr.plot(path + "ReducedErr.gp", true, " ", " ");
