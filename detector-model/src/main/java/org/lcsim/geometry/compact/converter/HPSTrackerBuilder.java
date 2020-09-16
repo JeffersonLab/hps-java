@@ -60,7 +60,7 @@ public abstract class HPSTrackerBuilder {
      * Extract alignment constants from xml description
      */
     private void initAlignmentParameters() {
-        debug = true;
+        
         if (debug)
             System.out.printf("%s: initAlignmentParameters from %s\n", this.getClass().getSimpleName(),
                     node.getAttributeValue("name"));
@@ -109,7 +109,7 @@ public abstract class HPSTrackerBuilder {
                 System.out.printf("%s: %s \n", this.getClass().getSimpleName(), p.toString());
         }
 
-        debug = false;
+        
     }
 
 
