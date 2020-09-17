@@ -58,6 +58,8 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                 CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
                 int ix = seed.getIdentifierFieldValue("ix");
                 int iy = seed.getIdentifierFieldValue("iy");
+                int channelId = ecalConditions.getChannelCollection().findGeometric(seed.getCellID()).getChannelId();
+//                System.out.println("ix " + ix + " iy " + iy + " channel ID " + channelId);
                 aida.histogram2D("Event Cluster ix vs iy", 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
                 String half = cluster.getPosition()[1] > 0. ? "Top " : "Bottom ";
                 aida.histogram1D(half + "Event Cluster Energy", 100, 0., 6.).fill(cluster.getEnergy());
@@ -189,6 +191,7 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
             int ix = seed.getIdentifierFieldValue("ix");
             int iy = seed.getIdentifierFieldValue("iy");
+            int channelId = ecalConditions.getChannelCollection().findGeometric(seed.getCellID()).getChannelId();
             String fid = TriggerModule.inFiducialRegion(cluster) ? "fiducial " : "edge ";
             aida.histogram1D(fid + type + " single-crystal cluster energy", 50, 0.1, 0.3).fill(cluster.getEnergy());
             aida.histogram1D(fid + type + " single-crystal cluster track momentum", 100, 0., 5.).fill(trackMomentum);
@@ -216,7 +219,10 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                 for (CalorimeterHit ngh : noGainCalHits) {
                     if (ngh.getCellID() == seed.getCellID()) {
                         aida.histogram1D(ix + " " + iy + " " + type + " no gain ADC sum", 50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
-                        aida.histogram1D(runNumber + " " + ix + " " + iy + " " + type + " no gain ADC sum", 50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
+                        aida.tree().mkdirs(runNumber + "");
+                        aida.tree().cd(runNumber + "");
+                        aida.histogram1D(runNumber + " " + channelId + " " + ix + " " + iy + " " + type + " no gain ADC sum", 50, 0.5, 3.0).fill(ngh.getCorrectedEnergy());
+                        aida.tree().cd("..");
                     }
                 }
             } else {
