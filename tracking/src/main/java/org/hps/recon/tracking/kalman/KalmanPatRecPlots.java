@@ -33,8 +33,11 @@ import org.lcsim.util.aida.AIDA;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.physics.vec.Hep3Vector;
-
-// Histograms and plots for Kalman Filter pattern recognition development
+/**
+ * Histograms and plots for Kalman Filter pattern recognition development
+ * @author Robert Johnson
+ *
+ */
 class KalmanPatRecPlots {
     private KalmanInterface KI;
     private AIDA aida;

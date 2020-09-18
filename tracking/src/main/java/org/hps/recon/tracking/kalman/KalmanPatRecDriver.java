@@ -32,9 +32,11 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import org.lcsim.geometry.IDDecoder;
-
-// $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
-
+/**
+ * Driver for pattern recognition and fitting of HPS tracks using the Kalman Filter
+ * @author Robert Johnson and Pierfrancesco Butti
+ *
+ */
 public class KalmanPatRecDriver extends Driver {
 
     IDDecoder decoder;

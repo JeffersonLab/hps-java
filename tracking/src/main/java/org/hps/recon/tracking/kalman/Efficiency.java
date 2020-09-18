@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-
-//This is for testing only and is not part of the Kalman fitting code
+/**
+ * This is for stand-alone testing only and is not part of the Kalman fitting code
+ * @author Robert Johnson
+ *
+ */
 public class Efficiency {
     int N;
     double BW, B0;

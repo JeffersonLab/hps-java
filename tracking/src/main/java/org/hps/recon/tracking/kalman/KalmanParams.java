@@ -3,8 +3,11 @@ package org.hps.recon.tracking.kalman;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-// Parameters used by the Kalman-Filter pattern recognition and fitting
+/**
+ * Parameters used by the Kalman-Filter pattern recognition and fitting
+ * @author Robert Johnson
+ *
+ */ 
 public class KalmanParams {
     static final int mxTrials = 2;  // Max number of iterations through the entire pattern recognition; not configurable
     int nTrials;                    // Number of iterations through the entire pattern recognition

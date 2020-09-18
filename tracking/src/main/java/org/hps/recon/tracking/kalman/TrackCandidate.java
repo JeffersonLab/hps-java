@@ -1,5 +1,4 @@
 package org.hps.recon.tracking.kalman;
-// Used by KalmanPatRecHPS to store information for candidate tracks
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,7 +8,10 @@ import java.util.logging.Logger;
 
 import org.apache.commons.math.util.FastMath;
 import org.ejml.dense.row.CommonOps_DDRM;
-
+/**
+ * Used by KalmanPatRecHPS Kalman-Filter based pattern recognition to store information for candidate tracks
+ * @author Robert Johnson
+ */
 class TrackCandidate {
     int ID;
     private Map<Measurement, KalHit> hitMap;

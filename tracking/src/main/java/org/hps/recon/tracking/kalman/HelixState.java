@@ -13,8 +13,12 @@ import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.fixed.CommonOps_DDF3;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
-
-// Helix description for the Kalman filter
+/**
+ * 
+ * Helix description for the Kalman filter
+ * @author Robert Johnson
+ *
+ */
 class HelixState implements Cloneable {
     Vec a;                      // Helix parameters: rho0, phi0, K, z0, tan(lambda)
     Vec X0;                     // Pivot point of helix in the B-field reference frame (local field coordinates)

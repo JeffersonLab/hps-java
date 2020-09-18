@@ -19,8 +19,11 @@ import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
-
-//This is for testing only and is not part of the Kalman fitting code
+/**
+ * This is for stand-alone testing of the Kalman fit only and is not part of the HPS Kalman fitting code package
+ * @author Robert Johnson
+ *
+ */
 class HelixTest3 { // Program for testing the Kalman fitting code
 
     // Coordinate system:

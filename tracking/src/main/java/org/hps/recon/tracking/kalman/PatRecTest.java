@@ -15,8 +15,11 @@ import java.util.Set;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.util.Pair;
-
-//This is for testing only and is not part of the Kalman fitting code
+/**
+ * This is for stand-alone testing of the pattern recognition only and is not part of the Kalman fitting code
+ * @author Robert Johnson
+ *
+ */
 class PatRecTest {
 
     Random rnd;

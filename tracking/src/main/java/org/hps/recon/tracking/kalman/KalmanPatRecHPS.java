@@ -15,23 +15,26 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.hps.util.Pair;
-
-// Tracking pattern recognition for the HPS experiment based on an extended Kalman filter
-// Algorithm:
-//    1. Loop over starting strategies, each involving at least 3 stereo planes and 2 non-stereo planes
-//    2. Make all possible seeds by selecting a hit from each of the 5 planes
-//    3. Do a linear helix fit to the 5 hits in each seed and select helices that project near to the target origin
-//    4. Sort the seeds by quality and then loop over them and use them to start the Kalman filter working outward toward the ECAL
-//         Smooth back to the beginning of the seed and then filter inward toward the vertex to make a candidate track.
-//         The seed hits always remain on the track candidate.
-//         On other layers the track candidate picks up the best fitting hit.
-//         Hits not from the seed can be dropped to try to get a good fit.
-//         Only decent quality candidates are kept.
-//         Don't keep candidates that are identical in hit content to candidates already found
-//    5. Sort all the track candidates by quality
-//    6. Remove hits from track candidates that are used by better candidates, unless the hits can be shared
-//    7. Track candidates without enough hits remaining get dropped, the others get refit
-
+/**
+ * Tracking pattern recognition for the HPS experiment based on an extended Kalman filter
+ * Algorithm:
+ *    1. Loop over starting strategies, each involving at least 3 stereo planes and 2 non-stereo planes
+ *    2. Make all possible seeds by selecting a hit from each of the 5 planes
+ *    3. Do a linear helix fit to the 5 hits in each seed and select helices that project near to the target origin
+ *    4. Sort the seeds by quality and then loop over them and use them to start the Kalman filter working outward toward the ECAL
+ *         Smooth back to the beginning of the seed and then filter inward toward the vertex to make a candidate track.
+ *         The seed hits always remain on the track candidate.
+ *         On other layers the track candidate picks up the best fitting hit.
+ *         Hits not from the seed can be dropped to try to get a good fit.
+ *         Only decent quality candidates are kept.
+ *         Don't keep candidates that are identical in hit content to candidates already found
+ *    5. Sort all the track candidates by quality
+ *    6. Remove hits from track candidates that are used by better candidates, unless the hits can be shared
+ *    7. Track candidates without enough hits remaining get dropped, the others get refit
+ *
+ * @author Robert Johnson
+ *
+ */
 class KalmanPatRecHPS {
 
     private ArrayList<KalTrack> TkrList; // Final good tracks

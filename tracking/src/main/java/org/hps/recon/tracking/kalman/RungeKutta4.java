@@ -1,10 +1,13 @@
 package org.hps.recon.tracking.kalman;
 
 import org.apache.commons.math.util.FastMath;
-
-// Propagate a charged particle according to the magnetic field map by 4th order Runge Kutta integration.
-// Note that the coordinate system is the Kalman-Filter-code system, as that is what the field-map routine
-// called here assumes.
+/**
+ * Propagate a charged particle according to the magnetic field map by 4th order Runge Kutta integration.
+ * Note that the coordinate system is the Kalman-Filter-code system, as that is what the field-map routine
+ * called here assumes.
+ * @author Robert Johnson
+ *
+ */
 public class RungeKutta4 {
 
     private double h;

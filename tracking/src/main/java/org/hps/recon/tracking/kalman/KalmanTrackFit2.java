@@ -7,11 +7,15 @@ import java.util.logging.Logger;
 
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
-
-//Driver program for executing a Kalman fit.  This version starts at layer N, filters to layer 0,
-//then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
-//back to layer 0. The code assumes that the SiModules hold all the hits to be fit and only those hits.
-//No pattern recognition is done; no hits are dropped.
+/**
+ * Driver program for executing a Kalman refit of existing tracks.  This version starts at layer N, filters to layer 0,
+ * then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
+ * back to layer 0. The code assumes that the SiModules hold all the hits to be fit and only those hits.
+ * No pattern recognition is done; no hits are dropped.
+ * 
+ * @author Robert Johnson
+ *
+ */
 class KalmanTrackFit2 {
 
     ArrayList<MeasurementSite> sites;

@@ -1,6 +1,11 @@
 package org.hps.recon.tracking.kalman;
-
-class SquareMatrix { // Simple matrix package strictly for N by N matrices needed by the Kalman fitter
+/**
+ * Simple matrix package strictly for N by N matrices needed by the Kalman fitter. Most of its usage has
+ * been replaced by non-object-oriented EJML routines, for speed.
+ * @author Robert Johnson
+ *
+ */
+class SquareMatrix { // 
     double[][] M = null;
     int N;
 

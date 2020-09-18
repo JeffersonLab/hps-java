@@ -3,11 +3,13 @@ package org.hps.recon.tracking.kalman;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-
-// This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
-// It can be used to refit the hits on an existing hps track, or it can be used to drive the pattern recognition.
-// However, both cannot be done at the same time. The interface must be reset between doing one and the other. 
-
+/**
+ * 
+ *  This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
+ *  It can be used to refit the hits on an existing hps track, or it can be used to drive the pattern recognition.
+ *  However, both cannot be done at the same time. The interface must be reset between doing one and the other. 
+ *  @author Robert Johnson and Miriam Diamond
+ */
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

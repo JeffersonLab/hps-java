@@ -1,6 +1,9 @@
 package org.hps.recon.tracking.kalman;
 
-//import hep.physics.matrix.SymmetricMatrix;
+/**
+ * Driver for refitting existing GBL using the Kalman filter
+ * @author Miriam Diamond, Robert Johnson
+ */
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 

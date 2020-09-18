@@ -6,12 +6,16 @@ import java.util.Comparator;
 import org.apache.commons.math.util.FastMath;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
-
-// Fit a line/parabola approximation of a helix to a set of measurement points.
-// The line and parabola are fit simultaneously in order to handle properly the stereo layers.
-// The pivot of the helix is assumed to be the origin of the coordinate system, but the
-// coordinate system in which the helix is described may be rotated slightly with respect to
-// the global coordinates, in order to optimize its alignment with the field.
+/**
+ * 
+ * Fit a line/parabola approximation of a helix to a set of measurement points.
+ * The line and parabola are fit simultaneously in order to handle properly the stereo layers.
+ * The pivot of the helix is assumed to be the origin of the coordinate system, but the
+ * coordinate system in which the helix is described may be rotated slightly with respect to
+ * the global coordinates, in order to optimize its alignment with the field.
+ * @author Robert Johnson
+ *
+ */
 class SeedTrack {
     boolean success;
     ArrayList<KalHit> hits; // Save information for the hit used in each layer
