@@ -46,7 +46,7 @@ class KalmanPatRecHPS {
     private ArrayList<Double> XLscat;
 
     private int eventNumber;
-    private final static boolean debug = false;
+    private static final boolean debug = false;
     private int nModules;
     private KalmanParams kPar;
     private Logger logger;
@@ -370,7 +370,7 @@ class KalmanPatRecHPS {
                             continue seedLoop;
                         }
                     }
-                    // Skip seeds that are already on a track found and saved in this iteration
+                    // Skip seeds that are already on a track that has already been found and saved
                     if (TkrList.size() > 0) {
                         for (KalHit ht : seed.hits) {
                             if (ht.hit.tracks.size()>0) {
@@ -962,6 +962,10 @@ class KalmanPatRecHPS {
                             int idx = TkrList.indexOf(tkr);
                             if (idx < 0) {
                                 logger.log(Level.WARNING,String.format("Bad reference from hit to track. Track %d, Layer = %d\n", tkr.ID, module.Layer));
+                                //module.print("with bad reference");
+                                //for (KalTrack tkr2 : TkrList) {
+                                //    tkr2.print("all tracks");
+                                //}
                             } else {
                                 if (idx < minIDX) {
                                     minIDX = idx;
@@ -1096,6 +1100,7 @@ class KalmanPatRecHPS {
                 TkrList.remove(tkr);
                 for (MeasurementSite site : tkr.SiteList) {
                     if (site.hitID!=-1) {
+                        if (debug) System.out.format("      removing hit %d from site on layer %d, detector %d\n", site.hitID, site.m.Layer, site.m.detector);
                         site.m.hits.get(site.hitID).tracks.remove(tkr);
                         site.removeHit();
                     }
@@ -1166,7 +1171,7 @@ class KalmanPatRecHPS {
             filteredTkr.chi2s += Math.max(currentSite.chi2inc, 0.);
 
             nextSite = currentSite;
-            if (debug) currentSite.print("smoothed");
+            //if (debug) currentSite.print("smoothed");
         }
         filteredTkr.smoothed = true;
     }

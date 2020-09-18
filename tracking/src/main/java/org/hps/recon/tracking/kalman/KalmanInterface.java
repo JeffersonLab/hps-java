@@ -809,7 +809,7 @@ public class KalmanInterface {
             if (debug) { module.print("SiModule-filled"); }
         }
         if (hitsFilled > 0) success = true;
-        if (debug) System.out.format("KalmanInterface.fillAllMeasurements: %d hits were filled into Si Modules\n", hitsFilled);
+        if (debug) System.out.format("KalmanInterface.fillAllSimHits: %d hits were filled into Si Modules\n", hitsFilled);
 
         return success;
     }
@@ -1138,9 +1138,9 @@ public class KalmanInterface {
             ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
             for (SiModule SiM : SiMlist) {
                 if (topBottom == 0) {
-                    if (SiM.p.X().v[2] < 0) continue;
+                    if (SiM.p.X().v[2] < 0.) continue;
                 } else {
-                    if (SiM.p.X().v[2] > 0) continue;
+                    if (SiM.p.X().v[2] > 0.) continue;
                 }
                 SiMoccupied.add(SiM);  // Need to keep all of these even if there are no hits!!!!!!
             }

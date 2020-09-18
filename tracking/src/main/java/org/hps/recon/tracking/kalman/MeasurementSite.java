@@ -440,7 +440,7 @@ class MeasurementSite {
 
     // Inverse Kalman filter: remove this site from the smoothed track fit
     boolean removeHit() {
-        if (hitID < 0) { return false; }
+        if (hitID < 0) return false;
         hitID = -1;
         chi2inc = 0.;
         smoothed = false;

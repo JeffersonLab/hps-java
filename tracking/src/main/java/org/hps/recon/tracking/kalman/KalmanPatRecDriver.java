@@ -299,7 +299,6 @@ public class KalmanPatRecDriver extends Driver {
             ArrayList<KalTrack> kPat = kPatList[topBottom];
             if (kPat.size() == 0) {
                 logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: pattern recognition failed to find tracks in tracker %d for event %d.", topBottom, evtNumb));
-                return;
             }
             for (KalTrack kTk : kPat) {
                 if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",topBottom));
@@ -406,7 +405,6 @@ public class KalmanPatRecDriver extends Driver {
         
         KI.clearInterface();
         logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));
-        
 
         return;
     }
