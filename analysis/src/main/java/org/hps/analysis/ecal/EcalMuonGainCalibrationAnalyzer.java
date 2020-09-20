@@ -31,7 +31,8 @@ public class EcalMuonGainCalibrationAnalyzer {
         AIDA aida = AIDA.defaultInstance();
         int[] plotRegion = {0, 0, 2, 4, 1, 3};
 
-        String plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/20200919/hps_010698_HPS_TY_iter4_muEcalGainCalibration.aida";
+//        String plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/20200919/hps_010698_HPS_TY_iter4_muEcalGainCalibration.aida";
+        String plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/20200919/hps_010261_HPS_TY_iter4_muEcalGainCalibration.aida";
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         ITree tree = analysisFactory.createTreeFactory().create(new File(plotFile).getAbsolutePath());
         IDataPointSetFactory dpsf = analysisFactory.createDataPointSetFactory(tree);
