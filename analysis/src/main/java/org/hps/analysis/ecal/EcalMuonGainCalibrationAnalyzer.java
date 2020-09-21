@@ -18,7 +18,9 @@ import java.io.IOException;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.lcsim.util.aida.AIDA;
 
 /**
@@ -30,9 +32,37 @@ public class EcalMuonGainCalibrationAnalyzer {
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         AIDA aida = AIDA.defaultInstance();
         int[] plotRegion = {0, 0, 2, 4, 1, 3};
-
+        boolean showPlots = true;
+        boolean writePlots = false;
+        String plotDir = "dimuon";
+        String fileType = "pdf"; // png, pdf, eps ps svg emf swf
 //        String plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/20200919/hps_010698_HPS_TY_iter4_muEcalGainCalibration.aida";
         String plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/20200919/hps_010261_HPS_TY_iter4_muEcalGainCalibration.aida";
+        // parse command-line arguments
+        if (args.length == 0) {
+            System.out.println("Usage: java EcalMuonCalibrationAnalysisDriver histogramFile.aida <plotDir> <filetype>");
+            System.out.println("       available dirs are 'dimuon' , 'dimuon one cluster' and 'single muon' ");
+            System.out.println("       if plotDir is not specified, plots from 'single muon' will be analyzed");
+            System.out.println("       if filetype not specified, plots will be shown interactively");
+            System.out.println("       if filetype is specified, plots will be written to that format");
+            System.out.println("       available formats are: png, pdf, eps ps svg emf swf");
+            return;
+        }
+        if (args.length > 0) {
+            plotFile = args[0];
+        }
+        if (args.length > 1) {
+            plotDir = args[1];
+        }
+        if (args.length > 2) {
+            showPlots = false;
+            writePlots = true;
+            fileType = args[2];
+        }
+        Map<String, String> titleMap = new HashMap<>();
+        titleMap.put("dimuon", "diMuon");
+        titleMap.put("dimuon one cluster", "diMuonOneCluster");
+        titleMap.put("single muon", "singleMuon");
         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
         ITree tree = analysisFactory.createTreeFactory().create(new File(plotFile).getAbsolutePath());
         IDataPointSetFactory dpsf = analysisFactory.createDataPointSetFactory(tree);
@@ -65,40 +95,48 @@ public class EcalMuonGainCalibrationAnalyzer {
         // Get the histograms names.
         List<String> objectNameList = getTreeFiles(tree);
         String[] types = {"mu+", "mu-"};
-        List<IPlotter> plotters = new ArrayList<>();
+//        List<IPlotter> plotters = new ArrayList<>();
 
         String plotToFit = "no gain ADC sum";
-        String plotDir = "dimuon";
+
         double rms = 0.2;
 
         for (int ix = -23; ix < 24; ++ix) {
             for (int j = -1; j < 2; j = j + 2) {
                 String type = ix < 0 ? types[1] : types[0];
                 IDataPointSet dps1D = dpsf.create("dps1D", "Gaussian Mean", 1);
-                IPlotter tst = analysisFactory.createPlotterFactory().create("ECal MIP Gaussian mean");
-                tst.setParameter("plotterWidth", "1600");
-                tst.setParameter("plotterHeight", "900");
-                tst.createRegions(3, 2);
-                IPlotterStyle style = tst.region(5).style();
+                String torb = j < 0 ? "bottom" : "top";
+                //TODO fix title to include run number or input histogram name
+                String title = titleMap.get(plotDir) + "_ECal_MIP_Gaussian_mean_column_" + ix + "_" + torb;
+                IPlotter plotter = analysisFactory.createPlotterFactory().create(title);
+                plotter.setParameter("plotterWidth", "1600");
+                plotter.setParameter("plotterHeight", "900");
+                plotter.createRegions(3, 2);
+                IPlotterStyle style = plotter.region(5).style();
                 style.dataStyle().lineStyle().setVisible(false);
-                String[] lineTypes = style.dataStyle().lineStyle().availableLineTypes();
-                System.out.println(Arrays.toString(lineTypes));
+//                String[] lineTypes = style.dataStyle().lineStyle().availableLineTypes();
+//                System.out.println(Arrays.toString(lineTypes));
                 style.dataStyle().markerStyle().setParameter("color", "blue");
                 style.dataStyle().markerStyle().setShape("circle");
+                style.dataStyle().errorBarStyle().setParameter("color", "blue");
+                style.dataStyle().lineStyle().setParameter("color", "red");
+//                String[] parms = style.dataStyle().markerStyle().availableParameters();
+//                System.out.println(Arrays.toString(parms));
+               
                 for (int yy = 1; yy < 6; ++yy) {
 
                     int iy = yy * j;
                     String histoName = ix + " " + iy + " " + type + " " + plotToFit;
                     System.out.println("/" + plotDir + "/clusterAnalysis/" + histoName);
-                    dps1D.addPoint();
+                    dps1D.addPoint(); // do this here in case fit fails.
                     if (objectNameList.contains("/" + plotDir + "/clusterAnalysis/" + histoName)) {
                         IHistogram1D hist = (IHistogram1D) tree.find("/" + plotDir + "/clusterAnalysis/" + histoName);
                         IFitResult fitResult = fitit(hist, fitter, gaussian, rms);
-                        tst.region(plotRegion[abs(iy)]).plot(hist, dataStyle);
+                        plotter.region(plotRegion[abs(iy)]).plot(hist, dataStyle);
                         if (fitResult != null) {
                             double lo = fitResult.fittedFunction().parameters()[1] - rms;
                             double hi = fitResult.fittedFunction().parameters()[1] + rms;
-                            tst.region(plotRegion[abs(iy)]).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
+                            plotter.region(plotRegion[abs(iy)]).plot(fitResult.fittedFunction(), functionStyle, "range=\"(" + lo + "," + hi + ")\"");
 
                             String[] paramNames = fitResult.fittedParameterNames();
                             double[] params = fitResult.fittedParameters();
@@ -121,8 +159,13 @@ public class EcalMuonGainCalibrationAnalyzer {
                     }
                 }
 
-                tst.region(5).plot(dps1D);
-                tst.show();
+                plotter.region(5).plot(dps1D);
+                if (showPlots) {
+                    plotter.show();
+                }
+                if (writePlots) {
+                    plotter.writeToFile(title + "." + fileType);
+                }
             }
 //            String[] plotterParameters = tst.availableParameters();
 //            System.out.println(Arrays.toString(plotterParameters));
