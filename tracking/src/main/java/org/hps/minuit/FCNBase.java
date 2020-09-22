@@ -5,8 +5,8 @@ package org.hps.minuit;
  */
 public interface FCNBase
 {
-   /**
-    * Returns the value of the function with the given parameters.
-    */
-   double valueOf(double[] par);
+    /**
+     * Returns the value of the function with the given parameters.
+     */
+    double valueOf(double[] par);
 }

@@ -35,145 +35,145 @@ package org.hps.minuit;
  */
 public class MnStrategy
 {
-   //default strategy
-   /**
-    * Creates a MnStrategy object with the default strategy (medium)
-    */
-   public MnStrategy()
-   {
-      setMediumStrategy();
-   }
+    //default strategy
+    /**
+     * Creates a MnStrategy object with the default strategy (medium)
+     */
+    public MnStrategy()
+        {
+            setMediumStrategy();
+        }
    
-   //user defined strategy (0, 1, >=2)
-   /**
-    * Creates a MnStrategy object with the user specified strategy.
-    * @param stra The use defined strategy, 0=low, 1 medium, 2=high.
-    */
-   public MnStrategy(int stra)
-   {
-      if(stra == 0) setLowStrategy();
-      else if(stra == 1) setMediumStrategy();
-      else setHighStrategy();
-   }
+    //user defined strategy (0, 1, >=2)
+    /**
+     * Creates a MnStrategy object with the user specified strategy.
+     * @param stra The use defined strategy, 0=low, 1 medium, 2=high.
+     */
+    public MnStrategy(int stra)
+        {
+            if(stra == 0) setLowStrategy();
+            else if(stra == 1) setMediumStrategy();
+            else setHighStrategy();
+        }
    
-   public int strategy()
-   {
-      return theStrategy;
-   }
+    public int strategy()
+        {
+            return theStrategy;
+        }
    
-   public int gradientNCycles()
-   {
-      return theGradNCyc;
-   }
-   public double gradientStepTolerance()
-   {
-      return theGradTlrStp;
-   }
-   public double gradientTolerance()
-   {
-      return theGradTlr;
-   }
+    public int gradientNCycles()
+        {
+            return theGradNCyc;
+        }
+    public double gradientStepTolerance()
+        {
+            return theGradTlrStp;
+        }
+    public double gradientTolerance()
+        {
+            return theGradTlr;
+        }
    
-   public int hessianNCycles()
-   {
-      return theHessNCyc;
-   }
-   public double hessianStepTolerance()
-   {
-      return theHessTlrStp;
-   }
-   public double hessianG2Tolerance()
-   {
-      return theHessTlrG2;
-   }
-   public int hessianGradientNCycles()
-   {
-      return theHessGradNCyc;
-   }
+    public int hessianNCycles()
+        {
+            return theHessNCyc;
+        }
+    public double hessianStepTolerance()
+        {
+            return theHessTlrStp;
+        }
+    public double hessianG2Tolerance()
+        {
+            return theHessTlrG2;
+        }
+    public int hessianGradientNCycles()
+        {
+            return theHessGradNCyc;
+        }
    
-   public boolean isLow()
-   {
-      return theStrategy <= 0;
-   }
-   public boolean isMedium()
-   {
-      return theStrategy == 1;
-   }
-   public boolean isHigh()
-   {
-      return theStrategy >= 2;
-   }
+    public boolean isLow()
+        {
+            return theStrategy <= 0;
+        }
+    public boolean isMedium()
+        {
+            return theStrategy == 1;
+        }
+    public boolean isHigh()
+        {
+            return theStrategy >= 2;
+        }
    
-   public void setLowStrategy()
-   {
-      theStrategy = 0;
-      setGradientNCycles(2);
-      setGradientStepTolerance(0.5);
-      setGradientTolerance(0.1);
-      setHessianNCycles(3);
-      setHessianStepTolerance(0.5);
-      setHessianG2Tolerance(0.1);
-      setHessianGradientNCycles(1);
-   }
-   public void setMediumStrategy()
-   {
-      theStrategy = 1;
-      setGradientNCycles(3);
-      setGradientStepTolerance(0.3);
-      setGradientTolerance(0.05);
-      setHessianNCycles(5);
-      setHessianStepTolerance(0.3);
-      setHessianG2Tolerance(0.05);
-      setHessianGradientNCycles(2);
-   }
-   void setHighStrategy()
-   {
-      theStrategy = 2;
-      setGradientNCycles(5);
-      setGradientStepTolerance(0.1);
-      setGradientTolerance(0.02);
-      setHessianNCycles(7);
-      setHessianStepTolerance(0.1);
-      setHessianG2Tolerance(0.02);
-      setHessianGradientNCycles(6);
-   }
+    public void setLowStrategy()
+        {
+            theStrategy = 0;
+            setGradientNCycles(2);
+            setGradientStepTolerance(0.5);
+            setGradientTolerance(0.1);
+            setHessianNCycles(3);
+            setHessianStepTolerance(0.5);
+            setHessianG2Tolerance(0.1);
+            setHessianGradientNCycles(1);
+        }
+    public void setMediumStrategy()
+        {
+            theStrategy = 1;
+            setGradientNCycles(3);
+            setGradientStepTolerance(0.3);
+            setGradientTolerance(0.05);
+            setHessianNCycles(5);
+            setHessianStepTolerance(0.3);
+            setHessianG2Tolerance(0.05);
+            setHessianGradientNCycles(2);
+        }
+    void setHighStrategy()
+        {
+            theStrategy = 2;
+            setGradientNCycles(5);
+            setGradientStepTolerance(0.1);
+            setGradientTolerance(0.02);
+            setHessianNCycles(7);
+            setHessianStepTolerance(0.1);
+            setHessianG2Tolerance(0.02);
+            setHessianGradientNCycles(6);
+        }
    
-   public void setGradientNCycles(int n)
-   {
-      theGradNCyc = n;
-   }
-   public void setGradientStepTolerance(double stp)
-   {
-      theGradTlrStp = stp;
-   }
-   public void setGradientTolerance(double toler)
-   {
-      theGradTlr = toler;
-   }
+    public void setGradientNCycles(int n)
+        {
+            theGradNCyc = n;
+        }
+    public void setGradientStepTolerance(double stp)
+        {
+            theGradTlrStp = stp;
+        }
+    public void setGradientTolerance(double toler)
+        {
+            theGradTlr = toler;
+        }
    
-   public void setHessianNCycles(int n)
-   {
-      theHessNCyc = n;
-   }
-   public void setHessianStepTolerance(double stp)
-   {
-      theHessTlrStp = stp;
-   }
-   public void setHessianG2Tolerance(double toler)
-   {
-      theHessTlrG2 = toler;
-   }
-   public void setHessianGradientNCycles(int n)
-   {
-      theHessGradNCyc = n;
-   }
+    public void setHessianNCycles(int n)
+        {
+            theHessNCyc = n;
+        }
+    public void setHessianStepTolerance(double stp)
+        {
+            theHessTlrStp = stp;
+        }
+    public void setHessianG2Tolerance(double toler)
+        {
+            theHessTlrG2 = toler;
+        }
+    public void setHessianGradientNCycles(int n)
+        {
+            theHessGradNCyc = n;
+        }
    
-   private int theStrategy;
-   private int theGradNCyc;
-   private double theGradTlrStp;
-   private double theGradTlr;
-   private int theHessNCyc;
-   private double theHessTlrStp;
-   private double theHessTlrG2;
-   private int theHessGradNCyc;
+    private int theStrategy;
+    private int theGradNCyc;
+    private double theGradTlrStp;
+    private double theGradTlr;
+    private int theHessNCyc;
+    private double theHessTlrStp;
+    private double theHessTlrG2;
+    private int theHessGradNCyc;
 }

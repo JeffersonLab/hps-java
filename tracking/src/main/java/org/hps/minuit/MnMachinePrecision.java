@@ -9,43 +9,43 @@ package org.hps.minuit;
  */
 public class MnMachinePrecision
 {
-   MnMachinePrecision()
-   {
-      setPrecision(4.0E-7);
+    MnMachinePrecision()
+        {
+            setPrecision(4.0E-7);
       
-      double epstry = 0.5;
-      double one = 1.0;
-      for(int i = 0; i < 100; i++)
-      {
-         epstry *= 0.5;
-         double epsp1 = one + epstry;
-         double epsbak = epsp1 - one;
-         if(epsbak < epstry)
-         {
-            setPrecision(8.*epstry);
-            break;
-         }
-      }
-   }
-   /** eps returns the smallest possible number so that 1.+eps > 1. */
-   double eps()
-   {
-      return theEpsMac;
-   }
+            double epstry = 0.5;
+            double one = 1.0;
+            for(int i = 0; i < 100; i++)
+            {
+                epstry *= 0.5;
+                double epsp1 = one + epstry;
+                double epsbak = epsp1 - one;
+                if(epsbak < epstry)
+                {
+                    setPrecision(8.*epstry);
+                    break;
+                }
+            }
+        }
+    /** eps returns the smallest possible number so that 1.+eps > 1. */
+    double eps()
+        {
+            return theEpsMac;
+        }
    
-   /** eps2 returns 2*sqrt(eps) */
-   double eps2()
-   {
-      return theEpsMa2;
-   }
+    /** eps2 returns 2*sqrt(eps) */
+    double eps2()
+        {
+            return theEpsMa2;
+        }
    
-   /** override Minuit's own determination */
-   public void setPrecision(double prec)
-   {
-      theEpsMac = prec;
-      theEpsMa2 = 2.*Math.sqrt(theEpsMac);
-   }
+    /** override Minuit's own determination */
+    public void setPrecision(double prec)
+        {
+            theEpsMac = prec;
+            theEpsMa2 = 2.*Math.sqrt(theEpsMac);
+        }
    
-   private double theEpsMac;
-   private double theEpsMa2;
+    private double theEpsMac;
+    private double theEpsMa2;
 }

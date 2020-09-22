@@ -7,5 +7,5 @@ package org.hps.minuit;
  */
 interface MinimumSeedGenerator
 {
-  MinimumSeed generate(MnFcn fcn, GradientCalculator calc, MnUserParameterState user, MnStrategy stra);
+    MinimumSeed generate(MnFcn fcn, GradientCalculator calc, MnUserParameterState user, MnStrategy stra);
 }

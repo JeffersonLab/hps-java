@@ -11,10 +11,10 @@ package org.hps.minuit;
  */
 public interface FCNGradientBase extends FCNBase
 {
-   /**
-    * Calculate the function gradient with respect to each parameter at the 
-    * given point in parameter space. The size of the output gradient vector 
-    * must be equal to the size of the input parameter vector.
-    */
-   public double[] gradient(double[] par);
+    /**
+     * Calculate the function gradient with respect to each parameter at the 
+     * given point in parameter space. The size of the output gradient vector 
+     * must be equal to the size of the input parameter vector.
+     */
+    public double[] gradient(double[] par);
 }

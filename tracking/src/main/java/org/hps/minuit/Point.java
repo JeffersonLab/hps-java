@@ -6,11 +6,10 @@ package org.hps.minuit;
  */
 public class Point
 {
-    public Point(double first, double second)
-        {
-            this.first = first;
-            this.second = second;
-        }
+    public Point(double first, double second) {
+        this.first = first;
+        this.second = second;
+    }
     public double first;
     public double second;
 }

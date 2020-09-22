@@ -16,11 +16,19 @@ import org.apache.commons.math3.linear.RealVector;
 //import org.apache.commons.math3.linear.RealVectorFormat;
 
 import org.apache.commons.math3.special.Gamma;
+
+/*
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
 import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+*/
+
+import org.hps.minuit.FCNBase;
+import org.hps.minuit.FunctionMinimum;
+import org.hps.minuit.MnSimplex;
+import org.hps.minuit.MnUserParameters;
 
 import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
