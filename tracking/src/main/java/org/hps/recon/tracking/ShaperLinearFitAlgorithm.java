@@ -475,7 +475,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                     canFit = false;
                 }
                 
-                if (amplitudez[j] / sigma[firstUsedSample + j] > 0.5)
+                if (amplitudez[j] > 0.1)
                     OKamplitudes +=1;
                 
                 sc_mat_ejml.set(i, j, amplitudez[j] / sigma[firstUsedSample + j]);
