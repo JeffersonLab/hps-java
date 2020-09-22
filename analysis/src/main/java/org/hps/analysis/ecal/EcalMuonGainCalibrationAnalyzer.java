@@ -31,6 +31,13 @@ public class EcalMuonGainCalibrationAnalyzer {
 
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         AIDA aida = AIDA.defaultInstance();
+        String orientation = "landscape"; // or "portrait";
+        String plotterHeight = "1100";
+        String plotterWidth = "850";
+        if (orientation.equals("landscape")) {
+            plotterHeight = "900";
+            plotterWidth = "1600";
+        }
         int[] plotRegion = {0, 0, 2, 4, 1, 3};
         boolean showPlots = true;
         boolean writePlots = false;
@@ -109,8 +116,8 @@ public class EcalMuonGainCalibrationAnalyzer {
                 //TODO fix title to include run number or input histogram name
                 String title = titleMap.get(plotDir) + "_ECal_MIP_Gaussian_mean_column_" + ix + "_" + torb;
                 IPlotter plotter = analysisFactory.createPlotterFactory().create(title);
-                plotter.setParameter("plotterWidth", "1600");
-                plotter.setParameter("plotterHeight", "900");
+                plotter.setParameter("plotterWidth", plotterWidth);
+                plotter.setParameter("plotterHeight", plotterHeight);
                 plotter.createRegions(3, 2);
                 IPlotterStyle style = plotter.region(5).style();
                 style.dataStyle().lineStyle().setVisible(false);
@@ -122,7 +129,7 @@ public class EcalMuonGainCalibrationAnalyzer {
                 style.dataStyle().lineStyle().setParameter("color", "red");
 //                String[] parms = style.dataStyle().markerStyle().availableParameters();
 //                System.out.println(Arrays.toString(parms));
-               
+
                 for (int yy = 1; yy < 6; ++yy) {
 
                     int iy = yy * j;
@@ -165,6 +172,7 @@ public class EcalMuonGainCalibrationAnalyzer {
                 }
                 if (writePlots) {
                     plotter.writeToFile(title + "." + fileType);
+                    plotter.writeToFile(title + ".png");
                 }
             }
 //            String[] plotterParameters = tst.availableParameters();
