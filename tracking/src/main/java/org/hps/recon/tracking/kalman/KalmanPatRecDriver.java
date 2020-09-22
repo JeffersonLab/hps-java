@@ -278,7 +278,7 @@ public class KalmanPatRecDriver extends Driver {
                 "KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
         if (kPatList == null) {
-            logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
+            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
             return;
         }
         
@@ -293,7 +293,7 @@ public class KalmanPatRecDriver extends Driver {
         
         List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         if (rawhits == null) {
-            logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
+            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
             return;
         }
         
@@ -301,7 +301,7 @@ public class KalmanPatRecDriver extends Driver {
         int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
-                logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker for event %d.", evtNumb));
+                logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker for event %d.", evtNumb));
                 return;
             }
             for (KalTrack kTk : kPat.TkrList) {
@@ -310,7 +310,7 @@ public class KalmanPatRecDriver extends Driver {
                 for (int ix=0; ix<5; ++ix) {
                     for (int iy=0; iy<5; ++iy) {
                         if (Double.isNaN(covar[ix][iy])) {
-                            logger.log(Level.WARNING, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d",evtNumb,ix,iy,kTk.ID));
+                            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d",evtNumb,ix,iy,kTk.ID));
                         }
                     }
                 }                

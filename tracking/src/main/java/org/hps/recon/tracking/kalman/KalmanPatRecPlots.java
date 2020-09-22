@@ -94,10 +94,11 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman hit true error over uncertainty", 100, -5., 5.);
-        aida.histogram1D("Kalman track Momentum 11-hit", 100, 0., 5.);
-        aida.histogram1D("Kalman track Momentum 12-hit", 100, 0., 5.);
-        aida.histogram1D("Kalman track Momentum 13-hit", 100, 0., 5.);
-        aida.histogram1D("Kalman track Momentum 14-hit", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 11-hit", 120, 0., 6.);
+        aida.histogram1D("Kalman track Momentum 12-hit", 120, 0., 6.);
+        aida.histogram1D("Kalman track Momentum 13-hit", 120, 0., 6.);
+        aida.histogram1D("Kalman track Momentum 14-hit", 120, 0., 6.);
+        aida.histogram1D("Vertex constrained Kalman track Momentum 14-hit", 120, 0., 6.);
         aida.histogram1D("GBL momentum, >= 12 hits", 100, 0., 5.);
         aida.histogram1D("dRho", 100, -5., 5.);
         aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
@@ -116,6 +117,10 @@ class KalmanPatRecPlots {
         aida.histogram1D("phi0 error, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track drho",100,-5.,5.);
         aida.histogram1D("Kalman track dz",100,-2.,2.);
+        aida.histogram1D("Kalman track drho, 14-hit",100,-5.,5.);
+        aida.histogram1D("Kalman track dz, 14-hit",100,-2.,2.);
+        aida.histogram1D("Vertex constrained Kalman track drho, 14-hit",100,-5.,5.);
+        aida.histogram1D("Vertex constrained Kalman track dz, 14-hit",100,-2.,2.);
         aida.histogram1D("Kalman track number MC particles",10,0.,10.);
         aida.histogram1D("Kalman number of wrong hits on track",12,0.,12.);
         aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits", 12, 0., 12.);
@@ -224,12 +229,20 @@ class KalmanPatRecPlots {
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
+        int minHits = 999;
         int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) continue;
             for (KalTrack kTk : kPat.TkrList) {
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
+                if (kTk.nHits < minHits) minHits = kTk.nHits;
+                
+                // Vertex constraint
+                double [] vtx = {0.1735, -3.168, 0.1687};
+                double [][] vtxCov = {{0.686, 0., 0.}, {0., 10.09, 0.}, {0., 0., 0.017}};
+                HelixState constrained = kTk.originConstraint(vtx, vtxCov);
+                double pConstrained = constrained.getMom(0.).mag(); 
                 if (kTk.nHits >= 12) {
                     aida.histogram1D("Kalman Track Chi2, >=12 hits").fill(kTk.chi2);
                     aida.histogram1D("Kalman Track simple Chi2, >=12 hits").fill(kTk.chi2prime());
@@ -249,6 +262,11 @@ class KalmanPatRecPlots {
                         break;
                     case 14:
                         aida.histogram1D("Kalman track Momentum 14-hit").fill(pMag);
+                        aida.histogram1D("Vertex constrained Kalman track Momentum 14-hit").fill(pConstrained);
+                        aida.histogram1D("Kalman track drho, 14-hit").fill(kTk.originHelixParms()[0]);
+                        aida.histogram1D("Kalman track dz, 14-hit").fill(kTk.originHelixParms()[3]);
+                        aida.histogram1D("Vertex constrained Kalman track drho, 14-hit").fill(constrained.a.v[0]);
+                        aida.histogram1D("Vertex constrained Kalman track dz, 14-hit").fill(constrained.a.v[3]);
                 }               
                 aida.histogram1D("Kalman track drho").fill(kTk.originHelixParms()[0]);
                 aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
@@ -544,9 +562,10 @@ class KalmanPatRecPlots {
         }
         
         // Analysis of helix+GBL tracks, for comparison
+        int nGBL = 0;
         if (event.hasCollection(Track.class, trackCollectionName)) {
             List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
-            int nGBL = tracksGBL.size();
+            nGBL = tracksGBL.size();
             aida.histogram2D("number tracks Kalman vs GBL").fill(nKalTracks, nGBL);
             aida.histogram1D("GBL number tracks").fill(nGBL);
             double c = 2.99793e8; // Speed of light in m/s

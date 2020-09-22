@@ -382,6 +382,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram hEckO = new Histogram(100, -0.5, 0.01, "Origin helix parameter K constrained error", "1/GeV", "track");
         Histogram hEcdzO = new Histogram(100, -0.4, 0.008, "Origin helix parameter dz constrained error", "mm", "track");
         Histogram hEctanlO = new Histogram(100, -0.005, 0.0001, "Origin helix parameter tanl constrained error", " ", "track");
+        Histogram hchi2inc = new Histogram(100, 0., 1., "Origin helix constrained chi^2 increment","chi2","track");
+        Histogram hchi2c = new Histogram(100, 0., 1., "Origin helix constrained chi^2","chi2","track");
         Histogram hResid0 = new Histogram(100, -10., 0.2, "Filtered residual for axial planes", "sigmas", "hits");
         Histogram hResid1 = new Histogram(100, -10., 0.2, "Filtered residual for stereo planes", "sigmas", "hits");
         Histogram hEdrhoG = new Histogram(100, -40., 0.8, "Helix guess drho error", "sigmas", "track");
@@ -872,6 +874,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
             vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
             HelixState constrainedHelix = KalmanTrack.originConstraint(vtx.v, vtxCov.M);
+            hchi2inc.entry(KalmanTrack.chi2incOrigin());
+            hchi2c.entry(KalmanTrack.chi2incOrigin() + KalmanTrack.chi2);
             //constrainedHelix.print("constrained");
             //KalmanTrack.helixAtOrigin.print("unconstrained");
             double chi2s = 0.;
@@ -1139,6 +1143,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         hEckO.plot(path + "kErrorOc.gp", true, "gaus", " ");
         hEcdzO.plot(path + "dzErrorOc.gp", true, "gaus", " ");
         hEctanlO.plot(path + "tanlErrorOc.gp", true, "gaus", " ");
+        hchi2inc.plot(path + "chi2inc.gp", true, " ", " ");
+        hchi2c.plot(path + "chi2c.gp", true, " ", " ");
         hEdrhoG.plot(path + "drhoErrorG.gp", true, " ", " ");
         hEphi0G.plot(path + "phi0ErrorG.gp", true, " ", " ");
         hEkG.plot(path + "kErrorG.gp", true, " ", " ");

@@ -1,5 +1,7 @@
 package org.hps.recon.tracking.kalman;
 
+import org.apache.commons.math.util.FastMath;
+
 // Propagate a charged particle according to the magnetic field map by 4th order Runge Kutta integration.
 // Note that the coordinate system is the Kalman-Filter-code system, as that is what the field-map routine
 // called here assumes.
@@ -48,7 +50,7 @@ public class RungeKutta4 {
     private double[] f(Vec x, double[] p) { // Return all the derivatives
         double [] B = KalmanInterface.getFielD(x, fM);  // This field routine assumes the Kalman-Filter coordinate system.
         double[] d = new double[6];
-        double pmag = Math.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+        double pmag = FastMath.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
         // System.out.format("P magnitude = %10.7f GeV\n", pmag);
         d[0] = p[0] / pmag; // dx/ds 
         d[1] = p[1] / pmag;

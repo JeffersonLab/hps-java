@@ -1,6 +1,5 @@
 package org.hps.recon.tracking.kalman;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 //State vector (projected, filtered, or smoothed) for the Kalman filter
@@ -12,7 +11,7 @@ class StateVector {
     double mPred;       // Filtered or smoothed predicted measurement at site kLow (filled in MeasurementSite.java)
     double r;           // Predicted, filtered, or smoothed residual at site kLow
     double R;           // Covariance of residual
-    private boolean verbose;
+    final private boolean verbose;
     SquareMatrix F;     // Propagator matrix to propagate from this site to the next site
     private Logger logger;
 
@@ -20,8 +19,8 @@ class StateVector {
     StateVector(int site, Vec helixParams, SquareMatrix Cov, Vec pivot, double B, Vec tB, Vec origin) {
         // Here tB is the B field direction, while B is the magnitude
         logger = Logger.getLogger(StateVector.class.getName());
-        logger.log(Level.FINEST, "StateVector: constructing an initial state vector\n");
-        verbose = logger.getLevel()==Level.FINEST;
+        verbose = false;
+        if (verbose) System.out.format("StateVector: constructing an initial state vector\n");
         helix = new HelixState(helixParams, pivot, origin, Cov, B, tB);
         kLow = site;
         kUp = kLow;
@@ -30,7 +29,7 @@ class StateVector {
     // Constructor for a new blank state vector with a new B field
     StateVector(int site, double B, Vec tB, Vec origin) {
         logger = Logger.getLogger(StateVector.class.getName());
-        verbose = logger.getLevel()==Level.FINEST;
+        verbose = false;
         helix = new HelixState(B, tB, origin);
         kLow = site;
     }
@@ -39,7 +38,7 @@ class StateVector {
     StateVector(int site) {
         kLow = site;
         logger = Logger.getLogger(StateVector.class.getName());
-        verbose = logger.getLevel()==Level.FINEST;
+        verbose = false;
         helix = new HelixState();
     }
 
@@ -171,11 +170,11 @@ class StateVector {
         SquareMatrix Ctot;
         if (XL == 0.) {
             Ctot = this.helix.C;
-            logger.log(Level.FINEST, String.format("StateVector.predict: XL=%9.6f", XL));
+            if (verbose) System.out.format("StateVector.predict: XL=%9.6f", XL);
         } else {
             double momentum = (1.0 / helix.a.v[2]) * Math.sqrt(1.0 + helix.a.v[4] * helix.a.v[4]);
             double sigmaMS = HelixState.projMSangle(momentum, XL);
-            logger.log(Level.FINEST, String.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e", momentum, XL, sigmaMS));
+            if (verbose) System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e", momentum, XL, sigmaMS);
             Ctot = this.helix.C.sum(this.helix.getQ(sigmaMS));
         }
 
@@ -282,8 +281,8 @@ class StateVector {
 
     // Create a smoothed state vector from the filtered state vector
     StateVector smooth(StateVector snS, StateVector snP) {
-        logger.log(Level.FINEST, String.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d", kLow, kUp,
-                    snS.kLow, snS.kUp, snP.kLow, snP.kUp));
+        if (verbose) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d", kLow, kUp,
+                    snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         StateVector sS = this.copy();
 
         SquareMatrix CnInv = snP.helix.C.invert();

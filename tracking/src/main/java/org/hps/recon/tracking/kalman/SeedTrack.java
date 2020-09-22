@@ -5,6 +5,8 @@ package org.hps.recon.tracking.kalman;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import org.apache.commons.math.util.FastMath;
+
 // Fit a line/parabola approximation of a helix to a set of measurement points.
 // The line and parabola are fit simultaneously in order to handle properly the stereo layers.
 // The pivot of the helix is assumed to be the origin of the coordinate system, but the
@@ -54,7 +56,7 @@ class SeedTrack {
             for (int j = 0; j < hits.size(); j++) str=str+String.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v);
             str=str+"\n";
             Vec pInt = planeIntersection(p0);
-            double xzDist = Math.sqrt(pInt.v[0]*pInt.v[0] + pInt.v[2]*pInt.v[2]);
+            double xzDist = FastMath.sqrt(pInt.v[0]*pInt.v[0] + pInt.v[2]*pInt.v[2]);
             str=str+String.format("  Distance from origin in X,Z at y= %8.2f is %10.5f. Intersection=%s\n", yP, xzDist, pInt.toString());
             str = str + C.toString("  seed track covariance");
         } else {
@@ -208,16 +210,16 @@ class SeedTrack {
         phi0 = circleParams[1];
         K = circleParams[2];
         drho = circleParams[0];
-        double dphi0da = (2.0 * coef.v[2] / coef.v[1]) * square(Math.sin(phi0));
-        double dphi0db = Math.sin(phi0) * Math.cos(phi0) / coef.v[1] - square(Math.sin(phi0));
-        double dphi0dc = (2.0 * coef.v[0] / coef.v[1]) * square(Math.sin(phi0));
+        double dphi0da = (2.0 * coef.v[2] / coef.v[1]) * square(FastMath.sin(phi0));
+        double dphi0db = FastMath.sin(phi0) * FastMath.cos(phi0) / coef.v[1] - square(FastMath.sin(phi0));
+        double dphi0dc = (2.0 * coef.v[0] / coef.v[1]) * square(FastMath.sin(phi0));
         SquareMatrix D = new SquareMatrix(5);
-        double temp = xc * Math.tan(phi0) / Math.cos(phi0);
+        double temp = xc * FastMath.tan(phi0) / FastMath.cos(phi0);
 
         double slope = sol.v[1];
         double intercept = sol.v[0];
-        tanl = slope * Math.cos(phi0);
-        dz = intercept + drho * tanl * Math.tan(phi0);
+        tanl = slope * FastMath.cos(phi0);
+        dz = intercept + drho * tanl * FastMath.tan(phi0);
         if (verbose) {
             System.out.format("SeedTrack: dz=%12.5e   tanl=%12.5e\n", dz, tanl);
             System.out.format("     R=%10.6f, xc=%10.6f, yc=%10.6f\n", R, xc, yc);
@@ -225,16 +227,16 @@ class SeedTrack {
         }
         // Some derivatives to transform the covariance from line and parabola
         // coefficients to helix parameters
-        D.M[0][2] = 1.0 / Math.cos(phi0) + temp * dphi0da;
-        D.M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / Math.cos(phi0) + temp * dphi0db;
-        D.M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / Math.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
+        D.M[0][2] = 1.0 / FastMath.cos(phi0) + temp * dphi0da;
+        D.M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / FastMath.cos(phi0) + temp * dphi0db;
+        D.M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / FastMath.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
         D.M[1][2] = dphi0da;
         D.M[1][3] = dphi0db;
         D.M[1][4] = dphi0dc;
         D.M[2][4] = -2.0 * alpha * sgn;
         D.M[3][0] = 1.0;
-        D.M[3][1] = drho * Math.sin(phi0);
-        D.M[4][1] = Math.cos(phi0);
+        D.M[3][1] = drho * FastMath.sin(phi0);
+        D.M[4][1] = FastMath.cos(phi0);
         Csol = fit.covariance();
         C = Csol.similarity(D); // Covariance of helix parameters
         if (verbose) { D.print("line/parabola to helix derivatives"); }
@@ -294,12 +296,12 @@ class SeedTrack {
     }
 
     Vec solutionErrors() { // Return errors on the polynomial coefficients (for testing)
-        return new Vec(Math.sqrt(Csol.M[0][0]), Math.sqrt(Csol.M[1][1]), Math.sqrt(Csol.M[2][2]), Math.sqrt(Csol.M[3][3]),
-                Math.sqrt(Csol.M[4][4]));
+        return new Vec(FastMath.sqrt(Csol.M[0][0]), FastMath.sqrt(Csol.M[1][1]), FastMath.sqrt(Csol.M[2][2]), FastMath.sqrt(Csol.M[3][3]),
+                FastMath.sqrt(Csol.M[4][4]));
     }
 
     Vec errors() { // Return errors on the helix parameters
-        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]), Math.sqrt(C.M[4][4]));
+        return new Vec(FastMath.sqrt(C.M[0][0]), FastMath.sqrt(C.M[1][1]), FastMath.sqrt(C.M[2][2]), FastMath.sqrt(C.M[3][3]), FastMath.sqrt(C.M[4][4]));
     }
 
     private double[] parabolaToCircle(double sgn, Vec coef) { // Utility to convert from parabola coefficients to circle
@@ -309,16 +311,16 @@ class SeedTrack {
         yc = sgn * R * coef.v[1];
         xc = coef.v[0] - sgn * R * (1.0 - 0.5 * coef.v[1] * coef.v[1]);
         double[] r = new double[3];
-        r[1] = Math.atan2(yc, xc);
+        r[1] = FastMath.atan2(yc, xc);
         if (R < 0.) { r[1] += Math.PI; }
         if (r[1] > Math.PI) r[1] -= 2.0 * Math.PI;
         r[2] = alpha / R;
-        r[0] = xc / Math.cos(r[1]) - R;
+        r[0] = xc / FastMath.cos(r[1]) - R;
         if (verbose) {
             System.out.format("parabolaToCircle:     R=%10.6f, xc=%10.6f, yc=%10.6f, drho=%10.7f, phi0=%10.7f, K=%10.7f\n", R, xc, yc, r[0],
                     r[1], r[2]);
             coef.print("parabola coefficients");
-            double phi02 = Math.atan(-coef.v[1] / (2.0 * coef.v[0] * coef.v[2] + (1.0 - coef.v[1] * coef.v[1])));
+            double phi02 = FastMath.atan(-coef.v[1] / (2.0 * coef.v[0] * coef.v[2] + (1.0 - coef.v[1] * coef.v[1])));
             System.out.format("phi02 = %10.7f\n", phi02);
         }
         return r;
@@ -339,9 +341,9 @@ class SeedTrack {
 
     // Transform from momentum at helix starting point back to the helix parameters
     private static Vec pTOa(Vec p, Double Q) {
-        double phi0 = Math.atan2(-p.v[0], p.v[1]);
-        double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
-        double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double phi0 = FastMath.atan2(-p.v[0], p.v[1]);
+        double K = Q / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double tanl = p.v[2] / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
         if (phi0 > Math.PI) phi0 = phi0 - 2.0 * Math.PI;
         // Note: the following only makes sense when a.v[0] and a.v[3] (drho and dz) are
         // both zero, i.e. pivot is on the helix
@@ -397,22 +399,22 @@ class SeedTrack {
     
 
     Vec planeIntersection(Plane p) {
-        double arg = (K / alpha) * ((drho + (alpha / K)) * Math.sin(phi0) - (p.X().v[1] - yOrigin));
-        double phiInt = -phi0 + Math.asin(arg);
+        double arg = (K / alpha) * ((drho + (alpha / K)) * FastMath.sin(phi0) - (p.X().v[1] - yOrigin));
+        double phiInt = -phi0 + FastMath.asin(arg);
         return atPhi(phiInt);
     }
 
     private Vec atPhi(double phi) { // point on the helix at the angle phi
-        double x = (drho + (alpha / K)) * Math.cos(phi0) - (alpha / K) * Math.cos(phi0 + phi);
-        double y = yOrigin + (drho + (alpha / K)) * Math.sin(phi0) - (alpha / K) * Math.sin(phi0 + phi);
+        double x = (drho + (alpha / K)) * FastMath.cos(phi0) - (alpha / K) * FastMath.cos(phi0 + phi);
+        double y = yOrigin + (drho + (alpha / K)) * FastMath.sin(phi0) - (alpha / K) * FastMath.sin(phi0 + phi);
         double z = dz - (alpha / K) * phi * tanl;
         return new Vec(x, y, z);
     }
 
     double[] pivotTransform(double[] pivot) {
         Vec X0 = new Vec(0., yOrigin, 0.);
-        double xC = X0.v[0] + (drho + alpha / K) * Math.cos(phi0); // Center of the helix circle
-        double yC = X0.v[1] + (drho + alpha / K) * Math.sin(phi0);
+        double xC = X0.v[0] + (drho + alpha / K) * FastMath.cos(phi0); // Center of the helix circle
+        double yC = X0.v[1] + (drho + alpha / K) * FastMath.sin(phi0);
         // X0.print("old pivot");
         // System.out.format("SeedTrack::pivotTransform: center=%10.6f, %10.6f\n", xC, yC);
 
@@ -421,15 +423,15 @@ class SeedTrack {
         aP[2] = K;
         aP[4] = tanl;
         if (K > 0) {
-            aP[1] = Math.atan2(yC - pivot[1], xC - pivot[0]);
+            aP[1] = FastMath.atan2(yC - pivot[1], xC - pivot[0]);
         } else {
-            aP[1] = Math.atan2(pivot[1] - yC, pivot[0] - xC);
+            aP[1] = FastMath.atan2(pivot[1] - yC, pivot[0] - xC);
         }
-        aP[0] = (xC - pivot[0]) * Math.cos(aP[1]) + (yC - pivot[1]) * Math.sin(aP[1]) - alpha / K;
+        aP[0] = (xC - pivot[0]) * FastMath.cos(aP[1]) + (yC - pivot[1]) * FastMath.sin(aP[1]) - alpha / K;
         aP[3] = X0.v[2] - pivot[2] + dz - (alpha / K) * (aP[1] - phi0) * tanl;
 
-        //xC = pivot[0] + (aP[0] + alpha / aP[2]) * Math.cos(aP[1]);
-        //yC = pivot[1] + (aP[0] + alpha / aP[2]) * Math.sin(aP[1]);
+        //xC = pivot[0] + (aP[0] + alpha / aP[2]) * FastMath.cos(aP[1]);
+        //yC = pivot[1] + (aP[0] + alpha / aP[2]) * FastMath.sin(aP[1]);
         // System.out.format("pivotTransform new center=%10.6f, %10.6f\n", xC, yC);
 
         return aP;

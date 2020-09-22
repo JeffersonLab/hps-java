@@ -24,7 +24,7 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int nTrials = 2;              // The number of test eventNumbers to generate for pattern recognition and fitting
         int mxPlot = 10;                // Maximum number of single event plots
         int [] eventToPrint = {};
         boolean perfect = false;
@@ -35,6 +35,7 @@ class PatRecTest {
         boolean smear = true;          // Smear initial momentum vector randomly
         boolean uniformB = false;
         double hitEfficiency = 0.90;
+        double [] vtxRes = {0.1, 0.5, 0.05};
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -484,6 +485,15 @@ class PatRecTest {
             }
 
             if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
+            Vec vtx = helixOrigin.copy();
+            for (int i=0; i<3; ++i) {
+                vtx.v[i] += rnd.nextGaussian() * vtxRes[i];
+            }
+            SquareMatrix vtxCov = new SquareMatrix(3);
+            vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
+            vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
+            vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
+            KalScatteredElectronFinder scatElec = new KalScatteredElectronFinder(SiModules, vtx.v, vtxCov.M, eventNumber);
             KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
             if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;

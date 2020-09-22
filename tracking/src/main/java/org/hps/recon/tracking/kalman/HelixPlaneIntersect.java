@@ -3,6 +3,8 @@ package org.hps.recon.tracking.kalman;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.math.util.FastMath;
+
 class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly arbitrary plane
     // Coordinates: the beam is ~ in the y direction
     // the B field is ~ along the +z direction
@@ -133,10 +135,10 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     static Vec pToHelix(Vec x, Vec p, double Q) {
         double E = p.mag();
         Vec t = p.unitVec(E);
-        double tanl = t.v[2] / Math.sqrt(1.0 - t.v[2] * t.v[2]);
-        double pt = E / Math.sqrt(1.0 + tanl * tanl);
+        double tanl = t.v[2] / FastMath.sqrt(1.0 - t.v[2] * t.v[2]);
+        double pt = E / FastMath.sqrt(1.0 + tanl * tanl);
         double K = Q / pt;
-        double phi0 = Math.atan2(-t.v[0], t.v[1]);
+        double phi0 = FastMath.atan2(-t.v[0], t.v[1]);
         return new Vec(0., phi0, K, 0., tanl);
     }
 
@@ -149,8 +151,8 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
         // Take as a starting guess the solution for the case that the plane orientation is exactly y-hat.
         // System.out.format("HelixPlaneIntersection:planeIntersect, alpha=%f10.5\n", alpha);
         this.alpha = alpha;
-        double arg = (a.v[2] / alpha) * ((a.v[0] + (alpha / a.v[2])) * Math.sin(a.v[1]) - (p.X().v[1] - pivot.v[1]));
-        double phi0 = -a.v[1] + Math.asin(arg);
+        double arg = (a.v[2] / alpha) * ((a.v[0] + (alpha / a.v[2])) * FastMath.sin(a.v[1]) - (p.X().v[1] - pivot.v[1]));
+        double phi0 = -a.v[1] + FastMath.asin(arg);
         // System.out.format(" StateVector.planeIntersect: arg=%10.7f, phi=%10.7f\n", arg, phi0);
         this.a = a;
         this.X0 = pivot;
@@ -240,7 +242,7 @@ class HelixPlaneIntersect { // Calculates intersection of a helix with a nearly 
     }
 
     private double dSdPhi(double phi) {
-        Vec dXdPhi = new Vec((alpha / a.v[2]) * Math.sin(a.v[1] + phi), -(alpha / a.v[2]) * Math.cos(a.v[1] + phi), -(alpha / a.v[2]) * a.v[4]);
+        Vec dXdPhi = new Vec((alpha / a.v[2]) * FastMath.sin(a.v[1] + phi), -(alpha / a.v[2]) * FastMath.cos(a.v[1] + phi), -(alpha / a.v[2]) * a.v[4]);
         return p.T().dot(dXdPhi);
     }
 
