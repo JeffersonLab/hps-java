@@ -363,18 +363,23 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 continue;
 
 
+            
            
             if (enableAlignmentCuts) {
+                
+                //Get the track parameters
+                double[] trk_prms = track.getTrackParameters();
+                double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
                 
                 //At least 3.5 GeV
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
                                 
                 if (momentum.magnitude() < 3.5)
                     continue;
-                //At least 6 hits
-                if (track.getTrackerHits().size() < 6) 
-                    continue;
                 
+                //Align with tracks without hole on track
+                if ((tanLambda > 0 && track.getTrackerHits().size() < 6) || (tanLambda < 0 && track.getTrackerHits().size() < 7)) 
+                    continue;
             }
             
             

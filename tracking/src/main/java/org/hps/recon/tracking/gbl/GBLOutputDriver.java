@@ -157,7 +157,7 @@ public class GBLOutputDriver extends Driver {
                 i++;
 
             }
-            doBasicGBLtrack(trk);
+            doBasicGBLtrack(trk,sensorHits);
             doGBLresiduals(trk, sensorHits,event);
             //doMTresiduals(matchedTrack, sensorHits);
             if (b_doGBLkinks)
@@ -220,7 +220,7 @@ public class GBLOutputDriver extends Driver {
         aidaGBL.histogram2D(str+isTop+charge).fill(valX,valY);
     }
 
-    private void doBasicGBLtrack(Track trk) {
+    private void doBasicGBLtrack(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits) {
         
         TrackState trackState = trk.getTrackStates().get(0);
 
@@ -232,13 +232,14 @@ public class GBLOutputDriver extends Driver {
         if (trk.getType()==1 && trk.getTrackerHits().size() < 12) {
             return;
         }
+
+        List<Integer> missingHits; 
+        missingHits =  findMissingLayer(trk);
         
         if (trackState.getTanLambda() > 0) {
             isTop = "_top";
         }
-        
-        
-        
+                
         String charge = "_pos";
         if (trk.getCharge()<0)
             charge = "_neg";
@@ -253,6 +254,14 @@ public class GBLOutputDriver extends Driver {
         if (trk.getTrackerHits().size()==7)
             FillGBLTrackPlot(trkpFolder+"p7h",isTop,charge,trackp);
 
+
+        if (trk.getTrackerHits().size()==6)
+            FillGBLTrackPlot(trkpFolder+"p_Missing1Hit",isTop,charge,missingHits.get(0),trackp);
+        
+        if (missingHits.size()==1 && missingHits.get(0)==7) 
+            FillGBLTrackPlot(trkpFolder+"p_MissingLastLayer",isTop,charge,trackp);
+        
+        
         FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
                 
         aidaGBL.histogram1D(trkpFolder+"nHits" + isTop).fill(trk.getTrackerHits().size());
@@ -507,6 +516,36 @@ public class GBLOutputDriver extends Driver {
         }
     }//doGBLresiduals
     
+    private List<Integer> findMissingLayer(Track trk) {
+        
+        List<Integer> layers = new ArrayList<Integer>();
+        layers.add(1);
+        layers.add(2);
+        layers.add(3);
+        layers.add(4);
+        layers.add(5);
+        layers.add(6);
+        layers.add(7);
+        
+        List<Integer> LayersOnTrack = new ArrayList<Integer>();
+        List<Integer> missingHits   = new ArrayList<Integer>();
+        
+        for (TrackerHit hit : trk.getTrackerHits()) {
+            
+            int stripLayer = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            
+            int hpslayer = (stripLayer + 1 ) / 2;
+            LayersOnTrack.add(hpslayer);
+        }
+
+        for (Integer layer : layers) {
+            if (!LayersOnTrack.contains(layer))
+                missingHits.add(layer);
+        }
+        
+        return missingHits;
+    }
+    
     private void setupPlots() {
         
 
@@ -614,6 +653,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
                 aidaGBL.histogram1D(trkpFolder+"p7h"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p_MissingLastLayer"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t*2,0,200);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
@@ -641,6 +681,8 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram2D(trkpFolder+"z0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-z0bsmax,z0bsmax);
                 aidaGBL.histogram2D(trkpFolder+"z0_vs_tanLambda"+vol+charge,  nbins_t,-0.1,0.1,nbins_t,-z0max,z0max);
                 aidaGBL.histogram2D(trkpFolder+"z0bs_vs_tanLambda"+vol+charge,nbins_t,-0.1,0.1,nbins_t,-z0bsmax,z0bsmax);
+
+                aidaGBL.histogram2D(trkpFolder+"p_Missing1Hit"+vol+charge,8,0,8,nbins_p,0.0,pmax);
                 
                 if (b_doDetailPlots) { 
                     //TH2Ds - detail
