@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.triggerbank.TriggerModule;
@@ -192,10 +193,14 @@ public class EventAnalysis2019 extends Driver {
                     Track negTrack = ele.getTracks().get(0);
                     Track posTrack = pos.getTracks().get(0);
 
-                    double tNeg = getMyTrackTime(negTrack, hitToStrips, hitToRotated);
-                    double tPos = getMyTrackTime(posTrack, hitToStrips, hitToRotated);
+                    //20200922 the following doesn't work because errors in lcrelations
+//                    double tNeg = getMyTrackTime(negTrack, hitToStrips, hitToRotated);
+//                    double tPos = getMyTrackTime(posTrack, hitToStrips, hitToRotated);
+                    //try getting track times from the TrackData bank
+                    double eleTime = TrackData.getTrackTime(TrackData.getTrackData(event, ele.getTracks().get(0)));
+                    double posTime = TrackData.getTrackTime(TrackData.getTrackData(event, pos.getTracks().get(0)));
 
-                    double trackDeltaT = tNeg - tPos;
+                    double trackDeltaT = eleTime - posTime;
                     aida.cloud1D("track deltaT").fill(trackDeltaT);
                     int eNhits = ele.getTracks().get(0).getTrackerHits().size();
                     int pNhits = pos.getTracks().get(0).getTrackerHits().size();
