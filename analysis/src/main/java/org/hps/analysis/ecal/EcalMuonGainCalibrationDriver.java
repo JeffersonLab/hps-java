@@ -93,7 +93,10 @@ public class EcalMuonGainCalibrationDriver extends Driver {
                             aida.histogram1D(id + " track momentum", 100, 0., 7.).fill(rp.getMomentum().magnitude());
                             analyzeCluster(c, id, rp.getMomentum().magnitude());
                             aida.tree().cd("..");
-                            skipEvent = false;
+                            // for single-muon events, only keep event if the track momentum is less than 3GeV and the cluster is fiducial
+                            if (rp.getMomentum().magnitude() < 3. && TriggerModule.inFiducialRegion(c)) {
+                                skipEvent = false;
+                            }
                         }
                     }
                 }
