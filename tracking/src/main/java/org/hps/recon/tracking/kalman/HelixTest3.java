@@ -460,7 +460,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         TkInitial.print("TkInitial: initial helix at the origin");
         helixBegin.print("helixBegin: starting helix at layer 1");
         RKhelix TkEnd = helixBeginRK;
-        KalmanInterface KI = new KalmanInterface(false, fM);
+        KalmanInterface KI = new KalmanInterface(false, kPar, fM);
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
             RKhelix Tk = helixBeginRK.copy();
             if (verbose) { Tk.print("copied initial helix"); }

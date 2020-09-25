@@ -65,15 +65,12 @@ class KalmanPatRecHPS {
         this.kPar = kPar;     
         logger = Logger.getLogger(KalmanPatRecHPS.class.getName());
         logger.info("KalmanPatRecHPS instance created.");
-        kPar.print();
         vtx = new double[3];
-        vtx[0] = 0.;
-        vtx[1] = -10.;
-        vtx[2] = 0.;
         vtxCov = new double[3][3];
-        vtxCov[0][0] = 1.0;
-        vtxCov[1][1] = 9.0;
-        vtxCov[2][2] = 0.25;
+        for (int i=0; i<3; ++i) {
+            vtx[i] = kPar.beamSpot[i];
+            vtxCov[i][i] = kPar.vtxSize[i]*kPar.vtxSize[i];
+        }
         rho = 2.329;                   // Density of silicon in g/cm^2
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         numLayers = 14;
@@ -91,6 +88,7 @@ class KalmanPatRecHPS {
         p0 = new Plane(new Vec(0., kPar.beamSpot[1], 0.), new Vec(0., 1., 0.));  // xy plane at the target position
     }
     
+    // Override the default vertex location and size
     void patRecSetVtx(double [] vtx, double [][] vtxCov) {
         this.vtx = vtx;
         this.vtxCov = vtxCov;
@@ -1086,9 +1084,9 @@ class KalmanPatRecHPS {
                     if (tkr.nHits == 5) {
                         HelixState constrHelix = tkr.originConstraint(vtx, vtxCov);
                         double chi2inc = tkr.chi2incOrigin();
-                        if (chi2inc <= 1.0) {
+                        if (chi2inc <= kPar.mxChi2Vtx) {
                             tkr.helixAtOrigin = constrHelix;
-                            tkr.chi2 += chi2inc;
+                            tkr.chi2 += chi2inc * tkr.nHits;
                         } else {
                             goodFit = false;
                         }
