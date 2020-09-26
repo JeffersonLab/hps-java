@@ -13,8 +13,12 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,13 +35,9 @@ public class EcalMuonGainCalibrationAnalyzer {
 
     public static void main(String[] args) throws IllegalArgumentException, IOException {
         AIDA aida = AIDA.defaultInstance();
-        String orientation = "landscape"; // or "portrait";
+        String orientation = "portrait"; // or "portrait";
         String plotterHeight = "1100";
         String plotterWidth = "850";
-        if (orientation.equals("landscape")) {
-            plotterHeight = "900";
-            plotterWidth = "1600";
-        }
         int[] plotRegion = {0, 0, 2, 4, 1, 3};
         boolean showPlots = true;
         boolean writePlots = false;
@@ -47,12 +47,13 @@ public class EcalMuonGainCalibrationAnalyzer {
         String plotFile = "D:/work/hps/analysis/physrun2019/ecalibration/prodSingleMuonSkim/20200919/hps_010261_HPS_TY_iter4_muEcalGainCalibration.aida";
         // parse command-line arguments
         if (args.length == 0) {
-            System.out.println("Usage: java EcalMuonCalibrationAnalysisDriver histogramFile.aida <plotDir> <filetype>");
+            System.out.println("Usage: java org.hps.analysis.ecal.EcalMuonGainCalibrationAnalyzer histogramFile.aida <plotDir> <filetype> <orientation>");
             System.out.println("       available dirs are 'dimuon' , 'dimuon one cluster' and 'single muon' ");
             System.out.println("       if plotDir is not specified, plots from 'single muon' will be analyzed");
             System.out.println("       if filetype not specified, plots will be shown interactively");
             System.out.println("       if filetype is specified, plots will be written to that format");
             System.out.println("       available formats are: png, pdf, eps ps svg emf swf");
+            System.out.println("       default orientation is portrait other option is landscape");
             return;
         }
         if (args.length > 0) {
@@ -66,6 +67,17 @@ public class EcalMuonGainCalibrationAnalyzer {
             writePlots = true;
             fileType = args[2];
         }
+        if (args.length > 3) {
+            orientation = args[3];
+        }
+        if (orientation.equals("landscape")) {
+            plotterHeight = "900";
+            plotterWidth = "1600";
+        }
+
+        FileOutputStream fos = new FileOutputStream("out.dat");
+        Writer w = new BufferedWriter(new OutputStreamWriter(fos, "Cp850"));
+
         Map<String, String> titleMap = new HashMap<>();
         titleMap.put("dimuon", "diMuon");
         titleMap.put("dimuon one cluster", "diMuonOneCluster");
@@ -162,6 +174,7 @@ public class EcalMuonGainCalibrationAnalyzer {
                             for (int i = 0; i < paramNames.length; ++i) {
                                 System.out.println(paramNames[i] + " " + params[i] + " " + errors[i]);
                             }
+                            w.write(ix + " " + iy + " " + params[1] + "\n");
                         }
                     }
                 }
@@ -172,7 +185,7 @@ public class EcalMuonGainCalibrationAnalyzer {
                 }
                 if (writePlots) {
                     plotter.writeToFile(title + "." + fileType);
-                    plotter.writeToFile(title + ".png");
+                    //plotter.writeToFile(title + ".png");
                 }
             }
 //            String[] plotterParameters = tst.availableParameters();
@@ -183,6 +196,8 @@ public class EcalMuonGainCalibrationAnalyzer {
 //                System.out.println(Arrays.toString(tst.availableParameterOptions(s)));
 //            }
         }
+        w.flush();
+        w.close();
     }
 
     private static IFitResult fitit(IHistogram1D hist, IFitter fitter, IFunction gaussian, double rms) {

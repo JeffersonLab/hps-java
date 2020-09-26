@@ -201,14 +201,20 @@ public class EcalMuonGainCalibrationDriver extends Driver {
             if (type.equals("mu+")) {
                 aida.histogram2D(fid + type + " single-crystal cluster track momentum vs ix", 17, 5.5, 22.5, 50, 0., 4.).fill(ix, trackMomentum);
                 aida.profile1D(fid + type + " single-crystal cluster track momentum vs ix profile", 17, 5.5, 22.5).fill(ix, trackMomentum);
-                if (ix > 5 && ix < 23) {
-                    aida.histogram1D(fid + type + " single-crystal cluster track momentum ix " + ix, 50, 0., 4.).fill(trackMomentum);
+                if (ix > 0 && ix < 23) {
+                    //if (fid.equals("fiducial ")) {
+                    aida.histogram1D(type + " single-crystal cluster track momentum ix " + ix + " " + iy, 50, 0., 4.).fill(trackMomentum);
+                    //}
+                    aida.histogram1D(type + " single-crystal cluster track momentum ix " + ix, 50, 0., 4.).fill(trackMomentum);
                 }
             } else {
                 aida.histogram2D(fid + type + " single-crystal cluster track momentum vs ix", 17, -22.5, -5.5, 50, 0., 4.).fill(ix, trackMomentum);
                 aida.profile1D(fid + type + " single-crystal cluster track momentum vs ix profile", 17, -22.5, -5.5).fill(ix, trackMomentum);
-                if (ix > -23 && ix < -5) {
-                    aida.histogram1D(fid + type + " single-crystal cluster track momentum ix " + ix, 50, 0., 4.).fill(trackMomentum);
+                if (ix > -23 && ix < 0) {
+                    //if (fid.equals("fiducial ")) {
+                    aida.histogram1D(type + " single-crystal cluster track momentum ix " + ix + " " + iy, 50, 0., 4.).fill(trackMomentum);
+                    //}
+                    aida.histogram1D(type + " single-crystal cluster track momentum ix " + ix, 50, 0., 4.).fill(trackMomentum);
                 }
             }
 
