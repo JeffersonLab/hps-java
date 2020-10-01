@@ -97,7 +97,7 @@ public final class MultipleEventsVertexingDriver extends Driver {
         
         for (Track track : trackCollection) {
 
-            if (_nhits > 0 || track.getTrackerHits().size() == _nhits) {
+            if (_nhits < 0 || track.getTrackerHits().size() == _nhits) {
                 
                 //accumulatedTracks.add(track);
                 accumulatedBTracks.add(new BilliorTrack(track));
