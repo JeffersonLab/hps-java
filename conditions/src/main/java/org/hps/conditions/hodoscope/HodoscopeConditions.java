@@ -20,6 +20,7 @@ public class HodoscopeConditions {
 
     void setChannelCollection(HodoscopeChannelCollection channels) {
         this.channels = channels;
+        this.channelCollection = channels;
 
         // Build channel map.
         for (HodoscopeChannel channel : this.channels) {
