@@ -276,7 +276,7 @@ public class GBLOutputDriver extends Driver {
         FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp);
         FillGBLTrackPlot(trkpFolder+"p_vs_phi_tanLambda",isTop,charge,trackState.getPhi(),trackState.getTanLambda(),trackp);
         
-        double tanLambda = trk_prms[BaseTrack.TANLAMBDA];                                                                                                                                                                                                  
+        double tanLambda = trackState.getTanLambda();
         double cosLambda = 1. / (Math.sqrt(1+tanLambda*tanLambda));
         
         FillGBLTrackPlot(trkpFolder+"pT_vs_phi",isTop,charge,trackState.getPhi(),trackp*cosLambda);
