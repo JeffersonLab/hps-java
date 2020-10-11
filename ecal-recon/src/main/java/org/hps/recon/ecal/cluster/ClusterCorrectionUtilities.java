@@ -113,14 +113,6 @@ public final class ClusterCorrectionUtilities {
                 }
             }
         }
-        // Eliminates corrections at outermost edges to negative cluster energies
-        // 66 for positrons, 69 is safe for electrons and photons
-        if (ydist > 65.5) {
-            ydist = 65.5;
-        }
-        if (ydist < 2.5) {
-            ydist = 2.5;
-        }
         return ydist;
     }
     

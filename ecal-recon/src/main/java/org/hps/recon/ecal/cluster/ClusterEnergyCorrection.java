@@ -56,7 +56,13 @@ public final class ClusterEnergyCorrection extends AbsClusterEnergyCorrection {
     public static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
             boolean isMC) {
         // distance to beam gap edge
-        final double r = ClusterCorrectionUtilities.computeYDistanceFromEdge(ecal,xpos,ypos);
+        double r = ClusterCorrectionUtilities.computeYDistanceFromEdge(ecal,xpos,ypos);
+        
+        // Eliminates corrections at outermost edges to negative cluster energies
+        // 66 for positrons, 69 is safe for electrons and photons
+        if (r > 66) {
+            r = 66;
+        }
 
         if (isMC) {
             switch (pdg) {
