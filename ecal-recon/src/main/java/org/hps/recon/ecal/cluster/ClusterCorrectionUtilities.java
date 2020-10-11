@@ -15,19 +15,25 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  */
 public final class ClusterCorrectionUtilities {
 
+    
     /**
      * Apply HPS-specific energy and position corrections to a list of clusters in place.
      * @param clusters The list of clusters.
      */
-    public static void applyCorrections(HPSEcal3 ecal, List<Cluster> clusters, boolean isMC) {
+    public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, List<Cluster> clusters, boolean isMC) {
         // Loop over the clusters.
         for (Cluster cluster : clusters) {
             if (cluster instanceof BaseCluster) {
                 BaseCluster baseCluster = (BaseCluster) cluster;
                 // Apply PID based position correction, which should happen before final energy correction.
                 ClusterPositionCorrection.setCorrectedPosition(baseCluster);
-                // Apply PID based energy correction.
-                ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
+                // Apply PID based energy correction:
+                if (beamEnergy > 4.0) {
+                    ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
+                }
+                else {
+                    ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
+                }
             }
         }
     }
@@ -36,13 +42,18 @@ public final class ClusterCorrectionUtilities {
      * Apply HPS-specific energy and position corrections to a cluster without track information.
      * @param cluster The input cluster.
      */
-    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
+    public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, boolean isMC) {
         if (cluster instanceof BaseCluster) {
             BaseCluster baseCluster = (BaseCluster) cluster;
             // Apply PID based position correction, which should happen before final energy correction.
             ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             // Apply PID based energy correction.
-            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
+            if (beamEnergy > 4.0) {
+                ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
+            }
+            else {
+                ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
+            }
         }
     }
 
@@ -50,13 +61,18 @@ public final class ClusterCorrectionUtilities {
      * Apply HPS-specific energy and position corrections to a cluster with track information.
      * @param cluster The input cluster.
      */
-    public static void applyCorrections(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
+    public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
         if (cluster instanceof BaseCluster) {
             BaseCluster baseCluster = (BaseCluster) cluster;
             // Apply PID based position correction, which should happen before final energy correction.
             ClusterPositionCorrection.setCorrectedPosition(baseCluster);
             // Apply PID based energy correction.
-            ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
+            if (beamEnergy > 4.0) {
+                ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
+            }
+            else {
+                ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
+            }
         }
     }
 
