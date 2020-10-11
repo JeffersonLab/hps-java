@@ -17,53 +17,60 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
 
     public static String name = "ClusterEnergyCorrection2019";
 
-    private static boolean hasLoaded = false;
-
+    private static final byte DATA = 0;
+    private static final byte MC = 1;
+   
+    static boolean[] hasLoaded = new boolean[]{false,false};
+    
     // These are the three splices used to interpolate the A,B,C parameters for
     // photons
-    static PolynomialSplineFunction psf_parA_p = null;
-    static PolynomialSplineFunction psf_parB_p = null;
-    static PolynomialSplineFunction psf_parC_p = null;
+    static PolynomialSplineFunction[] psf_parA_p = new PolynomialSplineFunction[2];
+    static PolynomialSplineFunction[] psf_parB_p = new PolynomialSplineFunction[2];
+    static PolynomialSplineFunction[] psf_parC_p = new PolynomialSplineFunction[2];
 
     // These are the three splices used to interpolate the A,B,C parameters for
     // electrons
-    static PolynomialSplineFunction psf_parA_em = null;
-    static PolynomialSplineFunction psf_parB_em = null;
-    static PolynomialSplineFunction psf_parC_em = null;
+    static PolynomialSplineFunction[] psf_parA_em = new PolynomialSplineFunction[2];
+    static PolynomialSplineFunction[] psf_parB_em = new PolynomialSplineFunction[2];
+    static PolynomialSplineFunction[] psf_parC_em = new PolynomialSplineFunction[2];
 
     // These are the three splices used to interpolate the A,B,C parameters for
     // positrons
-    static PolynomialSplineFunction psf_parA_ep = null;
-    static PolynomialSplineFunction psf_parB_ep = null;
-    static PolynomialSplineFunction psf_parC_ep = null;
+    static PolynomialSplineFunction[] psf_parA_ep = new PolynomialSplineFunction[2];
+    static PolynomialSplineFunction[] psf_parB_ep = new PolynomialSplineFunction[2];
+    static PolynomialSplineFunction[] psf_parC_ep = new PolynomialSplineFunction[2];
 
-    private static void loadDataFromResourceFile(int pdg, boolean isMC) {
+    private static void loadDataFromResourceFile(int pdg, int type) {
 
-        String fname;
+        String pname;
         switch (pdg) {
             case 11:
-                // electron
-                if (isMC) {
-                    fname = "2019SF_MC_parameters_electrons.dat";
-                } else
-                    fname = "2019SF_parameters_electrons.dat";
+                pname = "electrons";
                 break;
             case -11:
-                if (isMC) {
-                    fname = "2019SF_MC_parameters_positrons.dat";
-                } else
-                    fname = "2019SF_parameters_positrons.dat";
+                pname = "positrons";
                 break;
             case 22:
-                if (isMC) {
-                    fname = "2019SF_MC_parameters_photons.dat";
-                } else
-                    fname = "2019SF_parameters_photons.dat";
+                pname = "photons";
                 break;
             default:
-                throw new RuntimeException("Cannot determine resource filename for PID="+pdg);
+                throw new RuntimeException("Unsupported PID="+pdg);
         }
-
+       
+        String fname;
+        switch (type) {
+            case MC:
+                fname = "2019SF_MC_parameters_"+pname+".dat";
+                break;
+            case DATA:
+                fname = "2019SF_parameters_"+pname+".dat";
+                break;
+            default:
+                throw new RuntimeException("Unsupported MC/DATA type="+type);
+        }
+        
+        System.out.println(name+": Loading resources data:  "+fname);
+        
         java.io.InputStream fis = ClusterEnergyCorrection2019.class.getResourceAsStream(fname);
         java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(fis));
 
@@ -98,19 +105,19 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
 
             switch (pdg) {
                 case 22:
-                    psf_parA_p = new SplineInterpolator().interpolate(xvals, yvalsA);
-                    psf_parB_p = new SplineInterpolator().interpolate(xvals, yvalsB);
-                    psf_parC_p = new SplineInterpolator().interpolate(xvals, yvalsC);
+                    psf_parA_p[type] = new SplineInterpolator().interpolate(xvals, yvalsA);
+                    psf_parB_p[type] = new SplineInterpolator().interpolate(xvals, yvalsB);
+                    psf_parC_p[type] = new SplineInterpolator().interpolate(xvals, yvalsC);
                     break;
                 case 11:
-                    psf_parA_em = new SplineInterpolator().interpolate(xvals, yvalsA);
-                    psf_parB_em = new SplineInterpolator().interpolate(xvals, yvalsB);
-                    psf_parC_em = new SplineInterpolator().interpolate(xvals, yvalsC);
+                    psf_parA_em[type] = new SplineInterpolator().interpolate(xvals, yvalsA);
+                    psf_parB_em[type] = new SplineInterpolator().interpolate(xvals, yvalsB);
+                    psf_parC_em[type] = new SplineInterpolator().interpolate(xvals, yvalsC);
                     break;
                 case -11:
-                    psf_parA_ep = new SplineInterpolator().interpolate(xvals, yvalsA);
-                    psf_parB_ep = new SplineInterpolator().interpolate(xvals, yvalsB);
-                    psf_parC_ep = new SplineInterpolator().interpolate(xvals, yvalsC);
+                    psf_parA_ep[type] = new SplineInterpolator().interpolate(xvals, yvalsA);
+                    psf_parB_ep[type] = new SplineInterpolator().interpolate(xvals, yvalsB);
+                    psf_parC_ep[type] = new SplineInterpolator().interpolate(xvals, yvalsC);
                     break;
             }
 
@@ -119,14 +126,13 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
         }
     }
 
-    private static void loadDataFromResourceFiles(boolean isMC) {
-        if (hasLoaded == false) {
-            System.out.println(name+": loading resources data ...");
-            loadDataFromResourceFile(11, isMC);
-            loadDataFromResourceFile(-11, isMC);
-            loadDataFromResourceFile(22, isMC);
-            hasLoaded = true;
+    private static void loadDataFromResourceFiles(int type) {
+        if (!hasLoaded[type]) {
+            loadDataFromResourceFile(11, type);
+            loadDataFromResourceFile(-11, type);
+            loadDataFromResourceFile(22, type);
         }
+        hasLoaded[type] = true;
     }
 
     /**
@@ -147,6 +153,11 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
 
     public static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
             boolean isMC) {
+
+        final int type = isMC ? MC : DATA;
+
+        loadDataFromResourceFiles(type);
+        
         // distance to beam gap edge
         double r = ClusterCorrectionUtilities.computeYDistanceFromEdge(ecal,xpos,ypos);
 
@@ -162,13 +173,13 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
             switch (pdg) {
                 case 11:
                     // electron
-                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_em, psf_parB_em, psf_parC_em);
+                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_em[type], psf_parB_em[type], psf_parC_em[type]);
                 case -11:
                     // positron
-                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_ep, psf_parB_ep, psf_parC_ep);
+                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_ep[type], psf_parB_ep[type], psf_parC_ep[type]);
                 case 22:
                     // photon
-                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_p, psf_parB_p, psf_parC_p);
+                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_p[type], psf_parB_p[type], psf_parC_p[type]);
                 default:
                     // unknown
                     return rawEnergy;
@@ -177,13 +188,13 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
             switch (pdg) {
                 case 11:
                     // electron
-                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_em, psf_parB_em, psf_parC_em);
+                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_em[type], psf_parB_em[type], psf_parC_em[type]);
                 case -11:
                     // positron
-                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_ep, psf_parB_ep, psf_parC_ep);
+                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_ep[type], psf_parB_ep[type], psf_parC_ep[type]);
                 case 22:
                     // photon
-                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_p, psf_parB_p, psf_parC_p);
+                    return computeCorrectedEnergy(r, rawEnergy, psf_parA_p[type], psf_parB_p[type], psf_parC_p[type]);
                 default:
                     // unknown
                     return rawEnergy;
@@ -216,33 +227,34 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
     }
 
     public static void main(String[] args) {
-        System.out.println("main");
-        loadDataFromResourceFiles(true);
-        loadDataFromResourceFiles(true);
+       
+        int type = MC;
+
+        loadDataFromResourceFiles(type);
 
         Random r = new Random();
 
         for (int ii = 0; ii < 10000; ii++) {
             double y = r.nextDouble() * 63 + 2.5; // 1..66;
-            double A=psf_parA_em.value(y);
-            double B=psf_parB_em.value(y);
-            double C=psf_parC_em.value(y);
+            double A=psf_parA_em[type].value(y);
+            double B=psf_parB_em[type].value(y);
+            double C=psf_parC_em[type].value(y);
             System.out.println(y+" "+A+" "+B+" "+C);
         }
         
         for (int ii = 0; ii < 10000; ii++) {
             double y = r.nextDouble() * 63 + 2.5; // 1..66;
-            double A=psf_parA_ep.value(y);
-            double B=psf_parB_ep.value(y);
-            double C=psf_parC_ep.value(y);
+            double A=psf_parA_ep[type].value(y);
+            double B=psf_parB_ep[type].value(y);
+            double C=psf_parC_ep[type].value(y);
             System.out.println(y+" "+A+" "+B+" "+C);
         }
         
         for (int ii = 0; ii < 10000; ii++) {
             double y = r.nextDouble() * 63 + 2.5; // 2.5..65.5;
-            double A=psf_parA_p.value(y);
-            double B=psf_parB_p.value(y);
-            double C=psf_parC_p.value(y);
+            double A=psf_parA_p[type].value(y);
+            double B=psf_parB_p[type].value(y);
+            double C=psf_parC_p[type].value(y);
             System.out.println(y+" "+A+" "+B+" "+C);
         }
         
