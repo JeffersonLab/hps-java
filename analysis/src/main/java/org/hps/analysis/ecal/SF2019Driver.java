@@ -11,19 +11,15 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import org.lcsim.event.MCParticle;
-import org.lcsim.event.SimCalorimeterHit;
 import org.lcsim.event.SimTrackerHit;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -237,8 +233,8 @@ public class SF2019Driver extends Driver {
         if (simstat.isDecayedInTracker()) {
             decTracker = 1;
         }
-       // System.out.println("FEE: "+fee.getPZ()+" "+decCalo+" "+decTracker);
-       if ((decCalo != 1) || (decTracker != 0)) return;
+        // System.out.println("FEE: "+fee.getPZ()+" "+decCalo+" "+decTracker);
+        if ((decCalo != 1) || (decTracker != 0)) return;
 
         List<SimTrackerHit> simTrackerHitList = event.get(SimTrackerHit.class, "TrackerHitsECal");
         for (SimTrackerHit hit : simTrackerHitList) {
