@@ -56,7 +56,7 @@ public final class ClusterEnergyCorrection extends AbsClusterEnergyCorrection {
     public static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
             boolean isMC) {
         // distance to beam gap edge
-        final double r = computeYDistanceFromEdge(ecal,xpos,ypos);
+        final double r = ClusterCorrectionUtilities.computeYDistanceFromEdge(ecal,xpos,ypos);
 
         if (isMC) {
             switch (pdg) {
