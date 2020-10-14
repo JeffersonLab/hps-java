@@ -3,13 +3,11 @@ package org.hps.recon.filtering;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 
-import java.util.List;
-
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.record.epics.EpicsData;
+//import org.hps.record.epics.EpicsData;
 //import org.hps.record.triggerbank.AbstractIntData;
 //import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
