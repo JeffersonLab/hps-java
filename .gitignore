@@ -35,3 +35,6 @@ target
 
 # name of ET mem map file
 ETBuffer
+
+# from generating maven deps
+deps.txt
