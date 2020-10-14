@@ -2,14 +2,10 @@ package org.hps.recon.filtering;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
-
-import java.util.List;
-
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.record.epics.EpicsData;
 //import org.hps.record.triggerbank.AbstractIntData;
 //import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
@@ -43,7 +39,7 @@ public class FEEFilterDriver extends EventReconFilter {
 
     /**
      * Set the cut value for seed energy in GeV
-     * 
+     *
      * @param seedCut
      */
     public void setSeedCut(double seedCut) {
@@ -52,7 +48,7 @@ public class FEEFilterDriver extends EventReconFilter {
 
     /**
      * Set the cut value for cluster energy in GeV
-     * 
+     *
      * @param clusterCut
      */
     public void setClusterCut(double clusterCut) {
@@ -65,7 +61,6 @@ public class FEEFilterDriver extends EventReconFilter {
         // (could also do this via event tag=31)
         //    final EpicsData data = EpicsData.read(event);
         //    if (data != null) return;
-
         incrementEventProcessed();
 
         // only keep singles triggers:
@@ -105,11 +100,15 @@ public class FEEFilterDriver extends EventReconFilter {
             // keep events with a single cluster over 2.0 GeV and seed over 1.2 GeV for 2019 running, and with no other clusters (threshold = 0.4 GeV)
             if (cc.getEnergy() > clusterCut && ClusterUtilities.findSeedHit(cc).getCorrectedEnergy() > seedCut && cc.getCalorimeterHits().size() >= minHits) {
                 nGood++;
-                if (nGood >= 2) break;
+                if (nGood >= 2) {
+                    break;
+                }
             }
             if (cc.getEnergy() > clusterCutThr) {
                 nAll++;
-                if (nAll >= 2) break;
+                if (nAll >= 2) {
+                    break;
+                }
             }
         }
         if ((nGood == 1) && (nAll == 1)) {
