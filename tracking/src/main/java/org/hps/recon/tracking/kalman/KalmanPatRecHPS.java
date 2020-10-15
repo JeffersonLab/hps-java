@@ -1141,7 +1141,6 @@ class KalmanPatRecHPS {
             filteredTkr.chi2s += Math.max(currentSite.chi2inc, 0.);
 
             nextSite = currentSite;
-            if (verbose) currentSite.print("smoothed");
         }
         filteredTkr.smoothed = true;
     }
