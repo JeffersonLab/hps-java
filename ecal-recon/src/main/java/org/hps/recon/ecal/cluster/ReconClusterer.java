@@ -63,8 +63,8 @@ public class ReconClusterer extends AbstractClusterer {
     // Minimum time cut window range. Units in ns.
     double minTime = 0.0;
 
-    // Minimum time cut window range. Units in ns.
-    double maxTime = 35.0;
+    // Minimum time cut window range. Units in ns.  Negative means ignore this requirement.
+    double maxTime = -1;
 
     // Maximum time cut window range. Units in ns.
     double timeWindow = 8.0;
@@ -76,7 +76,7 @@ public class ReconClusterer extends AbstractClusterer {
 
     ReconClusterer() {
         super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime","maxTime","timeWindow" },
-                new double[] { 0.0075, 0.05, 0.1, 0.0,35., 8.0 });
+                new double[] { 0.0075, 0.05, 0.1, 0.0, -1.0, 8.0 });
     }
 
     void setUseTimeCut(boolean useTimeCut) {
@@ -129,7 +129,7 @@ public class ReconClusterer extends AbstractClusterer {
         for (int index = hitList.size() - 1; index >= 0; index--) {
             // If the hit is below threshold or below min time, kill it.
             if ((hitList.get(index).getCorrectedEnergy() < hitEnergyThreshold) || (hitList.get(index).getTime() < minTime)
-                    || (hitList.get(index).getTime() > maxTime)) {
+                    || (maxTime > 0 && hitList.get(index).getTime() > maxTime)) {
                 rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
             }
