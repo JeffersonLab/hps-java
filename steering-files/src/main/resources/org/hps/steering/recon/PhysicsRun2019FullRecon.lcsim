@@ -287,7 +287,7 @@
         <!-- Create Reconstructed Particles by pairing up tracks and clusters when possible -->
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <trackCollectionNames>MatchedTracks GBLTracks</trackCollectionNames>          
+            <trackCollectionNames>GBLTracks</trackCollectionNames>          
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
@@ -303,8 +303,8 @@
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>false</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <applyClusterCorrections>true</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
         </driver>  
         
