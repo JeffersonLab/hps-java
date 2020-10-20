@@ -2,6 +2,7 @@ package org.hps.recon.ecal.cluster;
 
 import hep.physics.vec.Hep3Vector;
 import java.util.List;
+import java.util.Random;
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.detector.ecal.HPSEcalDetectorElement;
 import org.jdom.DataConversionException;
@@ -15,6 +16,20 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  */
 public final class ClusterCorrectionUtilities {
 
+    static final double CUTOFF_OFFSET = 35.0;
+    
+    // Variables derived as the difference between data and mc noise in
+    // ecal cluster energy resolution.
+    static final double NOISE_A = -9.81E-6;
+    static final double NOISE_B = 1.3725E-4;
+    static final double NOISE_C = 3.01E-4;
+
+    static final Random random = new Random();
+    
+    // Calculate the noise factor to smear the Ecal energy by
+    public static double calcNoise(double energy) {
+        return random.nextGaussian() * Math.sqrt(NOISE_A + NOISE_B * energy + NOISE_C * Math.pow(energy, 2));
+    }
     
     /**
      * Apply HPS-specific energy and position corrections to a list of clusters in place.
@@ -116,13 +131,13 @@ public final class ClusterCorrectionUtilities {
             }
         } else {
             if (ypos > 0) {
-                if (ypos > (AbsClusterEnergyCorrection.CUTOFF_OFFSET + BEAMGAPTOP)) {
+                if (ypos > (CUTOFF_OFFSET + BEAMGAPTOP)) {
                     ydist = Math.abs(ypos - BEAMGAPTOP);
                 } else {
                     ydist = Math.abs(ypos - BEAMGAPTOPC);
                 }
             } else {
-                if (ypos > (-AbsClusterEnergyCorrection.CUTOFF_OFFSET + BEAMGAPBOT)) {
+                if (ypos > (-CUTOFF_OFFSET + BEAMGAPBOT)) {
                     ydist = Math.abs(ypos - BEAMGAPBOTC);
                 } else {
                     ydist = Math.abs(ypos - BEAMGAPBOT);
@@ -131,5 +146,5 @@ public final class ClusterCorrectionUtilities {
         }
         return ydist;
     }
-    
+
 }

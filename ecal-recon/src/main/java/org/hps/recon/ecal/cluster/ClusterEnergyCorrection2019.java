@@ -5,6 +5,8 @@ import java.util.Random;
 
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.lcsim.event.Cluster;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
@@ -13,7 +15,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * 
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  */
-public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrection {
+public final class ClusterEnergyCorrection2019 {
 
     public static String name = "ClusterEnergyCorrection2019";
 
@@ -226,9 +228,58 @@ public final class ClusterEnergyCorrection2019 extends AbsClusterEnergyCorrectio
 
     }
 
+    /**
+     * Calculate the corrected energy for the cluster.
+     * 
+     * @param cluster The input cluster.
+     * @return The corrected energy.
+     */
+    public static final double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
+        double rawE = cluster.getEnergy();
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0],
+                cluster.getPosition()[1], isMC);
+    }
+
+    /**
+     * Calculate the corrected energy for the cluster using track position at ecal.
+     * 
+     * @param cluster The input cluster.
+     * @return The corrected energy.
+     */
+    public static final double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
+        double rawE = cluster.getEnergy();
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0], ypos, isMC);
+    }
+
+    /**
+     * Calculate the corrected energy and set on the cluster.
+     * 
+     * @param cluster The input cluster.
+     */
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
+        if (isMC) {
+            correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
+    }
+
+    /**
+     * Calculate the corrected energy and set on the cluster.
+     * 
+     * @param cluster The input cluster.
+     */
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, double ypos, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos, isMC);
+        if (isMC) {
+            correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
+    }
+
     public static void main(String[] args) {
        
-        int type = MC;
+        int type = DATA;
 
         loadDataFromResourceFiles(type);
 

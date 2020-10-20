@@ -1,15 +1,16 @@
 package org.hps.recon.ecal.cluster;
 
+import org.lcsim.event.Cluster;
+import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
- * This is the cluster energy correction requiring the particle id uncorrected cluster energy. This is now updated to
  * include edge corrections and sampling fractions derived from data.
  * 
  * @author Holly Vance <hvanc001@odu.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
-public final class ClusterEnergyCorrection extends AbsClusterEnergyCorrection {
+public final class ClusterEnergyCorrection {
 
     // Variables for electron energy corrections.
     static final double par0_em = -0.017;
@@ -112,5 +113,54 @@ public final class ClusterEnergyCorrection extends AbsClusterEnergyCorrection {
                 / (varA / rawEnergy + (varB[1] - varB[ii] * Math.exp(-(y - varB[ii + 1]) * varB[ii + 2]))
                         / (Math.sqrt(rawEnergy)) + (varC[1] - varC[ii] * Math.exp(-(y - varC[ii + 1]) * varC[ii + 2])));
         return corrEnergy;
+    }
+    
+    /**
+     * Calculate the corrected energy for the cluster.
+     * 
+     * @param cluster The input cluster.
+     * @return The corrected energy.
+     */
+    public static final double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
+        double rawE = cluster.getEnergy();
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0],
+                cluster.getPosition()[1], isMC);
+    }
+
+    /**
+     * Calculate the corrected energy for the cluster using track position at ecal.
+     * 
+     * @param cluster The input cluster.
+     * @return The corrected energy.
+     */
+    public static final double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
+        double rawE = cluster.getEnergy();
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0], ypos, isMC);
+    }
+
+    /**
+     * Calculate the corrected energy and set on the cluster.
+     * 
+     * @param cluster The input cluster.
+     */
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
+        if (isMC) {
+            correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
+    }
+
+    /**
+     * Calculate the corrected energy and set on the cluster.
+     * 
+     * @param cluster The input cluster.
+     */
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, double ypos, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos, isMC);
+        if (isMC) {
+            correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
     }
 }
