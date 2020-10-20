@@ -18,18 +18,21 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * This driver reads in a hit collection and outputs a new hit collection with
- * energies that have been multiplied by an improved gain correction factor.
- * This is primarily used for the elastic energy calibration.
+ * This driver reads in a hit collection and outputs a new hit collection correcting for the run-dependent change in the energy.
+ * This change is:
+ * 
+ * E(run) = E0 * (1+(run-run0)*k), where run0 is a reference run and k is a slope parameter, for each crystal
+ * This is primarily used for the 2019 run
  *
- * @author Holly Szumila-Vance
+ * @author Andrea Celentano
  */
 
-public class IterateGainFactorDriver extends Driver {
+public class CorrectGainRunDependenceDriver extends Driver {
 
-    private boolean isGainFileRead = false;
+    private boolean isSlopeFileRead = false;
     private EcalConditions ecalConditions = null;
 
+    private int runMin = 10115;
     /**
      * Set the input collection name (source).
      *
@@ -40,6 +43,10 @@ public class IterateGainFactorDriver extends Driver {
 
     public void setInputCollectionName(final String inputCollectionName) {
         this.inputCollectionName = inputCollectionName;
+    }
+
+    public void setRunMin(int runMin) {
+        this.runMin = runMin;
     }
 
     /**
@@ -59,28 +66,27 @@ public class IterateGainFactorDriver extends Driver {
     /**
      * Basic no argument constructor.
      */
-    public IterateGainFactorDriver() {
+    public CorrectGainRunDependenceDriver() {
     }
 
-    public void setGainFile(String filename) {
-        this.gainFileName = filename;
+    public void setSlopeFile(String filename) {
+        this.slopeFileName = filename;
     }
 
     /**
-     * Read in a text file that has multiplicative factors on the original gain
+     * Read in a text file that has the slopes
      * values. These correction factors can be multiplied directly onto the energy
      * of the reconstructed hits and saved to a new list.
      */
-    private Map<Integer, Double> gainFileGains = new HashMap<Integer, Double>();
-    public String gainFileName = null;
+    private Map<Integer, Double> slopeFileSlopes = new HashMap<Integer, Double>();
+    public String slopeFileName = null;
 
     private void readGainFile() {
-        if (isGainFileRead == true)
-            return;
-        gainFileGains.clear();
+        if (isSlopeFileRead == true) return;
+        slopeFileSlopes.clear();
         // System.out.println("read the file");
-        System.out.println("Reading ECal Gain Factors from:  " + gainFileName);
-        File file = new File(gainFileName);
+        System.out.println("Reading ECal Gain Factors from:  " + slopeFileName);
+        File file = new File(slopeFileName);
         try {
             FileReader reader = new FileReader(file);
             char[] chars = new char[(int) file.length()];
@@ -94,17 +100,17 @@ public class IterateGainFactorDriver extends Driver {
                 if (nlines++ > 0) {
                     final int channelid = Integer.valueOf(columns[0]);
                     final double gain = Double.valueOf(columns[1]);
-                    if (gainFileGains.containsKey(channelid)) {
-                        throw new RuntimeException("Duplicate Entries in ECal Gain File.");
+                    if (slopeFileSlopes.containsKey(channelid)) {
+                        throw new RuntimeException("Duplicate Entries in ECal slope File.");
                     }
-                    gainFileGains.put(channelid, gain);
+                    slopeFileSlopes.put(channelid, gain);
                 }
             }
             if (nlines != 442 + 1) {
-                System.err.println("Invalid Gain File.");
+                System.err.println("CorrectGainRunDepedendence Driver: Invalid slope File.");
                 System.exit(3);
             }
-            isGainFileRead = true;
+            isSlopeFileRead = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -125,12 +131,19 @@ public class IterateGainFactorDriver extends Driver {
      *            the input hit list
      * @return the output hit collection with gain corrected energies
      */
-    public List<CalorimeterHit> iterateHits(final List<CalorimeterHit> hits) {
+    public List<CalorimeterHit> iterateHits(final List<CalorimeterHit> hits, int thisRun) {
         ArrayList<CalorimeterHit> newHits = new ArrayList<CalorimeterHit>();
         for (final CalorimeterHit hit : hits) {
             double time = hit.getTime();
             long cellID = hit.getCellID();
-            double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
+            double energy = hit.getCorrectedEnergy();
+            if (thisRun > runMin) {
+                double deltaRun = thisRun - runMin;
+                double den = (1 + deltaRun * slopeFileSlopes.get(findChannelId(cellID)));
+                if (den != 0) {
+                    energy = energy / den;
+                }
+            }
             CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
             newHits.add(newHit);
         }
@@ -157,7 +170,7 @@ public class IterateGainFactorDriver extends Driver {
             final List<CalorimeterHit> inputHitCollection = event.get(CalorimeterHit.class, inputCollectionName);
 
             // Iterate the gain correction coefficient on each hit.
-            final List<CalorimeterHit> outputHitCollection = this.iterateHits(inputHitCollection);
+            final List<CalorimeterHit> outputHitCollection = this.iterateHits(inputHitCollection, event.getRunNumber());
 
             int flags = 0;
             flags += 1 << LCIOConstants.RCHBIT_TIME; // store hit time
