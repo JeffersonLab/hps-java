@@ -10,6 +10,7 @@ import org.apache.commons.math.util.FastMath;
 import org.ejml.data.DMatrix3x3;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
+import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.dense.fixed.CommonOps_DDF3;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
@@ -24,7 +25,7 @@ class HelixState implements Cloneable {
     Vec X0;                     // Pivot point of helix in the B-field reference frame (local field coordinates)
     RotMatrix Rot;              // Rotation from the global coordinates to the local field coordinates 
     Vec origin;                 // Origin of the local field coordinates in the global system.
-    DMatrixRMaj C;      // Helix covariance matrix 
+    DMatrixRMaj C;              // Helix covariance matrix 
     double B;                   // Magnetic field magnitude at origin
     Vec tB;                     // Magnetic field direction at origin
     double alpha;               // Conversion from 1/K to radius R
@@ -97,7 +98,13 @@ class HelixState implements Cloneable {
         str = str + "End of HelixState dump\n";
         return str;
     }
-    
+
+    boolean goodCov() {
+        if (!MatrixFeatures_DDRM.isDiagonalPositive(C)) return false;
+        if (MatrixFeatures_DDRM.hasNaN(C)) return false;
+        return true;
+    }
+        
     // Returns a point on the helix at the angle phi
     // Warning: the point returned is in the B-Field reference frame
     Vec atPhi(double phi) {

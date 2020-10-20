@@ -1177,6 +1177,13 @@ public class KalTrack {
         public int compare(KalTrack t1, KalTrack t2) {
             Double chi1 = new Double(t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.));
             Double chi2 = new Double(t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.));
+            if (t1.originHelix() && t2.originHelix()) {
+                if (!t1.helixAtOrigin.goodCov()) chi1 = chi1 + 1000.;
+                if (!t2.helixAtOrigin.goodCov()) chi2 = chi2 + 1000.;
+            } else {
+                if (!t1.SiteList.get(0).aS.helix.goodCov()) chi1 = chi1 + 1000.;
+                if (!t2.SiteList.get(0).aS.helix.goodCov()) chi2 = chi2 + 1000.;
+            }
             return chi1.compareTo(chi2);
         }
     };

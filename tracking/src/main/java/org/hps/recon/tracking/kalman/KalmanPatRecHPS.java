@@ -97,7 +97,8 @@ class KalmanPatRecHPS {
     ArrayList<KalTrack> kalmanPatRec(ArrayList<SiModule> data, int topBottom, int eventNumber) {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         
-        this.eventNumber = eventNumber;        
+        this.eventNumber = eventNumber;      
+        //debug = (eventNumber == 656);
 
         TkrList = new ArrayList<KalTrack>();
         nModules = data.size();
@@ -636,9 +637,9 @@ class KalmanPatRecHPS {
                     for (MeasurementSite site : candidateTrack.sites) {
                         if (site.aS != null) startSite = site;
                     }
-                    if (MatrixFeatures_DDRM.hasNaN(startSite.aS.helix.C)) {
-                        if (debug) System.out.format("KalmanPatRecHPs: candidate %d covariance is NaN!\n", candidateTrack.ID);
-                        candidateTrack.good = false;
+                    if (!startSite.aS.helix.goodCov()) {
+                        if (debug) System.out.format("KalmanPatRecHPs: candidate %d covariance is NaN or non-positive!\n", candidateTrack.ID);
+                        candidateTrack.good = false; 
                         continue seedLoop;
                     }
 
@@ -648,12 +649,12 @@ class KalmanPatRecHPS {
                             if (candidateTrack.numStereo() > 4) {
                                 Vec helix = candidateTrack.originHelix();
                                 if (Math.abs(helix.v[0]) < kPar.dRhoMax[trial]) {
-                                    if (Math.abs(helix.v[3]) < kPar.dzMax[trial]) {
-                                        if (debug) {
-                                            System.out.format("KalmanPatRecHPS: keeping a near perfect track candidate %d\n", candidateTrack.ID);
-                                            candidateTrack.print("the perfect one", true);
-                                        }
+                                    if (Math.abs(helix.v[3]) < kPar.dzMax[trial]) {                                      
                                         if (storeTrack(tkID, candidateTrack)) {
+                                            if (debug) {
+                                                System.out.format("KalmanPatRecHPS: keeping a near perfect track candidate %d\n", candidateTrack.ID);
+                                                candidateTrack.print("the perfect one", true);
+                                            }
                                             tkID++;
                                             candidateList.remove(candidateTrack);
                                             if (debug) {
@@ -1068,7 +1069,7 @@ class KalmanPatRecHPS {
                     double phi0 = aS.helix.planeIntersect(new Plane(new Vec(0.,0.,0.), new Vec(0.,1.,0.)));
                     if (Double.isNaN(phi0)) {
                         if (debug) System.out.format("KalmanPatRecHPS: track %d does not intersect the origin plane!\n", tkr.ID);
-                        goodFit = false;
+                        //goodFit = false;
                     }
                 } else {
                     if (debug) System.out.format("KalmanPatRecHPS: track %d has no smoothed state vector at site 0!\n", tkr.ID);
@@ -1077,7 +1078,7 @@ class KalmanPatRecHPS {
                 if (goodFit) {
                     if (!tkr.originHelix()) {
                         if (debug) System.out.format("KalmanPatRecHPS: propagating track %d to the origin failed!\n", tkr.ID);
-                        goodFit = false;
+                        //goodFit = false;
                     };
                 }
                 if (goodFit) { // For tracks with few hits, include an origin constraint
