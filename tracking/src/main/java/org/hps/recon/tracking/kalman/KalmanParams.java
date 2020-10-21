@@ -36,6 +36,7 @@ public class KalmanParams {
     int minAxial;
     double mxTdif;
     double seedCompThr;           // Compatibility threshold for seedTracks helix parameters
+    int numStrategies;
     ArrayList<int[]> [] lyrList;
     double [] beamSpot;
     double [] vtxSize;
@@ -73,6 +74,17 @@ public class KalmanParams {
         for (int i=0; i<3; ++i) {
             System.out.format("      %d: %8.3f +- %8.3f\n", i, beamSpot[i], vtxSize[i]);
         }
+        for (int i=0; i<2; ++i) {
+            System.out.format("  Search strategies for topBottom = %d:\n",i);
+            for (int j=0; j<numStrategies; ++j) {
+                int [] list = lyrList[i].get(j);
+                System.out.format("     ");
+                for (int k=0; k<5; ++k) {
+                    System.out.format(" %d ", list[k]);
+                }
+                System.out.format("\n");
+            }
+        }
         System.out.format("\n");
     }
     
@@ -95,14 +107,14 @@ public class KalmanParams {
         // The second iteration generally will have looser cuts.
         nTrials = 2;        // Number of global iterations of the pattern recognition
         nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
-        kMax[0] = 3.0;      // Maximum curvature for seed
-        kMax[1] = 6.0;      
+        kMax[0] = 4.0;      // Maximum curvature for seed
+        kMax[1] = 8.0;      
         kMin = 0.;          // Minimum curvature for seed
-        tanlMax[0] = 0.08;  // Maximum tan(lambda) for seed
-        tanlMax[1] = 0.12;
+        tanlMax[0] = 0.10;  // Maximum tan(lambda) for seed
+        tanlMax[1] = 0.13;
         dRhoMax[0] = 15.;   // Maximum dRho at target plane for seed
         dRhoMax[1] = 25.;
-        dzMax[0] = 3.;      // Maximum z at target plane for seed
+        dzMax[0] = 4.;      // Maximum z at target plane for seed
         dzMax[1] = 10.;
         chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
         chi2mx1[1] = 16.0;  
@@ -147,6 +159,8 @@ public class KalmanParams {
         final int[] list14 = {6, 7, 8, 10, 11};
         final int[] list15 = {1, 2, 3, 4, 6};
         final int[] list16 = {2, 3, 4, 5, 6};
+        final int[] list17 = {0, 2, 3, 4, 5};
+        final int[] list18 = {0, 3, 4, 5, 6};
         lyrList[0].add(list0);
         lyrList[0].add(list1);
         lyrList[0].add(list2);
@@ -164,6 +178,9 @@ public class KalmanParams {
         lyrList[0].add(list14);
         lyrList[0].add(list15);
         lyrList[0].add(list16);
+        lyrList[0].add(list17);
+        lyrList[0].add(list18);
+        numStrategies = 19;
         maxListIter1 = 14;           // The maximum index for lyrList for the first iteration
         
         beamSpot = new double[3];
@@ -208,6 +225,13 @@ public class KalmanParams {
         }       
     }
     
+    public void setNumStrategies(int n) {
+        if (n <= 0 || n > lyrList[0].size()) {
+            logger.log(Level.WARNING,String.format("Number of search strategies %d is not valid and is ignored.", n));
+            return;
+        }
+        numStrategies = n;
+    }
     public void setGlbIterations(int nTrials) {
         if (nTrials < 1 || nTrials > mxTrials) {
             logger.log(Level.WARNING,String.format("Number of global iterations %d is not valid and is ignored.", nTrials));

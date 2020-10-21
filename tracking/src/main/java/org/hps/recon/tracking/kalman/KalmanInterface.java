@@ -823,7 +823,8 @@ public class KalmanInterface {
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
         
         if (_siHitsLimit > 0 && striphits.size() > _siHitsLimit) {
-            System.out.println("KalmanInterface::Skip event with " + stripHitInputCollectionName + " > " + String.valueOf(_siHitsLimit));
+            System.out.format("KalmanInterface::Skip event %d with %s %d hits > %d\n", event.getEventNumber(), 
+                    stripHitInputCollectionName, striphits.size(), _siHitsLimit);
             return false;
         }
 

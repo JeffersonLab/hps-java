@@ -60,6 +60,7 @@ public class KalmanPatRecDriver extends Driver {
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
     private int numPatRecIteration;    // Number of global iterations of the pattern recognition
     private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
+    private int numStrategy;           // Number of pattern recognition search strategies to use
     private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
     private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
     private double maxZ0;              // Maximum dz (or Z0) at the target plane for a seed and the final track
@@ -196,16 +197,13 @@ public class KalmanPatRecDriver extends Driver {
         if (beamPositionY != 0.0) kPar.setBeamSpotZ(-beamPositionY);
         if (beamSigmaY != 0.0) kPar.setBeamSizeZ(beamSigmaY);
         if (mxChi2Vtx != 0.0) kPar.setMaxChi2Vtx(mxChi2Vtx);
+        if (numStrategy > 0) kPar.setNumStrategies(numStrategy);
         
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
         // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
         
-        //int[] list15 = {1, 2, 4, 5, 6};
-        //int[] list16 = {0, 1, 2, 3, 4};
         //int[] list17 = {0, 3, 4, 5, 6};
-        //kPar.addStrategy(list15);
-        //kPar.addStrategy(list16);
         //kPar.addStrategy(list17);
         logger.config(String.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB));
         logger.config("KalmanPatRecDriver: done with configuration changes.");
@@ -511,5 +509,8 @@ public class KalmanPatRecDriver extends Driver {
     }
     public void setBeamSigmaY(double beamSigmaY) {
         this.beamSigmaY = beamSigmaY;
+    }
+    public void setNumStrategy(int numStrategy) {
+        this.numStrategy = numStrategy;
     }
 }

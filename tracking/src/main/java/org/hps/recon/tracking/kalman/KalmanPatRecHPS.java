@@ -98,7 +98,7 @@ class KalmanPatRecHPS {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         
         this.eventNumber = eventNumber;      
-        //debug = (eventNumber == 656);
+        //debug = (eventNumber == 914);
 
         TkrList = new ArrayList<KalTrack>();
         nModules = data.size();
@@ -160,6 +160,7 @@ class KalmanPatRecHPS {
         if (debug) {
             System.out.format("  KalmanPatRecHPS: list of the seed strategies to be applied:\n");
             for (int[] list : kPar.lyrList[topBottom]) {
+                if (kPar.lyrList[topBottom].indexOf(list) > kPar.numStrategies) break;
                 for (int lyr=0; lyr<list.length; ++lyr) {
                     System.out.format(" %3d ", list[lyr]);
                 }
@@ -189,8 +190,9 @@ class KalmanPatRecHPS {
                 }
             }
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
-            for (int[] list : kPar.lyrList[topBottom]) {
-                if (trial == 0 && kPar.lyrList[topBottom].indexOf(list) > kPar.maxListIter1) continue;
+            for (int iList = 0; iList<kPar.numStrategies; ++iList) {
+                if (trial == 0 && iList > kPar.maxListIter1) break;
+                int[] list = kPar.lyrList[topBottom].get(iList);
                 int nLyrs = list.length;
                 int middleLyr = 2;
                 if (moduleList.get(list[middleLyr]).size() == 0) continue;  // Skip seed if there is no hit in the middle layer
@@ -295,8 +297,8 @@ class KalmanPatRecHPS {
                                     // Cuts on the seed quality
                                     Vec hp = seed.helixParams();                        
                                     if (debug) {
-                                        System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f, tanl=%10.5f, ",
-                                                          idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], hp.v[4]);
+                                        System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f (%10.5f), tanl=%10.5f (%10.5f) ",
+                                                          idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], kPar.kMax[trial], hp.v[4], kPar.tanlMax[trial]);
                                     }                                    
                                     boolean seed_passes_cuts = false;                                    
                                     if (Math.abs(hp.v[2]) < kPar.kMax[trial]) {
