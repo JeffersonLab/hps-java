@@ -16,11 +16,19 @@ import org.apache.commons.math3.linear.RealVector;
 //import org.apache.commons.math3.linear.RealVectorFormat;
 
 import org.apache.commons.math3.special.Gamma;
+
+/*
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
 import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+*/
+
+import org.hps.minuit.FCNBase;
+import org.hps.minuit.FunctionMinimum;
+import org.hps.minuit.MnSimplex;
+import org.hps.minuit.MnUserParameters;
 
 import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -458,8 +466,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
         */
 
-        //Check that at least 3 samples are above 0.5 sigma.
-
+        //Check that at least 3 samples are not 0.
         int OKamplitudes = 0;
         for(int i = 0; i< nFittedPulses; i++){
             double t0 = HPSSVTConstants.SAMPLING_INTERVAL * firstUsedSample - times[i];
@@ -474,8 +481,8 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                 if (Double.isNaN(amplitudez[j])) {
                     canFit = false;
                 }
-                
-                if (amplitudez[j] / sigma[firstUsedSample + j] > 0.5)
+   
+                if (amplitudez[j] > 0.1)
                     OKamplitudes +=1;
                 
                 sc_mat_ejml.set(i, j, amplitudez[j] / sigma[firstUsedSample + j]);
