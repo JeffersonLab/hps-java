@@ -664,7 +664,7 @@ class KalmanPatRecPlots {
             } //loop on GBL Tracks
         } //check if event has GBLTracks
         
-        if (nPlotted < numEvtPlots) {
+        if (nPlotted < numEvtPlots) {  // && minHits == 5) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
             //KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;

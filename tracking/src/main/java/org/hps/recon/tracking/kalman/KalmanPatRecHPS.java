@@ -65,15 +65,12 @@ class KalmanPatRecHPS {
         this.kPar = kPar;     
         logger = Logger.getLogger(KalmanPatRecHPS.class.getName());
         logger.info("KalmanPatRecHPS instance created.");
-        kPar.print();
         vtx = new double[3];
-        vtx[0] = 0.;
-        vtx[1] = -10.;
-        vtx[2] = 0.;
         vtxCov = new double[3][3];
-        vtxCov[0][0] = 1.0;
-        vtxCov[1][1] = 9.0;
-        vtxCov[2][2] = 0.25;
+        for (int i=0; i<3; ++i) {
+            vtx[i] = kPar.beamSpot[i];
+            vtxCov[i][i] = kPar.vtxSize[i]*kPar.vtxSize[i];
+        }
         rho = 2.329;                   // Density of silicon in g/cm^2
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         numLayers = 14;
@@ -91,6 +88,7 @@ class KalmanPatRecHPS {
         p0 = new Plane(new Vec(0., kPar.beamSpot[1], 0.), new Vec(0., 1., 0.));  // xy plane at the target position
     }
     
+    // Override the default vertex location and size
     void patRecSetVtx(double [] vtx, double [][] vtxCov) {
         this.vtx = vtx;
         this.vtxCov = vtxCov;
@@ -99,7 +97,8 @@ class KalmanPatRecHPS {
     ArrayList<KalTrack> kalmanPatRec(ArrayList<SiModule> data, int topBottom, int eventNumber) {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         
-        this.eventNumber = eventNumber;        
+        this.eventNumber = eventNumber;      
+        //debug = (eventNumber == 914);
 
         TkrList = new ArrayList<KalTrack>();
         nModules = data.size();
@@ -161,6 +160,7 @@ class KalmanPatRecHPS {
         if (debug) {
             System.out.format("  KalmanPatRecHPS: list of the seed strategies to be applied:\n");
             for (int[] list : kPar.lyrList[topBottom]) {
+                if (kPar.lyrList[topBottom].indexOf(list) > kPar.numStrategies) break;
                 for (int lyr=0; lyr<list.length; ++lyr) {
                     System.out.format(" %3d ", list[lyr]);
                 }
@@ -190,8 +190,9 @@ class KalmanPatRecHPS {
                 }
             }
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
-            for (int[] list : kPar.lyrList[topBottom]) {
-                if (trial == 0 && kPar.lyrList[topBottom].indexOf(list) > kPar.maxListIter1) continue;
+            for (int iList = 0; iList<kPar.numStrategies; ++iList) {
+                if (trial == 0 && iList > kPar.maxListIter1) break;
+                int[] list = kPar.lyrList[topBottom].get(iList);
                 int nLyrs = list.length;
                 int middleLyr = 2;
                 if (moduleList.get(list[middleLyr]).size() == 0) continue;  // Skip seed if there is no hit in the middle layer
@@ -296,8 +297,8 @@ class KalmanPatRecHPS {
                                     // Cuts on the seed quality
                                     Vec hp = seed.helixParams();                        
                                     if (debug) {
-                                        System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f, tanl=%10.5f, ",
-                                                          idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], hp.v[4]);
+                                        System.out.format("Seed %d %d %d %d %d parameters for cuts: K=%10.5f (%10.5f), tanl=%10.5f (%10.5f) ",
+                                                          idx[0], idx[1], idx[2], idx[3], idx[4], hp.v[2], kPar.kMax[trial], hp.v[4], kPar.tanlMax[trial]);
                                     }                                    
                                     boolean seed_passes_cuts = false;                                    
                                     if (Math.abs(hp.v[2]) < kPar.kMax[trial]) {
@@ -638,9 +639,9 @@ class KalmanPatRecHPS {
                     for (MeasurementSite site : candidateTrack.sites) {
                         if (site.aS != null) startSite = site;
                     }
-                    if (MatrixFeatures_DDRM.hasNaN(startSite.aS.helix.C)) {
-                        if (debug) System.out.format("KalmanPatRecHPs: candidate %d covariance is NaN!\n", candidateTrack.ID);
-                        candidateTrack.good = false;
+                    if (!startSite.aS.helix.goodCov()) {
+                        if (debug) System.out.format("KalmanPatRecHPs: candidate %d covariance is NaN or non-positive!\n", candidateTrack.ID);
+                        candidateTrack.good = false; 
                         continue seedLoop;
                     }
 
@@ -650,12 +651,12 @@ class KalmanPatRecHPS {
                             if (candidateTrack.numStereo() > 4) {
                                 Vec helix = candidateTrack.originHelix();
                                 if (Math.abs(helix.v[0]) < kPar.dRhoMax[trial]) {
-                                    if (Math.abs(helix.v[3]) < kPar.dzMax[trial]) {
-                                        if (debug) {
-                                            System.out.format("KalmanPatRecHPS: keeping a near perfect track candidate %d\n", candidateTrack.ID);
-                                            candidateTrack.print("the perfect one", true);
-                                        }
+                                    if (Math.abs(helix.v[3]) < kPar.dzMax[trial]) {                                      
                                         if (storeTrack(tkID, candidateTrack)) {
+                                            if (debug) {
+                                                System.out.format("KalmanPatRecHPS: keeping a near perfect track candidate %d\n", candidateTrack.ID);
+                                                candidateTrack.print("the perfect one", true);
+                                            }
                                             tkID++;
                                             candidateList.remove(candidateTrack);
                                             if (debug) {
@@ -1070,7 +1071,7 @@ class KalmanPatRecHPS {
                     double phi0 = aS.helix.planeIntersect(new Plane(new Vec(0.,0.,0.), new Vec(0.,1.,0.)));
                     if (Double.isNaN(phi0)) {
                         if (debug) System.out.format("KalmanPatRecHPS: track %d does not intersect the origin plane!\n", tkr.ID);
-                        goodFit = false;
+                        //goodFit = false;
                     }
                 } else {
                     if (debug) System.out.format("KalmanPatRecHPS: track %d has no smoothed state vector at site 0!\n", tkr.ID);
@@ -1079,16 +1080,16 @@ class KalmanPatRecHPS {
                 if (goodFit) {
                     if (!tkr.originHelix()) {
                         if (debug) System.out.format("KalmanPatRecHPS: propagating track %d to the origin failed!\n", tkr.ID);
-                        goodFit = false;
+                        //goodFit = false;
                     };
                 }
                 if (goodFit) { // For tracks with few hits, include an origin constraint
                     if (tkr.nHits == 5) {
                         HelixState constrHelix = tkr.originConstraint(vtx, vtxCov);
                         double chi2inc = tkr.chi2incOrigin();
-                        if (chi2inc <= 1.0) {
+                        if (chi2inc <= kPar.mxChi2Vtx) {
                             tkr.helixAtOrigin = constrHelix;
-                            tkr.chi2 += chi2inc;
+                            tkr.chi2 += chi2inc * tkr.nHits;
                         } else {
                             goodFit = false;
                         }

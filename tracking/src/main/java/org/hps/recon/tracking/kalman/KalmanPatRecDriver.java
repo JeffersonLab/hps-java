@@ -60,6 +60,7 @@ public class KalmanPatRecDriver extends Driver {
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
     private int numPatRecIteration;    // Number of global iterations of the pattern recognition
     private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
+    private int numStrategy;           // Number of pattern recognition search strategies to use
     private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
     private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
     private double maxZ0;              // Maximum dz (or Z0) at the target plane for a seed and the final track
@@ -74,12 +75,18 @@ public class KalmanPatRecDriver extends Driver {
     private double minChi2IncBad;      // Minimum increment in chi^2 to remove a hit from an already completed track
     private double maxResidShare;      // Maximum residual in units of detector resolution for a shared hit
     private double maxChi2IncShare;    // Maximum increment in chi^2 for a hit shared with another track
+    private double mxChi2Vtx;          // Maximum chi^2 for 5-hit tracks with a vertex constraint
     private int numEvtPlots;           // Number of event displays to plot (gnuplot files)
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
-    private double beamSpotLoc;        // Beam spot location along the beam axis
+    private double beamPositionZ;        // Beam spot location along the beam axis
+    private double beamSigmaZ;       // Beam spot size along the beam axis
+    private double beamPositionX;
+    private double beamSigmaX;
+    private double beamPositionY;
+    private double beamSigmaY;
     private boolean addResiduals;      // If true add the hit-on-track residuals to the LCIO event
     
     
@@ -97,7 +104,7 @@ public class KalmanPatRecDriver extends Driver {
 
     public void setUniformB(boolean input) {
         uniformB = input;
-        System.out.format("KalmanPatRecDriver: the B field will be assumed uniform.\n");
+        logger.config("KalmanPatRecDriver: the B field will be assumed uniform.\n");
     }
 
     public void setMaterialManager(MaterialSupervisor mm) {
@@ -109,11 +116,7 @@ public class KalmanPatRecDriver extends Driver {
     
     public void setSiHitsLimit(int input) {
         siHitsLimit = input;
-    }
-    
-                                            
-                          
-     
+    }            
 
     public void setAddResiduals(boolean input) {
         addResiduals = input;
@@ -165,19 +168,11 @@ public class KalmanPatRecDriver extends Driver {
         det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
-        KI = new KalmanInterface(uniformB, fm);
-        KI.setSiHitsLimit(siHitsLimit);
-        KI.createSiModules(detPlanes);
-        
-        decoder = det.getSubdetector("Tracker").getIDDecoder();
-        if (doDebugPlots) {
-            kPlot = new KalmanPatRecPlots(verbose, KI, decoder, numEvtPlots, fm);
-        }
+        KalmanParams kPar = new KalmanParams();
         
         // Change Kalman parameters per settings supplied by the steering file
         // We assume that if not set by the steering file, then the parameters will have the Java default values for the primitives
         // Note that all of the parameters have defaults hard coded in KalmanParams.java
-        kPar = KI.getKalmanParams();
         if (numPatRecIteration != 0) kPar.setGlbIterations(numPatRecIteration);
         if (numKalmanIteration != 0) kPar.setIterations(numKalmanIteration);
         if (maxPtInverse != 0.0) kPar.setMaxK(maxPtInverse);
@@ -195,21 +190,32 @@ public class KalmanPatRecDriver extends Driver {
         if (maxResidShare != 0.0) kPar.setMxResidShare(maxResidShare);
         if (maxChi2IncShare != 0.0) kPar.setMxChi2double(maxChi2IncShare);
         if (seedCompThr != 0.0) kPar.setSeedCompThr(seedCompThr);
-        if (beamSpotLoc != 0.0) kPar.setBeamSpot(beamSpotLoc);
+        if (beamPositionZ != 0.0) kPar.setBeamSpotY(beamPositionZ);
+        if (beamSigmaZ != 0.0) kPar.setBeamSizeY(beamSigmaZ);
+        if (beamPositionX != 0.0) kPar.setBeamSpotX(beamPositionX);
+        if (beamSigmaX != 0.0) kPar.setBeamSizeX(beamSigmaX);
+        if (beamPositionY != 0.0) kPar.setBeamSpotZ(-beamPositionY);
+        if (beamSigmaY != 0.0) kPar.setBeamSizeZ(beamSigmaY);
+        if (mxChi2Vtx != 0.0) kPar.setMaxChi2Vtx(mxChi2Vtx);
+        if (numStrategy > 0) kPar.setNumStrategies(numStrategy);
         
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
         // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
         
-        //int[] list15 = {1, 2, 4, 5, 6};
-        //int[] list16 = {0, 1, 2, 3, 4};
         //int[] list17 = {0, 3, 4, 5, 6};
-        //kPar.addStrategy(list15);
-        //kPar.addStrategy(list16);
         //kPar.addStrategy(list17);
-        System.out.println("KalmanPatRecDriver: done with configuration changes.");
+        logger.config(String.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB));
+        logger.config("KalmanPatRecDriver: done with configuration changes.");
+        kPar.print();
         
-        System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
+        KI = new KalmanInterface(uniformB, kPar, fm);
+        KI.setSiHitsLimit(siHitsLimit);
+        KI.createSiModules(detPlanes);
+        decoder = det.getSubdetector("Tracker").getIDDecoder();
+        if (doDebugPlots) {
+            kPlot = new KalmanPatRecPlots(verbose, KI, decoder, numEvtPlots, fm);
+        }
     }
 
     @Override
@@ -468,6 +474,9 @@ public class KalmanPatRecDriver extends Driver {
     public void setMinChi2IncBad(double minChi2IncBad) {
         this.minChi2IncBad = minChi2IncBad;
     }
+    public void setMxChi2Vtx(double mxChi2Vtx) {
+        this.mxChi2Vtx = mxChi2Vtx;
+    }
     public void setMaxResidShare(double maxResidShare) {
         this.maxResidShare = maxResidShare;
     }
@@ -483,7 +492,25 @@ public class KalmanPatRecDriver extends Driver {
     public void setSeedCompThr(double seedCompThr) {
         this.seedCompThr = seedCompThr;
     }
-    public void setBeamSpotLoc(double beamSpotLoc) {
-        this.beamSpotLoc = beamSpotLoc;
+    public void setBeamPositionZ(double beamPositionZ) {
+        this.beamPositionZ = beamPositionZ;
+    }
+    public void setBeamSigmaZ(double beamSigmaZ) {
+        this.beamSigmaZ = beamSigmaZ;
+    }
+    public void setBeamPositionX(double beamPositionX) {
+        this.beamPositionX = beamPositionX;
+    }
+    public void setBeamSigmaX(double beamSigmaX) {
+        this.beamSigmaX = beamSigmaX;
+    }
+    public void setBeamPositionY(double beamPositionY) {
+        this.beamPositionY = beamPositionY;
+    }
+    public void setBeamSigmaY(double beamSigmaY) {
+        this.beamSigmaY = beamSigmaY;
+    }
+    public void setNumStrategy(int numStrategy) {
+        this.numStrategy = numStrategy;
     }
 }

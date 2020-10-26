@@ -28,17 +28,20 @@ class PatRecTest {
         // Units are Tesla, GeV, mm
 
         int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
-        int mxPlot = 0;                // Maximum number of single event plots
-        int [] eventToPrint = {};
+        int mxPlot = 10;                  // Maximum number of single event plots
+        int [] eventToPrint = {1,2,3,4,5,6,7,8,9,10};
         boolean perfect = false;
+        int mxHitsTkr = 5;               // Maximum number of hits for a simulated helix
 
-        boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
+        boolean rungeKutta = true;       // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = false;
-        boolean noisy = true;
-        boolean smear = true;          // Smear initial momentum vector randomly
+        boolean noisy = false;
+        boolean smear = true;            // Smear initial momentum vector randomly
         boolean uniformB = false;
         double hitEfficiency = 0.90;
         double [] vtxRes = {0.1, 0.5, 0.05};
+        int nHelices = 1; // Number of helix tracks to simulate
+        if (!smear) nHelices = 1;
         double executionTime = 0.;
 
         // Seed the random number generator
@@ -49,6 +52,7 @@ class PatRecTest {
         // Set pattern recognition parameters
         KalmanParams kPar = new KalmanParams();
         kPar.setIterations(2);
+        kPar.setMinHits(5);
         KalmanPatRecHPS patRec = new KalmanPatRecHPS(kPar);
         
         // Definition of the magnetic field
@@ -166,8 +170,6 @@ class PatRecTest {
                     si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
 
-        int nHelices = 2; // Number of helix tracks to simulate
-        if (!smear) nHelices = 1;
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
@@ -180,6 +182,7 @@ class PatRecTest {
         Histogram hNhits = new Histogram(15, 0., 1., "Number of hits per fitted track", "hits", "tracks");
         Histogram hScatProj = new Histogram(100, -0.01, 0.0002, "Projected Scattering Angle", "radians", "Si planes");
         Histogram hTkChi2 = new Histogram(100, 0., 1.0, "Track helix fit chi^2 after smoothing", "chi^2", "tracks");
+        Histogram hTkChi2Vtx = new Histogram(100, 0., 0.1, "Track vtx constraint chi^2", "chi^2", "tracks");
         Histogram hEdrhoS = new Histogram(100, -10., 0.2, "Smoothed helix parameter drho error", "sigmas", "track");
         Histogram hEdrho = new Histogram(100, -2., 0.04, "drho error", "mm", "tracks");
         Histogram hEphi0S = new Histogram(100, -10., 0.2, "Smoothed helix parameter phi0 error", "sigmas", "track");
@@ -354,6 +357,7 @@ class PatRecTest {
                     printWriter2.format("$helix%d << EOD\n", ih);
                     System.out.format("Begin simulation of helix number %d\n", ih);
                 }
+                int nLyrHit = 0;
                 for (int icm = 0; icm < SiModules.size(); icm++) {
                     SiModule thisSi = SiModules.get(icm);
                     if (thisSi.Layer < 0) { continue; }
@@ -411,7 +415,7 @@ class PatRecTest {
                         if (verbose) { System.out.format("     Intersection point is outside of the detector %d in layer %d\n", det, pln); }
                         continue;
                     }
-                    if (rnd.nextDouble() < hitEfficiency) { // Apply some hit inefficiency
+                    if (rnd.nextDouble() < hitEfficiency && nLyrHit < mxHitsTkr) { // Apply some hit inefficiency
                         double[] gran = new double[2];
                         if (perfect) {
                             gran[0] = 0.;
@@ -438,7 +442,8 @@ class PatRecTest {
                             Measurement thisM1 = new Measurement(m1, resolution, 0., rscat, rDet.v[1]);
                             thisM1.addMC(ih);
                             thisSi.addMeasurement(thisM1);
-                            if (verbose) { System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size()); }
+                            if (verbose) System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size());
+                            nLyrHit++;
                         }
                     }
                     if (icm + 1 < SiModules.size()) {
@@ -498,6 +503,7 @@ class PatRecTest {
             vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
             vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
             vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
+            patRec.patRecSetVtx(vtx.v, vtxCov.M);
             long startTimeF = System.nanoTime();
             int topBottom = 0;
             ArrayList<KalTrack> kPat = patRec.kalmanPatRec(SiModules, topBottom, eventNumber);
@@ -603,6 +609,9 @@ class PatRecTest {
                     tkr.print("from KalmanPatRecHPS");
                 }
                 hNhits.entry(tkr.nHits);
+                if (tkr.nHits == 5) {
+                    hTkChi2Vtx.entry(tkr.chi2);
+                }
                 hTkChi2.entry(tkr.chi2);
                 double[] momentum = tkr.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
@@ -750,6 +759,7 @@ class PatRecTest {
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
         hTkChi2.plot(path + "tkrChi2.gp", true, " ", " ");
+        hTkChi2Vtx.plot(path + "tkrChi2Vtx.gp", true, " ", " ");
         hEdrhoS.plot(path + "drhoErrorS.gp", true, "gaus", " ");
         hEphi0S.plot(path + "phi0ErrorS.gp", true, "gaus", " ");
         hEkS.plot(path + "kErrorS.gp", true, "gaus", " ");

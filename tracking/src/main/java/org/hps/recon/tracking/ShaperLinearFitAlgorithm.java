@@ -466,8 +466,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
         */
 
-        //Check that at least 3 samples are above 0.5 sigma.
-
+        //Check that at least 3 samples are not 0.
         int OKamplitudes = 0;
         for(int i = 0; i< nFittedPulses; i++){
             double t0 = HPSSVTConstants.SAMPLING_INTERVAL * firstUsedSample - times[i];
@@ -482,7 +481,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
                 if (Double.isNaN(amplitudez[j])) {
                     canFit = false;
                 }
-                
+   
                 if (amplitudez[j] > 0.1)
                     OKamplitudes +=1;
                 

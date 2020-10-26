@@ -143,13 +143,14 @@ public class KalmanInterface {
     }
 
     // Constructor with no uniformB argument defaults to non-uniform field
-    public KalmanInterface(org.lcsim.geometry.FieldMap fM) {
-        this(false, fM);
+    public KalmanInterface(KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
+        this(false, kPar, fM);
     }
 
-    public KalmanInterface(boolean uniformB, org.lcsim.geometry.FieldMap fM) {
+    public KalmanInterface(boolean uniformB, KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
         
         this.fM = fM;
+        this.kPar = kPar;
         logger = Logger.getLogger(KalmanInterface.class.getName());
         logger.info("Entering the KalmanInterface constructor");
         
@@ -197,7 +198,6 @@ public class KalmanInterface {
         rnd = new Random();
         rnd.setSeed(rndSeed);
         
-        kPar = new KalmanParams();
         kPat = new KalmanPatRecHPS(kPar);
         
         Vec centerB = KalmanInterface.getField(new Vec(0., SVTcenter, 0.), fM);
@@ -823,12 +823,18 @@ public class KalmanInterface {
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
         
         if (_siHitsLimit > 0 && striphits.size() > _siHitsLimit) {
-            System.out.println("KalmanInterface::Skip event with " + stripHitInputCollectionName + " > " + String.valueOf(_siHitsLimit));
+            System.out.format("KalmanInterface::Skip event %d with %s %d hits > %d\n", event.getEventNumber(), 
+                    stripHitInputCollectionName, striphits.size(), _siHitsLimit);
             return false;
         }
 
         // Make a mapping from sensor to hits
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitSensorMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
+        if (debug) {
+            if (striphits.size() == 0) {
+                System.out.format("KalmanInterface:fillAllMeasurements, there are no strip hits in event %d\n",event.getEventNumber());
+            }
+        }
         for (TrackerHit hit1D : striphits) {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit1D.getRawHits().get(0)).getDetectorElement();
 
