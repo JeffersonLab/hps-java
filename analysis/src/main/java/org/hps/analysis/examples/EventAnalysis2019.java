@@ -53,7 +53,7 @@ public class EventAnalysis2019 extends Driver {
 
     //TODO add in OtherElectrons for high-momentum tracks...
     String[] finalStateParticleCollectionNames = {"FinalStateParticles"};//, "FinalStateParticles_KF"};
-    String clusterCollection = "EcalClusters";
+    String clusterCollection = "EcalClustersCorr";
     double minSeedEnergy = 2.7;
     boolean correctECalSF = true;
     double ecalFeeSF = 0.91;
@@ -78,11 +78,22 @@ public class EventAnalysis2019 extends Driver {
             setupSensors(event);
             analyzeRP(event);
             analyzeV0(event);
+            analyzeSvtClusters(event);
 //            analyzeV0eemumu(event);
         }
         if (event.hasCollection(Cluster.class, clusterCollection)) {
             analyzeClusters(event);
         }
+    }
+
+    private void analyzeSvtClusters(EventHeader event) {
+        // Get the list of clusters in the event
+        List<TrackerHit> clusters = event.get(TrackerHit.class, "StripClusterer_SiTrackerHitStrip1D");
+
+        for (TrackerHit cluster : clusters) {
+            aida.histogram1D(event.getRunNumber() + " SVT Cluster time", 200, -100., 100.).fill(cluster.getTime());
+        }
+
     }
 
     private void analyzeRP(EventHeader event) {
