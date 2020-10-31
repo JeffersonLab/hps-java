@@ -79,6 +79,11 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     private static final double BIN_SIZE = 0.025;
     
     /**
+     * run number
+     */
+    private int runNumber = 10666;
+    
+    /**
      * If require geometry matching
      */
     private boolean geometryMatchingRequired = false;
@@ -94,7 +99,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     private IHistogram1D[] clusterHitCount = new IHistogram1D[2];
     private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
     private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
-    
+  
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -105,6 +110,8 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         } else {
             throw new IllegalStateException("Error: Unexpected calorimeter sub-detector of type \"" + ecalSub.getClass().getSimpleName() + "; expected HPSEcal3.");
         }
+        
+        this.runNumber = this.getConditionsManager().getRun();
     }
     
     @Override
@@ -173,7 +180,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             }
            
             
-            if(geometryMatchingRequired && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
+            if(geometryMatchingRequired && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList, runNumber)) {
                 continue;
             }
             

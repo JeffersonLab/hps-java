@@ -153,7 +153,9 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
                 int hole = channelMap.get(cellID).getHole();
 
                 Point point = new Point(x, hole);
-                energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy * gainFactor);
+                // Energy of hits is scaled except hits at tiles 0 and 4
+                if(x == 0 || x == 4) energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy);
+                else energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy * gainFactor);
             }
         }
 
@@ -204,22 +206,32 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
                 flag = true;
             }
             if (maxEnergyMap.get(xHolePointList.get(0)) + maxEnergyMap.get(xHolePointList.get(1))
-                    + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold) {
+                    + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold
+                    && maxEnergyMap.get(xHolePointList.get(0)) != 0
+                    && (maxEnergyMap.get(xHolePointList.get(1)) != 0 || maxEnergyMap.get(xHolePointList.get(2)) != 0)) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_12, true);
                 flag = true;
             }
-            if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2)) + maxEnergyMap.get(xHolePointList.get(3))
-                    + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold) {
+            if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2))
+                    + maxEnergyMap.get(xHolePointList.get(3))
+                    + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold
+                    && (maxEnergyMap.get(xHolePointList.get(1)) != 0 || maxEnergyMap.get(xHolePointList.get(2)) != 0)
+                    && (maxEnergyMap.get(xHolePointList.get(3)) != 0 || maxEnergyMap.get(xHolePointList.get(4)) != 0)) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_23, true);
                 flag = true;
             }
-            if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4)) + maxEnergyMap.get(xHolePointList.get(5))
-                    + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold) {
+            if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4))
+                    + maxEnergyMap.get(xHolePointList.get(5))
+                    + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold
+                    && (maxEnergyMap.get(xHolePointList.get(3)) != 0 || maxEnergyMap.get(xHolePointList.get(4)) != 0)
+                    && (maxEnergyMap.get(xHolePointList.get(5)) != 0 || maxEnergyMap.get(xHolePointList.get(6)) != 0)) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_34, true);
                 flag = true;
             }
             if (maxEnergyMap.get(xHolePointList.get(5)) + maxEnergyMap.get(xHolePointList.get(6))
-                    + maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold) {
+                    + maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold
+                    && (maxEnergyMap.get(xHolePointList.get(5)) != 0 || maxEnergyMap.get(xHolePointList.get(6)) != 0)
+                    && maxEnergyMap.get(xHolePointList.get(7)) != 0) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_45, true);
                 flag = true;
             }
