@@ -541,7 +541,7 @@ public class WTrack {
 
             } else {
                 // if(_debug)
-                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
+//                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
                 return null;
             }
 
@@ -610,7 +610,7 @@ public class WTrack {
 
             } else {
                 // if(_debug)
-                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
+//                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
                 return null;
             }
 
