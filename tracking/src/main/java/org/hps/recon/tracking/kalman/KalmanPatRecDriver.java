@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
+//import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Vector;
 
+import org.hps.conditions.beam.BeamPosition;
+import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
@@ -55,7 +59,7 @@ public class KalmanPatRecDriver extends Driver {
     private double plottingTime;
     private KalmanParams kPar;
     private KalmanPatRecPlots kPlot;
-    private Logger logger;
+    private static Logger logger;
     
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
     private int numPatRecIteration;    // Number of global iterations of the pattern recognition
@@ -87,6 +91,9 @@ public class KalmanPatRecDriver extends Driver {
     private double beamSigmaX;
     private double beamPositionY;
     private double beamSigmaY;
+    private boolean useBeamPositionConditions;  // True to use beam position from database
+    private boolean useFixedVertexZPosition;    // True to override the database just for the z beam position
+    private Level logLevel = Level.WARNING;     // Set log level from steering
     private boolean addResiduals;      // If true add the hit-on-track residuals to the LCIO event
     
     
@@ -125,7 +132,12 @@ public class KalmanPatRecDriver extends Driver {
     @Override
     public void detectorChanged(Detector det) {
         logger = Logger.getLogger(KalmanPatRecDriver.class.getName());
+        if (logLevel != null) {
+            logger.setLevel(logLevel);
+            //LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(logLevel);
+        }
         verbose = (logger.getLevel()==Level.FINE);
+        System.out.format("KalmanPatRecDriver: entering detectorChanged, logger level = %s\n", logger.getLevel().getName());
         executionTime = 0.;
         interfaceTime = 0.;
         plottingTime = 0.;
@@ -159,6 +171,7 @@ public class KalmanPatRecDriver extends Driver {
             System.out.format("x=%6.1f y=%6.1f z=%6.1f: %s\n", x, y, z, B.toString());
         }
         */
+        
         detPlanes = new ArrayList<SiStripPlane>();
         List<ScatteringDetectorVolume> materialVols = ((MaterialSupervisor) (_materialManager)).getMaterialVolumes();
         for (ScatteringDetectorVolume vol : materialVols) {
@@ -205,6 +218,24 @@ public class KalmanPatRecDriver extends Driver {
         
         //int[] list17 = {0, 3, 4, 5, 6};
         //kPar.addStrategy(list17);
+        
+        // Setup optional usage of beam positions from database.
+        final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        if (useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")) {
+            logger.config("Using Kalman beam position from the conditions database");
+            BeamPositionCollection beamPositions = 
+                    mgr.getCachedConditions(BeamPositionCollection.class, "beam_positions").getCachedData();
+            BeamPosition beamPositionCond = beamPositions.get(0); 
+            if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());  
+            else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
+            kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
+            kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
+        } else {
+            logger.config("Using Kalman beam position from the steering file or default");
+        }
+        logger.config("Using Kalman beam position [ Z, X, Y ]: " + String.format("[ %f, %f, %f ]",
+                       kPar.beamSpot[0], -kPar.beamSpot[2], kPar.beamSpot[1]) + " in HPS coordinates.");      
+        
         logger.config(String.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB));
         logger.config("KalmanPatRecDriver: done with configuration changes.");
         kPar.print();
@@ -512,5 +543,16 @@ public class KalmanPatRecDriver extends Driver {
     }
     public void setNumStrategy(int numStrategy) {
         this.numStrategy = numStrategy;
+    }
+    public void setUseBeamPositionConditions(boolean useBeamPositionConditions) {
+        this.useBeamPositionConditions = useBeamPositionConditions;
+    }
+    public void setUseFixedVertexZPosition(boolean useFixedVertexZPosition) {
+        this.useFixedVertexZPosition = useFixedVertexZPosition;
+    }
+    public void setLogLevel(String logLevel) {
+        System.out.format("KalmanPatRecDriver: setting the logger level to %s\n", logLevel);
+        this.logLevel = Level.parse(logLevel);
+        System.out.format("                    logger level = %s\n",this.logLevel.getName());
     }
 }
