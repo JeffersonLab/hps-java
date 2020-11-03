@@ -503,19 +503,20 @@ public class KalTrack {
         if (covNaN()) return false;
         if (!solver.setA(helixAtOrigin.C.copy())) {
             logger.fine("KalTrack:originHelix, cannot invert the covariance matrix");
-            for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
+            for (int i=0; i<5; ++i) {      // Fill the matrix and inverse with something not too crazy and continue . . .
                 for (int j=0; j<5; ++j) {
                     if (i == j) {
-                        Cinv.unsafe_set(i,j,1.0/Cinv.unsafe_get(i,j));
+                        Cinv.unsafe_set(i,j,1.0/Math.abs(helixAtOrigin.C.unsafe_get(i, j)));
+                        helixAtOrigin.C.unsafe_set(i, j, Math.abs(helixAtOrigin.C.unsafe_get(i, j)));
                     } else {
-                        Cinv.unsafe_set(i, j, 0.); 
+                        Cinv.unsafe_set(i, j, 0.);
+                        helixAtOrigin.C.unsafe_set(i, j, 0.);
                     }
                 }
             }          
         } else {
             solver.invert(Cinv);
         }
-        solver.invert(Cinv);
 
         // Find the position and momentum of the particle near the origin, including covariance
         Vec XonHelix = helixAtOrigin.atPhi(0.);
