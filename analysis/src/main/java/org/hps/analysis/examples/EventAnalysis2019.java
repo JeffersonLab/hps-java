@@ -72,6 +72,7 @@ public class EventAnalysis2019 extends Driver {
             List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
             int nRawTrackerHits = rawTrackerHits.size();
             aida.histogram1D("SVT number of RawTrackerHits", 100, 0., 1000.).fill(nRawTrackerHits);
+            aida.histogram1D("SVT number of RawTrackerHits " + event.getRunNumber(), 100, 0., 1000.).fill(nRawTrackerHits);
             if (nRawTrackerHits > 250) {
                 return;
             }
