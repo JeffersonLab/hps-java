@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:lcsim="http://www.lcsim.org/schemas/lcsim/1.0"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+    xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+<!--    <inputFiles>
+      <fileList>${inputFileList}</fileList>
+    </inputFiles>
+-->
+
+    <control>
+<!--        <numberOfEvents>-1</numberOfEvents> -->
+        <verbose>false</verbose>
+        <printDriverStatistics>true</printDriverStatistics>
+        <printDriversDetailed>true</printDriversDetailed>
+    </control>
+    <execute>
+        <driver name="EventMarkerDriver"/>
+        <driver name="StripEvent"/>
+        <driver name="Writer"/>
+        <driver name="AidaSaveDriver"/>
+    </execute>
+    <drivers>
+        <!-- Driver to give some feedback on progress -->
+        <driver name="EventMarkerDriver"
+                type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>10000</eventInterval>
+        </driver>
+        <!-- Driver to strip events -->
+       <driver name="StripEvent" type="org.hps.analysis.wab.StripWABCandidates">
+         <stripTwoEcalClusters>true</stripTwoEcalClusters>
+         <stripBothFiducial>true</stripBothFiducial>
+         <analyzeWabTrackingEfficiency>false</analyzeWabTrackingEfficiency>
+        </driver>
+        <!-- Driver to write output slcio file -->
+        <driver name="Writer"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.aida</outputFileName>
+        </driver>
+    </drivers>
+</lcsim>
+
