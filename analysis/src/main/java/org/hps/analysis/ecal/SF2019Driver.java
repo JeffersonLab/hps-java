@@ -107,6 +107,23 @@ public class SF2019Driver extends Driver {
         aida.histogram2D("hitPositionDistancevsE_ScoringPlane", 200, -100., 100., 700, 0.5 * E0, 1.2 * E0);
         aida.histogram2D("hitPositionDistancevsE_Cluster", 200, -100., 100., 700, 0.5 * E0, 1.2 * E0);
 
+        
+        
+        aida.histogram2D("dx_vs_xCluster", 100, -350., 350.,200,-50,50);
+        aida.histogram2D("dx_vs_yCluster", 100, -100., 100.,200,-50,50);
+        aida.histogram2D("dy_vs_xCluster", 100, -350., 350.,200,-50,50);
+        aida.histogram2D("dy_vs_yCluster", 100, -100., 100.,200,-50,50);
+        
+        aida.histogram2D("dx_vs_xScoringPlane", 100, -350., 350.,200,-50,50);
+        aida.histogram2D("dx_vs_yScoringPlane", 100, -100., 100.,200,-50,50);
+        aida.histogram2D("dy_vs_xScoringPlane", 100, -350., 350.,200,-50,50);
+        aida.histogram2D("dy_vs_yScoringPlane", 100, -100., 100.,200,-50,50);
+        
+
+        
+        aida.histogram2D("xScoringPlane_vs_xCluster", 100, -350., 350., 100, -350., 350.);
+        aida.histogram2D("yScoringPlane_vs_yCluster", 100, -100., 100., 100, -100., 100.);
+        
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
 
         // distance to beam gap edge
@@ -200,6 +217,7 @@ public class SF2019Driver extends Driver {
 
         double xpos, ypos;
         double xClus, yClus;
+        double dX,dY;
 
         double edgeDistance_clus;
         double edgeDistance_pos;
@@ -288,6 +306,9 @@ public class SF2019Driver extends Driver {
 
                 xClus = clus.getPosition()[0];
                 yClus = clus.getPosition()[1];
+                
+                dX=xClus-xpos;
+                dY=yClus-ypos;
 
                 aida.histogram2D("hitPositionEcal_ScoringPlane").fill(xpos, ypos);
                 aida.histogram2D("hitPositionEcal_Cluster").fill(xClus, yClus);
@@ -304,6 +325,20 @@ public class SF2019Driver extends Driver {
 
                 aida.histogram2D("hitPositionDistancevsE_ScoringPlane").fill(edgeDistance_pos, clusE);
                 aida.histogram2D("hitPositionDistancevsE_Cluster").fill(edgeDistance_clus, clusE);
+                
+                
+                
+                aida.histogram2D("dx_vs_xCluster").fill(dX,xClus);
+                aida.histogram2D("dx_vs_yCluster").fill(dX,yClus);
+                aida.histogram2D("dy_vs_xCluster").fill(dY,xClus);
+                aida.histogram2D("dy_vs_yCluster").fill(dY,yClus);
+                
+                aida.histogram2D("dx_vs_xScoringPlane").fill(dX,xpos);
+                aida.histogram2D("dx_vs_yScoringPlane").fill(dX,ypos);
+                aida.histogram2D("dy_vs_xScoringPlane").fill(dY,xpos);
+                aida.histogram2D("dy_vs_yScoringPlane").fill(dY,ypos);
+                
+            
 
             }
         }
