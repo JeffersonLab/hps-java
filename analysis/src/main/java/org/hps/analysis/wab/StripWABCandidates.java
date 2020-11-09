@@ -298,7 +298,7 @@ public class StripWABCandidates extends Driver {
 					Cluster pClus = photon.getClusters().get(0);
 					boolean photonIsFiducial = isFiducial(ClusterUtilities.findSeedHit(pClus));
 					
-					System.out.println("1: "+photonIsFiducial+" "+electronIsFiducial);
+					
 					double pTime = ClusterUtilities.getSeedHitTime(pClus);
 					double eSum = eEnergy + pEnergy;
 					aida.histogram1D(topOrBottom + "Electron + Photon cluster Esum", 100, 0., 6.0).fill(eSum);
@@ -326,13 +326,13 @@ public class StripWABCandidates extends Driver {
 							.fill(eClus.getPosition()[1], pClus.getPosition()[1]);
 					if (eSum >= _energyCut && electron.getTracks().get(0).getTrackerHits().size() >= _nHitsOnTrack) // electron
 					{
-						System.out.println("2: "+photonIsFiducial+" "+electronIsFiducial);
+						
 						aida.histogram1D("controlH").fill(3);
 						if (abs(eTime - pTime) < 2.) {
-							System.out.println("3: "+photonIsFiducial+" "+electronIsFiducial);
+							
 							aida.histogram1D("controlH").fill(4);
 							if (eClus.getPosition()[1] * pClus.getPosition()[1] < 0.) {
-								System.out.println("4: "+photonIsFiducial+" "+electronIsFiducial);
+								
 								aida.histogram1D("controlH").fill(5);
 								hitToStrips = TrackUtils.getHitToStripsTable(event);
 								hitToRotated = TrackUtils.getHitToRotatedTable(event);
@@ -359,7 +359,7 @@ public class StripWABCandidates extends Driver {
 								// Are we also requiring both clusters to be fiducial?
 								if (_stripBothFiducial) {
 									if (!electronIsFiducial || !photonIsFiducial) {
-										System.out.println("SKIPPING: "+event.getRunNumber() + " " + event.getEventNumber());
+										
 										skipEvent = true;
 										aida.histogram1D("controlH").fill(6);
 									}
