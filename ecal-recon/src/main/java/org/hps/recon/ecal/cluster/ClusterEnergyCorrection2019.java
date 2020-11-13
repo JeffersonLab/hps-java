@@ -49,6 +49,7 @@ public final class ClusterEnergyCorrection2019 {
     private static void loadDataCorrectionParameters() {
         String fname;
         fname = "2019SF_parameters_data.dat";
+        System.out.println(name + ": Loading resources data:  " + fname);
         java.io.InputStream fis = ClusterEnergyCorrection2019.class.getResourceAsStream(fname);
         java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(fis));
         try {
@@ -259,18 +260,34 @@ public final class ClusterEnergyCorrection2019 {
     private static double computeCorrectedEnergy(double y, double rawEnergy, PolynomialSplineFunction splineA,
             PolynomialSplineFunction splineB, PolynomialSplineFunction splineC, boolean isMC) {
 
+        /*A.C. fix*/
+        
+        
         double A = splineA.value(y);
         double B = splineB.value(y);
         double C = splineC.value(y);
 
+        
+        
+        
         double SF, corrEnergy;
         corrEnergy = rawEnergy;
         if (isMC == true) {
             SF = A / rawEnergy + B / Math.sqrt(rawEnergy) + C;
             corrEnergy = rawEnergy / SF;
         } else {
-            double p0 = psf_parP0.value(y);
-            double p1 = psf_parP1.value(y);
+            
+            double p0,p1,y0,y1;
+            y0=y;
+            y1=y;
+            if (y0 < psf_parP0.getKnots()[0]) y0=psf_parP0.getKnots()[0];
+            if (y0 > psf_parP0.getKnots()[psf_parP0.getN()]) y0 = psf_parP0.getKnots()[psf_parP0.getN()];
+            
+            if (y1 < psf_parP0.getKnots()[0]) y1=psf_parP0.getKnots()[0];
+            if (y1 > psf_parP0.getKnots()[psf_parP0.getN()]) y1 = psf_parP0.getKnots()[psf_parP0.getN()];
+            
+            p0 = psf_parP0.value(y0);
+            p1 = psf_parP1.value(y1);
             SF = A / rawEnergy + B / Math.sqrt(rawEnergy) + C;
             SF = SF * (p0 + p1 * rawEnergy);
             corrEnergy = rawEnergy / SF;
