@@ -17,7 +17,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 public final class ClusterCorrectionUtilities {
 
     static final double CUTOFF_OFFSET = 35.0;
-    
+
     // Variables derived as the difference between data and mc noise in
     // ecal cluster energy resolution.
     static final double NOISE_A = -9.81E-6;
@@ -25,14 +25,16 @@ public final class ClusterCorrectionUtilities {
     static final double NOISE_C = 3.01E-4;
 
     static final Random random = new Random();
-    
+
     // Calculate the noise factor to smear the Ecal energy by
     public static double calcNoise(double energy) {
         return random.nextGaussian() * Math.sqrt(NOISE_A + NOISE_B * energy + NOISE_C * Math.pow(energy, 2));
     }
-    
+
     /**
-     * Apply HPS-specific energy and position corrections to a list of clusters in place.
+     * Apply HPS-specific energy and position corrections to a list of clusters
+     * in place.
+     *
      * @param clusters The list of clusters.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, List<Cluster> clusters, boolean isMC) {
@@ -45,8 +47,7 @@ public final class ClusterCorrectionUtilities {
                 // Apply PID based energy correction:
                 if (beamEnergy > 4.0) {
                     ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
-                }
-                else {
+                } else {
                     ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
                 }
             }
@@ -54,7 +55,9 @@ public final class ClusterCorrectionUtilities {
     }
 
     /**
-     * Apply HPS-specific energy and position corrections to a cluster without track information.
+     * Apply HPS-specific energy and position corrections to a cluster without
+     * track information.
+     *
      * @param cluster The input cluster.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, boolean isMC) {
@@ -65,15 +68,16 @@ public final class ClusterCorrectionUtilities {
             // Apply PID based energy correction.
             if (beamEnergy > 4.0) {
                 ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
-            }
-            else {
+            } else {
                 ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
             }
         }
     }
 
     /**
-     * Apply HPS-specific energy and position corrections to a cluster with track information.
+     * Apply HPS-specific energy and position corrections to a cluster with
+     * track information.
+     *
      * @param cluster The input cluster.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
@@ -84,8 +88,7 @@ public final class ClusterCorrectionUtilities {
             // Apply PID based energy correction.
             if (beamEnergy > 4.0) {
                 ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
-            }
-            else {
+            } else {
                 ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
             }
         }
