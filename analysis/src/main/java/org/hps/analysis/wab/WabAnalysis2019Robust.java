@@ -575,9 +575,11 @@ public class WabAnalysis2019Robust extends Driver {
                                     aida.histogram1D("cluster pair esum in time both fiducial opposite " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
                                     aida.histogram2D("e1 vs e2 in time both fiducial opposite " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
                                     aida.histogram1D("cluster pair delta time in time both fiducial opposite", 100, -5., 5.).fill(deltaTime);
-                                    aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event", 100, -5., 5.).fill(deltaTime);
-                                    if (esum > 3.) {
-                                        aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event esum>3", 100, -5., 5.).fill(deltaTime);
+                                    if (nclusters < 6) {
+                                        aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event", 100, -5., 5.).fill(deltaTime);
+                                        if (esum > 3.) {
+                                            aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event esum>3", 100, -5., 5.).fill(deltaTime);
+                                        }
                                     }
                                 }
                                 // is higher energy cluster on electron side?
