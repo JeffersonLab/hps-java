@@ -3,8 +3,6 @@ package org.hps.conditions.svt;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.util.logging.Level;
-
 import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
