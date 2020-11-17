@@ -159,7 +159,7 @@ public class SF2019Driver extends Driver {
 
         double matchingPoint = 35;
 
-       
+
         if ((xpos < posM.x()) || (xpos > posP.x())) {
             if (ypos > 0) {
                 r = Math.abs(ypos - BEAMGAPTOP);
@@ -208,11 +208,11 @@ public class SF2019Driver extends Driver {
         boolean flagMCgenerator = false;
         Hep3Vector scoringP = new BasicHep3Vector(0, 0, 0);
         Hep3Vector scoringX = new BasicHep3Vector(0, 0, 0);
-        
-        
 
-      
-        
+
+
+
+
 
         /*Determine the generated particle*/
         List<MCParticle> mcParticles = event.get(MCParticle.class, "MCParticle");
@@ -229,8 +229,8 @@ public class SF2019Driver extends Driver {
             return;
         }
 
-        
-        
+
+
         MCParticle.SimulatorStatus simstat = fee.getSimulatorStatus();
 
         if (simstat.isDecayedInCalorimeter()) {
