@@ -4,14 +4,11 @@ import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
-import java.io.IOException;
 import static java.lang.Math.abs;
 import static java.lang.Math.acos;
 import static java.lang.Math.toDegrees;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
@@ -703,14 +700,14 @@ public class WabAnalysis2019Robust extends Driver {
     protected void endOfData() {
         System.out.println("Wrote " + _numberOfEventsWritten + " events");
 
-        try {
-            // Save the final plots to a new file.
-            aida.saveAs("2019JeopardyPlots_WABAnalysis_Graf.aida");
-            aida.saveAs("2019JeopardyPlots_WABAnalysis_Graf.root");
-        } catch (IOException ex) {
-            Logger.getLogger(WabAnalysis2019Robust.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            // Save the final plots to a new file.
+//            aida.saveAs("2019JeopardyPlots_WABAnalysis_Graf.aida");
+//            aida.saveAs("2019JeopardyPlots_WABAnalysis_Graf.root");
+//        } catch (IOException ex) {
+//            Logger.getLogger(WabAnalysis2019Robust.class
+//                    .getName()).log(Level.SEVERE, null, ex);
+//        }
 
     }
 
