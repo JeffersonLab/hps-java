@@ -313,12 +313,15 @@ public class TridentAnalysis extends Driver {
         List<ReconstructedParticle> positrons = new ArrayList<>();
         for (ReconstructedParticle rp : rpList) {
             if (TrackType.isGBL(rp.getType())) {
-                int pdgId = rp.getParticleIDUsed().getPDG();
-                if (pdgId == 11) {
-                    electrons.add(rp);
-                }
-                if (pdgId == -11) {
-                    positrons.add(rp);
+                // what's going on here!?
+                if (rp.getParticleIDUsed() != null) {
+                    int pdgId = rp.getParticleIDUsed().getPDG();
+                    if (pdgId == 11) {
+                        electrons.add(rp);
+                    }
+                    if (pdgId == -11) {
+                        positrons.add(rp);
+                    }
                 }
             } //end of check on GBL
         }
@@ -380,8 +383,8 @@ public class TridentAnalysis extends Driver {
                         Cluster ec1 = electrons.get(0).getClusters().get(0);
                         Cluster ec2 = electrons.get(1).getClusters().get(0);
                         Cluster pc1 = positrons.get(0).getClusters().get(0);
-                        double eSum = ec1.getEnergy()+ec2.getEnergy()+pc1.getEnergy();
-                        
+                        double eSum = ec1.getEnergy() + ec2.getEnergy() + pc1.getEnergy();
+
                         double te1 = ClusterUtilities.findSeedHit(ec1).getTime();
                         double te2 = ClusterUtilities.findSeedHit(ec2).getTime();
                         double tp1 = ClusterUtilities.findSeedHit(pc1).getTime();

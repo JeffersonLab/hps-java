@@ -105,7 +105,10 @@ public class EventAnalysis2019 extends Driver {
                 aida.tree().cd(dir);
                 List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, s);
                 for (ReconstructedParticle rp : rpList) {
-                    int pdgId = rp.getParticleIDUsed().getPDG();
+                    int pdgId = 0;
+                    if (rp.getParticleIDUsed() != null) {
+                        pdgId = rp.getParticleIDUsed().getPDG();
+                    }
                     if (pdgId == 11) {
                         String trackType = "SeedTrack ";
                         if (TrackType.isGBL(rp.getType())) {
@@ -127,9 +130,9 @@ public class EventAnalysis2019 extends Driver {
                         String torb = isTopTrack(t) ? " top " : " bottom ";
                         aida.histogram1D(trackType + torb + id + " track momentum", 100, 0., 10.).fill(rp.getMomentum().magnitude());
 
-                        aida.histogram1D(trackType + torb + id + " |thetaY|",150,0.,0.15).fill(abs(thetaY));
+                        aida.histogram1D(trackType + torb + id + " |thetaY|", 150, 0., 0.15).fill(abs(thetaY));
                         aida.histogram1D(trackType + torb + id + " z0", 100, -2., 2.).fill(z0);
-                        aida.histogram2D(trackType + torb + id + " |thetaY| vs z0",150,0.,0.15,100,-5.,5.).fill(abs(thetaY), z0);
+                        aida.histogram2D(trackType + torb + id + " |thetaY| vs z0", 150, 0., 0.15, 100, -5., 5.).fill(abs(thetaY), z0);
                         aida.profile1D(trackType + torb + id + " |thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
                         if (trackType.equals("MatchedTrack ") && torb.equals(" bottom ") && id.equals("electron")) {
                             zProfileBottomMatched.fill(abs(thetaY), z0);
@@ -237,7 +240,7 @@ public class EventAnalysis2019 extends Driver {
                         aida.histogram2D("v0 mass vs Z vertex ele " + eNhits + " pos " + pNhits + " hits on track", 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
                         aida.profile1D("v0 mass vs Z vertex profile", 50, 0.05, 0.25).fill(v0.getMass(), vtxPosRot.z());
                         if (ele.getClusters().isEmpty()) {
-                            aida.histogram1D("track deltaT no electron ECal Cluster",100, -50., 50.).fill(trackDeltaT);
+                            aida.histogram1D("track deltaT no electron ECal Cluster", 100, -50., 50.).fill(trackDeltaT);
                             aida.histogram1D("psum no electron ECal Cluster", 100, 0., 6.0).fill(eMom + pMom);
                             aida.histogram1D("psum no electron ECal Cluster ele " + eNhits + " pos " + pNhits + " hits on track", 100, 0., 6.0).fill(eMom + pMom);
                         }
@@ -252,8 +255,10 @@ public class EventAnalysis2019 extends Driver {
                             double p2Time = ClusterUtilities.getSeedHitTime(posClus);
                             double deltaTime = p1Time - p2Time;
                             aida.histogram1D("cluster pair delta time", 100, -5., 5.).fill(deltaTime);
+                            int correctionFactor = negClus.getPosition()[1] > 0 ? 1 : -1;
+                            aida.histogram1D("cluster pair delta time (top minus bottom)", 100, -5., 5.).fill(correctionFactor * deltaTime);
                             aida.histogram1D("track deltaT both ECal Clusters", 100, -5., 5.).fill(trackDeltaT);
-                            aida.histogram2D("track deltaT vs cluster deltaT both ECal Clusters",100,-50., 50., 100, -50., 50.).fill(trackDeltaT, deltaTime);
+                            aida.histogram2D("track deltaT vs cluster deltaT both ECal Clusters", 100, -50., 50., 100, -50., 50.).fill(trackDeltaT, deltaTime);
                             aida.histogram1D("psum both ECal Clusters", 100, 0., 6.0).fill(eMom + pMom);
                             aida.histogram1D("esum both ECal Clusters", 100, 0., 6.0).fill(ele.getClusters().get(0).getEnergy() + pos.getClusters().get(0).getEnergy());
                         }

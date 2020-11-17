@@ -765,7 +765,10 @@ public class WabAnalysis2019Robust extends Driver {
             boolean isGBL = TrackType.isGBL(rp.getType());
             String trackType = isGBL ? "gbl " : "other ";
             String particleType = "unknown";
-            int pdgId = rp.getParticleIDUsed().getPDG();
+            int pdgId = 0;
+            if (rp.getParticleIDUsed() != null) {
+                pdgId = rp.getParticleIDUsed().getPDG();
+            }
             if (pdgId == 11) {
                 particleType = "electron ";
                 if (trackType.equals("gbl ") && !rp.getClusters().isEmpty()) {
