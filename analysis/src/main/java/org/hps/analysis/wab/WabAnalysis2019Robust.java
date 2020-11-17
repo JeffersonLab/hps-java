@@ -186,13 +186,15 @@ public class WabAnalysis2019Robust extends Driver {
                 String type = "";
                 boolean isGBL = TrackType.isGBL(rp.getType());
                 String trackType = isGBL ? "gbl " : "kalman ";
-                if (rp.getParticleIDUsed().getPDG() == 11) {
-                    type = "electron ";
+                if (rp.getParticleIDUsed() != null) {
+                    if (rp.getParticleIDUsed().getPDG() == 11) {
+                        type = "electron ";
 //                    aida.histogram1D(type + trackType + "momentum", 100, 0., 6.).fill(rp.getMomentum().magnitude());
 //                    aida.histogram1D(type + trackType + "momentum FEE", 100, 3.0, 6.0).fill(rp.getMomentum().magnitude());
-                }
-                if (rp.getParticleIDUsed().getPDG() == 22) {
-                    type = "photon ";
+                    }
+                    if (rp.getParticleIDUsed().getPDG() == 22) {
+                        type = "photon ";
+                    }
                 }
 //                aida.histogram1D(type + "energy", 100, 0., 6.).fill(rp.getEnergy());
             }
@@ -204,12 +206,14 @@ public class WabAnalysis2019Robust extends Driver {
                 ReconstructedParticle electron = null;
                 ReconstructedParticle photon = null;
                 for (ReconstructedParticle rp : rps) {
-                    // require the electron to have an associated ECal cluster
-                    if (rp.getParticleIDUsed().getPDG() == 11 && rp.getClusters().size() == 1 && TrackType.isGBL(rp.getType())) {
-                        electron = rp;
-                    }
-                    if (rp.getParticleIDUsed().getPDG() == 22) {
-                        photon = rp;
+                    if (rp.getParticleIDUsed() != null) {
+                        // require the electron to have an associated ECal cluster
+                        if (rp.getParticleIDUsed().getPDG() == 11 && rp.getClusters().size() == 1 && TrackType.isGBL(rp.getType())) {
+                            electron = rp;
+                        }
+                        if (rp.getParticleIDUsed().getPDG() == 22) {
+                            photon = rp;
+                        }
                     }
                 }
                 // do we have one (and only one) of each?
@@ -320,8 +324,10 @@ public class WabAnalysis2019Robust extends Driver {
             // quick and dirty RP analysis
             List<ReconstructedParticle> photons = new ArrayList<>();
             for (ReconstructedParticle rp : rps) {
-                if (rp.getParticleIDUsed().getPDG() == 22) {
-                    photons.add(rp);
+                if (rp.getParticleIDUsed() != null) {
+                    if (rp.getParticleIDUsed().getPDG() == 22) {
+                        photons.add(rp);
+                    }
                 }
             }
 
@@ -708,7 +714,6 @@ public class WabAnalysis2019Robust extends Driver {
 //            Logger.getLogger(WabAnalysis2019Robust.class
 //                    .getName()).log(Level.SEVERE, null, ex);
 //        }
-
     }
 
     public void setAnalyzeTwoEcalClusters(boolean b) {
@@ -839,33 +844,34 @@ public class WabAnalysis2019Robust extends Driver {
     }
 
     void analyzeReconstructedParticle(ReconstructedParticle rp) {
-        boolean isElectron = rp.getParticleIDUsed().getPDG() == 11;
-        boolean isPositron = rp.getParticleIDUsed().getPDG() == -11;
-        boolean isPhoton = rp.getParticleIDUsed().getPDG() == 22;
-        String type = "";
-        if (isElectron) {
-            type = "electron";
-        }
-        if (isPositron) {
-            type = "positron";
-        }
-        if (isPhoton) {
-            type = "photon";
-        }
+        if (rp.getParticleIDUsed() != null) {
+            boolean isElectron = rp.getParticleIDUsed().getPDG() == 11;
+            boolean isPositron = rp.getParticleIDUsed().getPDG() == -11;
+            boolean isPhoton = rp.getParticleIDUsed().getPDG() == 22;
+            String type = "";
+            if (isElectron) {
+                type = "electron";
+            }
+            if (isPositron) {
+                type = "positron";
+            }
+            if (isPhoton) {
+                type = "photon";
+            }
 
-        aida.tree().mkdirs(type);
-        aida.tree().cd(type);
+            aida.tree().mkdirs(type);
+            aida.tree().cd(type);
 
-        if (isElectron || isPositron) {
-            analyzeTrack(rp);
+            if (isElectron || isPositron) {
+                analyzeTrack(rp);
+            }
+
+            if (isPhoton) {
+                analyzeCluster(rp);
+            }
+
+            aida.tree().cd("..");
         }
-
-        if (isPhoton) {
-            analyzeCluster(rp);
-        }
-
-        aida.tree().cd("..");
-
     }
 
     void analyzeCluster(ReconstructedParticle rp) {
