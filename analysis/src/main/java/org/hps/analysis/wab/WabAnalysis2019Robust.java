@@ -572,10 +572,11 @@ public class WabAnalysis2019Robust extends Driver {
                                 if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
                                     aida.histogram1D("cluster pair esum in time both fiducial opposite", 100, 0.0, 5.0).fill(esum);
                                     aida.histogram2D("e1 vs e2 in time both fiducial opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
-                                    aida.histogram1D("cluster pair esum in time both fiducial opposite " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
-                                    aida.histogram2D("e1 vs e2 in time both fiducial opposite " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
                                     aida.histogram1D("cluster pair delta time in time both fiducial opposite", 100, -5., 5.).fill(deltaTime);
                                     if (nclusters < 6) {
+                                        aida.histogram1D("cluster pair esum in time both fiducial opposite " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
+                                        aida.histogram2D("e1 vs e2 in time both fiducial opposite " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+
                                         aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event", 100, -5., 5.).fill(deltaTime);
                                         if (esum > 3.) {
                                             aida.histogram1D("cluster pair delta time in time both fiducial opposite " + nclusters + " clusters in event esum>3", 100, -5., 5.).fill(deltaTime);
@@ -593,18 +594,24 @@ public class WabAnalysis2019Robust extends Driver {
                                     aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x<0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
                                     aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x<0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
                                     aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x<0", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
-                                    aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x<0 " + nclusters + " clusters in event", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                    if (nclusters < 6) {
+                                        aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x<0 " + nclusters + " clusters in event", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                    }
                                     if (thetaDegrees > 8) {
                                         aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8", 100, 0.0, 5.0).fill(esum);
                                         aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
-                                        aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
-                                        aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                        if (nclusters < 6) {
+                                            aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event", 100, 0.0, 5.0).fill(esum);
+                                            aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                        }
                                         //opposite hemispheres
                                         if (pos1.x() * pos2.x() < 0. && pos1.y() * pos2.y() < 0.) {
                                             aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 opposite", 100, 0.0, 5.0).fill(esum);
                                             aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
-                                            aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event opposite", 100, 0.0, 5.0).fill(esum);
-                                            aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                            if (nclusters < 6) {
+                                                aida.histogram1D("cluster pair esum in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event opposite", 100, 0.0, 5.0).fill(esum);
+                                                aida.histogram2D("e1 vs e2 in time both fiducial higherEnergy x<0 theta>8 " + nclusters + " clusters in event opposite", 100, 0., 5., 100, 0., 5.).fill(e1, e2);
+                                            }
                                             aida.histogram1D("cluster pair delta time in time both fiducial higherEnergy x<0 theta>8 ", 100, -5., 5.).fill(deltaTime);
                                         }
                                     }
@@ -618,7 +625,9 @@ public class WabAnalysis2019Robust extends Driver {
                                     aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x>0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos1.x(), pos1.y());
                                     aida.histogram2D("cluster pair x vs y in time both fiducial higherEnergy x>0", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(pos2.x(), pos2.y());
                                     aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x>0", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
-                                    aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x>0 " + nclusters + " clusters in event", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                    if (nclusters < 6) {
+                                        aida.histogram2D("cluster pair esum vs theta (degrees) in time both fiducial higherEnergy x>0 " + nclusters + " clusters in event", 100, 0., 5.0, 100, 0.0, 30.0).fill(esum, thetaDegrees);
+                                    }
                                 }
                             }
                         }
