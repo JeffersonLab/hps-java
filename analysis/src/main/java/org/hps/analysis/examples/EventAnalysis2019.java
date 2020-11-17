@@ -127,9 +127,9 @@ public class EventAnalysis2019 extends Driver {
                         String torb = isTopTrack(t) ? " top " : " bottom ";
                         aida.histogram1D(trackType + torb + id + " track momentum", 100, 0., 10.).fill(rp.getMomentum().magnitude());
 
-                        aida.cloud1D(trackType + torb + id + " |thetaY|").fill(abs(thetaY));
+                        aida.histogram1D(trackType + torb + id + " |thetaY|",150,0.,0.15).fill(abs(thetaY));
                         aida.histogram1D(trackType + torb + id + " z0", 100, -2., 2.).fill(z0);
-                        aida.cloud2D(trackType + torb + id + " |thetaY| vs z0").fill(abs(thetaY), z0);
+                        aida.histogram2D(trackType + torb + id + " |thetaY| vs z0",150,0.,0.15,100,-5.,5.).fill(abs(thetaY), z0);
                         aida.profile1D(trackType + torb + id + " |thetaY| vs z0 profile", 10, 0.01, 0.1).fill(abs(thetaY), z0);
                         if (trackType.equals("MatchedTrack ") && torb.equals(" bottom ") && id.equals("electron")) {
                             zProfileBottomMatched.fill(abs(thetaY), z0);
@@ -213,7 +213,7 @@ public class EventAnalysis2019 extends Driver {
                     double posTime = TrackData.getTrackTime(TrackData.getTrackData(event, pos.getTracks().get(0)));
 
                     double trackDeltaT = eleTime - posTime;
-                    aida.cloud1D("track deltaT").fill(trackDeltaT);
+                    aida.histogram1D("track deltaT", 100, -50., 50.).fill(trackDeltaT);
                     int eNhits = ele.getTracks().get(0).getTrackerHits().size();
                     int pNhits = pos.getTracks().get(0).getTrackerHits().size();
                     double eMom = ele.getMomentum().magnitude();
@@ -237,7 +237,7 @@ public class EventAnalysis2019 extends Driver {
                         aida.histogram2D("v0 mass vs Z vertex ele " + eNhits + " pos " + pNhits + " hits on track", 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
                         aida.profile1D("v0 mass vs Z vertex profile", 50, 0.05, 0.25).fill(v0.getMass(), vtxPosRot.z());
                         if (ele.getClusters().isEmpty()) {
-                            aida.cloud1D("track deltaT no electron ECal Cluster").fill(trackDeltaT);
+                            aida.histogram1D("track deltaT no electron ECal Cluster",100, -50., 50.).fill(trackDeltaT);
                             aida.histogram1D("psum no electron ECal Cluster", 100, 0., 6.0).fill(eMom + pMom);
                             aida.histogram1D("psum no electron ECal Cluster ele " + eNhits + " pos " + pNhits + " hits on track", 100, 0., 6.0).fill(eMom + pMom);
                         }
@@ -252,8 +252,8 @@ public class EventAnalysis2019 extends Driver {
                             double p2Time = ClusterUtilities.getSeedHitTime(posClus);
                             double deltaTime = p1Time - p2Time;
                             aida.histogram1D("cluster pair delta time", 100, -5., 5.).fill(deltaTime);
-                            aida.cloud1D("track deltaT both ECal Clusters").fill(trackDeltaT);
-                            aida.cloud2D("track deltaT vs cluster deltaT both ECal Clusters").fill(trackDeltaT, deltaTime);
+                            aida.histogram1D("track deltaT both ECal Clusters", 100, -5., 5.).fill(trackDeltaT);
+                            aida.histogram2D("track deltaT vs cluster deltaT both ECal Clusters",100,-50., 50., 100, -50., 50.).fill(trackDeltaT, deltaTime);
                             aida.histogram1D("psum both ECal Clusters", 100, 0., 6.0).fill(eMom + pMom);
                             aida.histogram1D("esum both ECal Clusters", 100, 0., 6.0).fill(ele.getClusters().get(0).getEnergy() + pos.getClusters().get(0).getEnergy());
                         }
