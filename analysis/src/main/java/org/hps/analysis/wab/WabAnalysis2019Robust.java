@@ -266,13 +266,13 @@ public class WabAnalysis2019Robust extends Driver {
 //                                aida.histogram1D("Final " + nHits + " hits " + topOrBottom + "Electron Energy + photon Energy", 100, 0., 6.0).fill(eEnergy + pEnergy);
                                         // Passed all cuts, let's write this event
                                         skipEvent = false;
-//                                aida.tree().mkdirs(eDir);
-//                                aida.tree().cd(eDir);
-//                                aida.histogram1D(topOrBottom + "Electron momentum " + eDir, 100, 0., 6.0).fill(eMomentum);
-//                                aida.histogram1D(topOrBottom + "Electron eOverP " + eDir, 100, 0., 2.0).fill(eEnergy / eMomentum);
-//                                aida.histogram2D(topOrBottom + "Electron eOverP vs P " + eDir, 100, 0., 6.0, 100, 0., 2.).fill(eMomentum, eEnergy / eMomentum);
-//                                aida.histogram2D(topOrBottom + "Electron momentum vs Electron energy " + eDir, 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, eEnergy);
-//                                aida.tree().cd("..");
+                                        aida.tree().mkdirs(eDir);
+                                        aida.tree().cd(eDir);
+                                        aida.histogram1D(topOrBottom + "Electron momentum " + eDir, 100, 0., 6.0).fill(eMomentum);
+                                        aida.histogram1D(topOrBottom + "Electron eOverP " + eDir, 100, 0., 2.0).fill(eEnergy / eMomentum);
+                                        aida.histogram2D(topOrBottom + "Electron eOverP vs P " + eDir, 100, 0., 6.0, 100, 0., 2.).fill(eMomentum, eEnergy / eMomentum);
+                                        aida.histogram2D(topOrBottom + "Electron momentum vs Electron energy " + eDir, 100, 0., 6.0, 100, 0., 6.0).fill(eMomentum, eEnergy);
+                                        aida.tree().cd("..");
                                         //Are we also requiring both clusters to be fiducial?
                                         if (_stripBothFiducial) {
                                             if (!electronIsFiducial || !photonIsFiducial) {
