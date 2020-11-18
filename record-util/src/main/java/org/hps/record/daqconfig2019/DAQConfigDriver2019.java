@@ -45,8 +45,8 @@ public class DAQConfigDriver2019 extends Driver {
     private String filepath = null;
     private boolean firstEvent = true;
     private boolean readDataFiles = false;
-    private File[] dataFiles = new File[2];
-    private int[] crateNumber = { 37, 39 };
+    private File[] dataFiles = new File[5];
+    private int[] crateNumber = { 37, 39, 11, 12, 46 };
     
     /**
      * Verifies the parameter <code>filepath</code> for the data file
