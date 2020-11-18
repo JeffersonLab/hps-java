@@ -1,7 +1,9 @@
 package org.hps.analysis.trigger.util;
 
 import org.hps.record.triggerbank.SSPCluster;
+import org.hps.record.triggerbank.VTPCluster;
 import org.hps.record.triggerbank.TriggerModule;
+import org.hps.record.triggerbank.TriggerModule2019;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 
@@ -11,6 +13,7 @@ import org.lcsim.event.Cluster;
  * trigger diagnostic package.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Tongtong Cao <caot@jlab.org>
  */
 public class TriggerDiagnosticUtil {
     /**
@@ -31,6 +34,16 @@ public class TriggerDiagnosticUtil {
      */
     public static final String clusterPositionString(SSPCluster cluster) {
         return String.format("(%3d, %3d)", TriggerModule.getClusterXIndex(cluster), TriggerModule.getClusterYIndex(cluster));
+    }
+    
+    /**
+     * Convenience method that writes the position of a cluster in the
+     * form (ix, iy).
+     * @param cluster - The cluster.
+     * @return Returns the cluster position as a <code>String</code>.
+     */
+    public static final String clusterPositionString(VTPCluster cluster) {
+        return String.format("(%3d, %3d)", TriggerModule2019.getClusterXIndex(cluster), TriggerModule2019.getClusterYIndex(cluster));
     }
     
     /**
@@ -60,6 +73,19 @@ public class TriggerDiagnosticUtil {
     }
     
     /**
+     * Convenience method that writes the information in a cluster to
+     * a <code>String</code>.
+     * @param cluster - The cluster.
+     * @return Returns the cluster information as a <code>String</code>.
+     */
+    public static final String clusterToString(VTPCluster cluster) {
+        return String.format("Cluster at (%3d, %3d) with %.3f GeV and %.0f hits at %4.0f ns.",
+                TriggerModule2019.getClusterXIndex(cluster), TriggerModule2019.getClusterYIndex(cluster),
+                TriggerModule2019.getValueClusterTotalEnergy(cluster), TriggerModule2019.getClusterHitCount(cluster),
+                TriggerModule2019.getClusterTime(cluster));
+    }
+    
+    /**
      * Gets the number of digits in the base-10 String representation
      * of an integer primitive. Negative signs are not included in the
      * digit count.
@@ -83,6 +109,25 @@ public class TriggerDiagnosticUtil {
         // Check that none of the hits are within the disallowed
         // region of the FADC readout window.
         if(TriggerModule.getClusterTime(sspCluster) <= nsb || TriggerModule.getClusterTime(sspCluster) >= (windowWidth - nsa)) {
+            return false;
+        }
+        
+        // If all of the cluster hits pass the time cut, the cluster
+        // is valid.
+        return true;
+    }
+    
+    /**
+     * Checks whether a cluster is within the safe region of the FADC
+     * output window.
+     * @param vtpCluster - The cluster to check.
+     * @return Returns <code>true</code> if the cluster is safe and
+     * returns <code>false</code> otherwise.
+     */
+    public static final boolean isVerifiable(VTPCluster vtpCluster, int nsa, int nsb, int windowWidth) {
+        // Check that none of the hits are within the disallowed
+        // region of the FADC readout window.
+        if(TriggerModule2019.getClusterTime(vtpCluster) <= nsb || TriggerModule2019.getClusterTime(vtpCluster) >= (windowWidth - nsa)) {
             return false;
         }
         

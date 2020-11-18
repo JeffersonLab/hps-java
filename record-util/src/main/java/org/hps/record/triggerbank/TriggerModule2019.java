@@ -6,7 +6,12 @@ import java.util.Map;
 import java.util.List;
 
 import org.hps.readout.util.HodoscopePattern;
+import org.hps.record.daqconfig.PairTriggerConfig;
+import org.hps.record.daqconfig.SinglesTriggerConfig;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
+import org.hps.record.daqconfig2019.SinglesTriggerConfig2019;
+import org.hps.record.daqconfig2019.PairTriggerConfig2019;
 
 /**
  * Class <code>TriggerModule2019</code> handles trigger cuts for 2019 MC.
@@ -89,6 +94,11 @@ public class TriggerModule2019 {
      * are in degrees. */
     public static final String PAIR_COPLANARITY_HIGH = "pairCoplanarityHigh";    
     
+    /** The bound for the coplanarity cut. The coplanarity angle for
+     * the cluster pair must be below this value to pass the cut. Units
+     * are in degrees. */
+    public static final String PAIR_TIME_COINCIDENCE = "pairTimeCoincidence";    
+    
     
     /** 
      * Stores the general cut values. 
@@ -99,7 +109,7 @@ public class TriggerModule2019 {
     /** 
      * Stores the singles cut values. 
      */
-    private final Map<String, Double> singlesTriggerCuts = new HashMap<String, Double>(3);
+    private final Map<String, Double> singlesTriggerCuts = new HashMap<String, Double>(5);
     
     /** 
      * Stores the pairs cut values. 
@@ -131,6 +141,8 @@ public class TriggerModule2019 {
         pairsTriggerCuts.put(PAIR_ENERGY_SUM_HIGH, Double.MAX_VALUE);
         pairsTriggerCuts.put(PAIR_COPLANARITY_HIGH, 180.0);
         pairsTriggerCuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
+        pairsTriggerCuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);  
+        
     }
     
     /**
@@ -187,6 +199,44 @@ public class TriggerModule2019 {
         
         // Otherwise, throw an exception.
         else { throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut)); }
+    }
+    
+    /**
+     * Loads triggers settings from the DAQ configuration for a singles
+     * trigger.
+     * @param config - The DAQ configuration settings.
+     */
+    public void loadDAQConfiguration(SinglesTriggerConfig2019 config) {
+        // Set the trigger values.
+        setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+        setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
+        
+        setCutValue(CLUSTER_XMIN, config.getXMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_PDE_C0, config.getPDECutConfig().getParC0());
+        setCutValue(CLUSTER_PDE_C1, config.getPDECutConfig().getParC1());
+        setCutValue(CLUSTER_PDE_C2, config.getPDECutConfig().getParC2());
+        setCutValue(CLUSTER_PDE_C3, config.getPDECutConfig().getParC3());
+    }
+    
+    /**
+     * Loads triggers settings from the DAQ configuration for a pair
+     * trigger. 
+     * @param config - The DAQ configuration settings.
+     */
+    public void loadDAQConfiguration(PairTriggerConfig2019 config) {
+        // Set the trigger values.
+        setCutValue(CLUSTER_TOTAL_ENERGY_LOW,  config.getEnergyMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+        setCutValue(CLUSTER_HIT_COUNT_LOW,     config.getHitCountCutConfig().getLowerBound());
+        
+        setCutValue(PAIR_COPLANARITY_HIGH, config.getCoplanarityCutConfig().getUpperBound());
+        setCutValue(PAIR_ENERGY_DIFFERENCE_HIGH, config.getEnergyDifferenceCutConfig().getUpperBound());
+        setCutValue(PAIR_ENERGY_SLOPE_LOW, config.getEnergySlopeCutConfig().getLowerBound());
+        setCutValue(PAIR_ENERGY_SUM_LOW, config.getEnergySumCutConfig().getLowerBound());
+        setCutValue(PAIR_ENERGY_SLOPE_F, config.getEnergySlopeCutConfig().getParameterF());
+        setCutValue(PAIR_ENERGY_SUM_HIGH, config.getEnergySumCutConfig().getUpperBound());
+        setCutValue(PAIR_TIME_COINCIDENCE, config.getTimeDifferenceCutConfig().getUpperBound()); 
     }
     
     /**
@@ -268,6 +318,82 @@ public class TriggerModule2019 {
     }
     
     /**
+     * Checks if the absolute difference between the times between
+     * two clusters is below the time coincidence cut. This is defined
+     * as <code>|t_1 - t_2| <= PAIR_TIME_COINCIDENCE</code>.
+     * @param clusterPair - The cluster pair to check.
+     * @return <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairTimeCoincidenceCut(Cluster[] clusterPair) {
+        return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
+    }
+    
+    /**
+     * Checks if the absolute difference between the times between
+     * two clusters is below the time coincidence cut. This is defined
+     * as <code>|t_1 - t_2| <= PAIR_TIME_COINCIDENCE</code>.
+     * @param clusterPair - The cluster pair to check.
+     * @return <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    public boolean pairTimeCoincidenceCut(VTPCluster[] clusterPair) {
+        return pairTimeCoincidenceCut(getValueTimeCoincidence(clusterPair));
+    }
+    
+    /**
+     * Checks if the absolute difference between the times between
+     * two clusters is below the time coincidence cut.
+     * @param timeDifference - The absolute difference in time between
+     * the clusters.
+     * @return <code>true</code> if the energy sum passes
+     * the cut and <code>false</code> if it does not.
+     */
+    private boolean pairTimeCoincidenceCut(double timeDifference) {
+        return (timeDifference <= pairsTriggerCuts.get(PAIR_TIME_COINCIDENCE));
+    }
+    
+    /**
+     * Calculates the value used by the time coincidence cut.
+     * @param time - A two-dimensional array consisting of the first
+     * and second clusters' times.
+     * @return Returns the absolute difference between the times of
+     * the two clusters.
+     */
+    private static double getValueTimeCoincidence(double[] time) {
+        return Math.abs(time[0] - time[1]);
+    }
+    
+    /**
+     * Calculates the value used by the time coincidence cut.
+     * @param clusterPair - The cluster pair from which the value should
+     * be calculated.
+     * @return Returns the absolute difference in the cluster times..
+     */
+    public static double getValueTimeCoincidence(Cluster[] clusterPair) {
+        // Get the variables used by the calculation.
+        double[] time = { clusterPair[0].getCalorimeterHits().get(0).getTime(),
+                clusterPair[1].getCalorimeterHits().get(0).getTime() };
+        
+        // Perform the calculation.
+        return getValueTimeCoincidence(time);
+    }
+    
+    /**
+     * Calculates the value used by the time coincidence cut.
+     * @param clusterPair - The cluster pair from which the value should
+     * be calculated.
+     * @return Returns the absolute difference in the cluster times..
+     */
+    public static double getValueTimeCoincidence(VTPCluster[] clusterPair) {
+        // Get the variables used by the calculation.
+        double[] time = { clusterPair[0].getTime(), clusterPair[1].getTime() };
+        
+        // Perform the calculation.
+        return getValueTimeCoincidence(time);
+    }
+    
+    /**
      * Gets the value used for the seed hit energy cut.
      * @param cluster - The cluster from which the value should be
      * derived.
@@ -288,6 +414,16 @@ public class TriggerModule2019 {
     }
     
     /**
+     * Gets the number of hits in a cluster, as used in the cluster
+     * hit count cut.
+     * @param cluster - The cluster for which to obtain the size.
+     * @return Returns the size as an <code>int</code>.
+     */
+    public static final double getClusterHitCount(VTPCluster cluster) {
+        return cluster.getHitCount();
+    }
+    
+    /**
      * Gets the value used for the cluster total energy cut. This is
      * the energy of the entire cluster.
      * @param cluster - The cluster from which the value should be
@@ -297,6 +433,17 @@ public class TriggerModule2019 {
     public static double getValueClusterTotalEnergy(Cluster cluster) {
         return cluster.getEnergy();
     }    
+    
+    /**
+     * Gets the value used for the cluster total energy cut. This is
+     * the energy of the entire cluster.
+     * @param cluster - The cluster from which the value should be
+     * derived.
+     * @return Returns the cluster energy in GeV.
+     */
+    public static double getValueClusterTotalEnergy(VTPCluster cluster) {
+        return cluster.getEnergy();
+    }
     
     /**
      * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located in positive part
@@ -568,6 +715,41 @@ public class TriggerModule2019 {
     }
     
     /**
+     * Gets the seed hit from a <code>Cluster</code> object.
+     * @param cluster - The cluster.
+     * @return Returns the seed hit as a <code>CalorimeterHit</code>
+     * object.
+     */
+    public static final CalorimeterHit getClusterSeedHit(Cluster cluster) {
+        if(getClusterHitCount(cluster) > 0) {
+            return cluster.getCalorimeterHits().get(0);
+        } else {
+            throw new NullPointerException("Cluster does not define hits!");
+        }
+    }
+    
+    
+    /**
+     * Gets the time-stamp of a cluster, as used in the time-coincidence
+     * cut.
+     * @param cluster - The cluster for which to obtain the time.
+     * @return Returns the time as a <code>double</code>.
+     */
+    public static final double getClusterTime(Cluster cluster) {
+        return getClusterSeedHit(cluster).getTime();
+    }
+    
+    /**
+     * Gets the time-stamp of a cluster, as used in the time-coincidence
+     * cut.
+     * @param cluster - The cluster for which to obtain the time.
+     * @return Returns the time as a <code>double</code>.
+     */
+    public static final double getClusterTime(VTPCluster cluster) {
+        return cluster.getTime();
+    }
+    
+    /**
      * Gets the x-position of a cluster in millimeters in the hardware
      * coordinate system.<br/><br/>
      * This method is for use with clusters that do not have a linked
@@ -582,6 +764,26 @@ public class TriggerModule2019 {
     }
     
     /**
+     * Gets the x-index of a cluster's
+     * @param cluster - The cluster for which to obtain the index.
+     * @return Returns the index as an <code>int</code>.
+     */
+    public static final int getClusterXIndex(Cluster cluster) {
+        return getClusterSeedHit(cluster).getIdentifierFieldValue("ix");
+    }
+    
+    /**
+     * Gets the x-index of a cluster's; range: [-23 -1] and [1, 23]
+     * @param cluster - The cluster for which to obtain the index.
+     * @return Returns the index as an <code>int</code>.
+     */
+    public static final int getClusterXIndex(VTPCluster cluster) {
+        int xIndex = cluster.getXIndex();
+        if(xIndex <= 0) xIndex--;
+        return xIndex;
+    }
+    
+    /**
      * Gets the y-position of a cluster in millimeters in the hardware
      * coordinate system.<br/><br/>
      * This method is for use with clusters that do not have a linked
@@ -593,6 +795,24 @@ public class TriggerModule2019 {
      */
     public static double getClusterY(Point clusterXY) {
         return getCrystalPosition(clusterXY.x, clusterXY.y)[1];
+    }
+    
+    /**
+     * Gets the y-index of a cluster.
+     * @param cluster - The cluster for which to obtain the index.
+     * @return Returns the index as an <code>int</code>.
+     */
+    public static final int getClusterYIndex(Cluster cluster) {
+        return getClusterSeedHit(cluster).getIdentifierFieldValue("iy");
+    }
+    
+    /**
+     * Gets the y-index of a cluster.
+     * @param cluster - The cluster for which to obtain the index.
+     * @return Returns the index as an <code>int</code>.
+     */
+    public static final int getClusterYIndex(VTPCluster cluster) {
+        return cluster.getYIndex();
     }
         
     /**

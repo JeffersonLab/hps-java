@@ -3,10 +3,13 @@ package org.hps.recon.ecal.cluster;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
@@ -102,12 +105,12 @@ public class GTPOnlineClusterer extends AbstractClusterer {
     
     // Diagnostic plots.
     private AIDA aida = AIDA.defaultInstance();
-    private IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plots/Hit Energy Distribution", 256, -1.0, 2.2);
-    private IHistogram1D clusterSeedEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Seed Energy Distribution", 176, 0.0, 2.2);
+    private IHistogram1D hitEnergy = aida.histogram1D("GTP(O) Cluster Plots/Hit Energy Distribution", 256, -1.0, 4.6);
+    private IHistogram1D clusterSeedEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Seed Energy Distribution", 176, 0.0, 4.6);
     private IHistogram1D clusterHitCount = aida.histogram1D("GTP(O) Cluster Plots/Cluster Hit Count Distribution", 9, 1, 10);
-    private IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Total Energy Distribution", 176, 0.0, 2.2);
-    private IHistogram2D hitDistribution = aida.histogram2D("GTP(O) Cluster Plots/Hit Distribution", 46, -23, 23, 11, -5.5, 5.5);
-    private IHistogram2D clusterDistribution = aida.histogram2D("GTP(O) Cluster Plots/Cluster Seed Distribution", 46, -23, 23, 11, -5.5, 5.5);
+    private IHistogram1D clusterTotalEnergy = aida.histogram1D("GTP(O) Cluster Plots/Cluster Total Energy Distribution", 176, 0.0, 4.6);
+    private IHistogram2D hitDistribution = aida.histogram2D("GTP(O) Cluster Plots/Hit Distribution", 47, -23.5, 23.5, 11, -5.5, 5.5);
+    private IHistogram2D clusterDistribution = aida.histogram2D("GTP(O) Cluster Plots/Cluster Seed Distribution", 47, -23.5, 23.5, 11, -5.5, 5.5);
     
     /**
      * Instantiates a new instance of a readout GTP clustering algorithm.
@@ -205,12 +208,22 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                 // Iterate over the other hits and if they are within
                 // the clustering spatiotemporal window, compare their
                 // energies.
+                
+                // Collection for hits has been combined with the present seed
+                Set<Point> hitSet = new HashSet<Point>(8);
                 hitLoop:
-                for(CalorimeterHit hit : hitList) {
+                for(CalorimeterHit hit : hitList) {                                       
                     // Negative energy hits are never valid. Skip them.
                     if(hit.getCorrectedEnergy() < 0) {
                         continue hitLoop;
                     }
+                    
+                    // x, y index of hit
+                    Point ixy = new Point(hit.getIdentifierFieldValue("ix"), hit.getIdentifierFieldValue("iy"));
+                   
+                    // If temporal window is larger or equal to 32 ns, probably there are two hits from the same channel at two ends of temporal window of a seed.
+                    // For such case, the earliest hit is included.
+                    if(hitSet.contains(ixy)) continue hitLoop;
                     
                     // Do not compare the potential seed hit to itself.
                     if(hit == seed) {
@@ -228,6 +241,7 @@ public class GTPOnlineClusterer extends AbstractClusterer {
                             // the same as the verification window
                             // if the asymmetric window is active.
                             if(withinTimeClusteringWindow(seed, hit)) {
+                                hitSet.add(ixy);
                                 protoCluster.addHit(hit);
                             }
                         }
