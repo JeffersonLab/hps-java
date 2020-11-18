@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
@@ -37,6 +42,7 @@ public class EvioDAQParser2019 {
     // Class parameters.
     private int nBanks = 0;
     private boolean debug = false;
+    private boolean saveConfigBank = false;
 
     //////////// Cluster cut configuration ////////////
     /**
@@ -517,6 +523,27 @@ public class EvioDAQParser2019 {
         if (nBanks > 4 && debug) {
             printVars();
         }
+        
+        // If saveConfigBank is enabled, save configuration into a text file for each crate separately.
+        if(saveConfigBank) {
+            try{
+                String fileName = Integer.toString(runNumber) + '_' + Integer.toString(crate) + ".txt";
+                File file = new File(fileName);
+                //if file doesnt exists, then create it
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+                FileWriter fileWritter = new FileWriter(file.getName(),true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                for (String configTable : configurationTables) {
+                    bufferWritter.write(configTable);
+                }
+                bufferWritter.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -572,7 +599,7 @@ public class EvioDAQParser2019 {
                 // Add the parameter key and its values to the map.
                 configMap.put(key, vals);
             }
-        }
+        }        
     }
 
     /**
