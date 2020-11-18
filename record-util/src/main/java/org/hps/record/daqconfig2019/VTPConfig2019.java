@@ -23,7 +23,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
     ////// Store cluster cut parameters
     // Cluster hit timing coincidence: 0 to 16, units: +/-ns
     private int ecalClusterHitDT = 0;
-    // Cluster seed threshold in: 1 to 8191, units MeV
+    // Cluster seed threshold in: 1/1000 to 8191/1000, units GeV
     private double ecalClusterSeedThr = 0;
     // Hodoscope fadc hit cut: minimum acceptable FADC hit integral: 1 to 8191, units TBD
     private int hodoFADCHitThr = 0;
@@ -153,7 +153,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         return ecalClusterHitDT;
     }
     /**
-     * Gets cluster seed threshold in: 1 to 8191, units MeV.
+     * Gets cluster seed threshold in: 1/1000 to 8191/1000, units GeV.
      * @return Ecal cluster seed threshold.
      */
     public double getEcalClusterSeedThr() {

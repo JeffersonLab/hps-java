@@ -313,7 +313,7 @@ public class FADCConfigEcal2019 extends IDAQConfig2019 {
     @Override
     public void printConfig(PrintStream ps) {
         // Print the basic configuration information.
-        ps.println("FADC Configuration:");
+        ps.println("Ecal FADC Configuration:");
         ps.printf("\tMode          :: %d%n", mode);
         ps.printf("\tNSA           :: %d%n", nsa);
         ps.printf("\tNSB           :: %d%n", nsb);
