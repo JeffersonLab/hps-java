@@ -43,7 +43,7 @@ public class Strip2019FeeForAlignment extends Driver {
     protected void process(EventHeader event) {
         boolean skipEvent = true;
         if (event.get(RawTrackerHit.class, "SVTRawTrackerHits").size() < _maxSvtRawTrackerHits) {
-            List<Cluster> clusters = event.get(Cluster.class, "EcalClusters");
+            List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
             //System.out.println(clusters.size()+ "clusters");
             if (clusters.size() > 0 && clusters.size() <= _maxNClusters) {
                 for (Cluster cluster : clusters) {
