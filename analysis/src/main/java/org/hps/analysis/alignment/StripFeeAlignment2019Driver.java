@@ -45,7 +45,7 @@ public class StripFeeAlignment2019Driver extends Driver {
 
     int maxHitsInSensor = 30;
 
-    int maxNClusters = 2;
+    int _maxNClusters = 2;
 
     int _numberOfEventsSelected;
 
@@ -126,11 +126,11 @@ public class StripFeeAlignment2019Driver extends Driver {
                     aida.histogram2D("All Cluster energy vs seed energy nClusters = 2", 100, 2.5, 5.5, 100, 0.5, 3.5).fill(cluster.getEnergy(), seedEnergy);
                 }
             }
-            if (clusters.size() <= maxNClusters) {
+            if (clusters.size() <= _maxNClusters) {
                 for (Cluster cluster : clusters) {
-                    aida.histogram1D("All Cluster energy nClusters <= " + maxNClusters, 100, 0., 5.5).fill(cluster.getEnergy());
+                    aida.histogram1D("All Cluster energy nClusters <= " + _maxNClusters, 100, 0., 5.5).fill(cluster.getEnergy());
                     double seedEnergy = ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy();
-                    aida.histogram2D("All Cluster energy nClusters <= " + maxNClusters + " vs seed energy", 100, 2.5, 5.5, 100, 0.5, 3.5).fill(cluster.getEnergy(), seedEnergy);
+                    aida.histogram2D("All Cluster energy nClusters <= " + _maxNClusters + " vs seed energy", 100, 2.5, 5.5, 100, 0.5, 3.5).fill(cluster.getEnergy(), seedEnergy);
                     if (cluster.getEnergy() > _minClusterEnergy) {
                         if (seedEnergy > _minSeedHitEnergy) {
                             boolean isFiducial = TriggerModule.inFiducialRegion(cluster);
@@ -250,7 +250,7 @@ public class StripFeeAlignment2019Driver extends Driver {
                         }//end of check on cluster seed energy
                     }// end of check on cluster energy
                 } // end of loop over clusters
-            }//end of check on maxNClusters
+            }//end of check on _maxNClusters
         }//end of check on maxSvtRawTrackerHits
         if (skipEvent) {
             throw new Driver.NextEventException();
@@ -335,5 +335,10 @@ public class StripFeeAlignment2019Driver extends Driver {
 
     public void setMaxDist(double d) {
         _maxDist = d;
+    }
+    
+    public void setMaxNClusters(int i)
+    {
+        _maxNClusters = i;
     }
 }
