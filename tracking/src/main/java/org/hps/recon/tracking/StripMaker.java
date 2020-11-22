@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.lcsim.detector.IDetectorElement;
-import org.lcsim.detector.IReadout;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
@@ -20,11 +19,14 @@ import org.lcsim.detector.tracker.silicon.SiStrips;
 import org.lcsim.detector.tracker.silicon.SiStriplets;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.ThinSiStrips;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiSensorSim;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+
+import org.hps.readout.svt.HPSSVTConstants;
 
 /**
  *
@@ -45,7 +47,8 @@ public class StripMaker {
     // Identifier helper (reset once per sensor)
     SiTrackerIdentifierHelper _sid_helper;
     // Temporary map connecting hits to strip numbers for sake of speed (reset once per sensor)
-    Map<FittedRawTrackerHit, Integer> _strip_map = new HashMap<FittedRawTrackerHit, Integer>();
+    //Map<FittedRawTrackerHit, Integer> _strip_map = new HashMap<FittedRawTrackerHit, Integer>();
+    Map< LCRelation, Integer > stripMap_ = new HashMap< LCRelation, Integer >(); 
 
     boolean _debug = false;
     private SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
@@ -88,77 +91,85 @@ public class StripMaker {
     // Make hits for a sensor
     public List<SiTrackerHit> makeHits(SiSensor sensor) {
 
-        // System.out.println("makeHits: " + sensor.getName());
         List<SiTrackerHit> hits = new ArrayList<SiTrackerHit>();
 
-        // Get SiTrackerIdentifierHelper for this sensor and refresh the strip map used to increase
-        // speed
+        // Get SiTrackerIdentifierHelper for this sensor and refresh the 
+        // strip map used to increase speed
         _sid_helper = (SiTrackerIdentifierHelper) sensor.getIdentifierHelper();
-        _strip_map.clear();
+        stripMap_.clear();
 
-        // Get hits for this sensor
-        IReadout ro = sensor.getReadout();
-        List<FittedRawTrackerHit> hps_hits = ro.getHits(FittedRawTrackerHit.class);
+        // Get the collection of LCRelations (RawTrackerHit to fit parameters)
+        // from the sensor readout. 
+        List< LCRelation > fittedHits = sensor.getReadout().getHits(LCRelation.class);
 
-        Map<SiSensorElectrodes, List<FittedRawTrackerHit>> electrode_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
-        Map<SiSensorElectrodes, List<FittedRawTrackerHit>> thin_hits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>();
-        Map<SiSensorElectrodes, List<FittedRawTrackerHit>> stripletHits = new LinkedHashMap<SiSensorElectrodes, List<FittedRawTrackerHit>>(); 
+        // Map out the electrodes to the corresponding hit
+        // TODO: Do we need a map for each sensor type? 
+        // TODO: Are we still using the thin sensors class? 
+        Map<SiSensorElectrodes, List<LCRelation>> electrode_hits = new LinkedHashMap<SiSensorElectrodes, List<LCRelation>>();
+        Map<SiSensorElectrodes, List<LCRelation>> thin_hits = new LinkedHashMap<SiSensorElectrodes, List<LCRelation>>();
+        Map<SiSensorElectrodes, List<LCRelation>> stripletHits = new LinkedHashMap<SiSensorElectrodes, List<LCRelation>>(); 
 
-        for (FittedRawTrackerHit hps_hit : hps_hits) {
+        for (LCRelation fittedHit : fittedHits) {
 
-            // get id and create strip map, get electrodes.
-            IIdentifier id = hps_hit.getRawTrackerHit().getIdentifier();
-            _strip_map.put(hps_hit, _sid_helper.getElectrodeValue(id));
+            // Get the RawTrackerHit associated with the fitted hit.
+            RawTrackerHit hit = FittedRawTrackerHit.getRawTrackerHit(fittedHit);
+
+            // Get the ID and create strip map, get electrodes.
+            IIdentifier id = hit.getIdentifier();
+            int strip = _sid_helper.getElectrodeValue(id); 
+            
+            // Drop the unbonded channel
+            if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) continue;
+
+            stripMap_.put(fittedHit, _sid_helper.getElectrodeValue(id));
 
             // Get electrodes and check that they are strips
-            // System.out.println("proc raw hit from: " +
-            // DetectorElementStore.getInstance().find(raw_hit.getIdentifier()).get(0).getName());
             ChargeCarrier carrier = ChargeCarrier.getCarrier(_sid_helper.getSideValue(id));
-            SiSensorElectrodes electrodes = ((SiSensor) hps_hit.getRawTrackerHit().getDetectorElement()).getReadoutElectrodes(carrier);
+            SiSensorElectrodes electrodes = ((SiSensor) hit.getDetectorElement()).getReadoutElectrodes(carrier);
 
             if (electrodes instanceof ThinSiStrips) {
                 if (thin_hits.get(electrodes) == null)
-                    thin_hits.put(electrodes, new ArrayList<FittedRawTrackerHit>());                    
-                thin_hits.get(electrodes).add(hps_hit);
+                    thin_hits.put(electrodes, new ArrayList<LCRelation>());                    
+                thin_hits.get(electrodes).add(fittedHit);
             } else if (electrodes instanceof SiStriplets) {
 
                 if (_debug) System.out.println("StripMaker::makeHits : Electrodes are of SiStriplets"); 
                 
-                if (stripletHits.get(electrodes) == null) stripletHits.put(electrodes, new ArrayList<FittedRawTrackerHit>()); 
+                if (stripletHits.get(electrodes) == null) stripletHits.put(electrodes, new ArrayList<LCRelation>()); 
 
-                stripletHits.get(electrodes).add(hps_hit);
+                stripletHits.get(electrodes).add(fittedHit);
 
             } else {
                 if (electrode_hits.get(electrodes) == null)
-                    electrode_hits.put(electrodes, new ArrayList<FittedRawTrackerHit>());
-                electrode_hits.get(electrodes).add(hps_hit);
+                    electrode_hits.put(electrodes, new ArrayList<LCRelation>());
+                electrode_hits.get(electrodes).add(fittedHit);
             }
         }
 
         for (Map.Entry entry : electrode_hits.entrySet())
-            hits.addAll(makeHits(sensor, (SiStrips) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
+            hits.addAll(makeHits(sensor, (SiStrips) entry.getKey(), (List<LCRelation>) entry.getValue()));
         for (Map.Entry entry : thin_hits.entrySet())
-            hits.addAll(makeHits(sensor, (ThinSiStrips) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
+            hits.addAll(makeHits(sensor, (ThinSiStrips) entry.getKey(), (List<LCRelation>) entry.getValue()));
         for (Map.Entry entry : stripletHits.entrySet())
-            hits.addAll(makeHits(sensor, (SiStriplets) entry.getKey(), (List<FittedRawTrackerHit>) entry.getValue()));
+            hits.addAll(makeHits(sensor, (SiStriplets) entry.getKey(), (List<LCRelation>) entry.getValue()));
 
 
         if (_debug)
-            System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor");
+            System.out.println(this.getClass().getSimpleName() + "::makeHits returning " + hits.size() + " clusters from sensor "+sensor.getName());
         return hits;
     }
 
-    public List<SiTrackerHit> makeHits(SiSensor sensor, SiSensorElectrodes electrodes, List<FittedRawTrackerHit> hps_hits) {
+    public List<SiTrackerHit> makeHits(SiSensor sensor, SiSensorElectrodes electrodes, List<LCRelation> fittedHits) {
 
         // Call the clustering algorithm to make clusters
-        List<List<FittedRawTrackerHit>> cluster_list = _clustering.findClusters(hps_hits);
+        List<List<LCRelation>> cluster_list = _clustering.findClusters(fittedHits);
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + "::makeHits : Found clusters = " + cluster_list.size());
         // Create an empty list for the pixel hits to be formed from clusters
         List<SiTrackerHit> hits = new ArrayList<SiTrackerHit>();
 
         // Make a pixel hit from this cluster
-        for (List<FittedRawTrackerHit> cluster : cluster_list)
+        for (List<LCRelation> cluster : cluster_list)
 
             // Make a TrackerHit from the cluster if it meets max cluster size requirement
             if (cluster.size() <= _max_cluster_nstrips) {
@@ -181,7 +192,7 @@ public class StripMaker {
         _max_cluster_nstrips = max_cluster_nstrips;
     }
 
-    private SiTrackerHitStrip1D makeTrackerHit(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
+    private SiTrackerHitStrip1D makeTrackerHit(List<LCRelation> cluster, SiSensorElectrodes electrodes) {
         
         Hep3Vector position = getPosition(cluster, electrodes);
         if (_debug) System.out.println("StripMaker::makeTrackerHit : Cluster position: " + position.toString()); 
@@ -193,15 +204,15 @@ public class StripMaker {
         double energy = getEnergy(cluster);
         TrackerHitType type = new TrackerHitType(TrackerHitType.CoordinateSystem.GLOBAL, TrackerHitType.MeasurementType.STRIP_1D);
         List<RawTrackerHit> rth_cluster = new ArrayList<RawTrackerHit>();
-        for (FittedRawTrackerHit bth : cluster)
-            rth_cluster.add(bth.getRawTrackerHit());
+        for (LCRelation bth : cluster)
+            rth_cluster.add(FittedRawTrackerHit.getRawTrackerHit(bth)); 
         SiTrackerHitStrip1D hit = new SiTrackerHitStrip1D(position, covariance, energy, time, rth_cluster, type);
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + " SiTrackerHitStrip1D created at " + position + "(" + hit.getPositionAsVector().toString() + ")" + " E " + energy + " time " + time);
         return hit;
     }
 
-    private Hep3Vector getPosition(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
+    private Hep3Vector getPosition(List<LCRelation> cluster, SiSensorElectrodes electrodes) {
         if (_debug) System.out.println("StripMaker::getPosition : Calculating position for cluster size " + cluster.size());
         List<Double> signals = new ArrayList<Double>();
         List<Hep3Vector> positions = new ArrayList<Hep3Vector>();
@@ -209,20 +220,20 @@ public class StripMaker {
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + " Loop of " + cluster.size() + " and add signals and positions to vectors");
 
-        for (FittedRawTrackerHit hit : cluster) {
-            signals.add(hit.getAmp());
+        for (LCRelation hit : cluster) {
+            signals.add(FittedRawTrackerHit.getAmp(hit));
             if (electrodes instanceof ThinSiStrips) {
-                positions.add(((ThinSiStrips) electrodes).getStripCenter(_strip_map.get(hit)));
+                positions.add(((ThinSiStrips) electrodes).getStripCenter(stripMap_.get(hit)));
 //                if (hit.getRawTrackerHit().getLayerNumber() < 4)
-//                    System.out.println("thinStripCenter is at " + ((ThinSiStrips) electrodes).getStripCenter(_strip_map.get(hit)).toString());
+//                    System.out.println("thinStripCenter is at " + ((ThinSiStrips) electrodes).getStripCenter(stripMap_.get(hit)).toString());
             } else if (electrodes instanceof SiStriplets) {
-                Hep3Vector position = ((SiStriplets) electrodes).getStripCenter(_strip_map.get(hit));
+                Hep3Vector position = ((SiStriplets) electrodes).getStripCenter(stripMap_.get(hit));
                 if (_debug) System.out.println("StripMaker::getPosition : Position " + position.toString());
                 positions.add(position);
             } else {
-                positions.add(((SiStrips) electrodes).getStripCenter(_strip_map.get(hit)));
+                positions.add(((SiStrips) electrodes).getStripCenter(stripMap_.get(hit)));
 //                if (hit.getRawTrackerHit().getLayerNumber() < 4)
-//                    System.out.println("stripCenter is at " + ((SiStrips) electrodes).getStripCenter(_strip_map.get(hit)).toString());
+//                    System.out.println("stripCenter is at " + ((SiStrips) electrodes).getStripCenter(stripMap_.get(hit)).toString());
             }
         }
 
@@ -266,19 +277,16 @@ public class StripMaker {
             System.out.println(this.getClass().getSimpleName() + " final cluster position " + newpos.toString());
 
         return ((SiSensor) electrodes.getDetectorElement()).getGeometry().getLocalToGlobal().transformed(position);
-        // return electrodes.getLocalToGlobal().transformed(position);
     }
 
-    private double getTime(List<FittedRawTrackerHit> cluster) {
+    private double getTime(List<LCRelation> cluster) {
         double time_sum = 0;
         double signal_sum = 0;
 
-//        System.out.format("Hits:\n");
-        for (FittedRawTrackerHit hit : cluster) {
+        for (LCRelation hit : cluster) {
 
-            double signal = hit.getAmp();
-            double time = hit.getT0();
-//        System.out.format("t0=%f\tA=%f\n",hit.getT0(),hit.getAmp());
+            double signal = FittedRawTrackerHit.getAmp(hit);
+            double time = FittedRawTrackerHit.getT0(hit);
 
             time_sum += time * signal * signal;
             signal_sum += signal * signal;
@@ -287,10 +295,10 @@ public class StripMaker {
         return time_sum / signal_sum;
     }
 
-    private SymmetricMatrix getCovariance(List<FittedRawTrackerHit> cluster, SiSensorElectrodes electrodes) {
+    private SymmetricMatrix getCovariance(List<LCRelation> cluster, SiSensorElectrodes electrodes) {
         SymmetricMatrix covariance = new SymmetricMatrix(3);
         covariance.setElement(0, 0, Math.pow(_res_model.getMeasuredResolution(cluster, electrodes), 2));
-        covariance.setElement(1, 1, Math.pow(_res_model.getUnmeasuredResolution(cluster, electrodes, _strip_map), 2));
+        covariance.setElement(1, 1, Math.pow(_res_model.getUnmeasuredResolution(cluster, electrodes, stripMap_), 2));
         covariance.setElement(2, 2, 0.0);
 
         SymmetricMatrix covariance_global = electrodes.getLocalToGlobal().transformed(covariance);
@@ -315,10 +323,10 @@ public class StripMaker {
         // return new SymmetricMatrix((Matrix)covariance_global);
     }
 
-    private double getEnergy(List<FittedRawTrackerHit> cluster) {
+    private double getEnergy(List<LCRelation> cluster) {
         double total_charge = 0.0;
-        for (FittedRawTrackerHit hit : cluster) {
-            double signal = hit.getAmp();
+        for (LCRelation hit : cluster) {
+            double signal = FittedRawTrackerHit.getAmp(hit);
             total_charge += signal;
         }
         return total_charge * DopedSilicon.ENERGY_EHPAIR;

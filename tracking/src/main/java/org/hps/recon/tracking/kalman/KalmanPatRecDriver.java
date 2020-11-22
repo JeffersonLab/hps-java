@@ -71,7 +71,10 @@ public class KalmanPatRecDriver extends Driver {
     private double maxChi2IncShare;    // Maximum increment in chi^2 for a hit shared with another track
     private int numEvtPlots;           // Number of event displays to plot (gnuplot files)
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
-
+    private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
+                                       // (protection against monster events) 
+    private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
+    
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
     }
@@ -95,7 +98,15 @@ public class KalmanPatRecDriver extends Driver {
 
     public void setTrackCollectionName(String input) {
     }
-
+    
+    public void setSiHitsLimit(int input) {
+        siHitsLimit = input;
+    }
+    
+    public void setSeedCompThr(double thr) {
+        seedCompThr = thr;
+    }
+    
     @Override
     public void detectorChanged(Detector det) {
         _materialManager = new MaterialSupervisor();
@@ -113,6 +124,7 @@ public class KalmanPatRecDriver extends Driver {
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
         KI = new KalmanInterface(verbose, uniformB);
+        KI.setSiHitsLimit(siHitsLimit);
         KI.createSiModules(detPlanes, fm);
         
         decoder = det.getSubdetector("Tracker").getIDDecoder();
@@ -139,6 +151,7 @@ public class KalmanPatRecDriver extends Driver {
         if (minChi2IncBad != 0.0) kPar.setMinChi2IncBad(minChi2IncBad);
         if (maxResidShare != 0.0) kPar.setMxResidShare(maxResidShare);
         if (maxChi2IncShare != 0.0) kPar.setMxChi2double(maxChi2IncShare);
+        if (seedCompThr != 0.0) kPar.setSeedCompThr(seedCompThr);
         
         // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
         // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
@@ -180,16 +193,49 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        int evtNumb = event.getEventNumber();
+        
+        
         List<Track> outputFullTracks = new ArrayList<Track>();
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
         List<LCRelation> trackDataRelations = new ArrayList<LCRelation>();
+        List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
+        List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
+        
+        prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations);
+        
+        int flag = 1 << LCIOConstants.TRBIT_HITS;
+        event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
+        event.put("GBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
+        event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
+        event.put("KFTrackData",trackDataCollection, TrackData.class,0);
+        event.put("KFTrackDataRelations",trackDataRelations,LCRelation.class,0);
+    }
+    
+    class SortByZ implements Comparator<Pair<double[], double[]>> {
+
+        @Override
+        public int compare(Pair<double[], double[]> o1, Pair<double[], double[]> o2) {
+            return (int) (o1.getSecondElement()[2] - o2.getSecondElement()[2]);
+        }
+    }
+
+    class SortByZ2 implements Comparator<TrackerHit> {
+
+        @Override
+        public int compare(TrackerHit o1, TrackerHit o2) {
+            return (int) (o1.getPosition()[2] - o2.getPosition()[2]);
+        }
+    }
+
+    private void prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations) {
+        
+        int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
             System.out.format("KalmanPatRecDriver.process:" + stripHitInputCollectionName + " does not exist; skipping event %d\n", evtNumb);
             return;
         }
-
+        
         long startTime = System.nanoTime();
         ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event, decoder);
         long endTime = System.nanoTime();
@@ -198,7 +244,7 @@ public class KalmanPatRecDriver extends Driver {
         nEvents++;
         Logger.getLogger(KalmanPatRecDriver.class.getName()).log(Level.FINE,
                 "KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
-
+        
         if (kPatList == null) {
             System.out.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d\n", evtNumb);
             return;
@@ -212,15 +258,14 @@ public class KalmanPatRecDriver extends Driver {
                     rawtomc.add(relation.getFrom(), relation.getTo());
                 }
         }
-
+        
         List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         if (rawhits == null) {
             System.out.format("KalmanPatRecDriver.process: the raw hits collection is missing\n");
             return;
         }
         
-        List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
-        List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
+        
         int nKalTracks = 0;
         for (KalmanPatRecHPS kPat : kPatList) {
             if (kPat == null) {
@@ -273,7 +318,7 @@ public class KalmanPatRecDriver extends Driver {
                 //TODO: compute isolations
                 double qualityArray[] = new double[1];
                 qualityArray[0]= -1;
-
+                
                 //Get the track momentum and convert it into detector frame and float values
                 Hep3Vector momentum = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(0).getMomentum());
                 momentum = CoordinateTransformations.transformVectorToDetector(momentum);
@@ -282,14 +327,14 @@ public class KalmanPatRecDriver extends Driver {
                 momentum_f[0] = (float) momentum.x();
                 momentum_f[1] = (float) momentum.y();
                 momentum_f[2] = (float) momentum.z();
-                                
+                
                 //Add the Track Data 
                 TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
             } // end of loop on tracks
         } // end of loop on trackers
-
+        
         nTracks += nKalTracks;
         
         if (kPlot != null) kPlot.process(event, runTime, kPatList, rawtomc);
@@ -297,28 +342,8 @@ public class KalmanPatRecDriver extends Driver {
         KI.clearInterface();
         if (verbose) System.out.format("\n KalmanPatRecDriver.process: Done with event %d\n", evtNumb);
         
-        int flag = 1 << LCIOConstants.TRBIT_HITS;
-        event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
-        event.put("GBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
-        event.put("GBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
-        event.put("KFTrackData",trackDataCollection, TrackData.class,0);
-        event.put("KFTrackDataRelations",trackDataRelations,LCRelation.class,0);
-    }
-    
-    class SortByZ implements Comparator<Pair<double[], double[]>> {
 
-        @Override
-        public int compare(Pair<double[], double[]> o1, Pair<double[], double[]> o2) {
-            return (int) (o1.getSecondElement()[2] - o2.getSecondElement()[2]);
-        }
-    }
-
-    class SortByZ2 implements Comparator<TrackerHit> {
-
-        @Override
-        public int compare(TrackerHit o1, TrackerHit o2) {
-            return (int) (o1.getPosition()[2] - o2.getPosition()[2]);
-        }
+        return;
     }
 
     @Override
