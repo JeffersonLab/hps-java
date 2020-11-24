@@ -24,6 +24,8 @@ public final class ClusterCorrectionUtilities {
     static final double NOISE_B = 1.3725E-4;
     static final double NOISE_C = 3.01E-4;
 
+    static final int N_ITERATIONS_2019 = 5;
+    
     static final Random random = new Random();
 
     // Calculate the noise factor to smear the Ecal energy by
@@ -56,19 +58,30 @@ public final class ClusterCorrectionUtilities {
 
     /**
      * Apply HPS-specific energy and position corrections to a cluster without
-     * track information.
+     * track information. In this case, cluster is the non-corrected cluster - neither the energy correction or the position correction was applied
      *
      * @param cluster The input cluster.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, boolean isMC) {
         if (cluster instanceof BaseCluster) {
             BaseCluster baseCluster = (BaseCluster) cluster;
-            // Apply PID based position correction, which should happen before final energy correction.
-            ClusterPositionCorrection.setCorrectedPosition(baseCluster);
+       
             // Apply PID based energy correction.
             if (beamEnergy > 4.0) {
-                ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
+                //here we need to play a little bit. 
+                //ClusterEnergyCorrection2019 requires the CORRECT position and the RAW energy
+                //ClusterPositionCorrection2019 requires the CORRECT energy and the RAW position.
+                //Idea: iterate from the non-corrected values     
+                for (int it=0;it<N_ITERATIONS_2019;it++) {
+                    ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
+                    ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
+                    
+                    //absolute POS, relative in energy
+                }             
+            
             } else {
+                // Apply PID based position correction, which should happen before final energy correction.
+                ClusterPositionCorrection.setCorrectedPosition(baseCluster);
                 ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
             }
         }
@@ -77,18 +90,22 @@ public final class ClusterCorrectionUtilities {
     /**
      * Apply HPS-specific energy and position corrections to a cluster with
      * track information.
-     *
+     * In this case, ypos is the y position of the cluster, determined from clustering
      * @param cluster The input cluster.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
         if (cluster instanceof BaseCluster) {
             BaseCluster baseCluster = (BaseCluster) cluster;
-            // Apply PID based position correction, which should happen before final energy correction.
-            ClusterPositionCorrection.setCorrectedPosition(baseCluster);
-            // Apply PID based energy correction.
-            if (beamEnergy > 4.0) {
+          
+              if (beamEnergy > 4.0) {
+                //Apply energy correction - this depends on the non-corrected energy (from baseCluster) and ypos, from tracking.
                 ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
+                //Now the energy is correct, can use the 2019 correction. Note that the order is different from below, since 2019 corrections are based on the CORRECTED ENERGY
+                ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
             } else {
+                // Apply PID based position correction, which should happen before final energy correction.
+                ClusterPositionCorrection.setCorrectedPosition(baseCluster);
+                // Apply PID based energy correction.
                 ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
             }
         }
