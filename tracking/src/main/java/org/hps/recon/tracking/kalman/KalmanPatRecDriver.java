@@ -62,9 +62,11 @@ public class KalmanPatRecDriver extends Driver {
     private static Logger logger;
     
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
+    private ArrayList<String> strategies;     // List of seed strategies for both top and bottom trackers, from steering
+    private ArrayList<String> strategiesTop;  // List of all the top tracker seed strategies from the steering file
+    private ArrayList<String> strategiesBot;  // List of all the bottom tracker seed strategies from the steering file
     private int numPatRecIteration;    // Number of global iterations of the pattern recognition
     private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
-    private int numStrategy;           // Number of pattern recognition search strategies to use
     private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
     private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
     private double maxZ0;              // Maximum dz (or Z0) at the target plane for a seed and the final track
@@ -85,8 +87,9 @@ public class KalmanPatRecDriver extends Driver {
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
-    private double beamPositionZ;        // Beam spot location along the beam axis
-    private double beamSigmaZ;       // Beam spot size along the beam axis
+    private int numStrategyIter1;      // Number of seed strategies to use in the first iteration of pattern recognition
+    private double beamPositionZ;      // Beam spot location along the beam axis
+    private double beamSigmaZ;         // Beam spot size along the beam axis
     private double beamPositionX;
     private double beamSigmaX;
     private double beamPositionY;
@@ -210,14 +213,37 @@ public class KalmanPatRecDriver extends Driver {
         if (beamPositionY != 0.0) kPar.setBeamSpotZ(-beamPositionY);
         if (beamSigmaY != 0.0) kPar.setBeamSizeZ(beamSigmaY);
         if (mxChi2Vtx != 0.0) kPar.setMaxChi2Vtx(mxChi2Vtx);
-        if (numStrategy > 0) kPar.setNumStrategies(numStrategy);
-        
-        // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
-        // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
-        // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
-        
-        //int[] list17 = {0, 3, 4, 5, 6};
-        //kPar.addStrategy(list17);
+      
+        // Here we set the seed strategies for the pattern recognition
+        if (strategies != null || (strategiesTop != null && strategiesBot != null)) {
+            logger.config("The Kalman pattern recognition seed strategies are being set from the steering file");
+            kPar.clrStrategies();
+            int nB = 0;
+            int nT = 0;
+            int nA = 0;
+            if (strategies != null) {
+                nA = strategies.size();
+                for (String strategy : strategies) {
+                    kPar.addStrategy(strategy, "top");
+                    kPar.addStrategy(strategy, "bottom");
+                }
+            }
+            if (strategiesTop != null) {
+                nT = strategiesTop.size();
+                for (String strategy : strategiesTop) {
+                    kPar.addStrategy(strategy, "top");
+                }
+            }
+            if (strategiesBot != null) {
+                nB = strategiesBot.size();
+                for (String strategy : strategiesBot) {
+                    kPar.addStrategy(strategy, "bottom");
+                }
+            }
+            kPar.setNumSeedIter1(nA + nT);
+            kPar.setNumSeedIter1(nA + nB);
+        }
+        if (numStrategyIter1 != 0) kPar.setNumSeedIter1(numStrategyIter1);
         
         // Setup optional usage of beam positions from database.
         final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
@@ -541,14 +567,35 @@ public class KalmanPatRecDriver extends Driver {
     public void setBeamSigmaY(double beamSigmaY) {
         this.beamSigmaY = beamSigmaY;
     }
-    public void setNumStrategy(int numStrategy) {
-        this.numStrategy = numStrategy;
-    }
     public void setUseBeamPositionConditions(boolean useBeamPositionConditions) {
         this.useBeamPositionConditions = useBeamPositionConditions;
     }
     public void setUseFixedVertexZPosition(boolean useFixedVertexZPosition) {
         this.useFixedVertexZPosition = useFixedVertexZPosition;
+    }
+    public void setNumStrategyIter1(int numStrategyIter1) {
+        this.numStrategyIter1 = numStrategyIter1;
+    }
+    public void setSeedStrategy(String seedStrategy) {
+        if (strategies == null) {
+            strategies = new ArrayList<String>();
+        }
+        strategies.add(seedStrategy);
+        System.out.format("KalmanPatRecDriver: top and bottom strategy %s specified by steering.\n", seedStrategy);
+    }
+    public void setSeedStrategyTop(String seedStrategy) {
+        if (strategiesTop == null) {
+            strategiesTop = new ArrayList<String>();
+        }
+        strategiesTop.add(seedStrategy);
+        System.out.format("KalmanPatRecDriver: top strategy %s specified by steering.\n", seedStrategy);
+    }
+    public void setSeedStrategyBottom(String seedStrategy) {
+        if (strategiesBot == null) {
+            strategiesBot = new ArrayList<String>();
+        }
+        strategiesBot.add(seedStrategy);
+        System.out.format("KalmanPatRecDriver: bottom strategy %s specified by steering.\n", seedStrategy);
     }
     public void setLogLevel(String logLevel) {
         System.out.format("KalmanPatRecDriver: setting the logger level to %s\n", logLevel);

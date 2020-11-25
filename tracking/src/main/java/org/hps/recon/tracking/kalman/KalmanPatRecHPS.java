@@ -160,7 +160,6 @@ class KalmanPatRecHPS {
         if (debug) {
             System.out.format("  KalmanPatRecHPS: list of the seed strategies to be applied:\n");
             for (int[] list : kPar.lyrList[topBottom]) {
-                if (kPar.lyrList[topBottom].indexOf(list) > kPar.numStrategies) break;
                 for (int lyr=0; lyr<list.length; ++lyr) {
                     System.out.format(" %3d ", list[lyr]);
                 }
@@ -190,7 +189,7 @@ class KalmanPatRecHPS {
                 }
             }
             ArrayList<TrackCandidate> candidateList = new ArrayList<TrackCandidate>();
-            for (int iList = 0; iList<kPar.numStrategies; ++iList) {
+            for (int iList = 0; iList<kPar.lyrList[topBottom].size(); ++iList) {
                 if (trial == 0 && iList > kPar.maxListIter1) break;
                 int[] list = kPar.lyrList[topBottom].get(iList);
                 int nLyrs = list.length;
