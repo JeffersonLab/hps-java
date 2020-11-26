@@ -76,12 +76,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     /**
      * Defines the size of an energy bin for trigger output plots.
      */
-    private static final double BIN_SIZE = 0.025;
-    
-    /**
-     * run number
-     */
-    private int runNumber = 10666;
+    private static final double BIN_SIZE = 0.025;   
     
     /**
      * If require geometry matching
@@ -109,9 +104,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             ecal = (HPSEcal3) ecalSub;
         } else {
             throw new IllegalStateException("Error: Unexpected calorimeter sub-detector of type \"" + ecalSub.getClass().getSimpleName() + "; expected HPSEcal3.");
-        }
-        
-        this.runNumber = this.getConditionsManager().getRun();
+        }        
     }
     
     @Override
@@ -180,7 +173,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             }
            
             
-            if(geometryMatchingRequired && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList, runNumber)) {
+            if(geometryMatchingRequired && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
                 continue;
             }
             
