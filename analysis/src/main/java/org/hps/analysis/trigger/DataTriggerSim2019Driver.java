@@ -238,14 +238,10 @@ public class DataTriggerSim2019Driver extends Driver {
                         daq.getVTPConfig().getSingles3Config() };
                 PairTriggerConfig2019[] pairs = { daq.getVTPConfig().getPair0Config(),
                         daq.getVTPConfig().getPair1Config(), daq.getVTPConfig().getPair2Config(),
-                        daq.getVTPConfig().getPair3Config() };     
+                        daq.getVTPConfig().getPair3Config() };                            
                 
                 // Update the enabled/disabled statuses.
-                for (int i = 0; i < 4; i++) {
-                    
-                    System.out.println("setup i: " +  singles[i].getXMinCutConfig().getLowerBound());
-
-                    
+                for (int i = 0; i < 4; i++) {                                        
                     singlesTrigger[i] = new TriggerModule2019();
                     pairsTrigger[i] = new TriggerModule2019();
                     // Load the DAQ settings from the configuration manager.
@@ -280,6 +276,9 @@ public class DataTriggerSim2019Driver extends Driver {
                     pairCutsEnabled[i][3 + ENERGY_SLOPE] = pairs[i].getEnergySlopeCutConfig().isEnabled();
                     pairCutsEnabled[i][3 + COPLANARITY] = pairs[i].getCoplanarityCutConfig().isEnabled();
                 }
+
+                // In evio, -31 for cluster xmin is written as 33 during DAQ since variable is not set as unsigned
+                if((int)singlesTrigger[0].getCutValue(TriggerModule2019.CLUSTER_XMIN) == 33) singlesTrigger[0].setCutValue(TriggerModule2019.CLUSTER_XMIN, -31);
             }
         });
     }
@@ -586,13 +585,14 @@ public class DataTriggerSim2019Driver extends Driver {
                         }
                         // Build hodoscope patterns
                         patternMap = getHodoPatternMap(hodoHitList);
-                        if(TriggerModule2019.getClusterXIndex(c) > 0) {
-                            passHodoL1Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
-                            passHodoL2Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
-                            passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+
+                        passHodoL1Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
+                                patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
                                     patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
                         }
@@ -604,15 +604,17 @@ public class DataTriggerSim2019Driver extends Driver {
                         }
                         // Build hodoscope patterns
                         patternMap = getHodoPatternMap(hodoHitList);
-                        if(TriggerModule2019.getClusterXIndex(c) > 0) {
-                            passHodoL1Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
-                            passHodoL2Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
-                            passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+ 
+                        passHodoL1Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
+                                patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER1),
+                                    patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
                         }
                     }
 
@@ -661,15 +663,17 @@ public class DataTriggerSim2019Driver extends Driver {
                         }
                         // Build hodoscope patterns
                         patternMap = getHodoPatternMap(hodoHitList);
-                        if(TriggerModule2019.getClusterXIndex(c) > 0) {
-                            passHodoL1Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
-                            passHodoL2Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
-                            passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+
+                        passHodoL1Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
+                                patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER1),
+                                    patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
                         }
                     } else {
                         // Save valid hodoscope hits into a list
@@ -679,15 +683,17 @@ public class DataTriggerSim2019Driver extends Driver {
                         }
                         // Build hodoscope patterns
                         patternMap = getHodoPatternMap(hodoHitList);
-                        if(TriggerModule2019.getClusterXIndex(c) > 0) {
-                            passHodoL1Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
-                            passHodoL2Matching = singlesTrigger[triggerNum]
-                                    .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
-                            passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+
+                        passHodoL1Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2Matching = singlesTrigger[triggerNum]
+                                .hodoLayerMatching(patternMap.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2Matching = singlesTrigger[triggerNum].geometryHodoL1L2Matching(
+                                patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER1),
+                                    patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
                         }
                     }
 

@@ -46,12 +46,12 @@ import org.lcsim.util.aida.AIDA;
  * simulated by the LCSim software for a single trigger. <br/>
  * <br/>
  * The driver requires simulated trigger objects, which are produced
- * separately by the driver <code>SimTriggerDriver</code>, in order
+ * separately by the driver <code>DataTriggerSim2019Driver</code>, in order
  * to function. It also requires the presence of the runtime settings
- * management driver, <code>DAQConfigurationDriver</code>. <br/>
+ * management driver, <code>DAQConfiguration2019Driver</code>. <br/>
  * <br/>
  * The driver works by taking trigger objects simulated by LCSim, using
- * both hardware reported (SSP) clusters and software clusters, and
+ * both hardware reported (VTP) clusters and software clusters, and
  * comparing these to the hardware's reported triggers. Reported triggers
  * include a trigger time and which cuts passed. The driver requires
  * that there exists a hardware trigger that matches in each of these
@@ -74,10 +74,7 @@ import org.lcsim.util.aida.AIDA;
  * 
  * @author Tongtong Cao <caot@jlab.org>
  */
-public class TriggerDiagnostic2019Driver extends Driver {
-    
-    private boolean debug = false;
-    
+public class TriggerDiagnostic2019Driver extends Driver {       
     // Get a copy of the calorimeter conditions for the detector.
     private HodoscopeConditions hodoConditions = null;
     
@@ -115,6 +112,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
      */
     private boolean[] tsFlags = new boolean[20];
     
+    /**
+     * Indicates if TS-bits are read.
+     * For random runs, there are no TS-bits.
+     */
     private boolean isActiveBitRead = false;
     
     /**
@@ -141,15 +142,13 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * conventional trigger cut. Array index corresponds to the ordinal
      * value of the <code>CutType</code> enumerable for all values for
      * which <code>isSpecial()</code> is false. Note that this variable
-     * is defined as a function of the variable arrays <code>xMax</code> and <code>binSize</code> during
+     * is defined as a function of the variable arrays <code>xMax</code>, <code>xMin</code> and <code>binSize</code> during
      * <code>startOfData()</code>.
      */
     private int[] bins = new int[11];
     /**
      * Stores the x-axis maximum used by the efficiency plots for each
-     * conventional trigger cut. Array index corresponds to the ordinal
-     * value of the <code>CutType</code> enumerable for all values for
-     * which <code>isSpecial()</code> is false.
+     * conventional trigger cut.
      */
     private double[] xMax = {
             //Singles
@@ -167,6 +166,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
             5.00            // Energy of cluster with higher energy in pairs, xMax = 5.00 GeV             
     };
     
+    /**
+     * Stores the x-axis minimum used by the efficiency plots for each
+     * conventional trigger cut. 
+     */
     private double[] xMin = {
             //Singles
             0.00,          // Cluster energy, xMax = 5 GeV
@@ -185,9 +188,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
     
     /**
      * Store the size of a bin used by the efficiency plots for each
-     * conventional trigger cut. Array index corresponds to the ordinal
-     * value of the <code>CutType</code> enumerable for all values for
-     * which <code>isSpecial()</code> is false.
+     * conventional trigger cut.
      */
     private double[] binSize = {
             //Singles
@@ -204,6 +205,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             0.050,            // Energy of cluster with lower energy in pairs, binSize = 50 MeV 
             0.050           // Energy of cluster with higher energy in pairs, binSize = 50 MeV   
     };
+    
     /**
      * Stores a list of all trigger types that are used for plotting
      * efficiency plots. This is filled in <code>startOfData</code>.
@@ -233,7 +235,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /**
      * Stores the total number of hardware triggers observed for each
      * source type. The first array index defines the source type and
-     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_SSP_CLUSTER</code>. The second
+     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_VTP_CLUSTER</code>. The second
      * array index
      * defines one of several conditions. This includes triggers seen
      * when a certain TI bit was active, with these indices defined by <code>TriggerType.ordinal()</code>, all triggers
@@ -245,7 +247,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /**
      * Stores the total number of matched triggers observed for each
      * source type. The first array index defines the source type and
-     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_SSP_CLUSTER</code>. The second
+     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_VTP_CLUSTER</code>. The second
      * array index
      * defines one of several conditions. This includes triggers seen
      * when a certain TI bit was active, with these indices defined by <code>TriggerType.ordinal()</code>, all triggers
@@ -257,6 +259,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
     // === Verbose settings. ============================================================
     // ==================================================================================
+    /** Indicates that debug messages should be output. */
+    private boolean debug = false;
+    
     /** Indicates that all logger messages should be output. */
     private boolean verbose = false;
     /**
@@ -286,23 +291,11 @@ public class TriggerDiagnostic2019Driver extends Driver {
     private LocalOutputLogger logger = new LocalOutputLogger();
 
     // === Verification settings. =======================================================
-    // ==================================================================================
-    /**
-     * The number of samples before a pulse-crossing event to integrate
-     * during hit formation. Used to determine the risk of pulse-clipping.
-     */
+    // ==================================================================================    
+    // Store Ecal hit verifiability parameters.
     private int nsbEcal = -1;
-    /**
-     * The number of samples after a pulse-crossing event to integrate
-     * during hit formation. Used to determine the risk of pulse-clipping.
-     */
     private int nsaEcal = -1;
-    /**
-     * The width of the pulse integration window used to form hits.
-     * Used to determine the risk of pulse-clipping.
-     */
-    private int windowWidthEcal = -1;
-    
+    private int windowWidthEcal = -1;    
     private int offsetEcal = -1;
 
     // Store hodoscope hit verifiability parameters.
@@ -315,17 +308,16 @@ public class TriggerDiagnostic2019Driver extends Driver {
     private int hodoFADCHitThr = 0;
     private int hodoThr = 0;
     private int hodoDT = 0;
-
     
     /**
-     * The number of hits that must be present in event in order for
+     * The number of hits for Ecal that must be present in event in order for
      * it to be ignored as a "noise event."
      */
     private int noiseEventThresholdEcal = 100;
     
     
     /**
-     * The number of hits that must be present in event in order for
+     * The number of hits for Hodo that must be present in event in order for
      * it to be ignored as a "noise event."
      */
     private int noiseEventThresholdHodo = 50;
@@ -334,13 +326,12 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /** Indicates the type of trigger that is being tested. */
     private TriggerType triggerType = null;
     /**
-     * Whether events with more than <code>noiseEventThreshold</code> hits should be skipped.
+     * Whether events with more than <code>noiseEventThreshold</code> hits for Ecal should be skipped.
      */
-    private boolean skipNoiseEventsEcal = false;
-    
+    private boolean skipNoiseEventsEcal = false;    
     
     /**
-     * Whether events with more than <code>noiseEventThreshold</code> hits should be skipped.
+     * Whether events with more than <code>noiseEventThreshold</code> hits for hodoscope should be skipped.
      */
     private boolean skipNoiseEventsHodo = false;
     
@@ -376,7 +367,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * The second entry contains the observed and matched triggers for
      * both trigger source types. The first array index defines the
      * source type and corresponds to the index variables defined in <code>SOURCE_SIM_CLUSTER</code> and
-     * <code>SOURCE_SSP_CLUSTER</code>.
+     * <code>SOURCE_VTP_CLUSTER</code>.
      * The second array index defines to observed and matched triggers,
      * and corresponds to the indices defined by the variables <code>LOCAL_ALL_TRIGGERS</code> and
      * <code>LOCAL_MATCHED_TRIGGERS</code>.
@@ -392,16 +383,19 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * 
      */
     private enum CutType {
+        // Singles trigger
         CLUSTER_TOTAL_ENERGY("Cluster Total Energy", true, false), CLUSTER_HIT_COUNT("Cluster Hit Count", true, false),
         CLUSTER_XINDEX("Cluster X Index", true, false),
         CLUSTER_PDE("Cluster PDE", true, false),
         
+        // Pairs trigger
         PAIR_ENERGY_SUM("Pair Energy Sum", false, true), PAIR_ENERGY_DIFF("Pair Energy Difference", false, true),
         PAIR_ENERGY_SLOPE("Pair Energy Slope", false, true), PAIR_COPLANARITY("Pair Coplanarity", false, true),
         PAIR_TIME_COINCIDENCE("Pair Time Coincidence", false, true),
         PAIR_LOW_ENERGY("Pair Lower Cluster Energy", false, true),
         PAIR_HIGH_ENERGY("Pair Upper Cluster Energy", false, true),
       
+        // trigger time
         EVENT_TIME("Event Time", true, true);
         
         private final String name;
@@ -410,7 +404,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         /**
          * Instantiates a cut. The cut is assumed to be a real trigger
-         * cut, and not a "special cut" included for plotting purposes.
+         * cut.
          * 
          * @param name - The name of the cut in a human-readable form.
          * @param isSingles - Whether or not this is a singles cut. <code>true</code> means that it is and
@@ -500,8 +494,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
         /**
          * Indicates whether this trigger type is a singles trigger.
          * 
-         * @return Returns <code>true</code> if the trigger is of type <code>TriggerType.SINGLES0</code> or
-         * <code>TriggerType.SINGLES1</code>. Otherwise, returns <code>false</code>.
+         * @return Returns <code>true</code> if the trigger is of type <code>TriggerType.SINGLESTOP0</code> or
+         * <code>TriggerType.SINGLESTOP1</code> or <code>TriggerType.SINGLESTOP2</code> or <code>TriggerType.SINGLESTOP3</code>
+         * or <code>TriggerType.SINGLESBOT0</code> or <code>TriggerType.SINGLESTOP1</code> or <code>TriggerType.SINGLESTOP1</code> or <code>TriggerType.SINGLESTOP1</code>. 
+         * Otherwise, returns <code>false</code>.
          */
         public boolean isSinglesTrigger() {
             return (this.equals(SINGLESTOP0) || this.equals(SINGLESTOP1) || this.equals(SINGLESTOP2) || this.equals(SINGLESTOP3) 
@@ -518,6 +514,12 @@ public class TriggerDiagnostic2019Driver extends Driver {
             return (this.equals(PAIR0) || this.equals(PAIR1) || this.equals(PAIR2) || this.equals(PAIR3));
         }
         
+        /**
+         * Indicates whether this trigger type is a LED trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type <code>TriggerType.PAIR0</code> or
+         * <code>TriggerType.PAIR1</code>. Otherwise, returns <code>false</code>.
+         */
         public boolean isLEDTrigger() {
             return (this.equals(LED));
         }
@@ -2354,17 +2356,16 @@ public class TriggerDiagnostic2019Driver extends Driver {
         if (triggerType.isSinglesTrigger()) {
             // Add all of the SSP triggers.
             for (SinglesTrigger2019<VTPCluster> trigger : simTriggers.getSimHardwareClusterTriggers().getSinglesTriggers(triggerType.getTriggerNumber())) {
-             // Extract triggers with unclipped hodo hits and hodoDT + offsetEcal - offsetHodo <= trigger time <= windowWidthHodo + offsetEcal - offsetHodo
+             // Extract triggers with unclipped hodo hits and trigger time < windowWidthHodo + offsetEcal - offsetHodo
                 // After tiem alignment with Ecal, the readout window of hodo is [0 + offsetEcal
-                // - offsetHodo, windowWidthHodo + offsetEcal - offsetHodo]
+                // - offsetHodo, windowWidthHodo + offsetEcal - offsetHodo)
                 // With consideration of hodoscope hit persistence, for fair comparison, trigger
                 // time must be in the range of [hodoDT + offsetEcal - offsetHodo,
-                // windowWidthHodo + offsetEcal - offsetHodo]
+                // windowWidthHodo + offsetEcal - offsetHodo)
+                // To not cancel too many triggers, we do not set the lower limit
                 if (TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, VTPCluster.class, nsaHodo, nsbHodo,
                         windowWidthHodo)
-                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) <= windowWidthHodo + offsetEcal
-                                - offsetHodo
-                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) >= hodoDT + offsetEcal
+                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) < windowWidthHodo + offsetEcal
                                 - offsetHodo) {
                     hardwareSimTriggers.add(trigger);
                 }
@@ -2375,14 +2376,12 @@ public class TriggerDiagnostic2019Driver extends Driver {
             for (SinglesTrigger2019<Cluster> trigger : simTriggers.getSimSoftwareClusterTriggers()
                     .getSinglesTriggers(triggerType.getTriggerNumber())) {
                 // Extract triggers with unclipped cluster, unclipped hodo hits and hodoDT +
-                // offsetEcal - offsetHodo <= trigger time <= windowWidthHodo + offsetEcal -
+                // offsetEcal - offsetHodo <= trigger time < windowWidthHodo + offsetEcal -
                 // offsetHodo
                 if (TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource(), nsaEcal, nsbEcal, windowWidthEcal)
                         && TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, Cluster.class, nsaHodo, nsbHodo,
                                 windowWidthHodo)
-                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) <= windowWidthHodo + offsetEcal
-                                - offsetHodo
-                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) >= hodoDT + offsetEcal
+                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) < windowWidthHodo + offsetEcal
                                 - offsetHodo) {
                     softwareSimTriggers.add(trigger);
                 }

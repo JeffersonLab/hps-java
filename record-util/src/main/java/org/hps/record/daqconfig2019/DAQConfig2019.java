@@ -14,7 +14,7 @@ import java.io.PrintStream;
  */
 public class DAQConfig2019 extends IDAQConfig2019 {
     //If print out configuration in terminal
-    private boolean printConfiguration = true;
+    private boolean printConfiguration = false;
     
     // Store the configuration objects.
     private VTPConfig2019 vtpConfig = new VTPConfig2019();
