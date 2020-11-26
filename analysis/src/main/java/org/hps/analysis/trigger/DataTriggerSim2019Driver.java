@@ -79,10 +79,7 @@ public class DataTriggerSim2019Driver extends Driver {
     
     
     /** Stores all channel for the hodoscope. */
-    private Map<Long, HodoscopeChannel> channelMap = new HashMap<Long, HodoscopeChannel>();
-    
-    // Factor for scaling hodoscope hit energy
-    private static final double scaleFactor = 1.25 / 2;
+    private Map<Long, HodoscopeChannel> channelMap = new HashMap<Long, HodoscopeChannel>();    
 
     // Store the LCIO collection names for the needed objects.
     private boolean verbose = false;
@@ -1072,7 +1069,7 @@ public class DataTriggerSim2019Driver extends Driver {
             if (p.getX() == HODO_X_0 || p.getX() == HODO_X_4)
                 maxEnergyMap.put(p, maxEnergy);
             else
-                maxEnergyMap.put(p, maxEnergy * scaleFactor);
+                maxEnergyMap.put(p, maxEnergy);
         }
 
         HodoscopePattern pattern = new HodoscopePattern();

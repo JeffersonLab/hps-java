@@ -41,261 +41,266 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * Driver <code>TriggeDiagnostic2019Driver</code> performs a comparison
- * between the trigger results reported by the hardware and those
- * simulated by the LCSim software for a single trigger. <br/>
+ * Driver <code>TriggeDiagnostic2019Driver</code> performs a comparison between
+ * the trigger results reported by the hardware and those simulated by the LCSim
+ * software for a single trigger. <br/>
  * <br/>
- * The driver requires simulated trigger objects, which are produced
- * separately by the driver <code>DataTriggerSim2019Driver</code>, in order
- * to function. It also requires the presence of the runtime settings
- * management driver, <code>DAQConfiguration2019Driver</code>. <br/>
+ * The driver requires simulated trigger objects, which are produced separately
+ * by the driver <code>DataTriggerSim2019Driver</code>, in order to function. It
+ * also requires the presence of the runtime settings management driver,
+ * <code>DAQConfiguration2019Driver</code>. <br/>
  * <br/>
- * The driver works by taking trigger objects simulated by LCSim, using
- * both hardware reported (VTP) clusters and software clusters, and
- * comparing these to the hardware's reported triggers. Reported triggers
- * include a trigger time and which cuts passed. The driver requires
- * that there exists a hardware trigger that matches in each of these
- * fields for every simulated trigger. Note that the reverse may not
- * be true; pulse-clipping can occur for simulated clusters, resulting
- * in a reduced cluster energy, that can affect whether a cluster or
- * pair passes the trigger. This does not occur at the hardware level,
- * though. As such, triggers within the "pulse-clipping" region are not
+ * The driver works by taking trigger objects simulated by LCSim, using both
+ * hardware reported (VTP) clusters and software clusters, and comparing these
+ * to the hardware's reported triggers. Reported triggers include a trigger time
+ * and which cuts passed. The driver requires that there exists a hardware
+ * trigger that matches in each of these fields for every simulated trigger.
+ * Note that the reverse may not be true; pulse-clipping can occur for simulated
+ * clusters, resulting in a reduced cluster energy, that can affect whether a
+ * cluster or pair passes the trigger. This does not occur at the hardware
+ * level, though. As such, triggers within the "pulse-clipping" region are not
  * necessarily comparable. The driver ignores these. <br/>
  * <br/>
- * Output consists primarily of text printed at the end of the run. The
- * driver outputs the overall efficiency (defined as the number of
- * simulated triggers matched versus the total number) for both cluster
- * types. It also provides a more detailed table that further separates
- * this into efficiency by cluster type and active TI bit. The other
- * output is an efficiency over time plot that shows the efficiency for
- * a programmable time frame throughout the run.
+ * Output consists primarily of text printed at the end of the run. The driver
+ * outputs the overall efficiency (defined as the number of simulated triggers
+ * matched versus the total number) for both cluster types. It also provides a
+ * more detailed table that further separates this into efficiency by cluster
+ * type and active TS bit. The other output is an efficiency over time plot that
+ * shows the efficiency for a programmable time frame throughout the run.
  * 
- * Driver <code>TriggeDiagnostic2019Driver</code> is developed based on Driver <code>TriggeDiagnosticDriver</code>
+ * Driver <code>TriggeDiagnostic2019Driver</code> is developed based on Driver
+ * <code>TriggeDiagnosticDriver</code>
  * 
  * @author Tongtong Cao <caot@jlab.org>
  */
-public class TriggerDiagnostic2019Driver extends Driver {       
+public class TriggerDiagnostic2019Driver extends Driver {
     // Get a copy of the calorimeter conditions for the detector.
     private HodoscopeConditions hodoConditions = null;
-    
+
     /** Stores all channel for the hodoscope. */
     private Map<Long, HodoscopeChannel> channelMap = new HashMap<Long, HodoscopeChannel>();
 
-    // === Store the LCIO collection names for the needed objects. ======================
+    // === Store the LCIO collection names for the needed objects.
+    // ======================
     // ==================================================================================
     /** The LCIO collection containing FADC hits. */
     private String hitEcalCollectionName = "EcalCalHits";
-    
+
     /** The LCIO collection containing Hodo FADC hits. */
     private String hitHodoCollectionName = "HodoCalHits";
-    
+
     /**
      * The LCIO collection containing VTP clusters and hardware triggers.
      */
     private String bankVTPCollectionName = "VTPBank";
-    
+
     /**
      * The LCIO collection containing TS-bits
      */
     private String bankTSCollectionName = "TSBank";
-    
+
     /** The LCIO collection containing all software-simulated triggers. */
     private String simTriggerCollectionName = "SimTriggers";
 
-    // === Trigger modules for performing trigger analysis. =============================
+    // === Trigger modules for performing trigger analysis.
+    // =============================
     // ==================================================================================
     /**
-     * Indicates which TS-bits are active in the current event. Array
-     * indices should align with <code>TriggerType.ordinal()</code>.
-     * Values set by the method <code>setTSFlags(TSData2019)</code> and is
-     * called by the <code>process(EventHeader)</code> method.
+     * Indicates which TS-bits are active in the current event. Array indices should
+     * align with <code>TriggerType.ordinal()</code>. Values set by the method
+     * <code>setTSFlags(TSData2019)</code> and is called by the
+     * <code>process(EventHeader)</code> method.
      */
     private boolean[] tsFlags = new boolean[20];
-    
+
     /**
-     * Indicates if TS-bits are read.
-     * For random runs, there are no TS-bits.
+     * Indicates if TS-bits are read. For random runs, there are no TS-bits.
      */
     private boolean isActiveBitRead = false;
-    
+
     /**
-     * Stores the singles trigger settings. Array is of size 4, with
-     * each array index corresponding to the trigger of the same trigger
-     * number.
+     * Stores the singles trigger settings. Array is of size 4, with each array
+     * index corresponding to the trigger of the same trigger number.
      */
     private TriggerModule2019[] singlesTrigger = new TriggerModule2019[4];
     /**
-     * Stores the pair trigger settings. Array is of size 4, with each
-     * array index corresponding to the trigger of the same trigger number.
+     * Stores the pair trigger settings. Array is of size 4, with each array index
+     * corresponding to the trigger of the same trigger number.
      */
     private TriggerModule2019[] pairTrigger = new TriggerModule2019[4];
 
-    // === Plotting variables. ==========================================================
+    // === Plotting variables.
+    // ==========================================================
     // ==================================================================================
     /**
-     * Defines the basic directory structure for all plots used in the
-     * class. This is instantiated in <code>startOfData</code>.
+     * Defines the basic directory structure for all plots used in the class. This
+     * is instantiated in <code>startOfData</code>.
      */
     private String moduleHeader;
     /**
-     * Stores the number of bins used by the efficiency plots for each
-     * conventional trigger cut. Array index corresponds to the ordinal
-     * value of the <code>CutType</code> enumerable for all values for
-     * which <code>isSpecial()</code> is false. Note that this variable
-     * is defined as a function of the variable arrays <code>xMax</code>, <code>xMin</code> and <code>binSize</code> during
-     * <code>startOfData()</code>.
+     * Stores the number of bins used by the efficiency plots for each conventional
+     * trigger cut. Array index corresponds to the ordinal value of the
+     * <code>CutType</code> enumerable for all values for which
+     * <code>isSpecial()</code> is false. Note that this variable is defined as a
+     * function of the variable arrays <code>xMax</code>, <code>xMin</code> and
+     * <code>binSize</code> during <code>startOfData()</code>.
      */
     private int[] bins = new int[11];
     /**
-     * Stores the x-axis maximum used by the efficiency plots for each
-     * conventional trigger cut.
+     * Stores the x-axis maximum used by the efficiency plots for each conventional
+     * trigger cut.
      */
     private double[] xMax = {
-            //Singles
-            5.00,          // Cluster energy, xMax = 5 GeV
-            9.5,            // Hit count, xMax = 9.5 hits
-            23.5,           // Cluster x index, xMax = 23.5
-            5.00,           // PDE, xMax = 5 GeV
-            //Pairs
-            5.00,          // Energy sum, xMax = 5. GeV
-            5.00,          // Energy difference, xMax = 5. GeV
-            5.000,          // Energy slope, xMax = 5.0 GeV
-            180.0,          // Coplanarity, xMax = 180 degrees
-            30.0,            // Time coincidence, xMax = 30 ns
-            5.00,            // Energy of cluster with lower energy in pairs, xMax = 5.00 GeV 
-            5.00            // Energy of cluster with higher energy in pairs, xMax = 5.00 GeV             
+            // Singles
+            5.00, // Cluster energy, xMax = 5 GeV
+            9.5, // Hit count, xMax = 9.5 hits
+            23.5, // Cluster x index, xMax = 23.5
+            5.00, // PDE, xMax = 5 GeV
+            // Pairs
+            5.00, // Energy sum, xMax = 5. GeV
+            5.00, // Energy difference, xMax = 5. GeV
+            5.000, // Energy slope, xMax = 5.0 GeV
+            180.0, // Coplanarity, xMax = 180 degrees
+            30.0, // Time coincidence, xMax = 30 ns
+            5.00, // Energy of cluster with lower energy in pairs, xMax = 5.00 GeV
+            5.00 // Energy of cluster with higher energy in pairs, xMax = 5.00 GeV
     };
-    
+
     /**
-     * Stores the x-axis minimum used by the efficiency plots for each
-     * conventional trigger cut. 
+     * Stores the x-axis minimum used by the efficiency plots for each conventional
+     * trigger cut.
      */
     private double[] xMin = {
-            //Singles
-            0.00,          // Cluster energy, xMax = 5 GeV
-            0.5,            // Hit count, xMax = 9.5 hits
-            -23.5,           // Cluster x index, xMax = 23.5
-            0.00,           // PDE, xMax = 5 GeV
-            //Pairs
-            0.00,          // Energy sum, xMax = 5. GeV
-            0.00,          // Energy difference, xMax = 5. GeV
-            0.000,          // Energy slope, xMax = 4.0 GeV
-            0.0,          // Coplanarity, xMax = 180 degrees
-            0.0,            // Time coincidence, xMax = 30 ns
-            0.00,            // Energy of cluster with lower energy in pairs, xMax = 5.00 GeV 
-            0.00            // Energy of cluster with higher energy in pairs, xMax = 5.00 GeV             
+            // Singles
+            0.00, // Cluster energy, xMax = 5 GeV
+            0.5, // Hit count, xMax = 9.5 hits
+            -23.5, // Cluster x index, xMax = 23.5
+            0.00, // PDE, xMax = 5 GeV
+            // Pairs
+            0.00, // Energy sum, xMax = 5. GeV
+            0.00, // Energy difference, xMax = 5. GeV
+            0.000, // Energy slope, xMax = 4.0 GeV
+            0.0, // Coplanarity, xMax = 180 degrees
+            0.0, // Time coincidence, xMax = 30 ns
+            0.00, // Energy of cluster with lower energy in pairs, xMax = 5.00 GeV
+            0.00 // Energy of cluster with higher energy in pairs, xMax = 5.00 GeV
     };
-    
+
     /**
-     * Store the size of a bin used by the efficiency plots for each
-     * conventional trigger cut.
+     * Store the size of a bin used by the efficiency plots for each conventional
+     * trigger cut.
      */
     private double[] binSize = {
-            //Singles
-            0.050,          // Cluster energy, binSize = 50 MeV
-            1,              // Hit count, binSize = 1 hit
-            1,              // Cluster x index, binSize = 1
-            0.050,          // PDE, binSize = 50 MeV
-            //Pairs
-            0.050,          // Energy sum, binSize = 50 MeV
-            0.050,          // Energy difference, binSize = 50 MeV
-            0.050,          // Energy slope, binSize = 50 MeV
-            5,              // Coplanarity, binSize = 5 degrees
-            4,               // Time coincidence, binSize = 2 ns
-            0.050,            // Energy of cluster with lower energy in pairs, binSize = 50 MeV 
-            0.050           // Energy of cluster with higher energy in pairs, binSize = 50 MeV   
+            // Singles
+            0.050, // Cluster energy, binSize = 50 MeV
+            1, // Hit count, binSize = 1 hit
+            1, // Cluster x index, binSize = 1
+            0.050, // PDE, binSize = 50 MeV
+            // Pairs
+            0.050, // Energy sum, binSize = 50 MeV
+            0.050, // Energy difference, binSize = 50 MeV
+            0.050, // Energy slope, binSize = 50 MeV
+            5, // Coplanarity, binSize = 5 degrees
+            4, // Time coincidence, binSize = 2 ns
+            0.050, // Energy of cluster with lower energy in pairs, binSize = 50 MeV
+            0.050 // Energy of cluster with higher energy in pairs, binSize = 50 MeV
     };
-    
+
     /**
-     * Stores a list of all trigger types that are used for plotting
-     * efficiency plots. This is filled in <code>startOfData</code>.
+     * Stores a list of all trigger types that are used for plotting efficiency
+     * plots. This is filled in <code>startOfData</code>.
      */
     private List<TriggerType> triggerTypes = new ArrayList<TriggerType>(TriggerType.values().length + 1);
-    
+
     private List<CutType> cutTypes = new ArrayList<CutType>();
 
-    // === Trigger matching statistics. =================================================
+    // === Trigger matching statistics.
+    // =================================================
     // ==================================================================================
     private static final int SOURCE_SIM_CLUSTER = 0;
     private static final int SOURCE_VTP_CLUSTER = 1;
     private static final int ALL_TRIGGERS = TriggerType.FEEBOT.ordinal() + 1;
     private static final int LOCAL_WINDOW_TRIGGERS = ALL_TRIGGERS + 1;
     /**
-     * Stores the total number of simulated triggers observed for each
-     * source type. The first array index defines the source type and
-     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_VTP_CLUSTER</code>. The second
-     * array index
-     * defines one of several conditions. This includes triggers seen
-     * when a certain TS bit was active, with these indices defined by <code>TriggerType.ordinal()</code>, all triggers
-     * seen in general,
-     * defined by <code>ALL_TRIGGERS</code>, and all triggers seen in
-     * the local window, defined by <code>LOCAL_WINDOW_TRIGGERS</code>.
+     * Stores the total number of simulated triggers observed for each source type.
+     * The first array index defines the source type and corresponds to the
+     * variables <code>SOURCE_SIM_CLUSTER</code> and
+     * <code>SOURCE_VTP_CLUSTER</code>. The second array index defines one of
+     * several conditions. This includes triggers seen when a certain TS bit was
+     * active, with these indices defined by <code>TriggerType.ordinal()</code>, all
+     * triggers seen in general, defined by <code>ALL_TRIGGERS</code>, and all
+     * triggers seen in the local window, defined by
+     * <code>LOCAL_WINDOW_TRIGGERS</code>.
      */
     private int simTriggerCount[][] = new int[2][LOCAL_WINDOW_TRIGGERS + 1];
     /**
-     * Stores the total number of hardware triggers observed for each
-     * source type. The first array index defines the source type and
-     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_VTP_CLUSTER</code>. The second
-     * array index
-     * defines one of several conditions. This includes triggers seen
-     * when a certain TI bit was active, with these indices defined by <code>TriggerType.ordinal()</code>, all triggers
-     * seen in general,
-     * defined by <code>ALL_TRIGGERS</code>, and all triggers seen in
-     * the local window, defined by <code>LOCAL_WINDOW_TRIGGERS</code>.
+     * Stores the total number of hardware triggers observed for each source type.
+     * The first array index defines the source type and corresponds to the
+     * variables <code>SOURCE_SIM_CLUSTER</code> and
+     * <code>SOURCE_VTP_CLUSTER</code>. The second array index defines one of
+     * several conditions. This includes triggers seen when a certain TS bit was
+     * active, with these indices defined by <code>TriggerType.ordinal()</code>, all
+     * triggers seen in general, defined by <code>ALL_TRIGGERS</code>, and all
+     * triggers seen in the local window, defined by
+     * <code>LOCAL_WINDOW_TRIGGERS</code>.
      */
     private int hardwareTriggerCount[] = new int[LOCAL_WINDOW_TRIGGERS + 1];
     /**
-     * Stores the total number of matched triggers observed for each
-     * source type. The first array index defines the source type and
-     * corresponds to the variables <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_VTP_CLUSTER</code>. The second
-     * array index
-     * defines one of several conditions. This includes triggers seen
-     * when a certain TI bit was active, with these indices defined by <code>TriggerType.ordinal()</code>, all triggers
-     * seen in general,
-     * defined by <code>ALL_TRIGGERS</code>, and all triggers seen in
-     * the local window, defined by <code>LOCAL_WINDOW_TRIGGERS</code>.
+     * Stores the total number of matched triggers observed for each source type.
+     * The first array index defines the source type and corresponds to the
+     * variables <code>SOURCE_SIM_CLUSTER</code> and
+     * <code>SOURCE_VTP_CLUSTER</code>. The second array index defines one of
+     * several conditions. This includes triggers seen when a certain TS bit was
+     * active, with these indices defined by <code>TriggerType.ordinal()</code>, all
+     * triggers seen in general, defined by <code>ALL_TRIGGERS</code>, and all
+     * triggers seen in the local window, defined by
+     * <code>LOCAL_WINDOW_TRIGGERS</code>.
      */
     private int matchedTriggerCount[][] = new int[2][LOCAL_WINDOW_TRIGGERS + 1];
 
-    // === Verbose settings. ============================================================
+    // === Verbose settings.
+    // ============================================================
     // ==================================================================================
     /** Indicates that debug messages should be output. */
     private boolean debug = false;
-    
+
     /** Indicates that all logger messages should be output. */
     private boolean verbose = false;
     /**
-     * Indicates that at least one software-cluster simulated trigger
-     * failed to verify. This is set during the <code>compareSimulatedToHardware</code> method.
+     * Indicates that at least one software-cluster simulated trigger failed to
+     * verify. This is set during the <code>compareSimulatedToHardware</code>
+     * method.
      */
     private boolean softwareSimFailure = false;
     /**
-     * Indicates that at least one hardware-cluster simulated trigger
-     * failed to verify. This is set during the <code>compareSimulatedToHardware</code> method.
+     * Indicates that at least one hardware-cluster simulated trigger failed to
+     * verify. This is set during the <code>compareSimulatedToHardware</code>
+     * method.
      */
     private boolean hardwareSimFailure = false;
     /**
-     * Indicates whether the event log should output in the event that
-     * a software-cluster simulated trigger fails to verify.
+     * Indicates whether the event log should output in the event that a
+     * software-cluster simulated trigger fails to verify.
      */
     private boolean printOnSoftwareSimFailure = false;
     /**
-     * Indicates whether the event log should output in the event that
-     * a hardware-cluster simulated trigger fails to verify.
+     * Indicates whether the event log should output in the event that a
+     * hardware-cluster simulated trigger fails to verify.
      */
     private boolean printOnHardwareSimFailure = false;
     /**
-     * The event logger. Is used to store detailed event readouts, and
-     * if appropriate, print them to the terminal.
+     * The event logger. Is used to store detailed event readouts, and if
+     * appropriate, print them to the terminal.
      */
     private LocalOutputLogger logger = new LocalOutputLogger();
 
-    // === Verification settings. =======================================================
-    // ==================================================================================    
+    // === Verification settings.
+    // =======================================================
+    // ==================================================================================
     // Store Ecal hit verifiability parameters.
     private int nsbEcal = -1;
     private int nsaEcal = -1;
-    private int windowWidthEcal = -1;    
+    private int windowWidthEcal = -1;
     private int offsetEcal = -1;
 
     // Store hodoscope hit verifiability parameters.
@@ -303,55 +308,55 @@ public class TriggerDiagnostic2019Driver extends Driver {
     private int nsbHodo = -1;
     private int windowWidthHodo = -1;
     private int offsetHodo = -1;
-    
+
     // Store VTP parameters.
     private int hodoFADCHitThr = 0;
     private int hodoThr = 0;
     private int hodoDT = 0;
-    
+
     /**
-     * The number of hits for Ecal that must be present in event in order for
-     * it to be ignored as a "noise event."
+     * The number of hits for Ecal that must be present in event in order for it to
+     * be ignored as a "noise event."
      */
     private int noiseEventThresholdEcal = 100;
-    
-    
+
     /**
-     * The number of hits for Hodo that must be present in event in order for
-     * it to be ignored as a "noise event."
+     * The number of hits for Hodo that must be present in event in order for it to
+     * be ignored as a "noise event."
      */
     private int noiseEventThresholdHodo = 50;
-    
-    
+
     /** Indicates the type of trigger that is being tested. */
     private TriggerType triggerType = null;
     /**
-     * Whether events with more than <code>noiseEventThreshold</code> hits for Ecal should be skipped.
+     * Whether events with more than <code>noiseEventThreshold</code> hits for Ecal
+     * should be skipped.
      */
-    private boolean skipNoiseEventsEcal = false;    
-    
+    private boolean skipNoiseEventsEcal = false;
+
     /**
-     * Whether events with more than <code>noiseEventThreshold</code> hits for hodoscope should be skipped.
+     * Whether events with more than <code>noiseEventThreshold</code> hits for
+     * hodoscope should be skipped.
      */
     private boolean skipNoiseEventsHodo = false;
-    
-    
+
     /** Defines the (inclusive) end of the trigger window range. */
     private int triggerWindowEnd = 400;
     /** Defines the (inclusive) start of the trigger window range. */
     private int triggerWindowStart = 0;
 
-    // === Local window values. =========================================================
+    // === Local window values.
+    // =========================================================
     // ==================================================================================
     /**
-     * Defines the length of time over which statistics are collected
-     * in order to produce an entry into the efficiency over time plot.
-     * Units are in nanoseconds.
+     * Defines the length of time over which statistics are collected in order to
+     * produce an entry into the efficiency over time plot. Units are in
+     * nanoseconds.
      */
     private long localWindowSize = 5000000;
     /**
-     * Tracks the current time of the current event for the purpose of
-     * identifying the end of a local sample.
+     * Tracks the current time of the current event for the purpose of identifying
+     * the end of a local sample.
      */
     private long localEndTime = Long.MIN_VALUE;
     /** Tracks the start time of the current local sample. */
@@ -361,56 +366,52 @@ public class TriggerDiagnostic2019Driver extends Driver {
     private static final int LOCAL_ALL_TRIGGERS = 0;
     private static final int LOCAL_MATCHED_TRIGGERS = 1;
     /**
-     * Stores entries for the efficiency over time plot. The first entry
-     * in the pair represents the time of the local sample. This is
-     * defined with respect to the start of the first observed event.
-     * The second entry contains the observed and matched triggers for
-     * both trigger source types. The first array index defines the
-     * source type and corresponds to the index variables defined in <code>SOURCE_SIM_CLUSTER</code> and
-     * <code>SOURCE_VTP_CLUSTER</code>.
-     * The second array index defines to observed and matched triggers,
-     * and corresponds to the indices defined by the variables <code>LOCAL_ALL_TRIGGERS</code> and
+     * Stores entries for the efficiency over time plot. The first entry in the pair
+     * represents the time of the local sample. This is defined with respect to the
+     * start of the first observed event. The second entry contains the observed and
+     * matched triggers for both trigger source types. The first array index defines
+     * the source type and corresponds to the index variables defined in
+     * <code>SOURCE_SIM_CLUSTER</code> and <code>SOURCE_VTP_CLUSTER</code>. The
+     * second array index defines to observed and matched triggers, and corresponds
+     * to the indices defined by the variables <code>LOCAL_ALL_TRIGGERS</code> and
      * <code>LOCAL_MATCHED_TRIGGERS</code>.
      */
     private List<Pair<Long, int[][]>> efficiencyPlotEntries = new ArrayList<Pair<Long, int[][]>>();
 
     /**
-     * Enumerable <code>CutType</code> represents a type of cut which
-     * against which trigger efficiency may be plotted. It also provides
-     * mechanisms by which a human-readable name may be acquired and
-     * also whether or not the cut is a real trigger cut, or a special
-     * cut used for plotting efficiency only.
+     * Enumerable <code>CutType</code> represents a type of cut which against which
+     * trigger efficiency may be plotted. It also provides mechanisms by which a
+     * human-readable name may be acquired and also whether or not the cut is a real
+     * trigger cut, or a special cut used for plotting efficiency only.
      * 
      */
     private enum CutType {
         // Singles trigger
         CLUSTER_TOTAL_ENERGY("Cluster Total Energy", true, false), CLUSTER_HIT_COUNT("Cluster Hit Count", true, false),
-        CLUSTER_XINDEX("Cluster X Index", true, false),
-        CLUSTER_PDE("Cluster PDE", true, false),
-        
+        CLUSTER_XINDEX("Cluster X Index", true, false), CLUSTER_PDE("Cluster PDE", true, false),
+
         // Pairs trigger
         PAIR_ENERGY_SUM("Pair Energy Sum", false, true), PAIR_ENERGY_DIFF("Pair Energy Difference", false, true),
         PAIR_ENERGY_SLOPE("Pair Energy Slope", false, true), PAIR_COPLANARITY("Pair Coplanarity", false, true),
         PAIR_TIME_COINCIDENCE("Pair Time Coincidence", false, true),
         PAIR_LOW_ENERGY("Pair Lower Cluster Energy", false, true),
         PAIR_HIGH_ENERGY("Pair Upper Cluster Energy", false, true),
-      
+
         // trigger time
         EVENT_TIME("Event Time", true, true);
-        
+
         private final String name;
         private final boolean isPair;
         private final boolean isSingles;
 
         /**
-         * Instantiates a cut. The cut is assumed to be a real trigger
-         * cut.
+         * Instantiates a cut. The cut is assumed to be a real trigger cut.
          * 
-         * @param name - The name of the cut in a human-readable form.
-         * @param isSingles - Whether or not this is a singles cut. <code>true</code> means that it is and
-         * <code>false</code> that it is not.
-         * @param isPair - Whether or not this is a pair cut. <code>true</code> means that it is and <code>false</code>
-         * that it is not.
+         * @param name      - The name of the cut in a human-readable form.
+         * @param isSingles - Whether or not this is a singles cut. <code>true</code>
+         *                  means that it is and <code>false</code> that it is not.
+         * @param isPair    - Whether or not this is a pair cut. <code>true</code> means
+         *                  that it is and <code>false</code> that it is not.
          */
         private CutType(String name, boolean isSingles, boolean isPair) {
             this.name = name;
@@ -418,12 +419,11 @@ public class TriggerDiagnostic2019Driver extends Driver {
             this.isSingles = isSingles;
         }
 
-
         /**
          * Indicates whether this is a singles cut.
          * 
-         * @return Returns <code>true</code> to indicate that it is
-         * and <code>false</code> that it is not.
+         * @return Returns <code>true</code> to indicate that it is and
+         *         <code>false</code> that it is not.
          */
         public boolean isSingles() {
             return isSingles;
@@ -432,8 +432,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
         /**
          * Indicates whether this is a pair cut.
          * 
-         * @return Returns <code>true</code> to indicate that it is
-         * and <code>false</code> that it is not.
+         * @return Returns <code>true</code> to indicate that it is and
+         *         <code>false</code> that it is not.
          */
         public boolean isPair() {
             return isPair;
@@ -446,22 +446,22 @@ public class TriggerDiagnostic2019Driver extends Driver {
     }
 
     /**
-     * Enumerable <code>TriggerType</code> represents the supported
-     * types of trigger for the HPS experiment. It also provides a means
-     * to determine the trigger number as an <code>int</code>, where
-     * applicable, and a human-readable trigger name. <br/>
+     * Enumerable <code>TriggerType</code> represents the supported types of trigger
+     * for the HPS experiment. It also provides a means to determine the trigger
+     * number as an <code>int</code>, where applicable, and a human-readable trigger
+     * name. <br/>
      * <br/>
-     * <code>TriggerType.ordinal()</code> is also used as an index for
-     * multiple value-tracking arrays throughout the class.
+     * <code>TriggerType.ordinal()</code> is also used as an index for multiple
+     * value-tracking arrays throughout the class.
      * 
      */
     private enum TriggerType {
         // Define the trigger types.
-        SINGLESTOP0("Singles top 0", 0), SINGLESTOP1("Singles top 1", 1), SINGLESTOP2("Singles top 2", 2), SINGLESTOP3("Singles top 3", 3),
-        SINGLESBOT0("Singles bot 0", 0), SINGLESBOT1("Singles bot 1", 1), SINGLESBOT2("Singles bot 2", 2), SINGLESBOT3("Singles bot 3", 3),
-        PAIR0("Pair 0", 0), PAIR1("Pair 1", 1), PAIR2("Pair 2", 2), PAIR3("Pair 3", 3), 
-        LED("LED"), COSMIC("Cosmic"), HODOSCOPE("Hodoscope"), PULSER("Pulser"), MULTIPLICITY0("Multiplicity0"), MULTIPLICITY1("Multiplicity1"),
-        FEETOP("FEETop"), FEEBOT("FEEBot");
+        SINGLESTOP0("Singles top 0", 0), SINGLESTOP1("Singles top 1", 1), SINGLESTOP2("Singles top 2", 2),
+        SINGLESTOP3("Singles top 3", 3), SINGLESBOT0("Singles bot 0", 0), SINGLESBOT1("Singles bot 1", 1),
+        SINGLESBOT2("Singles bot 2", 2), SINGLESBOT3("Singles bot 3", 3), PAIR0("Pair 0", 0), PAIR1("Pair 1", 1),
+        PAIR2("Pair 2", 2), PAIR3("Pair 3", 3), LED("LED"), COSMIC("Cosmic"), HODOSCOPE("Hodoscope"), PULSER("Pulser"),
+        MULTIPLICITY0("Multiplicity0"), MULTIPLICITY1("Multiplicity1"), FEETOP("FEETop"), FEEBOT("FEEBot");
 
         // Store trigger type data.
         private String name = null;
@@ -479,14 +479,14 @@ public class TriggerDiagnostic2019Driver extends Driver {
         /**
          * Instantiates a trigger type enumerable.
          * 
-         * @param name - The name of the trigger.
+         * @param name       - The name of the trigger.
          * @param triggerNum - The trigger number.
          */
         private TriggerType(String name, int triggerNum) {
             this.name = name;
             this.triggerNum = triggerNum;
         }
-        
+
         public int getTriggerNum() {
             return triggerNum;
         }
@@ -494,67 +494,116 @@ public class TriggerDiagnostic2019Driver extends Driver {
         /**
          * Indicates whether this trigger type is a singles trigger.
          * 
-         * @return Returns <code>true</code> if the trigger is of type <code>TriggerType.SINGLESTOP0</code> or
-         * <code>TriggerType.SINGLESTOP1</code> or <code>TriggerType.SINGLESTOP2</code> or <code>TriggerType.SINGLESTOP3</code>
-         * or <code>TriggerType.SINGLESBOT0</code> or <code>TriggerType.SINGLESTOP1</code> or <code>TriggerType.SINGLESTOP1</code> or <code>TriggerType.SINGLESTOP1</code>. 
-         * Otherwise, returns <code>false</code>.
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.SINGLESTOP0</code> or
+         *         <code>TriggerType.SINGLESTOP1</code> or
+         *         <code>TriggerType.SINGLESTOP2</code> or
+         *         <code>TriggerType.SINGLESTOP3</code> or
+         *         <code>TriggerType.SINGLESBOT0</code> or
+         *         <code>TriggerType.SINGLESBOT1</code> or
+         *         <code>TriggerType.SINGLESBOT2</code> or
+         *         <code>TriggerType.SINGLESBOT3</code>. Otherwise, returns
+         *         <code>false</code>.
          */
         public boolean isSinglesTrigger() {
-            return (this.equals(SINGLESTOP0) || this.equals(SINGLESTOP1) || this.equals(SINGLESTOP2) || this.equals(SINGLESTOP3) 
-                    || this.equals(SINGLESBOT0) || this.equals(SINGLESBOT1) || this.equals(SINGLESBOT2) || this.equals(SINGLESBOT3));
+            return (this.equals(SINGLESTOP0) || this.equals(SINGLESTOP1) || this.equals(SINGLESTOP2)
+                    || this.equals(SINGLESTOP3) || this.equals(SINGLESBOT0) || this.equals(SINGLESBOT1)
+                    || this.equals(SINGLESBOT2) || this.equals(SINGLESBOT3));
         }
 
         /**
          * Indicates whether this trigger type is a pair trigger.
          * 
-         * @return Returns <code>true</code> if the trigger is of type <code>TriggerType.PAIR0</code> or
-         * <code>TriggerType.PAIR1</code>. Otherwise, returns <code>false</code>.
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.PAIR0</code> or <code>TriggerType.PAIR1</code> or
+         *         <code>TriggerType.PAIR2</code> or <code>TriggerType.PAIR3</code>.
+         *         Otherwise, returns <code>false</code>.
          */
         public boolean isPairTrigger() {
             return (this.equals(PAIR0) || this.equals(PAIR1) || this.equals(PAIR2) || this.equals(PAIR3));
         }
-        
+
         /**
          * Indicates whether this trigger type is a LED trigger.
          * 
-         * @return Returns <code>true</code> if the trigger is of type <code>TriggerType.PAIR0</code> or
-         * <code>TriggerType.PAIR1</code>. Otherwise, returns <code>false</code>.
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.LED</code>. Otherwise, returns <code>false</code>.
          */
         public boolean isLEDTrigger() {
             return (this.equals(LED));
         }
-        
+
+        /**
+         * Indicates whether this trigger type is a Cosmic trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.COSMIC</code>. Otherwise, returns
+         *         <code>false</code>.
+         */
         public boolean isCosmicTrigger() {
             return (this.equals(COSMIC));
         }
 
+        /**
+         * Indicates whether this trigger type is a Hodoscope trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.HODOSCOPE</code>. Otherwise, returns
+         *         <code>false</code>.
+         */
         public boolean isHodoscopeTrigger() {
             return (this.equals(HODOSCOPE));
         }
-        
+
+        /**
+         * Indicates whether this trigger type is a pulse trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.PULSE</code>. Otherwise, returns
+         *         <code>false</code>.
+         */
         public boolean isPulseTrigger() {
             return (this.equals(PULSER));
         }
-        
+
+        /**
+         * Indicates whether this trigger type is a multiplicity trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.MULTIPLICITY0</code> or
+         *         <code>TriggerType.MULTIPLICITY1</code>. Otherwise, returns
+         *         <code>false</code>.
+         */
         public boolean isMultiplicityTrigger() {
             return (this.equals(MULTIPLICITY0) || this.equals(MULTIPLICITY1));
         }
-        
+
+        /**
+         * Indicates whether this trigger type is a FEE trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.FEETOP</code> or <code>TriggerType.FEEBOT</code>.
+         *         Otherwise, returns <code>false</code>.
+         */
         public boolean isFEErigger() {
             return (this.equals(FEETOP) || this.equals(FEEBOT));
         }
-        
-        
+
+        /**
+         * Get name of a trigger type
+         * 
+         * @return
+         */
         public String getTriggerName() {
             return name;
         }
-        
+
         /**
          * Gets the trigger number for this trigger type.
          * 
-         * @return Returns either <code>0</code> or <code>1</code> as
-         * appropriate for singles and pair trigger types. For cosmic
-         * and pulser trigger types, returns <code>-1</code>.
+         * @return Returns either <code>0</code> or <code>1</code> as appropriate for
+         *         singles and pair trigger types. For cosmic and pulser trigger types,
+         *         returns <code>-1</code>.
          */
         public int getTriggerNumber() {
             return triggerNum;
@@ -628,8 +677,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 || matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] == 0) {
             System.out.printf(" (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
         } else {
-            System.out.printf(
-                    " (%7.3f%% ± %7.3f%%)%n",
+            System.out.printf(" (%7.3f%% ± %7.3f%%)%n",
                     100.0 * matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]
                             / simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
                     getRatioError(matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
@@ -645,8 +693,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 || matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS] == 0) {
             System.out.printf(" (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
         } else {
-            System.out.printf(
-                    " (%7.3f%% ± %7.3f%%)%n",
+            System.out.printf(" (%7.3f%% ± %7.3f%%)%n",
                     100.0 * matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]
                             / simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS],
                     getRatioError(matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS],
@@ -655,7 +702,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                             Math.sqrt(simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS])));
         }
 
-        // Get the largest number of spaces needed to display the TI
+        // Get the largest number of spaces needed to display the TS
         // bit specific values.
         if (isActiveBitRead) {
             int tsMaxValue = Integer.MIN_VALUE;
@@ -666,21 +713,21 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         matchedTriggerCount[SOURCE_VTP_CLUSTER][trigger.ordinal()]);
             }
             int tsMaxChars = TriggerDiagnosticUtil.getDigits(tsMaxValue);
-    
-            // Define the column width and column headers for the TI-bit
+
+            // Define the column width and column headers for the TS-bit
             // specific efficiencies.
             int[] columnWidth = new int[3];
-            String[] header = {"TS Bit", "Software Sim Efficiency", "Hardware Sim Efficiency"};
-    
+            String[] header = { "TS Bit", "Software Sim Efficiency", "Hardware Sim Efficiency" };
+
             // Determine the width of the first column. This displays the
-            // name of the TI bit with respect to which the efficiency is
+            // name of the TS bit with respect to which the efficiency is
             // displayed. It should be equal to either the longest trigger
             // name or the header width, whichever is longer.
             columnWidth[0] = header[0].length();
             for (TriggerType trigger : TriggerType.values()) {
                 columnWidth[0] = max(columnWidth[0], trigger.toString().length());
             }
-    
+
             // The second and third columns display the total number of
             // matched triggers versus the total number of expected triggers
             // as well as the percentage of two. This takes the form of the
@@ -691,14 +738,15 @@ public class TriggerDiagnostic2019Driver extends Driver {
             // whichever is larger.
             columnWidth[1] = max(header[1].length(), tsMaxChars + tsMaxChars + 22);
             columnWidth[2] = max(header[2].length(), tsMaxChars + tsMaxChars + 22);
-    
+
             // Finally, define the column size strings and the individual
             // value size strings.
             String valueString = "%" + tsMaxChars + "d";
             String efficiencyString = valueString + " / " + valueString + "  (%19s)";
-            String[] columnString = {"%-" + columnWidth[0] + "s", "%-" + columnWidth[1] + "s", "%-" + columnWidth[2] + "s"};
-    
-            // Output the efficiency as a function of active TI bit.
+            String[] columnString = { "%-" + columnWidth[0] + "s", "%-" + columnWidth[1] + "s",
+                    "%-" + columnWidth[2] + "s" };
+
+            // Output the efficiency as a function of active TS bit.
             System.out.println("\n\nTS-Bit Efficiency:");
             System.out.printf("\t" + columnString[0] + "   " + columnString[1] + "   " + columnString[2] + "%n",
                     header[0], header[1], header[2]);
@@ -757,20 +805,21 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
             // If the value is properly defined, add it to the plot.
             if (!Double.isNaN(softwareEfficiency)) {
-                AIDA.defaultInstance().cloud2D(moduleHeader + "Software Sim Trigger Efficiency")
-                        .fill(time, softwareEfficiency);
+                AIDA.defaultInstance().cloud2D(moduleHeader + "Software Sim Trigger Efficiency").fill(time,
+                        softwareEfficiency);
             }
             if (!Double.isNaN(hardwareEfficiency)) {
-                AIDA.defaultInstance().cloud2D(moduleHeader + "Hardware Sim Trigger Efficiency")
-                        .fill(time, hardwareEfficiency);
+                AIDA.defaultInstance().cloud2D(moduleHeader + "Hardware Sim Trigger Efficiency").fill(time,
+                        hardwareEfficiency);
             }
         }
 
         // Create the efficiency plots from the observed and verified
         // trigger plots, as appropriate.
         for (TriggerType trigger : triggerTypes) {
-            if(!isActiveBitRead && !(trigger == null)) continue;
-            
+            if (!isActiveBitRead && !(trigger == null))
+                continue;
+
             for (CutType cut : cutTypes) {
                 // Only process plots appropriate to the trigger type.
                 if ((triggerType.isSinglesTrigger() && !cut.isSingles())
@@ -780,24 +829,21 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
                 // Define the plot for the current TI-bit and cut.
                 for (int type = SOURCE_SIM_CLUSTER; type <= SOURCE_VTP_CLUSTER; type++) {
-                    AIDA.defaultInstance()
-                            .histogramFactory()
-                            .divide(getPlotNameEfficiency(cut, trigger, type),
-                                    AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type)),
-                                    AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type)));
+                    AIDA.defaultInstance().histogramFactory().divide(getPlotNameEfficiency(cut, trigger, type),
+                            AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type)),
+                            AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type)));
                 }
             }
         }
     }
 
     /**
-     * Processes an event and performs trigger verification. Method
-     * will only run if the <code>ConfigurationManager</code> has been
-     * initialized. Handles testing for noise events and extracting
-     * basic event data for analysis, and also ensuring that everything
-     * necessary is present. Event trigger data is actually processed
-     * separately by the method <code>triggerVerification</code>. Method
-     * also handles logger output.
+     * Processes an event and performs trigger verification. Method will only run if
+     * the <code>ConfigurationManager2019</code> has been initialized. Handles
+     * testing for noise events and extracting basic event data for analysis, and
+     * also ensuring that everything necessary is present. Event trigger data is
+     * actually processed separately by the method <code>triggerVerification</code>.
+     * Method also handles logger output.
      * 
      * @param event - The data object containing all event data.
      */
@@ -855,7 +901,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
             // event.
             if (skipNoiseEventsEcal) {
                 if (hits.size() >= noiseEventThresholdEcal) {
-                    logger.println("TriggerDiagnostics: Event exceeds the noise threshold for total number of hits and will be skipped.");
+                    logger.println(
+                            "TriggerDiagnostics: Event exceeds the noise threshold for total number of hits and will be skipped.");
                     if (verbose) {
                         logger.printLog();
                     }
@@ -863,7 +910,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 }
             }
         }
-        
+
         // Calorimeter hits are only relevant if noise events are to
         // be skipped. Otherwise, the calorimeter hits needn't be defined.
         if (triggerType.isSinglesTrigger() && skipNoiseEventsHodo) {
@@ -884,7 +931,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
             // event.
             if (skipNoiseEventsHodo) {
                 if (hits.size() >= noiseEventThresholdHodo) {
-                    logger.println("TriggerDiagnostics: Event exceeds the noise threshold for total number of hits and will be skipped.");
+                    logger.println(
+                            "TriggerDiagnostics: Event exceeds the noise threshold for total number of hits and will be skipped.");
                     if (verbose) {
                         logger.printLog();
                     }
@@ -896,8 +944,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
         // ==========================================================
         // ==== Obtain VTP and TS Banks =============================
         // ==========================================================
-        
-        if(isActiveBitRead) {
+        // Get the TS bank. The TS bank stores TS bits, which
+        // are used for trigger-type efficiency values.
+        if (isActiveBitRead) {
             List<GenericObject> bankTSList = event.get(GenericObject.class, bankTSCollectionName);
 
             // Check that all of the required objects are present.
@@ -909,7 +958,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 return;
             }
 
-            // Extract the active TI bits and make sure that at least one
+            // Extract the active TS bits and make sure that at least one
             // is set
             boolean activeBitRead = false;
             for (GenericObject data : bankTSList) {
@@ -925,7 +974,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 }
                 return;
             }
-        }        
+        }
 
         // If there is no bank data, this event can not be analyzed.
         if (!event.hasCollection(GenericObject.class, bankVTPCollectionName)) {
@@ -936,8 +985,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             return;
         }
 
-        // Get the SSP and TI banks. The TI bank stores TI bits, which
-        // are used for trigger-type efficiency values. The SSP bank
+        // Get the VTP bank. The VTP bank
         // contains hardware triggers and hardware clusters.
         List<GenericObject> bankVTPList = event.get(GenericObject.class, bankVTPCollectionName);
 
@@ -949,16 +997,16 @@ public class TriggerDiagnostic2019Driver extends Driver {
             }
             return;
         }
-        
+
         VTPData vtpData = new VTPData(bankVTPList.get(0), bankVTPList.get(1));
-        
+
         if (!event.hasCollection(GenericObject.class, bankTSCollectionName)) {
             System.err.println("TriggerDiagnostics :: Skipping event; no TS bank data found.");
             if (verbose) {
                 logger.printLog();
             }
             return;
-        }        
+        }
 
         // ==========================================================
         // ==== Obtain Simulated Triggers ===========================
@@ -1022,12 +1070,12 @@ public class TriggerDiagnostic2019Driver extends Driver {
         softwareSimFailure = false;
         hardwareSimFailure = false;
     }
-    
+
     @Override
-    public void detectorChanged(Detector detector) {     
-        
+    public void detectorChanged(Detector detector) {
+
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
-        
+
         // Populate the channel ID collections.
         populateChannelCollections();
     }
@@ -1039,26 +1087,28 @@ public class TriggerDiagnostic2019Driver extends Driver {
         // Load the conditions database and get the hodoscope channel
         // collection data.
         final DatabaseConditionsManager conditions = DatabaseConditionsManager.getInstance();
-        final HodoscopeChannelCollection channels = conditions.getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();       
-        
+        final HodoscopeChannelCollection channels = conditions
+                .getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();
+
         // Store the set of all channel IDs.
-        for(HodoscopeChannel channel : channels) {
+        for (HodoscopeChannel channel : channels) {
             channelMap.put(Long.valueOf(channel.getChannelId().intValue()), channel);
         }
     }
-    
+
     /**
      * Get hodoscope channel id
+     * 
      * @param hit
      * @return
      */
     public Long getHodoChannelID(CalorimeterHit hit) {
         return Long.valueOf(hodoConditions.getChannels().findGeometric(hit.getCellID()).getChannelId().intValue());
-    } 
+    }
 
     /**
-     * Connects the driver to the <code>ConfigurationManager</code> to
-     * obtain trigger settings.
+     * Connects the driver to the <code>ConfigurationManager</code> to obtain
+     * trigger settings.
      */
     @Override
     public void startOfData() {
@@ -1079,14 +1129,15 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
                     // Instantiate the plots for each trigger bit.
                     for (TriggerType trigger : triggerTypes) {
-                        if(!isActiveBitRead && !(trigger == null)) continue;
+                        if (!isActiveBitRead && !(trigger == null))
+                            continue;
                         for (int type = SOURCE_SIM_CLUSTER; type <= SOURCE_VTP_CLUSTER; type++) {
                             AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.EVENT_TIME, trigger, type),
                                     bins, -2, xMax);
                             AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.EVENT_TIME, trigger, type),
                                     bins, -2, xMax);
-                            AIDA.defaultInstance().histogram1D(
-                                    getPlotNameEfficiency(CutType.EVENT_TIME, trigger, type), bins, -2, xMax);
+                            AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(CutType.EVENT_TIME, trigger, type),
+                                    bins, -2, xMax);
                         }
                     }
                 }
@@ -1100,24 +1151,24 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 pairTrigger[1].loadDAQConfiguration(daq.getVTPConfig().getPair1Config());
                 pairTrigger[2].loadDAQConfiguration(daq.getVTPConfig().getPair2Config());
                 pairTrigger[3].loadDAQConfiguration(daq.getVTPConfig().getPair3Config());
-                
+
                 nsaEcal = daq.getEcalFADCConfig().getNSA();
                 nsbEcal = daq.getEcalFADCConfig().getNSB();
                 windowWidthEcal = daq.getEcalFADCConfig().getWindowWidth();
                 offsetEcal = daq.getEcalFADCConfig().getWindowOffset();
-                
+
                 nsaHodo = daq.getHodoFADCConfig().getNSA();
                 nsbHodo = daq.getHodoFADCConfig().getNSB();
                 windowWidthHodo = daq.getHodoFADCConfig().getWindowWidth();
                 offsetHodo = daq.getHodoFADCConfig().getWindowOffset();
-                
+
                 // Get VTP parameters.
                 hodoFADCHitThr = daq.getVTPConfig().getHodoFADCHitThr();
                 hodoThr = daq.getVTPConfig().getHodoThr();
                 hodoDT = daq.getVTPConfig().getHodoDT() + 4;
             }
         });
-        
+
         for (int i = 0; i < 4; i++) {
             singlesTrigger[i] = new TriggerModule2019();
             pairTrigger[i] = new TriggerModule2019();
@@ -1134,34 +1185,35 @@ public class TriggerDiagnostic2019Driver extends Driver {
         }
         triggerTypes.add(null);
         for (TriggerType trigger : triggerTypes) {
-            if(!isActiveBitRead && !(trigger == null)) continue;
-            
+            if (!isActiveBitRead && !(trigger == null))
+                continue;
+
             if (triggerType.isSinglesTrigger()) {
                 cutTypes.add(CutType.CLUSTER_TOTAL_ENERGY);
                 cutTypes.add(CutType.CLUSTER_HIT_COUNT);
                 cutTypes.add(CutType.CLUSTER_XINDEX);
                 cutTypes.add(CutType.CLUSTER_PDE);
-                
-                for (CutType cut : cutTypes) {                    
+
+                for (CutType cut : cutTypes) {
                     // Define the bin counts for each plot.
                     bins[cut.ordinal()] = (int) ((xMax[cut.ordinal()] - xMin[cut.ordinal()]) / binSize[cut.ordinal()]);
-    
+
                     // Only generate plots appropriate to the trigger type.
                     if ((triggerType.isSinglesTrigger() && !cut.isSingles())
                             || (triggerType.isPairTrigger() && !cut.isPair())) {
                         continue;
                     }
-    
+
                     // Define the plot for the current TS-bit and cut.
                     for (int type = SOURCE_SIM_CLUSTER; type <= SOURCE_VTP_CLUSTER; type++) {
-                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type), bins[cut.ordinal()], xMin[cut.ordinal()],
-                                xMax[cut.ordinal()]);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type), bins[cut.ordinal()],
+                                xMin[cut.ordinal()], xMax[cut.ordinal()]);
                         AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type), bins[cut.ordinal()],
                                 xMin[cut.ordinal()], xMax[cut.ordinal()]);
-                        AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(cut, trigger, type), bins[cut.ordinal()],
-                                xMin[cut.ordinal()], xMax[cut.ordinal()]);
+                        AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(cut, trigger, type),
+                                bins[cut.ordinal()], xMin[cut.ordinal()], xMax[cut.ordinal()]);
                     }
-                } 
+                }
             }
 
             // Define the pair cluster high and low energy plots. These
@@ -1174,26 +1226,26 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 cutTypes.add(CutType.PAIR_COPLANARITY);
                 cutTypes.add(CutType.PAIR_TIME_COINCIDENCE);
                 cutTypes.add(CutType.PAIR_LOW_ENERGY);
-                cutTypes.add(CutType.PAIR_HIGH_ENERGY);                
-                
-                for (CutType cut : cutTypes) {                
+                cutTypes.add(CutType.PAIR_HIGH_ENERGY);
+
+                for (CutType cut : cutTypes) {
                     // Define the bin counts for each plot.
                     bins[cut.ordinal()] = (int) ((xMax[cut.ordinal()] - xMin[cut.ordinal()]) / binSize[cut.ordinal()]);
-    
+
                     // Only generate plots appropriate to the trigger type.
                     if ((triggerType.isSinglesTrigger() && !cut.isSingles())
                             || (triggerType.isPairTrigger() && !cut.isPair())) {
                         continue;
                     }
-    
+
                     // Define the plot for the current TS-bit and cut.
                     for (int type = SOURCE_SIM_CLUSTER; type <= SOURCE_VTP_CLUSTER; type++) {
-                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type), bins[cut.ordinal()], xMin[cut.ordinal()],
-                                xMax[cut.ordinal()]);
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(cut, trigger, type), bins[cut.ordinal()],
+                                xMin[cut.ordinal()], xMax[cut.ordinal()]);
                         AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type), bins[cut.ordinal()],
                                 xMin[cut.ordinal()], xMax[cut.ordinal()]);
-                        AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(cut, trigger, type), bins[cut.ordinal()],
-                                xMin[cut.ordinal()], xMax[cut.ordinal()]);
+                        AIDA.defaultInstance().histogram1D(getPlotNameEfficiency(cut, trigger, type),
+                                bins[cut.ordinal()], xMin[cut.ordinal()], xMax[cut.ordinal()]);
                     }
                 }
             }
@@ -1201,24 +1253,26 @@ public class TriggerDiagnostic2019Driver extends Driver {
     }
 
     /**
-     * Compares a collection of simulated triggers to a collection of
-     * triggers reported by the hardware. The simulated triggers may
-     * be simulated from either SSP clusters or clusters built by the
-     * software.
+     * Compares a collection of simulated triggers to a collection of triggers
+     * reported by the hardware. The simulated triggers may be simulated from either
+     * VTP clusters or clusters built by the software.
      * 
-     * @param simTriggers - A collection containing <code>Trigger</code> objects. The source objects for the
-     * <code>Trigger</code> objects
-     * may be either <code>Cluster</code> or <code>SSPCluster</code>, as
-     * well as a size two array of either of the above.
-     * @param hardwareTriggers - A collection of SSP hardware triggers.
-     * These must be of type <code>SSPNumberedTrigger</code>.
-     * @param clusterType - Specifies which of the four valid object
-     * types is used as the source of the <code>Trigger</code> objects
-     * defined in the <code>simTriggers</code> argument.
-     * @return Returns the number of simulated triggers which were
-     * successfully matched to hardware triggers.
+     * @param simTriggers      - A collection containing <code>Trigger</code>
+     *                         objects. The source objects for the
+     *                         <code>Trigger</code> objects may be either
+     *                         <code>Cluster</code> or <code>VTPCluster</code>, as
+     *                         well as a size two array of either of the above.
+     * @param hardwareTriggers - A collection of VTP hardware triggers. The source
+     *                         objects of type is <code>VTPSinglesTrigger</code>.
+     * @param clusterType      - Specifies which of the four valid object types is
+     *                         used as the source of the <code>Trigger</code>
+     *                         objects defined in the <code>simTriggers</code>
+     *                         argument.
+     * @return Returns the number of simulated triggers which were successfully
+     *         matched to hardware triggers.
      */
-    private int compareSimulatedToHardwareSingles(Collection<Trigger<?>> simTriggers, Collection<VTPSinglesTrigger> hardwareTriggers, Class<?> clusterType) {
+    private int compareSimulatedToHardwareSingles(Collection<Trigger<?>> simTriggers,
+            Collection<VTPSinglesTrigger> hardwareTriggers, Class<?> clusterType) {
         // Print out the appropriate sub-header.
         logger.printNewLine(2);
         if (clusterType == Cluster.class) {
@@ -1297,38 +1351,37 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         logger.printf(" [ fail; hit count   ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwareSinglesTrigger.passXMin() != simSinglesTrigger.getStateClusterXMin()) {
                         logger.printf(" [ fail; x min       ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwareSinglesTrigger.passPDET() != simSinglesTrigger.getStateClusterPDE()) {
                         logger.printf(" [ fail; PDE         ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwareSinglesTrigger.passHodo1() != simSinglesTrigger.getStateHodoL1Matching()) {
                         logger.printf(" [ fail; Hodo L1     ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwareSinglesTrigger.passHodo2() != simSinglesTrigger.getStateHodoL2Matching()) {
                         logger.printf(" [ fail; Hodo L2     ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwareSinglesTrigger.passHodoGeo() != simSinglesTrigger.getStateHodoL1L2Matching()) {
                         logger.printf(" [ fail; Hodo L1L2   ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwareSinglesTrigger.passHodoECal() != simSinglesTrigger.getStateHodoEcalMatching()) {
                         logger.printf(" [ fail; Hodo Ecal   ]%n");
                         continue hardwareLoop;
                     }
-                    
-                    
+
                 } else {
                     throw new IllegalArgumentException("Trigger type is unrecongnized or simulated and "
                             + "hardware triggers are of different types.");
@@ -1344,7 +1397,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
                 // Update the verified count for each type of trigger
                 // for the local and global windows.
-                if (getTriggerTime(simTrigger) >= triggerWindowStart && getTriggerTime(simTrigger) <= triggerWindowEnd) {
+                if (getTriggerTime(simTrigger) >= triggerWindowStart
+                        && getTriggerTime(simTrigger) <= triggerWindowEnd) {
                     if (clusterType == Cluster.class || clusterType == Cluster[].class) {
                         matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]++;
                         matchedTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
@@ -1353,8 +1407,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         matchedTriggerCount[SOURCE_VTP_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
                     }
 
-                    // Update the verified count for each active TI bit.
-                    if(isActiveBitRead) {
+                    // Update the verified count for each active TS bit.
+                    if (isActiveBitRead) {
                         for (TriggerType trigger : TriggerType.values()) {
                             if (tsFlags[trigger.ordinal()]) {
                                 if (clusterType == Cluster.class || clusterType == Cluster[].class) {
@@ -1376,7 +1430,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             // have been checked and failed to match. This trigger then
             // fails to verify.
             logger.println("\t\tVerification failed!");
-            
+
             if (debug) {
                 if (clusterType == Cluster.class) {
                     System.out.println("==== Simulated Sim Trigger to Hardware Trigger Verification Fail ==========");
@@ -1389,10 +1443,14 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 System.out.println("\ttime" + getTriggerTime(simTrigger));
                 System.out.println(
                         "\tstate of Emin, state of Emax, state of hit count, state of xmin, state of PED, state of Hodo L1, state of Hodo L2, state of Hodo L1L2, state of Hodo Ecal: "
-                                + simSinglesTrigger.getStateClusterEnergyLow() + ", " + simSinglesTrigger.getStateClusterEnergyHigh() + ", "
-                                + simSinglesTrigger.getStateHitCount() + ", " + simSinglesTrigger.getStateClusterXMin() + ", " + simSinglesTrigger.getStateClusterPDE() + ", "
-                                + simSinglesTrigger.getStateHodoL1Matching() + ", " + simSinglesTrigger.getStateHodoL2Matching() + ", "
-                                + simSinglesTrigger.getStateHodoL1L2Matching() + ", " + simSinglesTrigger.getStateHodoEcalMatching());
+                                + simSinglesTrigger.getStateClusterEnergyLow() + ", "
+                                + simSinglesTrigger.getStateClusterEnergyHigh() + ", "
+                                + simSinglesTrigger.getStateHitCount() + ", " + simSinglesTrigger.getStateClusterXMin()
+                                + ", " + simSinglesTrigger.getStateClusterPDE() + ", "
+                                + simSinglesTrigger.getStateHodoL1Matching() + ", "
+                                + simSinglesTrigger.getStateHodoL2Matching() + ", "
+                                + simSinglesTrigger.getStateHodoL1L2Matching() + ", "
+                                + simSinglesTrigger.getStateHodoEcalMatching());
 
                 System.out.println("hardware triggers: ");
                 for (VTPSinglesTrigger hardwareTrigger : hardwareTriggers) {
@@ -1400,21 +1458,43 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     System.out.println("\ttime" + hardwareSinglesTrigger.getTime());
                     System.out.println(
                             "\tstate of Emin, state of Emax, state of hit count, state of xmin, state of PED, state of Hodo L1, state of Hodo L2, state of Hodo L1L2, state of Hodo Ecal: "
-                                    + hardwareSinglesTrigger.passEMin() + ", " + hardwareSinglesTrigger.passEMax() + ", "
-                                    + hardwareSinglesTrigger.passNMin() + ", " + hardwareSinglesTrigger.passXMin() + ", " + hardwareSinglesTrigger.passPDET() + ", "
-                                    + hardwareSinglesTrigger.passHodo1() + ", " + hardwareSinglesTrigger.passHodo2() + ", "
-                                    + hardwareSinglesTrigger.passHodoGeo() + ", " + hardwareSinglesTrigger.passHodoECal());
+                                    + hardwareSinglesTrigger.passEMin() + ", " + hardwareSinglesTrigger.passEMax()
+                                    + ", " + hardwareSinglesTrigger.passNMin() + ", "
+                                    + hardwareSinglesTrigger.passXMin() + ", " + hardwareSinglesTrigger.passPDET()
+                                    + ", " + hardwareSinglesTrigger.passHodo1() + ", "
+                                    + hardwareSinglesTrigger.passHodo2() + ", " + hardwareSinglesTrigger.passHodoGeo()
+                                    + ", " + hardwareSinglesTrigger.passHodoECal());
                 }
             }
-                        
+
         }
 
         // The matched trigger set is equivalent in size to the number
         // of triggers that successfully passed verification.
         return matchedTriggers.size();
     }
-    
-    private int compareSimulatedToHardwarePairs(Collection<Trigger<?>> simTriggers, Collection<VTPPairsTrigger> hardwareTriggers, Class<?> clusterType) {
+
+    /**
+     * Compares a collection of simulated triggers to a collection of triggers
+     * reported by the hardware. The simulated triggers may be simulated from either
+     * VTP clusters or clusters built by the software.
+     * 
+     * @param simTriggers      - A collection containing <code>Trigger</code>
+     *                         objects. The source objects for the
+     *                         <code>Trigger</code> objects may be either
+     *                         <code>Cluster</code> or <code>VTPCluster</code>, as
+     *                         well as a size two array of either of the above.
+     * @param hardwareTriggers - A collection of VTP hardware triggers. The source
+     *                         objects of type is <code>VTPPairsTrigger</code>.
+     * @param clusterType      - Specifies which of the four valid object types is
+     *                         used as the source of the <code>Trigger</code>
+     *                         objects defined in the <code>simTriggers</code>
+     *                         argument.
+     * @return Returns the number of simulated triggers which were successfully
+     *         matched to hardware triggers.
+     */
+    private int compareSimulatedToHardwarePairs(Collection<Trigger<?>> simTriggers,
+            Collection<VTPPairsTrigger> hardwareTriggers, Class<?> clusterType) {
         // Print out the appropriate sub-header.
         logger.printNewLine(2);
         if (clusterType == Cluster[].class) {
@@ -1440,7 +1520,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             // a trigger must have all of these values match. The time
             // of a singles trigger is the time of the cluster which
             // created it.
-            double simTime = getTriggerTime(simTrigger);            
+            double simTime = getTriggerTime(simTrigger);
 
             // Output the current trigger that is being matched.
             logger.printf("Matching Trigger %s%n", getTriggerText(simTrigger, true));
@@ -1457,7 +1537,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     logger.printf(" [ fail; matched      ]%n");
                     continue hardwareLoop;
                 }
-                
+
                 // The triggers must occur at the same time to classify
                 // as a match.
                 if (hardwareTrigger.getTime() != simTime) {
@@ -1480,23 +1560,22 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         logger.printf(" [ fail; Energy low   ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (simPairTrigger.getStateClusterEnergyHigh() != true) {
                         logger.printf(" [ fail; Energy High  ]%n");
                         continue hardwareLoop;
                     }
-                    
-                    if (simPairTrigger.getStateHitCount()!= true) {
+
+                    if (simPairTrigger.getStateHitCount() != true) {
                         logger.printf(" [ fail; Hit count    ]%n");
                         continue hardwareLoop;
                     }
-                    
-                    
+
                     if (simPairTrigger.getStateTimeCoincidence() != true) {
                         logger.printf(" [ fail; coincidence  ]%n");
                         continue hardwareLoop;
                     }
-                    
+
                     if (hardwarePairTrigger.passESum() != simPairTrigger.getStateEnergySum()) {
                         logger.printf(" [ fail; sum          ]%n");
                         continue hardwareLoop;
@@ -1518,8 +1597,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     if (hardwarePairTrigger.passCoplanarity() != simPairTrigger.getStateCoplanarity()) {
                         logger.printf(" [ fail; coplanarity  ]%n");
                         continue hardwareLoop;
-                    }                    
-                    
+                    }
+
                 } else {
                     throw new IllegalArgumentException("Trigger type is unrecongnized or simulated and "
                             + "hardware triggers are of different types.");
@@ -1534,8 +1613,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 plotTrigger(simTrigger, tsFlags, true);
 
                 // Update the verified count for each type of trigger
-                // for the local and global windows.                                               
-                if (getTriggerTime(simTrigger) >= triggerWindowStart && getTriggerTime(simTrigger) <= triggerWindowEnd) {
+                // for the local and global windows.
+                if (getTriggerTime(simTrigger) >= triggerWindowStart
+                        && getTriggerTime(simTrigger) <= triggerWindowEnd) {
                     if (clusterType == Cluster[].class) {
                         matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]++;
                         matchedTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
@@ -1544,8 +1624,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         matchedTriggerCount[SOURCE_VTP_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
                     }
 
-                    // Update the verified count for each active TI bit.
-                    if(isActiveBitRead) {
+                    // Update the verified count for each active TS bit.
+                    if (isActiveBitRead) {
                         for (TriggerType trigger : TriggerType.values()) {
                             if (tsFlags[trigger.ordinal()]) {
                                 if (clusterType == Cluster[].class) {
@@ -1562,12 +1642,12 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 // matching is necessary.
                 continue simLoop;
             }
-            
+
             // If this point is reached, all possible hardware triggers
             // have been checked and failed to match. This trigger then
             // fails to verify.
             logger.println("\t\tVerification failed!");
-            
+
             if (debug) {
                 if (clusterType == Cluster[].class) {
                     System.out.println("==== Simulated Sim Trigger to Hardware Trigger Verification Fail ==========");
@@ -1585,8 +1665,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
                                 + ", " + simPairTrigger.getStateTimeCoincidence());
                 System.out.println(
                         "\tstate of energy sum, state of energy slope, state of energy slope, state of coplanarity: "
-                                + simPairTrigger.getStateEnergySum() + ", " + simPairTrigger.getStateEnergyDifference() + ", "
-                                + simPairTrigger.getStateEnergySlope() + ", " + simPairTrigger.getStateCoplanarity());
+                                + simPairTrigger.getStateEnergySum() + ", " + simPairTrigger.getStateEnergyDifference()
+                                + ", " + simPairTrigger.getStateEnergySlope() + ", "
+                                + simPairTrigger.getStateCoplanarity());
 
                 System.out.println("hardware triggers: ");
                 for (VTPPairsTrigger hardwareTrigger : hardwareTriggers) {
@@ -1603,14 +1684,14 @@ public class TriggerDiagnostic2019Driver extends Driver {
         // The matched trigger set is equivalent in size to the number
         // of triggers that successfully passed verification.
         return matchedTriggers.size();
-    }    
+    }
 
     /**
-     * Generates a <code>String</code> consisting of the indicated
-     * number of '=' characters.
+     * Generates a <code>String</code> consisting of the indicated number of '='
+     * characters.
      * 
-     * @param length - The number of characters that should be present
-     * in the <code>String</code>.
+     * @param length - The number of characters that should be present in the
+     *               <code>String</code>.
      * @return Returns a <code>String</code> of '=' characters.
      */
     private static final String generateLine(int length) {
@@ -1622,13 +1703,13 @@ public class TriggerDiagnostic2019Driver extends Driver {
     }
 
     /**
-     * Gets the a of <code>CalorimeterHit</code> objects from the
-     * argument event from the LCIO collection <code>hitCollectionName</code>.
+     * Gets the a of <code>CalorimeterHit</code> objects from the argument event
+     * from the LCIO collection <code>hitCollectionName</code>.
      * 
-     * @param event - The event object.
+     * @param event             - The event object.
      * @param hitCollectionName - The name of the hit collection.
-     * @return Returns either a list of <code>CalorimeterHit</code> objects, or returns <code>null</code> if no
-     * collection was found.
+     * @return Returns either a list of <code>CalorimeterHit</code> objects, or
+     *         returns <code>null</code> if no collection was found.
      */
     private static final List<CalorimeterHit> getCalorimeterHits(EventHeader event, String hitCollectionName) {
         // Get the list of calorimeter hits from the event.
@@ -1642,16 +1723,16 @@ public class TriggerDiagnostic2019Driver extends Driver {
     }
 
     /**
-     * A helper method associated with <code>getTriggerTime</code> that
-     * handles pair triggers, which have either <code>Cluster[]</code> or <code>SSPCluster[]</code> objects as their
-     * source type. <b>This
-     * method should not be called directly.</b>
+     * A helper method associated with <code>getTriggerTime</code> that handles pair
+     * triggers, which have either <code>Cluster[]</code> or
+     * <code>VTPCluster[]</code> objects as their source type. <b>This method should
+     * not be called directly.</b>
      * 
-     * @param trigger - The trigger object for which to obtain the
-     * trigger time.
+     * @param trigger - The trigger object for which to obtain the trigger time.
      * @return Returns the trigger time as a <code>double</code>.
-     * @throws IllegalArgumentException Occurs if the trigger source
-     * object type is anything other than <code>Cluster[]</code> or <code>SSPCluster[]</code>.
+     * @throws IllegalArgumentException Occurs if the trigger source object type is
+     *                                  anything other than <code>Cluster[]</code>
+     *                                  or <code>VTPCluster[]</code>.
      */
     private static final double getPairTriggerTime(Trigger<?> trigger) throws IllegalArgumentException {
         // Get the cluster times and y positions as appropriate to the
@@ -1679,6 +1760,15 @@ public class TriggerDiagnostic2019Driver extends Driver {
             return time[1];
     }
 
+    /**
+     * Get a name for a plot.
+     * 
+     * @param footer
+     * @param cut
+     * @param tsBit
+     * @param sourceType
+     * @return
+     */
     private final String getPlotName(String footer, CutType cut, TriggerType tsBit, int sourceType) {
         // Make sure that a cut was defined.
         if (cut == null) {
@@ -1690,7 +1780,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             throw new NullPointerException("\"" + sourceType + "\" is not a valid source type index.");
         }
 
-        // Get the appropriate name for the TI bit.
+        // Get the appropriate name for the TS bit.
         String tsName = getPlotTSName(tsBit);
 
         // Define the source type name.
@@ -1705,21 +1795,45 @@ public class TriggerDiagnostic2019Driver extends Driver {
         return moduleHeader + sourceName + tsName + "/" + cut.toString() + footer;
     }
 
+    /**
+     * Get a name for a plot with type of Efficiency.
+     * 
+     * @param cut
+     * @param tsBit
+     * @param sourceType
+     * @return
+     */
     private final String getPlotNameEfficiency(CutType cut, TriggerType tsBit, int sourceType) {
         return getPlotName(" Efficiency", cut, tsBit, sourceType);
     }
 
+    /**
+     * Get a name for a plot with type of Observed
+     * 
+     * @param cut
+     * @param tsBit
+     * @param sourceType
+     * @return
+     */
     private final String getPlotNameTotal(CutType cut, TriggerType tsBit, int sourceType) {
         return getPlotName(" (Observed)", cut, tsBit, sourceType);
     }
 
+    /**
+     * Get a name for a plot with type of Verified
+     * 
+     * @param cut
+     * @param tsBit
+     * @param sourceType
+     * @return
+     */
     private final String getPlotNameVerified(CutType cut, TriggerType tsBit, int sourceType) {
         return getPlotName(" (Verified)", cut, tsBit, sourceType);
     }
 
     /**
-     * Returns the name of the trigger type in the argument, or "All"
-     * if a null argument is given.
+     * Returns the name of the trigger type in the argument, or "All" if a null
+     * argument is given.
      * 
      * @param tiBit - The trigger type.
      * @return Returns either the name of the trigger type or "All."
@@ -1732,22 +1846,31 @@ public class TriggerDiagnostic2019Driver extends Driver {
         }
     }
 
+    /**
+     * Get error of a ratio
+     * 
+     * @param num
+     * @param sigmaNum
+     * @param den
+     * @param sigmaDen
+     * @return
+     */
     private static final double getRatioError(double num, double sigmaNum, double den, double sigmaDen) {
         double ratio = num / den;
         return Math.abs(ratio) * Math.sqrt(Math.pow(sigmaNum / num, 2) + Math.pow(sigmaDen / den, 2));
     }
 
     /**
-     * A helper method associated with <code>getTriggerTime</code> that
-     * handles singles triggers, which have either <code>Cluster</code> or <code>SSPCluster</code> objects as their
-     * source type. <b>This
-     * method should not be called directly.</b>
+     * A helper method associated with <code>getTriggerTime</code> that handles
+     * singles triggers, which have either <code>Cluster</code> or
+     * <code>VTPCluster</code> objects as their source type. <b>This method should
+     * not be called directly.</b>
      * 
-     * @param trigger - The trigger object for which to obtain the
-     * trigger time.
+     * @param trigger - The trigger object for which to obtain the trigger time.
      * @return Returns the trigger time as a <code>double</code>.
-     * @throws IllegalArgumentException Occurs if the trigger source
-     * object type is anything other than <code>Cluster</code> or <code>SSPCluster</code>.
+     * @throws IllegalArgumentException Occurs if the trigger source object type is
+     *                                  anything other than <code>Cluster</code> or
+     *                                  <code>VTPCluster</code>.
      */
     private static final double getSinglesTriggerTime(Trigger<?> trigger) throws IllegalArgumentException {
         // Get the trigger time as appropriate to the source object type.
@@ -1763,21 +1886,20 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /**
      * Gets a textual representation of the trigger source cluster(s).
      * 
-     * @param trigger - The trigger for which to obtain the textual
-     * representation.
+     * @param trigger - The trigger for which to obtain the textual representation.
      * @return Returns a <code>String</code> array containing a textual
-     * representation of the trigger's source cluster(s). Each entry in
-     * the array represents an individual cluster.
-     * @throws IllegalArgumentException Occurs if the trigger source
-     * object type is anything other than <code>Cluster</code>, <code>SSPCluster</code>, or an array of either of these
-     * two
-     * object types.
+     *         representation of the trigger's source cluster(s). Each entry in the
+     *         array represents an individual cluster.
+     * @throws IllegalArgumentException Occurs if the trigger source object type is
+     *                                  anything other than <code>Cluster</code>,
+     *                                  <code>VTPCluster</code>, or an array of
+     *                                  either of these two object types.
      */
     private static final String[] getTriggerSourceText(Trigger<?> trigger) throws IllegalArgumentException {
         if (trigger.getTriggerSource() instanceof Cluster) {
-            return new String[] {TriggerDiagnosticUtil.clusterToString((Cluster) trigger.getTriggerSource())};
+            return new String[] { TriggerDiagnosticUtil.clusterToString((Cluster) trigger.getTriggerSource()) };
         } else if (trigger.getTriggerSource() instanceof VTPCluster) {
-            return new String[] {TriggerDiagnosticUtil.clusterToString((VTPCluster) trigger.getTriggerSource())};
+            return new String[] { TriggerDiagnosticUtil.clusterToString((VTPCluster) trigger.getTriggerSource()) };
         } else if (trigger.getTriggerSource() instanceof Cluster[]) {
             Cluster[] source = (Cluster[]) trigger.getTriggerSource();
             String[] text = new String[source.length];
@@ -1800,21 +1922,20 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /**
      * Gets a textual representation of the trigger.
      * 
-     * @param trigger - The trigger for which to obtain the textual
-     * representation.
-     * @param includeSource - Indicates whether a textual representation
-     * of the source objects for the trigger should be included. These
-     * will be present on a new line, one for each cluster.
-     * @return Returns a <code>String</code> object representing the
-     * trigger. If <code>includeSource</code> is set to true, this will
-     * be more than one line.
-     * @throws IllegalArgumentException Occurs if the trigger source
-     * object type is anything other than <code>Cluster</code>, <code>SSPCluster</code>, or an array of either of these
-     * two
-     * object types.
+     * @param trigger       - The trigger for which to obtain the textual
+     *                      representation.
+     * @param includeSource - Indicates whether a textual representation of the
+     *                      source objects for the trigger should be included. These
+     *                      will be present on a new line, one for each cluster.
+     * @return Returns a <code>String</code> object representing the trigger. If
+     *         <code>includeSource</code> is set to true, this will be more than one
+     *         line.
+     * @throws IllegalArgumentException Occurs if the trigger source object type is
+     *                                  anything other than <code>Cluster</code>,
+     *                                  <code>VTPCluster</code>, or an array of
+     *                                  either of these two object types.
      */
-    private final String getTriggerText(Trigger<?> trigger, boolean includeSource)
-            throws IllegalArgumentException {
+    private final String getTriggerText(Trigger<?> trigger, boolean includeSource) throws IllegalArgumentException {
         // Define the trigger strings.
         final String singlesString = "t = %3.0f; EMin: %5b; EMax: %5b; Hit: %5b; XMin: %5b; PDE: %5b; L1: %5b; L2: %5b; L1L2: %5b; HodoEcal: %5b";
         final String doubleString = "t = %3.0f; EMin: %5b; EMax: %5b; Hit: %5b; Sum: %5b; Diff: %5b; Slope: %5b; Coplanarity: %5b; Time: %5b";
@@ -1822,16 +1943,17 @@ public class TriggerDiagnostic2019Driver extends Driver {
         // If this is singles trigger...
         if (isSinglesTrigger(trigger)) {
             SinglesTrigger2019<?> singlesTrigger = (SinglesTrigger2019<?>) trigger;
-            StringBuffer triggerText = new StringBuffer(String.format(singlesString, getTriggerTime(trigger),
-                    singlesTrigger.getStateClusterEnergyLow(), singlesTrigger.getStateClusterEnergyHigh(),
-                    singlesTrigger.getStateHitCount(), singlesTrigger.getStateClusterXMin(), singlesTrigger.getStateClusterPDE(),
-                    singlesTrigger.getStateHodoL1Matching(), singlesTrigger.getStateHodoL2Matching(),
-                    singlesTrigger.getStateHodoL1L2Matching(), singlesTrigger.getStateHodoEcalMatching()));
-            
+            StringBuffer triggerText = new StringBuffer(
+                    String.format(singlesString, getTriggerTime(trigger), singlesTrigger.getStateClusterEnergyLow(),
+                            singlesTrigger.getStateClusterEnergyHigh(), singlesTrigger.getStateHitCount(),
+                            singlesTrigger.getStateClusterXMin(), singlesTrigger.getStateClusterPDE(),
+                            singlesTrigger.getStateHodoL1Matching(), singlesTrigger.getStateHodoL2Matching(),
+                            singlesTrigger.getStateHodoL1L2Matching(), singlesTrigger.getStateHodoEcalMatching()));
+
             if (includeSource) {
                 triggerText.append("\n\t\t" + getTriggerSourceText(trigger)[0]);
             }
-                       
+
             List<CalorimeterHit> hodoHitList = singlesTrigger.getHodoHitList();
             for (CalorimeterHit hit : hodoHitList) {
                 Long hodoChannelId = getHodoChannelID(hit);
@@ -1846,7 +1968,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     patternMap.get(SinglesTrigger2019.LAYER1)));
             triggerText.append(String.format("\n\t\tLayer %d %s", SinglesTrigger2019.LAYER2,
                     patternMap.get(SinglesTrigger2019.LAYER2)));
-            
+
             return triggerText.toString();
         }
 
@@ -1875,49 +1997,45 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /**
      * Gets a textual representation of the trigger.
      * 
-     * @param trigger - The trigger for which to obtain the textual
-     * representation.
-     * @return Returns a <code>String</code> object representing the
-     * trigger.
-     * @throws IllegalArgumentException Occurs if the trigger subclass
-     * is not either an <code>SSPSinglesTrigger</code> object or an <code>SSPPairTrigger</code> object.
+     * @param trigger - The trigger for which to obtain the textual representation.
+     * @return Returns a <code>String</code> object representing the trigger.
+     * @throws IllegalArgumentException Occurs if the trigger subclass is not either
+     *                                  an <code>VTPSinglesTrigger</code> object or
+     *                                  an <code>VTPPairTrigger</code> object.
      */
     private static final String getTriggerText(VTPSinglesTrigger trigger) {
         // Define the trigger string.
         final String singlesString = "t = %3d; EMin: %5b; EMax: %5b; Hit: %5b; XMin: %5b; PDE: %5b; HodoL1: %5b; HodoL2: %5b; L1L2: %5b; HodoEcal: %5b";
 
-        StringBuffer triggerText = new StringBuffer(String.format(singlesString, trigger.getTime(),
-                trigger.passEMin(), trigger.passEMax(),
-                trigger.passNMin(), trigger.passXMin(), trigger.passPDET(),
-                trigger.passHodo1(), trigger.passHodo2(), trigger.passHodoGeo(), trigger.passHodoECal()));
-        
+        StringBuffer triggerText = new StringBuffer(String.format(singlesString, trigger.getTime(), trigger.passEMin(),
+                trigger.passEMax(), trigger.passNMin(), trigger.passXMin(), trigger.passPDET(), trigger.passHodo1(),
+                trigger.passHodo2(), trigger.passHodoGeo(), trigger.passHodoECal()));
+
         return triggerText.toString();
-        
+
     }
 
     private static final String getTriggerText(VTPPairsTrigger trigger) {
         // Define the trigger string.
         final String doubleString = "t = %3d; EMin: %5b; EMax: %5b; Hit: %5b; Time: %5b; Sum: %5b; Diff: %5b; Slope: %5b; Coplanarity: %5b";
 
-        StringBuffer triggerText = new StringBuffer(String.format(doubleString, trigger.getTime(), true, true, true, true,
-                trigger.passESum(), trigger.passEDiff(),
-                trigger.passESlope(), trigger.passCoplanarity()));
-        
+        StringBuffer triggerText = new StringBuffer(String.format(doubleString, trigger.getTime(), true, true, true,
+                true, trigger.passESum(), trigger.passEDiff(), trigger.passESlope(), trigger.passCoplanarity()));
+
         return triggerText.toString();
-  
+
     }
 
     /**
-     * Gets the trigger time for an arbitrary trigger object as is
-     * appropriate to its source object type.
+     * Gets the trigger time for an arbitrary trigger object as is appropriate to
+     * its source object type.
      * 
-     * @param trigger - The trigger object for which to obtain the
-     * trigger time.
+     * @param trigger - The trigger object for which to obtain the trigger time.
      * @return Returns the trigger time as a <code>double</code>.
-     * @throws IllegalArgumentException Occurs if the trigger source
-     * object type is anything other than <code>Cluster</code>, <code>SSPCluster</code>, or a size-two array of either
-     * of the
-     * previous two object types.
+     * @throws IllegalArgumentException Occurs if the trigger source object type is
+     *                                  anything other than <code>Cluster</code>,
+     *                                  <code>VTPCluster</code>, or a size-two array
+     *                                  of either of the previous two object types.
      */
     private static final double getTriggerTime(Trigger<?> trigger) throws IllegalArgumentException {
         // Pass the trigger to one of the sub-handlers appropriate to
@@ -1936,9 +2054,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * Indicates whether a generic trigger object is a pair trigger.
      * 
      * @param trigger - The trigger to check.
-     * @return Returns <code>true</code> in the case that the source
-     * object is a <code>Cluster[]</code>, or <code>SSPCluster[]</code>.
-     * Otherwise, returns <code>false</code>.
+     * @return Returns <code>true</code> in the case that the source object is a
+     *         <code>Cluster[]</code>, or <code>VTPCluster[]</code>. Otherwise,
+     *         returns <code>false</code>.
      */
     private static final boolean isPairTrigger(Trigger<?> trigger) {
         // Get the size of the trigger source cluster array, if it is
@@ -1959,9 +2077,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * Indicates whether a generic trigger object is a singles trigger.
      * 
      * @param trigger - The trigger to check.
-     * @return Returns <code>true</code> in the case that the source
-     * object is a <code>Cluster</code> or <code>SSPCluster</code>.
-     * Otherwise, returns <code>false</code>.
+     * @return Returns <code>true</code> in the case that the source object is a
+     *         <code>Cluster</code> or <code>VTPCluster</code>. Otherwise, returns
+     *         <code>false</code>.
      */
     private static final boolean isSinglesTrigger(Trigger<?> trigger) {
         return trigger.getTriggerSource() instanceof Cluster || trigger.getTriggerSource() instanceof VTPCluster;
@@ -1971,8 +2089,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * Gets the maximum value in a set of integers.
      * 
      * @param values - The values from which to find the maximum.
-     * @return Returns whichever value is the highest from within the
-     * set.
+     * @return Returns whichever value is the highest from within the set.
      * @throws IllegalArgumentException Occurs if no arguments are given.
      */
     private static final int max(int... values) throws IllegalArgumentException {
@@ -1993,6 +2110,13 @@ public class TriggerDiagnostic2019Driver extends Driver {
         return maxValue;
     }
 
+    /**
+     * Fill plots.
+     * 
+     * @param trigger
+     * @param activeTSBits
+     * @param verified
+     */
     private void plotTrigger(Trigger<?> trigger, boolean[] activeTSBits, boolean verified) {
         // Which plots are to be populated depends on the type of
         // trigger. First, handle singles triggers.
@@ -2024,7 +2148,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 xIndex = TriggerModule2019.getClusterXIndex(cluster);
                 pde = singlesTrigger[triggerType.getTriggerNum()].getClusterPDE(cluster);
 
-                // Note that the source type is an SSP cluster.
+                // Note that the source type is an VTP cluster.
                 sourceType = SOURCE_VTP_CLUSTER;
             } else {
                 throw new IllegalArgumentException("Trigger source "
@@ -2033,8 +2157,9 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
             // Populate the appropriate trigger plot.
             for (TriggerType tsBit : triggerTypes) {
-                if(!isActiveBitRead && !(tsBit == null)) continue;
-                
+                if (!isActiveBitRead && !(tsBit == null))
+                    continue;
+
                 if (tsBit == null || activeTSBits[tsBit.ordinal()]) {
                     if (verified) {
                         AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.EVENT_TIME, tsBit, sourceType))
@@ -2045,7 +2170,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         AIDA.defaultInstance()
                                 .histogram1D(getPlotNameVerified(CutType.CLUSTER_TOTAL_ENERGY, tsBit, sourceType))
                                 .fill(clusterEnergy);
-                        AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.CLUSTER_XINDEX, tsBit, sourceType))
+                        AIDA.defaultInstance()
+                                .histogram1D(getPlotNameVerified(CutType.CLUSTER_XINDEX, tsBit, sourceType))
                                 .fill(xIndex);
                         AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.CLUSTER_PDE, tsBit, sourceType))
                                 .fill(pde);
@@ -2110,7 +2236,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 clusterHigh = Math.max(TriggerModule2019.getValueClusterTotalEnergy(pair[0]),
                         TriggerModule2019.getValueClusterTotalEnergy(pair[1]));
 
-                // Note that the source type is an SSP cluster.
+                // Note that the source type is an VTP cluster.
                 sourceType = SOURCE_VTP_CLUSTER;
             } else {
                 throw new IllegalArgumentException("Trigger source "
@@ -2119,9 +2245,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
             // Fill the appropriate plots.
             for (TriggerType tsBit : triggerTypes) {
-                if(!isActiveBitRead && !(tsBit == null)) continue;
-                
-                if (tsBit == null || activeTSBits[tsBit.ordinal()]) {                    
+                if (!isActiveBitRead && !(tsBit == null))
+                    continue;
+
+                if (tsBit == null || activeTSBits[tsBit.ordinal()]) {
                     if (verified) {
                         AIDA.defaultInstance().histogram1D(getPlotNameVerified(CutType.EVENT_TIME, tsBit, sourceType))
                                 .fill(eventTime);
@@ -2149,8 +2276,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     } else {
                         AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.EVENT_TIME, tsBit, sourceType))
                                 .fill(eventTime);
-                        AIDA.defaultInstance()
-                                .histogram1D(getPlotNameTotal(CutType.PAIR_ENERGY_SUM, tsBit, sourceType))
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_ENERGY_SUM, tsBit, sourceType))
                                 .fill(energySum);
                         AIDA.defaultInstance()
                                 .histogram1D(getPlotNameTotal(CutType.PAIR_ENERGY_DIFF, tsBit, sourceType))
@@ -2164,8 +2290,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         AIDA.defaultInstance()
                                 .histogram1D(getPlotNameTotal(CutType.PAIR_TIME_COINCIDENCE, tsBit, sourceType))
                                 .fill(timeCoincidence);
-                        AIDA.defaultInstance()
-                                .histogram1D(getPlotNameTotal(CutType.PAIR_LOW_ENERGY, tsBit, sourceType))
+                        AIDA.defaultInstance().histogram1D(getPlotNameTotal(CutType.PAIR_LOW_ENERGY, tsBit, sourceType))
                                 .fill(clusterLow);
                         AIDA.defaultInstance()
                                 .histogram1D(getPlotNameTotal(CutType.PAIR_HIGH_ENERGY, tsBit, sourceType))
@@ -2174,26 +2299,26 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 }
             }
         } else {
-            throw new IllegalArgumentException("Trigger type " + trigger.getClass().getSimpleName()
-                    + " is not recognized.");
+            throw new IllegalArgumentException(
+                    "Trigger type " + trigger.getClass().getSimpleName() + " is not recognized.");
         }
     }
 
     /**
-     * Sets the TI-bit flags for each trigger type and also indicates
-     * whether or not at least one TI-bit was found active.
+     * Sets the TS-bit flags for each trigger type and also indicates whether or not
+     * at least one TI-bit was found active.
      * 
-     * @param tiBank - The TI bank from which to set the flags.
-     * @return Returns <code>true</code> if at least one TI-bit was
-     * found active, and <code>false</code> if no bits were active.
+     * @param tsBank - The TS bank from which to set the flags.
+     * @return Returns <code>true</code> if at least one TI-bit was found active,
+     *         and <code>false</code> if no bits were active.
      */
     private boolean setTSFlags(TSData2019 tsData) {
-        // Reset the TS flags and determine track whether some TI bit
+        // Reset the TS flags and determine track whether some TS bit
         // can be found.
         tsFlags = new boolean[20];
         boolean activeBitRead = false;
 
-        // Check each TI bit.
+        // Check each TS bit.
         if (tsData.isSingle0TopTrigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.SINGLESTOP0.ordinal()] = true;
@@ -2214,7 +2339,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             tsFlags[TriggerType.SINGLESTOP3.ordinal()] = true;
             logger.println("Trigger type :: Singles Top 3");
         }
-        
+
         if (tsData.isSingle0BotTrigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.SINGLESBOT0.ordinal()] = true;
@@ -2256,7 +2381,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             tsFlags[TriggerType.PAIR3.ordinal()] = true;
             logger.println("Trigger type :: Pair 3");
         }
-               
+
         if (tsData.isLEDTrigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.LED.ordinal()] = true;
@@ -2268,37 +2393,37 @@ public class TriggerDiagnostic2019Driver extends Driver {
             tsFlags[TriggerType.COSMIC.ordinal()] = true;
             logger.println("Trigger type :: Cosmic");
         }
-        
+
         if (tsData.isHodoscopeTrigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.HODOSCOPE.ordinal()] = true;
             logger.println("Trigger type :: Hodoscope");
         }
-        
+
         if (tsData.isMultiplicity0Trigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.MULTIPLICITY0.ordinal()] = true;
             logger.println("Trigger type :: Multiplicity0");
         }
-        
+
         if (tsData.isMultiplicity1Trigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.MULTIPLICITY1.ordinal()] = true;
             logger.println("Trigger type :: Multiplicity1");
         }
-        
+
         if (tsData.isFEETopTrigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.FEETOP.ordinal()] = true;
             logger.println("Trigger type :: FEE Top");
         }
-        
+
         if (tsData.isFEEBotTrigger()) {
             activeBitRead = true;
             tsFlags[TriggerType.FEEBOT.ordinal()] = true;
             logger.println("Trigger type :: FEE Bot");
         }
-        
+
         // Return whether or not a TS bit was found.
         return activeBitRead;
     }
@@ -2306,10 +2431,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
     /**
      * Performs trigger verification for the specified trigger.
      * 
-     * @param simTriggers - A data object containing all simulated
-     * triggers for all trigger types.
-     * @param sspBank - The data bank containing all of the triggers
-     * reported by the hardware.
+     * @param simTriggers - A data object containing all simulated triggers for all
+     *                    trigger types.
+     * @param vtpBank     - The data bank containing all of the triggers reported by
+     *                    the hardware.
      * @param triggerType - The trigger which is to be verified.
      */
     private void triggerVerification(SimTriggerData2019 simTriggers, VTPData vtpBank, TriggerType triggerType) {
@@ -2319,8 +2444,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
             throw new IllegalArgumentException("Trigger verification type is not defined.");
         } else if (triggerType == null || triggerType.equals(TriggerType.COSMIC)
                 || triggerType.equals(TriggerType.PULSER)) {
-            throw new IllegalArgumentException("Verification for trigger type \"" + triggerType.toString()
-                    + "\" is not supported.");
+            throw new IllegalArgumentException(
+                    "Verification for trigger type \"" + triggerType.toString() + "\" is not supported.");
         } else if (!(triggerType.equals(TriggerType.SINGLESTOP0) || triggerType.equals(TriggerType.SINGLESTOP1)
                 || triggerType.equals(TriggerType.SINGLESTOP2) || triggerType.equals(TriggerType.SINGLESTOP3)
                 || triggerType.equals(TriggerType.SINGLESBOT0) || triggerType.equals(TriggerType.SINGLESBOT1)
@@ -2330,10 +2455,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
             throw new IllegalArgumentException("Verification for trigger type is not a known trigger type.");
         }
 
-        // Get the SSP triggers for the appropriate trigger type.
+        // Get the VTP triggers for the appropriate trigger type.
         List<VTPSinglesTrigger> hardwareSinglesTriggers = new ArrayList<VTPSinglesTrigger>();
         List<VTPPairsTrigger> hardwarePairsTriggers = new ArrayList<VTPPairsTrigger>();
-        
+
         if (triggerType.isSinglesTrigger()) {
             for (VTPSinglesTrigger trigger : vtpBank.getSinglesTriggers()) {
                 if (trigger.getTriggerInstance() == triggerType.getTriggerNumber()) {
@@ -2348,15 +2473,17 @@ public class TriggerDiagnostic2019Driver extends Driver {
             }
         }
 
-        // Get the triggers simulated from both hardware SSP clusters
+        // Get the triggers simulated from both hardware VTP clusters
         // and software clusters.
         List<Trigger<?>> hardwareSimTriggers = new ArrayList<Trigger<?>>();
         List<Trigger<?>> softwareSimTriggers = new ArrayList<Trigger<?>>();
-        
+
         if (triggerType.isSinglesTrigger()) {
-            // Add all of the SSP triggers.
-            for (SinglesTrigger2019<VTPCluster> trigger : simTriggers.getSimHardwareClusterTriggers().getSinglesTriggers(triggerType.getTriggerNumber())) {
-             // Extract triggers with unclipped hodo hits and trigger time < windowWidthHodo + offsetEcal - offsetHodo
+            // Add all of the VTP triggers.
+            for (SinglesTrigger2019<VTPCluster> trigger : simTriggers.getSimHardwareClusterTriggers()
+                    .getSinglesTriggers(triggerType.getTriggerNumber())) {
+                // Extract triggers with unclipped hodo hits and trigger time < windowWidthHodo
+                // + offsetEcal - offsetHodo
                 // After tiem alignment with Ecal, the readout window of hodo is [0 + offsetEcal
                 // - offsetHodo, windowWidthHodo + offsetEcal - offsetHodo)
                 // With consideration of hodoscope hit persistence, for fair comparison, trigger
@@ -2387,16 +2514,17 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 }
             }
         } else if (triggerType.isPairTrigger()) {
-            // Add all of the SSP triggers.
-            hardwareSimTriggers.addAll(simTriggers.getSimHardwareClusterTriggers().getPairTriggers(
-                    triggerType.getTriggerNumber()));
+            // Add all of the VTP triggers.
+            hardwareSimTriggers.addAll(
+                    simTriggers.getSimHardwareClusterTriggers().getPairTriggers(triggerType.getTriggerNumber()));
 
             // Add only the simulated triggers that were generated
             // from clusters that are not at risk of pulse-clipping.
-            for (PairTrigger2019<Cluster[]> trigger : simTriggers.getSimSoftwareClusterTriggers().getPairTriggers(
-                    triggerType.getTriggerNumber())) {
+            for (PairTrigger2019<Cluster[]> trigger : simTriggers.getSimSoftwareClusterTriggers()
+                    .getPairTriggers(triggerType.getTriggerNumber())) {
                 if (TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[0], nsaEcal, nsbEcal, windowWidthEcal)
-                        && TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[1], nsaEcal, nsbEcal, windowWidthEcal)) {
+                        && TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[1], nsaEcal, nsbEcal,
+                                windowWidthEcal)) {
                     softwareSimTriggers.add(trigger);
                 }
             }
@@ -2423,7 +2551,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
         }
         logger.printNewLine(2);
         logger.println("=== Hardware Triggers ================================================");
-        if(triggerType.isSinglesTrigger()) {
+        if (triggerType.isSinglesTrigger()) {
             if (!hardwareSinglesTriggers.isEmpty()) {
                 for (VTPSinglesTrigger trigger : hardwareSinglesTriggers) {
                     logger.println(getTriggerText(trigger));
@@ -2432,8 +2560,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 logger.println("None!");
             }
         }
-        
-        if(triggerType.isPairTrigger()) {
+
+        if (triggerType.isPairTrigger()) {
             if (!hardwarePairsTriggers.isEmpty()) {
                 for (VTPPairsTrigger trigger : hardwarePairsTriggers) {
                     logger.println(getTriggerText(trigger));
@@ -2445,17 +2573,50 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         // Update the total count for each type of trigger for the local
         // and global windows.
-        
-        hardwareTriggerCount[ALL_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only one trigger type, so size of only one trigger list is not 0
-        hardwareTriggerCount[LOCAL_WINDOW_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only one trigger type, so size of only one trigger list is not 0
+
+        hardwareTriggerCount[ALL_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only one
+                                                                                                             // trigger
+                                                                                                             // type, so
+                                                                                                             // size of
+                                                                                                             // only one
+                                                                                                             // trigger
+                                                                                                             // list is
+                                                                                                             // not 0
+        hardwareTriggerCount[LOCAL_WINDOW_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only
+                                                                                                                      // one
+                                                                                                                      // trigger
+                                                                                                                      // type,
+                                                                                                                      // so
+                                                                                                                      // size
+                                                                                                                      // of
+                                                                                                                      // only
+                                                                                                                      // one
+                                                                                                                      // trigger
+                                                                                                                      // list
+                                                                                                                      // is
+                                                                                                                      // not
+                                                                                                                      // 0
         for (TriggerType tsBit : TriggerType.values()) {
-            hardwareTriggerCount[tsBit.ordinal()] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only one trigger type, so size of only one trigger list is not 0
+            hardwareTriggerCount[tsBit.ordinal()] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only
+                                                                                                                    // one
+                                                                                                                    // trigger
+                                                                                                                    // type,
+                                                                                                                    // so
+                                                                                                                    // size
+                                                                                                                    // of
+                                                                                                                    // only
+                                                                                                                    // one
+                                                                                                                    // trigger
+                                                                                                                    // list
+                                                                                                                    // is
+                                                                                                                    // not
+                                                                                                                    // 0
         }
         for (Trigger<?> trigger : softwareSimTriggers) {
             if (getTriggerTime(trigger) >= triggerWindowStart && getTriggerTime(trigger) <= triggerWindowEnd) {
                 simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]++;
                 simTriggerCount[SOURCE_SIM_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
-                if(isActiveBitRead) {
+                if (isActiveBitRead) {
                     for (TriggerType tsBit : TriggerType.values()) {
                         simTriggerCount[SOURCE_SIM_CLUSTER][tsBit.ordinal()] += tsFlags[tsBit.ordinal()] ? 1 : 0;
                     }
@@ -2466,7 +2627,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
             if (getTriggerTime(trigger) >= triggerWindowStart && getTriggerTime(trigger) <= triggerWindowEnd) {
                 simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]++;
                 simTriggerCount[SOURCE_VTP_CLUSTER][LOCAL_WINDOW_TRIGGERS]++;
-                if(isActiveBitRead) {
+                if (isActiveBitRead) {
                     for (TriggerType tsBit : TriggerType.values()) {
                         simTriggerCount[SOURCE_VTP_CLUSTER][tsBit.ordinal()] += tsFlags[tsBit.ordinal()] ? 1 : 0;
                     }
@@ -2532,7 +2693,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
     public void setBankVTPCollectionName(String collection) {
         bankVTPCollectionName = collection;
     }
-    
+
     public void setBankTSCollectionName(String collection) {
         bankTSCollectionName = collection;
     }
@@ -2545,14 +2706,14 @@ public class TriggerDiagnostic2019Driver extends Driver {
     public void setHitEcalCollectionName(String collection) {
         hitEcalCollectionName = collection;
     }
-    
+
     public void setHitHodoCollectionName(String collection) {
         hitHodoCollectionName = collection;
     }
 
     /**
-     * Defines the size of the local window for use in the efficiency
-     * over time plot. Units are in seconds.
+     * Defines the size of the local window for use in the efficiency over time
+     * plot. Units are in seconds.
      * 
      * @param size - The duration of local efficiency measurements.
      */
@@ -2564,55 +2725,68 @@ public class TriggerDiagnostic2019Driver extends Driver {
     }
 
     /**
-     * Sets the total number of hits that must be present in an event
-     * in order for it to be considered a noise event. This is only
-     * applied if <code>skipNoiseEvents</code> is set to <code>true</code>.
+     * Sets the total number of hits for Ecal that must be present in an event in
+     * order for it to be considered a noise event. This is only applied if
+     * <code>skipNoiseEventsEcal</code> is set to <code>true</code>.
      * 
-     * @param threshold - The noise hit threshold.
+     * @param threshold - The noise hit threshold for Ecal.
      */
     public void setNoiseThresholdEcal(int threshold) {
         noiseEventThresholdEcal = threshold;
     }
-    
+
+    /**
+     * Sets the total number of hits for hodoscope that must be present in an event
+     * in order for it to be considered a noise event. This is only applied if
+     * <code>skipNoiseEventsHodo</code> is set to <code>true</code>.
+     * 
+     * @param threshold - The noise hit threshold for hodoscope.
+     */
     public void setNoiseThresholdHodo(int threshold) {
         noiseEventThresholdHodo = threshold;
     }
-    
+
     /**
-     * Indicates whether events which exceed a certain number of total
-     * hits, defined by <code>noiseEventThreshold</code>, should be
-     * treated as noise events and skipped.
+     * Indicates whether events which exceed a certain number of total hits for
+     * Ecal, defined by <code>noiseEventThresholdEcal</code>, should be treated as
+     * noise events and skipped.
      * 
-     * @param state - <code>true</code> causes noise events to be skipped
-     * and <code>false</code> does not.
+     * @param state - <code>true</code> causes noise events to be skipped and
+     *              <code>false</code> does not.
      */
     public void setSkipNoiseEventsEcal(boolean state) {
         skipNoiseEventsEcal = state;
     }
-    
+
+    /**
+     * Indicates whether events which exceed a certain number of total hits for
+     * hodoscope, defined by <code>noiseEventThresholdHodo</code>, should be treated
+     * as noise events and skipped.
+     * 
+     * @param state - <code>true</code> causes noise events to be skipped and
+     *              <code>false</code> does not.
+     */
     public void setSkipNoiseEventsHodo(boolean state) {
         skipNoiseEventsHodo = state;
     }
 
     /**
-     * Indicates whether the event log should be printed when a trigger
-     * which was simulated from a hardware-reported (SSP) cluster fails
-     * to verify.
+     * Indicates whether the event log should be printed when a trigger which was
+     * simulated from a hardware-reported (VTP) cluster fails to verify.
      * 
-     * @param state - <code>true</code> indicates that the event log
-     * should be printed, and <code>false</code> that it should not.
+     * @param state - <code>true</code> indicates that the event log should be
+     *              printed, and <code>false</code> that it should not.
      */
     public void setPrintOnHardwareSimFailure(boolean state) {
         printOnHardwareSimFailure = state;
     }
 
     /**
-     * Indicates whether the event log should be printed when a trigger
-     * which was simulated from a software-constructed cluster fails
-     * to verify.
+     * Indicates whether the event log should be printed when a trigger which was
+     * simulated from a software-constructed cluster fails to verify.
      * 
-     * @param state - <code>true</code> indicates that the event log
-     * should be printed, and <code>false</code> that it should not.
+     * @param state - <code>true</code> indicates that the event log should be
+     *              printed, and <code>false</code> that it should not.
      */
     public void setPrintOnSoftwareSimFailure(boolean state) {
         printOnSoftwareSimFailure = state;
@@ -2628,19 +2802,27 @@ public class TriggerDiagnostic2019Driver extends Driver {
     }
 
     /**
-     * Sets the which of the triggers this driver should verify. This
-     * value must be of the following:
+     * Sets the which of the triggers this driver should verify. This value must be
+     * of the following:
      * <ul>
-     * <li>SINGLES0</li>
-     * <li>SINGLE1</li>
+     * <li>SINGLESTOP0</li>
+     * <li>SINGLESTOP1</li>
+     * <li>SINGLESTOP2</li>
+     * <li>SINGLESTOP3</li>
+     * <li>SINGLESBOT0</li>
+     * <li>SINGLESBOT1</li>
+     * <li>SINGLESBOT2</li>
+     * <li>SINGLESBOT3</li>
      * <li>PAIR0</li>
      * <li>PAIR1</li>
+     * <li>PAIR2</li>
+     * <li>PAIR3</li>
      * </ul>
      * 
-     * @param type - The <code>String</code> indicating which trigger
-     * should be verified.
-     * @throws IllegalArgumentException Occurs if any type name is
-     * besides those specified above is used.
+     * @param type - The <code>String</code> indicating which trigger should be
+     *             verified.
+     * @throws IllegalArgumentException Occurs if any type name is besides those
+     *                                  specified above is used.
      */
     public void setTriggerType(String type) throws IllegalArgumentException {
         if (type.compareTo(TriggerType.SINGLESTOP0.name()) == 0) {
@@ -2676,8 +2858,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * Sets the end of the trigger window range. This is used during
      * hardware-cluster simulated trigger verification.
      * 
-     * @param value - The end of the trigger window range. This value
-     * is inclusive.
+     * @param value - The end of the trigger window range. This value is inclusive.
      */
     public void setTriggerWindowEnd(int value) {
         triggerWindowEnd = value;
@@ -2687,32 +2868,41 @@ public class TriggerDiagnostic2019Driver extends Driver {
      * Sets the start of the trigger window range. This is used during
      * hardware-cluster simulated trigger verification.
      * 
-     * @param value - The start of the trigger window range. This value
-     * is inclusive.
+     * @param value - The start of the trigger window range. This value is
+     *              inclusive.
      */
     public void setTriggerWindowStart(int value) {
         triggerWindowStart = value;
     }
 
     /**
-     * Sets whether the full event verification summary should be printed
-     * on every event or not.
+     * Sets whether the full event verification summary should be printed on every
+     * event or not.
      * 
-     * @param state - <code>true</code> prints the event summary and <code>false</code> does not.
+     * @param state - <code>true</code> prints the event summary and
+     *              <code>false</code> does not.
      */
     public void setVerbose(boolean state) {
         verbose = state;
     }
-    
+
+    /**
+     * Sets whether the debug message should be printed
+     * 
+     * @param debug
+     */
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
-    
+
+    /**
+     * Set if TS bits are read. For random runs, no TS banks.
+     * 
+     * @param isActiveBitRead
+     */
     public void setisActiveBitRead(boolean isActiveBitRead) {
         this.isActiveBitRead = isActiveBitRead;
     }
-    
-    
 
     public void setClusterTotalEnergyXMax(double value) {
         xMax[CutType.CLUSTER_TOTAL_ENERGY.ordinal()] = value;
