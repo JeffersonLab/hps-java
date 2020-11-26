@@ -19,11 +19,11 @@ import org.hps.analysis.trigger.util.SinglesTrigger2019;
  * <code>VTPCluster</code>. 
  * @see DataTriggerSimDriver
  */
-public class SimTriggerModule2019<E, T> {
-    private final List<SinglesTrigger2019<E, T>> singles0;
-    private final List<SinglesTrigger2019<E, T>> singles1;
-    private final List<SinglesTrigger2019<E, T>> singles2;
-    private final List<SinglesTrigger2019<E, T>> singles3;
+public class SimTriggerModule2019<E> {
+    private final List<SinglesTrigger2019<E>> singles0;
+    private final List<SinglesTrigger2019<E>> singles1;
+    private final List<SinglesTrigger2019<E>> singles2;
+    private final List<SinglesTrigger2019<E>> singles3;
     private final List<PairTrigger2019<E[]>> pair0;
     private final List<PairTrigger2019<E[]>> pair1;
     private final List<PairTrigger2019<E[]>> pair2;
@@ -34,10 +34,10 @@ public class SimTriggerModule2019<E, T> {
      * triggers results for any triggers.
      */
     SimTriggerModule2019() {
-        singles0 = new ArrayList<SinglesTrigger2019<E, T>>(0);
-        singles1 = new ArrayList<SinglesTrigger2019<E, T>>(0);
-        singles2 = new ArrayList<SinglesTrigger2019<E, T>>(0);
-        singles3 = new ArrayList<SinglesTrigger2019<E, T>>(0);
+        singles0 = new ArrayList<SinglesTrigger2019<E>>(0);
+        singles1 = new ArrayList<SinglesTrigger2019<E>>(0);
+        singles2 = new ArrayList<SinglesTrigger2019<E>>(0);
+        singles3 = new ArrayList<SinglesTrigger2019<E>>(0);
         pair0    = new ArrayList<PairTrigger2019<E[]>>(0);
         pair1    = new ArrayList<PairTrigger2019<E[]>>(0);
         pair2    = new ArrayList<PairTrigger2019<E[]>>(0);
@@ -57,9 +57,9 @@ public class SimTriggerModule2019<E, T> {
      * @param pair2Triggers    - The results for the pair 2 trigger.
      * @param pair3Triggers    - The results for the pair 3 trigger.
      */
-    SimTriggerModule2019(List<SinglesTrigger2019<E, T>> singles0Triggers,
-            List<SinglesTrigger2019<E, T>> singles1Triggers, List<SinglesTrigger2019<E, T>> singles2Triggers,
-            List<SinglesTrigger2019<E, T>> singles3Triggers, List<PairTrigger2019<E[]>> pair0Triggers,
+    SimTriggerModule2019(List<SinglesTrigger2019<E>> singles0Triggers,
+            List<SinglesTrigger2019<E>> singles1Triggers, List<SinglesTrigger2019<E>> singles2Triggers,
+            List<SinglesTrigger2019<E>> singles3Triggers, List<PairTrigger2019<E[]>> pair0Triggers,
             List<PairTrigger2019<E[]>> pair1Triggers, List<PairTrigger2019<E[]>> pair2Triggers,
             List<PairTrigger2019<E[]>> pair3Triggers) {
         this.singles0 = singles0Triggers;
@@ -86,7 +86,7 @@ public class SimTriggerModule2019<E, T> {
      * @throws IllegalArgumentException Occurs if the input argument
      * is not either <code>0</code> or <code>1</code> or <code>2</code> or <code>3</code>.
      */
-    public List<SinglesTrigger2019<E, T>> getSinglesTriggers(int triggerNumber) {
+    public List<SinglesTrigger2019<E>> getSinglesTriggers(int triggerNumber) {
         // Return the appropriate trigger list.
         if(triggerNumber == 0) { return getSingles0Triggers(); }
         else if(triggerNumber == 1) { return getSingles1Triggers(); }
@@ -103,7 +103,7 @@ public class SimTriggerModule2019<E, T> {
      * @return Returns the trigger results as a <code>List</code> of
      * <code>SinglesTrigger2019</code> objects.
      */
-    public List<SinglesTrigger2019<E, T>> getSingles0Triggers() {
+    public List<SinglesTrigger2019<E>> getSingles0Triggers() {
         return singles0;
     }
     
@@ -112,7 +112,7 @@ public class SimTriggerModule2019<E, T> {
      * @return Returns the trigger results as a <code>List</code> of
      * <code>SinglesTrigger2019</code> objects.
      */
-    public List<SinglesTrigger2019<E, T>> getSingles1Triggers() {
+    public List<SinglesTrigger2019<E>> getSingles1Triggers() {
         return singles1;
     }
     
@@ -121,7 +121,7 @@ public class SimTriggerModule2019<E, T> {
      * @return Returns the trigger results as a <code>List</code> of
      * <code>SinglesTrigger2019</code> objects.
      */
-    public List<SinglesTrigger2019<E, T>> getSingles2Triggers() {
+    public List<SinglesTrigger2019<E>> getSingles2Triggers() {
         return singles2;
     }
     
@@ -130,7 +130,7 @@ public class SimTriggerModule2019<E, T> {
      * @return Returns the trigger results as a <code>List</code> of
      * <code>SinglesTrigger2019</code> objects.
      */
-    public List<SinglesTrigger2019<E, T>> getSingles3Triggers() {
+    public List<SinglesTrigger2019<E>> getSingles3Triggers() {
         return singles3;
     }
     

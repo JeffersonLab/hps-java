@@ -20,7 +20,7 @@ import org.lcsim.util.Driver;
  * @author Tongtong Cao <caot@jlab.org>
  *
  */
-public class HodoOnlineRawConverterDriver2019 extends Driver {
+public class HodoOnlineRawConverter2019Driver extends Driver {
     private HodoOnlineRawConverter2019 converter = null;
     /**
      * The input LCIO collection name. This can be either a
@@ -44,7 +44,7 @@ public class HodoOnlineRawConverterDriver2019 extends Driver {
     /**
      * Instantiates the <code>HodoOnlineRawConverter2019</code> for this driver.
      */
-    public HodoOnlineRawConverterDriver2019() {
+    public HodoOnlineRawConverter2019Driver() {
         converter = new HodoOnlineRawConverter2019();
     }
 

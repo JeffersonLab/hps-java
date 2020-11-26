@@ -108,7 +108,7 @@ public class TriggerDiagnosticUtil {
     public static final boolean isVerifiable(SSPCluster sspCluster, int nsa, int nsb, int windowWidth) {
         // Check that none of the hits are within the disallowed
         // region of the FADC readout window.
-        if(TriggerModule.getClusterTime(sspCluster) <= nsb || TriggerModule.getClusterTime(sspCluster) >= (windowWidth - nsa)) {
+        if(TriggerModule.getClusterTime(sspCluster) < nsb || TriggerModule.getClusterTime(sspCluster) > (windowWidth - nsa)) {
             return false;
         }
         
@@ -127,7 +127,7 @@ public class TriggerDiagnosticUtil {
     public static final boolean isVerifiable(VTPCluster vtpCluster, int nsa, int nsb, int windowWidth) {
         // Check that none of the hits are within the disallowed
         // region of the FADC readout window.
-        if(TriggerModule2019.getClusterTime(vtpCluster) <= nsb || TriggerModule2019.getClusterTime(vtpCluster) >= (windowWidth - nsa)) {
+        if(TriggerModule2019.getClusterTime(vtpCluster) < nsb || TriggerModule2019.getClusterTime(vtpCluster) > (windowWidth - nsa)) {
             return false;
         }
         
@@ -148,7 +148,7 @@ public class TriggerDiagnosticUtil {
         for(CalorimeterHit hit : reconCluster.getCalorimeterHits()) {
             // Check that none of the hits are within the disallowed
             // region of the FADC readout window.
-            if(hit.getTime() <= nsb || hit.getTime() >= (windowWidth - nsa)) {
+            if(hit.getTime() < nsb || hit.getTime() > (windowWidth - nsa)) {
                 return false;
             }
             
@@ -159,6 +159,36 @@ public class TriggerDiagnosticUtil {
             }
         }
         
+        // If all of the cluster hits pass the time cut, the cluster
+        // is valid.
+        return true;
+    }
+        
+    /**
+     * Checks whether all of the hodoscope hits in a trigger are within the safe region of the FADC output window
+     * @param trigger
+     * @param nsa
+     * @param nsb
+     * @param windowWidth
+     * @return
+     */
+    
+    public static final <E> boolean isVerifiableHodoHits(SinglesTrigger2019<E> trigger, Class<E> clusterType, int nsa, int nsb, int windowWidth) {
+        // Iterate over the hits in the hodoscope hit list of the trigger.
+        // Verify that the cluster type is supported.
+        if (!clusterType.equals(Cluster.class) && !clusterType.equals(VTPCluster.class)) {
+            throw new IllegalArgumentException(
+                    "Class \"" + clusterType.getSimpleName() + "\" is not a supported cluster type.");
+        }
+        
+        for (CalorimeterHit hit : trigger.getHodoHitList()) {
+            // Check that none of the hits are within the disallowed
+            // region of the FADC readout window.
+            if (hit.getTime() < nsb || hit.getTime() > (windowWidth - nsa)) {
+                return false;
+            }
+        }
+
         // If all of the cluster hits pass the time cut, the cluster
         // is valid.
         return true;

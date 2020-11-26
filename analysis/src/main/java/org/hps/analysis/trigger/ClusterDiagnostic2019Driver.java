@@ -29,7 +29,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * <code>ClusterDiagnosticDriver2019</code> performs diagnostic checks on run
+ * <code>ClusterDiagnostic2019Driver</code> performs diagnostic checks on run
  * data to verify that clustering is being performed as expected and that there
  * are no errors occurring. It takes VTP clusters created by the software
  * simulation (simulated clusters) and compares them to VTP clusters reported by
@@ -50,12 +50,12 @@ import org.lcsim.util.aida.AIDA;
  * automatically. Note that a driver to initialize this class must be present in
  * the event chain in order for the diagnostics to initialize and function.
  * 
- * <code>ClusterDiagnosticDriver2019</code> is developed based on
+ * <code>ClusterDiagnostic2019Driver</code> is developed based on
  * <code>ClusterDiagnosticDriver</code>
  * 
  * @author Tongtong Cao <caot@jlab.org>
  */
-public final class ClusterDiagnosticDriver2019 extends Driver {
+public final class ClusterDiagnostic2019Driver extends Driver {
     // === Defines cluster verification statistics.
     // ==============================================================
     
@@ -349,7 +349,7 @@ public final class ClusterDiagnosticDriver2019 extends Driver {
         Set<Point> hitSet = new HashSet<Point>(8);
 
         // Get all eight adjacent hits.
-        xLoop: for (int xMod = -1; xMod <= 2; xMod++) {
+        xLoop: for (int xMod = -1; xMod <= 1; xMod++) {
             // Get the modified x position.
             int hix = ix + xMod;
 
@@ -364,7 +364,7 @@ public final class ClusterDiagnosticDriver2019 extends Driver {
                 hix = ix == -1 ? 1 : -1;
             }
 
-            yLoop: for (int yMod = -1; yMod <= 2; yMod++) {
+            yLoop: for (int yMod = -1; yMod <= 1; yMod++) {
                 // Get the modified y position.
                 int hiy = iy + yMod;
 
@@ -703,7 +703,7 @@ public final class ClusterDiagnosticDriver2019 extends Driver {
                 AIDA.defaultInstance().histogram1D(failedTimeSoftwareClustersTimePlot).fill(reconstructedClusterTime);
                 failedMatchTime++;
                                 
-                // There is a hit at 0 ns, such hit is skipped in hardware, and another
+                // There is a hit before 44 ns, such hit is skipped in hardware, and another
                 // hit after the hit is recorded, which constructs a hardware cluster as seed. 
                 // Another hardware cluster matches software cluster in position.
                 // 
@@ -742,10 +742,31 @@ public final class ClusterDiagnosticDriver2019 extends Driver {
                         System.out.println(TriggerDiagnosticUtil.clusterToString(cluster));
                     }
                 }
-                
             }
             if (pair.isEnergyFailState()) {
                 failedMatchEnergy++;
+                
+                if(debug) {
+                    System.out.println("Event: " + event.getEventNumber() + '\n');
+                    System.out.println("Energy fail software cluster: ");
+                    System.out.println(TriggerDiagnosticUtil.clusterToString(reconstructedCluster));     
+                    System.out.println();
+                    
+                    System.out.println("Software cluster list: ");
+                    for (Cluster cluster : simulatedClusters) {
+                        System.out.println(TriggerDiagnosticUtil.clusterToString(cluster));
+                        for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+                            System.out.println("\t\t> " + toString(hit));
+                        }
+                    }
+                    System.out.println();
+                    
+                    // Output the reported clusters from the hardware.
+                    System.out.println("Hardware Cluster list: ");
+                    for (VTPCluster cluster : hardwareClusters) {
+                        System.out.println(TriggerDiagnosticUtil.clusterToString(cluster));
+                    }
+                }
             }
             if (pair.isHitCountFailState()) {
                 // Increment the general hit count fail state count.
@@ -1622,5 +1643,13 @@ public final class ClusterDiagnosticDriver2019 extends Driver {
      */
     public void setVerbose(boolean state) {
         verbose = state;
+    }
+    
+    /**
+     * Sets whether the debug information should be printed 
+     * @param state
+     */
+    public void setDebug(boolean state) {
+        debug = state;
     }
 }

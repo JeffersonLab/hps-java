@@ -185,7 +185,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the first singles trigger.
      * @return Returns the first singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles1Config() {
+    public SinglesTriggerConfig2019 getSingles0Config() {
         return singlesTrigger[0];
     }
     
@@ -193,7 +193,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the second singles trigger.
      * @return Returns the second singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles2Config() {
+    public SinglesTriggerConfig2019 getSingles1Config() {
         return singlesTrigger[1];
     }
     
@@ -201,7 +201,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the third singles trigger.
      * @return Returns the second singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles3Config() {
+    public SinglesTriggerConfig2019 getSingles2Config() {
         return singlesTrigger[2];
     }
     
@@ -209,7 +209,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the forth singles trigger.
      * @return Returns the second singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles4Config() {
+    public SinglesTriggerConfig2019 getSingles3Config() {
         return singlesTrigger[3];
     }
     
@@ -217,7 +217,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the first pair trigger.
      * @return Returns the first pair trigger configuration.
      */
-    public PairTriggerConfig2019 getPair1Config() {
+    public PairTriggerConfig2019 getPair0Config() {
         return pairTrigger[0];
     }
     
@@ -225,7 +225,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the second pair trigger.
      * @return Returns the second trigger trigger configuration.
      */
-    public PairTriggerConfig2019 getPair2Config() {
+    public PairTriggerConfig2019 getPair1Config() {
         return pairTrigger[1];
     }
     
@@ -233,7 +233,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the third pair trigger.
      * @return Returns the second trigger trigger configuration.
      */
-    public PairTriggerConfig2019 getPair3Config() {
+    public PairTriggerConfig2019 getPair2Config() {
         return pairTrigger[2];
     }
     
@@ -241,7 +241,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the forth pair trigger.
      * @return Returns the second trigger trigger configuration.
      */
-    public PairTriggerConfig2019 getPair4Config() {
+    public PairTriggerConfig2019 getPair3Config() {
         return pairTrigger[3];
     }
     

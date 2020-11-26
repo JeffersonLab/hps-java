@@ -8,18 +8,18 @@ import org.hps.record.daqconfig2019.VTPConfig2019;
 import org.lcsim.event.EventHeader;
 
 /**
- * Class <code>VTPOnlineClusterDriver2019</code> is an implementation of the
+ * Class <code>VTPOnlineCluster2019Driver</code> is an implementation of the
  * <code>ClusterDriver</code> class that defines employs the readout variant of
  * the VTP hardware clustering algorithm. Specifics on the behavior of this
  * algorithm can be found in its documentation.<br/>
  * <br/>
- * <code>VTPOnlineClusterDriver2019</code> allows for all of the variable
+ * <code>VTPOnlineCluster2019Driver</code> allows for all of the variable
  * settings used by the VTP algorithm to be defined. It also can be set to
  * "verbose" mode, where it will output detailed information on each event and
  * the cluster forming process. This is disabled by default, but can be enabled
  * for debugging purposes.<br/>
  * <br/>
- * Lastly, <code>VTPOnlineClusterDriver2019</code> can be set to draw its
+ * Lastly, <code>VTPOnlineCluster2019Driver</code> can be set to draw its
  * settings from the <code>ConfigurationManager2019</code> static class, which
  * reads and stores settings extracted directly from EvIO data. This option is
  * disabled by default, and can be activated with the method
@@ -28,20 +28,20 @@ import org.lcsim.event.EventHeader;
  * requires that the driver <code>DAQConfigDriver2019</code> be included in the
  * driver chain.<br/>
  * <br/>
- * <code>VTPOnlineClusterDriver2019</code> is designed for use on hardware
+ * <code>VTPOnlineCluster2019Driver</code> is designed for use on hardware
  * readout data or Monte Carlo formatted in this style. It can not be used for
  * 2-ns beam bunch formatted data. <code>VTPClusterDriver2019</code> should be
  * used for this data instead.
  * 
- * <code>VTPOnlineClusterDriver2019</code> is developed referring to
+ * <code>VTPOnlineCluster2019Driver</code> is developed referring to
  * <code>GTPOnlineClusterDriver</code>
  * 
  * @author Tongtong Cao <caot@jlab.org>
  * @see GTPOnlineClusterer
  * @see ConfigurationManager2019
- * @see org.hps.record.daqconfig2019.DAQConfigDriver2019
+ * @see org.hps.record.daqconfig2019.DAQConfig2019Driver
  */
-public class VTPOnlineClusterDriver2019 extends ClusterDriver {
+public class VTPOnlineCluster2019Driver extends ClusterDriver {
     /** An instance of the clustering algorithm object for producing
      * cluster objects. */
     private final GTPOnlineClusterer gtp;
@@ -55,7 +55,7 @@ public class VTPOnlineClusterDriver2019 extends ClusterDriver {
      * <code>GTPClusterer</code>.
      * @see VTPOnlineClusterer2019
      */
-    public VTPOnlineClusterDriver2019() {
+    public VTPOnlineCluster2019Driver() {
         // Instantiate the clusterer.
         clusterer = ClustererFactory.create("GTPOnlineClusterer");
         gtp = (GTPOnlineClusterer) clusterer;

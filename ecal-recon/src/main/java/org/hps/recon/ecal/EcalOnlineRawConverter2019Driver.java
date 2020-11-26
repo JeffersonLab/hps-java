@@ -23,12 +23,12 @@ import org.lcsim.util.Driver;
  * org.hps.recon.ecal.EcalRawConverter is called to do most of the lower level
  * work.
  * 
- * <code>EcalOnlineRawConverterDriver2019</code> is developed referring to
+ * <code>EcalOnlineRawConverter2019Driver</code> is developed referring to
  * <code>EcalOnlineRawConverterDriver</code>
  *
  *
  */
-public class EcalOnlineRawConverterDriver2019 extends Driver {
+public class EcalOnlineRawConverter2019Driver extends Driver {
     private EcalOnlineRawConverter2019 converter = null;
     /**
      * The input LCIO collection name. This can be either a
@@ -58,7 +58,7 @@ public class EcalOnlineRawConverterDriver2019 extends Driver {
     /**
      * Instantiates the <code>EcalOnlineRawConverter2019</code> for this driver.
      */
-    public EcalOnlineRawConverterDriver2019() {
+    public EcalOnlineRawConverter2019Driver() {
         converter = new EcalOnlineRawConverter2019();
     }
 

@@ -2,7 +2,6 @@ package org.hps.analysis.trigger;
 
 import org.hps.record.triggerbank.VTPCluster;
 import org.lcsim.event.Cluster;
-import org.lcsim.event.CalorimeterHit;
 
 /**
  * Class <code>SimTriggerData2019</code> is a container class that holds
@@ -16,16 +15,16 @@ import org.lcsim.event.CalorimeterHit;
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class SimTriggerData2019 {
-    private final SimTriggerModule2019<Cluster, CalorimeterHit> softwareClusterTriggers;
-    private final SimTriggerModule2019<VTPCluster, CalorimeterHit> hardwareClusterTriggers;
+    private final SimTriggerModule2019<Cluster> softwareClusterTriggers;
+    private final SimTriggerModule2019<VTPCluster> hardwareClusterTriggers;
     
     /**
      * Instantiates a new <code>SimTriggerData</code> object with empty
      * trigger results modules.
      */
     SimTriggerData2019() {
-        softwareClusterTriggers = new SimTriggerModule2019<Cluster, CalorimeterHit>();
-        hardwareClusterTriggers = new SimTriggerModule2019<VTPCluster, CalorimeterHit>();
+        softwareClusterTriggers = new SimTriggerModule2019<Cluster>();
+        hardwareClusterTriggers = new SimTriggerModule2019<VTPCluster>();
     }
     
     /**
@@ -36,7 +35,7 @@ public class SimTriggerData2019 {
      * @param hardwareClusterTriggers - The module containing triggers
      * simulated from hardware reported clusters.
      */
-    SimTriggerData2019(SimTriggerModule2019<Cluster, CalorimeterHit> softwareClusterTriggers, SimTriggerModule2019<VTPCluster, CalorimeterHit> hardwareClusterTriggers) {
+    SimTriggerData2019(SimTriggerModule2019<Cluster> softwareClusterTriggers, SimTriggerModule2019<VTPCluster> hardwareClusterTriggers) {
         this.softwareClusterTriggers = softwareClusterTriggers;
         this.hardwareClusterTriggers = hardwareClusterTriggers;
     }    
@@ -47,7 +46,7 @@ public class SimTriggerData2019 {
      * @return Returns the trigger data in a <code>SimTriggerModule2019</code>
      * object.
      */
-    public SimTriggerModule2019<VTPCluster, CalorimeterHit> getSimHardwareClusterTriggers() {
+    public SimTriggerModule2019<VTPCluster> getSimHardwareClusterTriggers() {
         return hardwareClusterTriggers;
     }
     
@@ -57,7 +56,7 @@ public class SimTriggerData2019 {
      * @return Returns the trigger data in a <code>SimTriggerModule2019</code>
      * object.
      */
-    public SimTriggerModule2019<Cluster, CalorimeterHit> getSimSoftwareClusterTriggers() {
+    public SimTriggerModule2019<Cluster> getSimSoftwareClusterTriggers() {
         return softwareClusterTriggers;
     }
 }

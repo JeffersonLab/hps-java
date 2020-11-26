@@ -11,7 +11,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
 /**
- * Class <code>DAQConfigDriver2019</code> is responsible for accessing the 2019
+ * Class <code>DAQConfig2019Driver</code> is responsible for accessing the 2019
  * DAQ configuration settings, and then passing them to the associated
  * class <code>ConfigurationManager2019</code> so that they can be accessed
  * by other classes.<br/>
@@ -40,7 +40,7 @@ import org.lcsim.util.Driver;
  * @author Tongtong Cao <caot@jlab.org>
  * @see ConfigurationManager2019
  */
-public class DAQConfigDriver2019 extends Driver {
+public class DAQConfig2019Driver extends Driver {
     private int runNumber = -1;
     private String filepath = null;
     private boolean firstEvent = true;
