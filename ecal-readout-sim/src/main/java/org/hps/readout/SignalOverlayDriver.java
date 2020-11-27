@@ -1,4 +1,4 @@
-package org.hps.util;
+package org.hps.readout;
 
 import java.io.EOFException;
 import java.io.File;
@@ -148,12 +148,12 @@ public class SignalOverlayDriver extends Driver {
     private EventHeader readNextEvent() throws EndOfDataException {
         EventHeader event = null;
         try {
-            LOGGER.info("Reading next event...");
+            LOGGER.fine("Reading next event...");
             event = this.reader.read();
         } catch (EOFException eof) {
             openNextFile();
             try {
-                LOGGER.info("Reading first event in new file...");
+                LOGGER.fine("Reading first event in new file...");
                 event = this.reader.read();
             } catch (IOException e) {
                 e.printStackTrace();
