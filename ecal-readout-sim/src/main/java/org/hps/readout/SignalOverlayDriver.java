@@ -18,13 +18,13 @@ import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 
 /**
- * Overlay signal collections from a side event stream every N events,
- * applying optional event filters to reject events.
+ * Overlay signal event collections every N events, applying optional
+ * filters to reject unwanted events.
  */
 public class SignalOverlayDriver extends Driver {
 
     private static Logger LOGGER =
-            Logger.getLogger(SignalOverlayDriver.class.getCanonicalName());
+            Logger.getLogger(SignalOverlayDriver.class.getPackageName());
     private Queue<String> signalFileNames = new LinkedList<String>();
     private int eventSpacing = 250;
     private int sequence = 0;
