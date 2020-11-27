@@ -1,0 +1,26 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <inputFiles>
+        <file>${beamFile}</file>
+    </inputFiles>
+<!--
+    <control>
+        <numberOfEvents>25000</numberOfEvents>
+    </control>
+-->
+    <execute>
+        <driver name="SignalOverlayDriver"/>
+        <driver name="LCIOWriter"/>
+    </execute>
+    <drivers>
+        <driver name="SignalOverlayDriver" type="org.hps.readout.SignalOverlayDriver">
+            <eventSpacing>250</eventSpacing>
+            <ecalEnergyCut>0.04</ecalEnergyCut>
+<!--            <minHodoHits>1</minHodoHits> -->
+            <signalFile>${signalFile}</signalFile>
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>
+</lcsim>
