@@ -3,6 +3,7 @@ package org.hps.util;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -11,23 +12,88 @@ import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.EventHeader.LCMetaData;
+import org.lcsim.event.SimCalorimeterHit;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.lcio.LCIOReader;
 import org.lcsim.util.Driver;
 
 /**
- * Overlay signal collections from a side event stream every N events.
+ * Overlay signal collections from a side event stream every N events,
+ * applying optional event filters to reject events.
  */
 public class SignalOverlayDriver extends Driver {
 
-    private static Logger LOGGER = Logger.getLogger(SignalOverlayDriver.class.getPackage().getName());
-
+    private static Logger LOGGER =
+            Logger.getLogger(SignalOverlayDriver.class.getCanonicalName());
     private Queue<String> signalFileNames = new LinkedList<String>();
     private int eventSpacing = 250;
     private int sequence = 0;
+    private int nRejected = 0;
+    private int nSignal = 0;
+    private String ecalHitCollection = "EcalHits";
+    private String hodoHitCollection = "HodoscopeHits";
+
     LCIOReader reader = null;
+
+    interface EventFilter {
+        public boolean accept(EventHeader event);
+    }
+
+    class EcalEnergyFilter implements EventFilter {
+
+        double eCut = 0;
+
+        public EcalEnergyFilter(double eCut) {
+            this.eCut = eCut;
+        }
+
+        public boolean accept(EventHeader event) {
+            List<SimCalorimeterHit> ecalHits = event.get(SimCalorimeterHit.class,
+                    SignalOverlayDriver.this.ecalHitCollection);
+            double totalE = 0;
+            for (SimCalorimeterHit hit : ecalHits) {
+                totalE += hit.getRawEnergy();
+            }
+            System.out.println("totalE = " + totalE);
+            return totalE > eCut;
+        }
+    }
+
+    class HodoHitFilter implements EventFilter {
+
+        int nHits = 0;
+
+        public HodoHitFilter(int nHits) {
+            this.nHits = nHits;
+        }
+
+        public boolean accept(EventHeader event) {
+            List<SimTrackerHit> hodoHits = event.get(SimTrackerHit.class,
+                    SignalOverlayDriver.this.hodoHitCollection);
+            return hodoHits.size() >= nHits;
+        }
+    }
+
+    private Set<EventFilter> eventFilters = new HashSet<EventFilter>();
 
     class EndOfDataException extends Exception {
         private static final long serialVersionUID = 1L;
+    }
+
+    public void setMinHodoHits(int nHits) {
+        eventFilters.add(new HodoHitFilter(nHits));
+    }
+
+    public void setHodoHitCollection(String hodoHitCollection) {
+        this.hodoHitCollection = hodoHitCollection;
+    }
+
+    public void setEcalEnergyCut(double eCut) {
+        eventFilters.add(new EcalEnergyFilter(eCut));
+    }
+
+    public void setEcalHitCollection(String ecalHitCollection) {
+        this.ecalHitCollection = ecalHitCollection;
     }
 
     public void setSignalFile(String signalFileName) {
@@ -102,29 +168,61 @@ public class SignalOverlayDriver extends Driver {
         return event;
     }
 
+    private boolean accept(EventHeader event) {
+        for (EventFilter filter : eventFilters) {
+            if (!filter.accept(event)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected void process(EventHeader event) {
-        try {
-            LOGGER.fine("Processing background event: " + event.getEventNumber());
-            if (this.sequence % this.eventSpacing == 0) {
-                EventHeader signalEvent = this.readNextEvent();
-                LOGGER.fine("Read signal event: " + signalEvent.getEventNumber());
-                Set<List> lists = signalEvent.getLists();
-                for (List list : lists) {
-                    LCMetaData meta = signalEvent.getMetaData(list);
-                    String collName = meta.getName();
-                    if (!event.hasItem(collName)) {
-                        event.put(collName, list, meta.getType(), meta.getFlags());
-                    } else {
-                        event.get(meta.getClass(), collName).addAll(list);
-                    }
-                    LOGGER.info("Added " + list.size() + " objects to collection: " + collName);
+        LOGGER.fine("Processing background event: " + event.getEventNumber());
+
+        // Overlay signal event
+        if (this.sequence % this.eventSpacing == 0) {
+
+            // Find the next acceptable signal event
+            EventHeader signalEvent = null;
+            try {
+                signalEvent = this.readNextEvent();
+                while (true) {
+                    if (accept(signalEvent)) break;
+                    LOGGER.fine("Rejected signal event: " + signalEvent.getEventNumber());
+                    nRejected += 1;
+                    signalEvent = this.readNextEvent();
                 }
+            } catch (EndOfDataException e) {
+                throw new RuntimeException("Ran out of signal events!", e);
             }
-            ++this.sequence;
-        } catch (EndOfDataException e) {
-            throw new RuntimeException("Ran out of signal events!");
+            LOGGER.fine("Read signal event: " + signalEvent.getEventNumber());
+
+            // Overlay signal collections onto background event
+            Set<List> lists = signalEvent.getLists();
+            for (List list : lists) {
+                LCMetaData meta = signalEvent.getMetaData(list);
+                String collName = meta.getName();
+                if (!event.hasItem(collName)) {
+                    event.put(collName, list, meta.getType(), meta.getFlags());
+                } else {
+                    event.get(meta.getClass(), collName).addAll(list);
+                }
+                LOGGER.info("Added " + list.size() + " objects to collection: " + collName);
+            }
+
+            ++nSignal;
         }
+
+        ++this.sequence;
+    }
+
+    protected void endOfData() {
+        System.out.println("End event sequence: " + this.sequence);
+        System.out.println("Signal events rejected: " + nRejected);
+        System.out.println("Signal events overlaid: " + nSignal);
     }
 }
 
