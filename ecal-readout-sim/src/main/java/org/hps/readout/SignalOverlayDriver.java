@@ -54,7 +54,7 @@ public class SignalOverlayDriver extends Driver {
             for (SimCalorimeterHit hit : ecalHits) {
                 totalE += hit.getRawEnergy();
             }
-            System.out.println("totalE = " + totalE);
+            LOGGER.fine("ECAL totalE = " + totalE);
             return totalE > eCut;
         }
     }
