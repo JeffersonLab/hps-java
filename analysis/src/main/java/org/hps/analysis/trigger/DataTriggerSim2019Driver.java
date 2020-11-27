@@ -120,7 +120,7 @@ public class DataTriggerSim2019Driver extends Driver {
     // Define trigger simulation modules.
     private boolean[] pairTriggerEnabled = new boolean[4];
     private boolean[] singlesTriggerEnabled = new boolean[4];
-    private boolean[][] pairCutsEnabled = new boolean[4][8];
+    private boolean[][] pairCutsEnabled = new boolean[4][12];
     private boolean[][] singlesCutsEnabled = new boolean[4][9];
     private TriggerModule2019[] singlesTrigger = new TriggerModule2019[4];
     private TriggerModule2019[] pairsTrigger = new TriggerModule2019[4];
@@ -142,6 +142,10 @@ public class DataTriggerSim2019Driver extends Driver {
     private static final int ENERGY_DIFF = 2;
     private static final int ENERGY_SLOPE = 3;
     private static final int COPLANARITY = 4;
+    private static final int PAIR_L1_MATCHING = 5;
+    private static final int PAIR_L2_MATCHING = 6;
+    private static final int PAIR_L1L2_GEO_MATCHING = 7;
+    private static final int PAIR_HODOECAL_GEO_MATCHING = 8;
 
     // Plots
     private AIDA aida = AIDA.defaultInstance();
@@ -273,6 +277,11 @@ public class DataTriggerSim2019Driver extends Driver {
                     pairCutsEnabled[i][3 + ENERGY_SLOPE] = pairs[i].getEnergySlopeCutConfig().isEnabled();
                     pairCutsEnabled[i][3 + COPLANARITY] = pairs[i].getCoplanarityCutConfig().isEnabled();
                 }
+                
+                pairCutsEnabled[3][3+ PAIR_L1_MATCHING] = pairs[3].getL1MatchingConfig().isEnabled();
+                pairCutsEnabled[3][3+ PAIR_L2_MATCHING] = pairs[3].getL2MatchingConfig().isEnabled();
+                pairCutsEnabled[3][3+ PAIR_L1L2_GEO_MATCHING] = pairs[3].getL1L2GeoMatchingConfig().isEnabled();
+                pairCutsEnabled[3][3+ PAIR_HODOECAL_GEO_MATCHING] = pairs[3].getHodoEcalGeoMatchingConfig().isEnabled();
 
                 // In evio, -31 for cluster xmin is written as 33 during DAQ since variable is not set as unsigned
                 if((int)singlesTrigger[0].getCutValue(TriggerModule2019.CLUSTER_XMIN) == 33) singlesTrigger[0].setCutValue(TriggerModule2019.CLUSTER_XMIN, -31);
@@ -802,6 +811,25 @@ public class DataTriggerSim2019Driver extends Driver {
                 boolean passPairEnergySlope = false;
                 boolean passPairCoplanarity = false;
                 boolean passTimeCoincidence = false;
+                
+                // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+                boolean passHodoL1MatchingTop = false;
+                boolean passHodoL2MatchingTop = false;
+                boolean passHodoL1L2MatchingTop = false;
+                boolean passHodoEcalMatchingTop = false;
+                
+                boolean passHodoL1MatchingBot = false;
+                boolean passHodoL2MatchingBot = false;
+                boolean passHodoL1L2MatchingBot = false;
+                boolean passHodoEcalMatchingBot = false;
+                
+                // Save valid hodoscope hits into a list
+                List<CalorimeterHit> hodoHitListTop = new ArrayList<CalorimeterHit>();    
+                List<CalorimeterHit> hodoHitListBot = new ArrayList<CalorimeterHit>();   
+                
+                // hodoscope patterns
+                Map<Integer, HodoscopePattern> patternMapTop = new HashMap<Integer, HodoscopePattern> ();
+                Map<Integer, HodoscopePattern> patternMapBot = new HashMap<Integer, HodoscopePattern> ();
 
                 // Apply the trigger cuts appropriately according to the
                 // cluster type.
@@ -829,7 +857,7 @@ public class DataTriggerSim2019Driver extends Driver {
                                 TriggerModule2019.getValueClusterTotalEnergy(reconPair[1]),
                                 TriggerModule2019.getClusterHitCount(reconPair[1]),
                                 TriggerModule2019.getClusterTime(reconPair[1]));
-                    }
+                    }                    
 
                     // Perform each trigger cut.
                     passClusterLow = pairsTrigger[triggerIndex].clusterTotalEnergyCutLow(reconPair[0])
@@ -844,6 +872,56 @@ public class DataTriggerSim2019Driver extends Driver {
                     passPairEnergySlope = pairsTrigger[triggerIndex].pairEnergySlopeCut(reconPair);
                     passPairCoplanarity = pairsTrigger[triggerIndex].pairCoplanarityCut(reconPair);
                     passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(reconPair);
+                    // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+                    if(triggerIndex == 3) {       
+                        Cluster clusterTop = null;
+                        Cluster clusterBot = null;
+                        if(TriggerModule2019.getClusterYIndex(reconPair[0]) > 0) {
+                            clusterTop = reconPair[0];
+                            clusterBot = reconPair[1];
+                        }
+                        else {
+                            clusterTop = reconPair[1];
+                            clusterBot = reconPair[0];
+                        }
+                        
+                        // Save valid hodoscope hits into a list
+                        for (CalorimeterHit hodoHit : hodoHits) {
+                            if (isHodoHitValid(clusterTop, hodoHit) && channelMap.get(getHodoChannelID(hodoHit)).getIY() == 1) hodoHitListTop.add(hodoHit);
+                            if (isHodoHitValid(clusterBot, hodoHit) && channelMap.get(getHodoChannelID(hodoHit)).getIY() == -1) hodoHitListBot.add(hodoHit);
+                        }
+
+                        // Build hodoscope patterns
+                        patternMapTop = getHodoPatternMap(hodoHitListTop);
+                        patternMapBot = getHodoPatternMap(hodoHitListBot);
+
+                        // trigger bits for top
+                        passHodoL1MatchingTop = pairsTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapTop.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2MatchingTop = singlesTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapTop.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2MatchingTop = singlesTrigger[triggerIndex].geometryHodoL1L2Matching(
+                                patternMapTop.get(SinglesTrigger2019.LAYER1), patternMapTop.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(clusterTop) > 0) {
+                            passHodoEcalMatchingTop = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterTop),
+                                    patternMapTop.get(SinglesTrigger2019.LAYER1),
+                                    patternMapTop.get(SinglesTrigger2019.LAYER2), runNumber);
+                        }
+                        
+                        // trigger bits for bot
+                        passHodoL1MatchingBot = pairsTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapBot.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2MatchingBot = singlesTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapBot.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2MatchingBot = singlesTrigger[triggerIndex].geometryHodoL1L2Matching(
+                                patternMapBot.get(SinglesTrigger2019.LAYER1), patternMapBot.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(clusterBot) > 0) {
+                            passHodoEcalMatchingBot = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterBot),
+                                    patternMapBot.get(SinglesTrigger2019.LAYER1),
+                                    patternMapBot.get(SinglesTrigger2019.LAYER2), runNumber);
+                        }                        
+                    }
+                    
                 } else if (clusterType.equals(VTPCluster.class)) {
                     // Cast the cluster object.
                     VTPCluster[] vtpPair = { (VTPCluster) pair[0], (VTPCluster) pair[1] };
@@ -883,19 +961,55 @@ public class DataTriggerSim2019Driver extends Driver {
                     passPairEnergySlope = pairsTrigger[triggerIndex].pairEnergySlopeCut(vtpPair);
                     passPairCoplanarity = pairsTrigger[triggerIndex].pairCoplanarityCut(vtpPair);
                     passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(vtpPair);
-                }
+                    // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+                    if(triggerIndex == 3) {       
+                        VTPCluster clusterTop = null;
+                        VTPCluster clusterBot = null;
+                        if(TriggerModule2019.getClusterYIndex(vtpPair[0]) > 0) {
+                            clusterTop = vtpPair[0];
+                            clusterBot = vtpPair[1];
+                        }
+                        else {
+                            clusterTop = vtpPair[1];
+                            clusterBot = vtpPair[0];
+                        }
+                          
+                        for (CalorimeterHit hodoHit : hodoHits) {
+                            if (isHodoHitValid(clusterTop, hodoHit) && channelMap.get(getHodoChannelID(hodoHit)).getIY() == 1) hodoHitListTop.add(hodoHit);
+                            if (isHodoHitValid(clusterBot, hodoHit) && channelMap.get(getHodoChannelID(hodoHit)).getIY() == -1) hodoHitListBot.add(hodoHit);
+                        }
 
-                // Create a trigger from the results.
-                PairTrigger2019<E[]> trigger = new PairTrigger2019<E[]>(pair, triggerIndex);
-                trigger.setStateClusterEnergyLow(passClusterLow);
-                trigger.setStateClusterEnergyHigh(passClusterHigh);
-                trigger.setStateHitCount(passHitCount);
-                trigger.setStateEnergySumLow(passPairEnergySumLow);
-                trigger.setStateEnergySumHigh(passPairEnergySumHigh);
-                trigger.setStateEnergyDifference(passPairEnergyDifference);
-                trigger.setStateEnergySlope(passPairEnergySlope);
-                trigger.setStateCoplanarity(passPairCoplanarity);
-                trigger.setStateTimeCoincidence(passTimeCoincidence);
+                        // Build hodoscope patterns
+                        patternMapTop = getHodoPatternMap(hodoHitListTop);
+                        patternMapBot = getHodoPatternMap(hodoHitListBot);
+
+                        // trigger bits for top
+                        passHodoL1MatchingTop = pairsTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapTop.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2MatchingTop = singlesTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapTop.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2MatchingTop = singlesTrigger[triggerIndex].geometryHodoL1L2Matching(
+                                patternMapTop.get(SinglesTrigger2019.LAYER1), patternMapTop.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(clusterTop) > 0) {
+                            passHodoEcalMatchingTop = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterTop),
+                                    patternMapTop.get(SinglesTrigger2019.LAYER1),
+                                    patternMapTop.get(SinglesTrigger2019.LAYER2), runNumber);
+                        }
+                        
+                        // trigger bits for bot
+                        passHodoL1MatchingBot = pairsTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapBot.get(SinglesTrigger2019.LAYER1));
+                        passHodoL2MatchingBot = singlesTrigger[triggerIndex]
+                                .hodoLayerMatching(patternMapBot.get(SinglesTrigger2019.LAYER2));
+                        passHodoL1L2MatchingBot = singlesTrigger[triggerIndex].geometryHodoL1L2Matching(
+                                patternMapBot.get(SinglesTrigger2019.LAYER1), patternMapBot.get(SinglesTrigger2019.LAYER2));
+                        if (TriggerModule2019.getClusterXIndex(clusterBot) > 0) {
+                            passHodoEcalMatchingBot = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterBot),
+                                    patternMapBot.get(SinglesTrigger2019.LAYER1),
+                                    patternMapBot.get(SinglesTrigger2019.LAYER2), runNumber);
+                        }
+                    }
+                }
 
                 if (verbose) {
                     System.out.printf("\t%-5.0f >= N          :: [ %5b ]%n",
@@ -923,8 +1037,60 @@ public class DataTriggerSim2019Driver extends Driver {
                     System.out.printf("\t         C <= %-5.0f :: [ %5b ]%n",
                             pairsTrigger[triggerIndex].getCutValue(TriggerModule2019.PAIR_COPLANARITY_HIGH),
                             passPairCoplanarity);
+                    if(triggerIndex == 3) {
+                        System.out.printf("\tHodo L1 Matching Top  :: [ %5b ]%n",                                
+                                passHodoL1MatchingTop);
+                        System.out.printf("\tHodo L2 Matching Top  :: [ %5b ]%n",                                
+                                passHodoL2MatchingTop);
+                        System.out.printf("\tL1L2 Matching Top     :: [ %5b ]%n",                                
+                                passHodoL1L2MatchingTop);
+                        System.out.printf("\tHodoEcal Matching Top :: [ %5b ]%n",                                
+                                passHodoEcalMatchingTop);
+                        System.out.printf("\tHodo L1 Matching Bot  :: [ %5b ]%n",                                
+                                passHodoL1MatchingBot);
+                        System.out.printf("\tHodo L2 Matching Bot  :: [ %5b ]%n",                                
+                                passHodoL2MatchingBot);
+                        System.out.printf("\tL1L2 Matching    Bot  :: [ %5b ]%n",                                
+                                passHodoL1L2MatchingBot);
+                        System.out.printf("\tHodoEcal Matching Bot :: [ %5b ]%n",                                
+                                passHodoEcalMatchingBot);
+                    }
                 }
 
+                // Create a trigger from the results.
+                PairTrigger2019<E[]> trigger;
+                if (triggerIndex != 3)
+                    trigger = new PairTrigger2019<E[]>(pair, triggerIndex);
+                else {
+                    if (passHodoL1MatchingTop && passHodoL2MatchingTop && passHodoL1L2MatchingTop
+                            && passHodoEcalMatchingTop)
+                        trigger = new PairTrigger2019<E[]>(pair, hodoHitListTop, patternMapTop, triggerIndex);
+                    else if (passHodoL1MatchingBot && passHodoL2MatchingBot && passHodoL1L2MatchingBot
+                            && passHodoEcalMatchingBot)
+                        trigger = new PairTrigger2019<E[]>(pair, hodoHitListBot, patternMapBot, triggerIndex);
+                    else
+                        continue pairTriggerLoop;
+                }
+                    
+                trigger.setStateClusterEnergyLow(passClusterLow);
+                trigger.setStateClusterEnergyHigh(passClusterHigh);
+                trigger.setStateHitCount(passHitCount);
+                trigger.setStateEnergySumLow(passPairEnergySumLow);
+                trigger.setStateEnergySumHigh(passPairEnergySumHigh);
+                trigger.setStateEnergyDifference(passPairEnergyDifference);
+                trigger.setStateEnergySlope(passPairEnergySlope);
+                trigger.setStateCoplanarity(passPairCoplanarity);
+                trigger.setStateTimeCoincidence(passTimeCoincidence);
+                // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+                if(triggerIndex == 3) {  
+                    trigger.setStateHodoL1L2CoincidenceTop(passHodoL1MatchingTop && passHodoL2MatchingTop);
+                    trigger.setStateHodoL1L2MatchingTop(passHodoL1L2MatchingTop);
+                    trigger.setStateHodoEcalMatchingTop(passHodoEcalMatchingTop);
+                    trigger.setStateHodoL1L2CoincidenceBot(passHodoL1MatchingBot && passHodoL2MatchingBot);
+                    trigger.setStateHodoL1L2MatchingBot(passHodoL1L2MatchingBot);
+                    trigger.setStateHodoEcalMatchingBot(passHodoEcalMatchingBot);
+                }
+                
                 // A trigger will only be reported by the VTP if it
                 // passes all of the enabled cuts for that trigger.
                 // Check whether this trigger meets these conditions.

@@ -193,4 +193,34 @@ public class TriggerDiagnosticUtil {
         // is valid.
         return true;
     }
+    
+    /**
+     * Checks whether all of the hodoscope hits in a trigger are within the safe region of the FADC output window
+     * @param trigger
+     * @param nsa
+     * @param nsb
+     * @param windowWidth
+     * @return
+     */
+    
+    public static final <E> boolean isVerifiableHodoHits(PairTrigger2019<E[]> trigger, Class<E> clusterType, int nsa, int nsb, int windowWidth) {
+        // Iterate over the hits in the hodoscope hit list of the trigger.
+        // Verify that the cluster type is supported.
+        if (!clusterType.equals(Cluster.class) && !clusterType.equals(VTPCluster.class)) {
+            throw new IllegalArgumentException(
+                    "Class \"" + clusterType.getSimpleName() + "\" is not a supported cluster type.");
+        }
+        
+        for (CalorimeterHit hit : trigger.getHodoHitList()) {
+            // Check that none of the hits are within the disallowed
+            // region of the FADC readout window.
+            if (hit.getTime() < nsb || hit.getTime() > (windowWidth - nsa)) {
+                return false;
+            }
+        }
+
+        // If all of the cluster hits pass the time cut, the cluster
+        // is valid.
+        return true;
+    }
 }

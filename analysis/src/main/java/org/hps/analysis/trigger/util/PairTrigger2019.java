@@ -1,6 +1,11 @@
 package org.hps.analysis.trigger.util;
 
+import java.util.List;
+import java.util.Map;
+
+import org.hps.readout.util.HodoscopePattern;
 import org.hps.record.triggerbank.TriggerModule2019;
+import org.lcsim.event.CalorimeterHit;
 
 public class PairTrigger2019<E> extends Trigger<E> {
     // Define the supported trigger cuts.
@@ -13,6 +18,18 @@ public class PairTrigger2019<E> extends Trigger<E> {
     private static final String PAIR_ENERGY_SLOPE_LOW = TriggerModule2019.PAIR_ENERGY_SLOPE_LOW;
     private static final String PAIR_COPLANARITY_HIGH = TriggerModule2019.PAIR_COPLANARITY_HIGH;
     private static final String PAIR_TIME_COINCIDENCE = TriggerModule2019.PAIR_TIME_COINCIDENCE;
+    // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+    private static final String PAIR_HODO_L1L2_COINCIDENCE_TOP = "hodoL1L2Top";
+    private static final String PAIR_HODO_L1L2_MATCHING_TOP = "hodoL1L2MatchingTop";
+    private static final String PAIR_HODO_ECAL_MATCHING_TOP = "hodoEcalMatchingTop";
+    private static final String PAIR_HODO_L1L2_COINCIDENCE_BOT = "hodoL1L2Bot";
+    private static final String PAIR_HODO_L1L2_MATCHING_BOT = "hodoL1L2MatchingBot";
+    private static final String PAIR_HODO_ECAL_MATCHING_BOT = "hodoEcalMatchingBot";
+    
+    // Source of hodoscope
+    private List<CalorimeterHit> hodoHitList = null;
+    // hodoscope pattern map
+    private Map<Integer, HodoscopePattern> patternMap = null;
     
     /**
      * Instantiates a new <code>PairTrigger</code> with all cut
@@ -20,6 +37,7 @@ public class PairTrigger2019<E> extends Trigger<E> {
      * defined according to the specified object.
      * @param source - The object from which the trigger cut states
      * are derived.
+     * @param triggerNum - The trigger type
      */
     public PairTrigger2019(E source, int triggerNum) {
         // Instantiate the superclass.
@@ -35,6 +53,68 @@ public class PairTrigger2019<E> extends Trigger<E> {
         addValidCut(PAIR_ENERGY_SLOPE_LOW);
         addValidCut(PAIR_COPLANARITY_HIGH);
         addValidCut(PAIR_TIME_COINCIDENCE);
+        // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+        addValidCut(PAIR_HODO_L1L2_COINCIDENCE_TOP);
+        addValidCut(PAIR_HODO_L1L2_MATCHING_TOP);
+        addValidCut(PAIR_HODO_ECAL_MATCHING_TOP);
+        addValidCut(PAIR_HODO_L1L2_COINCIDENCE_BOT);
+        addValidCut(PAIR_HODO_L1L2_MATCHING_BOT);
+        addValidCut(PAIR_HODO_ECAL_MATCHING_BOT);
+    }
+    
+    /**
+     * Instantiates a new <code>PairTrigger</code> with all cut
+     * states set to <code>false</code> and with the trigger source
+     * defined according to the specified object.
+     * @param source - The object from which the trigger cut states
+     * are derived.
+     * @param hodoHitList - list of hodoscope hits
+     * @param patternMap - map of hodoscope patterns
+     * @param triggerNum - The trigger type
+     */
+    public PairTrigger2019(E source, List<CalorimeterHit> hodoHitList, Map<Integer, HodoscopePattern> patternMap, int triggerNum) {
+        // Instantiate the superclass.
+        super(source, triggerNum);
+        
+        this.hodoHitList = hodoHitList;
+
+        this.patternMap = patternMap;
+        
+        // Add the supported cuts types.
+        addValidCut(CLUSTER_HIT_COUNT_LOW);
+        addValidCut(CLUSTER_TOTAL_ENERGY_LOW);
+        addValidCut(CLUSTER_TOTAL_ENERGY_HIGH);
+        addValidCut(PAIR_ENERGY_SUM_LOW);
+        addValidCut(PAIR_ENERGY_SUM_HIGH);
+        addValidCut(PAIR_ENERGY_DIFFERENCE_HIGH);
+        addValidCut(PAIR_ENERGY_SLOPE_LOW);
+        addValidCut(PAIR_COPLANARITY_HIGH);
+        addValidCut(PAIR_TIME_COINCIDENCE);
+        // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+        addValidCut(PAIR_HODO_L1L2_COINCIDENCE_TOP);
+        addValidCut(PAIR_HODO_L1L2_MATCHING_TOP);
+        addValidCut(PAIR_HODO_ECAL_MATCHING_TOP);
+        addValidCut(PAIR_HODO_L1L2_COINCIDENCE_BOT);
+        addValidCut(PAIR_HODO_L1L2_MATCHING_BOT);
+        addValidCut(PAIR_HODO_ECAL_MATCHING_BOT);
+    }
+    
+    /**
+     * Gets the hodoscope hit list used for trigger.
+     * 
+     * @return Returns the hodoscope hit list.
+     */
+    public List<CalorimeterHit> getHodoHitList() {
+        return hodoHitList;
+    }
+
+    /**
+     * Gets the hodoscope pattern map.
+     * 
+     * @return Returns the hodoscope pattern map.
+     */
+    public Map<Integer, HodoscopePattern> getHodoPatternMap() {
+        return patternMap;
     }
     
     /**
@@ -226,6 +306,126 @@ public class PairTrigger2019<E> extends Trigger<E> {
      */
     public void setStateTimeCoincidence(boolean state) {
         setCutState(PAIR_TIME_COINCIDENCE, state);
+    }
+    
+    /**
+     * Gets whether hodoscope L1L2 coincidence was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateHodoL1L2CoincidenceTop() {
+        return getCutState(PAIR_HODO_L1L2_COINCIDENCE_TOP);
+    }
+
+    /**
+     * Sets whether the condition for hodoscope L1L2 coincidence was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateHodoL1L2CoincidenceTop(boolean state) {
+        setCutState(PAIR_HODO_L1L2_COINCIDENCE_TOP, state);
+    }
+
+    /**
+     * Gets whether hodoscope L1 and L2 matching was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateHodoL1L2MatchingTop() {
+        return getCutState(PAIR_HODO_L1L2_MATCHING_TOP);
+    }
+
+    /**
+     * Sets whether the condition for hodoscope L1 and L2 matching was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateHodoL1L2MatchingTop(boolean state) {
+        setCutState(PAIR_HODO_L1L2_MATCHING_TOP, state);
+    }
+
+    /**
+     * Gets whether hodoscope and Ecal matching was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateHodoEcalMatchingTop() {
+        return getCutState(PAIR_HODO_ECAL_MATCHING_TOP);
+    }
+
+    /**
+     * Sets whether the condition for hodoscope and Ecal matching was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateHodoEcalMatchingTop(boolean state) {
+        setCutState(PAIR_HODO_ECAL_MATCHING_TOP, state);
+    }
+    
+    /**
+     * Gets whether hodoscope L1L2 coincidence was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateHodoL1L2CoincidenceBot() {
+        return getCutState(PAIR_HODO_L1L2_COINCIDENCE_BOT);
+    }
+
+    /**
+     * Sets whether the condition for hodoscope L1L2 coincidence was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateHodoL1L2CoincidenceBot(boolean state) {
+        setCutState(PAIR_HODO_L1L2_COINCIDENCE_BOT, state);
+    }
+
+    /**
+     * Gets whether hodoscope L1 and L2 matching was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateHodoL1L2MatchingBot() {
+        return getCutState(PAIR_HODO_L1L2_MATCHING_BOT);
+    }
+
+    /**
+     * Sets whether the condition for hodoscope L1 and L2 matching was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateHodoL1L2MatchingBot(boolean state) {
+        setCutState(PAIR_HODO_L1L2_MATCHING_BOT, state);
+    }
+
+    /**
+     * Gets whether hodoscope and Ecal matching was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateHodoEcalMatchingBot() {
+        return getCutState(PAIR_HODO_ECAL_MATCHING_BOT);
+    }
+
+    /**
+     * Sets whether the condition for hodoscope and Ecal matching was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateHodoEcalMatchingBot(boolean state) {
+        setCutState(PAIR_HODO_ECAL_MATCHING_BOT, state);
     }
     
     @Override

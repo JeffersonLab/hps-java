@@ -1593,12 +1593,44 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         continue hardwareLoop;
                     }
 
-                    // Lastly, check the coplanarity cut.
+                    // Lastly for pair 0, 1, 2 triggers, check the coplanarity cut.
                     if (hardwarePairTrigger.passCoplanarity() != simPairTrigger.getStateCoplanarity()) {
                         logger.printf(" [ fail; coplanarity  ]%n");
                         continue hardwareLoop;
                     }
-
+                                        
+                    // Only for pair3 trigger
+                    if(triggerType == TriggerType.PAIR3) {
+                        if (hardwarePairTrigger.passL1L2CoincidenceTop() != simPairTrigger.getStateHodoL1L2CoincidenceTop()) {
+                            logger.printf(" [ fail; Hodo L1L2 Coincidence for Top ]%n");
+                            continue hardwareLoop;
+                        }
+                        
+                        if (hardwarePairTrigger.passHodoL1L2MatchingTop() != simPairTrigger.getStateHodoL1L2MatchingTop()) {
+                            logger.printf(" [ fail; Hodo L1L2 Mataching for Top   ]%n");
+                            continue hardwareLoop;
+                        }
+                        
+                        if (hardwarePairTrigger.passHodoEcalMatchingTop() != simPairTrigger.getStateHodoEcalMatchingTop()) {
+                            logger.printf(" [ fail; Hodo Ecal Mataching for Top   ]%n");
+                            continue hardwareLoop;
+                        }
+                        
+                        if (hardwarePairTrigger.passL1L2CoincidenceBot() != simPairTrigger.getStateHodoL1L2CoincidenceBot()) {
+                            logger.printf(" [ fail; Hodo L1L2 Coincidence for Bot ]%n");
+                            continue hardwareLoop;
+                        }
+                        
+                        if (hardwarePairTrigger.passHodoL1L2MatchingBot() != simPairTrigger.getStateHodoL1L2MatchingBot()) {
+                            logger.printf(" [ fail; Hodo L1L2 Mataching for Bot   ]%n");
+                            continue hardwareLoop;
+                        }
+                        
+                        if (hardwarePairTrigger.passHodoEcalMatchingBot() != simPairTrigger.getStateHodoEcalMatchingBot()) {
+                            logger.printf(" [ fail; Hodo Ecal Mataching for Bot   ]%n");
+                            continue hardwareLoop;
+                        }
+                    }                 
                 } else {
                     throw new IllegalArgumentException("Trigger type is unrecongnized or simulated and "
                             + "hardware triggers are of different types.");
@@ -2491,9 +2523,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 // windowWidthHodo + offsetEcal - offsetHodo)
                 // To not cancel too many triggers, we do not set the lower limit
                 if (TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, VTPCluster.class, nsaHodo, nsbHodo,
-                        windowWidthHodo)
-                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) < windowWidthHodo + offsetEcal
-                                - offsetHodo) {
+                        windowWidthHodo) && getTriggerTime(trigger) < windowWidthHodo + offsetEcal - offsetHodo) {
                     hardwareSimTriggers.add(trigger);
                 }
             }
@@ -2508,15 +2538,23 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 if (TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource(), nsaEcal, nsbEcal, windowWidthEcal)
                         && TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, Cluster.class, nsaHodo, nsbHodo,
                                 windowWidthHodo)
-                        && TriggerModule2019.getClusterTime(trigger.getTriggerSource()) < windowWidthHodo + offsetEcal
-                                - offsetHodo) {
+                        && getTriggerTime(trigger) < windowWidthHodo + offsetEcal - offsetHodo) {
                     softwareSimTriggers.add(trigger);
                 }
             }
         } else if (triggerType.isPairTrigger()) {
             // Add all of the VTP triggers.
-            hardwareSimTriggers.addAll(
-                    simTriggers.getSimHardwareClusterTriggers().getPairTriggers(triggerType.getTriggerNumber()));
+            for (PairTrigger2019<VTPCluster[]> trigger : simTriggers.getSimHardwareClusterTriggers().getPairTriggers(triggerType.getTriggerNumber())) {
+                if (triggerType != TriggerType.PAIR3)
+                    hardwareSimTriggers.add(trigger);
+                // Pair3 trigger requires geometry matching for hodoscope and ecal
+                else {
+                    if (TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, VTPCluster.class, nsaHodo, nsbHodo,
+                            windowWidthHodo) && getTriggerTime(trigger) < windowWidthHodo + offsetEcal - offsetHodo)
+                        hardwareSimTriggers.add(trigger);
+                }
+            }
+                    
 
             // Add only the simulated triggers that were generated
             // from clusters that are not at risk of pulse-clipping.
@@ -2525,7 +2563,15 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 if (TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[0], nsaEcal, nsbEcal, windowWidthEcal)
                         && TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[1], nsaEcal, nsbEcal,
                                 windowWidthEcal)) {
-                    softwareSimTriggers.add(trigger);
+                    if (triggerType != TriggerType.PAIR3)
+                        softwareSimTriggers.add(trigger);
+                    // Pair3 trigger requires geometry matching for hodoscope and ecal
+                    else {
+                        if (TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, Cluster.class, nsaHodo, nsbHodo,
+                                windowWidthHodo) && getTriggerTime(trigger) < windowWidthHodo + offsetEcal - offsetHodo)
+                            softwareSimTriggers.add(trigger);
+                    }
+                    
                 }
             }
         }
@@ -2573,44 +2619,13 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         // Update the total count for each type of trigger for the local
         // and global windows.
-
-        hardwareTriggerCount[ALL_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only one
-                                                                                                             // trigger
-                                                                                                             // type, so
-                                                                                                             // size of
-                                                                                                             // only one
-                                                                                                             // trigger
-                                                                                                             // list is
-                                                                                                             // not 0
-        hardwareTriggerCount[LOCAL_WINDOW_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only
-                                                                                                                      // one
-                                                                                                                      // trigger
-                                                                                                                      // type,
-                                                                                                                      // so
-                                                                                                                      // size
-                                                                                                                      // of
-                                                                                                                      // only
-                                                                                                                      // one
-                                                                                                                      // trigger
-                                                                                                                      // list
-                                                                                                                      // is
-                                                                                                                      // not
-                                                                                                                      // 0
+        // Only one trigger type, so size of only one trigger list is not 0.
+        hardwareTriggerCount[ALL_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); 
+        hardwareTriggerCount[LOCAL_WINDOW_TRIGGERS] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); 
+        
         for (TriggerType tsBit : TriggerType.values()) {
-            hardwareTriggerCount[tsBit.ordinal()] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); // Only
-                                                                                                                    // one
-                                                                                                                    // trigger
-                                                                                                                    // type,
-                                                                                                                    // so
-                                                                                                                    // size
-                                                                                                                    // of
-                                                                                                                    // only
-                                                                                                                    // one
-                                                                                                                    // trigger
-                                                                                                                    // list
-                                                                                                                    // is
-                                                                                                                    // not
-                                                                                                                    // 0
+            // Only one trigger type, so size of only one trigger list is not 0.
+            hardwareTriggerCount[tsBit.ordinal()] += hardwareSinglesTriggers.size() + hardwarePairsTriggers.size(); 
         }
         for (Trigger<?> trigger : softwareSimTriggers) {
             if (getTriggerTime(trigger) >= triggerWindowStart && getTriggerTime(trigger) <= triggerWindowEnd) {

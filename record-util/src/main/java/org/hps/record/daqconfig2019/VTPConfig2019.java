@@ -104,6 +104,11 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             pairTrigger[triggerNum].getTimeDifferenceCutConfig().setUpperBound(parser.pairsTimeDiffMax[triggerNum]);
         }
         
+        pairTrigger[3].getL1MatchingConfig().setIsEnabled(parser.pairs3L1MatchingEn);
+        pairTrigger[3].getL2MatchingConfig().setIsEnabled(parser.pairs3L2MatchingEn);
+        pairTrigger[3].getL1L2GeoMatchingConfig().setIsEnabled(parser.pairs3L1L2MatchingEn);
+        pairTrigger[3].getHodoEcalGeoMatchingConfig().setIsEnabled(parser.pairs3L1L2EcalMatchingEn);
+        
         for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
             // Set whether the triggers are enabled or not.
             multiplicityTrigger[triggerNum].setIsEnabled(parser.multEn[triggerNum]);
@@ -326,6 +331,10 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             ps.printf("\t\t\tValue   :: %1.0f ns%n", pairTrigger[triggerNum].getTimeDifferenceCutConfig().getUpperBound());
             ps.println();
         }
+        
+        ps.println("\t\tHodoscope and calorimeter coincidence");
+        ps.printf("\t\t\tEnabled :: %b\t%b\t%b\t%b%n", pairTrigger[3].getL1MatchingConfig().isEnabled(), 
+                pairTrigger[3].getL2MatchingConfig().isEnabled(), pairTrigger[3].getL1L2GeoMatchingConfig().isEnabled(), pairTrigger[3].getHodoEcalGeoMatchingConfig().isEnabled());
         
         // Print the Multiplicity triggers.
         for(int triggerNum = 0; triggerNum < 2; triggerNum++) {

@@ -27,13 +27,13 @@ public class SinglesTrigger2019<E> extends Trigger<E> {
     private static final String HODO_ECAL_MATCHING = "hodoEcalMatching";
 
     // Source of hodoscope
-    private final List<CalorimeterHit> hodoHitList;
+    private List<CalorimeterHit> hodoHitList;
 
     // hodoscope pattern map
-    private final Map<Integer, HodoscopePattern> patternMap;
+    private Map<Integer, HodoscopePattern> patternMap;
 
     // indicate top or bot singles trigger
-    private final int topnbot;
+    private int topnbot;
 
     /**
      * Instantiates a new <code>SinglesTrigger</code> with all cut states set to
@@ -41,6 +41,10 @@ public class SinglesTrigger2019<E> extends Trigger<E> {
      * specified object.
      * 
      * @param source - The object from which the trigger cut states are derived.
+     * @param hodoHitList - list of hodoscope hits
+     * @param patternMap - map of hodoscope patterns
+     * @param triggerNum - trigger type
+     * @param topnbot - top or bot
      */
     public SinglesTrigger2019(E source, List<CalorimeterHit> hodoHitList, Map<Integer, HodoscopePattern> patternMap,
             int triggerNum, int topnbot) {
