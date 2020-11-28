@@ -1062,12 +1062,29 @@ public class DataTriggerSim2019Driver extends Driver {
                 if (triggerIndex != 3)
                     trigger = new PairTrigger2019<E[]>(pair, triggerIndex);
                 else {
+                    // Save all valid hodoscope hits 
+                    List<CalorimeterHit> hodoHitListAll = new ArrayList<CalorimeterHit>();     
+                    
+                    // hodoscope patterns
+                    Map<Integer, HodoscopePattern> patternMapAll = new HashMap<Integer, HodoscopePattern> ();
+                    //Map<Integer, HodoscopePattern> patternMapBot = new HashMap<Integer, HodoscopePattern> ();
+                    
                     if (passHodoL1MatchingTop && passHodoL2MatchingTop && passHodoL1L2MatchingTop
-                            && passHodoEcalMatchingTop)
-                        trigger = new PairTrigger2019<E[]>(pair, hodoHitListTop, patternMapTop, triggerIndex);
+                            && passHodoEcalMatchingTop) {
+                        hodoHitListAll.addAll(hodoHitListTop);
+                        hodoHitListAll.addAll(hodoHitListBot);
+                        patternMapAll.putAll(patternMapTop);
+                        patternMapAll.putAll(patternMapBot);
+                        trigger = new PairTrigger2019<E[]>(pair, hodoHitListAll, patternMapAll, triggerIndex);
+                        }
                     else if (passHodoL1MatchingBot && passHodoL2MatchingBot && passHodoL1L2MatchingBot
-                            && passHodoEcalMatchingBot)
-                        trigger = new PairTrigger2019<E[]>(pair, hodoHitListBot, patternMapBot, triggerIndex);
+                            && passHodoEcalMatchingBot) {
+                        hodoHitListAll.addAll(hodoHitListBot);
+                        hodoHitListAll.addAll(hodoHitListTop);
+                        patternMapAll.putAll(patternMapBot);
+                        patternMapAll.putAll(patternMapTop);
+                        trigger = new PairTrigger2019<E[]>(pair, hodoHitListAll, patternMapAll, triggerIndex);
+                        }
                     else
                         continue pairTriggerLoop;
                 }

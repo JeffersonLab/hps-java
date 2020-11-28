@@ -510,6 +510,36 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     || this.equals(SINGLESTOP3) || this.equals(SINGLESBOT0) || this.equals(SINGLESBOT1)
                     || this.equals(SINGLESBOT2) || this.equals(SINGLESBOT3));
         }
+        
+        /**
+         * Indicates whether this trigger type is a singles top trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.SINGLESTOP0</code> or
+         *         <code>TriggerType.SINGLESTOP1</code> or
+         *         <code>TriggerType.SINGLESTOP2</code> or
+         *         <code>TriggerType.SINGLESTOP3</code>. Otherwise, returns
+         *         <code>false</code>.
+         */
+        public boolean isSinglesTopTrigger() {
+            return (this.equals(SINGLESTOP0) || this.equals(SINGLESTOP1) || this.equals(SINGLESTOP2)
+                    || this.equals(SINGLESTOP3));
+        }
+        
+        /**
+         * Indicates whether this trigger type is a singles bot trigger.
+         * 
+         * @return Returns <code>true</code> if the trigger is of type
+         *         <code>TriggerType.SINGLESBOT0</code> or
+         *         <code>TriggerType.SINGLESBOT1</code> or
+         *         <code>TriggerType.SINGLESBOT2</code> or
+         *         <code>TriggerType.SINGLESBOT3</code>. Otherwise, returns
+         *         <code>false</code>.
+         */
+        public boolean isSinglesBotTrigger() {
+            return (this.equals(SINGLESBOT0) || this.equals(SINGLESBOT1) || this.equals(SINGLESBOT2)
+                    || this.equals(SINGLESBOT3));
+        }
 
         /**
          * Indicates whether this trigger type is a pair trigger.
@@ -1971,6 +2001,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
         // Define the trigger strings.
         final String singlesString = "t = %3.0f; EMin: %5b; EMax: %5b; Hit: %5b; XMin: %5b; PDE: %5b; L1: %5b; L2: %5b; L1L2: %5b; HodoEcal: %5b";
         final String doubleString = "t = %3.0f; EMin: %5b; EMax: %5b; Hit: %5b; Sum: %5b; Diff: %5b; Slope: %5b; Coplanarity: %5b; Time: %5b";
+        final String doubleStringPair3 = "t = %3.0f; EMin: %5b; EMax: %5b; Hit: %5b; Sum: %5b; Diff: %5b; Slope: %5b; Coplanarity: %5b;  Time: %5b; L1L2 Coincidence Top: %5b; L1L2 Matching Top: %5b; HodoEcal Matching Top: %5b; L1L2 Coincidence Bot: %5b; L1L2 Matching Bot: %5b; HodoEcal Matching Bot: %5b";
 
         // If this is singles trigger...
         if (isSinglesTrigger(trigger)) {
@@ -2006,18 +2037,56 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         // If this is a pair trigger...
         if (isPairTrigger(trigger)) {
-            PairTrigger2019<?> pairTrigger = (PairTrigger2019<?>) trigger;
-            StringBuffer triggerText = new StringBuffer(String.format(doubleString, getTriggerTime(trigger),
-                    pairTrigger.getStateClusterEnergyLow(), pairTrigger.getStateClusterEnergyHigh(),
-                    pairTrigger.getStateHitCount(), pairTrigger.getStateEnergySum(),
-                    pairTrigger.getStateEnergyDifference(), pairTrigger.getStateEnergySlope(),
-                    pairTrigger.getStateCoplanarity(), pairTrigger.getStateTimeCoincidence()));
-            if (includeSource) {
-                String[] sourceText = getTriggerSourceText(trigger);
-                triggerText.append("\n\t\t" + sourceText[0]);
-                triggerText.append("\n\t\t" + sourceText[1]);
+            if(triggerType == TriggerType.PAIR3) {
+                PairTrigger2019<?> pairTrigger = (PairTrigger2019<?>) trigger;
+                StringBuffer triggerText = new StringBuffer(String.format(doubleStringPair3, getTriggerTime(trigger),
+                        pairTrigger.getStateClusterEnergyLow(), pairTrigger.getStateClusterEnergyHigh(),
+                        pairTrigger.getStateHitCount(), pairTrigger.getStateEnergySum(),
+                        pairTrigger.getStateEnergyDifference(), pairTrigger.getStateEnergySlope(),
+                        pairTrigger.getStateCoplanarity(), pairTrigger.getStateTimeCoincidence(), 
+                        pairTrigger.getStateHodoL1L2CoincidenceTop(), pairTrigger.getStateHodoL1L2MatchingTop(), pairTrigger.getStateHodoEcalMatchingTop(), 
+                        pairTrigger.getStateHodoL1L2CoincidenceBot(), pairTrigger.getStateHodoL1L2MatchingBot(), pairTrigger.getStateHodoEcalMatchingBot()));
+                if (includeSource) {
+                    String[] sourceText = getTriggerSourceText(trigger);
+                    triggerText.append("\n\t\t" + sourceText[0]);
+                    triggerText.append("\n\t\t" + sourceText[1]);
+                }
+                
+                List<CalorimeterHit> hodoHitList = pairTrigger.getHodoHitList();
+                for (CalorimeterHit hit : hodoHitList) {
+                    Long hodoChannelId = getHodoChannelID(hit);
+                    triggerText.append(String.format(
+                            "\n\t\tHodo hit: y = %3d; layer = %3d; x = %3d; hole = %3d; E = %5.3f;  t = %3.0f",
+                            channelMap.get(hodoChannelId).getIY(), channelMap.get(hodoChannelId).getLayer(),
+                            channelMap.get(hodoChannelId).getIX(), channelMap.get(hodoChannelId).getHole(),
+                            hit.getRawEnergy(), hit.getTime()));
+                }
+                Map<Integer, HodoscopePattern> patternMap = pairTrigger.getHodoPatternMap();
+                triggerText.append(String.format("\n\t\tLayer %d %s", SinglesTrigger2019.LAYER1,
+                        patternMap.get(0)));
+                triggerText.append(String.format("\n\t\tLayer %d %s", SinglesTrigger2019.LAYER2,
+                        patternMap.get(1)));
+                triggerText.append(String.format("\n\t\tLayer %d %s", SinglesTrigger2019.LAYER1,
+                        patternMap.get(2)));
+                triggerText.append(String.format("\n\t\tLayer %d %s", SinglesTrigger2019.LAYER2,
+                        patternMap.get(3)));
+                
+                return triggerText.toString();
             }
-            return triggerText.toString();
+            else {
+                PairTrigger2019<?> pairTrigger = (PairTrigger2019<?>) trigger;
+                StringBuffer triggerText = new StringBuffer(String.format(doubleString, getTriggerTime(trigger),
+                        pairTrigger.getStateClusterEnergyLow(), pairTrigger.getStateClusterEnergyHigh(),
+                        pairTrigger.getStateHitCount(), pairTrigger.getStateEnergySum(),
+                        pairTrigger.getStateEnergyDifference(), pairTrigger.getStateEnergySlope(),
+                        pairTrigger.getStateCoplanarity(), pairTrigger.getStateTimeCoincidence()));
+                if (includeSource) {
+                    String[] sourceText = getTriggerSourceText(trigger);
+                    triggerText.append("\n\t\t" + sourceText[0]);
+                    triggerText.append("\n\t\t" + sourceText[1]);
+                }
+                return triggerText.toString();
+            }
         }
 
         // Otherwise, the trigger type is invalid.
@@ -2035,7 +2104,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
      *                                  an <code>VTPSinglesTrigger</code> object or
      *                                  an <code>VTPPairTrigger</code> object.
      */
-    private static final String getTriggerText(VTPSinglesTrigger trigger) {
+    private final String getTriggerText(VTPSinglesTrigger trigger) {
         // Define the trigger string.
         final String singlesString = "t = %3d; EMin: %5b; EMax: %5b; Hit: %5b; XMin: %5b; PDE: %5b; HodoL1: %5b; HodoL2: %5b; L1L2: %5b; HodoEcal: %5b";
 
@@ -2047,11 +2116,18 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
     }
 
-    private static final String getTriggerText(VTPPairsTrigger trigger) {
+    private final String getTriggerText(VTPPairsTrigger trigger) {
         // Define the trigger string.
         final String doubleString = "t = %3d; EMin: %5b; EMax: %5b; Hit: %5b; Time: %5b; Sum: %5b; Diff: %5b; Slope: %5b; Coplanarity: %5b";
+        final String doubleStringPair3 = "t = %3d; EMin: %5b; EMax: %5b; Hit: %5b; Time: %5b; Sum: %5b; Diff: %5b; Slope: %5b; Coplanarity: %5b; L1L2 Coincidence Top: %5b; L1L2 Matching Top: %5b; HodoEcal Matching Top: %5b; L1L2 Coincidence Bot: %5b; L1L2 Matching Bot: %5b; HodoEcal Matching Bot: %5b";
 
-        StringBuffer triggerText = new StringBuffer(String.format(doubleString, trigger.getTime(), true, true, true,
+        StringBuffer triggerText;
+        
+        if(triggerType == TriggerType.PAIR3) triggerText= new StringBuffer(String.format(doubleStringPair3, trigger.getTime(), true, true, true,
+                true, trigger.passESum(), trigger.passEDiff(), trigger.passESlope(), trigger.passCoplanarity(),
+                trigger.passL1L2CoincidenceTop(), trigger.passHodoL1L2MatchingTop(), trigger.passHodoEcalMatchingTop(), 
+                trigger.passL1L2CoincidenceBot(), trigger.passHodoL1L2MatchingBot(), trigger.passHodoEcalMatchingBot()));
+        else triggerText = new StringBuffer(String.format(doubleString, trigger.getTime(), true, true, true,
                 true, trigger.passESum(), trigger.passEDiff(), trigger.passESlope(), trigger.passCoplanarity()));
 
         return triggerText.toString();
@@ -2524,7 +2600,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 // To not cancel too many triggers, we do not set the lower limit
                 if (TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, VTPCluster.class, nsaHodo, nsbHodo,
                         windowWidthHodo) && getTriggerTime(trigger) < windowWidthHodo + offsetEcal - offsetHodo) {
-                    hardwareSimTriggers.add(trigger);
+                    if(triggerType.isSinglesTopTrigger() && trigger.getTopnbot() == 1) hardwareSimTriggers.add(trigger);
+                    if(triggerType.isSinglesBotTrigger() && trigger.getTopnbot() == 0) hardwareSimTriggers.add(trigger);
                 }
             }
 
@@ -2539,7 +2616,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         && TriggerDiagnosticUtil.isVerifiableHodoHits(trigger, Cluster.class, nsaHodo, nsbHodo,
                                 windowWidthHodo)
                         && getTriggerTime(trigger) < windowWidthHodo + offsetEcal - offsetHodo) {
-                    softwareSimTriggers.add(trigger);
+                    if(triggerType.isSinglesTopTrigger() && trigger.getTopnbot() == 1) softwareSimTriggers.add(trigger);
+                    if(triggerType.isSinglesBotTrigger() && trigger.getTopnbot() == 0) softwareSimTriggers.add(trigger);
                 }
             }
         } else if (triggerType.isPairTrigger()) {
