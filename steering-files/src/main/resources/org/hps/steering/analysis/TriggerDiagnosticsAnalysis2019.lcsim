@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+  <control>
+    <printInputFiles>false</printInputFiles>
+    <printDriversDetailed>false</printDriversDetailed>
+  </control>
+  
+  <execute>
+    <driver name="EventMarkerDriver"/>
+    <driver name="DAQConfig2019"/>
+    <driver name="EcalRawConverter2019"/>
+    <driver name="VTPClusterer2019"/>
+
+    <driver name="HodoRawConverter2019"/>
+
+    <driver name="TriggerSimDriver2019"/>
+
+    <driver name="ClusterDiagnostics2019"/>
+
+    <driver name="SinglesTop0Diagnostics"/>
+    <driver name="SinglesTop1Diagnostics"/>
+    <driver name="SinglesTop2Diagnostics"/>
+    <driver name="SinglesTop3Diagnostics"/>
+
+    <driver name="SinglesBot0Diagnostics"/>
+    <driver name="SinglesBot1Diagnostics"/>
+    <driver name="SinglesBot2Diagnostics"/>
+    <driver name="SinglesBot3Diagnostics"/>
+
+    <driver name="Pair0Diagnostics"/>
+    <driver name="Pair1Diagnostics"/>
+    <driver name="Pair2Diagnostics"/>
+    <driver name="Pair3Diagnostics"/>
+
+    <driver name="LCIOWriter"/>
+    <driver name="CleanupDriver"/>
+    <driver name="AidaSaveDriver"/>
+  </execute>
+  
+  <drivers>
+    <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+      <eventInterval>10000</eventInterval>
+    </driver>
+    
+
+    <driver name="DAQConfig2019" type="org.hps.record.daqconfig2019.DAQConfig2019Driver">
+      <runNumber>${run}</runNumber>
+    </driver>
+
+
+    <driver name="EcalRawConverter2019" type="org.hps.recon.ecal.EcalOnlineRawConverter2019Driver">
+      <ecalCollectionName>EcalCalHits</ecalCollectionName>
+      <rawCollectionName>EcalReadoutHits</rawCollectionName>
+    </driver>
+
+    <driver name="VTPClusterer2019" type="org.hps.recon.ecal.cluster.VTPOnlineCluster2019Driver">
+      <inputHitCollectionName>EcalCalHits</inputHitCollectionName>
+      <useDAQConfig>true</useDAQConfig>
+      <verbose>false</verbose>
+    </driver>
+
+
+    <driver name="HodoRawConverter2019" type="org.hps.recon.ecal.HodoOnlineRawConverter2019Driver">
+      <hodoCollectionName>HodoCalHits</hodoCollectionName>
+      <rawCollectionName>HodoReadoutHits</rawCollectionName>
+    </driver>
+
+
+
+    <driver name="TriggerSimDriver2019" type="org.hps.analysis.trigger.DataTriggerSim2019Driver">
+      <filterUnverifiableClusters>true</filterUnverifiableClusters>
+      <bankCollectionName>VTPBank</bankCollectionName>
+      <clusterCollectionName>EcalClusters</clusterCollectionName>
+      <hodoHitCollectionName>HodoCalHits</hodoHitCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      <verbose>false</verbose>
+      <runNumber>${run}</runNumber>
+    </driver>
+
+
+    <driver name="ClusterDiagnostics2019" type="org.hps.analysis.trigger.ClusterDiagnostic2019Driver">
+      <hitCollectionName>EcalCalHits</hitCollectionName>
+      <bankCollectionName>VTPBank</bankCollectionName>
+      <clusterCollectionName>EcalClusters</clusterCollectionName>
+      <verbose>false</verbose>
+    </driver>
+
+
+    <driver name="SinglesTop0Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESTOP0</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesTop1Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESTOP1</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesTop2Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESTOP2</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesTop3Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESTOP3</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesBot0Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESBOT0</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesBot1Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESBOT1</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesBot2Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESBOT2</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="SinglesBot3Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>SINGLESBOT3</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="Pair0Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>PAIR0</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="Pair1Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>PAIR1</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="Pair2Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>PAIR2</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="Pair3Diagnostics" type="org.hps.analysis.trigger.TriggerDiagnostic2019Driver">
+      <hitEcalCollectionName>EcalCalHits</hitEcalCollectionName>
+      <hitHodoCollectionName>HodoCalHits</hitHodoCollectionName>
+      <bankVTPCollectionName>VTPBank</bankVTPCollectionName>
+      <triggerCollectionName>SimTriggers</triggerCollectionName>
+      
+      <!-- Defines on which trigger verification should be performed.-->
+      <triggerType>PAIR3</triggerType>
+
+      <!-- Define whether events with more than a certain number of hits
+	   should be ignored as noise. Noise event culling occurs when
+	   skipNoiseEvents is enabled, and the threshold for a noise event
+	   is defined by noiseThreshold in units of hits.
+      -->
+      <noiseThresholdEcal>100</noiseThresholdEcal>
+      <skipNoiseEventsEcal>true</skipNoiseEventsEcal>
+      <noiseThresholdHodo>50</noiseThresholdHodo>
+      <skipNoiseEventsHodo>true</skipNoiseEventsHodo>
+      
+      <!-- Define verbosity settings. When verbose is enabled, every event
+	   will produce a full event summary. When printOnVerificationFailure
+	   is enabled, events which include at least one cluster which fails
+	   verification will produce an event summary.
+      -->
+      <verbose>false</verbose>
+      <printOnHardwareSimFailure>false</printOnHardwareSimFailure>
+      <printOnSoftwareSimFailure>false</printOnSoftwareSimFailure>
+      
+      <!-- Determines the size of the local samplings used to populate
+	   the trigger efficiency over time plot. Units are in ms.
+      -->
+      <localWindowSize>300</localWindowSize>
+    </driver>
+
+    <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+      <outputFilePath>${outputFile}.slcio</outputFilePath>
+    </driver>
+
+    <driver name="CleanupDriver"
+	    type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+
+    <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+      <outputFileName>${outputFile}.aida</outputFileName>
+    </driver> 
+
+  </drivers>
+</lcsim>
