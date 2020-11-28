@@ -846,9 +846,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         // Create the efficiency plots from the observed and verified
         // trigger plots, as appropriate.
+        cutTypes.add(CutType.EVENT_TIME);
         for (TriggerType trigger : triggerTypes) {
             if (!isActiveBitRead && !(trigger == null))
-                continue;
+                continue;            
 
             for (CutType cut : cutTypes) {
                 // Only process plots appropriate to the trigger type.
