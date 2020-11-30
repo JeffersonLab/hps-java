@@ -259,6 +259,13 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     private int pulserDataWindow = 48;    
     
     /**
+     * To make time alignment between Ecal and hodoscope detectors, samples of
+     * pulser data may need to be shifted according to readout window offset
+     * difference between Ecal and hodoscope
+     */
+    private int pulserSamplesShift = 0;
+    
+    /**
      * Defines the LCSim collection data for the trigger hits that
      * are produced by this driver when it is emulating Mode-1 or
      * Mode-3.
@@ -457,7 +464,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 
                 // Buffer ADC samples in pulser data
                 for(int i = 0; i < pulserDataWindow; i++) 
-                    adcBuffer.setValue(i, (int)adcSamples[i]);  
+                    adcBuffer.setValue(i - pulserSamplesShift, (int)adcSamples[i]);  
             }
             else {
                 hitCellIDMap.put(rawHitID, 2);
@@ -538,9 +545,13 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 // Get ADC samples for the channel.
                 short[] ADCSamples = rawHitsMap.get(hitCellID).getADCValues(); 
                 
+                // Get digitized samples for MC hits
+                int[] digitizedValue = new int[pulserDataWindow];
+                
                 // Simulate the pulse for each position in the preamp
                 // pulse buffer for the subdetector channel on which the
                 // hit occurred.
+
                 for(int i = 0; i < pulserDataWindow; i++) {
                     // Calculate the voltage deposition for the current
                     // buffer time.
@@ -559,10 +570,21 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                     // An ADC value is not allowed to exceed 4095. If a
                     // larger value is observed, 4096 (overflow) is given
                     // instead. (This corresponds to >2 Volts.)
-                    int digitizedValue = Math.min((int) Math.round(currentValue), (int) Math.pow(2, nBit));
-                    
-                    // Write this value to the ADC buffer.
-                    adcBuffer.setValue(i, digitizedValue + ADCSamples[i]);
+                    digitizedValue[i] = Math.min((int) Math.round(currentValue), (int) Math.pow(2, nBit));                    
+                }
+                
+                // Write this value to the ADC buffer.  
+                // If pulserSamplesShift is larger than 0, merged sample window is [-pulserSamplesShift, pulserDataWindow]
+                if(pulserSamplesShift >= 0) {
+                    for(int i = -pulserSamplesShift; i < 0; i++) adcBuffer.setValue(i , (int)ADCSamples[i + pulserSamplesShift]);
+                    for(int i = 0; i < pulserDataWindow - pulserSamplesShift; i++) adcBuffer.setValue(i, digitizedValue[i] + ADCSamples[i + pulserSamplesShift]);
+                    for(int i = pulserDataWindow - pulserSamplesShift; i < pulserDataWindow; i++) adcBuffer.setValue(i, digitizedValue[i]);
+                }
+                // If pulserSamplesShift is less than 0, merged sample window is [0, -pulserSamplesShift + pulserDataWindow]
+                else {
+                    for(int i = 0; i < -pulserSamplesShift; i++) adcBuffer.setValue(i, digitizedValue[i]);
+                    for(int i = -pulserSamplesShift; i < pulserDataWindow; i++) adcBuffer.setValue(i, digitizedValue[i] + ADCSamples[i + pulserSamplesShift]);
+                    for(int i = pulserDataWindow; i < pulserDataWindow - pulserSamplesShift; i++) adcBuffer.setValue(i, (int)ADCSamples[i + pulserSamplesShift]);
                 }
             }            
         }       
@@ -1689,6 +1711,16 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     public void setPulserDataWindow(int value) {
         pulserDataWindow = value;
     }
+    
+    /**
+     * Sets sample shift between Ecal and hodoscope detectors.
+     * The shift is equal to (Hodo_readout_offset - Ecal_readout_offset) / 4.
+     * @param value - The shift of ADC samples in pulser data in
+     * units of clock-cycles (4 ns intervals).
+     */
+    public void setPulserSamplesShift(int value) {
+        pulserSamplesShift = value;
+    }    
     
     /**
      * Sets the size of the readout window, in units of 4 ns samples.
