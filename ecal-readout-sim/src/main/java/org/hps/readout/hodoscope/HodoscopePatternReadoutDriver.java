@@ -76,7 +76,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
      * Time for hodoscope FADC hits earlier to enter the trigger system than Ecal
      * with unit of ns
      */
-    private double timeEarlierThanEcal = 20.0;
+    private double timeEarlierThanEcal = 0.0;
 
     /**
      * The length of time by which objects produced by this driver are shifted due

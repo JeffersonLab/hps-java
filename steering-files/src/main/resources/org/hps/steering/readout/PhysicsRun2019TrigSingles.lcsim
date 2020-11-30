@@ -377,7 +377,7 @@
 			<persistentTime>60</persistentTime>
 			<!--  Time for hodoscope FADC hits earlier to
 			     enter the trigger system than Ecal with unit of ns -->
-			<timeEarlierThanEcal>20</timeEarlierThanEcal>
+			<timeEarlierThanEcal>0</timeEarlierThanEcal>
 
 			<persistent>false</persistent>
 	</driver>  
