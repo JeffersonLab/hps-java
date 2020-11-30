@@ -1,7 +1,9 @@
 package org.hps.readout;
 
+import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,7 +26,7 @@ import org.lcsim.util.Driver;
 public class SignalOverlayDriver extends Driver {
 
     private static Logger LOGGER =
-            Logger.getLogger(SignalOverlayDriver.class.getPackageName());
+            Logger.getLogger(SignalOverlayDriver.class.getPackage().getName());
     private Queue<String> signalFileNames = new LinkedList<String>();
     private int eventSpacing = 250;
     private int sequence = 0;
@@ -98,6 +100,21 @@ public class SignalOverlayDriver extends Driver {
 
     public void setSignalFile(String signalFileName) {
         this.signalFileNames.add(signalFileName);
+    }
+
+    public void setSignalFileList(String signalFileList) {
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(signalFileList));
+            String line = reader.readLine();
+            while (line != null) {
+                line = reader.readLine();
+                signalFileNames.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setEventSpacing(int eventSpacing) {
@@ -210,7 +227,7 @@ public class SignalOverlayDriver extends Driver {
                 } else {
                     event.get(meta.getClass(), collName).addAll(list);
                 }
-                LOGGER.info("Added " + list.size() + " objects to collection: " + collName);
+                LOGGER.finer("Added " + list.size() + " objects to collection: " + collName);
             }
 
             ++nSignal;
