@@ -299,14 +299,15 @@ public class TriggerModule2019 {
     }    
     
     /**
-     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located in positive part
+     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located
+     * in positive part
+     * 
      * @param x coordinate for a cluster
-     * @return Returns <code>true</code> if the cluster passes the cut
-     * and <code>false</code> if the cluster does not.
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
      */
     public boolean clusterXMinCut(int x) {
-        if(x < -22 || x > 23) throw new IllegalArgumentException(String.format("Parameter \"%d\" is out of X-coordinage range [-22, 23].", x));
-        else return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
+        return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
     }
     
     /**
