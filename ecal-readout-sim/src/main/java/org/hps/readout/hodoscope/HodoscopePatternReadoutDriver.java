@@ -68,6 +68,11 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     private double hodoHitThreshold = 200.0;
 
     /**
+     * Gain scaling factor for raw energy (self-defined unit) of FADC hits
+     */
+    private double gainFactor = 1.25 / 2;
+
+    /**
      * Persistent time for hodoscope FADC hit in unit of ns
      */
     private double persistentTime = 60.0;
@@ -148,7 +153,9 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
                 int hole = channelMap.get(cellID).getHole();
 
                 Point point = new Point(x, hole);
-                energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy);
+                // Energy of hits is scaled except hits at tiles 0 and 4
+                if(x == 0 || x == 4) energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy);
+                else energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy * gainFactor);
             }
         }
 
@@ -365,5 +372,14 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
      */
     public void setTimeEarlierThanEcal(double timeEarlierThanEcal) {
         this.timeEarlierThanEcal = timeEarlierThanEcal;
+    }
+    
+    /**
+     * Set gain factor for raw energy (self-defined unit) of FADC hits
+     * 
+     * @param gain factor for raw energy (self-defined unit) of FADC hits
+     */
+    public void setGainFactor(double gainFactor) {
+        this.gainFactor = gainFactor;
     }
 }
