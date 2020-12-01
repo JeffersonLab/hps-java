@@ -10,12 +10,16 @@ import hep.aida.IHistogramFactory;
 import hep.aida.ITreeFactory;
 import hep.aida.dev.IDevTree;
 import hep.aida.ref.remote.RemoteServer;
+import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 import hep.aida.ref.remote.rmi.interfaces.RmiServer;
 import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 
 public class RemoteAidaServer {
 
     public static void main(String[] args) {
+
+        RmiStoreFactory rsf = new RmiStoreFactory();
+
         String localHost = null;
         try {
             localHost = InetAddress.getLocalHost().getHostName();

@@ -47,9 +47,6 @@ public class RemoteAidaClientTest extends TestCase {
         try {
             System.out.println("Finding remote histogram: " + histPath + "/" + hist1DTitle);
             rh1 = (IHistogram1D) clientTree.find(histPath + "/" + hist1DTitle);
-
-
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
