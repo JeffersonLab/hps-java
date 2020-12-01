@@ -34,8 +34,8 @@ public class SignalOverlayDriver extends Driver {
     private int nSignal = 0;
     private String ecalHitCollection = "EcalHits";
     private String hodoHitCollection = "HodoscopeHits";
-
-    LCIOReader reader = null;
+    private LCIOReader reader = null;
+    private Set<EventFilter> eventFilters = new HashSet<EventFilter>();
 
     interface EventFilter {
         public boolean accept(EventHeader event);
@@ -76,7 +76,29 @@ public class SignalOverlayDriver extends Driver {
         }
     }
 
-    private Set<EventFilter> eventFilters = new HashSet<EventFilter>();
+    class EcalPairFilter implements EventFilter {
+
+        double eCut;
+
+        public EcalPairFilter(double eCut) {
+            this.eCut = eCut;
+        }
+
+        @Override
+        public boolean accept(EventHeader event)  {
+            List<SimCalorimeterHit> ecalHits = event.get(SimCalorimeterHit.class,
+                    SignalOverlayDriver.this.ecalHitCollection);
+            double topE = 0, botE = 0;
+            for (SimCalorimeterHit hit : ecalHits) {
+                if (hit.getIdentifierFieldValue("iy") > 0) {
+                    topE += hit.getRawEnergy();
+                } else {
+                    botE += hit.getRawEnergy();
+                }
+            }
+            return (topE > eCut && botE > eCut);
+        }
+    }
 
     class EndOfDataException extends Exception {
         private static final long serialVersionUID = 1L;
@@ -96,6 +118,10 @@ public class SignalOverlayDriver extends Driver {
 
     public void setEcalHitCollection(String ecalHitCollection) {
         this.ecalHitCollection = ecalHitCollection;
+    }
+
+    public void setEcalPairEnergyCut(double eCut) {
+        eventFilters.add(new EcalPairFilter(eCut));
     }
 
     public void setSignalFile(String signalFileName) {
