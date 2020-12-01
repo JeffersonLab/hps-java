@@ -111,6 +111,12 @@ public final class ClusterDiagnostic2019Driver extends Driver {
      * Indicates the number of failed clusters due to position failure by deadtime issue
      */
     private int failedTimeDeadtime = 0;
+    
+    /**
+     * Indicates the number of failed clusters due to energy failure by deadtime issue
+     */
+    private int failedEnergyDeadtime = 0;
+    
     /**
      * Indicates the number of failed cluster that may have lost a hit due to
      * deadtime issues.
@@ -412,6 +418,7 @@ public final class ClusterDiagnostic2019Driver extends Driver {
         double sigmaFailedNearSeed = Math.sqrt(failedNearSeedThreshold);
         double sigmaFailedDeadtime = Math.sqrt(failedPositionDeadtime);
         double sigmaFailedTimeDeadtime = Math.sqrt(failedTimeDeadtime);
+        double sigmaFailedEnergyDeadtime = Math.sqrt(failedEnergyDeadtime);
         double sigmaFailedNegative = Math.sqrt(failedNegativeEnergyHit);
         double sigmaFailedHCDeadtime = Math.sqrt(failedHitCountDeadtime);
         double sigmaFailedCloneBug = Math.sqrt(failedCloneBug);
@@ -512,6 +519,15 @@ public final class ClusterDiagnostic2019Driver extends Driver {
         } else {
             System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchEnergy / goodSimulatedClusterCount,
                     getRatioError(failedMatchEnergy, sigmaFailedEnergy, goodSimulatedClusterCount, sigmaSimCount));
+        }
+        
+        System.out.printf("\t> Failed (Deadtime)    :: " + countDisp, failedEnergyDeadtime);
+        if (failedEnergyDeadtime == 0 || goodSimulatedClusterCount == 0) {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0);
+        } else {
+            System.out.printf("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedEnergyDeadtime / goodSimulatedClusterCount,
+                    getRatioError(failedEnergyDeadtime, sigmaFailedEnergyDeadtime, goodSimulatedClusterCount,
+                            sigmaSimCount));
         }
 
         if (simulatedClusterCount == 0 || goodSimulatedClusterCount == 0) {
@@ -745,6 +761,11 @@ public final class ClusterDiagnostic2019Driver extends Driver {
             }
             if (pair.isEnergyFailState()) {
                 failedMatchEnergy++;
+                
+                if (reconstructedClusterTime < 32) {
+                    failedEnergyDeadtime++;
+                    continue matchedPairLoop;
+                }
                 
                 if(debug) {
                     System.out.println("Event: " + event.getEventNumber() + '\n');
