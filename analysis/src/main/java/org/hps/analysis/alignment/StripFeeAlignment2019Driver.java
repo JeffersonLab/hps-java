@@ -115,15 +115,36 @@ public class StripFeeAlignment2019Driver extends Driver {
             for (Cluster cluster : clusters) {
                 aida.histogram1D("All Cluster energy", 100, 0., 5.5).fill(cluster.getEnergy());
                 double seedEnergy = ClusterUtilities.findSeedHit(cluster).getCorrectedEnergy();
+                boolean isFiducial = TriggerModule.inFiducialRegion(cluster);
                 if (seedEnergy > _minSeedHitEnergy) {
                     aida.histogram1D("All Cluster energy seed energy > " + _minSeedHitEnergy, 100, 0., 5.5).fill(cluster.getEnergy());
                 }
                 aida.histogram2D("All Cluster energy vs seed energy", 100, 2.5, 5.5, 100, 0.5, 3.5).fill(cluster.getEnergy(), seedEnergy);
                 if (clusters.size() == 1) {
                     aida.histogram2D("All Cluster energy vs seed energy nClusters = 1", 100, 2.5, 5.5, 100, 0.5, 3.5).fill(cluster.getEnergy(), seedEnergy);
+                    aida.histogram1D("All Cluster energy nClusters = 1", 100, 0., 5.5).fill(cluster.getEnergy());
+                    if (isFiducial) {
+                        aida.histogram1D("All Cluster energy nClusters = 1 fiducial", 100, 0., 5.5).fill(cluster.getEnergy());
+                    }
+                    if (seedEnergy > _minSeedHitEnergy) {
+                        aida.histogram1D("All Cluster energy seed energy > " + _minSeedHitEnergy + " nClusters = 1", 100, 0., 5.5).fill(cluster.getEnergy());
+                        if (isFiducial) {
+                            aida.histogram1D("All Cluster energy seed energy > " + _minSeedHitEnergy + " nClusters = 1 fiducial", 100, 0., 5.5).fill(cluster.getEnergy());
+                        }
+                    }
                 }
                 if (clusters.size() == 2) {
                     aida.histogram2D("All Cluster energy vs seed energy nClusters = 2", 100, 2.5, 5.5, 100, 0.5, 3.5).fill(cluster.getEnergy(), seedEnergy);
+                    aida.histogram1D("All Cluster energy seed energy nClusters = 2", 100, 0., 5.5).fill(cluster.getEnergy());
+                    if (isFiducial) {
+                        aida.histogram1D("All Cluster energy nClusters = 2 fiducial", 100, 0., 5.5).fill(cluster.getEnergy());
+                    }
+                    if (seedEnergy > _minSeedHitEnergy) {
+                        aida.histogram1D("All Cluster energy seed energy > " + _minSeedHitEnergy + " nClusters = 2", 100, 0., 5.5).fill(cluster.getEnergy());
+                        if (isFiducial) {
+                            aida.histogram1D("All Cluster energy seed energy > " + _minSeedHitEnergy + " nClusters = 2 fiducial", 100, 0., 5.5).fill(cluster.getEnergy());
+                        }
+                    }
                 }
             }
             if (clusters.size() <= _maxNClusters) {
@@ -336,9 +357,8 @@ public class StripFeeAlignment2019Driver extends Driver {
     public void setMaxDist(double d) {
         _maxDist = d;
     }
-    
-    public void setMaxNClusters(int i)
-    {
+
+    public void setMaxNClusters(int i) {
         _maxNClusters = i;
     }
 }
