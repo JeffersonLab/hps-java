@@ -62,9 +62,9 @@ public class RemoteAidaServer {
         try {
             Random r = new Random();
             for (int i = 0; i < 10 * nEntries; i++) {
-                if (i % 10 == 0) {
-                    System.out.println("Filling entry: " + i);
-                }
+                //if (i % 10 == 0) {
+                //    System.out.println("Filling entry: " + i);
+                //}
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
