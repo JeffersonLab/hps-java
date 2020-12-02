@@ -241,7 +241,7 @@ public class StripSingleFeeDriver extends Driver {
     }
 
     void analyzeCluster(Cluster c) {
-        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+        aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
         if (c.getPosition()[1] > 0.) {
             aida.histogram1D("Top cluster energy", 100, 3.5, 5.5).fill(c.getEnergy());
         } else {
@@ -265,7 +265,7 @@ public class StripSingleFeeDriver extends Driver {
         } else {
             aida.histogram1D("Bottom cluster energy", 100, 3.5, 5.5).fill(c.getEnergy());
         }
-        aida.histogram2D("Cluster x vs y", 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+        aida.histogram2D("Cluster x vs y", 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
         aida.histogram1D("clusterSeedHit energy", 50, 0.5, 4.5).fill(seedHitEnergy);
         aida.histogram1D("cluster nHits", 20, 0., 20.).fill(c.getCalorimeterHits().size());
         aida.histogram2D("clusterSeedHit energy vs energy", 100, 3.5, 5.5, 50, 0.5, 4.5).fill(e, seedHitEnergy);
@@ -277,7 +277,7 @@ public class StripSingleFeeDriver extends Driver {
             } else {
                 aida.histogram1D("Bottom cluster energy " + fid, 100, 3.5, 5.5).fill(c.getEnergy());
             }
-            aida.histogram2D("Cluster x vs y " + fid, 200, -200., 200., 100, -100., 100.).fill(c.getPosition()[0], c.getPosition()[1]);
+            aida.histogram2D("Cluster x vs y " + fid, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
             aida.histogram1D("clusterSeedHit energy " + fid, 50, 0.5, 4.5).fill(seedHitEnergy);
             aida.histogram1D("cluster nHits " + fid, 20, 0., 20.).fill(c.getCalorimeterHits().size());
             aida.histogram2D("clusterSeedHit energy vs energy " + fid, 100, 3.5, 5.5, 50, 0.5, 4.5).fill(e, seedHitEnergy);
