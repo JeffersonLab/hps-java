@@ -2,7 +2,6 @@ package org.hps.recon.filtering;
 
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
-
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
