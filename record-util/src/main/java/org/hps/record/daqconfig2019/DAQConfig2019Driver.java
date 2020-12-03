@@ -41,7 +41,7 @@ import org.lcsim.util.Driver;
  * @see ConfigurationManager2019
  */
 public class DAQConfig2019Driver extends Driver {
-    private int runNumber = -1;
+    private String runNumber = "-1";
     private String filepath = null;
     private boolean firstEvent = true;
     private boolean readDataFiles = false;
@@ -65,7 +65,7 @@ public class DAQConfig2019Driver extends Driver {
             if(filepath == null) {
                 throw new NullPointerException("DAQ settings repository filepath must be defined.");
             } 
-            if(runNumber == -1) {
+            if(runNumber == "-1") {
                 throw new NullPointerException("Run number must be defined.");
             }
             
@@ -115,7 +115,7 @@ public class DAQConfig2019Driver extends Driver {
             // Instantiate an EvIO DAQ parser and feed it the data.
             EvioDAQParser2019 daqConfig = new EvioDAQParser2019();
             for(int i = 0; i < dataFiles.length; i++) {
-                daqConfig.parse(crateNumber[i], runNumber, data[i]);
+                daqConfig.parse(crateNumber[i], Integer.parseInt(runNumber), data[i]);
             }
             
             // Update the configuration manager.
@@ -223,14 +223,14 @@ public class DAQConfig2019Driver extends Driver {
      * Will return <code>-1</code> if the driver is set to read from an
      * EvIO file.
      */
-    protected final int getRunNumber() { return runNumber; }
+    protected final int getRunNumber() { return Integer.parseInt(runNumber); }
     
     /**
      * Sets the run number of the DAQ configuration being processed.
      * This is only used when reading from data files.
      * @param run - The run number of the data files to be used.
      */
-    public void setRunNumber(int run) {
+    public void setRunNumber(String run) {
         runNumber = run;
     }
     

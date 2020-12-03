@@ -160,7 +160,7 @@ public class VTPOnlineCluster2019Driver extends ClusterDriver {
     }
     
     /**
-     * Sets whether GTP settings should be drawn from the EvIO data
+     * Sets whether VTP settings should be drawn from the EvIO data
      * DAQ configuration or read from the steering file. If this is
      * set to <code>true</code>, no clusters will be generated until
      * the static class <code>ConfigurationManager</code> has received
@@ -175,14 +175,14 @@ public class VTPOnlineCluster2019Driver extends ClusterDriver {
     }
     
     /**
-     * Outputs the current GTP settings to the terminal.
+     * Outputs the current VTP settings to the terminal.
      */
     private void logSettings() {
         // Print the cluster driver header.
         System.out.println();
         System.out.println();
         System.out.println("======================================================================");
-        System.out.println("=== GTP Readout Clusterer Settings ===================================");
+        System.out.println("=== VTP Readout Clusterer Settings ===================================");
         System.out.println("======================================================================");
         
         // Output the driver settings.

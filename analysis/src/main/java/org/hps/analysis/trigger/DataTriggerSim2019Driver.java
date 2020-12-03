@@ -73,7 +73,7 @@ import hep.aida.IHistogram1D;
  */
 public class DataTriggerSim2019Driver extends Driver {
     
-    private int runNumber = -1;
+    private String runNumber = "-1";
     
     private HodoscopeConditions hodoConditions = null;
     
@@ -600,7 +600,7 @@ public class DataTriggerSim2019Driver extends Driver {
                                 patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2));
                         if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
-                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER1), patternMap.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                     } else {
                         // Save valid hodoscope hits into a list
@@ -620,7 +620,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
                                     patternMap.get(SinglesTrigger2019.LAYER1),
-                                    patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                     }
 
@@ -679,7 +679,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
                                     patternMap.get(SinglesTrigger2019.LAYER1),
-                                    patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                     } else {
                         // Save valid hodoscope hits into a list
@@ -699,7 +699,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(c) > 0) {
                             passHodoEcalMatching = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(c),
                                     patternMap.get(SinglesTrigger2019.LAYER1),
-                                    patternMap.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMap.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                     }
 
@@ -905,7 +905,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(clusterTop) > 0) {
                             passHodoEcalMatchingTop = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterTop),
                                     patternMapTop.get(SinglesTrigger2019.LAYER1),
-                                    patternMapTop.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMapTop.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                         
                         // trigger bits for bot
@@ -918,7 +918,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(clusterBot) > 0) {
                             passHodoEcalMatchingBot = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterBot),
                                     patternMapBot.get(SinglesTrigger2019.LAYER1),
-                                    patternMapBot.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMapBot.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }                        
                     }
                     
@@ -993,7 +993,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(clusterTop) > 0) {
                             passHodoEcalMatchingTop = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterTop),
                                     patternMapTop.get(SinglesTrigger2019.LAYER1),
-                                    patternMapTop.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMapTop.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                         
                         // trigger bits for bot
@@ -1006,7 +1006,7 @@ public class DataTriggerSim2019Driver extends Driver {
                         if (TriggerModule2019.getClusterXIndex(clusterBot) > 0) {
                             passHodoEcalMatchingBot = geometryEcalHodoMatching(TriggerModule2019.getClusterXIndex(clusterBot),
                                     patternMapBot.get(SinglesTrigger2019.LAYER1),
-                                    patternMapBot.get(SinglesTrigger2019.LAYER2), runNumber);
+                                    patternMapBot.get(SinglesTrigger2019.LAYER2), Integer.parseInt(runNumber));
                         }
                     }
                 }
@@ -1553,11 +1553,10 @@ public class DataTriggerSim2019Driver extends Driver {
     }
     
     /**
-     * Sets the run number of the DAQ configuration being processed.
-     * This is only used when reading from data files.
-     * @param run - The run number of the data files to be used.
+     * Sets the run number.
+     * @param run - The run number
      */
-    public void setRunNumber(int run) {
+    public void setRunNumber(String run) {
         runNumber = run;
     }
     
@@ -1569,7 +1568,7 @@ public class DataTriggerSim2019Driver extends Driver {
      * Will return <code>-1</code> if the driver is set to read from an
      * EvIO file.
      */
-    public final int getRunNumber() { return runNumber; }
+    public final int getRunNumber() { return Integer.parseInt(runNumber); }
     
     
 }

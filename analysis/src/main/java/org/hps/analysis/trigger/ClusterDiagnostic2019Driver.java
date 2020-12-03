@@ -3,6 +3,10 @@ package org.hps.analysis.trigger;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -59,8 +63,13 @@ public final class ClusterDiagnostic2019Driver extends Driver {
     // === Defines cluster verification statistics.
     // ==============================================================
     
+    private String runNumber = "-1";
+    
     // Display information for fail cases out of expectation 
     private boolean debug = false;
+    
+    // Indicate if save information of results in a text file
+    private boolean saveResults = false;
     
     /** Indicates the number of hardware clusters processed. */
     private int hardwareClusterCount = 0;
@@ -421,7 +430,7 @@ public final class ClusterDiagnostic2019Driver extends Driver {
         double sigmaFailedEnergyDeadtime = Math.sqrt(failedEnergyDeadtime);
         double sigmaFailedNegative = Math.sqrt(failedNegativeEnergyHit);
         double sigmaFailedHCDeadtime = Math.sqrt(failedHitCountDeadtime);
-        double sigmaFailedCloneBug = Math.sqrt(failedCloneBug);
+        double sigmaFailedCloneBug = Math.sqrt(failedCloneBug);       
 
         // Get the maximum number of digits needed to display the
         // largest of the counts. This should always be either the
@@ -551,6 +560,134 @@ public final class ClusterDiagnostic2019Driver extends Driver {
             if (!Double.isNaN(localEfficiency)) {
                 AIDA.defaultInstance().cloud2D(runtimeEfficiencyPlot).fill(time, localEfficiency);
             }
+        }
+        
+        // If saveResults is enabled, save information of results into a text file.
+        if(saveResults) {
+            try{
+                String fileName = "trigger_diagnostics_" + runNumber + ".txt";
+                File file = new File(fileName);
+                //if file doesnt exists, then create it
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+                FileWriter fileWritter = new FileWriter(file.getName(),true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                               
+                // Print the global run statistics for cluster verification.
+                bufferWritter.write("Cluster Verification:");
+                bufferWritter.write(String.format("\tSimulated Clusters     :: " + countDisp + "%n", simulatedClusterCount));
+                bufferWritter.write(String.format("\tUnclipped Sim Clusters :: " + countDisp + "%n", goodSimulatedClusterCount));
+                bufferWritter.write(String.format("\tHardware Clusters      :: " + countDisp + "%n", hardwareClusterCount));
+                bufferWritter.write(String.format("\tClusters Matched       :: " + countDisp + "%n", matchedClusters));
+
+                bufferWritter.write(String.format("\tFailed (Position)      :: " + countDisp, failedMatchPosition));
+                if (failedMatchPosition == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchPosition / goodSimulatedClusterCount,
+                            getRatioError(failedMatchPosition, sigmaFailedPosition, goodSimulatedClusterCount, sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\t> Failed (Deadtime)    :: " + countDisp, failedPositionDeadtime));
+                if (failedPositionDeadtime == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedPositionDeadtime / goodSimulatedClusterCount,
+                            getRatioError(failedPositionDeadtime, sigmaFailedDeadtime, goodSimulatedClusterCount,
+                                    sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\t> Failed (Clone Bug)   :: " + countDisp, failedCloneBug));
+                if (failedPositionDeadtime == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedCloneBug / goodSimulatedClusterCount,
+                            getRatioError(failedCloneBug, sigmaFailedCloneBug, goodSimulatedClusterCount, sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\t> Failed (Seed Thresh) :: " + countDisp, failedNearSeedThreshold));
+                if (failedNearSeedThreshold == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedNearSeedThreshold / goodSimulatedClusterCount,
+                            getRatioError(failedNearSeedThreshold, sigmaFailedNearSeed, goodSimulatedClusterCount,
+                                    sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\tFailed (Time)          :: " + countDisp, failedMatchTime));
+                if (failedMatchTime == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchTime / goodSimulatedClusterCount,
+                            getRatioError(failedMatchTime, sigmaFailedTime, goodSimulatedClusterCount, sigmaSimCount)));
+                }
+                
+                bufferWritter.write(String.format("\t> Failed (Deadtime)    :: " + countDisp, failedTimeDeadtime));
+                if (failedTimeDeadtime == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedTimeDeadtime / goodSimulatedClusterCount,
+                            getRatioError(failedTimeDeadtime, sigmaFailedTimeDeadtime, goodSimulatedClusterCount,
+                                    sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\tFailed (Hit Count)     :: " + countDisp, failedMatchHitCount));
+                if (failedMatchHitCount == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchHitCount / goodSimulatedClusterCount,
+                            getRatioError(failedMatchHitCount, sigmaFailedHitCount, goodSimulatedClusterCount, sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\t> Failed (Deadtime)    :: " + countDisp, failedHitCountDeadtime));
+                if (failedHitCountDeadtime == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedHitCountDeadtime / goodSimulatedClusterCount,
+                            getRatioError(failedHitCountDeadtime, sigmaFailedHCDeadtime, goodSimulatedClusterCount,
+                                    sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\t> Failed (Negative En) :: " + countDisp, failedNegativeEnergyHit));
+                if (failedNegativeEnergyHit == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedNegativeEnergyHit / goodSimulatedClusterCount,
+                            getRatioError(failedNegativeEnergyHit, sigmaFailedNegative, goodSimulatedClusterCount,
+                                    sigmaSimCount)));
+                }
+
+                bufferWritter.write(String.format("\tFailed (Energy)        :: " + countDisp, failedMatchEnergy));
+                if (failedMatchEnergy == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedMatchEnergy / goodSimulatedClusterCount,
+                            getRatioError(failedMatchEnergy, sigmaFailedEnergy, goodSimulatedClusterCount, sigmaSimCount)));
+                }
+                
+                bufferWritter.write(String.format("\t> Failed (Deadtime)    :: " + countDisp, failedEnergyDeadtime));
+                if (failedEnergyDeadtime == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("   (%7.3f%% ± %7.3f%%)%n", 100.0 * failedEnergyDeadtime / goodSimulatedClusterCount,
+                            getRatioError(failedEnergyDeadtime, sigmaFailedEnergyDeadtime, goodSimulatedClusterCount,
+                                    sigmaSimCount)));
+                }
+
+                if (simulatedClusterCount == 0 || goodSimulatedClusterCount == 0) {
+                    bufferWritter.write(String.format("\tCluster Efficiency     :: %7.3f%% ± %7.3f%%%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format("\tCluster Efficiency     :: %7.3f%% ± %7.3f%%%n",
+                            100.0 * matchedClusters / goodSimulatedClusterCount,
+                            100.0 * getRatioError(matchedClusters, sigmaMatched, goodSimulatedClusterCount, sigmaSimCount)));
+                }
+                
+                bufferWritter.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }  
         }
     }
 
@@ -1672,5 +1809,21 @@ public final class ClusterDiagnostic2019Driver extends Driver {
      */
     public void setDebug(boolean state) {
         debug = state;
+    }
+    
+    /**
+     * Sets whether information of results is saved into a text file
+     * @param state
+     */
+    public void setSaveResults(boolean state) {
+        saveResults = state;
+    }
+    
+    /**
+     * Sets the run number.
+     * @param run - The run number
+     */
+    public void setRunNumber(String run) {
+        runNumber = run;
     }
 }

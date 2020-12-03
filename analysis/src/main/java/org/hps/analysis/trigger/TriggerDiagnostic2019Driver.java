@@ -2,6 +2,10 @@ package org.hps.analysis.trigger;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -74,6 +78,11 @@ import org.lcsim.util.aida.AIDA;
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class TriggerDiagnostic2019Driver extends Driver {
+    private String runNumber = "-1";
+    
+    // Indicate if save information of results in a text file
+    private boolean saveResults = false;
+    
     // Get a copy of the calorimeter conditions for the detector.
     private HodoscopeConditions hodoConditions = null;
 
@@ -819,6 +828,77 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         trigger.toString(), softwareSimColumn, hardwareSimColumn);
             }
         }
+        
+        // If saveResults is enabled, save information of results into a text file.
+        if(saveResults) {
+            try{
+                String fileName = "trigger_diagnostics_" + runNumber + ".txt";
+                File file = new File(fileName);
+                //if file doesnt exists, then create it
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+                FileWriter fileWritter = new FileWriter(file.getName(),true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+
+                // Output the trigger efficiency statistics header.
+                bufferWritter.write("\n");
+                bufferWritter.write("======================================================================");
+                bufferWritter.write("=== Trigger Efficiency - " + triggerType.toString() + " "
+                        + generateLine(44 - triggerType.toString().length()));
+                bufferWritter.write("======================================================================");
+
+                // Output the global trigger statistics.
+                bufferWritter.write("Global Efficiency:");
+                bufferWritter.write(String.format("Total Hardware Triggers       :: " + charDisplay + "%n", hardwareTriggerCount[ALL_TRIGGERS]));
+                bufferWritter.write(String.format("Total Software Sim Triggers   :: " + charDisplay + "%n",
+                        simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]));
+                bufferWritter.write(String.format("Total Hardware Sim Triggers   :: " + charDisplay + "%n",
+                        simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]));
+                bufferWritter.write(String.format("Matched Software Sim Triggers :: " + charDisplay + "%n",
+                        matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]));
+                bufferWritter.write(String.format("Matched Hardware Sim Triggers :: " + charDisplay + "%n",
+                        matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]));
+
+                bufferWritter.write(String.format("Software Sim Efficiency       :: " + charDisplay + " / " + charDisplay,
+                        matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                        simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]));
+                if (simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] == 0
+                        || matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS] == 0) {
+                    bufferWritter.write(String.format(" (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format(" (%7.3f%% ± %7.3f%%)%n",
+                            100.0 * matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]
+                                    / simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                            getRatioError(matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                                    Math.sqrt(matchedTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]),
+                                    simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
+                                    Math.sqrt(simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS]))));
+                }
+
+                bufferWritter.write(String.format("Hardware Sim Efficiency       :: " + charDisplay + " / " + charDisplay,
+                        matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS],
+                        simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]));
+                if (simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS] == 0
+                        || matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS] == 0) {
+                    bufferWritter.write(String.format(" (%7.3f%% ± %7.3f%%)%n", 0.0, 0.0));
+                } else {
+                    bufferWritter.write(String.format(" (%7.3f%% ± %7.3f%%)%n",
+                            100.0 * matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]
+                                    / simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS],
+                            getRatioError(matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS],
+                                    Math.sqrt(matchedTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]),
+                                    simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS],
+                                    Math.sqrt(simTriggerCount[SOURCE_VTP_CLUSTER][ALL_TRIGGERS]))));
+                }
+                
+                bufferWritter.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
+        
 
         // Create and populate the efficiency over time plot.
         AIDA.defaultInstance().cloud2D(moduleHeader + "Software Sim Trigger Efficiency", efficiencyPlotEntries.size());
@@ -2987,6 +3067,22 @@ public class TriggerDiagnostic2019Driver extends Driver {
      */
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+    
+    /**
+     * Sets whether information of results is saved into a text file
+     * @param state
+     */
+    public void setSaveResults(boolean state) {
+        saveResults = state;
+    }
+    
+    /**
+     * Sets the run number.
+     * @param run - The run number
+     */
+    public void setRunNumber(String run) {
+        runNumber = run;
     }
 
     /**
