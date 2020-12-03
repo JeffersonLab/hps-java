@@ -1,5 +1,6 @@
 package org.hps.online.recon;
 
+import java.util.Date;
 import java.util.Random;
 
 import hep.aida.IAnalysisFactory;
@@ -35,32 +36,34 @@ public class DataPointSetTest extends TestCase {
         IPlotter plotter = pf.create("Plot IDataPointSets");
 
         IPlotterStyle dateAxisStyle = pf.createPlotterStyle();
-        //dateAxisStyle.xAxisStyle().setParameter("type", "date");
+        dateAxisStyle.xAxisStyle().setParameter("type", "date");
 
         IPlotterRegion region = plotter.createRegion();
         region.plot(dps2D, dateAxisStyle);
         plotter.show();
 
         int entries = 9999;
-        long waitTime = 500;
+        long waitTime = 1000;
 
         Random r = new Random();
 
         for (int i = 0; i < entries; i++) {
 
+            long curr = System.currentTimeMillis() / 1000;
+
             dps2D.addPoint();
-            dps2D.point(i).coordinate(0).setValue(i);
+            dps2D.point(i).coordinate(0).setValue(curr);
             dps2D.point(i).coordinate(0).setErrorPlus(0);
             dps2D.point(i).coordinate(1).setValue(r.nextGaussian());
             dps2D.point(i).coordinate(1).setErrorPlus(0);
             dps2D.point(i).coordinate(1).setErrorMinus(0);
 
-            if (i > 10) {
-                AxisStyle xStyle = (AxisStyle) region.style().xAxisStyle();
-                xStyle.setLowerLimit(Integer.toString(i - 10).toString());
-                xStyle.setUpperLimit(Integer.toString(i + 10).toString());
-                region.refresh();
-            }
+            long before = curr - 10L;
+            long after = curr + 10L;
+            AxisStyle xStyle = (AxisStyle) region.style().xAxisStyle();
+            xStyle.setLowerLimit(Long.toString(before).toString());
+            xStyle.setUpperLimit(Long.toString(after).toString());
+            region.refresh();
 
             try {
                 Thread.sleep(waitTime);
