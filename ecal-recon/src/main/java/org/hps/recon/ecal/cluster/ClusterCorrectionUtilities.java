@@ -25,8 +25,12 @@ public final class ClusterCorrectionUtilities {
     static final double NOISE_C = 3.01E-4;
 
     static final int N_ITERATIONS_2019 = 5;
-    
+
     static final Random random = new Random();
+
+    static final double deltaClusterEnergy_thr2019 = 0.5 / 100; // relative deltaE/E
+    static final double deltaClusterX_thr2019 = 0.5; // abs dX in mm
+    static final double deltaClusterY_thr2019 = 0.5; // abs dY in mm
 
     // Calculate the noise factor to smear the Ecal energy by
     public static double calcNoise(double energy) {
@@ -34,22 +38,72 @@ public final class ClusterCorrectionUtilities {
     }
 
     /**
-     * Apply HPS-specific energy and position corrections to a list of clusters
-     * in place.
+     * Apply HPS-specific energy and position corrections to a list of clusters in
+     * place.
      *
      * @param clusters The list of clusters.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, List<Cluster> clusters, boolean isMC) {
         // Loop over the clusters.
+        boolean addNoise = false;
         for (Cluster cluster : clusters) {
             if (cluster instanceof BaseCluster) {
                 BaseCluster baseCluster = (BaseCluster) cluster;
-                // Apply PID based position correction, which should happen before final energy correction.
-                ClusterPositionCorrection.setCorrectedPosition(baseCluster);
+                // Apply PID based position correction, which should happen before final energy
+                // correction.
+
+                baseCluster.setNeedsPropertyCalculation(false); // should have been set already before calling this -
+                // just in case.
+                double clusterPosition_NC[] = baseCluster.getPosition();
+                double clusterEnergy_NC = baseCluster.getEnergy();
+
                 // Apply PID based energy correction:
                 if (beamEnergy > 4.0) {
-                    ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
+                    for (int it = 0; it < N_ITERATIONS_2019; it++) {
+                        if (it == 0)
+                            addNoise = true;
+                        else
+                            addNoise = false;
+
+                        // get the cluster energy and cluster position from last iteration
+                        double clusterPosition[] = baseCluster.getPosition();
+                        double clusterEnergy = baseCluster.getEnergy();
+
+                        // To correct the energy, need the correct position - from previous iteration -
+                        // and the raw energy
+                        baseCluster.setPosition(clusterPosition);
+                        baseCluster.setEnergy(clusterEnergy_NC);
+                        ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC, addNoise);
+                        double clusterEnergy_C = baseCluster.getEnergy();
+
+                        // To correct the position, need the correct energy - from previous iteration -
+                        // and the raw position
+                        baseCluster.setEnergy(clusterEnergy);
+                        baseCluster.setPosition(clusterPosition_NC);
+                        ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
+
+                        // now set back the energy after correction (the position is already set)
+                        baseCluster.setEnergy(clusterEnergy_C);
+
+                        // absolute POS, relative in energy
+                        double deltaClusterEnergy = clusterEnergy - clusterEnergy_C;
+                        double deltaClusterX = clusterPosition[0] - baseCluster.getPosition()[0];
+                        double deltaClusterY = clusterPosition[1] - baseCluster.getPosition()[1];
+
+                        // A.C. : add a condition on the relative variation of the energy before-after
+                        // iteration
+                        // add a condition on the absolute variation of the position before-after
+                        // iteration
+                        // if all are satisfied, break the loop
+                        if ((Math.abs(deltaClusterEnergy / clusterEnergy) < deltaClusterEnergy_thr2019)
+                                && (Math.abs(deltaClusterX) < deltaClusterX_thr2019)
+                                && (Math.abs(deltaClusterY) < deltaClusterY_thr2019)) {
+                            break;
+                        }
+
+                    }
                 } else {
+                    ClusterPositionCorrection.setCorrectedPosition(baseCluster);
                     ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
                 }
             }
@@ -57,30 +111,78 @@ public final class ClusterCorrectionUtilities {
     }
 
     /**
-     * Apply HPS-specific energy and position corrections to a cluster without
-     * track information. In this case, cluster is the non-corrected cluster - neither the energy correction or the position correction was applied
+     * Apply HPS-specific energy and position corrections to a cluster without track
+     * information. In this case, cluster is the non-corrected cluster - neither the
+     * energy correction or the position correction was applied
      *
      * @param cluster The input cluster.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, boolean isMC) {
+
         if (cluster instanceof BaseCluster) {
+
             BaseCluster baseCluster = (BaseCluster) cluster;
-       
+            boolean addNoise = false;
             // Apply PID based energy correction.
             if (beamEnergy > 4.0) {
-                //here we need to play a little bit. 
-                //ClusterEnergyCorrection2019 requires the CORRECT position and the RAW energy
-                //ClusterPositionCorrection2019 requires the CORRECT energy and the RAW position.
-                //Idea: iterate from the non-corrected values     
-                for (int it=0;it<N_ITERATIONS_2019;it++) {
-                    ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC);
+                // here we need to play a little bit.
+                // ClusterEnergyCorrection2019 requires the CORRECT position and the RAW energy
+                // ClusterPositionCorrection2019 requires the CORRECT energy and the RAW
+                // position.
+                // Idea: iterate from the non-corrected values
+
+                baseCluster.setNeedsPropertyCalculation(false); // should have been set already before calling this -
+                                                                // just in case.
+                double clusterPosition_NC[] = baseCluster.getPosition();
+                double clusterEnergy_NC = baseCluster.getEnergy();
+
+                for (int it = 0; it < N_ITERATIONS_2019; it++) {
+                    if (it == 0)
+                        addNoise = true;
+                    else
+                        addNoise = false;
+
+                    // get the cluster energy and cluster position from last iteration
+                    double clusterPosition[] = baseCluster.getPosition();
+                    double clusterEnergy = baseCluster.getEnergy();
+
+                    // To correct the energy, need the correct position - from previous iteration -
+                    // and the raw energy
+                    baseCluster.setPosition(clusterPosition);
+                    baseCluster.setEnergy(clusterEnergy_NC);
+                    ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC, addNoise);
+                    double clusterEnergy_C = baseCluster.getEnergy();
+
+                    // To correct the position, need the correct energy - from previous iteration -
+                    // and the raw position
+                    baseCluster.setEnergy(clusterEnergy);
+                    baseCluster.setPosition(clusterPosition_NC);
                     ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
-                    
-                    //absolute POS, relative in energy
-                }             
-            
+
+                    // now set back the energy after correction (the position is already set)
+                    baseCluster.setEnergy(clusterEnergy_C);
+
+                    // absolute POS, relative in energy
+                    double deltaClusterEnergy = clusterEnergy - clusterEnergy_C;
+                    double deltaClusterX = clusterPosition[0] - baseCluster.getPosition()[0];
+                    double deltaClusterY = clusterPosition[1] - baseCluster.getPosition()[1];
+
+                    // A.C. : add a condition on the relative variation of the energy before-after
+                    // iteration
+                    // add a condition on the absolute variation of the position before-after
+                    // iteration
+                    // if all are satisfied, break the loop
+                    if ((Math.abs(deltaClusterEnergy / clusterEnergy) < deltaClusterEnergy_thr2019)
+                            && (Math.abs(deltaClusterX) < deltaClusterX_thr2019)
+                            && (Math.abs(deltaClusterY) < deltaClusterY_thr2019)) {
+                        break;
+                    }
+
+                }
+
             } else {
-                // Apply PID based position correction, which should happen before final energy correction.
+                // Apply PID based position correction, which should happen before final energy
+                // correction.
                 ClusterPositionCorrection.setCorrectedPosition(baseCluster);
                 ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, isMC);
             }
@@ -88,22 +190,27 @@ public final class ClusterCorrectionUtilities {
     }
 
     /**
-     * Apply HPS-specific energy and position corrections to a cluster with
-     * track information.
-     * In this case, ypos is the y position of the cluster, determined from clustering
+     * Apply HPS-specific energy and position corrections to a cluster with track
+     * information. In this case, ypos is the y position of the cluster, determined
+     * from clustering
+     * 
      * @param cluster The input cluster.
      */
     public static void applyCorrections(double beamEnergy, HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
         if (cluster instanceof BaseCluster) {
             BaseCluster baseCluster = (BaseCluster) cluster;
-          
-              if (beamEnergy > 4.0) {
-                //Apply energy correction - this depends on the non-corrected energy (from baseCluster) and ypos, from tracking.
+
+            if (beamEnergy > 4.0) {
+                // Apply energy correction - this depends on the non-corrected energy (from
+                // baseCluster) and ypos, from tracking.
                 ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
-                //Now the energy is correct, can use the 2019 correction. Note that the order is different from below, since 2019 corrections are based on the CORRECTED ENERGY
+                // Now the energy is correct, can use the 2019 correction. Note that the order
+                // is different from below, since 2019 corrections are based on the CORRECTED
+                // ENERGY
                 ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
             } else {
-                // Apply PID based position correction, which should happen before final energy correction.
+                // Apply PID based position correction, which should happen before final energy
+                // correction.
                 ClusterPositionCorrection.setCorrectedPosition(baseCluster);
                 // Apply PID based energy correction.
                 ClusterEnergyCorrection.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);

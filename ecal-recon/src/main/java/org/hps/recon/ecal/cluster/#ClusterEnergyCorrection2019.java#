@@ -323,9 +323,9 @@ public final class ClusterEnergyCorrection2019 {
      *
      * @param cluster The input cluster.
      */
-    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC,boolean addNoise) {
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
         double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
-        if (isMC&&addNoise) {
+        if (isMC) {
             correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
         }
         cluster.setEnergy(correctedEnergy);

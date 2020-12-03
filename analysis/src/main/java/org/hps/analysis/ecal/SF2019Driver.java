@@ -21,12 +21,14 @@ import org.lcsim.util.aida.AIDA;
 
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.base.BaseCluster;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.detector.ecal.HPSEcalDetectorElement;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 
 /**
  * This driver is used to check the Sampling Fraction correction for the 2019 run,
@@ -67,6 +69,8 @@ public class SF2019Driver extends Driver {
     double BEAMGAPBOTC;
 
     static int MC_GENERATED_PARTICLE = 1;
+    
+    int PID;
 
     HPSEcal3 ecal;
 
@@ -75,6 +79,10 @@ public class SF2019Driver extends Driver {
         this.E0 = beamE;
         minHistoE = E0 * 0.1;
         maxHistoE = E0 * 1.2;
+    }
+    
+    public void setPid(int pid) {
+        PID=pid;
     }
 
     @Override
@@ -107,6 +115,34 @@ public class SF2019Driver extends Driver {
         aida.histogram2D("hitPositionDistancevsE_ScoringPlane", 200, -100., 100., 700, 0.5 * E0, 1.2 * E0);
         aida.histogram2D("hitPositionDistancevsE_Cluster", 200, -100., 100., 700, 0.5 * E0, 1.2 * E0);
 
+        
+        
+        aida.histogram2D("dx_vs_xCluster", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dx_vs_yCluster", 200, -100., 100.,400,-50,50);
+        aida.histogram2D("dy_vs_xCluster", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dy_vs_yCluster", 200, -100., 100.,400,-50,50);
+        
+        aida.histogram2D("dx_vs_xScoringPlane", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dx_vs_yScoringPlane", 200, -100., 100.,400,-50,50);
+        aida.histogram2D("dy_vs_xScoringPlane", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dy_vs_yScoringPlane", 200, -100., 100.,400,-50,50);
+        
+        
+        
+        aida.histogram2D("dx_vs_xCluster_corr", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dx_vs_yCluster_corr", 200, -100., 100.,400,-50,50);
+        aida.histogram2D("dy_vs_xCluster_corr", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dy_vs_yCluster_corr", 200, -100., 100.,400,-50,50);
+        
+        aida.histogram2D("dx_vs_xScoringPlane_corr", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dx_vs_yScoringPlane_corr", 200, -100., 100.,400,-50,50);
+        aida.histogram2D("dy_vs_xScoringPlane_corr", 350, -350., 350.,400,-50,50);
+        aida.histogram2D("dy_vs_yScoringPlane_corr", 200, -100., 100.,400,-50,50);
+
+        
+        aida.histogram2D("xScoringPlane_vs_xCluster", 100, -350., 350., 100, -350., 350.);
+        aida.histogram2D("yScoringPlane_vs_yCluster", 100, -100., 100., 100, -100., 100.);
+        
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
 
         // distance to beam gap edge
@@ -159,7 +195,7 @@ public class SF2019Driver extends Driver {
 
         double matchingPoint = 35;
 
-
+       
         if ((xpos < posM.x()) || (xpos > posP.x())) {
             if (ypos > 0) {
                 r = Math.abs(ypos - BEAMGAPTOP);
@@ -200,6 +236,7 @@ public class SF2019Driver extends Driver {
 
         double xpos, ypos;
         double xClus, yClus;
+        double dX,dY;
 
         double edgeDistance_clus;
         double edgeDistance_pos;
@@ -208,11 +245,11 @@ public class SF2019Driver extends Driver {
         boolean flagMCgenerator = false;
         Hep3Vector scoringP = new BasicHep3Vector(0, 0, 0);
         Hep3Vector scoringX = new BasicHep3Vector(0, 0, 0);
+        
+        
 
-
-
-
-
+      
+        
 
         /*Determine the generated particle*/
         List<MCParticle> mcParticles = event.get(MCParticle.class, "MCParticle");
@@ -229,8 +266,8 @@ public class SF2019Driver extends Driver {
             return;
         }
 
-
-
+        
+        
         MCParticle.SimulatorStatus simstat = fee.getSimulatorStatus();
 
         if (simstat.isDecayedInCalorimeter()) {
@@ -288,6 +325,9 @@ public class SF2019Driver extends Driver {
 
                 xClus = clus.getPosition()[0];
                 yClus = clus.getPosition()[1];
+                
+                dX=xClus-xpos;
+                dY=yClus-ypos;
 
                 aida.histogram2D("hitPositionEcal_ScoringPlane").fill(xpos, ypos);
                 aida.histogram2D("hitPositionEcal_Cluster").fill(xClus, yClus);
@@ -304,7 +344,45 @@ public class SF2019Driver extends Driver {
 
                 aida.histogram2D("hitPositionDistancevsE_ScoringPlane").fill(edgeDistance_pos, clusE);
                 aida.histogram2D("hitPositionDistancevsE_Cluster").fill(edgeDistance_clus, clusE);
-
+                
+                
+                
+                aida.histogram2D("dx_vs_xCluster").fill(xClus,dX);
+                aida.histogram2D("dx_vs_yCluster").fill(yClus,dX);
+                aida.histogram2D("dy_vs_xCluster").fill(xClus,dY);
+                aida.histogram2D("dy_vs_yCluster").fill(yClus,dY);
+                
+                aida.histogram2D("dx_vs_xScoringPlane").fill(xpos,dX);
+                aida.histogram2D("dx_vs_yScoringPlane").fill(ypos,dX);
+                aida.histogram2D("dy_vs_xScoringPlane").fill(xpos,dY);
+                aida.histogram2D("dy_vs_yScoringPlane").fill(ypos,dY);
+                
+                
+          
+               
+                BaseCluster baseClus = new BaseCluster(clus);
+                baseClus.setParticleId(PID);
+                baseClus.setNeedsPropertyCalculation(false);
+                xClus = baseClus.getPosition()[0];
+                yClus = baseClus.getPosition()[1];
+          
+                
+                ClusterCorrectionUtilities.applyCorrections(4.55,ecal,baseClus,true);
+                xClus = baseClus.getPosition()[0];
+                yClus = baseClus.getPosition()[1];
+                dX=xClus-xpos;
+                dY=yClus-ypos;
+            
+                
+                aida.histogram2D("dx_vs_xCluster_corr").fill(xClus,dX);
+                aida.histogram2D("dx_vs_yCluster_corr").fill(yClus,dX);
+                aida.histogram2D("dy_vs_xCluster_corr").fill(xClus,dY);
+                aida.histogram2D("dy_vs_yCluster_corr").fill(yClus,dY);
+                
+                aida.histogram2D("dx_vs_xScoringPlane_corr").fill(xpos,dX);
+                aida.histogram2D("dx_vs_yScoringPlane_corr").fill(ypos,dX);
+                aida.histogram2D("dy_vs_xScoringPlane_corr").fill(xpos,dY);
+                aida.histogram2D("dy_vs_yScoringPlane_corr").fill(ypos,dY);
             }
         }
     }

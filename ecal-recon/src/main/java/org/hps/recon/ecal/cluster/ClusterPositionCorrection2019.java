@@ -1,6 +1,5 @@
 package org.hps.recon.ecal.cluster;
 
-import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 
 /**
@@ -59,47 +58,47 @@ public final class ClusterPositionCorrection2019 {
     // Parameterizations tested in MC using v3-fieldmap
     // Nov 2015
 
-    // Variables for electron position corrections.
-    static final double ELECTRON_POS_Q_P0 = 0.966731;
-    static final double ELECTRON_POS_Q_P1 = 6.80944;
-    static final double ELECTRON_POS_Q_P2 = -0.517001;
-
-    static final double ELECTRON_POS_M_P0 = -0.0321032;
-    static final double ELECTRON_POS_M_P1 = 0.0137824;
-    static final double ELECTRON_POS_M_P2 = -0.657067;
-
-    static final double ELECTRON_POS_Q1_P0 = -3.38561;
-    static final double ELECTRON_POS_Q1_P1 = 0.516986;
-    static final double ELECTRON_POS_Q1_P2 = -1.58624;
-
-    static final double ELECTRON_POS_Q2_P0 = 2.43338;
-    static final double ELECTRON_POS_Q2_P1 = -0.523349;
-    static final double ELECTRON_POS_Q2_P2 = -1.5865;
-
-    static final double ELECTRON_POS_T_P0 = -0.03764;
-    static final double ELECTRON_POS_T_P1 = 0.0086778;
-    static final double ELECTRON_POS_T_P2 = -1.76526;
-
     // Variables for positron position corrections.
-    static final double POSITRON_POS_Q_P0 = 5.94692;
-    static final double POSITRON_POS_Q_P1 = -9.50585;
-    static final double POSITRON_POS_Q_P2 = -0.520818;
+    static final double POSITRON_POS_Q_P0 = 0.966731;
+    static final double POSITRON_POS_Q_P1 = 6.80944;
+    static final double POSITRON_POS_Q_P2 = -0.517001;
 
-    static final double POSITRON_POS_M_P0 = -0.0333753;
-    static final double POSITRON_POS_M_P1 = 0.0141766;
-    static final double POSITRON_POS_M_P2 = -0.590604;
+    static final double POSITRON_POS_M_P0 = -0.0321032;
+    static final double POSITRON_POS_M_P1 = 0.0137824;
+    static final double POSITRON_POS_M_P2 = -0.657067;
 
-    static final double POSITRON_POS_Q1_P0 = -3.33536;
-    static final double POSITRON_POS_Q1_P1 = 0.367933;
-    static final double POSITRON_POS_Q1_P2 = -2.50553;
+    static final double POSITRON_POS_Q1_P0 = -3.38561;
+    static final double POSITRON_POS_Q1_P1 = 0.516986;
+    static final double POSITRON_POS_Q1_P2 = -1.58624;
 
-    static final double POSITRON_POS_Q2_P0 = 2.38039;
-    static final double POSITRON_POS_Q2_P1 = -0.335049;
-    static final double POSITRON_POS_Q2_P2 = -2.6066;
+    static final double POSITRON_POS_Q2_P0 = 2.43338;
+    static final double POSITRON_POS_Q2_P1 = -0.523349;
+    static final double POSITRON_POS_Q2_P2 = -1.5865;
 
-    static final double POSITRON_POS_T_P0 = -0.0372583;
-    static final double POSITRON_POS_T_P1 = 0.00688212;
-    static final double POSITRON_POS_T_P2 = -2.45476;
+    static final double POSITRON_POS_T_P0 = -0.03764;
+    static final double POSITRON_POS_T_P1 = 0.0086778;
+    static final double POSITRON_POS_T_P2 = -1.76526;
+
+    // Variables for electron position corrections.
+    static final double ELECTRON_POS_Q_P0 = 5.94692;
+    static final double ELECTRON_POS_Q_P1 = -9.50585;
+    static final double ELECTRON_POS_Q_P2 = -0.520818;
+
+    static final double ELECTRON_POS_M_P0 = -0.0333753;
+    static final double ELECTRON_POS_M_P1 = 0.0141766;
+    static final double ELECTRON_POS_M_P2 = -0.590604;
+
+    static final double ELECTRON_POS_Q1_P0 = -3.33536;
+    static final double ELECTRON_POS_Q1_P1 = 0.367933;
+    static final double ELECTRON_POS_Q1_P2 = -2.50553;
+
+    static final double ELECTRON_POS_Q2_P0 = 2.38039;
+    static final double ELECTRON_POS_Q2_P1 = -0.335049;
+    static final double ELECTRON_POS_Q2_P2 = -2.6066;
+
+    static final double ELECTRON_POS_T_P0 = -0.0372583;
+    static final double ELECTRON_POS_T_P1 = 0.00688212;
+    static final double ELECTRON_POS_T_P2 = -2.45476;
 
     // Variables for photon position corrections.
     static final double PHOTON_POS_Q_P0 = 6.05676;
@@ -133,18 +132,22 @@ public final class ClusterPositionCorrection2019 {
 
     /**
      * 
-     * @param cluster The cluster to be corrected, where the energy is the already-corrected energy. THIS IS DIFFERENT FROM 2015!
+     * @param cluster The cluster to be corrected, where the energy is the
+     *                already-corrected energy. THIS IS DIFFERENT FROM 2015!
      * @return The corrected cluster position
      */
-    
+
     public static double[] calculateCorrectedPosition(BaseCluster cluster) {
-        double clusterPosition[] = cluster.getPosition(); 
-        ClusterPosResult correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0],clusterPosition[1], cluster.getEnergy());
-        
+        double clusterPosition[] = cluster.getPosition();
+
+        ClusterPosResult correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0],
+                clusterPosition[1], cluster.getEnergy());
+
         double[] position = new double[3];
         position[0] = correctedPosition.getX();
         position[1] = correctedPosition.getY();
         position[2] = clusterPosition[2];
+
         return position;
     }
 
