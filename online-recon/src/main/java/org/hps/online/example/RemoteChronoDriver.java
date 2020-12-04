@@ -38,6 +38,8 @@ public class RemoteChronoDriver extends Driver {
     private int port = 2001;
     private String serverName = "RmiAidaServer";
 
+    private final int NDIM = 2;
+
     private final IAnalysisFactory af = IAnalysisFactory.create();
     private final ITreeFactory tf = af.createTreeFactory();
     private final IDevTree tree = (IDevTree) tf.create();
@@ -71,10 +73,10 @@ public class RemoteChronoDriver extends Driver {
         tree.mkdir(path);
         tree.cd(path);
 
-        evtPerSec = dpsf.create("Events Per Second", "Events Per second",      2);
-        evts      = dpsf.create("Events",            "Total Events processed", 2);
-        msPerEvt  = dpsf.create("Millis Per Event",  "Millis Per Event",       2);
-        avgPerEvt = dpsf.create("Avg Per Event",     "Avg Millis Per Event",   2);
+        evtPerSec = dpsf.create("Events Per Second", "Events Per second",      NDIM);
+        evts      = dpsf.create("Events",            "Total Events processed", NDIM);
+        msPerEvt  = dpsf.create("Millis Per Event",  "Millis Per Event",       NDIM);
+        avgPerEvt = dpsf.create("Avg Per Event",     "Avg Millis Per Event",   NDIM);
 
         // TODO: Avg Hz (can replace total events)
 
