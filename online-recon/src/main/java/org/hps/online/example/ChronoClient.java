@@ -1,10 +1,14 @@
 package org.hps.online.example;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -25,28 +29,37 @@ import hep.aida.ITree;
 import hep.aida.ITreeFactory;
 import hep.aida.ref.AnalysisFactory;
 import hep.aida.ref.plotter.AxisStyle;
+import hep.aida.ref.plotter.Plotter;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
+/**
+ * Displays remote chrono plots from <code>RemoteChronoDriver</code>
+ */
 public class ChronoClient {
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
     }
 
-    String host = null;
-    Integer port = 2001;
-    String serverName = "RmiAidaServer";
+    private String host = null;
+    private Integer port = 2001;
+    private String serverName = "RmiAidaServer";
 
-    ITree clientTree = null;
-    IAnalysisFactory af = IAnalysisFactory.create();
-    IPlotterFactory pf = af.createPlotterFactory();
-    ITreeFactory tf = af.createTreeFactory();
-    IPlotter plotter = pf.create("Chrono Plots");
-    Map<IDataPointSet, IPlotterRegion> plots =
+    private ITree clientTree = null;
+    private IAnalysisFactory af = IAnalysisFactory.create();
+    private IPlotterFactory pf = af.createPlotterFactory();
+    private ITreeFactory tf = af.createTreeFactory();
+    private IPlotter plotter = pf.create("Chrono Plots");
+    private Map<IDataPointSet, IPlotterRegion> plots =
             new HashMap<IDataPointSet, IPlotterRegion>();
-    String path = "/chrono";
+    private String path = "/chrono";
 
-    Options options = new Options();
+    private Options options = new Options();
+
+    private int NBEFORE = 10;
+    private int NAFTER = 10;
+
+    private boolean windowClosed = false;
 
     public ChronoClient() {
         options.addOption(new Option("h", "help",   false, "Print help and exit"));
@@ -59,6 +72,7 @@ public class ChronoClient {
         style.dataStyle().fillStyle().setColor("black");
         style.dataStyle().markerStyle().setColor("black");
         style.dataStyle().errorBarStyle().setVisible(false);
+        style.regionBoxStyle().setVisible(true);
     }
 
     private void parse(String[] args) {
@@ -90,9 +104,9 @@ public class ChronoClient {
         if (cl.hasOption("s")) {
             serverName = cl.getOptionValue("s");
         }
-        System.out.println("host: " + host);
-        System.out.println("port: " + port);
-        System.out.println("server: " + serverName);
+        //System.out.println("host: " + host);
+        //System.out.println("port: " + port);
+        //System.out.println("server: " + serverName);
     }
 
     private void connect() throws IOException {
@@ -126,8 +140,8 @@ public class ChronoClient {
     private void update(IDataPointSet dps, IPlotterRegion region) {
         IDataPoint dp = dps.point(dps.size() - 1);
         double sec = dp.coordinate(0).value();
-        double before = sec - 10;
-        double after = sec + 10;
+        double before = sec - NBEFORE;
+        double after = sec + NAFTER;
         AxisStyle xStyle = (AxisStyle) region.style().xAxisStyle();
         xStyle.setLowerLimit(Double.toString(before).toString());
         xStyle.setUpperLimit(Double.toString(after).toString());
@@ -136,10 +150,20 @@ public class ChronoClient {
 
     private void show() {
         plotter.show();
+
+        SwingUtilities.getWindowAncestor(((Plotter) plotter).panel()).addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                ChronoClient.this.windowClosed = true;
+            }
+        });
     }
 
     private void createRegions(int rows, int cols) {
         plotter.createRegions(rows, cols);
+    }
+
+    private boolean isWindowClosed() {
+        return windowClosed;
     }
 
     private void run() {
@@ -162,9 +186,11 @@ public class ChronoClient {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                if (isWindowClosed()) {
+                    break;
+                }
             }
         } finally {
-            // FIXME: Never executed if Ctrl+C is used to exit
             try {
                 close();
             } catch (IOException e) {
