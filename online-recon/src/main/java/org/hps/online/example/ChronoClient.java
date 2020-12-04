@@ -3,6 +3,8 @@ package org.hps.online.example;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -25,7 +27,7 @@ import hep.aida.ref.AnalysisFactory;
 import hep.aida.ref.plotter.AxisStyle;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
-public class RemoteAidaClient {
+public class ChronoClient {
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
@@ -39,19 +41,24 @@ public class RemoteAidaClient {
     IAnalysisFactory af = IAnalysisFactory.create();
     IPlotterFactory pf = af.createPlotterFactory();
     ITreeFactory tf = af.createTreeFactory();
+    IPlotter plotter = pf.create("Chrono Plots");
+    Map<IDataPointSet, IPlotterRegion> plots =
+            new HashMap<IDataPointSet, IPlotterRegion>();
+    String path = "/chrono";
 
     Options options = new Options();
 
-    // FIXME: is this needed???
-    //static {
-    //    final RmiStoreFactory rsf = new RmiStoreFactory();
-    //}
-
-    public RemoteAidaClient() {
+    public ChronoClient() {
         options.addOption(new Option("h", "help",   false, "Print help and exit"));
         options.addOption(new Option("p", "port",   true,  "Network port of server"));
         options.addOption(new Option("s", "server", true,  "Name of RMI server"));
         options.addOption(new Option("H", "host",   true,  "Host name or IP address of server"));
+
+        IPlotterStyle style = plotter.style();
+        style.xAxisStyle().setParameter("type", "date");
+        style.dataStyle().fillStyle().setColor("black");
+        style.dataStyle().markerStyle().setColor("black");
+        style.dataStyle().errorBarStyle().setVisible(false);
     }
 
     private void parse(String[] args) {
@@ -100,31 +107,24 @@ public class RemoteAidaClient {
         clientTree.close();
     }
 
-    private void plotDataPointSet(String objectPath) {
-        IDataPointSet dps2D = (IDataPointSet) clientTree.find(objectPath);
-        IPlotter plotter = pf.create("Chrono Plots");
-        IPlotterStyle dateAxisStyle = pf.createPlotterStyle();
-        dateAxisStyle.xAxisStyle().setParameter("type", "date");
-        IPlotterRegion region = plotter.createRegion();
-        IPlotterStyle plotStyle = pf.createPlotterStyle();
-        plotStyle.dataStyle().fillStyle().setColor("black");
-        plotStyle.dataStyle().markerStyle().setColor("black");
-        plotStyle.dataStyle().errorBarStyle().setVisible(false);
-        plotter.setStyle(plotStyle);
-        region.plot(dps2D, dateAxisStyle);
-        plotter.show();
-        while(true) {
-            update(dps2D, region);
-            try {
-                Thread.sleep(1000L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+    private void addDataPointSet(String name, String yAxisLabel, int regionInd) {
+        IDataPointSet dps = (IDataPointSet) clientTree.find(path + "/" + name);
+        IPlotterRegion region = plotter.region(regionInd);
+        IPlotterStyle regStyle = pf.createPlotterStyle();
+        regStyle.yAxisStyle().setLabel(yAxisLabel);
+        plotter.region(regionInd).setStyle(regStyle);
+        region.plot(dps);
+        plots.put(dps, region);
+    }
+
+    private void update() {
+        for (Map.Entry<IDataPointSet, IPlotterRegion> entry : plots.entrySet()) {
+            update(entry.getKey(), entry.getValue());
         }
     }
 
-    private void update(IDataPointSet dps2D, IPlotterRegion region) {
-        IDataPoint dp = dps2D.point(dps2D.size() - 1);
+    private void update(IDataPointSet dps, IPlotterRegion region) {
+        IDataPoint dp = dps.point(dps.size() - 1);
         double sec = dp.coordinate(0).value();
         double before = sec - 10;
         double after = sec + 10;
@@ -134,25 +134,48 @@ public class RemoteAidaClient {
         region.refresh();
     }
 
-    public static void main(String[] args) {
-        final RemoteAidaClient client = new RemoteAidaClient();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                if (client != null) {
-                    try {
-                        client.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+    private void show() {
+        plotter.show();
+    }
+
+    private void createRegions(int rows, int cols) {
+        plotter.createRegions(rows, cols);
+    }
+
+    private void run() {
+        try {
+            connect();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        createRegions(2, 2);
+        addDataPointSet("Events Per Second", "Hz",     0);
+        addDataPointSet("Events",            "Events", 1);
+        addDataPointSet("Millis Per Event",  "Millis", 2);
+        addDataPointSet("Avg Per Event",     "Millis", 3);
+        show();
+        try {
+            while(true) {
+                update();
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        });
-        try {
-            client.parse(args);
-            client.connect();
-            client.plotDataPointSet("/chrono/Events Per Second");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } finally {
+            // FIXME: Never executed if Ctrl+C is used to exit
+            try {
+                close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public static void main(String[] args) {
+        final ChronoClient client = new ChronoClient();
+        client.parse(args);
+        client.run();
     }
 }

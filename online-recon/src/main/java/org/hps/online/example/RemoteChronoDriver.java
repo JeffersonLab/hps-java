@@ -31,9 +31,9 @@ public class RemoteChronoDriver extends Driver {
         System.setProperty("java.awt.headless", "true");
     }
 
-    private long nEventsProcessed;
-    private long nEventsTotal;
-    private long updateInterval = 1000L;
+    private long nProc;
+    private long nTot;
+    private long updateInt = 1000L;
 
     private int port = 2001;
     private String serverName = "RmiAidaServer";
@@ -43,13 +43,16 @@ public class RemoteChronoDriver extends Driver {
     private final IDevTree tree = (IDevTree) tf.create();
     private IDataPointSetFactory dpsf = af.createDataPointSetFactory(tree);
 
-    private IDataPointSet eventsPerSecondPlot = null;
-    private IDataPointSet eventsPlot = null;
+    private IDataPointSet evtPerSec = null;
+    private IDataPointSet evts = null;
+    private IDataPointSet msPerEvt = null;
+    private IDataPointSet avgPerEvt = null;
 
     private RemoteServer treeServer;
     private RmiServer rmiTreeServer;
 
     private long start = -1L;
+    private long totTime = 0L;
 
     private TimerTask task = null;
     private Timer timer = new Timer();
@@ -58,16 +61,22 @@ public class RemoteChronoDriver extends Driver {
 
     private String path = "/chrono";
 
+    private boolean quiet = false;
+
     public void startOfData() {
 
-        // HACK: Fixes exceptions about missing AIDA converters
+        // HACK: Fixes exceptions from missing AIDA converters
         final RmiStoreFactory rsf = new RmiStoreFactory();
 
         tree.mkdir(path);
         tree.cd(path);
 
-        eventsPerSecondPlot = dpsf.create("Events Per Second", "Events per second", 2);
-        eventsPlot = dpsf.create("Events", "Total events processed", 2);
+        evtPerSec = dpsf.create("Events Per Second", "Events Per second",      2);
+        evts      = dpsf.create("Events",            "Total Events processed", 2);
+        msPerEvt  = dpsf.create("Millis Per Event",  "Millis Per Event",       2);
+        avgPerEvt = dpsf.create("Avg Per Event",     "Avg Millis Per Event",   2);
+
+        // TODO: Avg Hz (can replace total events)
 
         tree.ls();
 
@@ -79,22 +88,54 @@ public class RemoteChronoDriver extends Driver {
 
         task = new TimerTask() {
             public void run() {
+
                 long curr = System.currentTimeMillis() / 1000L;
-                long elapsed = System.currentTimeMillis() - start;
-                double perSec = (double) nEventsProcessed / (((double) elapsed) / 1000.);
-                IDataPoint point1 = eventsPerSecondPlot.addPoint();
-                System.out.println("Events per second: " + curr + " = " + perSec);
-                point1.coordinate(0).setValue(curr);
-                point1.coordinate(1).setValue(perSec);
-                IDataPoint point2 = eventsPlot.addPoint();
-                System.out.println("Events: " + curr + " = " + nEventsTotal);
+
+                if (start > 0) {
+                    long elapsed = System.currentTimeMillis() - start;
+                    totTime += elapsed;
+
+                    double perSec = (double) nProc / (((double) elapsed) / 1000.);
+
+                    IDataPoint point1 = evtPerSec.addPoint();
+                    point1.coordinate(0).setValue(curr);
+                    point1.coordinate(1).setValue(perSec);
+
+                    double msPer = (double) elapsed / (double) nProc;
+                    IDataPoint point3 = msPerEvt.addPoint();
+                    point3.coordinate(0).setValue(curr);
+                    point3.coordinate(1).setValue(msPer);
+
+                    double avg = (double) totTime / (double) nTot;
+                    IDataPoint point4 = avgPerEvt.addPoint();
+                    point4.coordinate(0).setValue(curr);
+                    point4.coordinate(1).setValue(avg);
+
+                    if (!quiet) {
+                        System.out.println("perSec = " + perSec);
+                        System.out.println("msPer = " + msPer);
+                        System.out.println("avg = " + avg);
+                    }
+                }
+
+                IDataPoint point2 = evts.addPoint();
                 point2.coordinate(0).setValue(curr);
-                point2.coordinate(1).setValue(nEventsTotal);
+                point2.coordinate(1).setValue(nTot);
+
+                if (!quiet) {
+                    System.out.println("nTot = " + nTot);
+                    System.out.println();
+                }
+
+                nProc = 0L;
                 start = System.currentTimeMillis();
-                nEventsProcessed = 0L;
             }
         };
 
+    }
+
+    public void setQuiet(boolean quiet) {
+        this.quiet = quiet;
     }
 
     public void setPort(int port) {
@@ -106,16 +147,16 @@ public class RemoteChronoDriver extends Driver {
     }
 
     public void setUpdateIntervalMillis(Long updateInterval) {
-        this.updateInterval = updateInterval;
+        this.updateInt = updateInterval;
     }
 
     public void process(EventHeader event) {
         if (!timerStarted) {
-            timer.schedule(task, 0, updateInterval);
+            timer.schedule(task, 0, updateInt);
             timerStarted = true;
         }
-        ++nEventsProcessed;
-        ++nEventsTotal;
+        ++nProc;
+        ++nTot;
     }
 
     public void endOfData() {
