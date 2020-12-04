@@ -186,7 +186,6 @@ public class RawTrackerHitFitterDriver extends Driver {
             int strip = hit.getIdentifierFieldValue("strip");
             HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
-            //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
 
                 if (correctTimeOffset) {
@@ -252,8 +251,8 @@ public class RawTrackerHitFitterDriver extends Driver {
                     continue;
                 hit.getDetectorElement().getReadout().addHit(hth);
             }
-            }
+        }
         event.put(fitCollectionName, fits, ShapeFitParameters.class, genericObjectFlags);
         event.put(fittedHitCollectionName, hits, FittedRawTrackerHit.class, relationFlags);
-        }
     }
+}
