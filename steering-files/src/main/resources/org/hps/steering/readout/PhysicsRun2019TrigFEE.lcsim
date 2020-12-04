@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @Readout steering file with pairs trigger for 2019 MC.
+      @Readout steering file with FEE trigger for 2019 MC.
       @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
     -->
     <execute>
@@ -19,8 +19,6 @@
         <!-- Hodoscope Readout Simulation Drivers -->
         <driver name="HodoscopePreprocessingDriver"/>
         <driver name="HodoscopeDigitizationDriver"/>
-        <driver name="HodoscopeRawConverterDriver"/>
-	<driver name="HodoscopePatternDriver"/>
         
         <!-- Calorimeter Readout Simulation Drivers -->
         <driver name="EcalDigitizationDriver"/>
@@ -28,7 +26,7 @@
         <driver name="GTPReadoutDriver"/>
         
         <!-- Trigger Simulation -->
-        <driver name="SinglesTrigger"/>
+        <driver name="FEETrigger"/>
         
         <!-- LCIO Output and Data Management Driver -->
         <driver name="ReadoutManagerDriver"/>
@@ -104,12 +102,13 @@
             The SVT driver. Works just like before. Documentation is left to
             the SVT group.
         -->
+
         <driver name="SVTReadoutDriver" type="org.hps.readout.svt.SVTReadoutDriver">
             <enablePileupCut>false</enablePileupCut>
             <useTimingConditions>true</useTimingConditions>
             <addNoise>true</addNoise>
         </driver>
-           
+
         <!--
              The calorimeter readout driver handles conversion of SLIC truth
              hits into voltage pulses and ultimately into ADC counts every 4 ns
@@ -313,101 +312,20 @@
                 level. Otherwise, this should be left off.
             -->
             <writeTriggerPathTruth>false</writeTriggerPathTruth>
-        </driver>
+        </driver>        
         
-        <!--
-             The hodoscope raw converter functions as per the calorimeter raw
-             converter driver.
-          -->
-        <driver name="HodoscopeRawConverterDriver" type="org.hps.readout.hodoscope.HodoscopeRawConverterReadoutDriver">
-		    <!--
-				Define the LCIO collection names. The input collection should
-				come from the digitization driver.
-			-->
-			<inputCollectionName>HodoscopeRawHits</inputCollectionName>
-			<outputCollectionName>HodoscopeCorrectedHits</outputCollectionName>
-			
-            <!--
-                NSA and NSB must match the digitization driver settings.
-            -->
-            <numberSamplesAfter>13</numberSamplesAfter>     <!-- Units of 4 ns clock-cycles. -->
-            <numberSamplesBefore>5</numberSamplesBefore>    <!-- Units
-	    of 4 ns clock-cycles. -->
-
-
-	    <!--  
-	    Factor of unit conversion for returned value of the method
-	    AbstractBaseRawConverter:: adcToEnergy(). For hodo, unit of hit energy is
-	    self-defined for hodo FADC hits.  Conversion from
-	    self-defined-unit/ADC to MeV/ADC for true hits is taken
-	    into account in HodoscopeDigitizationReadoutDriver  by
-	    factorGainConversion. Here, factor = 1 
-	    -->
-	    <factorUnitConversion>1</factorUnitConversion>
-            <!--
-                Outputs all the trigger-level hits within the readout window.
-                This is not generally necessary outside of specialized
-                circumstances. Note that all readout hits associated with GTP
-                clusters will automatically be included if GTP clusters are
-                persisted.
-            -->
-            <persistent>false</persistent>
-        </driver>
-
-        <!--
-	    HodoscopePatternDriver produces hodoscope pattern list for
-	    each hodoscope layer to be applied in Ecal-hodo matching
-	    in trigger.
-	    Order of pattern list: top layer 1, top layer 2, bot layer
-	    1, bot layer 2
-          -->
-        <driver name="HodoscopePatternDriver" type="org.hps.readout.hodoscope.HodoscopePatternReadoutDriver">
-		    <!--
-				Define the LCIO collection names. The input collection should
-				come from the digitization driver.
-			-->
-			<inputCollectionName>HodoscopeCorrectedHits</inputCollectionName>
-			<outputCollectionName>HodoscopePatterns</outputCollectionName>
-
-			<!--  Hodoscope FADC hit cut -->
-			<fADCHitThreshold>1</fADCHitThreshold>
-			<!--  Hodoscope tilt/cluster hit cut -->
-			<hodoHitThreshold>200</hodoHitThreshold>
-			<!--  Persistent time for hodoscope FADC hit in unit of ns -->
-			<persistentTime>60</persistentTime>
-			<!--  Time for hodoscope FADC hits earlier to
-			     enter the trigger system than Ecal with unit of ns -->
-			<timeEarlierThanEcal>0</timeEarlierThanEcal>
-
-			<persistent>false</persistent>
-	</driver>  
-
-        
-        <driver name="SinglesTrigger" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
-            <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
-
-            <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
+        <driver name="FEETrigger" type="org.hps.readout.trigger2019.FEETrigger2019ReadoutDriver">
+            <inputCollectionName>EcalClustersGTP</inputCollectionName>
             
             <!-- Units of 2 ns beam bunches. -->
-            <deadTime>15</deadTime>
+            <deadTime>15</deadTime> 
             
             <!-- Units of cluster hits. -->
-            <hitCountThreshold>2</hitCountThreshold>
+            <minHitCount>3</minHitCount>
             <!-- Units of GeV. -->
-            <clusterEnergyLowThreshold>0.200</clusterEnergyLowThreshold>
+            <clusterEnergyLow>2.6</clusterEnergyLow>
             <!-- Units of GeV. -->
-            <clusterEnergyHighThreshold>3.000</clusterEnergyHighThreshold>
-
-	    <!--Minimum cluster x coordinate-->
-	    <clusterXMin>5</clusterXMin>
-
-	    <clusterPDEC0>1.9</clusterPDEC0>
-	    <clusterPDEC1>-0.1716</clusterPDEC1>
-	    <clusterPDEC2>0.00583</clusterPDEC2>
-	    <clusterPDEC3>-0.0000536</clusterPDEC3>
-
-	    <geometryMatchingRequired>true</geometryMatchingRequired>
-
+            <clusterEnergyHigh>5.2</clusterEnergyHigh>
         </driver>
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
