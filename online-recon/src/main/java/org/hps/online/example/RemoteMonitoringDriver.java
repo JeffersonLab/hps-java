@@ -69,8 +69,6 @@ public class RemoteMonitoringDriver extends Driver {
     private String perfPath = "/perf";
     private String subdetPath = "/subdet";
 
-    private boolean quiet = false;
-
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
     private IDataPointSet createDataPointSet(String name, String title, String label) {
@@ -86,10 +84,10 @@ public class RemoteMonitoringDriver extends Driver {
 
         tree.mkdir(perfPath);
         tree.cd(perfPath);
-        evtPerSec = createDataPointSet("Events Per Second", "Events Per second",       "Hz");
-        evts      = createDataPointSet("Events",            "Total Events processed",  "Events");
-        msPerEvt  = createDataPointSet("Millis Per Event",  "Millis Per Event",        "Millis");
-        mem       = createDataPointSet("Memory Usage",      "Memory usage",            "MB");
+        evtPerSec = createDataPointSet("Events Per Second", "Events Per second",  "Hz");
+        evts      = createDataPointSet("Total Events",      "Total Events",       "Events");
+        msPerEvt  = createDataPointSet("Millis Per Event",  "Millis Per Event",   "Millis");
+        mem       = createDataPointSet("Memory Usage",      "Memory Usage",       "MB");
 
         tree.mkdir(subdetPath);
         tree.cd(subdetPath);
@@ -99,9 +97,9 @@ public class RemoteMonitoringDriver extends Driver {
 
         // TODO: overlay rolling averages (client needs to plot into the same region)
 
-        if (!quiet) {
-            tree.ls("/", true);
-        }
+        //if (!quiet) {
+        //tree.ls("/", true);
+        //}
 
         try {
             connect();
@@ -116,11 +114,9 @@ public class RemoteMonitoringDriver extends Driver {
 
                 if (start > 0) {
 
-                    System.out.println("curr: " + curr);
+                    //System.out.println("curr: " + curr);
                     long elapsed = System.currentTimeMillis() - start;
                     //totTime += elapsed;
-
-                    //double perSec = (double) nProc / (((double) elapsed) / 1000.);
 
                     IDataPoint point1 = evtPerSec.addPoint();
                     point1.coordinate(0).setValue(curr);
@@ -131,32 +127,17 @@ public class RemoteMonitoringDriver extends Driver {
                     point3.coordinate(0).setValue(curr);
                     point3.coordinate(1).setValue(msPer);
 
-                    //double avg = (double) totTime / (double) nTot;
-                    //IDataPoint point4 = avgPerEvt.addPoint();
-                    //point4.coordinate(0).setValue(curr);
-                    //point4.coordinate(1).setValue(avg);
                     double kb = (RUNTIME.totalMemory() - RUNTIME.freeMemory()) / 1000000L;
                     IDataPoint point4 = mem.addPoint();
                     point4.coordinate(0).setValue(curr);
                     point4.coordinate(1).setValue(kb);
 
-                    if (!quiet) {
-                        System.out.println("perSec: " + nProc);
-                        System.out.println("msPer: " + msPer);
-                        System.out.println("mem: " + kb);
-                        //System.out.println("avg: " + avg);
-                    }
-
                     IDataPoint point2 = evts.addPoint();
                     point2.coordinate(0).setValue(curr);
                     point2.coordinate(1).setValue(nTot);
 
-                    if (!quiet) {
-                        System.out.println("nTot: " + nTot);
-                    }
-
                     for (Entry<String, Integer> entry : collections.entrySet()) {
-                        System.out.println(entry.getKey() + ": " + entry.getValue());
+                        //System.out.println(entry.getKey() + ": " + entry.getValue());
                         IDataPointSet dps = (IDataPointSet) tree.find(subdetPath + "/" + entry.getKey());
                         IDataPoint p = dps.addPoint();
                         p.coordinate(0).setValue(curr);
@@ -164,10 +145,6 @@ public class RemoteMonitoringDriver extends Driver {
                     }
                     for (String name : collections.keySet()) {
                         collections.put(name, 0);
-                    }
-
-                    if (!quiet) {
-                        System.out.println();
                     }
                 }
 
@@ -177,10 +154,6 @@ public class RemoteMonitoringDriver extends Driver {
         };
 
         timer.schedule(task, 0, updateInt);
-    }
-
-    public void setQuiet(boolean quiet) {
-        this.quiet = quiet;
     }
 
     public void setPort(int port) {
