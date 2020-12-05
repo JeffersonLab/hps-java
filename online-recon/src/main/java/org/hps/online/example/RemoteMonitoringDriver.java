@@ -60,14 +60,22 @@ public class RemoteMonitoringDriver extends Driver {
     private RemoteServer treeServer;
     private RmiServer rmiTreeServer;
 
-    private long start = -1L;
-    //private long totTime = 0L;
+    private volatile long start = -1L;
+    private volatile long curr = 0L;
+    private volatile long tot = 0L;
 
     private TimerTask task = null;
     private Timer timer = new Timer();
 
-    private String perfPath = "/perf";
-    private String subdetPath = "/subdet";
+    private static final String PERF_PATH = "/perf";
+    private static final String SUBDET_PATH = "/subdet";
+    private static final String AVG_DIR = "avg";
+
+    private Map<IDataPointSet, IDataPointSet> averages =
+            new HashMap<IDataPointSet, IDataPointSet>();
+
+    private Map<IDataPointSet, Double> totals =
+            new HashMap<IDataPointSet, Double>();
 
     private static final Runtime RUNTIME = Runtime.getRuntime();
 
@@ -77,29 +85,48 @@ public class RemoteMonitoringDriver extends Driver {
         return dps;
     }
 
+    private boolean timerStarted = false;
+
     public void startOfData() {
 
         // HACK: Fixes exceptions from missing AIDA converters
         final RmiStoreFactory rsf = new RmiStoreFactory();
 
-        tree.mkdir(perfPath);
-        tree.cd(perfPath);
+        tree.mkdir(PERF_PATH);
+        tree.cd(PERF_PATH);
         evtPerSec = createDataPointSet("Events Per Second", "Events Per second",  "Hz");
         evts      = createDataPointSet("Total Events",      "Total Events",       "Events");
         msPerEvt  = createDataPointSet("Millis Per Event",  "Millis Per Event",   "Millis");
         mem       = createDataPointSet("Memory Usage",      "Memory Usage",       "MB");
 
-        tree.mkdir(subdetPath);
-        tree.cd(subdetPath);
+        tree.mkdir(SUBDET_PATH);
+        tree.cd(SUBDET_PATH);
         for (String name : collections.keySet()) {
             createDataPointSet(name, name + " Count", "Count");
         }
 
-        // TODO: overlay rolling averages (client needs to plot into the same region)
+        String[] names = tree.listObjectNames("/", true);
+        String[] types = tree.listObjectTypes("/", true);
+        tree.mkdir(PERF_PATH + "/" + AVG_DIR);
+        tree.mkdir(SUBDET_PATH + "/" + AVG_DIR);
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            if (types[i].equals("IDataPointSet") && !name.contains("Total Events")) {
+                String[] spl = name.split("/");
+                String dir = spl[1];
+                String plotName = spl[2];
+                String avgPath = "/" + dir + "/" + AVG_DIR;
+                if (!tree.pwd().equals(avgPath)) {
+                    tree.cd(avgPath);
+                }
+                IDataPointSet dps = createDataPointSet(plotName, plotName, "");
+                averages.put((IDataPointSet) tree.find(name), dps);
+            }
+        }
 
-        //if (!quiet) {
-        //tree.ls("/", true);
-        //}
+        System.out.println("Created remote tree objects: ");
+        tree.ls("/", true);
+        System.out.println();
 
         try {
             connect();
@@ -110,38 +137,49 @@ public class RemoteMonitoringDriver extends Driver {
         task = new TimerTask() {
             public void run() {
 
-                long curr = System.currentTimeMillis() / 1000L;
-
                 if (start > 0) {
+
+                    curr = System.currentTimeMillis() / 1000L;
 
                     //System.out.println("curr: " + curr);
                     long elapsed = System.currentTimeMillis() - start;
-                    //totTime += elapsed;
+                    tot += elapsed;
 
                     IDataPoint point1 = evtPerSec.addPoint();
                     point1.coordinate(0).setValue(curr);
                     point1.coordinate(1).setValue(nProc);
+                    updateAverage(evtPerSec, nProc);
 
-                    double msPer = (double) elapsed / (double) nProc;
-                    IDataPoint point3 = msPerEvt.addPoint();
-                    point3.coordinate(0).setValue(curr);
-                    point3.coordinate(1).setValue(msPer);
+                    if (nProc > 0) {
+                        double msPer = (double) elapsed / (double) nProc;
+                        /*
+                        if (Double.isInfinite(msPer)) {
+                            throw new RuntimeException("msPer was inf!!!");
+                        }
+                        */
+                        //System.out.println("msPer = " + msPer);
+                        IDataPoint point3 = msPerEvt.addPoint();
+                        point3.coordinate(0).setValue(curr);
+                        point3.coordinate(1).setValue(msPer);
+                        updateAverage(msPerEvt, msPer);
+                    }
 
                     double kb = (RUNTIME.totalMemory() - RUNTIME.freeMemory()) / 1000000L;
                     IDataPoint point4 = mem.addPoint();
                     point4.coordinate(0).setValue(curr);
                     point4.coordinate(1).setValue(kb);
+                    updateAverage(mem, kb);
 
                     IDataPoint point2 = evts.addPoint();
                     point2.coordinate(0).setValue(curr);
                     point2.coordinate(1).setValue(nTot);
 
                     for (Entry<String, Integer> entry : collections.entrySet()) {
-                        //System.out.println(entry.getKey() + ": " + entry.getValue());
-                        IDataPointSet dps = (IDataPointSet) tree.find(subdetPath + "/" + entry.getKey());
+                        IDataPointSet dps = (IDataPointSet) tree.find(SUBDET_PATH + "/" + entry.getKey());
                         IDataPoint p = dps.addPoint();
                         p.coordinate(0).setValue(curr);
                         p.coordinate(1).setValue(entry.getValue());
+                        updateAverage(dps, entry.getValue());
                     }
                     for (String name : collections.keySet()) {
                         collections.put(name, 0);
@@ -152,8 +190,20 @@ public class RemoteMonitoringDriver extends Driver {
                 start = System.currentTimeMillis();
             }
         };
+    }
 
-        timer.schedule(task, 0, updateInt);
+    private void updateAverage(IDataPointSet dps, double val) {
+        if (!totals.containsKey(dps)) {
+            totals.put(dps, 0.);
+        }
+        Double oldValue = totals.get(dps);
+        Double newValue = oldValue + val;
+        totals.put(dps, newValue);
+        IDataPoint p = averages.get(dps).addPoint();
+        p.coordinate(0).setValue(curr);
+        Double newAvg = newValue / ((double) tot / 1000.);
+        p.coordinate(1).setValue(newAvg);
+        //System.out.println("Update average for " + dps.title() + ": " + val + " -> " + newAvg);
     }
 
     public void setPort(int port) {
@@ -175,6 +225,10 @@ public class RemoteMonitoringDriver extends Driver {
     }
 
     public void process(EventHeader event) {
+        if (!timerStarted) {
+            timer.schedule(task, 0, updateInt);
+            timerStarted = true;
+        }
         for (String name : this.collections.keySet()) {
             List list = (List) event.get(name);
             Integer count = this.collections.get(name);

@@ -1,6 +1,5 @@
 package org.hps.online.example;
 
-import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -44,51 +43,64 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
  */
 public class RemoteMonitoringClient {
 
-    private static final int COLS = 4;
-
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
     }
 
-    private Options options = new Options();
+    private final Options options = new Options();
 
     private String host = null;
     private Integer port = 2001;
     private String serverName = "RmiAidaServer";
 
     private ITree clientTree = null;
-    private IAnalysisFactory af = IAnalysisFactory.create();
-    private IPlotterFactory pf = af.createPlotterFactory();
-    private ITreeFactory tf = af.createTreeFactory();
+    private final IAnalysisFactory af = IAnalysisFactory.create();
+    private final IPlotterFactory pf = af.createPlotterFactory();
+    private final ITreeFactory tf = af.createTreeFactory();
+    private final IPlotterStyle avgStyle = pf.createPlotterStyle();
 
-    private IPlotter plotter = pf.create("Monitoring Plots");
+    private final IPlotter plotter = pf.create("Monitoring Plots");
 
-    private Map<IDataPointSet, IPlotterRegion> plots =
+    private final Map<IDataPointSet, IPlotterRegion> plots =
             new HashMap<IDataPointSet, IPlotterRegion>();
 
-    private int NBEFORE = 10;
-    private int NAFTER = 10;
+    private final int NBEFORE = 17;
+    private final int NAFTER = 2;
 
     private boolean windowClosed = false;
 
+    private Integer plotWidth = 800;
+    private Integer plotHeight = 600;
+
     public RemoteMonitoringClient() {
+
         options.addOption(new Option("h", "help",   false, "Print help and exit"));
         options.addOption(new Option("p", "port",   true,  "Network port of server"));
         options.addOption(new Option("s", "server", true,  "Name of RMI server"));
         options.addOption(new Option("H", "host",   true,  "Host name or IP address of server"));
+        options.addOption(new Option("x", "width",  true,  "Plot window width (pixels)"));
+        options.addOption(new Option("y", "height", true,  "Plot window height (pixels)"));
 
         IPlotterStyle style = plotter.style();
         style.xAxisStyle().setParameter("type", "date");
-        style.dataStyle().fillStyle().setColor("black");
+        style.dataStyle().outlineStyle().setColor("black");
         style.dataStyle().markerStyle().setColor("black");
         style.dataStyle().errorBarStyle().setVisible(false);
         style.regionBoxStyle().setVisible(true);
+        style.regionBoxStyle().borderStyle().setLineType("solid");
         ITextStyle titStyle = pf.createTextStyle();
         titStyle.setBold(true);
         titStyle.setFontSize(14);
         style.titleStyle().setTextStyle(titStyle);
+        style.legendBoxStyle().setVisible(false);
+
+        avgStyle.dataStyle().outlineStyle().setVisible(false);
+        avgStyle.dataStyle().markerStyle().setColor("red");
+        avgStyle.dataStyle().markerStyle().setShape("cross");
+        avgStyle.dataStyle().errorBarStyle().setVisible(false);
     }
 
+    @SuppressWarnings("deprecation")
     private void parse(String[] args) {
         Parser parser = new BasicParser();
         CommandLine cl = null;
@@ -118,6 +130,12 @@ public class RemoteMonitoringClient {
         if (cl.hasOption("s")) {
             serverName = cl.getOptionValue("s");
         }
+        if (cl.hasOption("x")) {
+            plotWidth = Integer.parseInt(cl.getOptionValue("x"));
+        }
+        if (cl.hasOption("y")) {
+            plotHeight = Integer.parseInt(cl.getOptionValue("y"));
+        }
     }
 
     private void connect() throws IOException {
@@ -137,33 +155,53 @@ public class RemoteMonitoringClient {
     private void addPlots() {
         String[] names = clientTree.listObjectNames("/", true);
         String[] types = clientTree.listObjectTypes("/", true);
-        List<IDataPointSet> plots = new ArrayList<IDataPointSet>();
+        List<String> dpsNames = new ArrayList<String>();
         for (int i = 0; i < names.length; i++) {
-            if (types[i] == "IDataPointSet") {
-                plots.add((IDataPointSet) clientTree.find(names[i]));
+            if (types[i].equals("IDataPointSet") && !names[i].contains("/avg")) {
+                dpsNames.add(names[i]);
             }
         }
-        int n = plots.size();
+        int n = dpsNames.size();
         int rowsCols = (int) Math.ceil(Math.sqrt(n));
         plotter.createRegions(rowsCols, rowsCols);
-        System.out.println("Created regions: " + plotter.numberOfRegions());
-        System.out.println("Rows & col size: " + rowsCols);
+        //System.out.println("Created regions: " + plotter.numberOfRegions());
+        //System.out.println("Rows & col size: " + rowsCols);
         int regionInd = 0;
         plotter.setCurrentRegionNumber(regionInd);
-        for (IDataPointSet plot : plots) {
-            System.out.println("Adding plot: " + plot.title());
+        for (String dpsName : dpsNames) {
+            IDataPointSet dps = (IDataPointSet) clientTree.find(dpsName);
+            //System.out.println("Adding plot: " + dps.title());
             String label = "";
-            if (plot.annotation().hasKey("label")) {
-                label = plot.annotation().value("label");
+            if (dps.annotation().hasKey("label")) {
+                label = dps.annotation().value("label");
             }
             IPlotterRegion region = plotter.region(regionInd);
             IPlotterStyle regStyle = pf.createPlotterStyle();
             regStyle.yAxisStyle().setLabel(label);
             region.setStyle(regStyle);
-            region.plot(plot);
-            this.plots.put(plot, region);
+            region.plot(dps);
+            this.plots.put(dps, region);
+
+            String[] spl = dpsName.split("/");
+            String dirName = spl[1];
+            String plotName = spl[2];
+            String avgPath = "/" + dirName + "/avg/" + plotName;
+            try {
+                IDataPointSet avg = (IDataPointSet) clientTree.find(avgPath);
+                region.plot(avg, avgStyle);
+            } catch (IllegalArgumentException e) {
+            }
+
             ++regionInd;
         }
+
+        /*
+        try {
+            Thread.sleep(9999999);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        */
     }
 
     private void update() {
@@ -184,10 +222,11 @@ public class RemoteMonitoringClient {
     }
 
     private void show() {
+        plotter.setParameter("plotterWidth", plotWidth.toString());
+        plotter.setParameter("plotterHeight", plotHeight.toString());
         plotter.show();
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(((Plotter) plotter).panel());
-        frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
-        SwingUtilities.getWindowAncestor(((Plotter) plotter).panel()).addWindowListener(new WindowAdapter() {
+        frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 RemoteMonitoringClient.this.windowClosed = true;
             }
