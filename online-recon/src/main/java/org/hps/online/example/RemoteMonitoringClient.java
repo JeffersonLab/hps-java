@@ -1,13 +1,18 @@
 package org.hps.online.example;
 
+import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.cli.BasicParser;
@@ -25,6 +30,7 @@ import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterRegion;
 import hep.aida.IPlotterStyle;
+import hep.aida.ITextStyle;
 import hep.aida.ITree;
 import hep.aida.ITreeFactory;
 import hep.aida.ref.AnalysisFactory;
@@ -33,13 +39,18 @@ import hep.aida.ref.plotter.Plotter;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
 /**
- * Displays remote chrono plots from <code>RemoteChronoDriver</code>
+ * Displays plots from the <code>RemoteChronoDriver</code>
+ * through an RMI connection
  */
-public class ChronoClient {
+public class RemoteMonitoringClient {
+
+    private static final int COLS = 4;
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
     }
+
+    private Options options = new Options();
 
     private String host = null;
     private Integer port = 2001;
@@ -49,19 +60,18 @@ public class ChronoClient {
     private IAnalysisFactory af = IAnalysisFactory.create();
     private IPlotterFactory pf = af.createPlotterFactory();
     private ITreeFactory tf = af.createTreeFactory();
-    private IPlotter plotter = pf.create("Chrono Plots");
+
+    private IPlotter plotter = pf.create("Monitoring Plots");
+
     private Map<IDataPointSet, IPlotterRegion> plots =
             new HashMap<IDataPointSet, IPlotterRegion>();
-    private String path = "/chrono";
-
-    private Options options = new Options();
 
     private int NBEFORE = 10;
     private int NAFTER = 10;
 
     private boolean windowClosed = false;
 
-    public ChronoClient() {
+    public RemoteMonitoringClient() {
         options.addOption(new Option("h", "help",   false, "Print help and exit"));
         options.addOption(new Option("p", "port",   true,  "Network port of server"));
         options.addOption(new Option("s", "server", true,  "Name of RMI server"));
@@ -73,6 +83,10 @@ public class ChronoClient {
         style.dataStyle().markerStyle().setColor("black");
         style.dataStyle().errorBarStyle().setVisible(false);
         style.regionBoxStyle().setVisible(true);
+        ITextStyle titStyle = pf.createTextStyle();
+        titStyle.setBold(true);
+        titStyle.setFontSize(14);
+        style.titleStyle().setTextStyle(titStyle);
     }
 
     private void parse(String[] args) {
@@ -104,35 +118,56 @@ public class ChronoClient {
         if (cl.hasOption("s")) {
             serverName = cl.getOptionValue("s");
         }
-        //System.out.println("host: " + host);
-        //System.out.println("port: " + port);
-        //System.out.println("server: " + serverName);
     }
 
     private void connect() throws IOException {
         boolean clientDuplex = true;
         boolean hurry = false;
         String treeBindName = "//"+host+":"+port+"/"+serverName;
+        System.out.println("Connecting to RMI server: " + treeBindName);
         String options = "duplex=\""+clientDuplex+"\",RmiServerName=\"rmi:"+treeBindName+"\",hurry=\""+hurry+"\"";
         clientTree = tf.create(host, RmiStoreFactory.storeType, true, false, options);
+        System.out.println("Successfully connected!");
     }
 
     private void close() throws IOException {
         clientTree.close();
     }
 
-    private void addDataPointSet(String name, String yAxisLabel, int regionInd) {
-        IDataPointSet dps = (IDataPointSet) clientTree.find(path + "/" + name);
-        IPlotterRegion region = plotter.region(regionInd);
-        IPlotterStyle regStyle = pf.createPlotterStyle();
-        regStyle.yAxisStyle().setLabel(yAxisLabel);
-        plotter.region(regionInd).setStyle(regStyle);
-        region.plot(dps);
-        plots.put(dps, region);
+    private void addPlots() {
+        String[] names = clientTree.listObjectNames("/", true);
+        String[] types = clientTree.listObjectTypes("/", true);
+        List<IDataPointSet> plots = new ArrayList<IDataPointSet>();
+        for (int i = 0; i < names.length; i++) {
+            if (types[i] == "IDataPointSet") {
+                plots.add((IDataPointSet) clientTree.find(names[i]));
+            }
+        }
+        int n = plots.size();
+        int rowsCols = (int) Math.ceil(Math.sqrt(n));
+        plotter.createRegions(rowsCols, rowsCols);
+        System.out.println("Created regions: " + plotter.numberOfRegions());
+        System.out.println("Rows & col size: " + rowsCols);
+        int regionInd = 0;
+        plotter.setCurrentRegionNumber(regionInd);
+        for (IDataPointSet plot : plots) {
+            System.out.println("Adding plot: " + plot.title());
+            String label = "";
+            if (plot.annotation().hasKey("label")) {
+                label = plot.annotation().value("label");
+            }
+            IPlotterRegion region = plotter.region(regionInd);
+            IPlotterStyle regStyle = pf.createPlotterStyle();
+            regStyle.yAxisStyle().setLabel(label);
+            region.setStyle(regStyle);
+            region.plot(plot);
+            this.plots.put(plot, region);
+            ++regionInd;
+        }
     }
 
     private void update() {
-        for (Map.Entry<IDataPointSet, IPlotterRegion> entry : plots.entrySet()) {
+        for (Entry<IDataPointSet, IPlotterRegion> entry : this.plots.entrySet()) {
             update(entry.getKey(), entry.getValue());
         }
     }
@@ -150,20 +185,13 @@ public class ChronoClient {
 
     private void show() {
         plotter.show();
-
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(((Plotter) plotter).panel());
+        frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         SwingUtilities.getWindowAncestor(((Plotter) plotter).panel()).addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                ChronoClient.this.windowClosed = true;
+                RemoteMonitoringClient.this.windowClosed = true;
             }
         });
-    }
-
-    private void createRegions(int rows, int cols) {
-        plotter.createRegions(rows, cols);
-    }
-
-    private boolean isWindowClosed() {
-        return windowClosed;
     }
 
     private void run() {
@@ -172,22 +200,15 @@ public class ChronoClient {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        createRegions(2, 2);
-        addDataPointSet("Events Per Second", "Hz",     0);
-        addDataPointSet("Events",            "Events", 1);
-        addDataPointSet("Millis Per Event",  "Millis", 2);
-        addDataPointSet("Avg Per Event",     "Millis", 3);
+        addPlots();
         show();
         try {
-            while(true) {
+            while(!this.windowClosed) {
                 update();
                 try {
                     Thread.sleep(1000L);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
-                if (isWindowClosed()) {
-                    break;
                 }
             }
         } finally {
@@ -200,7 +221,7 @@ public class ChronoClient {
     }
 
     public static void main(String[] args) {
-        final ChronoClient client = new ChronoClient();
+        final RemoteMonitoringClient client = new RemoteMonitoringClient();
         client.parse(args);
         client.run();
     }
