@@ -263,7 +263,8 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         
         // Print the singles triggers.
         for(int triggerNum = 0; triggerNum < 4; triggerNum++) {
-            ps.printf("\tSingles Trigger %d%n", (triggerNum + 1));
+            ps.printf("\tSingles Trigger %d%n", (triggerNum));
+            ps.printf("\tEnabled :: %b%n", singlesTrigger[triggerNum].isEnabled());
             ps.println("\t\tCluster Energy Lower Bound Cut");
             ps.printf("\t\t\tEnabled :: %b%n", singlesTrigger[triggerNum].getEnergyMinCutConfig().isEnabled());
             ps.printf("\t\t\tValue   :: %5.3f GeV%n", singlesTrigger[triggerNum].getEnergyMinCutConfig().getLowerBound());
@@ -295,7 +296,8 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         
         // Print the pair triggers.
         for(int triggerNum = 0; triggerNum < 4; triggerNum++) {
-            ps.printf("\tPair Trigger %d%n", (triggerNum + 1));
+            ps.printf("\tPair Trigger %d%n", (triggerNum));
+            ps.printf("\tEnabled :: %b%n", pairTrigger[triggerNum].isEnabled());
             ps.println("\t\tCluster Energy Lower Bound Cut");
             ps.printf("\t\t\tEnabled :: %b%n", pairTrigger[triggerNum].getEnergyMinCutConfig().isEnabled());
             ps.printf("\t\t\tValue   :: %5.3f GeV%n", pairTrigger[triggerNum].getEnergyMinCutConfig().getLowerBound());

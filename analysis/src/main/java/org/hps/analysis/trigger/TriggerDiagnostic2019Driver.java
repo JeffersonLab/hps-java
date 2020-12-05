@@ -659,6 +659,10 @@ public class TriggerDiagnostic2019Driver extends Driver {
      */
     @Override
     public void endOfData() {
+        if (!ConfigurationManager2019.isInitialized()) {
+            return;
+        }
+        
         // Get the number of digits in the largest value that is to be
         // displayed.
         int largestValue = max(hardwareTriggerCount[ALL_TRIGGERS], simTriggerCount[SOURCE_SIM_CLUSTER][ALL_TRIGGERS],
@@ -938,7 +942,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     continue;
                 }
 
-                // Define the plot for the current TI-bit and cut.
+                // Define the plot for the current TS-bit and cut.
                 for (int type = SOURCE_SIM_CLUSTER; type <= SOURCE_VTP_CLUSTER; type++) {
                     AIDA.defaultInstance().histogramFactory().divide(getPlotNameEfficiency(cut, trigger, type),
                             AIDA.defaultInstance().histogram1D(getPlotNameVerified(cut, trigger, type)),
@@ -1711,7 +1715,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                     }
                                         
                     // Only for pair3 trigger
-                    if(triggerType == TriggerType.PAIR3) {
+                    if(triggerType == TriggerType.PAIR3 && simPairTrigger.getType() == 1) {
                         if (hardwarePairTrigger.passL1L2CoincidenceTop() != simPairTrigger.getStateHodoL1L2CoincidenceTop()) {
                             logger.printf(" [ fail; Hodo L1L2 Coincidence for Top ]%n");
                             continue hardwareLoop;
@@ -2118,8 +2122,8 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         // If this is a pair trigger...
         if (isPairTrigger(trigger)) {
-            if(triggerType == TriggerType.PAIR3) {
-                PairTrigger2019<?> pairTrigger = (PairTrigger2019<?>) trigger;
+            PairTrigger2019<?> pairTrigger = (PairTrigger2019<?>) trigger;
+            if(triggerType == TriggerType.PAIR3 && pairTrigger.getType() == 1) {
                 StringBuffer triggerText = new StringBuffer(String.format(doubleStringPair3, getTriggerTime(trigger),
                         pairTrigger.getStateClusterEnergyLow(), pairTrigger.getStateClusterEnergyHigh(),
                         pairTrigger.getStateHitCount(), pairTrigger.getStateEnergySum(),
@@ -2155,7 +2159,6 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 return triggerText.toString();
             }
             else {
-                PairTrigger2019<?> pairTrigger = (PairTrigger2019<?>) trigger;
                 StringBuffer triggerText = new StringBuffer(String.format(doubleString, getTriggerTime(trigger),
                         pairTrigger.getStateClusterEnergyLow(), pairTrigger.getStateClusterEnergyHigh(),
                         pairTrigger.getStateHitCount(), pairTrigger.getStateEnergySum(),
@@ -2204,7 +2207,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
 
         StringBuffer triggerText;
         
-        if(triggerType == TriggerType.PAIR3) triggerText= new StringBuffer(String.format(doubleStringPair3, trigger.getTime(), true, true, true,
+        if(triggerType == TriggerType.PAIR3 && (trigger.passL1L2CoincidenceTop() || trigger.passL1L2CoincidenceBot())) triggerText= new StringBuffer(String.format(doubleStringPair3, trigger.getTime(), true, true, true,
                 true, trigger.passESum(), trigger.passEDiff(), trigger.passESlope(), trigger.passCoplanarity(),
                 trigger.passL1L2CoincidenceTop(), trigger.passHodoL1L2MatchingTop(), trigger.passHodoEcalMatchingTop(), 
                 trigger.passL1L2CoincidenceBot(), trigger.passHodoL1L2MatchingBot(), trigger.passHodoEcalMatchingBot()));
@@ -2704,7 +2707,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
         } else if (triggerType.isPairTrigger()) {
             // Add all of the VTP triggers.
             for (PairTrigger2019<VTPCluster[]> trigger : simTriggers.getSimHardwareClusterTriggers().getPairTriggers(triggerType.getTriggerNumber())) {
-                if (triggerType != TriggerType.PAIR3)
+                if (triggerType != TriggerType.PAIR3 || (triggerType == TriggerType.PAIR3 && trigger.getType() == 0))
                     hardwareSimTriggers.add(trigger);
                 // Pair3 trigger requires geometry matching for hodoscope and ecal
                 else {
@@ -2722,7 +2725,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 if (TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[0], nsaEcal, nsbEcal, windowWidthEcal)
                         && TriggerDiagnosticUtil.isVerifiable(trigger.getTriggerSource()[1], nsaEcal, nsbEcal,
                                 windowWidthEcal)) {
-                    if (triggerType != TriggerType.PAIR3)
+                    if (triggerType != TriggerType.PAIR3 || (triggerType == TriggerType.PAIR3 && trigger.getType() == 0))
                         softwareSimTriggers.add(trigger);
                     // Pair3 trigger requires geometry matching for hodoscope and ecal
                     else {

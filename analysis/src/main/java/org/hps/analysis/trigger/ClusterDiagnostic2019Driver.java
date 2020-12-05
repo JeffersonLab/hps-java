@@ -410,6 +410,10 @@ public final class ClusterDiagnostic2019Driver extends Driver {
         // Time and energy binned clustering efficiency plots are defined
         // by the ratio of all verified software clusters to the verified
         // software clusters that were matched.
+        if (!ConfigurationManager2019.isInitialized()) {
+            return;
+        }
+        
         AIDA.defaultInstance().histogramFactory().divide(matchedClustersTimeEfficiencyPlot,
                 AIDA.defaultInstance().histogram1D(matchedClustersTimePlot),
                 AIDA.defaultInstance().histogram1D(softwareClustersTimePlot));

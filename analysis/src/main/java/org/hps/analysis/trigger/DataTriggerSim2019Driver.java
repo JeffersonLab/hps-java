@@ -278,10 +278,10 @@ public class DataTriggerSim2019Driver extends Driver {
                     pairCutsEnabled[i][3 + COPLANARITY] = pairs[i].getCoplanarityCutConfig().isEnabled();
                 }
                 
-                pairCutsEnabled[3][3+ PAIR_L1_MATCHING] = pairs[3].getL1MatchingConfig().isEnabled();
-                pairCutsEnabled[3][3+ PAIR_L2_MATCHING] = pairs[3].getL2MatchingConfig().isEnabled();
-                pairCutsEnabled[3][3+ PAIR_L1L2_GEO_MATCHING] = pairs[3].getL1L2GeoMatchingConfig().isEnabled();
-                pairCutsEnabled[3][3+ PAIR_HODOECAL_GEO_MATCHING] = pairs[3].getHodoEcalGeoMatchingConfig().isEnabled();
+                pairCutsEnabled[3][3 + PAIR_L1_MATCHING] = pairs[3].getL1MatchingConfig().isEnabled();
+                pairCutsEnabled[3][3 + PAIR_L2_MATCHING] = pairs[3].getL2MatchingConfig().isEnabled();
+                pairCutsEnabled[3][3 + PAIR_L1L2_GEO_MATCHING] = pairs[3].getL1L2GeoMatchingConfig().isEnabled();
+                pairCutsEnabled[3][3 + PAIR_HODOECAL_GEO_MATCHING] = pairs[3].getHodoEcalGeoMatchingConfig().isEnabled();
 
                 // In evio, -31 for cluster xmin is written as 33 during DAQ since variable is not set as unsigned
                 if((int)singlesTrigger[0].getCutValue(TriggerModule2019.CLUSTER_XMIN) == 33) singlesTrigger[0].setCutValue(TriggerModule2019.CLUSTER_XMIN, -31);
@@ -790,7 +790,7 @@ public class DataTriggerSim2019Driver extends Driver {
                 }
 
                 // Store the trigger.
-                singlesTriggers.get(triggerNum).add(trigger);
+                if(singlesTriggerEnabled[triggerNum] == true) singlesTriggers.get(triggerNum).add(trigger);
             }
         }
 
@@ -873,7 +873,7 @@ public class DataTriggerSim2019Driver extends Driver {
                     passPairCoplanarity = pairsTrigger[triggerIndex].pairCoplanarityCut(reconPair);
                     passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(reconPair);
                     // Only pair3 trigger requires geometry matching for hodoscope and Ecal
-                    if(triggerIndex == 3) {       
+                    if(triggerIndex == 3 && pairCutsEnabled[3][3 + PAIR_L1_MATCHING] == true) {       
                         Cluster clusterTop = null;
                         Cluster clusterBot = null;
                         if(TriggerModule2019.getClusterYIndex(reconPair[0]) > 0) {
@@ -962,7 +962,7 @@ public class DataTriggerSim2019Driver extends Driver {
                     passPairCoplanarity = pairsTrigger[triggerIndex].pairCoplanarityCut(vtpPair);
                     passTimeCoincidence = pairsTrigger[triggerIndex].pairTimeCoincidenceCut(vtpPair);
                     // Only pair3 trigger requires geometry matching for hodoscope and Ecal
-                    if(triggerIndex == 3) {       
+                    if(triggerIndex == 3 && pairCutsEnabled[3][3 + PAIR_L1_MATCHING] == true) {       
                         VTPCluster clusterTop = null;
                         VTPCluster clusterBot = null;
                         if(TriggerModule2019.getClusterYIndex(vtpPair[0]) > 0) {
@@ -1037,7 +1037,7 @@ public class DataTriggerSim2019Driver extends Driver {
                     System.out.printf("\t         C <= %-5.0f :: [ %5b ]%n",
                             pairsTrigger[triggerIndex].getCutValue(TriggerModule2019.PAIR_COPLANARITY_HIGH),
                             passPairCoplanarity);
-                    if(triggerIndex == 3) {
+                    if(triggerIndex == 3 && pairCutsEnabled[3][3 + PAIR_L1_MATCHING] == true) {
                         System.out.printf("\tHodo L1 Matching Top  :: [ %5b ]%n",                                
                                 passHodoL1MatchingTop);
                         System.out.printf("\tHodo L2 Matching Top  :: [ %5b ]%n",                                
@@ -1059,7 +1059,7 @@ public class DataTriggerSim2019Driver extends Driver {
 
                 // Create a trigger from the results.
                 PairTrigger2019<E[]> trigger;
-                if (triggerIndex != 3)
+                if (triggerIndex != 3 || (triggerIndex == 3 && pairCutsEnabled[3][3 + PAIR_L1_MATCHING] == false))
                     trigger = new PairTrigger2019<E[]>(pair, triggerIndex);
                 else {
                     // Save all valid hodoscope hits 
@@ -1099,7 +1099,7 @@ public class DataTriggerSim2019Driver extends Driver {
                 trigger.setStateCoplanarity(passPairCoplanarity);
                 trigger.setStateTimeCoincidence(passTimeCoincidence);
                 // Only pair3 trigger requires geometry matching for hodoscope and Ecal
-                if(triggerIndex == 3) {  
+                if(triggerIndex == 3 && pairCutsEnabled[3][3 + PAIR_L1_MATCHING] == true) {  
                     trigger.setStateHodoL1L2CoincidenceTop(passHodoL1MatchingTop && passHodoL2MatchingTop);
                     trigger.setStateHodoL1L2MatchingTop(passHodoL1L2MatchingTop);
                     trigger.setStateHodoEcalMatchingTop(passHodoEcalMatchingTop);
@@ -1137,7 +1137,7 @@ public class DataTriggerSim2019Driver extends Driver {
                 }
 
                 // Add the trigger to the list.
-                pairTriggers.get(triggerIndex).add(trigger);
+                if(pairTriggerEnabled[triggerIndex] == true) pairTriggers.get(triggerIndex).add(trigger);
             }
         }
 

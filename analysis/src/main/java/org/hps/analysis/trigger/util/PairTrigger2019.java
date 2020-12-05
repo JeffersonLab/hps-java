@@ -31,6 +31,10 @@ public class PairTrigger2019<E> extends Trigger<E> {
     // hodoscope pattern map
     private Map<Integer, HodoscopePattern> patternMap = null;
     
+    // Type of pairs3 trigger
+    // Only pair3 trigger could be type = 1 for some runs, where Hodo and Ecal matchaing are required.
+    private int type = 0;
+    
     /**
      * Instantiates a new <code>PairTrigger</code> with all cut
      * states set to <code>false</code> and with the trigger source
@@ -80,6 +84,8 @@ public class PairTrigger2019<E> extends Trigger<E> {
 
         this.patternMap = patternMap;
         
+        this.type = 1;
+        
         // Add the supported cuts types.
         addValidCut(CLUSTER_HIT_COUNT_LOW);
         addValidCut(CLUSTER_TOTAL_ENERGY_LOW);
@@ -97,6 +103,15 @@ public class PairTrigger2019<E> extends Trigger<E> {
         addValidCut(PAIR_HODO_L1L2_COINCIDENCE_BOT);
         addValidCut(PAIR_HODO_L1L2_MATCHING_BOT);
         addValidCut(PAIR_HODO_ECAL_MATCHING_BOT);
+    }
+    
+    /**
+     * Gets type of pair trigger.
+     * 
+     * @return Returns type of pair trigger.
+     */
+    public int getType() {
+        return type;
     }
     
     /**
