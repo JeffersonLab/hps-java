@@ -194,7 +194,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                     fit.setT0(fit.getT0() - timingConstants.getOffsetTime());
                 }
                 if (subtractTriggerTime) {
-                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 14);
+                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
                     if (!syncGood) tt = tt - 8;
                     if (!syncGood && (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24)/8 < 1)) {
                         tt = tt + 24;
