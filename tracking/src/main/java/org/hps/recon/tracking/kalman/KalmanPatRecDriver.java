@@ -24,12 +24,9 @@ import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -277,8 +274,7 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        
-        
+                
         List<Track> outputFullTracks = new ArrayList<Track>();
         
         //For additional track information
@@ -293,7 +289,7 @@ public class KalmanPatRecDriver extends Driver {
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
        
-        prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
+        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
@@ -306,6 +302,18 @@ public class KalmanPatRecDriver extends Driver {
             event.put("KFUnbiasRes", trackResiduals, TrackResidualsData.class,0);
             event.put("KFUnbiasResRelations",trackResidualsRelations, LCRelation.class,0);
         }
+
+        if (kPlot != null) {
+            long startTime = System.nanoTime();
+            
+            kPlot.process(event, kPatList, outputFullTracks);
+            long endPlottingTime = System.nanoTime();
+            double runTime = (double)(endPlottingTime - startTime)/1000000.;
+            plottingTime += runTime;           
+        }
+        
+        KI.clearInterface();
+        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", event.getEventNumber()));
     }
     
     class SortByZ implements Comparator<Pair<double[], double[]>> {
@@ -324,13 +332,13 @@ public class KalmanPatRecDriver extends Driver {
         }
     }
 
-    private void prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
+    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
             System.out.format("KalmanPatRecDriver.process:" + stripHitInputCollectionName + " does not exist; skipping event %d\n", evtNumb);
-            return;
+            return null;
         }
         
         long startTime = System.nanoTime();
@@ -341,21 +349,11 @@ public class KalmanPatRecDriver extends Driver {
         nEvents++;
         logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
-        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
-            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
-            for (LCRelation relation : trueHitRelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-                    rawtomc.add(relation.getFrom(), relation.getTo());
-                }
-        }
-        
-        List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        if (rawhits == null) {
-            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
-            return;
-        }
-        
+        //List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        //if (rawhits == null) {
+        //    logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
+        //    return null;
+        //}        
         
         int nKalTracks = 0;
         for (int topBottom=0; topBottom<2; ++topBottom) {
@@ -458,18 +456,7 @@ public class KalmanPatRecDriver extends Driver {
         runTime = (double)(endInterfaceTime - endTime)/1000000.;
         interfaceTime += runTime;
         
-        if (kPlot != null) {
-            kPlot.process(event, runTime, kPatList, outputFullTracks, rawtomc);
-            long endPlottingTime = System.nanoTime();
-            runTime = (double)(endPlottingTime - endInterfaceTime)/1000000.;
-            plottingTime += runTime;
-            
-        }
-        
-        KI.clearInterface();
-        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));
-
-        return;
+        return kPatList;
     }
 
     @Override

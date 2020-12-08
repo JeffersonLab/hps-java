@@ -18,6 +18,7 @@ import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
@@ -25,6 +26,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
@@ -80,7 +82,6 @@ class KalmanPatRecPlots {
         numBadCov = 0;
         
         // arguments to histogram1D: name, nbins, min, max
-        aida.histogram1D("Kalman pattern recognition time", 100, 0., 500.);
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Chi2, >=12 hits", 50, 0., 100.);
@@ -167,11 +168,18 @@ class KalmanPatRecPlots {
         pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
     }
     
-    void process(EventHeader event, double runTime, ArrayList<KalTrack>[] kPatList, 
-            List<Track> outputFullTracks, RelationalTable rawtomc) {
+    void process(EventHeader event, ArrayList<KalTrack>[] kPatList, 
+            List<Track> outputFullTracks) {
         
-        aida.histogram1D("Kalman pattern recognition time").fill(runTime);
         nEvents++;
+        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations)
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+        }
         
         if (event.hasCollection(Cluster.class, ecalClusterCollectionName)) {
             List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName);
