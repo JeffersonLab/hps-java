@@ -188,6 +188,9 @@ public class DataTriggerSim2019Driver extends Driver {
     private IHistogram1D simClusterVerifiedTime = aida.histogram1D("Trigger Sim/Sim Cluster/Verified Cluster Time", 51,
             -2, 202);
 
+    private IHistogram1D simHodoHitTime = aida.histogram1D("Trigger Sim/Hodo Plots/Hodo Hit Time", 33, -2, 130);
+    private IHistogram1D simHodoHitEnergy = aida.histogram1D("Trigger Sim/Hodo Plots/Hodo Hit Energy", 100, 0, 3000);
+    
     /**
      * Connects the driver to the the <code>ConfigurationManager2019</code> in order to
      * obtain the correct trigger information. Trigger settings are stored in the
@@ -400,6 +403,10 @@ public class DataTriggerSim2019Driver extends Driver {
         List<CalorimeterHit> reconHodoHits = null;
         if (event.hasCollection(CalorimeterHit.class, hodoHitCollectionName)) {
             reconHodoHits = event.get(CalorimeterHit.class, hodoHitCollectionName);
+            for(CalorimeterHit hit : reconHodoHits) {
+                simHodoHitTime.fill(hit.getTime());
+                simHodoHitEnergy.fill(hit.getRawEnergy());
+            }
         } else {
             reconHodoHits = new ArrayList<CalorimeterHit>(0);
         }        
