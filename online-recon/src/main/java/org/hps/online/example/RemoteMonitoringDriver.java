@@ -141,7 +141,6 @@ public class RemoteMonitoringDriver extends Driver {
 
                     curr = System.currentTimeMillis() / 1000L;
 
-                    //System.out.println("curr: " + curr);
                     long elapsed = System.currentTimeMillis() - start;
                     tot += elapsed;
 
@@ -152,12 +151,6 @@ public class RemoteMonitoringDriver extends Driver {
 
                     if (nProc > 0) {
                         double msPer = (double) elapsed / (double) nProc;
-                        /*
-                        if (Double.isInfinite(msPer)) {
-                            throw new RuntimeException("msPer was inf!!!");
-                        }
-                        */
-                        //System.out.println("msPer = " + msPer);
                         IDataPoint point3 = msPerEvt.addPoint();
                         point3.coordinate(0).setValue(curr);
                         point3.coordinate(1).setValue(msPer);
@@ -203,13 +196,14 @@ public class RemoteMonitoringDriver extends Driver {
         p.coordinate(0).setValue(curr);
         Double newAvg = newValue / ((double) tot / 1000.);
         p.coordinate(1).setValue(newAvg);
-        //System.out.println("Update average for " + dps.title() + ": " + val + " -> " + newAvg);
     }
 
+    // TODO: Use a system property instead?
     public void setPort(int port) {
         this.port = port;
     }
 
+    // TODO: Use a system property instead?
     public void setServerName(String serverName) {
         this.serverName = serverName;
     }
