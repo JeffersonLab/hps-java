@@ -1,5 +1,6 @@
 package org.hps.online.example;
 
+import java.awt.Component;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.cli.BasicParser;
@@ -56,8 +58,7 @@ public class RemoteMonitoringClient {
     private ITree clientTree = null;
     private final IAnalysisFactory af = IAnalysisFactory.create();
     private final IPlotterFactory pf = af.createPlotterFactory();
-    private final ITreeFactory tf = af.createTreeFactory();
-    private final IPlotterStyle avgStyle = pf.createPlotterStyle();
+    private final ITreeFactory tf = af.createTreeFactory();    private final IPlotterStyle avgStyle = pf.createPlotterStyle();
 
     private final IPlotter plotter = pf.create("Monitoring Plots");
 
@@ -69,8 +70,11 @@ public class RemoteMonitoringClient {
 
     private boolean windowClosed = false;
 
-    private Integer plotWidth = 800;
-    private Integer plotHeight = 600;
+    private Integer plotterWidth = 800;
+    private Integer plotterHeight = 600;
+
+    private static final long DEFAULT_UPDATE_INTERVAL = 1000L;
+    private Long updateInterval = DEFAULT_UPDATE_INTERVAL;
 
     public RemoteMonitoringClient() {
 
@@ -78,8 +82,11 @@ public class RemoteMonitoringClient {
         options.addOption(new Option("p", "port",   true,  "Network port of server"));
         options.addOption(new Option("s", "server", true,  "Name of RMI server"));
         options.addOption(new Option("H", "host",   true,  "Host name or IP address of server"));
-        options.addOption(new Option("x", "width",  true,  "Plot window width (pixels)"));
-        options.addOption(new Option("y", "height", true,  "Plot window height (pixels)"));
+        options.addOption(new Option("x", "width",  true,  "Plotter window width (pixels)"));
+        options.addOption(new Option("y", "height", true,  "Plotter window height (pixels)"));
+
+        // TODO: option to set update interval in seconds
+        // TODO: some way to select or filter plots to display (by dir like 'perf' or 'subdet')
 
         IPlotterStyle style = plotter.style();
         style.xAxisStyle().setParameter("type", "date");
@@ -131,10 +138,10 @@ public class RemoteMonitoringClient {
             serverName = cl.getOptionValue("s");
         }
         if (cl.hasOption("x")) {
-            plotWidth = Integer.parseInt(cl.getOptionValue("x"));
+            plotterWidth = Integer.parseInt(cl.getOptionValue("x"));
         }
         if (cl.hasOption("y")) {
-            plotHeight = Integer.parseInt(cl.getOptionValue("y"));
+            plotterHeight = Integer.parseInt(cl.getOptionValue("y"));
         }
     }
 
@@ -146,6 +153,9 @@ public class RemoteMonitoringClient {
         String options = "duplex=\""+clientDuplex+"\",RmiServerName=\"rmi:"+treeBindName+"\",hurry=\""+hurry+"\"";
         clientTree = tf.create(host, RmiStoreFactory.storeType, true, false, options);
         System.out.println("Successfully connected!");
+        System.out.println("Remote tree objects: ");
+        clientTree.ls("/", true);
+        System.out.println();
     }
 
     private void close() throws IOException {
@@ -164,13 +174,9 @@ public class RemoteMonitoringClient {
         int n = dpsNames.size();
         int rowsCols = (int) Math.ceil(Math.sqrt(n));
         plotter.createRegions(rowsCols, rowsCols);
-        //System.out.println("Created regions: " + plotter.numberOfRegions());
-        //System.out.println("Rows & col size: " + rowsCols);
         int regionInd = 0;
-        plotter.setCurrentRegionNumber(regionInd);
         for (String dpsName : dpsNames) {
             IDataPointSet dps = (IDataPointSet) clientTree.find(dpsName);
-            //System.out.println("Adding plot: " + dps.title());
             String label = "";
             if (dps.annotation().hasKey("label")) {
                 label = dps.annotation().value("label");
@@ -180,7 +186,7 @@ public class RemoteMonitoringClient {
             regStyle.yAxisStyle().setLabel(label);
             region.setStyle(regStyle);
             region.plot(dps);
-            this.plots.put(dps, region);
+            plots.put(dps, region);
 
             String[] spl = dpsName.split("/");
             String dirName = spl[1];
@@ -191,17 +197,8 @@ public class RemoteMonitoringClient {
                 region.plot(avg, avgStyle);
             } catch (IllegalArgumentException e) {
             }
-
             ++regionInd;
         }
-
-        /*
-        try {
-            Thread.sleep(9999999);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     private void update() {
@@ -221,10 +218,22 @@ public class RemoteMonitoringClient {
         region.refresh();
     }
 
+    private void setPanelEnabled(JPanel panel, Boolean isEnabled) {
+        panel.setEnabled(isEnabled);
+        Component[] components = panel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JPanel) {
+                setPanelEnabled((JPanel) component, isEnabled);
+            }
+            component.setEnabled(isEnabled);
+        }
+    }
+
     private void show() {
-        plotter.setParameter("plotterWidth", plotWidth.toString());
-        plotter.setParameter("plotterHeight", plotHeight.toString());
+        plotter.setParameter("plotterWidth", plotterWidth.toString());
+        plotter.setParameter("plotterHeight", plotterHeight.toString());
         plotter.show();
+        setPanelEnabled(((Plotter) plotter).panel(), false);
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(((Plotter) plotter).panel());
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -241,27 +250,24 @@ public class RemoteMonitoringClient {
         }
         addPlots();
         show();
-        try {
-            while(!this.windowClosed) {
-                update();
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        } finally {
+        while(!this.windowClosed) {
+            update();
             try {
-                close();
-            } catch (IOException e) {
+                Thread.sleep(updateInterval);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+        try {
+            close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
         final RemoteMonitoringClient client = new RemoteMonitoringClient();
         client.parse(args);
-        client.run();
+        client.run(); // TODO: Should probably catch exceptions
     }
 }
