@@ -276,7 +276,7 @@ class KalmanTrackFit2 {
 
         finalSite = sites.size() - 1;
 
-        int nLyrs = 12;
+        int nLyrs = 14;
         int [] lyrPtr = new int[nLyrs+1];
         for (int i=0; i<sites.size(); ++i) {
             MeasurementSite site = sites.get(i);
