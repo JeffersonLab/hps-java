@@ -43,7 +43,7 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
  * Displays plots from the <code>RemoteChronoDriver</code>
  * through an RMI connection
  */
-public class RemoteMonitoringClient {
+public class RemoteTimeSeriesClient {
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
@@ -76,7 +76,7 @@ public class RemoteMonitoringClient {
     private static final long DEFAULT_UPDATE_INTERVAL = 1000L;
     private Long updateInterval = DEFAULT_UPDATE_INTERVAL;
 
-    public RemoteMonitoringClient() {
+    public RemoteTimeSeriesClient() {
 
         options.addOption(new Option("h", "help",   false, "Print help and exit"));
         options.addOption(new Option("p", "port",   true,  "Network port of server"));
@@ -237,7 +237,7 @@ public class RemoteMonitoringClient {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(((Plotter) plotter).panel());
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                RemoteMonitoringClient.this.windowClosed = true;
+                RemoteTimeSeriesClient.this.windowClosed = true;
             }
         });
     }
@@ -266,7 +266,7 @@ public class RemoteMonitoringClient {
     }
 
     public static void main(String[] args) {
-        final RemoteMonitoringClient client = new RemoteMonitoringClient();
+        final RemoteTimeSeriesClient client = new RemoteTimeSeriesClient();
         client.parse(args);
         client.run(); // TODO: Should probably catch exceptions
     }
