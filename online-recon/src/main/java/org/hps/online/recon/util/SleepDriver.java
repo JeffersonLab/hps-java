@@ -1,4 +1,4 @@
-package org.hps.online.example;
+package org.hps.online.recon.util;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;

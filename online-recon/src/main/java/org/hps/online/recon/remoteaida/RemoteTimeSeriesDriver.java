@@ -1,4 +1,4 @@
-package org.hps.online.example;
+package org.hps.online.recon.remoteaida;
 
 import java.io.IOException;
 import java.net.InetAddress;
