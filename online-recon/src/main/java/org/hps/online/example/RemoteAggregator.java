@@ -7,22 +7,21 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IBaseHistogram;
-import hep.aida.IDataPointSet;
 import hep.aida.IHistogram;
 import hep.aida.IHistogram1D;
-import hep.aida.IHistogramFactory;
+import hep.aida.IHistogram2D;
 import hep.aida.IManagedObject;
 import hep.aida.ITree;
 import hep.aida.ITreeFactory;
 import hep.aida.dev.IDevTree;
+import hep.aida.ref.remote.RemoteConnectionException;
 import hep.aida.ref.remote.RemoteServer;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 import hep.aida.ref.remote.rmi.interfaces.RmiServer;
@@ -30,6 +29,7 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 
 /**
  * Connect to remote AIDA trees and aggregate the plots
+ * by adding histograms.
  *
  * Config file example:<br/>
  * <pre>
@@ -38,8 +38,12 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * interval = 5000
  * remotes = //host01:2001/RmiAidaServer,//host01:2002/RmiAidaServer
  * </pre>
+ *
+ * Currently handles only 1D and 2D histograms.
  */
 public class RemoteAggregator {
+
+    private static Logger LOG = Logger.getLogger(RemoteAggregator.class.getPackage().getName());
 
     private static final String REMOTES_DIR = "/remotes";
 
@@ -51,12 +55,12 @@ public class RemoteAggregator {
     /** Name of the remote server; set with "name" property */
     private String serverName = "RmiAidaServer";
 
-    /** Update interval between aggregation; set with "interval" property */
+    /** Interval between aggregation; set with "interval" property */
     private Long updateInterval = 5000L;
 
     /**
      * List of remote AIDA instances; set with "remotes" property, which should be a
-     * comma-delimited list
+     * comma-delimited list of valid RMI tree bind names e.g. <pre>//host01:2001/RmiAidaServer</pre>
      */
     private LinkedHashSet<String> remoteTreeBinds = new LinkedHashSet<String>();
 
@@ -66,8 +70,6 @@ public class RemoteAggregator {
 
     private RemoteServer treeServer;
     private RmiServer rmiTreeServer;
-
-    private Map<String, ITree> remoteTrees = new HashMap<String, ITree>();
 
     public RemoteAggregator() {
     }
@@ -81,12 +83,18 @@ public class RemoteAggregator {
         }
         if (prop.containsKey("port")) {
             port = Integer.parseInt(prop.getProperty("port"));
+            if (port < 1024 || port > 65535) {
+                throw new IllegalArgumentException("Bad port number: " + port);
+            }
         }
         if (prop.containsKey("server")) {
             serverName = prop.getProperty("server");
         }
         if (prop.containsKey("interval")) {
             updateInterval = Long.parseLong(prop.getProperty("interval"));
+            if (updateInterval < 0) {
+                throw new IllegalArgumentException("The interval is invalid: " + updateInterval);
+            }
         }
         if (prop.containsKey("remotes")) {
             for (String remote : prop.getProperty("remotes").split(",")) {
@@ -105,7 +113,7 @@ public class RemoteAggregator {
             throw new RuntimeException(e);
         }
         String treeBindName = "//"+localHost+":"+port+"/"+serverName;
-        System.out.println("Server tree: " + treeBindName);
+        LOG.config("Creating RMI server tree: " + treeBindName);
         try {
             boolean serverDuplex = true;
             treeServer = new RemoteServer(serverTree, serverDuplex);
@@ -127,11 +135,8 @@ public class RemoteAggregator {
             ITree remoteTree = null;
             try {
                 remoteTree = tf.create(remoteTreeBind, RmiStoreFactory.storeType, true, false, options);
-                //remoteTree.ls("/", true);
-                remoteTrees.put(remoteTreeBind, remoteTree);
-
                 String mountName = toMountName(remoteTreeBind);
-                System.out.println("Mounting remote tree to: " + mountName);
+                LOG.info("Mounting remote tree to: " + mountName);
                 serverTree.mount(mountName, remoteTree, "/");
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -142,7 +147,7 @@ public class RemoteAggregator {
         String[] dirNames = listObjectNames(remoteDir, true, "dir");
         for (String dirName : dirNames) {
             String aggName = toAggregateName(dirName);
-            System.out.println("Making agg dir: " + aggName);
+            LOG.info("Making aggregation dir: " + aggName);
             this.serverTree.mkdirs(aggName);
         }
     }
@@ -192,8 +197,6 @@ public class RemoteAggregator {
                 IManagedObject obj = serverTree.find(name);
                 if (obj instanceof IHistogram) {
                     ((IBaseHistogram) obj).reset();
-                } else if (obj instanceof IDataPointSet) {
-                    ((IDataPointSet)obj).clear();
                 }
             } catch (IllegalArgumentException e) {
             }
@@ -218,7 +221,7 @@ public class RemoteAggregator {
                     if (obj == null) {
                         try {
                             obj = serverTree.find(remoteName);
-                            System.out.println("Copying: " + remoteName + " -> " + aggName);
+                            LOG.info("Copying: " + remoteName + " -> " + aggName);
                             serverTree.cp(remoteName, aggName, false);
                         } catch (IllegalArgumentException e1) {
                         }
@@ -230,17 +233,18 @@ public class RemoteAggregator {
     }
 
     private void add(String srcName, IManagedObject obj) {
-        if (obj instanceof IHistogram1D) {
-            System.out.println("Adding: " + srcName + " -> " + obj.name());
-            IHistogram1D target = (IHistogram1D) obj;
-            IHistogram1D src = (IHistogram1D) serverTree.find(srcName);
-            System.out.println("src entries: " + src.entries());
-
-            System.out.println("target entries before: " + target.entries());
-            target.add(src);
-            System.out.println("target entries after: " + target.entries());
-
-            System.out.println();
+        if (obj instanceof IBaseHistogram) {
+            LOG.fine("Adding: " + srcName);
+            IBaseHistogram srcBase = (IBaseHistogram) serverTree.find(srcName);
+            LOG.fine("src entries: " + srcBase.entries());
+            IBaseHistogram tgtBase = (IBaseHistogram) obj;
+            LOG.fine("target entries before: " + tgtBase.entries());
+            if (obj instanceof IHistogram1D) {
+                ((IHistogram1D) obj).add((IHistogram1D) serverTree.find(srcName));
+            } else if (obj instanceof IHistogram2D) {
+                ((IHistogram2D) obj).add((IHistogram2D) serverTree.find(srcName));
+            }
+            LOG.fine("target entries after: " + tgtBase.entries());
         }
     }
 
@@ -259,25 +263,29 @@ public class RemoteAggregator {
     private void loop() {
         while (true) {
             clearTree();
-            update();
-            if (updateInterval > 0) {
+            try {
+                update();
+            } catch (RemoteConnectionException e) {
+                e.printStackTrace();
+                break;
+            }
+            if (updateInterval > 0L) {
                 try {
                     Thread.sleep(updateInterval);
                 } catch (InterruptedException e) {
                 }
             }
+
         }
     }
 
     static public void main(String[] args) {
         final RemoteAggregator agg = new RemoteAggregator();
-
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 agg.disconnect();
             }
         });
-
         if (args.length < 1) {;
             System.out.println("Usage: RemoteAggregator [config_file]");
             System.exit(1);
