@@ -174,7 +174,7 @@ class HelixPlaneIntersect {
     }
 
     // Safe Newton-Raphson zero finding from Numerical Recipes in C
-    double rtSafe(double xGuess, double x1, double x2, double xacc) {
+    private double rtSafe(double xGuess, double x1, double x2, double xacc) {
         // Here xGuess is a starting guess for the phi angle of the helix intersection
         // x1 and x2 give a range for the value of the solution
         // xacc specifies the accuracy needed

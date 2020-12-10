@@ -35,13 +35,13 @@ public class KalmanParams {
     int [] minStereo;
     int minAxial;
     double mxTdif;
-    double seedCompThr;           // Compatibility threshold for seedTracks helix parameters
-    int numStrategies;
+    double seedCompThr;           // Compatibility threshold for seedTracks helix parameters;
     ArrayList<int[]> [] lyrList;
     double [] beamSpot;
     double [] vtxSize;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
+    private String [] tb;
     private Logger logger;
     int maxListIter1;
     
@@ -75,8 +75,8 @@ public class KalmanParams {
             System.out.format("      %d: %8.3f +- %8.3f\n", i, beamSpot[i], vtxSize[i]);
         }
         for (int i=0; i<2; ++i) {
-            System.out.format("  Search strategies for topBottom = %d:\n",i);
-            for (int j=0; j<numStrategies; ++j) {
+            System.out.format("  Search strategies for %s:\n",tb[i]);
+            for (int j=0; j<lyrList[i].size(); ++j) {
                 int [] list = lyrList[i].get(j);
                 System.out.format("     ");
                 for (int k=0; k<5; ++k) {
@@ -85,12 +85,16 @@ public class KalmanParams {
                 System.out.format("\n");
             }
         }
+        System.out.format("  The number of seed strategies used in the first iteration is %d\n", maxListIter1+1);
         System.out.format("\n");
     }
     
     KalmanParams() {
         
-        logger = Logger.getLogger(KalmanParams.class.getName());;
+        logger = Logger.getLogger(KalmanParams.class.getName());
+        tb = new String[2];
+        tb[0] = "bottom";
+        tb[1] = "top";
         
         kMax = new double[mxTrials];
         tanlMax = new double[mxTrials];
@@ -140,8 +144,12 @@ public class KalmanParams {
         // Index 0 is for the bottom tracker (+z), 1 for the top (-z)
         lyrList = new ArrayList[2];
         for (int i=0; i<2; ++i) {
-            lyrList[i] = new ArrayList<int[]>(15);
-        }
+            lyrList[i] = new ArrayList<int[]>();
+        } 
+        //                  0   1   2   3   4    5    6
+        //                 A S A S A S A S A S A  S  A  S   top
+        //                 0,1,2,3,4,5,6,7,8,9,10,11,12,13
+        //                 S A S A S A S A S A S  A  S  A  bottom
         final int[] list0 = {6, 7, 8, 9, 10};
         final int[] list1 = {4, 5, 6, 7, 8};
         final int[] list2 = {5, 6, 8, 9, 10};
@@ -158,9 +166,8 @@ public class KalmanParams {
         final int[] list13 = {2, 4, 5, 6, 7};
         final int[] list14 = {6, 7, 8, 10, 11};
         final int[] list15 = {1, 2, 3, 4, 6};
-        final int[] list16 = {2, 3, 4, 5, 6};
-        final int[] list17 = {0, 2, 3, 4, 5};
-        final int[] list18 = {0, 3, 4, 5, 6};
+        final int[] list16 = {0, 2, 3, 4, 5};
+        final int[] list17 = {0, 3, 4, 5, 6};
         lyrList[0].add(list0);
         lyrList[0].add(list1);
         lyrList[0].add(list2);
@@ -179,8 +186,6 @@ public class KalmanParams {
         lyrList[0].add(list15);
         lyrList[0].add(list16);
         lyrList[0].add(list17);
-        lyrList[0].add(list18);
-        numStrategies = 19;
         maxListIter1 = 14;           // The maximum index for lyrList for the first iteration
         
         beamSpot = new double[3];
@@ -225,13 +230,6 @@ public class KalmanParams {
         }       
     }
     
-    public void setNumStrategies(int n) {
-        if (n <= 0 || n > lyrList[0].size()) {
-            logger.log(Level.WARNING,String.format("Number of search strategies %d is not valid and is ignored.", n));
-            return;
-        }
-        numStrategies = n;
-    }
     public void setGlbIterations(int nTrials) {
         if (nTrials < 1 || nTrials > mxTrials) {
             logger.log(Level.WARNING,String.format("Number of global iterations %d is not valid and is ignored.", nTrials));
@@ -445,56 +443,115 @@ public class KalmanParams {
         lyrList[1].clear();
     }
     
-    // Add a search strategy for the bottom and top trackers
-    public boolean addStrategy(int [] list) {
-        if (!addStrategy(list,0)) return false;
-        // Swap axial/stereo in list entries for the top tracker
-        int [] listTop = new int[5];
-        for (int i=0; i<5; ++i) {
-            listTop[i] = Swap[list[i]];
-        }
-        for (int i=0; i<4; ++i) {
-            if (listTop[i] > listTop[i+1]) { // Sorting entries. No more than one swap should be necessary.
-                int tmp = listTop[i];
-                listTop[i] = listTop[i+1];
-                listTop[i+1] = tmp;
+    public void setNumSeedIter1(int num) {
+        int n = num;
+        for (int topBottom=0; topBottom<2; ++topBottom) {          
+            if (n > lyrList[topBottom].size()) {
+                n = lyrList[topBottom].size();
             }
-        } 
-        if (!addStrategy(listTop,1)) return false;
-        return true;
+        }
+        logger.config(String.format("The number of seeds used in iteration 1 is set to %d", n));
+        maxListIter1 = n-1;
     }
     
-    // Add a search strategy for just the bottom or top tracker
-    public boolean addStrategy(int [] list, int topBottom) {
+    // Add a seed search strategy for the bottom or top tracker
+    public boolean addStrategy(String strategy, String topBottom) {
+        if (!(topBottom == "top" || topBottom == "bottom")) {
+            logger.config("The argument topBottom must be 'top' or 'bottom'. This seed strategy is ignored.");
+            return false;
+        }
+        if (strategy.length() != 7) {
+            logger.config("The seed strategy " + strategy + " does not have 7 characters and is ignored.");
+            return false;
+        }
+        int iTB;
+        if (topBottom=="top") {
+            iTB = 1;
+        } else {
+            iTB = 0;
+        }
         int nAxial = 0;
         int nStereo = 0;
-        for (int i=0; i<5; ++i) {
-            if (list[i]%2 == 0) {
-                if (topBottom == 0) nStereo++;
-                else nAxial++;
-            } else {
-                if (topBottom == 0) nAxial++;
-                else nStereo++;
+        int n=0;
+        int [] newList = new int[5];
+        String goodChars = "0AaSsBb";
+        for (int lyr=0; lyr<7; ++lyr) {
+            if (goodChars.indexOf(strategy.charAt(lyr)) < 0) {
+                logger.warning(String.format("Character %c for layer %d in strategy %s is not recognized. Should be 0, A, S, B, a, s, or b", 
+                        strategy.charAt(lyr), lyr, strategy));
+                continue;
+            }
+            if (strategy.charAt(lyr) == '0') continue;
+            int nA = n;
+            int nS = n;
+            if (strategy.charAt(lyr)=='B' || strategy.charAt(lyr)=='b') {
+                if (topBottom=="top") {
+                    nS=n+1;
+                } else {
+                    nA=n+1;
+                }
+                n += 2;
+            } else if (strategy.charAt(lyr)=='A' || strategy.charAt(lyr)=='a' || strategy.charAt(lyr)=='S' || strategy.charAt(lyr)=='s') {
+                n++;
+            }
+            //System.out.format("addStrategy %s: lyr=%d, nA=%d, nS=%d, strategy=%s\n",topBottom,lyr,nA,nS,strategy);
+            if (strategy.charAt(lyr)=='A' || strategy.charAt(lyr)=='B' || strategy.charAt(lyr)=='a' || strategy.charAt(lyr)=='b') {
+                if (topBottom == "top") {
+                    if (nA > 4) {
+                        logger.warning("Strategy " + strategy + " has more than 5 layers! The extra ones are ignored");
+                    } else {
+                        newList[nA] = 2*lyr;      // The top tracker begins with an axial layer
+                        //System.out.format("addStrategy %s: adding axial element %d, lyr=%d\n", topBottom, nA, 2*lyr);
+                        nAxial++;
+                    }
+                } else {
+                    if (nA > 4) {
+                        logger.warning("Strategy " + strategy + " has more than 5 layers! The extra ones are ignored");
+                    } else {
+                        newList[nA] = 2*lyr + 1;  // The bottom tracker begins with a stereo layer
+                        //System.out.format("addStrategy %s: adding axial element %d, lyr=%d\n", topBottom, nA, 2*lyr+1);
+                        nAxial++;
+                    }
+                }
+            }
+            if (strategy.charAt(lyr)=='S' || strategy.charAt(lyr)=='B' || strategy.charAt(lyr)=='s' || strategy.charAt(lyr)=='b') {
+                if (topBottom == "top") {
+                    if (nS > 4) {
+                        logger.warning("Strategy " + strategy + " has more than 5 layers! The extra ones are ignored");
+                    } else {
+                        newList[nS] = 2*lyr + 1;      // The top tracker begins with an axial layer
+                        //System.out.format("addStrategy %s: adding stereo element %d, lyr=%d\n", topBottom, nS, 2*lyr+1);
+                        nStereo++;
+                    }
+                } else {
+                    if (nS > 4) {
+                        logger.warning("Strategy " + strategy + " has more than 5 layers! The extra ones are ignored");
+                    } else {
+                        newList[nS] = 2*lyr;          // The bottom tracker begins with a stereo layer
+                        //System.out.format("addStrategy %s: adding stereo element %d, lyr=%d\n", topBottom, nS, 2*lyr);
+                        nStereo++;
+                    }
+                }
             }
         }
         if (nAxial != 2 || nStereo != 3) {
-            logger.log(Level.WARNING,String.format("addStrategy: Invalid search strategy for topBottom=%d: %d %d %d %d %d", 
-                    topBottom, list[0],list[1],list[2],list[3],list[4]));
+            logger.log(Level.WARNING,String.format("addStrategy: Invalid search strategy " + strategy + " for topBottom=%s: %d %d %d %d %d", 
+                    topBottom, newList[0],newList[1],newList[2],newList[3],newList[4]));
             return false;
         }
-        for (int [] oldList : lyrList[topBottom]) {
+        for (int [] oldList : lyrList[iTB]) {
             int nMatch = 0;
             for (int i=0; i<5; ++i) {
-                if (oldList[i] == list[i]) nMatch++;
+                if (oldList[i] == newList[i]) nMatch++;
             }
             if (nMatch == 5) {
-                logger.log(Level.WARNING,String.format("addStrategy: strategy %d %d %d %d %d is already in the list", list[0],list[1],list[2],list[3],list[4]));
+                logger.log(Level.WARNING,String.format("addStrategy: strategy %s is already in the list", strategy));
                 return false;
             }
         }
-        logger.log(Level.CONFIG,String.format("addStrategy: adding search strategy %d %d %d %d %d for topBottom=%d", 
-                list[0],list[1],list[2],list[3],list[4],topBottom));
-        lyrList[topBottom].add(list);
+        logger.log(Level.CONFIG,String.format("addStrategy: adding search strategy %d %d %d %d %d for %s", 
+                newList[0],newList[1],newList[2],newList[3],newList[4],topBottom));
+        lyrList[iTB].add(newList);
         return true;
     }
 }

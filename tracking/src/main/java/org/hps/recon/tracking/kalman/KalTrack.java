@@ -772,7 +772,7 @@ public class KalTrack {
         int MAXIT = 100;
 
         if (xGuess <= x1 || xGuess >= x2) {
-            System.out.format("KalTrack.rtsafe: initial guess needs to be bracketed.");
+            Logger.getLogger(KalTrack.class.getName()).log(Level.WARNING,"rtsafe: initial guess needs to be bracketed.");
             return xGuess;
         }
         fl = fDOCA(x1, a, v, X0, alpha);
@@ -780,8 +780,8 @@ public class KalTrack {
         int nTry = 0;
         while (fl*fh > 0.0) {
             if (nTry == 5) {
-                System.out.format("KalTrack.rtsafe: Root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f, x1=%12.5f x2=%12.5f xGuess=%12.5f", 
-                        fl, fh, alpha, x1, x2, xGuess);
+                Logger.getLogger(KalTrack.class.getName()).log(Level.FINE,String.format("Root is not bracketed in zero finding, fl=%12.5e, fh=%12.5e, alpha=%10.6f, x1=%12.5f x2=%12.5f xGuess=%12.5f", 
+                        fl, fh, alpha, x1, x2, xGuess));
                 return xGuess;
             }
             x1 -= 0.01;
@@ -831,7 +831,7 @@ public class KalTrack {
                 xh = rts;
             }
         }
-        System.out.format("KalTrack.rtsafe: maximum number of iterations exceeded.");
+        Logger.getLogger(KalTrack.class.getName()).log(Level.WARNING,"rtsafe: maximum number of iterations exceeded.");
         return rts;
     }
     
@@ -1119,7 +1119,7 @@ public class KalTrack {
                     return false;
                 }
 
-                if (currentSite.hitID >= 0) chi2f += Math.max(currentSite.chi2inc,0.);
+                if (currentSite.hitID >= 0 && debug) chi2f += Math.max(currentSite.chi2inc,0.);
 
                 sH = currentSite.aF;
                 prevMod = currentSite.m;
