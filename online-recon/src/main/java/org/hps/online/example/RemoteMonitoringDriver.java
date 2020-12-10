@@ -249,6 +249,7 @@ public class RemoteMonitoringDriver extends Driver {
     }
 
     private void connect() throws IOException {
+        // TODO: option to force binding to "localhost" instead of host name
         String localHost = null;
         try {
             localHost = InetAddress.getLocalHost().getHostName();

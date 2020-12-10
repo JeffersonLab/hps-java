@@ -1,6 +1,5 @@
 package org.hps.online.recon;
 
-import java.util.Date;
 import java.util.Random;
 
 import hep.aida.IAnalysisFactory;
