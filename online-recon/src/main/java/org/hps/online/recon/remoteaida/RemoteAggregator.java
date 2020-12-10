@@ -87,8 +87,8 @@ public class RemoteAggregator {
                 throw new IllegalArgumentException("Bad port number: " + port);
             }
         }
-        if (prop.containsKey("server")) {
-            serverName = prop.getProperty("server");
+        if (prop.containsKey("name")) {
+            serverName = prop.getProperty("name");
         }
         if (prop.containsKey("interval")) {
             updateInterval = Long.parseLong(prop.getProperty("interval"));
