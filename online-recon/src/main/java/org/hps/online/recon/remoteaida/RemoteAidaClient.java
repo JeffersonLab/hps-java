@@ -84,7 +84,7 @@ public class RemoteAidaClient {
         IPlotterStyle style = plotter.style();
         style.dataStyle().lineStyle().setColor("black");
         style.dataStyle().fillStyle().setColor("blue");
-        style.dataStyle().errorBarStyle().setVisible(true);
+        style.dataStyle().errorBarStyle().setVisible(false);
         ITextStyle titStyle = pf.createTextStyle();
         titStyle.setBold(true);
         titStyle.setFontSize(14);
@@ -139,7 +139,7 @@ public class RemoteAidaClient {
     }
 
     private void connect() throws IOException {
-        boolean clientDuplex = true;
+        boolean clientDuplex = false;
         boolean hurry = false;
         String treeBindName = "//"+host+":"+port+"/"+serverName;
         LOG.config("Connecting to RMI server: " + treeBindName);
