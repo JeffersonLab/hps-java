@@ -299,14 +299,15 @@ public class TriggerModule2019 {
     }    
     
     /**
-     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located in positive part
+     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located
+     * in positive part
+     * 
      * @param x coordinate for a cluster
-     * @return Returns <code>true</code> if the cluster passes the cut
-     * and <code>false</code> if the cluster does not.
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
      */
     public boolean clusterXMinCut(int x) {
-        if(x < -22 || x > 23) throw new IllegalArgumentException(String.format("Parameter \"%d\" is out of X-coordinage range [1, 23].", x));
-        else return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
+        return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
     }
     
     /**
@@ -378,21 +379,72 @@ public class TriggerModule2019 {
     public boolean geometryEcalHodoMatching(int x, HodoscopePattern layer1, HodoscopePattern layer2) { 
         if(x < 1 || x > 23) throw new IllegalArgumentException(String.format("Parameter \"%d\" is out of X-coordinage range [1, 23].", x));
         
+        boolean flagLayer1 = false;
+        boolean flagLayer2 = false;
+        
         // Cluster X <-> Layer 1 Matching
-        if((x >= 5) && (x <= 9) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_1) || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_12))) return true;
-        if((x >= 6) && (x <= 11) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_12) || layer1.getHitStatus(HodoscopePattern.HODO_LX_2) || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_23))) return true;
-        if((x >= 10) && (x <= 16) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_23) || layer1.getHitStatus(HodoscopePattern.HODO_LX_3) || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_34))) return true;
-        if((x >= 15) && (x <= 21) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_34) || layer1.getHitStatus(HodoscopePattern.HODO_LX_4) || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_45))) return true;
-        if((x >= 19) && (x <= 23) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_45) || layer1.getHitStatus(HodoscopePattern.HODO_LX_5))) return true;
-        
+        if ((x >= 5) && (x <= 9) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_1)
+                || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_12)))
+            flagLayer1 = true;
+        if (flagLayer1 == false) {
+            if ((x >= 6) && (x <= 12)
+                    && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_12)
+                            || layer1.getHitStatus(HodoscopePattern.HODO_LX_2)
+                            || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_23)))
+                flagLayer1 = true;
+            if (flagLayer1 == false) {
+                if ((x >= 10) && (x <= 17)
+                        && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_23)
+                                || layer1.getHitStatus(HodoscopePattern.HODO_LX_3)
+                                || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_34)))
+                    flagLayer1 = true;
+                if (flagLayer1 == false) {
+                    if ((x >= 15) && (x <= 21)
+                            && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_34)
+                                    || layer1.getHitStatus(HodoscopePattern.HODO_LX_4)
+                                    || layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_45)))
+                        flagLayer1 = true;
+                    if (flagLayer1 == false) {
+                        if ((x >= 18) && (x <= 23) && (layer1.getHitStatus(HodoscopePattern.HODO_LX_CL_45)
+                                || layer1.getHitStatus(HodoscopePattern.HODO_LX_5)))
+                            flagLayer1 = true;
+                    }
+                }
+            }
+        }
+
         // Cluster X <-> Layer 2 Matching
-        if((x >= 5) && (x <= 8) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_1) || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_12))) return true;
-        if((x >= 7) && (x <= 12) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_12) || layer2.getHitStatus(HodoscopePattern.HODO_LX_2) || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_23))) return true;
-        if((x >= 12) && (x <= 17) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_23) || layer2.getHitStatus(HodoscopePattern.HODO_LX_3) || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_34))) return true;
-        if((x >= 16) && (x <= 23) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_34) || layer2.getHitStatus(HodoscopePattern.HODO_LX_4) || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_45))) return true;
-        if((x >= 20) && (x <= 23) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_45) || layer2.getHitStatus(HodoscopePattern.HODO_LX_5))) return true;         
+        if ((x >= 5) && (x <= 9) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_1)
+                || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_12)))
+            flagLayer2 = true;
+        if (flagLayer2 == false) {
+            if ((x >= 6) && (x <= 14)
+                    && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_12)
+                            || layer2.getHitStatus(HodoscopePattern.HODO_LX_2)
+                            || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_23)))
+                flagLayer2 = true;
+            if (flagLayer2 == false) {
+                if ((x >= 12) && (x <= 18)
+                        && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_23)
+                                || layer2.getHitStatus(HodoscopePattern.HODO_LX_3)
+                                || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_34)))
+                    flagLayer2 = true;
+                if (flagLayer2 == false) {
+                    if ((x >= 16) && (x <= 22)
+                            && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_34)
+                                    || layer2.getHitStatus(HodoscopePattern.HODO_LX_4)
+                                    || layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_45)))
+                        flagLayer2 = true;
+                    if (flagLayer2 == false) {
+                        if ((x >= 20) && (x <= 23) && (layer2.getHitStatus(HodoscopePattern.HODO_LX_CL_45)
+                                || layer2.getHitStatus(HodoscopePattern.HODO_LX_5)))
+                            flagLayer2 = true;
+                    }
+                }
+            }
+        }
         
-        return false;    
+        return flagLayer1 && flagLayer2;    
     }
     
     
