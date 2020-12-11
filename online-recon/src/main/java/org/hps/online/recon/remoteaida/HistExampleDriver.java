@@ -12,7 +12,7 @@ import hep.aida.IHistogram2D;
 /**
  * Create example 1D and 2D histograms in a remote AIDA tree
  */
-public class RemoteHistExampleDriver extends RemoteAidaDriver {
+public class HistExampleDriver extends RemoteAidaDriver {
 
     private static final String ECAL_DIR = "/subdet/ecal";
     private static final String TRACKER_DIR = "/subdet/tracker";
@@ -23,10 +23,14 @@ public class RemoteHistExampleDriver extends RemoteAidaDriver {
         tree.mkdirs(TRACKER_DIR);
         tree.cd(TRACKER_DIR);
         tracks = aida.histogram1D("Tracks", 20, 0., 20.);
+        tracks.annotation().addItem("xAxisLabel", "Tracks / Event");
+        tracks.annotation().addItem("yAxisLabel", "Count");
 
         tree.mkdirs(ECAL_DIR);
         tree.cd(ECAL_DIR);
         ecalHits = aida.histogram2D("Ecal Hits", 47, -23.5, 23.5, 11, -5.5, 5.5);
+        ecalHits.annotation().addItem("xAxisLabel", "X Index");
+        ecalHits.annotation().addItem("yAxisLabel", "Y Index");
 
         super.startOfData();
     }

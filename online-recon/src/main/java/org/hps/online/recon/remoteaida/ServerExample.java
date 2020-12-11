@@ -16,7 +16,7 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 import hep.aida.ref.remote.rmi.interfaces.RmiServer;
 import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 
-public class RemoteAidaServerExample {
+public class ServerExample {
 
     IAnalysisFactory af = IAnalysisFactory.create();
     ITreeFactory tf = af.createTreeFactory();
@@ -24,7 +24,7 @@ public class RemoteAidaServerExample {
     IHistogramFactory hf = af.createHistogramFactory(serverTree);
 
     public static void main(String[] args) {
-        RemoteAidaServerExample server = new RemoteAidaServerExample();
+        ServerExample server = new ServerExample();
         server.runIt();
     }
 

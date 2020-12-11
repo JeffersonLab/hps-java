@@ -41,9 +41,9 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  *
  * Currently handles only 1D and 2D histograms.
  */
-public class RemoteAggregator {
+public class Aggregator {
 
-    private static Logger LOG = Logger.getLogger(RemoteAggregator.class.getPackage().getName());
+    private static Logger LOG = Logger.getLogger(Aggregator.class.getPackage().getName());
 
     private static final String REMOTES_DIR = "/remotes";
 
@@ -71,7 +71,7 @@ public class RemoteAggregator {
     private RemoteServer treeServer;
     private RmiServer rmiTreeServer;
 
-    public RemoteAggregator() {
+    public Aggregator() {
     }
 
     private void configure(String path) {
@@ -281,7 +281,7 @@ public class RemoteAggregator {
     }
 
     static public void main(String[] args) {
-        final RemoteAggregator agg = new RemoteAggregator();
+        final Aggregator agg = new Aggregator();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 agg.disconnect();

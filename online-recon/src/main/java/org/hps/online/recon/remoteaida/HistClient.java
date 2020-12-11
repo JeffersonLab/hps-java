@@ -40,13 +40,13 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
  * Displays plots from the <code>RemoteChronoDriver</code>
  * through an RMI connection
  */
-public class RemoteAidaClient {
+public class HistClient {
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
     }
 
-    private Logger LOG = Logger.getLogger(RemoteAidaClient.class.getPackage().getName());
+    private Logger LOG = Logger.getLogger(HistClient.class.getPackage().getName());
 
     private final Options options = new Options();
 
@@ -70,7 +70,7 @@ public class RemoteAidaClient {
 
     private String aidaDir = "/";
 
-    public RemoteAidaClient() {
+    public HistClient() {
 
         options.addOption(new Option("h", "help",     false, "Print help and exit"));
         options.addOption(new Option("p", "port",     true,  "Network port of server"));
@@ -212,7 +212,7 @@ public class RemoteAidaClient {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(((Plotter) plotter).panel());
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                RemoteAidaClient.this.windowClosed = true;
+                HistClient.this.windowClosed = true;
             }
         });
     }
@@ -240,7 +240,7 @@ public class RemoteAidaClient {
     }
 
     public static void main(String[] args) {
-        final RemoteAidaClient client = new RemoteAidaClient();
+        final HistClient client = new HistClient();
         client.parse(args);
         client.run();
     }
