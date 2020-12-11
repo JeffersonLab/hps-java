@@ -2,6 +2,7 @@ package org.hps.online.recon.remoteaida;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
@@ -18,6 +19,8 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * Abstract driver for providing remote AIDA functionality
  */
 public abstract class RemoteAidaDriver extends Driver {
+
+    static final Logger LOG = Logger.getLogger(RemoteAidaDriver.class.getPackage().getName());
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", BatchAnalysisFactory.class.getName());
@@ -40,6 +43,9 @@ public abstract class RemoteAidaDriver extends Driver {
     }
 
     public void setPort(int port) {
+        if (port < 1024 || port > 65535) {
+            throw new IllegalArgumentException("Bad port number: " + port);
+        }
         this.port = port;
     }
 
@@ -78,12 +84,14 @@ public abstract class RemoteAidaDriver extends Driver {
             e.printStackTrace();
         }
         String treeBindName = "//"+localHost+":"+port+"/"+serverName;
-        System.out.println("Connecting tree server: " + treeBindName);
+        LOG.info("Connecting tree server: " + treeBindName);
         try {
             boolean serverDuplex = true;
             treeServer = new RemoteServer(tree, serverDuplex);
             rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
+            LOG.info("Connection successful!");
         } catch (Exception e) {
+            LOG.severe("Connection failed!");
             throw new RuntimeException(e);
         }
     }
