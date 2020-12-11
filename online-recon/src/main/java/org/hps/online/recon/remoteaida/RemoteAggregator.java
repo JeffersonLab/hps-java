@@ -139,6 +139,7 @@ public class RemoteAggregator {
                 LOG.info("Mounting remote tree to: " + mountName);
                 serverTree.mount(mountName, remoteTree, "/");
             } catch (Exception e) {
+                LOG.severe("Failed to connect to: " + remoteTreeBind);
                 throw new RuntimeException(e);
             }
         }
