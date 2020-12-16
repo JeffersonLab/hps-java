@@ -55,6 +55,9 @@ public class Aggregator {
     /** Name of the remote server; set with "name" property */
     private String serverName = "RmiAidaServer";
 
+    /** Name of the host to bind; set with "host" property */
+    private String hostName = null;
+
     /** Interval between aggregation; set with "interval" property */
     private Long updateInterval = 5000L;
 
@@ -103,16 +106,16 @@ public class Aggregator {
         } else {
             throw new RuntimeException("Missing required configuration \"remotes\" with list of remote servers");
         }
+        if (prop.containsKey("host")) {
+            this.hostName = prop.getProperty("host");
+        }
     }
 
     private void connect() throws IOException {
-        String localHost = null;
-        try {
-            localHost = InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (this.hostName == null) {
+            hostName = InetAddress.getLocalHost().getHostName();
         }
-        String treeBindName = "//"+localHost+":"+port+"/"+serverName;
+        String treeBindName = "//"+hostName+":"+port+"/"+serverName;
         LOG.config("Creating RMI server tree: " + treeBindName);
         try {
             boolean serverDuplex = true;

@@ -39,6 +39,8 @@ public abstract class RemoteAidaDriver extends Driver {
     static private final String DEFAULT_NAME = "RmiAidaServer";
     protected String serverName = DEFAULT_NAME;
 
+    protected String hostName = null;
+
     public RemoteAidaDriver() {
     }
 
@@ -51,6 +53,10 @@ public abstract class RemoteAidaDriver extends Driver {
 
     public void setServerName(String serverName) {
         this.serverName = serverName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
     protected void endOfData() {
@@ -77,13 +83,10 @@ public abstract class RemoteAidaDriver extends Driver {
     }
 
     private final void connect() throws IOException {
-        String localHost = null;
-        try {
-            localHost = InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (hostName == null) {
+            hostName = InetAddress.getLocalHost().getHostName();
         }
-        String treeBindName = "//"+localHost+":"+port+"/"+serverName;
+        String treeBindName = "//"+hostName+":"+port+"/"+serverName;
         LOG.info("Connecting tree server: " + treeBindName);
         try {
             boolean serverDuplex = true;
