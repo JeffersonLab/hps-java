@@ -18,7 +18,7 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
-import org.hps.recon.tracking.kalman.trackClusterMatcher2019;
+import org.hps.recon.tracking.kalman.TrackClusterMatcher2019;
 import org.hps.record.StandardCuts;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -63,11 +63,11 @@ public abstract class ReconParticleDriver extends Driver {
     protected StandardCuts cuts = new StandardCuts();
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
-    //matcher2019 uses the new track-cluster matching that includes KF tracks
+    //matcher uses the new track-cluster matching that includes KF tracks
     //matcher is the original NSigma matcher
     //Ideally, one will be chosen, the other removed
-    trackClusterMatcher2019 matcher2019;
     TrackClusterMatcher matcher;
+    TrackClusterMatcher2019 matcher2019;
 
     protected boolean enableTrackClusterMatchPlots = false;
     protected boolean enableKalTrackClusterMatchPlots = false;
@@ -164,7 +164,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Track Cluster Algorithm set to Kalman or GBL Tracks
      */
-    private String trackClusterMatching;
+    private String trackClusterMatching = "newMatcher";
     /**
      * LCIO collection name for reconstructed particles.
      */
@@ -450,9 +450,21 @@ public abstract class ReconParticleDriver extends Driver {
             }
         }
 
-        //create instance of new track-cluster matching driver
-        matcher2019 = new trackClusterMatcher2019(trackCollectionName);
-        matcher2019.enablePlots(enableTrackClusterMatchPlots);
+        //By default, use the original track-cluster matching class
+        if(this.trackClusterMatching.contains("default")){
+            //use old version of track cluster matcher
+            matcher = new TrackClusterMatcher(clusterParamFileName);
+            matcher.enablePlots(enableTrackClusterMatchPlots);
+            matcher.setBeamEnergy(beamEnergy);
+            matcher.setBFieldMap(detector.getFieldMap());
+        }
+        //else if setTrackClusterMatching has non default value, use new
+        //track-cluster matching class
+        else{
+            //create instance of new track-cluster matching driver
+            matcher2019 = new TrackClusterMatcher2019(trackCollectionName);
+            matcher2019.enablePlots(enableTrackClusterMatchPlots);
+        }
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
@@ -750,7 +762,7 @@ public abstract class ReconParticleDriver extends Driver {
 
         for (List<Track> tracks : trackCollections) {
             Map<Track, Cluster> matchedTrackClusterMap = new HashMap<Track, Cluster>();
-            //uses the trackClusterMatcher2019 driver to create a map of
+            //uses the trackClustermatcher driver to create a map of
             //track collection with corresponding matched clusters. If track
             //has no matched cluster, pair is null
             matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clustersCopy, cuts.getTrackClusterTimeOffset());
@@ -982,10 +994,13 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Loop through all of the track collections present in the event and
         // create final state particles.
+
         // New track cluster matching added by Alic is used
         // Old method is commented out below
-        finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections, event));
-        //finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
+        if(this.trackClusterMatching.contains("default"))
+            finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
+        else
+            finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections, event));
 
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.
@@ -1092,7 +1107,10 @@ public abstract class ReconParticleDriver extends Driver {
         System.out.println("[ReconParticleDriver]"+trackCollectionName+" endOfData()");
         if (enableTrackClusterMatchPlots) {
             System.out.println("Saving " + trackCollectionName + "histograms");
-            matcher2019.saveHistograms();
+            if(trackClusterMatching.contains("default"))
+                matcher.saveHistograms();
+            else
+                matcher2019.saveHistograms();
         }
     }
 
