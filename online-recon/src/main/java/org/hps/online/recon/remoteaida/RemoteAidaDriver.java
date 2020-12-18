@@ -36,7 +36,7 @@ public abstract class RemoteAidaDriver extends Driver {
     static private final int DEFAULT_PORT = 2001;
     protected int port = DEFAULT_PORT;
 
-    static private final String DEFAULT_NAME = "RmiAidaServer";
+    static private final String DEFAULT_NAME = "ReconStation";
     protected String serverName = DEFAULT_NAME;
 
     protected String hostName = null;
