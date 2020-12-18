@@ -1,4 +1,4 @@
-package org.hps.online.recon.remoteaida;
+package org.hps.online.recon;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
@@ -43,7 +43,7 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
  * Displays plots from the <code>RemoteChronoDriver</code>
  * through an RMI connection
  */
-public class DpsClient {
+public class StripChartClient {
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", AnalysisFactory.class.getName());
@@ -76,7 +76,7 @@ public class DpsClient {
     private static final long DEFAULT_UPDATE_INTERVAL = 1000L;
     private Long updateInterval = DEFAULT_UPDATE_INTERVAL;
 
-    public DpsClient() {
+    public StripChartClient() {
 
         options.addOption(new Option("h", "help",   false, "Print help and exit"));
         options.addOption(new Option("p", "port",   true,  "Network port of server"));
@@ -237,7 +237,7 @@ public class DpsClient {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(((Plotter) plotter).panel());
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                DpsClient.this.windowClosed = true;
+                StripChartClient.this.windowClosed = true;
             }
         });
     }
@@ -266,7 +266,7 @@ public class DpsClient {
     }
 
     public static void main(String[] args) {
-        final DpsClient client = new DpsClient();
+        final StripChartClient client = new StripChartClient();
         client.parse(args);
         client.run(); // TODO: Should probably catch exceptions
     }

@@ -1,4 +1,4 @@
-package org.hps.online.recon.remoteaida;
+package org.hps.online.recon;
 
 import java.util.List;
 

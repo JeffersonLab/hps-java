@@ -24,7 +24,7 @@ public class SleepDriver extends Driver {
         }
     }
 
-    public void setMillis(Long millis) {
-        this.millis = millis;
+    public void setMillis(int millis) {
+        this.millis = (long) millis;
     }
 }

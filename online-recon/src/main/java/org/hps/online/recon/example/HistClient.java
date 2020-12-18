@@ -1,4 +1,4 @@
-package org.hps.online.recon.remoteaida;
+package org.hps.online.recon.example;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;

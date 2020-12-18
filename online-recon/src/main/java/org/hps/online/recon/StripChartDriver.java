@@ -1,4 +1,4 @@
-package org.hps.online.recon.remoteaida;
+package org.hps.online.recon;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -28,7 +28,7 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * Time event processing and make plots in a remote AIDA tree
  * that can be accessed using an RMI client.
  */
-public class DpsDriver extends Driver {
+public class StripChartDriver extends Driver {
 
     static {
         System.setProperty("hep.aida.IAnalysisFactory", BatchAnalysisFactory.class.getName());
