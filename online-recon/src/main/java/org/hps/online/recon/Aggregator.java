@@ -47,13 +47,13 @@ public class Aggregator {
 
     private static final String REMOTES_DIR = "/remotes";
 
-    private static final String AGG_DIR = "/agg";
+    private static final String AGG_DIR = "/combined";
 
     /** Network port; set with "port" property */
     private int port = 3001;
 
     /** Name of the remote server; set with "name" property */
-    private String serverName = "RmiAidaServer";
+    private String serverName = "HPSRecon";
 
     /** Name of the host to bind; set with "host" property */
     private String hostName = null;
