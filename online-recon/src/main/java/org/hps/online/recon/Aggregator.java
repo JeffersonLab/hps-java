@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hep.aida.IAnalysisFactory;
@@ -43,10 +44,16 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  */
 public class Aggregator {
 
+    private static final String FAIL_ON_CONNECTION_ERROR_PROPERTY = "failOnConnectionError";
+    private static final String HOST_PROPERTY = "host";
+    private static final String REMOTES_PROPERTY = "remotes";
+    private static final String INTERVAL_PROPERTY = "interval";
+    private static final String RMI_NAME_PROPERTY = "name";
+    private static final String PORT_PROPERTY = "port";
+
     private static Logger LOG = Logger.getLogger(Aggregator.class.getPackage().getName());
 
     private static final String REMOTES_DIR = "/remotes";
-
     private static final String AGG_DIR = "/combined";
 
     /** Network port; set with "port" property */
@@ -61,9 +68,12 @@ public class Aggregator {
     /** Interval between aggregation; set with "interval" property */
     private Long updateInterval = 5000L;
 
+    /** Crash if connections fail to the remote AIDA instances; set with "failOnConnectionError" property */
+    private boolean failOnConnectionError = true;
+
     /**
      * List of remote AIDA instances; set with "remotes" property, which should be a
-     * comma-delimited list of valid RMI tree bind names e.g. <pre>//host01:2001/RmiAidaServer</pre>
+     * comma-delimited list of valid RMI tree bind names e.g. <pre>//localhost:2001/HPSRecon</pre>
      */
     private LinkedHashSet<String> remoteTreeBinds = new LinkedHashSet<String>();
 
@@ -84,30 +94,33 @@ public class Aggregator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (prop.containsKey("port")) {
-            port = Integer.parseInt(prop.getProperty("port"));
+        if (prop.containsKey(PORT_PROPERTY)) {
+            port = Integer.parseInt(prop.getProperty(PORT_PROPERTY));
             if (port < 1024 || port > 65535) {
                 throw new IllegalArgumentException("Bad port number: " + port);
             }
         }
-        if (prop.containsKey("name")) {
-            serverName = prop.getProperty("name");
+        if (prop.containsKey(RMI_NAME_PROPERTY)) {
+            serverName = prop.getProperty(RMI_NAME_PROPERTY);
         }
-        if (prop.containsKey("interval")) {
-            updateInterval = Long.parseLong(prop.getProperty("interval"));
+        if (prop.containsKey(INTERVAL_PROPERTY)) {
+            updateInterval = Long.parseLong(prop.getProperty(INTERVAL_PROPERTY));
             if (updateInterval < 0) {
                 throw new IllegalArgumentException("The interval is invalid: " + updateInterval);
             }
         }
-        if (prop.containsKey("remotes")) {
-            for (String remote : prop.getProperty("remotes").split(",")) {
+        if (prop.containsKey(REMOTES_PROPERTY)) {
+            for (String remote : prop.getProperty(REMOTES_PROPERTY).split(",")) {
                 this.remoteTreeBinds.add(remote.trim());
             }
         } else {
             throw new RuntimeException("Missing required configuration \"remotes\" with list of remote servers");
         }
-        if (prop.containsKey("host")) {
-            this.hostName = prop.getProperty("host");
+        if (prop.containsKey(HOST_PROPERTY)) {
+            this.hostName = prop.getProperty(HOST_PROPERTY);
+        }
+        if (prop.contains(FAIL_ON_CONNECTION_ERROR_PROPERTY)) {
+            this.failOnConnectionError = Boolean.parseBoolean(prop.getProperty(FAIL_ON_CONNECTION_ERROR_PROPERTY));
         }
     }
 
@@ -142,8 +155,10 @@ public class Aggregator {
                 LOG.info("Mounting remote tree to: " + mountName);
                 serverTree.mount(mountName, remoteTree, "/");
             } catch (Exception e) {
-                LOG.severe("Failed to connect to: " + remoteTreeBind);
-                throw new RuntimeException(e);
+                LOG.log(Level.SEVERE, "Failed to connect to: " + remoteTreeBind, e);
+                if (this.failOnConnectionError) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
@@ -253,15 +268,21 @@ public class Aggregator {
     }
 
     private void disconnect() {
-        System.out.println("Disconnecting ...");
-        ((RmiServerImpl) rmiTreeServer).disconnect();
-        treeServer.close();
-        try {
-            serverTree.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (rmiTreeServer != null) {
+            System.out.println("Disconnecting ...");
+            ((RmiServerImpl) rmiTreeServer).disconnect();
+            if (treeServer != null) {
+                treeServer.close();
+            }
+            if (serverTree != null) {
+                try {
+                    serverTree.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("Bye!");
         }
-        System.out.println("Bye!");
     }
 
     private void loop() {

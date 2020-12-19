@@ -14,23 +14,23 @@ import org.json.JSONObject;
 
 /**
  * Configuration parameters for an online reconstruction ET station.
- * 
+ *
  * These are key-value pairs that can be loaded from a properties file
  * or a JSON object.
- * 
+ *
  * @author jeremym
  */
 final class StationConfiguration {
 
     /*
-     * Property name definitions.    
-     */    
+     * Property name definitions.
+     */
     static final String RUN_PROPERTY = "lcsim.run";
 
     static final String STEERING_PROPERTY = "lcsim.steering";
 
     static final String DETECTOR_PROPERTY = "lcsim.detector";
-    
+
     static final String STATION_PROPERTY = "station.name";
 
     static final String EVENT_PRINT_INTERVAL_PROPERTY = "station.eventPrintInterval";
@@ -42,17 +42,19 @@ final class StationConfiguration {
     static final String PLOT_RESET_PROPERTY = "station.resetPlots";
 
     static final String OUTPUT_DIR_PROPERTY = "station.outputDir";
-    
+
     static final String OUTPUT_NAME_PROPERTY = "station.outputName";
-    
+
     static final String PRINT_LCIO_PROPERTY = "station.printLcio";
-    
+
     static final String PRINT_EVIO_PROPERTY = "station.printEvio";
-    
+
     static final String PRINT_ET_PROPERTY = "station.printEt";
-    
+
     static final String CONNECTION_ATTEMPTS_PROPERTY = "station.connectionAttempts";
-        
+
+    static final String REMOTE_AIDA_PORT_PROPERTY = "station.remoteAidaPort";
+
     static final String CHUNK_SIZE_PROPERTY = "et.chunkSize";
 
     static final String WAIT_TIME_PROPERTY = "et.waitTime";
@@ -68,38 +70,38 @@ final class StationConfiguration {
     static final String HOST_PROPERTY = "et.host";
 
     static final String ET_NAME_PROPERTY = "et.name";
-    
+
     static final String ET_LOG_LEVEL_PROPERTY = "et.logLevel";
-                
+
     /**
      * Package logger.
      */
     private static Logger LOGGER = Logger.getLogger(StationConfiguration.class.getPackage().getName());
 
-    /** 
-     * Name of detector for conditions system.  
+    /**
+     * Name of detector for conditions system.
      * This is a required parameter with no default.
      */
     private String detectorName;
-    
+
     /**
      * Path of steering resource in the runnable jar.
-     * This is a required parameter with no default. 
+     * This is a required parameter with no default.
      */
     private String steering;
-    
+
     /**
      * Run number for conditions system.
      * If left null then run number will be read from EVIO files.
      */
     private Integer runNumber;
-    
+
     /**
      * Name for output files such as LCIO events.
      * This is a required parameter with no default.
      */
     private String outputName;
-    
+
     /**
      * Directory for writing output files such as AIDA plots.
      * The default is the process' working directory.
@@ -111,23 +113,23 @@ final class StationConfiguration {
      * Default is saving every 1000 processed events.
      */
     private Integer plotSaveInterval = 1000;
-    
+
     /**
      * Event printing interval.
      * Default is printing a message for every event.
      */
     private Integer eventPrintInterval = 1;
-   
+
     /**
      * The name of the ET buffer file with default.
      */
-    private String bufferName = "ETBuffer";
-    
+    private String bufferName = "/tmp/ETBuffer";
+
     /**
      * The name of the ET system host with default.
      */
     private String host = "localhost";
-    
+
     /**
      * The ET system port number with default.
      */
@@ -138,27 +140,27 @@ final class StationConfiguration {
      * This is a required argument with no default.
      */
     private String stationName;
-        
+
     /**
      * The wait mode which is for the station to sleep forever until events arrive.
      */
     private Mode waitMode = Mode.SLEEP; // sleep = 0; timed = 1; async = 2
-    
+
     /**
      * The wait time when timed mode is selected.
      */
     private Integer waitTime = 999999999;
-    
+
     /**
      * The chunk size when getting ET events.
      */
     private Integer chunkSize = 1;
-    
+
     /**
      * The number of events to queue at once.
      */
     private Integer queueSize = 0;
-    
+
     /**
      * The event prescale parameter.
      */
@@ -181,67 +183,79 @@ final class StationConfiguration {
     public static final int    debugWarn           = 3;
     public static final int    debugInfo           = 4;
     */
-        
+
     /**
      * True to reset plots after they are saved.
      * This should be enabled if pre-existing target plot file
      * is being included in the hadd command.
      */
     private boolean resetPlots = false;
-    
+
     /**
      * True to print out job statistics with event interval.
      * A value below 0 means no statistics will be enabled.
      */
     private int eventStatisticsInterval = -1;
-    
+
     /**
      * Whether to print LCIO event information.
      */
     boolean printLcio = false;
-    
+
     /**
      * Whether to print EVIO event information.
      */
     boolean printEvio = false;
-    
+
     /**
      * Whether to print ET event information.
      */
     boolean printEt = false;
-    
+
+    /**
+     * Port to use for remote AIDA access.
+     */
+    private Integer remoteAidaPort = 2001;
+
     /**
      * Number of times to try and connect to ET system before failing.
      */
-    Integer connectionAttempts = 1;
-    
+    private Integer connectionAttempts = 10;
+
+    private File file = null;
+
     /**
      * Create station configuration from a properties file.
      * @param file The properties file
      */
     StationConfiguration(File file) {
-        if (file != null) {
-            load(file);
+        this.file = file;
+        if (this.file != null) {
+            load(this.file);
         } else {
             throw new RuntimeException("The prop file points to null.");
         }
     }
-    
+
     /**
      * Copy constructor.
      * @param config Existing configuration object
      */
-    StationConfiguration(StationConfiguration config) {        
+    StationConfiguration(StationConfiguration config) {
         this.props = (Properties) config.props.clone();
         update();
     }
-    
+
     /**
      * No argument constructor.
      */
     StationConfiguration() {
     }
-        
+
+    File getConfigFile() {
+        return this.file;
+    }
+
     /**
      * Get the backing properties.
      * @return The backing properties
@@ -249,7 +263,7 @@ final class StationConfiguration {
     Properties getProperties() {
         return this.props;
     }
-    
+
     /**
      * Set a property value.
      * @param name The name of the property
@@ -258,7 +272,7 @@ final class StationConfiguration {
     void setProperty(String name, String value) {
         this.props.setProperty(name, value);
     }
-    
+
     /**
      * Write properties to a file.
      * @param file The output file
@@ -269,7 +283,7 @@ final class StationConfiguration {
     void write(File file, String comment) throws FileNotFoundException, IOException {
         this.props.store(new FileOutputStream(file), comment);
     }
-            
+
     /**
      * Load configuration from a properties file.
      * @param file The properties filec
@@ -287,9 +301,9 @@ final class StationConfiguration {
 
     /**
      * Set typed variables from property keys and values.
-     * 
+     *
      * This is called after properties are loaded from properties file or JSON data.
-     * 
+     *
      * It should be called manually after any property values are added or changed.
      */
     void update() {
@@ -349,7 +363,7 @@ final class StationConfiguration {
         }
         if (props.containsKey(EVENT_STATISTICS_INTERVAL_PROPERTY)) {
             eventStatisticsInterval = Integer.parseInt(props.getProperty(EVENT_STATISTICS_INTERVAL_PROPERTY));
-        }        
+        }
         if (props.containsKey(PLOT_RESET_PROPERTY)) {
             resetPlots = Boolean.parseBoolean(PLOT_RESET_PROPERTY);
         }
@@ -365,8 +379,11 @@ final class StationConfiguration {
         if (props.containsKey(CONNECTION_ATTEMPTS_PROPERTY)) {
             connectionAttempts = Integer.parseInt(props.getProperty(CONNECTION_ATTEMPTS_PROPERTY));
         }
+        if (props.containsKey(REMOTE_AIDA_PORT_PROPERTY)) {
+            remoteAidaPort = Integer.parseInt(props.getProperty(REMOTE_AIDA_PORT_PROPERTY));
+        }
     }
-    
+
     /**
      * Load parameter settings from JSON data.
      * @param jo The JSON object
@@ -389,7 +406,7 @@ final class StationConfiguration {
         }
         return jo;
     }
-    
+
     /**
      * Check if required parameters are set and look valid.
      * @return True if configuration looks valid
@@ -407,7 +424,7 @@ final class StationConfiguration {
             }
         }
         if (this.steering == null) {
-            LOGGER.severe("Steering resource was not set.");
+            LOGGER.severe("Steering was not set.");
             okay = false;
         }
         if (this.outputName == null) {
@@ -448,15 +465,15 @@ final class StationConfiguration {
     String getOutputDir() {
         return outputDir;
     }
-    
+
     Integer getPlotSaveInterval() {
         return this.plotSaveInterval;
     }
-    
+
     Integer getEventPrintInterval() {
         return this.eventPrintInterval;
     }
-    
+
     String getBufferName() {
         return bufferName;
     }
@@ -492,32 +509,41 @@ final class StationConfiguration {
     Integer getChunkSize() {
         return chunkSize;
     }
-    
+
     int getEtLogLevel() {
         return etLogLevel;
     }
-    
+
     int getEventStatisticsInterval() {
         return eventStatisticsInterval;
     }
-    
+
     Boolean getResetPlots() {
         return resetPlots;
     }
-    
+
     Boolean getPrintLcio() {
         return this.printLcio;
     }
-    
+
     Boolean getPrintEvio() {
         return this.printEvio;
     }
-    
+
     Boolean getPrintEt() {
         return this.printEt;
     }
-    
+
     Integer getConnectionAttempts() {
         return this.connectionAttempts;
     }
+
+    Integer getRemoteAidaPort() {
+        return this.remoteAidaPort;
+    }
+
+    boolean isSteeringFile() {
+        return this.steering.startsWith("./") || this.steering.startsWith("file://");
+    }
+
 }

@@ -7,94 +7,95 @@ import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
-import org.jlab.coda.et.enums.Mode;
 
 /**
- * Create a parallel ET connection appropriate for a pool of stations to 
- * process reconstruction jobs.
- * 
- * Sub-class {@link org.hps.record.et.EtConnection} so we don't accidentally 
- * screw up the monitoring application. 
+ * Create an ET connection for a pool of stations to process
+ * reconstruction jobs in parallel.
  */
 class EtParallelStation extends EtConnection {
-    
-    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
-    
-    /**
-     * Class constructor.
-     * @param name The file buffer name
-     * @param host The ET system hostname
-     * @param port The ET system port
-     * @param queueSize The queue size when reading events
-     * @param prescale The prescale factor
-     * @param stationName The name of the new station
-     * @param waitMode The wait mode (see ET documentation)
-     * @param waitTime The wait time if using timed mode
-     * @param chunkSize The chunk size when reading events
-     * @param logLevel The ET system log level
-     * @throws Exception If there is an error initializing and connecting to the ET system
-     */
-    EtParallelStation(
-            final String name, 
-            final String host,
-            final int port, 
-            final int queueSize, 
-            final int prescale, 
-            final String stationName, 
-            final Mode waitMode, 
-            final int waitTime, 
-            final int chunkSize,
-            final int logLevel) throws Exception {
 
-        // make a direct connection to ET system's tcp server
-        final EtSystemOpenConfig etConfig = new EtSystemOpenConfig(name, host, port);
-        
-        // create ET system object with verbose debugging output
-        sys = new EtSystem(etConfig, logLevel);
-        sys.open();
-                        
-        // configuration of a new station
+    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
+
+    EtParallelStation(StationConfiguration config) throws Exception {
+
+        LOGGER.config("Opening ET system: " + config.getHost() + config.getBufferName() + ":" + config.getPort());
+        EtSystemOpenConfig etConfig =
+                new EtSystemOpenConfig(config.getBufferName(), config.getHost(), config.getPort());
+
+        for (int i = 1; i <= config.getConnectionAttempts(); i++) {
+            LOGGER.config("Attempting ET connection: " + i);
+            try {
+                sys = new EtSystem(etConfig, config.getEtLogLevel());
+                sys.open();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (sys.alive()) {
+                LOGGER.config("Connection successful!");
+                break;
+            }
+
+            Thread.sleep(1000L);
+        }
+        if (!sys.alive()) {
+            LOGGER.severe("Failed to connect to ET system after "
+                    + config.getConnectionAttempts() + " attempts!");
+            throw new RuntimeException("Failed to connect to ET system!");
+        }
+
         final EtStationConfig stationConfig = new EtStationConfig();
         stationConfig.setFlowMode(EtConstants.stationParallel);
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-        
-        // Set prescale.
-        if (prescale > 0) {
-            stationConfig.setPrescale(prescale);
+
+        if (config.getPrescale() > 0) {
+            stationConfig.setPrescale(config.getPrescale());
         }
 
-        // Position relative to grand central.
+        LOGGER.config("ET station config: " + stationConfig.toString());
+
+        // Position relative to grand central
         int position = 1;
-        
-        // Parallel position of station which is always after the last one.
+
+        // Parallel position of station which is always after the last one
         int pposition = EtConstants.end;
 
-        // Create the station.
-        stat = sys.createStation(stationConfig, stationName, position, pposition);
+        LOGGER.config("Creating station with position, pposition: " + position + ", " + pposition);
 
-        // attach to new station
+        stat = sys.createStation(stationConfig, config.getStation(), position, pposition);
         att = sys.attach(stat);
-        
-        // These are used when getting events later.
-        this.waitMode = waitMode;
-        this.waitTime = waitTime;
-        this.chunkSize = chunkSize;
+
+        this.waitMode = config.getWaitMode();
+        this.waitTime = config.getWaitTime();
+        this.chunkSize = config.getChunkSize();
+
+        LOGGER.config("Station waitMode, waitTime, chunkSize: " + this.waitMode + ", " + this.waitTime +
+                ", " + this.chunkSize);
     }
-    
+
     /**
      * Cleanup the connection by detaching the station and removing it from the ET system.
      */
-    public void cleanup() {
+    synchronized public void cleanup() {
+        LOGGER.fine("Cleaning up ET connection");
         try {
+            LOGGER.fine("Checking if sys is alive");
             if (!this.sys.alive()) {
+                LOGGER.fine("sys is not alive!");
                 return;
             }
+            LOGGER.fine("Detaching from sys");
             this.sys.detach(this.att);
+            LOGGER.fine("Removing station");
             this.sys.removeStation(this.stat);
+            LOGGER.fine("Closing station");
             this.sys.close();
+            LOGGER.fine("Closed station");
         } catch (final Exception e) {
+            LOGGER.warning("Error during cleanup");
             e.printStackTrace();
         }
+        LOGGER.fine("Done with ET cleanup!");
     }
 }

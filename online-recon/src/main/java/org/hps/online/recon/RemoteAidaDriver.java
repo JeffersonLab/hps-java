@@ -17,8 +17,15 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 
 /**
  * Abstract driver for providing remote AIDA functionality
+ *
+ * The property <code>remoteAidaPort</code> can be used to set the
+ * network port, or it can be set using {{@link #setPort(int)}
+ * from within lcsim xml. If they are both set, then the XML
+ * will override the system setting.
  */
 public abstract class RemoteAidaDriver extends Driver {
+
+    private static final String PORT_PROPERTY = "remoteAidaPort";
 
     static final Logger LOG = Logger.getLogger(RemoteAidaDriver.class.getPackage().getName());
 
@@ -33,8 +40,8 @@ public abstract class RemoteAidaDriver extends Driver {
     protected AIDA aida = AIDA.defaultInstance();
     protected IDevTree tree = (IDevTree) aida.tree();
 
-    static private final int DEFAULT_PORT = 2001;
-    protected int port = DEFAULT_PORT;
+    static private final Integer DEFAULT_PORT = 2001;
+    protected Integer port = DEFAULT_PORT;
 
     static private final String DEFAULT_NAME = "ReconStation";
     protected String serverName = DEFAULT_NAME;
@@ -42,6 +49,10 @@ public abstract class RemoteAidaDriver extends Driver {
     protected String hostName = null;
 
     public RemoteAidaDriver() {
+        if (System.getProperties().containsKey(PORT_PROPERTY)) {
+            this.setPort(Integer.parseInt(System.getProperties().getProperty(PORT_PROPERTY)));
+            LOG.config("Set remote AIDA port from system property: " + port);
+        }
     }
 
     public void setPort(int port) {

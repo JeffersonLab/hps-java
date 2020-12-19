@@ -35,13 +35,13 @@ import org.json.JSONObject;
 
 /**
  * Server for managing instances of the online reconstruction.
- * 
+ *
  * Accepts commands from the Client class and sends back a JSON result.
- * 
+ *
  * @author jeremym
  */
-public final class Server {        
-       
+public final class Server {
+
     /**
      * Conversion of milliseconds to seconds.
      */
@@ -51,36 +51,36 @@ public final class Server {
      * When streaming data, client sends to server to keep connection alive.
      */
     static final String KEEPALIVE_RESPONSE = "<KEEPALIVE>";
-    
+
     /**
      * Handles a single client request.
      */
     private class ClientTask implements Runnable {
-        
+
         private final Socket socket;
-        
+
         ClientTask(Socket socket) {
             this.socket = socket;
         }
 
         /**
-         * Handle client request by dispatching to a command handler and 
+         * Handle client request by dispatching to a command handler and
          * sending back response to client.
          */
-        public void run() {               
+        public void run() {
             try {
-                
+
                 LOGGER.fine("Got new connection from: " + socket.getInetAddress().getHostName());
-                
+
                 // Read input from client.
-                Scanner in = new Scanner(socket.getInputStream());                                            
+                Scanner in = new Scanner(socket.getInputStream());
                 JSONObject jo = new JSONObject(in.nextLine());
-                 
+
                 // Get the command and its parameters.
                 String command = jo.getString("command");
                 JSONObject params = jo.getJSONObject("parameters");
                 LOGGER.info("Received client command <" + command + "> with parameters " + params);
-                
+
                 // Command result to send back to client.
                 CommandResult res = null;
 
@@ -104,13 +104,13 @@ public final class Server {
                 // Setup writer to send data back to client.
                 OutputStream os = socket.getOutputStream();
                 final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-                
-                try {                    
+
+                try {
                     if (res instanceof LogStreamResult) {
                         // Stream log file back to client.
                         runTailer(res, bw, in);
                     } else {
-                        // Send single line command result back to client.                
+                        // Send single line command result back to client.
                         bw.write(res.toString());
                         bw.flush();
                     }
@@ -130,7 +130,7 @@ public final class Server {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }                
+                }
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Error sending or receiving data", e);
                 e.printStackTrace();
@@ -141,7 +141,7 @@ public final class Server {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } 
+            }
             LOGGER.fine("Done running client thread!");
         }
 
@@ -153,19 +153,19 @@ public final class Server {
          * @throws IOException
          * @throws InterruptedException
          */
-        private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in) 
+        private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in)
                 throws IOException, InterruptedException {
-            
+
             LOGGER.fine("Sending log tail back to client");
-            
+
             LogStreamResult logStreamResult = (LogStreamResult) res;
             SimpleLogListener listener = logStreamResult.listener;
             listener.setBufferedWriter(bw);
-            
+
             bw.write("--- " + logStreamResult.log.getPath() + " ---" + '\n');
-            
+
             final Tailer tailer = logStreamResult.tailer;
-            
+
             // Create a thread to stop the tailer if the client closes the connection.
             Thread clientCheckThread = new Thread(new Runnable() {
                 @Override
@@ -183,7 +183,7 @@ public final class Server {
                 }
             });
             clientCheckThread.start();
-                
+
             // Main thread will block here until client closes the connection.
             LOGGER.info("Running tailer");
             tailer.run();
@@ -194,10 +194,10 @@ public final class Server {
                 clientCheckThread.interrupt();
                 clientCheckThread.join();
             }
-                                            
+
             LOGGER.info("Done running tailer");
         }
-        
+
         /**
          * Find a <code>CommandHandler</code> for the given command name.
          * @param command The command name
@@ -249,86 +249,86 @@ public final class Server {
         }
         return ids;
     }
-    
+
     /**
      * Handler for a client command on the server.
      */
-    abstract class CommandHandler {                   
-               
+    abstract class CommandHandler {
+
         /**
          * Execute the command.
          * @param jo The JSON input parameters
          * @return The command result
          */
-        abstract CommandResult execute(JSONObject jo);       
-        
+        abstract CommandResult execute(JSONObject jo);
+
     }
-    
+
     /**
      * Generic class for returning command results.
      */
     abstract class CommandResult {
     }
-       
+
     /**
      * Return a result which describes result of command execution
      * i.e. success or failure.
      */
     public class CommandStatus extends CommandResult {
-        
+
         String message;
         String status;
-        
+
         CommandStatus(String status, String message) {
             this.status = status;
             this.message = message;
         }
-        
+
         JSONObject toJSON() {
             JSONObject jo = new JSONObject();
             jo.put("status", status);
             jo.put("message", message);
             return jo;
         }
-        
+
         public String toString() {
             return toJSON().toString();
         }
     }
-    
+
     /**
      * Return a generic result with an object which can be converted to
      * a JSON string.
      */
     class GenericResult extends CommandResult {
-        
+
         final Object o;
-        
+
         GenericResult(Object o) {
             this.o = o;
         }
-        
+
         public String toString() {
             return o.toString();
-        }        
+        }
     }
-    
+
     /**
      * Return a JSON object.
      */
     class JSONResult extends CommandResult {
-        
+
         final JSONObject jo;
-        
+
         JSONResult(JSONObject jo) {
             this.jo = jo;
         }
-                
+
         public String toString() {
             return jo.toString();
-        }        
+        }
     }
-            
+
     /**
      * Handle the list command.
      */
@@ -344,12 +344,12 @@ public final class Server {
                     stationManager.update(station);
                     JSONObject jo = station.toJSON();
                     arr.put(jo);
-                }                
+                }
             } else {
                 // Return info on selected station IDs.
                 for (Integer id : ids) {
                     StationInfo station = stationManager.find(id);
-                    if (station == null) {                               
+                    if (station == null) {
                         // One of the station IDs is invalid.  Just return message about the first bad one.
                         res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
                         break;
@@ -364,9 +364,9 @@ public final class Server {
                 res = new GenericResult(arr);
             }
             return res;
-        }        
+        }
     }
-        
+
     /**
      * Handle the create command.
      */
@@ -414,15 +414,15 @@ public final class Server {
             return res;
         }
     }
-    
+
     /**
      * Handle the start command.
      */
     class StartCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) {
             CommandResult res = null;
-            List<Integer> ids = getStationIDs(parameters);        
-            int started = 0;            
+            List<Integer> ids = getStationIDs(parameters);
+            int started = 0;
             if (ids.size() == 0) {
                 int inactive = Server.this.getStationManager().getInactiveCount();
                 LOGGER.info("Attepting to start " + inactive + " inactive stations.");
@@ -443,11 +443,11 @@ public final class Server {
             if (started == 0) {
                 res = new CommandStatus(STATUS_WARNING, "No stations were started.");
             }
-           
+
             return res;
         }
     }
-    
+
     /**
      * Handle the stop command.
      */
@@ -472,14 +472,14 @@ public final class Server {
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Stopped stations: " + ids.toString());
                 }
-            }            
+            }
             if (stopped == 0) {
                 res = new CommandStatus(STATUS_WARNING, "No stations were stopped.");
             }
             return res;
         }
     }
-    
+
     /**
      * Handle the config command.
      */
@@ -498,7 +498,7 @@ public final class Server {
             return res;
         }
     }
-    
+
     /**
      * Handle the remove command.
      */
@@ -508,7 +508,7 @@ public final class Server {
             List<Integer> ids = getStationIDs(parameters);
             int removed = 0;
             if (ids.size() == 0) {
-                LOGGER.info("Removing all stations!");               
+                LOGGER.info("Removing all stations!");
                 removed = Server.this.getStationManager().removeAll();
                 if (Server.this.getStationManager().getStationCount() > 0) {
                     res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
@@ -523,14 +523,14 @@ public final class Server {
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
                 }
-            }          
+            }
             if (removed == 0) {
                 res = new CommandStatus(STATUS_ERROR, "No stations were removed.");
             }
             return res;
         }
     }
-    
+
     /**
      * Handle the cleanup command.
      */
@@ -544,7 +544,7 @@ public final class Server {
                 int inactive = Server.this.stationManager.getInactiveCount();
                 cleaned = Server.this.stationManager.cleanupAll();
                 if (cleaned < inactive) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station."); 
+                    res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
                 }
@@ -555,15 +555,15 @@ public final class Server {
                     res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station.");
                 } else {
                     res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
-                }                
-            }   
+                }
+            }
             if (cleaned == 0) {
                 res = new CommandStatus(STATUS_ERROR, "No stations were cleaned up.");
             }
             return res;
         }
     }
-    
+
     /**
      * Handle the settings command.
      */
@@ -574,11 +574,11 @@ public final class Server {
             boolean error = false;
             if (parameters.length() > 0) {
                 if (parameters.has("start")) {
-                    int startID = parameters.getInt("start");            
+                    int startID = parameters.getInt("start");
                     try {
-                        Server.this.getStationManager().setStationID(startID); 
+                        Server.this.getStationManager().setStationID(startID);
                         LOGGER.config("Set new station start ID: " + mgr.getCurrentStationID());
-                    } catch (IllegalArgumentException e) {                        
+                    } catch (IllegalArgumentException e) {
                         LOGGER.log(Level.SEVERE, "Failed to set new station ID", e);
                         error = true;
                     }
@@ -600,7 +600,7 @@ public final class Server {
                         LOGGER.log(Level.SEVERE, "Failed to set station base name: " + stationBase, e);
                         error = true;
                     }
-                }            
+                }
                 if (error) {
                     res = new CommandStatus(STATUS_ERROR, "At least one setting failed to update (see server log).");
                 } else {
@@ -613,13 +613,13 @@ public final class Server {
                 jo.put("basename", Server.this.getStationBaseName());
                 res = new JSONResult(jo);
             }
-                
+
             return res;
         }
     }
-    
+
     /**
-     * Handle status command. 
+     * Handle status command.
      */
     class StatusCommandHandler extends CommandHandler {
 
@@ -629,60 +629,60 @@ public final class Server {
             if (jo.has("verbose")) {
                 verbose = jo.getBoolean("verbose");
             }
-            
+
             JSONObject res = new JSONObject();
-            
+
             // Update active status of all stations.
             StationManager mgr = Server.this.getStationManager();
             mgr.updateAll();
-            
+
             // Put station status counts.
             JSONObject stationRes = new JSONObject();
             stationRes.put("total", mgr.getStationCount());
             stationRes.put("active", mgr.getActiveCount());
             stationRes.put("inactive", mgr.getInactiveCount());
             res.put("stations", stationRes);
-            
+
             // Put ET system status.
             JSONObject etRes = new JSONObject();
             getEtStatus(etRes, verbose);
             res.put("ET", etRes);
-            
+
             return new JSONResult(res);
         }
     }
-    
+
     /**
      * Handle the plot-add command.
      */
     class PlotAddCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject jo) {     
+        CommandResult execute(JSONObject jo) {
             CommandResult res = null;
             if (!jo.has("target")) {
                 res = new CommandStatus(STATUS_ERROR, "Missing required target parameter.");
-            } else {                
-                String target = jo.getString("target");                
+            } else {
+                String target = jo.getString("target");
                 boolean delete = false;
                 if (jo.has("delete")) {
                     delete = jo.getBoolean("delete");
-                }                
+                }
                 boolean append = false;
                 if (jo.has("append")) {
                     append = jo.getBoolean("append");
-                }                
+                }
                 long period = -1L;
                 if (jo.has("period")) {
                     period = jo.getLong("period");
-                }                
-                PlotAddTask task =    
+                }
+                PlotAddTask task =
                         new PlotAddTask(Server.this, new File(target), delete, append);
                 if (jo.has("ids")) {
                     List<Integer> ids = getStationIDs(jo);
                     task.addStationIDs(ids);
-                }                
+                }
                 if (jo.has("threads")) {
                     task.setThreadCount(jo.getInt("threads"));
-                
+
                 }
                 if (jo.has("verbosity")) {
                     task.setVerbosity(jo.getInt("verbosity"));
@@ -694,9 +694,9 @@ public final class Server {
                 } else {
                     // Run periodically.
                     Server.this.schedulePlotTask(task, period * SECONDS_TO_MILLIS);
-                    LOGGER.info("Plot task will run with period: " + 
+                    LOGGER.info("Plot task will run with period: " +
                             (period / SECONDS_TO_MILLIS) + "s");
-                }                
+                }
                 res = new CommandStatus(STATUS_SUCCESS, "Scheduled new plot task.");
             }
             return res;
@@ -719,11 +719,11 @@ public final class Server {
     class SimpleLogListener extends TailerListenerAdapter {
 
         BufferedWriter bw;
-        
+
         void setBufferedWriter(BufferedWriter bw) {
             this.bw = bw;
         }
-        
+
         public void handle(String line) {
             try {
                 bw.write(line + '\n');
@@ -733,24 +733,24 @@ public final class Server {
             }
         }
     }
-    
+
     /**
      * Encapsulates information needed for streaming log files
      * back to the client.
      */
     class LogStreamResult extends CommandResult {
-        
+
         SimpleLogListener listener;
         Tailer tailer;
         File log;
-        
+
         LogStreamResult(Tailer tailer, SimpleLogListener listener, File log) {
             this.listener = listener;
             this.tailer = tailer;
             this.log = log;
         }
     }
-    
+
     /**
      * Tail a station's log file.
      */
@@ -772,11 +772,11 @@ public final class Server {
                 res = new CommandStatus(STATUS_ERROR, "Multiple station IDs not supported for log command.");
             } else if (ids.size() == 0) {
                 res = new CommandStatus(STATUS_ERROR, "No station IDs were given in parameters.");
-            }            
+            }
             return res;
         }
     }
-        
+
     /**
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
@@ -796,14 +796,14 @@ public final class Server {
                 jo.put("num_stations", sys.getNumStations());
                 jo.put("attachments", sys.getNumAttachments());
                 jo.put("attachments_max", sys.getAttachmentsMax());
-            }            
+            }
             if (verbose) {
                 JSONObject joRes = new JSONObject();
-                final List<StationInfo> stations = 
+                final List<StationInfo> stations =
                         Server.this.getStationManager().getStations();
                 for (StationInfo station : stations) {
                     if (sys.stationExists(station.stationName)) {
-                        EtStation etStation = sys.stationNameToObject(station.stationName);                        
+                        EtStation etStation = sys.stationNameToObject(station.stationName);
                         JSONObject joStat = new JSONObject();
                         joStat.put("usable", etStation.isUsable());
                         joStat.put("input_count", etStation.getInputCount());
@@ -818,16 +818,17 @@ public final class Server {
             LOGGER.log(Level.SEVERE, "Error getting ET status", e);
             jo.put("error", e.getMessage());
         } finally {
-            if (sys != null) {                
+            if (sys != null) {
                 sys.close();
             }
         }
     }
-    
+
     /**
      * Get whether the ET system is alive or not.
      * @return True if ET system is alive; false if fail to connect
      */
+    /*
     boolean isEtSystemAlive() {
         try {
             EtSystemOpenConfig etConfig = new EtSystemOpenConfig(this.stationConfig.getBufferName(),
@@ -841,9 +842,10 @@ public final class Server {
             }
         } catch (Exception e) {
             return false;
-        }        
+        }
     }
-    
+    */
+
     /**
      * Get ET station status from code.
      * @param status The status string from the code.
@@ -862,103 +864,103 @@ public final class Server {
         }
         return statusString;
     }
-            
+
     /**
      * The default server port.
      */
     static final int DEFAULT_PORT = 22222;
-        
+
     /**
      * The package logger.
      */
-    static Logger LOGGER = Logger.getLogger(Server.class.getPackage().getName());    
-    
+    static Logger LOGGER = Logger.getLogger(Server.class.getPackage().getName());
+
     /**
      * Max allowed server port number.
      */
     private static final int MAX_PORT = 65535;
-    
+
     /**
      * Minimum allowed server port number.
      */
     private static final int MIN_PORT = 1024;
-    
+
     /**
      * Error status string.
      */
     public static final String STATUS_ERROR = "ERROR";
-    
+
     /**
      * Success status string.
      */
     public static final String STATUS_SUCCESS = "SUCCESS";
-    
+
     /**
      * Warning status string.
      */
     public static final String STATUS_WARNING = "WARNING";
-        
+
     /**
      * Run from command line.
      * @param args The command line args
      */
-    public static void main(String args[]) { 
+    public static void main(String args[]) {
         Server server = new Server();
         try {
             server.parse(args);
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line", e);
-        }        
+        }
         server.start();
     }
-    
+
     /**
      * The pool of threads for processing client commands.
      */
     final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
-            
+
     /**
      * Default work dir path (current working dir by default).
      */
     private final String DEFAULT_WORK_PATH = System.getProperty("user.dir");
-            
+
     /**
      * Timer for running plot task.
      */
     private Timer plotTimer = new Timer();
-    
+
     /**
      * The server port number.
      */
     private int port = DEFAULT_PORT;
-        
+
     /**
      * The station base name to which the ID will be appended.
      */
     private String stationBase = "HPS_RECON";
-        
+
     /**
      * The station configuration.
      */
     private StationConfiguration stationConfig = new StationConfiguration();
-        
+
     /**
      * The station manager.
      */
     private final StationManager stationManager;
-    
+
     /**
      * The server work directory.
      */
     private File workDir;
-          
+
     /**
      * Create a new server instance.
      */
     Server() {
         this.stationManager = new StationManager(this);
     }
-        
+
     /**
      * Create the work directory for a station.
      * @param name The name of the station
@@ -981,7 +983,7 @@ public final class Server {
     String getStationBaseName() {
         return this.stationBase;
     }
-    
+
     /**
      * Set the string for station base name.
      * @param stationBase The string for station base name
@@ -992,7 +994,7 @@ public final class Server {
         }
         this.stationBase = stationBase;
     }
-        
+
     /**
      * Get the current station configuration.
      * @return The current station configuration
@@ -1000,7 +1002,7 @@ public final class Server {
     StationConfiguration getStationConfig() {
         return this.stationConfig;
     }
-    
+
     /**
      * Get the station manager.
      * @return The station manager
@@ -1008,7 +1010,7 @@ public final class Server {
     StationManager getStationManager() {
         return this.stationManager;
     }
-    
+
     /**
      * Get the server's work directory.
      * @return The server's work directory
@@ -1016,7 +1018,7 @@ public final class Server {
     File getWorkDir() {
         return this.workDir;
     }
-    
+
     /**
      * Check whether a work directory exists, is a directory, and is writable.
      * @param workDir The work directory to check
@@ -1032,7 +1034,7 @@ public final class Server {
             throw new RuntimeException("Work dir is not writable: " + workDir.getPath());
         }
     }
-    
+
     /**
      * Set the server base working directory.
      * @param workDir The new server working directory
@@ -1041,7 +1043,7 @@ public final class Server {
         checkWorkDir(workDir);
         this.workDir = workDir;
     }
-    
+
     /**
      * Parse command line options.
      * @param args The command line arguments
@@ -1056,19 +1058,19 @@ public final class Server {
         options.addOption(new Option("b", "basename", true, "station base name"));
         options.addOption(new Option("c", "config", true, "config properties file"));
         options.addOption(new Option("i", "interval", true, "update interval in seconds for adding plots (default is every 1 minute)"));
-        
+
         final CommandLineParser parser = new DefaultParser();
         CommandLine cl = parser.parse(options, args);
-        
+
         // Print help and exit!
         if (cl.hasOption("h")) {
             final HelpFormatter help = new HelpFormatter();
-            help.printHelp("Server", 
+            help.printHelp("Server",
                     "Start the online reconstruction server",
                     options, "");
             System.exit(0);
         }
-        
+
         // Port number of ET server.
         if (cl.hasOption("p")) {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
@@ -1078,29 +1080,29 @@ public final class Server {
             throw new RuntimeException("Port number is not allowed: " + this.port);
         }
         LOGGER.config("Server port: " + this.port);
-        
+
         // Starting station ID.
         if (cl.hasOption("s")) {
             int processID = Integer.parseInt(cl.getOptionValue("s"));
             this.stationManager.setStationID(processID);
             LOGGER.config("Starting station ID: " + processID);
         }
-        
+
         // Base work directory for creating station directories.
         String workPath = DEFAULT_WORK_PATH;
         if (cl.hasOption("w")) {
             workPath = cl.getOptionValue("w");
-        }                  
+        }
         setWorkDir(new File(workPath));
 
         LOGGER.config("Server work dir: " + this.workDir.getPath());
-        
+
         // Base name for station to which will be appended the station ID.
         if (cl.hasOption("b")) {
             this.stationBase = cl.getOptionValue("b");
         }
         LOGGER.config("Station base name: " + this.stationBase);
-        
+
         // Load station configuration properties.
         if (cl.hasOption("c")) {
             File configFile = new File(cl.getOptionValue("c"));
@@ -1108,9 +1110,9 @@ public final class Server {
                 throw new RuntimeException("Config file does not exist: " + configFile.getPath());
             }
             this.stationConfig.load(configFile);
-        }        
+        }
     }
-        
+
     /**
      * Start the server.
      */
@@ -1124,8 +1126,8 @@ public final class Server {
         } catch (IOException e) {
             throw new RuntimeException("Server exception", e);
         }
-    }   
-    
+    }
+
     /**
      * Schedule plot task to run once.
      * @param task The task to run
@@ -1133,7 +1135,7 @@ public final class Server {
     synchronized void schedulePlotTask(PlotAddTask task) {
         plotTimer.schedule(task, 0L);
     }
-    
+
     /**
      * Schedule plot task to run periodically.
      * @param task The task to run
@@ -1142,7 +1144,7 @@ public final class Server {
     synchronized void schedulePlotTask(PlotAddTask task, long period) {
         plotTimer.schedule(task, 0L, period);
     }
-    
+
     /**
      * Cancel all plot tasks, purge the timer, and create a new <code>Timer</code> instance.
      */
