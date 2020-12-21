@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.old;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,9 +17,12 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.online.recon.Server;
+import org.hps.online.recon.StationManager;
+
 /**
  * Task to add ROOT histograms from the reconstruction stations using the hadd utility.
- * 
+ *
  * @author jeremym
  */
 final class PlotAddTask extends TimerTask {
@@ -28,49 +31,49 @@ final class PlotAddTask extends TimerTask {
      * Package logger.
      */
     private static Logger LOGGER = Logger.getLogger(PlotAddTask.class.getPackage().getName());
-    
+
     /**
      * Reference to the online reconstruction server.
      */
     private final Server server;
-    
+
     /**
      * Target output file.
      */
     private final File targetFile;
-           
+
     /**
      * Command for adding ROOT plots.
      */
     private static final String HADD = "hadd";
-    
+
     /**
      * Number of CPUs to use when running hadd (hard-coded to 4).
      */
     private Integer threads = 1;
-    
+
     /**
      * Verbosity of the ROOT "hadd" command.
      */
     private Integer verbosity = 99;
-   
+
     /**
      * List of station IDs with directories to look for plot files.
-     * 
+     *
      * If this is empty then all station IDs will be used.
      */
     private List<Integer> ids = new ArrayList<Integer>();
-    
+
     /**
      * Whether to delete intermediate plot files when done adding them.
      */
     private boolean delete = false;
-    
+
     /**
      * Whether to append to an existing ROOT target file.
      */
     private boolean append = false;
-        
+
     /**
      * Class constructor.
      * @param server Reference to the online reconstruction server
@@ -78,15 +81,15 @@ final class PlotAddTask extends TimerTask {
      * @param delete True to delete existing station plot files
      */
     PlotAddTask(Server server, File targetFile, boolean delete, boolean append) {
-        this.server = server;        
+        this.server = server;
         this.targetFile = targetFile;
         this.delete = delete;
         this.append = append;
-        
+
         // Check that the hadd command exists.
         checkHadd();
     }
-   
+
     /**
      * Set number of CPU threads to use when running hadd.
      * @param threads Number of CPU threads to use when running hadd
@@ -94,7 +97,7 @@ final class PlotAddTask extends TimerTask {
     void setThreadCount(int threads) {
         this.threads = threads;
     }
-    
+
     /**
      * Set verbosity level of hadd command (0-99).
      * @param verbosity Verbosity of the hadd command
@@ -102,7 +105,7 @@ final class PlotAddTask extends TimerTask {
     void setVerbosity(int verbosity) {
         this.verbosity = verbosity;
     }
-    
+
     /**
      * Add a list of station IDs for adding plots.
      * @param ids The list of station IDs for adding plots
@@ -118,22 +121,22 @@ final class PlotAddTask extends TimerTask {
         ProcessBuilder pb = new ProcessBuilder(HADD);
         try {
             Process p = pb.start();
-            p.waitFor();            
+            p.waitFor();
         } catch (IOException e) {
             throw new RuntimeException("The hadd command was not found (did you source the thisroot.sh setup script?).", e);
         } catch (InterruptedException ie) {
             ie.printStackTrace();
         }
     }
-                
+
     /**
      * Find ROOT files using pattern matching.
      */
     static class RootFileFinder extends SimpleFileVisitor<Path> {
-                
+
         List<File> files = new ArrayList<File>();
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.root");
-        
+
         void find(Path file) {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
@@ -146,7 +149,7 @@ final class PlotAddTask extends TimerTask {
                 }*/
             }
         }
-        
+
         @Override
         public FileVisitResult visitFile(Path file,
                 BasicFileAttributes attrs) {
@@ -168,12 +171,12 @@ final class PlotAddTask extends TimerTask {
             LOGGER.log(Level.WARNING, "Error visiting file: " + file.toFile().getPath(), e);
             return FileVisitResult.CONTINUE;
         }
-        
+
         List<File> getFiles() {
             return this.files;
         }
     }
-    
+
     /**
      * Get the list of ROOT files.
      * @return The list of ROOT files
@@ -187,7 +190,7 @@ final class PlotAddTask extends TimerTask {
         }
         return finder.getFiles();
     }
-    
+
     /**
      * Add plots and write to a target file.
      * @param target The target output file
@@ -195,11 +198,11 @@ final class PlotAddTask extends TimerTask {
      * @throws IOException If there is a problem adding the plots
      * @throws InterruptedException If the method is interrupted
      */
-    private void addPlots(File target, List<File> inFiles) throws IOException, InterruptedException { 
+    private void addPlots(File target, List<File> inFiles) throws IOException, InterruptedException {
         if (inFiles.size() > 0) {
             LOGGER.info("Adding plots with target <" + target.getPath() + "> and plot files: " + inFiles.toString());
             List<File> files = new ArrayList<File>(inFiles);
-            
+
             // If target exists then move it to a backup file.
             if (target.exists()) {
                 File oldTarget = new File(target.getPath() + ".old");
@@ -227,19 +230,19 @@ final class PlotAddTask extends TimerTask {
             for (File file : files) {
                 cmd.add(file.getPath());
             }
-            ProcessBuilder pb = new ProcessBuilder(cmd);        
-            LOGGER.info("Running hadd command: " + String.join(" ", cmd));            
+            ProcessBuilder pb = new ProcessBuilder(cmd);
+            LOGGER.info("Running hadd command: " + String.join(" ", cmd));
             Process p = pb.start();
-            
+
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(p.getInputStream()));
             StringBuffer sb = new StringBuffer();
             String readline;
             while ((readline = reader.readLine()) != null) {
                 sb.append(readline + '\n');
-            }            
+            }
             LOGGER.fine("hadd output: " + '\n' + sb.toString());
-            
+
             p.waitFor();
             LOGGER.fine("hadd is done!");
             if (!target.exists()) {
@@ -257,10 +260,11 @@ final class PlotAddTask extends TimerTask {
      */
     @Override
     public void run() {
-        try {            
+        /*
+        try {
             List<File> dirs;
             StationManager mgr = this.server.getStationManager();
-            if (this.ids.size() == 0) {                
+            if (this.ids.size() == 0) {
                 LOGGER.info("Getting plot files from all stations");
                 dirs = mgr.getStationDirectories();
             } else {
@@ -279,7 +283,7 @@ final class PlotAddTask extends TimerTask {
                             LOGGER.warning("Failed to delete plot file: " + file.getPath());
                         }
                     }
-                }    
+                }
             } else {
                 LOGGER.warning("Task did not run because no plot files were found!");
             }
@@ -288,5 +292,6 @@ final class PlotAddTask extends TimerTask {
         } catch (InterruptedException e) {
             LOGGER.log(Level.SEVERE, "Interrupted while adding plots", e);
         }
-    }    
+        */
+    }
 }

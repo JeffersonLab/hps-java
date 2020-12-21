@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.old;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +20,7 @@ import org.json.JSONObject;
  *
  * @author jeremym
  */
+// TODO: add property for station logging file
 final class StationConfiguration {
 
     /*
@@ -149,7 +150,7 @@ final class StationConfiguration {
     /**
      * The wait time when timed mode is selected.
      */
-    private Integer waitTime = 999999999;
+    private Integer waitTime = 0;
 
     /**
      * The chunk size when getting ET events.
