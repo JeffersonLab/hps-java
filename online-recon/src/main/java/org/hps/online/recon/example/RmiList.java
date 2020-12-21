@@ -1,6 +1,5 @@
 package org.hps.online.recon.example;
 
-import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;

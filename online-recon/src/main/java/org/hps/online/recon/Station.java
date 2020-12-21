@@ -121,7 +121,7 @@ public class Station {
                 conditionsSetup.setTags(tags);
             }
             LOGGER.config("Conditions will be initialized with: detector=" + detector.value()
-                + ", run=" + run.value() + ", freeze=" + freeze.value() + ", tag=" + tag.value());
+                    + ", run=" + run.value() + ", freeze=" + freeze.value() + ", tag=" + tag.value());
         } else {
             // No run number in configuration so read from EVIO data.
             EvioDetectorConditionsProcessor evioConditions =
@@ -156,8 +156,7 @@ public class Station {
             LOGGER.config("Setting up steering resource: " + steering.value());
             mgr.setup(steering.value());
         }
-
-        mgr.setup(steering.value());
+        LOGGER.config("Done setting up steering!");
 
         // Add drivers from the job manager to the loop.
         for (Driver driver : mgr.getDriverExecList()) {
@@ -175,7 +174,7 @@ public class Station {
                 throw new RuntimeException(e);
             }
             conditionsSetup.postInitialize();
-            LOGGER.config("Done initializing conditions system!");
+            LOGGER.config("Conditions system initialized successfully!");
         }
 
         // Try to connect to the ET system, retrying up to the configured number of max attempts.

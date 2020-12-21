@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.online.recon.Server;
-import org.hps.online.recon.StationManager;
 
 /**
  * Task to add ROOT histograms from the reconstruction stations using the hadd utility.
