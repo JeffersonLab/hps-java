@@ -44,7 +44,6 @@ public class StationProperties extends PropertyStore {
             new StringProperty ( "lcsim.detector",        "Name of detector",               null,           true),
             new StringProperty ( "lcsim.steering",        "Steering resource or file",      null,           true),
             new IntegerProperty( "lcsim.run",             "Run number for conditions",      null,           false),
-            new IntegerProperty( "lcsim.printInterval",   "Event print interval",           null,           false),
             new IntegerProperty( "lcsim.remoteAidaPort",  "Port for remote AIDA",           2001,           true),
             new StringProperty ( "lcsim.conditions",      "Conditions URL",                 null,           false),
             new StringProperty(  "lcsim.tag",             "Conditions tag",                 null,           false),
@@ -56,7 +55,7 @@ public class StationProperties extends PropertyStore {
             new IntegerProperty( "station.queueSize",     "Size of event queue",            1,              false),
             new BooleanProperty( "station.stopOnErrors",  "Stop processing on errors",      true,           false),
             new BooleanProperty( "station.stopOnEndRun",  "Stop processing on end of run",  true,           false),
-            new BooleanProperty( "station.printEvents",   "Print all event info from loop", false,          false),
+            new IntegerProperty( "station.printInterval", "Event print interval",           null,           false),
             new StringProperty(  "station.loggingConfig", "Logging config file",            null,           false),
             new StringProperty ( "et.buffer",             "Name of ET buffer file",         BUFFER,         true),
             new StringProperty ( "et.host",               "Host for ET connection",         "localhost",    true),
@@ -72,16 +71,8 @@ public class StationProperties extends PropertyStore {
     }
 
     public StationProperties(StationProperties sp) {
-        System.out.println("Cloning N props: " + sp.props.size());
         for (Property<?> p : sp.props.values()) {
-            System.out.println("Adding prop: " + p.name());
             add((Property<?>) p.clone());
         }
-        System.out.println("Cloned N props: " + this.props.size());
-    }
-
-    @Override
-    public Object clone() {
-        return new StationProperties(this);
     }
 }

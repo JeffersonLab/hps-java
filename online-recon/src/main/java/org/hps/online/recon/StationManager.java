@@ -305,6 +305,7 @@ public class StationManager {
 
         List<String> command = new ArrayList<String>();
 
+        command.add("time");
         command.add("java");
 
         // Logging configuration

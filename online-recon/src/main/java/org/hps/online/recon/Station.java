@@ -26,7 +26,6 @@ import org.lcsim.util.Driver;
  * Online reconstruction station which processes events from the ET system
  * and writes intermediate plot files.
  */
-// TODO: Support usage of an lcsim XML steering file, not just a resource
 public class Station {
 
     /**
@@ -95,14 +94,13 @@ public class Station {
         Property<String> outputName = props.get("station.outputName");
         Property<String> steering = props.get("lcsim.steering");
         Property<Integer> queueSize = props.get("station.queueSize");
-        Property<Integer> interval = props.get("lcsim.printInterval");
         Property<Integer> maxEvents = props.get("lcsim.maxEvents");
         Property<Boolean> stopOnErrors = props.get("station.stopOnErrors");
         Property<Boolean> stopOnEndRun = props.get("station.stopOnEndRun");
         Property<Boolean> freeze = props.get("lcsim.freeze");
         Property<String> tag = props.get("lcsim.tag");
         Property<String> builderClass = props.get("lcsim.builder");
-        Property<Boolean> printEvents = props.get("station.printEvents");
+        Property<Integer> printInterval = props.get("station.printInterval");
 
         LOGGER.config("Station properties: " + props.toJSON().toString());
 
@@ -123,7 +121,7 @@ public class Station {
                 conditionsSetup.setTags(tags);
             }
             LOGGER.config("Conditions will be initialized with: detector=" + detector.value()
-                + ", run=" + ", freeze=" + freeze.value() + ", tag=" + tag.value());
+                + ", run=" + run.value() + ", freeze=" + freeze.value() + ", tag=" + tag.value());
         } else {
             // No run number in configuration so read from EVIO data.
             EvioDetectorConditionsProcessor evioConditions =
@@ -146,17 +144,19 @@ public class Station {
         // Setup the lcsim job manager.
         JobManager mgr = new JobManager();
         mgr.setDryRun(true);
-        if (interval.valid()) {
-            mgr.setEventPrintInterval(interval.value());
-            LOGGER.config("lcsim event print interval: " + interval.value());
-        } else {
-            LOGGER.config("lcsim event printing disabled");
-        }
         final String outputFilePath = outputDir.value() + File.separator + outputName.value();
         LOGGER.config("Output file path: " + outputFilePath);
         mgr.addVariableDefinition("outputFile", outputFilePath);
         mgr.setConditionsSetup(conditionsSetup); // FIXME: Is this even needed since not calling the run() method?
-        LOGGER.config("Setting up steering resource: " + steering.value());
+        if (steering.value().startsWith("file://")) {
+            String steeringPath = steering.value().replace("file://", "");
+            LOGGER.config("Setting up steering file: " + steeringPath);
+            mgr.setup(new File(steeringPath));
+        } else {
+            LOGGER.config("Setting up steering resource: " + steering.value());
+            mgr.setup(steering.value());
+        }
+
         mgr.setup(steering.value());
 
         // Add drivers from the job manager to the loop.
@@ -167,7 +167,7 @@ public class Station {
 
         // Activate the conditions system, if possible.
         if (activateConditions) {
-            LOGGER.config("Activating conditions system");
+            LOGGER.config("Initializing conditions system...");
             conditionsSetup.configure();
             try {
                 conditionsSetup.setup();
@@ -175,6 +175,7 @@ public class Station {
                 throw new RuntimeException(e);
             }
             conditionsSetup.postInitialize();
+            LOGGER.config("Done initializing conditions system!");
         }
 
         // Try to connect to the ET system, retrying up to the configured number of max attempts.
@@ -212,10 +213,10 @@ public class Station {
         CompositeLoop loop = new CompositeLoop(loopConfig);
 
         // Enable detailed event printing on the composite loop
-        LOGGER.config("Station event printing: " + printEvents.value());
-        if (printEvents.value()) {
+        LOGGER.config("Event print interval: " + printInterval.value());
+        if (printInterval.valid()) {
             CompositeEventPrintLoopAdapter eventPrinter = new CompositeEventPrintLoopAdapter();
-            eventPrinter.setPrintInterval(1L);
+            eventPrinter.setPrintInterval(printInterval.value());
             eventPrinter.setPrintEt(true);
             eventPrinter.setPrintEvio(true);
             eventPrinter.setPrintLcio(true);
