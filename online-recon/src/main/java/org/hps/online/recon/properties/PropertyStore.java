@@ -16,18 +16,12 @@ import org.json.JSONObject;
 
 public class PropertyStore {
 
-    private final Map<String, Property<?>> props = new HashMap<String, Property<?>>();
+    protected final Map<String, Property<?>> props = new HashMap<String, Property<?>>();
 
     public PropertyStore() {
     }
 
-    public PropertyStore(PropertyStore store) {
-        for (Property<?> p : props.values()) {
-            store.add(p);
-        }
-    }
-
-    public boolean has(String name) {
+    public final boolean has(String name) {
         return props.containsKey(name);
     }
 
@@ -38,30 +32,27 @@ public class PropertyStore {
         props.put(prop.name(), prop);
     }
 
-    public final void add(Property<?> propArr[]) {
-        for (Property<?> prop : propArr) {
+    public final void add(Property<?> arr[]) {
+        for (Property<?> prop : arr) {
             add(prop);
         }
     }
 
     @SuppressWarnings("unchecked")
     public final <T> Property<T> get(String name) {
-        return (Property<T>) props.get(name);
-    }
-
-    public final void loadDefaults() {
-        for (Entry<String, Property<?>> entry : props.entrySet()) {
-            entry.getValue().fromDefault();
+        if (!has(name)) {
+            throw new IllegalArgumentException("Property does not exist: " + name);
         }
+        return (Property<T>) props.get(name);
     }
 
     public final void load(Properties propFile) {
         for (Object keyObj : propFile.keySet()) {
             String key = keyObj.toString();
-            if (props.containsKey(key)) {
-                Property<?> prop = props.get(key);
+            if (has(key)) {
+                Property prop = props.get(key);
                 Object rawVal = propFile.get(key);
-                prop.convert(rawVal);
+                prop.from(rawVal);
             }
         }
     }
@@ -76,10 +67,6 @@ public class PropertyStore {
         load(p);
     }
 
-    public Object clone() {
-        return new PropertyStore(this);
-    }
-
     public void fromJSON(JSONObject jo) {
         for (String key : jo.keySet()) {
             get(key).set(jo.get(key).toString());
@@ -92,15 +79,19 @@ public class PropertyStore {
      */
     public JSONObject toJSON() {
         JSONObject jo = new JSONObject();
-        for (Object ko : this.props.keySet()) {
-            jo.put((String) ko, this.props.get(ko));
+        for (Entry<String, Property<?>> entry : props.entrySet()) {
+            jo.put((String) entry.getKey(), entry.getValue().value);
         }
         return jo;
     }
 
     public void save(Properties propOut) {
         for (Entry<String, Property<?>> entry : this.props.entrySet()) {
-            propOut.setProperty(entry.getKey(), entry.getValue().value().toString());
+            if (entry.getValue().valid()) {
+                propOut.setProperty(entry.getKey(), entry.getValue().value().toString());
+            } else {
+                System.out.println("Skipping invalid prop: " + entry.getKey());
+            }
         }
     }
 
@@ -110,17 +101,38 @@ public class PropertyStore {
         props.store(new FileOutputStream(file), comment);
     }
 
-    public void validate() {
-        List<String> badProps = new ArrayList<String>();
+    public static class PropertyValidationException extends Exception {
+        PropertyValidationException(List<Property<?>> badProps) {
+            super("The following properties are not valid:" + propsToString(badProps));
+        }
+    }
+
+    private static String propsToString(List<Property<?>> badProps) {
+        StringBuffer buff = new StringBuffer();
+        for (Property<?> p : badProps) {
+            buff.append(" " + p.name);
+        }
+        return buff.toString();
+    }
+
+    public void validate() throws PropertyValidationException {
+        List<Property<?>> badProps = new ArrayList<Property<?>>();
         for (Entry<String, Property<?>> entry : this.props.entrySet()) {
             Property<?> prop = entry.getValue();
-            if (!prop.valid()) {
-                badProps.add(prop.name());
+            if (prop.required() && !prop.valid()) {
+                badProps.add(prop);
             }
         }
         if (badProps.size() > 0) {
-            String msg = String.join(" ", badProps);
-            throw new RuntimeException("The following properties are not valid: " + msg);
+            throw new PropertyValidationException(badProps);
         }
+    }
+
+    public String toString() {
+        return toJSON().toString();
+    }
+
+    public int size() {
+        return this.props.size();
     }
 }

@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.example;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
@@ -58,7 +58,8 @@ public class StripChartClient {
     private ITree clientTree = null;
     private final IAnalysisFactory af = IAnalysisFactory.create();
     private final IPlotterFactory pf = af.createPlotterFactory();
-    private final ITreeFactory tf = af.createTreeFactory();    private final IPlotterStyle avgStyle = pf.createPlotterStyle();
+    private final ITreeFactory tf = af.createTreeFactory();
+    private final IPlotterStyle avgStyle = pf.createPlotterStyle();
 
     private final IPlotter plotter = pf.create("Monitoring Plots");
 

@@ -1,7 +1,8 @@
-package org.hps.online.recon;
+package org.hps.online.recon.example;
 
 import java.util.List;
 
+import org.hps.online.recon.RemoteAidaDriver;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;

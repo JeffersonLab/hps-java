@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
+import org.hps.online.recon.properties.Property;
 import org.json.JSONObject;
 
 /**
@@ -36,7 +36,7 @@ public class StationManager {
         Process process;
         String stationName;
         File configFile;
-        StationConfiguration config;
+        StationProperties props;
 
         /**
          * Convert station data to JSON.
@@ -51,7 +51,7 @@ public class StationManager {
             jo.put("command", String.join(" ", command));
             jo.put("dir", dir.getPath());
             jo.put("log", log != null ? FilenameUtils.getBaseName(log.getPath()) : "");
-            jo.put("config", config.toJSON());
+            jo.put("props", props.toJSON());
             return jo;
         }
     }
@@ -82,7 +82,7 @@ public class StationManager {
     /**
      * The system properties.
      */
-    private static final Properties SYSTEM_PROPERTIES = System.getProperties();
+    //private static final Properties SYSTEM_PROPERTIES = System.getProperties();
 
     /**
      * Get the PID of a system process
@@ -184,7 +184,7 @@ public class StationManager {
             // The config file disappeared, probably from the cleanup command.
             if (!station.configFile.exists()) {
                 LOGGER.info("Rewriting station config file: " + station.configFile.getPath());
-                this.writeStationConfig(station.config, dir, station.stationName);
+                this.writeStationProperties(station.props, dir, station.stationName);
             }
 
             List<String> command = station.command;
@@ -229,10 +229,10 @@ public class StationManager {
      * @param stationName The name of the station
      * @return The file with the station configuration
      */
-    File writeStationConfig(StationConfiguration sc, File dir, String stationName) {
+    private File writeStationProperties(StationProperties props, File dir, String stationName) {
         File scf = new File(dir.getPath() + File.separator + STATION_CONFIG_NAME);
         try {
-            sc.write(scf, "Configuration properties for online recon station " + stationName);
+            props.write(scf, "Configuration properties for online recon station: " + stationName);
         } catch (Exception e) {
             throw new RuntimeException("Error writing station config file", e);
         }
@@ -246,35 +246,48 @@ public class StationManager {
      */
     StationInfo create(JSONObject parameters) {
 
+        // Get next station ID
         Integer stationID = getNextStationID();
         if (exists(stationID)) {
             LOGGER.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
             throw new RuntimeException("Station ID already exists: " + stationID);
         }
 
+        // Get unique name for this station
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
 
+        // Create the directory for this station's files
         File dir = createStationDir(stationName);
 
-        /*
-         * Create new station configuration file by copying server's configuration and setting
-         * some additional, required station-specific properties.
-         */
-        StationConfiguration sc = new StationConfiguration(this.server.getStationConfig());
-        sc.setProperty(StationConfiguration.STATION_PROPERTY, stationName);
-        sc.setProperty(StationConfiguration.OUTPUT_NAME_PROPERTY, stationName.toLowerCase());
-        sc.setProperty(StationConfiguration.OUTPUT_DIR_PROPERTY, dir.getPath());
-        sc.update();
-        File scf = writeStationConfig(sc, dir, stationName);
+        // Copy the server's properties and set some station-specific properties
+        StationProperties props = new StationProperties(this.server.getStationProperties());
+        //(StationProperties) .clone();
+        LOGGER.fine("Cloned N props: " + props.size());
+        LOGGER.fine("Cloned props: " + props.toString());
+        props.get("et.stationName").set(stationName);
+        props.get("station.outputName").set(stationName.toLowerCase());
+        props.get("station.outputDir").set(dir.getPath());
 
         // Add new station info.
         StationInfo info = new StationInfo();
         info.id = stationID;
         info.stationName = stationName;
         info.dir = dir;
-        info.config = sc;
+        info.props = props;
+
+        // Remote AIDA port
+        int remoteAidaPort = this.remoteAidaPortStart + info.id;
+        Property<Integer> remoteAidaPortProp = props.get("lcsim.remoteAidaPort");
+        remoteAidaPortProp.from(remoteAidaPort);
+
+        // Write the properties file for the station to read in when running
+        File scf = writeStationProperties(props, dir, stationName);
         info.configFile = scf;
+
+        // Build the command to run the station
         info.command = buildCommand(info);
+
+        // Register the station info
         add(info);
 
         return info;
@@ -286,24 +299,29 @@ public class StationManager {
      */
     private List<String> buildCommand(StationInfo info) {
 
+        final StationProperties props = info.props;
+        Property<String> cond = props.get("lcsim.conditions");
+        Property<String> logConfigFile = props.get("station.loggingConfig");
+
         List<String> command = new ArrayList<String>();
 
         command.add("java");
-        command.add("-Djava.util.logging.config.class=" + StationLoggingConfig.class.getCanonicalName());
 
-        // Check for conditions property to use local conditions sqlite db file.
-        // Alternate MySQL conditions database is not supported.
-        if (SYSTEM_PROPERTIES.containsKey(CONDITIONS_PROPERTY)) {
-            String condProp = SYSTEM_PROPERTIES.getProperty(CONDITIONS_PROPERTY);
-            if (condProp.contains("sqlite:")) {
-                File dbFile = new File(condProp.replaceAll("jdbc:sqlite:", ""));
-                if (dbFile.isAbsolute() && dbFile.exists() && dbFile.canRead()) {
-                    command.add("-D" + CONDITIONS_PROPERTY + "=" + condProp);
-                }
-            }
+        // Logging configuration
+        if (logConfigFile.valid()) {
+            command.add("-Djava.util.logging.config.file=" + logConfigFile.value());
+        } else {
+            command.add("-Djava.util.logging.config.class=" + StationLoggingConfig.class.getCanonicalName());
         }
 
-        command.add("-DremoteAidaPort=" + (this.remoteAidaPortStart + info.id));
+        // Conditions URL
+        if (cond.valid()) {
+            command.add("-D" + CONDITIONS_PROPERTY + "=" + cond.value());
+        }
+
+        // Remote AIDA port
+        Property<Integer> remoteAidaPort = info.props.get("lcsim.remoteAidaPort");
+        command.add("-DremoteAidaPort=" + remoteAidaPort.value());
 
         command.add("-cp");
         command.add(JAR_PATH);
@@ -412,6 +430,7 @@ public class StationManager {
             if (p != null) {
                 LOGGER.info("Stopping station: " + info.stationName);
                 p.destroy();
+                // FIXME: Hangs here...do we need to wake up the ET station if it is sleeping?
                 try {
                     LOGGER.fine("Waiting for station to stop: " + info.stationName);
                     p.waitFor();

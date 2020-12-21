@@ -1,5 +1,7 @@
 package org.hps.online.recon;
 
+import org.hps.evio.LCSimEngRunEventBuilder;
+import org.hps.online.recon.properties.BooleanProperty;
 import org.hps.online.recon.properties.IntegerProperty;
 import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyStore;
@@ -7,6 +9,10 @@ import org.hps.online.recon.properties.StringProperty;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.enums.Mode;
 
+/**
+ * Configuration properties for an online reconstruction
+ * {@link org.hps.online.recon.Station}
+ */
 public class StationProperties extends PropertyStore {
 
     private final static String DIR = System.getProperty("user.dir");
@@ -29,20 +35,30 @@ public class StationProperties extends PropertyStore {
     */
     private final static Mode MODE = Mode.SLEEP;
 
-    private final static String BUFF = "/tmp/ETBuffer";
+    private final static String BUFFER = "/tmp/ETBuffer";
+
+    private final static String BUILDER = LCSimEngRunEventBuilder.class.getCanonicalName();
 
     public StationProperties() {
         this.add(new Property<?>[] {
             new StringProperty ( "lcsim.detector",        "Name of detector",               null,           true),
             new StringProperty ( "lcsim.steering",        "Steering resource or file",      null,           true),
             new IntegerProperty( "lcsim.run",             "Run number for conditions",      null,           false),
-            new IntegerProperty( "lcsim.printInterval",   "Event print interval",           1,              false),
+            new IntegerProperty( "lcsim.printInterval",   "Event print interval",           null,           false),
             new IntegerProperty( "lcsim.remoteAidaPort",  "Port for remote AIDA",           2001,           true),
             new StringProperty ( "lcsim.conditions",      "Conditions URL",                 null,           false),
+            new StringProperty(  "lcsim.tag",             "Conditions tag",                 null,           false),
+            new IntegerProperty( "lcsim.maxEvents",       "Max events to process",          -1,             false),
+            new BooleanProperty( "lcsim.freeze",          "Freeze conditions post-init",    true,           false),
+            new StringProperty(  "lcsim.builder",         "LCIO event builder",             BUILDER,        true),
             new StringProperty ( "station.outputName",    "Base name for output files",     "output",       true),
             new StringProperty ( "station.outputDir",     "Directory for output files",     DIR,            true),
             new IntegerProperty( "station.queueSize",     "Size of event queue",            1,              false),
-            new StringProperty ( "et.buffer",             "Name of ET buffer file",         BUFF,           true),
+            new BooleanProperty( "station.stopOnErrors",  "Stop processing on errors",      true,           false),
+            new BooleanProperty( "station.stopOnEndRun",  "Stop processing on end of run",  true,           false),
+            new BooleanProperty( "station.printEvents",   "Print all event info from loop", false,          false),
+            new StringProperty(  "station.loggingConfig", "Logging config file",            null,           false),
+            new StringProperty ( "et.buffer",             "Name of ET buffer file",         BUFFER,         true),
             new StringProperty ( "et.host",               "Host for ET connection",         "localhost",    true),
             new IntegerProperty( "et.port",               "Port for ET connection",         11111,          true),
             new StringProperty ( "et.stationName",        "Name of ET station",             null,           true),
@@ -53,5 +69,19 @@ public class StationProperties extends PropertyStore {
             new IntegerProperty( "et.prescale",           "Event prescale factor",          1,              false),
             new IntegerProperty( "et.connectionAttempts", "ET connection attempts",         10,             false)
         });
+    }
+
+    public StationProperties(StationProperties sp) {
+        System.out.println("Cloning N props: " + sp.props.size());
+        for (Property<?> p : sp.props.values()) {
+            System.out.println("Adding prop: " + p.name());
+            add((Property<?>) p.clone());
+        }
+        System.out.println("Cloned N props: " + this.props.size());
+    }
+
+    @Override
+    public Object clone() {
+        return new StationProperties(this);
     }
 }

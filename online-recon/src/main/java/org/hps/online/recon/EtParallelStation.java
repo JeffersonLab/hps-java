@@ -2,11 +2,13 @@ package org.hps.online.recon;
 
 import java.util.logging.Logger;
 
+import org.hps.online.recon.properties.Property;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
+import org.jlab.coda.et.enums.Mode;
 
 /**
  * Create an ET connection for a pool of stations to process
@@ -16,16 +18,29 @@ class EtParallelStation extends EtConnection {
 
     private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
 
-    EtParallelStation(StationConfiguration config) throws Exception {
+    private static final int STATION_POSITION = 1;
 
-        LOGGER.config("Opening ET system: " + config.getHost() + config.getBufferName() + ":" + config.getPort());
+    EtParallelStation(StationProperties props) throws Exception {
+
+        Property<String> host = props.get("et.host");
+        Property<String> buffer = props.get("et.buffer");
+        Property<Integer> port = props.get("et.port");
+        Property<Integer> connAttempts = props.get("et.connectionAttempts");
+        Property<Integer> logLevel = props.get("et.logLevel");
+        Property<Integer> prescale = props.get("et.prescale");
+        Property<String> stationName = props.get("et.stationName");
+        Property<Integer> waitMode = props.get("et.mode");
+        Property<Integer> waitTime = props.get("et.waitTime");
+        Property<Integer> chunk = props.get("et.chunk");
+
+        LOGGER.config("Opening ET system: " + host.value() + ":" + port.value() + buffer.value());
         EtSystemOpenConfig etConfig =
-                new EtSystemOpenConfig(config.getBufferName(), config.getHost(), config.getPort());
+                new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
 
-        for (int i = 1; i <= config.getConnectionAttempts(); i++) {
+        for (int i = 1; i <= connAttempts.value(); i++) {
             LOGGER.config("Attempting ET connection: " + i);
             try {
-                sys = new EtSystem(etConfig, config.getEtLogLevel());
+                sys = new EtSystem(etConfig, logLevel.value());
                 sys.open();
 
             } catch (Exception e) {
@@ -40,7 +55,7 @@ class EtParallelStation extends EtConnection {
         }
         if (!sys.alive()) {
             LOGGER.severe("Failed to connect to ET system after "
-                    + config.getConnectionAttempts() + " attempts!");
+                    + connAttempts.value() + " attempts!");
             throw new RuntimeException("Failed to connect to ET system!");
         }
 
@@ -49,26 +64,21 @@ class EtParallelStation extends EtConnection {
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
 
-        if (config.getPrescale() > 0) {
-            stationConfig.setPrescale(config.getPrescale());
+        if (prescale.value() > 0) {
+            stationConfig.setPrescale(prescale.value());
         }
 
-        LOGGER.config("ET station config: " + stationConfig.toString());
-
-        // Position relative to grand central
-        int position = 1;
-
-        // Parallel position of station which is always after the last one
-        int pposition = EtConstants.end;
-
-        LOGGER.config("Creating station with position, pposition: " + position + ", " + pposition);
-
-        stat = sys.createStation(stationConfig, config.getStation(), position, pposition);
+        stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
         att = sys.attach(stat);
 
-        this.waitMode = config.getWaitMode();
-        this.waitTime = config.getWaitTime();
-        this.chunkSize = config.getChunkSize();
+        LOGGER.info("Initialized station: " + stat.getName());
+        LOGGER.info("Station pos: " + sys.getStationPosition(stat));
+        LOGGER.info("Station parallel pos: " + sys.getStationParallelPosition(stat));
+        LOGGER.info("Num stations: " + sys.getNumStations());
+
+        this.waitMode = Mode.getMode(waitMode.value());
+        this.waitTime = waitTime.value();
+        this.chunkSize = chunk.value();
 
         LOGGER.config("Station waitMode, waitTime, chunkSize: " + this.waitMode + ", " + this.waitTime +
                 ", " + this.chunkSize);

@@ -6,13 +6,14 @@ import java.util.logging.LogManager;
 
 /**
  * Load log properties resource for online reconstruction station.
- * 
+ *
  * @author jeremym
  */
+// TODO: This should be set in the station properties so it is more flexible
 public class StationLoggingConfig {
-    
+
     private static final String LOG_PROPERTIES_FILE = "station_logging.properties";
-    
+
     /**
      * Class constructor which reads in a logging properties file from a classpath resource.
      */

@@ -17,39 +17,39 @@ public class CommandFactory {
     /**
      * Map of command names to their classes.
      */
-    private Map<String, Class<?>> classMap = 
+    private Map<String, Class<?>> classMap =
             new LinkedHashMap<String, Class<?>>();
-    
+
     /**
      * The set of valid commands.
      */
     private Set<String> commands;
-    
+
     /**
      * Class constructor.
-     * 
+     *
      * Defines the class map and the set of valid commands.
      */
     public CommandFactory() {
-        
+
         // Add command classes.
-        classMap.put("cleanup", CleanupCommand.class);
-        classMap.put("config", ConfigCommand.class);
-        classMap.put("create", CreateCommand.class);
-        classMap.put("list", ListCommand.class);
-        classMap.put("plot-add", PlotAddCommand.class);
-        classMap.put("plot-stop", PlotStopCommand.class);
-        classMap.put("remove", RemoveCommand.class);
+        // TODO: register these automatically using introspection
+        classMap.put("cleanup",  CleanupCommand.class);
+        classMap.put("config",   ConfigCommand.class);
+        classMap.put("create",   CreateCommand.class);
+        classMap.put("list",     ListCommand.class);
+        classMap.put("remove",   RemoveCommand.class);
         classMap.put("settings", SettingsCommand.class);
-        classMap.put("start", StartCommand.class);
-        classMap.put("stop", StopCommand.class);
-        classMap.put("status", StatusCommand.class);
-        classMap.put("log", LogCommand.class);
-        
+        classMap.put("start",    StartCommand.class);
+        classMap.put("stop",     StopCommand.class);
+        classMap.put("status",   StatusCommand.class);
+        classMap.put("log",      LogCommand.class);
+        classMap.put("prop-set", PropSetCommand.class);
+
         // Set of valid commands.
         commands = classMap.keySet();
-    }   
-    
+    }
+
     /**
      * Get the set of valid commands.
      * @return The set of valid commands
@@ -57,7 +57,7 @@ public class CommandFactory {
     public Set<String> getCommandNames() {
         return Collections.unmodifiableSet(commands);
     }
-    
+
     /**
      * Create a command by name.
      * @param name The name of the command
@@ -75,7 +75,7 @@ public class CommandFactory {
         }
         return cmd;
     }
-    
+
     /**
      * Check if a command name is valid.
      * @param name The name of the command
@@ -83,5 +83,5 @@ public class CommandFactory {
      */
     public boolean has(String name) {
         return this.commands.contains(name);
-    }    
+    }
 }

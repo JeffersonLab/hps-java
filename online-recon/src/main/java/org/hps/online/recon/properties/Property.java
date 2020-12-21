@@ -1,17 +1,30 @@
 package org.hps.online.recon.properties;
 
-public class Property<T> {
+/**
+ * Property with name, value, description and default value
+ *
+ * @param <T> The type of the property's value
+ */
+public abstract class Property<T> {
 
-    private String name;
-    private String description;
-    private T value;
-    private T defaultValue;
-    private Class<T> type;
-    private boolean required;
+    protected String name;
+    protected String description;
+    protected T value;
+    protected Class<T> type;
+    protected boolean required;
 
-    public Property(String name, Class<T> type, String description, T defaultValue, boolean required) {
+    public Property(String name, Class<T> type, String description, T value, boolean required) {
+        if (name == null) {
+            throw new IllegalArgumentException("Property name is null");
+        }
+        if (name.contains(" ")) {
+            throw new IllegalArgumentException("Property name contains one or more spaces: " + name);
+        }
         this.name = name;
-        this.defaultValue = defaultValue;
+        this.value = value;
+        if (description == null) {
+            throw new IllegalArgumentException("Property description is null");
+        }
         this.description = description;
         this.required = required;
     }
@@ -21,7 +34,6 @@ public class Property<T> {
         name = p.name;
         description = p.description;
         value = (T) p.value;
-        defaultValue = (T) p.defaultValue;
         type = (Class<T>) p.type;
         required = p.required;
     }
@@ -34,40 +46,29 @@ public class Property<T> {
         this.value = newValue;
     }
 
-    public void convert(Object val) {
-        throw new UnsupportedOperationException("Conversion not implemented");
+    public void from(Object val) {
+        throw new UnsupportedOperationException("Object conversion not implemented");
     }
 
     public String name() {
         return name;
     }
 
-    public boolean isDefault() {
-        return value == defaultValue;
-    }
-
-    public void fromDefault() {
-        this.value = defaultValue;
-    }
-
     public Class<T> type() {
-        return this.type;
+        return type;
     }
 
     public boolean valid() {
-        return this.value != null;
+        return value != null;
     }
 
     public String description() {
-        return this.description;
+        return description;
     }
 
     public boolean required() {
         return required;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public Object clone() {
-        return new Property(this);
-    }
+    abstract public Object clone();
 }

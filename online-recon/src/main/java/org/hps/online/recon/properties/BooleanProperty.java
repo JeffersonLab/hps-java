@@ -6,8 +6,17 @@ public class BooleanProperty extends Property<Boolean> {
         super(name, Boolean.class, description, defaultValue, required);
     }
 
+    public BooleanProperty(BooleanProperty p) {
+        super(p.name, Boolean.class, p.description, p.value, p.required);
+    }
+
     @Override
-    public void convert(Object val) {
-        set(Boolean.valueOf(val.toString()));
+    public void from(Object val) {
+        value = Boolean.valueOf(val.toString());
+    }
+
+    @Override
+    public Object clone() {
+        return new BooleanProperty(this);
     }
 }

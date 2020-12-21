@@ -6,8 +6,16 @@ public class StringProperty extends Property<String> {
         super(name, String.class, description, defaultValue, required);
     }
 
+    public StringProperty(StringProperty p) {
+        super(p.name, String.class, p.description, p.value, p.required);
+    }
+
+    public void from(Object obj) {
+        value = obj.toString();
+    }
+
     @Override
-    public void convert(Object val) {
-        set(val.toString());
+    public Object clone() {
+        return new StringProperty(this);
     }
 }

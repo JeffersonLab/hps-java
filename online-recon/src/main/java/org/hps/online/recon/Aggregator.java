@@ -126,9 +126,9 @@ public class Aggregator {
 
     private void connect() throws IOException {
         if (this.hostName == null) {
-            hostName = InetAddress.getLocalHost().getHostName();
+            this.hostName = InetAddress.getLocalHost().getHostName();
         }
-        String treeBindName = "//"+hostName+":"+port+"/"+serverName;
+        String treeBindName = "//"+this.hostName+":"+port+"/"+serverName;
         LOG.config("Creating RMI server tree: " + treeBindName);
         try {
             boolean serverDuplex = true;

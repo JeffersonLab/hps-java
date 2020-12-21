@@ -8,6 +8,9 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.evio.LCSimEngRunEventBuilder;
+import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtAttachment;
 import org.jlab.coda.et.EtConstants;
@@ -21,6 +24,7 @@ import org.jlab.coda.et.enums.Mode;
 import org.jlab.coda.et.enums.Modify;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
+import org.lcsim.event.EventHeader;
 
 /**
  * Example ET station configured as parallel and round-robin
@@ -36,7 +40,8 @@ public class ETStationExample {
     final static int    CHUNK     = 1;
     final static Modify MODIFY    = Modify.NOTHING;
 
-    final static String detectorName = "HPS-PhysicsRun2016-Pass2";
+    final static String DETECTOR  = "HPS-PhysicsRun2016-Pass2";
+    final static int    RUN       = 7799;
 
     public static void main(String[] args) throws Exception {
 
@@ -96,6 +101,12 @@ public class ETStationExample {
             }
         });
 
+        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
+        mgr.addConditionsListener(builder);
+        log.info("Initializing conditions system: " + DETECTOR + ":" + RUN);
+        mgr.setDetector(DETECTOR, RUN);
+
         // Event loop
         while (true) {
             EtEvent[] evts = {};
@@ -125,6 +136,15 @@ public class ETStationExample {
                     log.info("EVIO id: " + eventId[0]);
                 } else {
                     log.info("EVIO id: NOT FOUND");
+                }
+
+                // Build LCIO event
+                if (EvioEventUtilities.isPhysicsEvent(evio)) {
+                    //int run = EvioEventUtilities.getRunNumber(evio);
+                    //mgr.setDetector(DETECTOR, run);
+                    builder.readEvioEvent(evio);
+                    EventHeader lcio = builder.makeLCSimEvent(evio);
+                    log.info("LCIO num: " + lcio.getEventNumber());
                 }
             }
 

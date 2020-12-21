@@ -1,15 +1,17 @@
 package org.hps.online.recon;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.evio.LCSimEngRunEventBuilder;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
+import org.hps.online.recon.properties.Property;
+import org.hps.online.recon.properties.PropertyStore.PropertyValidationException;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.composite.CompositeEventPrintLoopAdapter;
 import org.hps.record.composite.CompositeLoop;
@@ -28,45 +30,43 @@ import org.lcsim.util.Driver;
 public class Station {
 
     /**
-     * Class logger.
+     * Class logger
      */
     private static Logger LOGGER = Logger.getLogger(Station.class.getPackage().getName());
 
     /**
-     * The station configuration.
+     * The station properties
      */
-    private StationConfiguration config = null;
+    private StationProperties props = new StationProperties();
 
     /**
-     * Create new online reconstruction station with a configuration.
-     * @param config The station configuration
+     * Create new online reconstruction station with given properties
+     * @param config The station properties
      */
-    Station(StationConfiguration config) {
-        this.config = config;
+    Station(StationProperties props) {
+        this.props = props;
     }
 
     /**
-     * Get the configuration of the station.
-     * @return The configuration of the station.
+     * Get the configuration properties of the station
+     * @return The configuration of the station
      */
-    StationConfiguration getConfiguration() {
-        return this.config;
+    StationProperties getProperties() {
+        return this.props;
     }
 
     /**
-     * Run from the command line.
+     * Run from the command line
      * @param args The command line arguments
      */
     public static void main(String args[]) {
         if (args.length == 0) {
-            throw new RuntimeException("Missing config properties file");
+            throw new RuntimeException("Missing configuration properties file");
         }
-        StationConfiguration sc = new StationConfiguration(new File(args[0]));
-        if (!sc.isValid()) {
-            throw new RuntimeException("Station configuration is not valid (see log messages).");
-        }
-        Station recon = new Station(sc);
-        recon.run();
+        StationProperties props = new StationProperties();
+        props.load(new File(args[0]));
+        Station stat = new Station(props);
+        stat.run();
     }
 
     /**
@@ -76,12 +76,35 @@ public class Station {
 
         // Print start messages.
         LOGGER.info("Started: " + new Date().toString());
+
+        Property<String> stationName = props.get("et.stationName");
+        LOGGER.config("Initializing station: " + stationName.value());
+
+        LOGGER.config("Validating station properties...");
         try {
-            LOGGER.config("Running station <" + this.getConfiguration().getStation() +
-                    "> with config " + this.config.getConfigFile().getCanonicalPath());
-        } catch (IOException e) {
-            e.printStackTrace();
+            props.validate();
+        } catch (PropertyValidationException e) {
+            LOGGER.severe("Properties failed to validate");
+            throw new RuntimeException(e);
         }
+        LOGGER.config("Station properties validated!");
+
+        Property<String> detector = props.get("lcsim.detector");
+        Property<Integer> run = props.get("lcsim.run");
+        Property<String> outputDir = props.get("station.outputDir");
+        Property<String> outputName = props.get("station.outputName");
+        Property<String> steering = props.get("lcsim.steering");
+        Property<Integer> queueSize = props.get("station.queueSize");
+        Property<Integer> interval = props.get("lcsim.printInterval");
+        Property<Integer> maxEvents = props.get("lcsim.maxEvents");
+        Property<Boolean> stopOnErrors = props.get("station.stopOnErrors");
+        Property<Boolean> stopOnEndRun = props.get("station.stopOnEndRun");
+        Property<Boolean> freeze = props.get("lcsim.freeze");
+        Property<String> tag = props.get("lcsim.tag");
+        Property<String> builderClass = props.get("lcsim.builder");
+        Property<Boolean> printEvents = props.get("station.printEvents");
+
+        LOGGER.config("Station properties: " + props.toJSON().toString());
 
         // Composite loop configuration.
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
@@ -90,73 +113,56 @@ public class Station {
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         DatabaseConditionsManagerSetup conditionsSetup = new DatabaseConditionsManagerSetup();
         boolean activateConditions = true;
-        if (config.getRunNumber() != null) {
-            // Run number from configuration.
-            conditionsSetup.setDetectorName(config.getDetectorName());
-            conditionsSetup.setRun(config.getRunNumber());
-            conditionsSetup.setFreeze(true);
+        if (run.value() != null) {
+            conditionsSetup.setDetectorName(detector.value());
+            conditionsSetup.setRun(run.value());
+            conditionsSetup.setFreeze(freeze.value());
+            if (tag.valid()) {
+                Set<String> tags = new HashSet<String>();
+                tags.add(tag.value());
+                conditionsSetup.setTags(tags);
+            }
+            LOGGER.config("Conditions will be initialized with: detector=" + detector.value()
+                + ", run=" + ", freeze=" + freeze.value() + ", tag=" + tag.value());
         } else {
             // No run number in configuration so read from EVIO data.
-            EvioDetectorConditionsProcessor evioConditions = new EvioDetectorConditionsProcessor(config.getDetectorName());
+            EvioDetectorConditionsProcessor evioConditions =
+                    new EvioDetectorConditionsProcessor(detector.value());
             loopConfig.add(evioConditions);
             activateConditions = false;
-            LOGGER.config("No run number was set so conditions will be initialized from EVIO data.");
+            LOGGER.config("No run number provided so conditions will be initialized from the EVIO data.");
         }
 
         // Setup event builder and register with conditions system.
-        LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
+        LCSimEventBuilder builder = null;
+        try {
+            builder = LCSimEventBuilder.class.cast(Class.forName(builderClass.value()).getConstructor().newInstance());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to create event builder: " + builderClass.value(), e);
+        }
         conditionsManager.addConditionsListener(builder);
         loopConfig.setLCSimEventBuilder(builder);
 
         // Setup the lcsim job manager.
         JobManager mgr = new JobManager();
         mgr.setDryRun(true);
-        final String outputFilePath = config.getOutputDir() + File.separator + config.getOutputName();
+        if (interval.valid()) {
+            mgr.setEventPrintInterval(interval.value());
+            LOGGER.config("lcsim event print interval: " + interval.value());
+        } else {
+            LOGGER.config("lcsim event printing disabled");
+        }
+        final String outputFilePath = outputDir.value() + File.separator + outputName.value();
         LOGGER.config("Output file path: " + outputFilePath);
         mgr.addVariableDefinition("outputFile", outputFilePath);
         mgr.setConditionsSetup(conditionsSetup); // FIXME: Is this even needed since not calling the run() method?
-        LOGGER.config("Setting up steering resource: " + config.getSteeringResource());
-
-        /*
-        try {
-            LOGGER.config("Testing steering resource URL...");
-            InputStream is = Station.class.getResourceAsStream(config.getSteeringResource());
-            is.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        */
-
-        mgr.setup(config.getSteeringResource());
+        LOGGER.config("Setting up steering resource: " + steering.value());
+        mgr.setup(steering.value());
 
         // Add drivers from the job manager to the loop.
         for (Driver driver : mgr.getDriverExecList()) {
             LOGGER.config("Adding driver " + driver.getClass().getCanonicalName());
             loopConfig.add(driver);
-        }
-
-        // Configure and add the AIDA driver for intermediate plot saving.
-        int plotSaveInterval = config.getPlotSaveInterval();
-        if (plotSaveInterval > 0) {
-            PlotDriver aidaDriver = new PlotDriver();
-            aidaDriver.setStationName(config.getStation());
-            aidaDriver.setOutputDir(config.getOutputDir());
-            aidaDriver.setResetAfterSave(config.getResetPlots());
-            aidaDriver.setEventSaveInterval(plotSaveInterval);
-            LOGGER.config("Adding AIDA driver to save plots every " + config.getPlotSaveInterval() + " events");
-            loopConfig.add(aidaDriver);
-        } else {
-            LOGGER.config("Automatic plot saving is disabled.");
-        }
-
-        // Enable event statistics printing.
-        if (config.getEventStatisticsInterval() > 0) {
-            EventStatisticsDriver esd = new EventStatisticsDriver();
-            esd.setEventPrintInterval(config.getEventStatisticsInterval());
-            loopConfig.add(esd);
-            LOGGER.config("Added event statistics driver with event interval: " + config.getEventStatisticsInterval());
-        } else {
-            LOGGER.config("Event statistics disabled.");
         }
 
         // Activate the conditions system, if possible.
@@ -172,48 +178,15 @@ public class Station {
         }
 
         // Try to connect to the ET system, retrying up to the configured number of max attempts.
-        LOGGER.config("Configuring ET system");
-        /*
-        final int maxConnectionAttempts = this.config.getConnectionAttempts();
-        int connectionAttempt = 0;
-        Exception error = null;
-        */
-
+        LOGGER.config("Connecting to ET system...");
         EtConnection conn = null;
         try {
-            conn = new EtParallelStation(config);
+            conn = new EtParallelStation(props);
+            LOGGER.config("Successfully connected to ET system!");
         } catch (Exception e) {
             LOGGER.severe("Failed to create ET station!");
             throw new RuntimeException(e);
         }
-
-        /*
-        while (true) {
-            connectionAttempt++;
-            LOGGER.info("Attempting connection to ET system: " + connectionAttempt);
-            try {
-
-                LOGGER.info("Successfully connected to ET system");
-                break;
-            } catch (Exception e) {
-                error = e;
-                e.printStackTrace();
-            }
-            if (connectionAttempt >= maxConnectionAttempts) {
-                LOGGER.warning("Reached max ET connection attempts: " + maxConnectionAttempts);
-                break;
-            }
-            // Sleep for one second between retry attempts.
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                break;
-            }
-        }
-        if (conn == null) {
-            throw new RuntimeException("Error creating ET connection", error);
-        }
-        */
 
         // Cleanly shutdown the ET station on exit.
         final EtConnection shutdownConn = conn;
@@ -230,36 +203,29 @@ public class Station {
         // Configure more settings on the loop.
         loopConfig.setDataSourceType(DataSourceType.ET_SERVER);
         loopConfig.setEtConnection(conn);
-        loopConfig.setMaxQueueSize(1); // TODO: Make this a configuration parameter
+        loopConfig.setMaxQueueSize(queueSize.value());
         loopConfig.setTimeout(-1L);
-        loopConfig.setStopOnEndRun(true);
-        loopConfig.setStopOnErrors(true);
+        loopConfig.setStopOnEndRun(stopOnEndRun.value());
+        loopConfig.setStopOnErrors(stopOnErrors.value());
 
         // Create the record loop.
         CompositeLoop loop = new CompositeLoop(loopConfig);
 
-        // Enable event printing.
-        if (this.config.getEventPrintInterval() > 0) {
-            LOGGER.config("Enabling event printing with interval: " + this.config.getEventPrintInterval());
+        // Enable detailed event printing on the composite loop
+        LOGGER.config("Station event printing: " + printEvents.value());
+        if (printEvents.value()) {
             CompositeEventPrintLoopAdapter eventPrinter = new CompositeEventPrintLoopAdapter();
-            eventPrinter.setPrintInterval(this.config.getEventPrintInterval());
-            eventPrinter.setPrintEt(this.config.getPrintEt());
-            eventPrinter.setPrintEvio(this.config.getPrintEvio());
-            eventPrinter.setPrintLcio(this.config.getPrintLcio());
-            LOGGER.config("ET event printing: " + this.config.getPrintEt());
-            LOGGER.config("EVIO event printing: " + this.config.getPrintEvio());
-            LOGGER.config("LCIO event printing: " + this.config.getPrintLcio());
-            eventPrinter.setPrintEvio(this.config.getPrintEvio());
-            eventPrinter.setPrintLcio(this.config.getPrintLcio());
+            eventPrinter.setPrintInterval(1L);
+            eventPrinter.setPrintEt(true);
+            eventPrinter.setPrintEvio(true);
+            eventPrinter.setPrintLcio(true);
             loop.addRecordListener(eventPrinter);
-        } else {
-            LOGGER.config("Event printing is disabled.");
         }
 
         // Run the event loop.
-        LOGGER.info("Running record loop for station: " + this.getConfiguration().getStation());
+        LOGGER.info("Starting record loop for station: " + stationName.value());
         try {
-            loop.loop(-1);
+            loop.loop(maxEvents.value());
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Event processing error", e);
             e.printStackTrace();

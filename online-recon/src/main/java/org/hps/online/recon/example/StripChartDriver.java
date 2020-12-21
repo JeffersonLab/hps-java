@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.example;
 
 import java.io.IOException;
 import java.net.InetAddress;
