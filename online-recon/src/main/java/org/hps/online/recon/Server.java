@@ -331,7 +331,7 @@ public final class Server {
          * @param jo The JSON input parameters
          * @return The command result
          */
-        abstract CommandResult execute(JSONObject jo);
+        abstract CommandResult execute(JSONObject jo) throws CommandException;
 
     }
 
@@ -341,12 +341,15 @@ public final class Server {
     abstract class CommandResult {
     }
 
-    // TODO: Make this extend base exception
-    class CommandException extends RuntimeException {
-    //extends Exception {
+    @SuppressWarnings("serial")
+    class CommandException extends Exception {
 
         public CommandException(String msg) {
             super(msg);
+        }
+
+        public CommandException(String msg, Exception e) {
+            super(msg, e);
         }
     }
 
@@ -451,7 +454,7 @@ public final class Server {
      * Handle the create command.
      */
     class CreateCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
+        CommandResult execute(JSONObject parameters) throws CommandException {
             CommandStatus res = null;
             int count = 1;
             boolean start = false;
@@ -580,7 +583,7 @@ public final class Server {
     }
 
     class PropSetCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
+        CommandResult execute(JSONObject parameters) throws CommandException {
             String name = parameters.getString("name");
             String value = parameters.getString("value");
             StationProperties statProp = getStationProperties();
@@ -932,6 +935,8 @@ public final class Server {
      */
     Server() {
         this.stationManager = new StationManager(this);
+
+        // TODO: start process monitor here
     }
 
     /**
@@ -990,7 +995,11 @@ public final class Server {
      */
     static void checkWorkDir(File workDir) {
         if (!workDir.exists()) {
-            throw new RuntimeException("Work dir does not exist: " + workDir.getPath());
+            LOG.config("Creating work dir: " + workDir);
+            workDir.mkdirs();
+            if (!workDir.exists()) {
+                throw new RuntimeException("Failed to create work dir: " + workDir.getPath());
+            }
         }
         if (!workDir.isDirectory()) {
             throw new RuntimeException("Work dir is not a directory: " + workDir.getPath());
@@ -1040,8 +1049,8 @@ public final class Server {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
         }
         if (this.port < MIN_PORT || this.port >= MAX_PORT) {
-            LOG.severe("Port number <" + this.port + "> is not between " + MIN_PORT + " and " + MAX_PORT);
-            throw new RuntimeException("Port number is not allowed: " + this.port);
+            LOG.severe("Bad port number: " + this.port);
+            throw new RuntimeException("Bad port number: " + this.port);
         }
         LOG.config("Server port: " + this.port);
 
@@ -1082,7 +1091,9 @@ public final class Server {
      */
     void start() {
 
-        // TODO: Open connection to ET system here
+        // TODO: Open connection to ET system here and leave open
+
+        // TODO: shutdown hook for cleanup
 
         LOG.info("Starting server on port: " + this.port);
         try (ServerSocket serverSocket = new ServerSocket(port)) {

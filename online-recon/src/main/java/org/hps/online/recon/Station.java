@@ -11,7 +11,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
 import org.hps.online.recon.properties.Property;
-import org.hps.online.recon.properties.PropertyStore.PropertyValidationException;
+import org.hps.online.recon.properties.PropertyValidationException;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.composite.CompositeEventPrintLoopAdapter;
 import org.hps.record.composite.CompositeLoop;
@@ -79,11 +79,11 @@ public class Station {
         Property<String> stationName = props.get("et.stationName");
         LOGGER.config("Initializing station: " + stationName.value());
 
-        LOGGER.config("Validating station properties...");
         try {
+            LOGGER.config("Validating station properties...");
             props.validate();
         } catch (PropertyValidationException e) {
-            LOGGER.severe("Properties failed to validate");
+            LOGGER.severe("Properties failed to validate!");
             throw new RuntimeException(e);
         }
         LOGGER.config("Station properties validated!");
@@ -101,8 +101,22 @@ public class Station {
         Property<String> tag = props.get("lcsim.tag");
         Property<String> builderClass = props.get("lcsim.builder");
         Property<Integer> printInterval = props.get("station.printInterval");
+        Property<String> conditionsUrl = props.get("lcsim.conditions");
+        Property<Integer> remoteAidaPort = props.get("lcsim.remoteAidaPort");
 
         LOGGER.config("Station properties: " + props.toJSON().toString());
+
+        // Conditions URL
+        if (conditionsUrl.valid()) {
+            System.setProperty("org.hps.conditions.url", conditionsUrl.value());
+            LOGGER.config("Conditions URL: " + conditionsUrl.value());
+        }
+
+        // Remote AIDA port
+        if (remoteAidaPort.valid()) {
+            System.setProperty("remoteAidaPort", remoteAidaPort.value().toString());
+            LOGGER.config("Remote AIDA port: " + remoteAidaPort.value());
+        }
 
         // Composite loop configuration.
         CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
@@ -120,7 +134,7 @@ public class Station {
                 tags.add(tag.value());
                 conditionsSetup.setTags(tags);
             }
-            LOGGER.config("Conditions will be initialized with: detector=" + detector.value()
+            LOGGER.config("Conditions will be initialized: detector=" + detector.value()
                     + ", run=" + run.value() + ", freeze=" + freeze.value() + ", tag=" + tag.value());
         } else {
             // No run number in configuration so read from EVIO data.
@@ -128,7 +142,7 @@ public class Station {
                     new EvioDetectorConditionsProcessor(detector.value());
             loopConfig.add(evioConditions);
             activateConditions = false;
-            LOGGER.config("No run number provided so conditions will be initialized from the EVIO data.");
+            LOGGER.config("Conditions will be initialized from EVIO data.");
         }
 
         // Setup event builder and register with conditions system.

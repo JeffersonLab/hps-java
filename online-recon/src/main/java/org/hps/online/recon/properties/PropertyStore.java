@@ -101,20 +101,6 @@ public class PropertyStore {
         props.store(new FileOutputStream(file), comment);
     }
 
-    public static class PropertyValidationException extends Exception {
-        PropertyValidationException(List<Property<?>> badProps) {
-            super("The following properties are not valid:" + propsToString(badProps));
-        }
-    }
-
-    private static String propsToString(List<Property<?>> badProps) {
-        StringBuffer buff = new StringBuffer();
-        for (Property<?> p : badProps) {
-            buff.append(" " + p.name);
-        }
-        return buff.toString();
-    }
-
     public void validate() throws PropertyValidationException {
         List<Property<?>> badProps = new ArrayList<Property<?>>();
         for (Entry<String, Property<?>> entry : this.props.entrySet()) {

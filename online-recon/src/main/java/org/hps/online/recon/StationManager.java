@@ -62,27 +62,9 @@ public class StationManager {
     private static final String STATION_CONFIG_NAME = "station.properties";
 
     /**
-     * System property for specifying local or alternate conditions database.
-     *
-     * This will only be passed to the station if it specifies a local sqlite database.
-     */
-    private static final String CONDITIONS_PROPERTY = "org.hps.conditions.url";
-
-    /**
      * The package logger.
      */
-    private static final Logger LOGGER = Logger.getLogger(StationManager.class.getPackage().getName());
-
-    /**
-     * Path to the runnable jar file.
-     */
-    private static final String JAR_PATH =
-            Station.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-
-    /**
-     * The system properties.
-     */
-    //private static final Properties SYSTEM_PROPERTIES = System.getProperties();
+    private static final Logger LOG = Logger.getLogger(StationManager.class.getPackage().getName());
 
     /**
      * Get the PID of a system process
@@ -160,7 +142,7 @@ public class StationManager {
      */
     synchronized void start(StationInfo station) throws IOException {
 
-        LOGGER.info("Starting station: " + station.stationName);
+        LOG.info("Starting station: " + station.stationName);
 
         // This fails too much to be useful.
         /*
@@ -177,13 +159,13 @@ public class StationManager {
             // Make sure station dir exists.
             File dir = station.dir;
             if (!dir.exists()) {
-                LOGGER.info("Recreating missing station dir: " + dir.getPath());
+                LOG.info("Recreating missing station dir: " + dir.getPath());
                 dir.mkdir();
             }
 
             // The config file disappeared, probably from the cleanup command.
             if (!station.configFile.exists()) {
-                LOGGER.info("Rewriting station config file: " + station.configFile.getPath());
+                LOG.info("Rewriting station config file: " + station.configFile.getPath());
                 this.writeStationProperties(station.props, dir, station.stationName);
             }
 
@@ -196,16 +178,16 @@ public class StationManager {
             File log = new File(dir.getPath() + File.separator + "out." + stationID.toString() + ".log");
             if (log.exists()) {
                 if (log.delete()) {
-                    LOGGER.info("Deleted old log file: " + log.getPath());
+                    LOG.info("Deleted old log file: " + log.getPath());
                 } else {
-                    LOGGER.warning("Failed to delete old log file " + log.getPath());
+                    LOG.warning("Failed to delete old log file " + log.getPath());
                 }
             }
             pb.redirectErrorStream(true);
             pb.redirectOutput(Redirect.appendTo(log));
             station.log = log;
 
-            LOGGER.info("Starting command: " + String.join(" ", pb.command()));
+            LOG.info("Starting command: " + String.join(" ", pb.command()));
 
             // Can throw exception.
             Process p = pb.start();
@@ -216,9 +198,9 @@ public class StationManager {
             station.pid = getPid(p);
             station.active = true;
 
-            LOGGER.info("Successfully started station: " + station.stationName);
+            LOG.info("Successfully started station: " + station.stationName);
         } else {
-            LOGGER.warning("Station is already active: " + station.stationName);
+            LOG.warning("Station is already active: " + station.stationName);
         }
     }
 
@@ -249,21 +231,21 @@ public class StationManager {
         // Get next station ID
         Integer stationID = getNextStationID();
         if (exists(stationID)) {
-            LOGGER.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
+            LOG.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
             throw new RuntimeException("Station ID already exists: " + stationID);
         }
 
+        LOG.info("New station ID: " + stationID);
+
         // Get unique name for this station
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
+        LOG.info("New station name: " + stationName);
 
         // Create the directory for this station's files
         File dir = createStationDir(stationName);
 
         // Copy the server's properties and set some station-specific properties
         StationProperties props = new StationProperties(this.server.getStationProperties());
-        //(StationProperties) .clone();
-        LOGGER.fine("Cloned N props: " + props.size());
-        LOGGER.fine("Cloned props: " + props.toString());
         props.get("et.stationName").set(stationName);
         props.get("station.outputName").set(stationName.toLowerCase());
         props.get("station.outputDir").set(dir.getPath());
@@ -280,12 +262,18 @@ public class StationManager {
         Property<Integer> remoteAidaPortProp = props.get("lcsim.remoteAidaPort");
         remoteAidaPortProp.from(remoteAidaPort);
 
+        LOG.config("New station properties: " + props.toString());
+
+        // TODO: Validate properties here
+
         // Write the properties file for the station to read in when running
         File scf = writeStationProperties(props, dir, stationName);
         info.configFile = scf;
 
         // Build the command to run the station
         info.command = buildCommand(info);
+
+        LOG.config("Command: " + String.join(" ", info.command));
 
         // Register the station info
         add(info);
@@ -300,32 +288,21 @@ public class StationManager {
     private List<String> buildCommand(StationInfo info) {
 
         final StationProperties props = info.props;
-        Property<String> cond = props.get("lcsim.conditions");
         Property<String> logConfigFile = props.get("station.loggingConfig");
 
         List<String> command = new ArrayList<String>();
 
-        command.add("time");
         command.add("java");
 
         // Logging configuration
         if (logConfigFile.valid()) {
             command.add("-Djava.util.logging.config.file=" + logConfigFile.value());
         } else {
-            command.add("-Djava.util.logging.config.class=" + StationLoggingConfig.class.getCanonicalName());
+            command.add("-Djava.util.logging.config.class=" + LoggingConfig.class.getCanonicalName());
         }
-
-        // Conditions URL
-        if (cond.valid()) {
-            command.add("-D" + CONDITIONS_PROPERTY + "=" + cond.value());
-        }
-
-        // Remote AIDA port
-        Property<Integer> remoteAidaPort = info.props.get("lcsim.remoteAidaPort");
-        command.add("-DremoteAidaPort=" + remoteAidaPort.value());
 
         command.add("-cp");
-        command.add(JAR_PATH);
+        command.add(System.getProperty("java.class.path"));
         command.add(Station.class.getCanonicalName());
         command.add(info.configFile.getPath());
 
@@ -373,7 +350,7 @@ public class StationManager {
     synchronized void setStationID(int stationID) throws IllegalArgumentException {
         if (stationID >= 0) {
             this.stationID = stationID;
-            LOGGER.config("Set station ID: " + stationID);
+            LOG.config("Set station ID: " + stationID);
         } else {
             throw new IllegalArgumentException("Bad value for new station ID: " + stationID);
         }
@@ -384,7 +361,7 @@ public class StationManager {
      * @return The number of stations stopped
      */
     synchronized int stopAll() {
-        LOGGER.info("Stopping all active stations!");
+        LOG.info("Stopping all active stations!");
         int n = 0;
         for (StationInfo info : this.stations) {
             update(info);
@@ -394,7 +371,7 @@ public class StationManager {
                 }
             }
         }
-        LOGGER.info("Stopped all active stations!");
+        LOG.info("Stopped all active stations!");
         return n;
     }
 
@@ -404,7 +381,7 @@ public class StationManager {
      * @return True if the station was stopped successfully
      */
     synchronized boolean stop(int id) {
-        LOGGER.info("Stopping station with id: " + id);
+        LOG.info("Stopping station with id: " + id);
         StationInfo info = this.find(id);
         boolean success = false;
         if (info != null) {
@@ -429,13 +406,13 @@ public class StationManager {
         if (info != null) {
             Process p = info.process;
             if (p != null) {
-                LOGGER.info("Stopping station: " + info.stationName);
+                LOG.info("Stopping station: " + info.stationName);
                 p.destroy();
                 // FIXME: Hangs here...do we need to wake up the ET station if it is sleeping?
                 try {
-                    LOGGER.fine("Waiting for station to stop: " + info.stationName);
+                    LOG.fine("Waiting for station to stop: " + info.stationName);
                     p.waitFor();
-                    LOGGER.fine("Done waiting for station to stop: " + info.stationName);
+                    LOG.fine("Done waiting for station to stop: " + info.stationName);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -443,13 +420,13 @@ public class StationManager {
                     info.active = false;
                     info.pid = -1L;
                     info.process = null;
-                    LOGGER.info("Stopped station: " + info.stationName);
+                    LOG.info("Stopped station: " + info.stationName);
                     success = true;
                 } else {
-                    LOGGER.severe("Failed to stop station: " + info.stationName);
+                    LOG.severe("Failed to stop station: " + info.stationName);
                 }
             } else {
-                LOGGER.warning("Station is not active so stop command is ignored: " + info.stationName);
+                LOG.warning("Station is not active so stop command is ignored: " + info.stationName);
             }
         }
         return success;
@@ -461,14 +438,14 @@ public class StationManager {
      * @return True if the station was successfully removed.
      */
     synchronized boolean remove(StationInfo info) {
-        LOGGER.info("Removing station: " + info.stationName);
+        LOG.info("Removing station: " + info.stationName);
         update(info);
         if (info.active == false) {
             this.stations.remove(info);
-            LOGGER.info("Removed station: " + info.stationName);
+            LOG.info("Removed station: " + info.stationName);
             return true;
         } else {
-            LOGGER.warning("Failed to remove station because it is still active: " + info.stationName);
+            LOG.warning("Failed to remove station because it is still active: " + info.stationName);
             return false;
         }
     }
@@ -625,7 +602,7 @@ public class StationManager {
             try {
                 start(station);
             } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
+                LOG.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
             }
             ++started;
         }
@@ -638,21 +615,21 @@ public class StationManager {
      * @return True if the station was successfully cleaned up
      */
     synchronized boolean cleanup(StationInfo station) {
-        LOGGER.info("Cleaning up station: " + station.stationName);
+        LOG.info("Cleaning up station: " + station.stationName);
         update(station);
         boolean deleted = false;
         if (!station.active) {
             try {
-                LOGGER.info("Deleting station work dir: " + station.dir.getPath());
+                LOG.info("Deleting station work dir: " + station.dir.getPath());
                 FileUtils.deleteDirectory(station.dir);
                 deleted = true;
             } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "Failed to cleanup station: " + station.stationName, e);
+                LOG.log(Level.SEVERE, "Failed to cleanup station: " + station.stationName, e);
             }
         } else {
-            LOGGER.warning("Cannot cleanup station which is still active: " + station.stationName);
+            LOG.warning("Cannot cleanup station which is still active: " + station.stationName);
         }
-        LOGGER.info("Done cleaning up station: " + station.stationName);
+        LOG.info("Done cleaning up station: " + station.stationName);
         return deleted;
     }
 

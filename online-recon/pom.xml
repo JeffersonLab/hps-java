@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>hps-online-recon</artifactId>
   <name>online-recon</name>
@@ -12,7 +14,11 @@
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-record-util</artifactId>
+      <artifactId>hps-recon</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-steering-files</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
@@ -35,4 +41,79 @@
       <version>3.4.13</version>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <!-- https://www.mojohaus.org/appassembler/appassembler-maven-plugin/ -->
+    <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <version>1.10</version>
+        <executions>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>assemble</goal>
+              <goal>create-repository</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <repositoryLayout>flat</repositoryLayout>
+          <platforms>
+            <platform>unix</platform>
+          </platforms>
+          <extraJvmArguments>-server</extraJvmArguments>
+          <programs>
+            <program>
+              <mainClass>org.hps.online.recon.Server</mainClass>
+              <id>hps-recon-server</id>
+              <jvmSettings>
+                <maxMemorySize>1g</maxMemorySize>
+                <systemProperties>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.ServerLoggingConfig</systemProperty>
+                </systemProperties>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>org.hps.online.recon.Aggregator</mainClass>
+              <id>hps-recon-aggregator</id>
+              <jvmSettings>
+                <maxMemorySize>2g</maxMemorySize>
+                <systemProperties>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.AggregatorLoggingConfig</systemProperty>
+                </systemProperties>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>org.hps.online.recon.Client</mainClass>
+              <id>hps-recon-client</id>
+              <jvmSettings>
+                <maxMemorySize>500m</maxMemorySize>
+                <systemProperties>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.ClientLoggingConfig</systemProperty>
+                </systemProperties>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
+              <id>hps-recon-producer</id>
+              <jvmSettings>
+                <maxMemorySize>2g</maxMemorySize>
+                <systemProperties>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.LoggingConfig</systemProperty>
+                </systemProperties>
+              </jvmSettings>
+            </program>
+          </programs>
+        </configuration>
+    </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

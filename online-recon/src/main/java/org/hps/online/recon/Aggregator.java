@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,7 +45,13 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  */
 public class Aggregator {
 
-    private static final String FAIL_ON_CONNECTION_ERROR_PROPERTY = "failOnConnectionError";
+    // Application return codes
+    private static final int OKAY = 0; // exit without error
+    private static final int UNKNOWN_ERROR = 1; // generic error
+    private static final int PARSE_ERROR = 2; // error parsing CL opts
+    private static final int CONNECTION_ERROR = 3; // error connecting to a remote tree or RMI service
+
+    //private static final String FAIL_ON_CONNECTION_ERROR_PROPERTY = "failOnConnectionError";
     private static final String HOST_PROPERTY = "host";
     private static final String REMOTES_PROPERTY = "remotes";
     private static final String INTERVAL_PROPERTY = "interval";
@@ -67,9 +74,6 @@ public class Aggregator {
 
     /** Interval between aggregation; set with "interval" property */
     private Long updateInterval = 5000L;
-
-    /** Crash if connections fail to the remote AIDA instances; set with "failOnConnectionError" property */
-    private boolean failOnConnectionError = true;
 
     /**
      * List of remote AIDA instances; set with "remotes" property, which should be a
@@ -119,9 +123,6 @@ public class Aggregator {
         if (prop.containsKey(HOST_PROPERTY)) {
             this.hostName = prop.getProperty(HOST_PROPERTY);
         }
-        if (prop.contains(FAIL_ON_CONNECTION_ERROR_PROPERTY)) {
-            this.failOnConnectionError = Boolean.parseBoolean(prop.getProperty(FAIL_ON_CONNECTION_ERROR_PROPERTY));
-        }
     }
 
     private void connect() throws IOException {
@@ -130,13 +131,9 @@ public class Aggregator {
         }
         String treeBindName = "//"+this.hostName+":"+port+"/"+serverName;
         LOG.config("Creating RMI server tree: " + treeBindName);
-        try {
-            boolean serverDuplex = true;
-            treeServer = new RemoteServer(serverTree, serverDuplex);
-            rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        boolean serverDuplex = true;
+        treeServer = new RemoteServer(serverTree, serverDuplex);
+        rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
         serverTree.mkdir(AGG_DIR);
     }
 
@@ -150,15 +147,15 @@ public class Aggregator {
             String options = "duplex=\""+clientDuplex+"\",RmiServerName=\"rmi:"+remoteTreeBind+"\",hurry=\""+hurry+"\"";
             ITree remoteTree = null;
             try {
+                LOG.info("Creating remote tree...");
                 remoteTree = tf.create(remoteTreeBind, RmiStoreFactory.storeType, true, false, options);
+                LOG.info("Done creating remote tree!");
                 String mountName = toMountName(remoteTreeBind);
                 LOG.info("Mounting remote tree to: " + mountName);
                 serverTree.mount(mountName, remoteTree, "/");
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Failed to connect to: " + remoteTreeBind, e);
-                if (this.failOnConnectionError) {
-                    throw new RuntimeException(e);
-                }
+                exit(e, CONNECTION_ERROR, true);
             }
         }
 
@@ -268,60 +265,139 @@ public class Aggregator {
     }
 
     private void disconnect() {
+
+        LOG.info("Disconnecting ...");
         if (rmiTreeServer != null) {
-            System.out.println("Disconnecting ...");
-            ((RmiServerImpl) rmiTreeServer).disconnect();
-            if (treeServer != null) {
+            try {
+                ((RmiServerImpl) rmiTreeServer).disconnect();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Error disconnecting RMI tree server", e);
+            }
+        }
+        if (treeServer != null) {
+            try {
                 treeServer.close();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Error disconnecting tree server", e);
             }
-            if (serverTree != null) {
-                try {
-                    serverTree.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        }
+        if (serverTree != null) {
+            try {
+                serverTree.close();
+            } catch (IOException e) {
+                LOG.log(Level.SEVERE, "Error disconnecting server tree", e);
+            }
+        }
+        LOG.info("Bye!");
+    }
+
+    private void loop() throws RemoteConnectionException {
+        while (true) {
+            try {
+                clearTree();
+                update();
+                if (updateInterval > 0L) {
+                    try {
+                        Thread.sleep(updateInterval);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+            } catch (Exception e) {
+                // This assumes all errors are fatal.
+                throw new RuntimeException(e);
             }
-            System.out.println("Bye!");
         }
     }
 
-    private void loop() {
-        while (true) {
-            clearTree();
-            try {
-                update();
-            } catch (RemoteConnectionException e) {
-                e.printStackTrace();
-                break;
+    /**
+     * The RMI system spawns many threads which do not appear to shutdown cleanly
+     * when certain exceptions are thrown. So this method attempts to interrupt
+     * all of them so we can exit the program.
+     */
+    private static void killRmiThreads() {
+        LOG.fine("Interrupting RMI threads...");
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        for (Thread thread : threadSet) {
+            if (thread.getName().contains("RMI")) {
+                LOG.fine("Interrupting RMI thread: " + thread.getName());
+                thread.interrupt();
             }
-            if (updateInterval > 0L) {
-                try {
-                    Thread.sleep(updateInterval);
-                } catch (InterruptedException e) {
-                }
-            }
-
         }
+    }
+
+    private static void exit(Exception e, int returnCode, boolean killRmiThreads) {
+
+        // This is a disgusting hack to try and get the RMI subsystem to shutdown. :-(
+        if (killRmiThreads) {
+            killRmiThreads();
+        }
+
+        if (e != null) {
+            LOG.log(Level.SEVERE, e.getMessage(), e);
+        }
+        LOG.severe("Exiting with return code: " + returnCode);
+        System.exit(returnCode);
+    }
+
+    private static void exit(Exception e, int returnCode) {
+        exit(e, returnCode, false);
     }
 
     static public void main(String[] args) {
         final Aggregator agg = new Aggregator();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
+                LOG.config("Disconnecting...");
                 agg.disconnect();
+                LOG.config("Done disconnecting!");
             }
         });
+
         if (args.length < 1) {;
-            System.out.println("Usage: RemoteAggregator [config_file]");
-            System.exit(1);
+            System.out.println("Usage: Aggregator [config_file]");
+            exit(null, OKAY);
         }
-        agg.configure(args[0]);
         try {
-            agg.connect();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOG.config("Configuring aggregator...");
+            agg.configure(args[0]);
+            LOG.config("Done configuring aggregator!");
+        } catch (Exception e) {
+            LOG.severe("Aggregator configuration failed!");
+            exit(e, PARSE_ERROR);
         }
-        agg.mount();
-        agg.loop();
+        try {
+            LOG.config("Connecting remote tree...");
+            agg.connect();
+            LOG.config("Done connecting remote tree!");
+        } catch (IOException e) {
+            LOG.severe("Remote tree connection failed!");
+            exit(e, CONNECTION_ERROR);
+        }
+
+        LOG.config("Mounting station remote trees...");
+        try {
+            agg.mount();
+            LOG.config("Done mounting station remote trees!");
+        } catch (Exception e) {
+            /* This should not happen normally as the mount() method
+             * will invoke system exit directly on connection failure,
+             * but it is theoretically possible if some of the other
+             * commands fails, such as creating the AIDA directories.
+             */
+            LOG.severe("Failed to mount remote trees!");
+            exit(e, CONNECTION_ERROR);
+        }
+
+        try {
+            LOG.config("Starting loop...");
+            agg.loop();
+        } catch (RemoteConnectionException e) {
+            LOG.severe("Connection error occurred!");
+            exit(e, CONNECTION_ERROR, true);
+        } catch (Exception e) {
+            LOG.severe("Unknown error occurred!");
+            exit(e, UNKNOWN_ERROR);
+        }
     }
 }
