@@ -85,12 +85,17 @@ public class PropertyStore {
         return jo;
     }
 
+    /**
+     * Save properties to <code>Properties</code> for output
+     *
+     * Invalid properties with null values are skipped.
+     *
+     * @param propOut The output <code>Properties</code>
+     */
     public void save(Properties propOut) {
         for (Entry<String, Property<?>> entry : this.props.entrySet()) {
             if (entry.getValue().valid()) {
                 propOut.setProperty(entry.getKey(), entry.getValue().value().toString());
-            } else {
-                System.out.println("Skipping invalid prop: " + entry.getKey());
             }
         }
     }
