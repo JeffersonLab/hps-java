@@ -164,7 +164,7 @@ class TrackCandidate {
                 boolean allowSharing = nTaken < kPar.mxShared;
                 boolean checkBounds = false;
                 double [] tRange = {tMax - kPar.mxTdif, tMin + kPar.mxTdif}; 
-                int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange);
+                int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0);
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {

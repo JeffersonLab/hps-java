@@ -1033,9 +1033,9 @@ public class KalTrack {
             for (int lyr=site.m.Layer+1; lyr<nxtSite.m.Layer; ++lyr) { // Loop over hitless layers between two sites with hits
                 if (debug) System.out.format("KalTrack.addHits: looking for hits on layer %d\n", lyr);
                 for (SiModule module : moduleList.get(lyr)) {
-                    MeasurementSite newSite = new MeasurementSite(lyr, module, mxResid, 0.);
+                    MeasurementSite newSite = new MeasurementSite(lyr, module, kPar);
                     double [] tRange = {tMax - mxTdif, tMin + mxTdif}; 
-                    int rF = newSite.makePrediction(siteFrom.aF, siteFrom.m, -1, false, true, false, tRange, verbose);
+                    int rF = newSite.makePrediction(siteFrom.aF, siteFrom.m, -1, false, true, false, tRange, 0, verbose);
                     if (rF == 1) {
                         if (debug) System.out.format("KalTrack.addHits: predicted chi2inc=%8.3f\n",newSite.chi2inc);
                         if (newSite.chi2inc < mxChi2inc) {
@@ -1110,7 +1110,7 @@ public class KalTrack {
                 boolean pickupHits = false;
                 boolean checkBounds = false;
                 double [] tRange = {-999., 999.};
-                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange) < 0) {
+                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0) < 0) {
                     if (debug) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!\n", eventNumber, ID, iteration);
                     return false;
                 }

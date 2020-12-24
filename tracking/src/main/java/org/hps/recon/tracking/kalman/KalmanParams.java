@@ -35,10 +35,13 @@ public class KalmanParams {
     int [] minStereo;
     int minAxial;
     double mxTdif;
+    double lowPhThresh;
     double seedCompThr;           // Compatibility threshold for seedTracks helix parameters;
     ArrayList<int[]> [] lyrList;
     double [] beamSpot;
     double [] vtxSize;
+    double [] minSeedE;
+    static final int numLayers = 14;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private String [] tb;
@@ -48,6 +51,12 @@ public class KalmanParams {
     public void print() {
         System.out.format("\nKalmanParams: dump of the Kalman pattern recognition cuts and parameters\n");
         System.out.println("  (In the case of two values, they refer to the two iterations.)");
+        System.out.format("  There are %d layers in the tracker.\n", numLayers);
+        System.out.format("  Cluster energy cuts by layer: ");
+        for (int lyr=0; lyr<numLayers; ++lyr) {
+            System.out.format(" %6.2f", minSeedE[lyr]);
+        }
+        System.out.format("\n");
         System.out.format("  First layer in the tracking system: %d\n", firstLayer);
         System.out.format("  Number of global iterations: %d\n", nTrials);
         System.out.format("  Number of Kalman filter iterations per track in the final fits: %d\n", nIterations);
@@ -105,6 +114,11 @@ public class KalmanParams {
         mxResid = new double[mxTrials];
         minStereo = new int[mxTrials];  
         
+        minSeedE = new double[numLayers];
+        for (int lyr=0; lyr<numLayers; ++lyr) {
+            minSeedE[lyr] = 1.5;
+        }
+        
         // Set all the default values
         // Cut and parameter values (length units are mm, time is ns).
         // The index is the iteration number.
@@ -130,7 +144,7 @@ public class KalmanParams {
         minChi2IncBad = 10.; // Threshold for removing a bad hit from a track candidate
         mxResid[0] = 50.;   // Maximum residual, in units of detector resolution, for picking up a hit
         mxResid[1] = 100.;
-        mxResidShare = 10.; // Maximum residual, in units of detector resolution, for a hit to be shared
+        mxResidShare = 20.; // Maximum residual, in units of detector resolution, for a hit to be shared
         mxChi2double = 6.;  // Maximum chi^2 increment to keep a shared hit
         minStereo[0] = 4;
         minStereo[1] = 3;   // Minimum number of stereo hits
@@ -138,6 +152,7 @@ public class KalmanParams {
         mxShared = 2;       // Maximum number of shared hits
         mxTdif = 30.;       // Maximum time difference of hits in a track
         firstLayer = 0;     // First layer in the tracking system (2 for pre-2019 data)
+        lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = -1.;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
         
         // Load the default search strategies
@@ -228,6 +243,22 @@ public class KalmanParams {
             }
             lyrList[1].add(listTop);
         }       
+    }
+    
+    public void setLowPhThreshold(double cut) {
+        if (cut <0. || cut > 1.) {
+            logger.warning(String.format("low pulse-height threshold %10.4f is not valid and is ignored.", cut));
+            return;
+        }
+        logger.config(String.format("Setting the low-pulse-height threshold to %10.4f", cut));
+        lowPhThresh = cut;
+    }
+    
+    public void setMinSeedEnergy(double minE) {
+        logger.config("Setting the minimum seed energy to " + Double.toString(minE));
+        for (int lyr=0; lyr<numLayers; ++lyr) {
+            minSeedE[lyr] = minE;
+        }
     }
     
     public void setGlbIterations(int nTrials) {
