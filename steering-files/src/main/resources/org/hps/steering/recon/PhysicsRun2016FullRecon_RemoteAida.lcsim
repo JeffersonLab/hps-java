@@ -12,7 +12,6 @@
         <!--RF driver-->
         <driver name="RfFitter"/>
 
-
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
@@ -60,32 +59,16 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />
+        <driver name="RemoteHistExampleDriver"/>
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
 
-<!--        <driver name="RemoteMonitoringDriver"/> -->
-        <driver name="RemoteHistExampleDriver"/>
-<!--        <driver name="EcalMonitoring"/> -->
-<!--        <driver name="SleepDriver"/> -->
     </execute>
     <drivers>
-        <!-- insert delay for testing purposes -->
-        <!--
-        <driver name="SleepDriver" type="org.hps.online.recon.util.SleepDriver">
-            <millis>5000</millis>
-        </driver>
-        -->
 
         <driver name="RemoteHistExampleDriver" type="org.hps.online.recon.example.HistExampleDriver">
             <hostName>localhost</hostName>
         </driver>
-
-<!--
-        <driver name="RemoteMonitoringDriver" type="org.hps.online.example.RemoteMonitoringDriver">
-            <port>${port}</port>
-            <collections>SVTRawTrackerHits EcalCalHits EcalClusters MatchedTracks FinalStateParticles</collections>
-        </driver>
--->
 
          <!-- Driver to reject "bad" events -->
          <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
