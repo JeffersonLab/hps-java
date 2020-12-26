@@ -1,5 +1,6 @@
 package org.hps.recon.filtering;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lcsim.event.EventHeader;
@@ -14,7 +15,8 @@ import org.lcsim.event.EventHeader;
 public class EventFlagFilter extends EventReconFilter {
 
     private static Logger LOGGER = Logger.getLogger(EventFlagFilter.class.getPackage().getName());
-    
+    private static Level LEVEL = Level.WARNING;
+
     String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good", "svt_event_header_good", "svt_latency_good"};
 
     public void setFlagNames(String[] flagNames) {
@@ -28,7 +30,7 @@ public class EventFlagFilter extends EventReconFilter {
             for (String flagName : flagNames) {
                 int[] flag = event.getIntegerParameters().get(flagName);
                 if (flag == null || flag[0] == 0) {
-                    LOGGER.fine("Skipping event <" + event.getEventNumber() + "> from flag <" + flagName + ">");
+                    LOGGER.log(LEVEL, "Skipping event <" + event.getEventNumber() + "> from flag <" + flagName + ">");
                     skipEvent();
                 }
             }
