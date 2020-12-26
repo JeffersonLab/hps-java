@@ -21,6 +21,7 @@
     <lcsimVersion>4.2-SNAPSHOT</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
+    <skipCheckstyle>false</skipCheckstyle>
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
   </properties>
@@ -94,7 +95,7 @@
       </releases>
     </repository>
   </repositories>
-  
+
   <pluginRepositories>
     <pluginRepository>
       <id>freehep-maven-plugin-repo</id>
@@ -107,7 +108,7 @@
       <url>https://repo1.maven.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
-  
+
   <modules>
     <module>analysis</module>
     <module>conditions</module>
@@ -135,7 +136,7 @@
     <module>util</module>
     <module>integration-tests</module>
   </modules>
-  
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -328,10 +329,7 @@
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>et</artifactId>
-<!--
-        <version>16.2</version> 
--->
-        <version>14.1</version>
+        <version>16.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -372,10 +370,10 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.11</version>
-      </dependency>      
+      </dependency>
     </dependencies>
   </dependencyManagement>
-  
+
   <build>
     <defaultGoal>install</defaultGoal>
     <extensions>
@@ -406,6 +404,7 @@
           <artifactId>lifecycle-mapping</artifactId>
           <version>1.0.0</version>
           <configuration>
+            <skip>${skipCheckstyle}</skip>
             <lifecycleMappingMetadata>
               <pluginExecutions>
                 <pluginExecution>
@@ -515,6 +514,7 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.17</version>
         <configuration>
+          <skip>${skipCheckstyle}</skip>
           <logViolationsToConsole>true</logViolationsToConsole>
           <consoleOutput>true</consoleOutput>
           <includeResources>true</includeResources>
@@ -598,7 +598,7 @@
               <report>plugins</report>
               <report>project-team</report>
             </reports>
-          </reportSet>          
+          </reportSet>
         </reportSets>
       </plugin>
       <plugin>
@@ -624,7 +624,7 @@
               <report>test-aggregate</report>
             </reports>
           </reportSet>
-        </reportSets>                      
+        </reportSets>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -637,14 +637,14 @@
               <report>javadoc</report>
               <report>test-javadoc</report>
             </reports>
-          </reportSet>        
+          </reportSet>
           <reportSet>
             <id>aggregate</id>
             <inherited>false</inherited>
             <reports>
               <report>aggregate</report>
             </reports>
-          </reportSet>                             
+          </reportSet>
         </reportSets>
         <configuration>
           <source>1.7</source>
