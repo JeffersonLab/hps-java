@@ -15,25 +15,24 @@ import com.google.common.eventbus.Subscribe;
 public class EvioListener {
 
     private OnlineEventBus eventbus;
-    private Station station;
     private LCSimEventBuilder builder;
     private JobManager mgr;
 
-    EvioListener(OnlineEventBus eventbus, Station station) {
+    EvioListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
-        this.station = station;
-        this.mgr = station.getJobManager();
-        this.builder = station.getEventBuilder();
+        this.mgr = eventbus.getStation().getJobManager();
+        this.builder = eventbus.getStation().getEventBuilder();
     }
 
     @Subscribe
     public void receiveEvioAndPostLcio(EvioEvent evioEvent) {
         try {
-            eventbus.getLogger().info("Station " + station.getStationName() + " processing EVIO event: "
-                    + EvioEventUtilities.getEventIdData(evioEvent)[0]);
+            /*eventbus.getLogger().info("Station " + eventbus.getStation().getStationName()
+                    + " processing EVIO event: "
+                    + EvioEventUtilities.getEventIdData(evioEvent)[0]);*/
             builder.readEvioEvent(evioEvent);
             EventHeader lcioEvent = builder.makeLCSimEvent(evioEvent);
-            eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
+            //eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
             mgr.processEvent(lcioEvent);
             eventbus.getLogger().info("Processed LCIO event: " + lcioEvent.getEventNumber());
             eventbus.post(lcioEvent);

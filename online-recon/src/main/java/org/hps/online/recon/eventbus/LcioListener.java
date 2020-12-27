@@ -10,6 +10,7 @@ import com.google.common.eventbus.Subscribe;
 public class LcioListener {
 
     OnlineEventBus eventbus;
+    int eventsReceived = 0;
 
     LcioListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
@@ -17,6 +18,12 @@ public class LcioListener {
 
     @Subscribe
     public void receiveLcio(EventHeader event) {
-        eventbus.getLogger().info("LcioListener - received event: " + event.getEventNumber());
+        // eventbus.getLogger().info("LcioListener - received event: " + event.getEventNumber());
+        ++eventsReceived;
+    }
+
+    @Subscribe
+    public void printEndMessage(StopProcessing stop) {
+        this.eventbus.getLogger().info("Total LCIO events created: " + eventsReceived);
     }
 }

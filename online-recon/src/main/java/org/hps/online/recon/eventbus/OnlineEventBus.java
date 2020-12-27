@@ -5,7 +5,10 @@ import java.util.logging.Logger;
 
 import org.hps.online.recon.Station;
 import org.hps.record.et.EtConnection;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
+import org.jlab.coda.jevio.EvioEvent;
+import org.lcsim.conditions.ConditionsManager;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -15,23 +18,22 @@ import com.google.common.eventbus.Subscribe;
  * and generate LCIO recon events using an event
  * builder and job manager
  */
-// TODO: add a test of ET -> EVIO -> LCIO
-// TODO: needs error handling (could this class be a receiver and get a "stop processing" object on errors?)
-// TODO: add max events setting and stop after it is reached
-// TODO: use a logger instead of print outs
 public class OnlineEventBus extends EventBus {
 
-    EtConnection conn;
-    Thread eventProc;
-    Exception error = null;
+    private EtConnection conn;
+    private Thread eventProc;
+    private Station station;
 
     final Logger logger = Logger.getLogger(OnlineEventBus.class.getPackage().getName());
 
     public OnlineEventBus(Station station) {
-        logger.config("Initializing event bus for stat: " + station.getStationName());
-        this.conn = station.getEtConnection();
+        logger.config("Initializing event bus for station: " + station.getStationName());
+        this.station = station;
+        this.conn = this.station.getEtConnection();
+        register(this);
         register(new EtListener(this));
-        register(new EvioListener(this, station));
+        register(new ConditionsListener(this));
+        register(new EvioListener(this));
         register(new LcioListener(this)); // dead event sink
         logger.config("Event bus initialized!");
     }
@@ -42,13 +44,18 @@ public class OnlineEventBus extends EventBus {
      */
     public void loop() throws Exception {
         while (true) {
-            // Any exceptions on ET reads will break the loop but that is okay.
-            EtEvent[] events = conn.readEtEvents();
-            logger.fine("Read ET events: " + events.length);
-            for (EtEvent event : events) {
-                // TODO: Should/could this make sure there aren't too many events on the bus already?
-                System.out.println("Posting ET event: " + event.getId());
-                this.post(event);
+            EtEvent[] events = null;
+            try {
+                events = conn.readEtEvents();
+                //logger.fine("Read ET events: " + events.length);
+                for (EtEvent event : events) {
+                    logger.fine("Read ET event: " + event.getId());
+                    this.post(event);
+                }
+                conn.getEtSystem().dumpEvents(conn.getEtAttachment(), events);
+            } catch (Exception e) {
+                // ET system errors are always fatal.
+                this.error(e, true);
             }
         }
     }
@@ -60,7 +67,8 @@ public class OnlineEventBus extends EventBus {
         logger.config("Event processing thread started!");
     }
 
-    public void stopProcessing() {
+    @Subscribe
+    public void handleStopProcessing(StopProcessing stop) {
         logger.info("Stopping event processing...");
         eventProc.interrupt();
         try {
@@ -79,10 +87,28 @@ public class OnlineEventBus extends EventBus {
     public void handleError(EventProcessingError e) {
         if (e.fatal) {
             logger.log(Level.SEVERE, "Fatal error - event processing will stop", e);
-            this.stopProcessing();
+            post(new StopProcessing("Fatal error"));
         } else {
             logger.log(Level.WARNING, "Error occurred - event processing will continue", e);
         }
+    }
+
+    @Subscribe
+    public void checkEndRun(EvioEvent evioEvent) {
+        if (EvioEventUtilities.isEndEvent(evioEvent)) {
+            post(new EndRun(ConditionsManager.defaultInstance().getRun()));
+        }
+    }
+
+    @Subscribe
+    public void handleEndRun(EndRun end) {
+        logger.info("Run ended: " + end.getRun());
+        post(new StopProcessing("Run ended"));
+    }
+
+    @Subscribe
+    public void stopProcessing(StopProcessing stop) {
+        getStation().getJobManager().getDriverAdapter().finish(null);
     }
 
     public Thread getEventProcessingThread() {
@@ -91,6 +117,10 @@ public class OnlineEventBus extends EventBus {
 
     public Logger getLogger() {
         return this.logger;
+    }
+
+    public Station getStation() {
+        return this.station;
     }
 
     class EventProcessingThread extends Thread {
