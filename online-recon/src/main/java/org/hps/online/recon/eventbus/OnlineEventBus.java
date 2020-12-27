@@ -16,7 +16,13 @@ import com.google.common.eventbus.Subscribe;
 /**
  * An event bus to read ET events, convert to EVIO,
  * and generate LCIO recon events using an event
- * builder and job manager
+ * builder and job manager.
+ *
+ * Special objects are used for error handling,
+ * signaling end of run, and stopping the ET event loop.
+ *
+ * Event processing is run on a separate thread so that
+ * it can be stopped easily.
  */
 public class OnlineEventBus extends EventBus {
 
@@ -24,7 +30,7 @@ public class OnlineEventBus extends EventBus {
     private Thread eventProc;
     private Station station;
 
-    final Logger logger = Logger.getLogger(OnlineEventBus.class.getPackage().getName());
+    private final Logger logger = Logger.getLogger(OnlineEventBus.class.getPackage().getName());
 
     public OnlineEventBus(Station station) {
         logger.config("Initializing event bus for station: " + station.getStationName());
@@ -55,71 +61,81 @@ public class OnlineEventBus extends EventBus {
                 conn.getEtSystem().dumpEvents(conn.getEtAttachment(), events);
             } catch (Exception e) {
                 // ET system errors are always fatal.
-                this.error(e, true);
+                post(new EventProcessingError(e, true));
+            }
+            if (Thread.interrupted()) {
+                // Thread was externally interrupted and processing should stop.
+                post(new Stop("Interrupted"));
             }
         }
     }
 
+    @Subscribe
+    public void receiveStart(Start start) {
+        getStation().getJobManager().getDriverAdapter().start(null);
+    }
+
     public void startProcessing() {
         logger.config("Starting event processing thread ...");
+        post(new Start());
         eventProc = new EventProcessingThread();
         eventProc.start();
         logger.config("Event processing thread started!");
     }
 
     @Subscribe
-    public void handleStopProcessing(StopProcessing stop) {
-        logger.info("Stopping event processing...");
-        eventProc.interrupt();
-        try {
-            eventProc.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void receiveStop(Stop stop) {
+        logger.info("Stopping event processing: " + stop.getReason());
+        if (eventProc.isAlive()) {
+            eventProc.interrupt();
+            try {
+                eventProc.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+        getStation().getJobManager().getDriverAdapter().finish(null);
         logger.info("Event processing is stopped!");
     }
 
-    void error(Exception e, boolean fatal) {
-        post(new EventProcessingError(e, fatal));
-    }
-
     @Subscribe
-    public void handleError(EventProcessingError e) {
-        if (e.fatal) {
-            logger.log(Level.SEVERE, "Fatal error - event processing will stop", e);
-            post(new StopProcessing("Fatal error"));
+    public void receiveError(EventProcessingError e) {
+        if (e.fatal()) {
+            logger.log(Level.SEVERE, "Fatal error - event processing will stop", e.getException());
+            e.getException().printStackTrace();
+            post(new Stop("Fatal error"));
         } else {
-            logger.log(Level.WARNING, "Error occurred - event processing will continue", e);
+            logger.log(Level.WARNING, "Error occurred - event processing will continue", e.getException());
+            e.getException().printStackTrace();
         }
     }
 
     @Subscribe
-    public void checkEndRun(EvioEvent evioEvent) {
+    public void postEndRun(EvioEvent evioEvent) {
         if (EvioEventUtilities.isEndEvent(evioEvent)) {
             post(new EndRun(ConditionsManager.defaultInstance().getRun()));
         }
     }
 
     @Subscribe
-    public void handleEndRun(EndRun end) {
+    public void receiveEndRun(EndRun end) {
         logger.info("Run ended: " + end.getRun());
-        post(new StopProcessing("Run ended"));
+        post(new Stop("Run ended"));
     }
 
-    @Subscribe
-    public void stopProcessing(StopProcessing stop) {
-        getStation().getJobManager().getDriverAdapter().finish(null);
-    }
-
+    /**
+     * The user can stop event processing by interrupting this thread.
+     * @return The event processing thread
+     */
     public Thread getEventProcessingThread() {
         return this.eventProc;
     }
 
-    public Logger getLogger() {
+    Logger getLogger() {
         return this.logger;
     }
 
-    public Station getStation() {
+    Station getStation() {
         return this.station;
     }
 

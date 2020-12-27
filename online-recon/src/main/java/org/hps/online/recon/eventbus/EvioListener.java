@@ -1,16 +1,15 @@
 package org.hps.online.recon.eventbus;
 
 import org.hps.job.JobManager;
-import org.hps.online.recon.Station;
 import org.hps.record.LCSimEventBuilder;
-import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
 import com.google.common.eventbus.Subscribe;
 
 /**
- * Receive EVIO events and convert to raw LCIO
+ * Receive EVIO events, build raw events,
+ * and do recon processing.
  */
 public class EvioListener {
 
@@ -37,7 +36,7 @@ public class EvioListener {
             eventbus.getLogger().info("Processed LCIO event: " + lcioEvent.getEventNumber());
             eventbus.post(lcioEvent);
         } catch (Exception e) {
-            eventbus.error(e, false);
+            eventbus.post(new EventProcessingError(e, false));
         }
     }
 }

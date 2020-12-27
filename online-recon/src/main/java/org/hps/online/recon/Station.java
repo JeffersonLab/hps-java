@@ -151,6 +151,7 @@ public class Station {
         }
 
         // Setup event builder and register with conditions system.
+        LOG.config("Creating event builder: " + builderClass.value());
         this.builder = null;
         try {
             builder = LCSimEventBuilder.class.cast(Class.forName(builderClass.value()).getConstructor().newInstance());
@@ -158,8 +159,10 @@ public class Station {
             throw new IllegalArgumentException("Failed to create event builder: " + builderClass.value(), e);
         }
         conditionsManager.addConditionsListener(builder);
+        LOG.config("Done creating event builder!");
 
         // Setup the lcsim job manager.
+        LOG.config("Initializing job manager...");
         this.mgr = new JobManager();
         mgr.setDryRun(true);
         final String outputFilePath = outputDir.value() + File.separator + outputName.value();
@@ -173,7 +176,7 @@ public class Station {
             LOG.config("Setting up steering resource: " + steering.value());
             mgr.setup(steering.value());
         }
-        LOG.config("Done setting up steering!");
+        LOG.config("Done initializing job manager!");
 
         // Activate the conditions system, if possible.
         if (conditionsSetup != null) {
@@ -223,6 +226,7 @@ public class Station {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // Should finish() be called here to activate endOfData() on Drivers?
         LOG.info("Ended event processing: " + new Date().toString());
     }
 }

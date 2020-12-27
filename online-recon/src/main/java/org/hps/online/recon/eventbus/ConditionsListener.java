@@ -13,6 +13,7 @@ import com.google.common.eventbus.Subscribe;
 
 /**
  * Activate lcsim conditions system from EVIO data
+ * on the event bus.
  */
 public class ConditionsListener {
 
@@ -49,7 +50,7 @@ public class ConditionsListener {
                                 + "name is not valid.");
                     }
                 } catch (final ConditionsNotFoundException e) {
-                    eventbus.error(e, true);
+                    eventbus.post(new EventProcessingError(e, true));
                 }
             }
         }

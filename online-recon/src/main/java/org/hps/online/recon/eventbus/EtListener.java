@@ -8,8 +8,8 @@ import org.jlab.coda.jevio.EvioReader;
 import com.google.common.eventbus.Subscribe;
 
 /**
- * Receive an ET event, convert to EVIO, and post the
- * new EVIO event
+ * Receive an ET event on the event bus, convert it to EVIO,
+ * and post the new EVIO event.
  */
 public class EtListener {
 
@@ -19,7 +19,6 @@ public class EtListener {
         this.eventbus = eventbus;
     }
 
-    // Could this receive an array of ET events?
     @Subscribe
     public void receiveEtAndPostEvio(EtEvent etEvent) throws Exception {
         try {
@@ -27,7 +26,7 @@ public class EtListener {
             eventbus.getLogger().info("Created EVIO event: " + EvioEventUtilities.getEventIdData(evioEvent)[0]);
             eventbus.post(evioEvent);
         } catch (Exception e) {
-            eventbus.error(e, false);
+            eventbus.post(new EventProcessingError(e, false));
         }
     }
 }

@@ -95,17 +95,22 @@ class EtParallelStation extends EtConnection {
                 LOGGER.fine("sys is not alive!");
                 return;
             }
+            LOGGER.fine("Waking up attachment");
+            try {
+                this.sys.wakeUpAttachment(att);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             LOGGER.fine("Detaching from sys");
             this.sys.detach(this.att);
             LOGGER.fine("Removing station");
             this.sys.removeStation(this.stat);
             LOGGER.fine("Closing station");
             this.sys.close();
-            LOGGER.fine("Closed station");
         } catch (final Exception e) {
             LOGGER.warning("Error during cleanup");
             e.printStackTrace();
         }
-        LOGGER.fine("Done with ET cleanup!");
+        LOGGER.fine("Done cleaning up ET connection!");
     }
 }

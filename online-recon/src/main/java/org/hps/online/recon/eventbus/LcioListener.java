@@ -5,7 +5,7 @@ import org.lcsim.event.EventHeader;
 import com.google.common.eventbus.Subscribe;
 
 /**
- * Make sure LCIO events have an event sink
+ * Receive LCIO events and count them.
  */
 public class LcioListener {
 
@@ -23,7 +23,7 @@ public class LcioListener {
     }
 
     @Subscribe
-    public void printEndMessage(StopProcessing stop) {
+    public void receiveStop(Stop stop) {
         this.eventbus.getLogger().info("Total LCIO events created: " + eventsReceived);
     }
 }

@@ -1,9 +1,12 @@
 package org.hps.online.recon.eventbus;
 
+/**
+ * Error object for posting to the event bus.
+ */
 public class EventProcessingError {
 
-    Exception e;
-    boolean fatal;
+    private Exception e;
+    private boolean fatal;
 
     public EventProcessingError(Exception e, boolean fatal) {
         this.e = e;
@@ -11,5 +14,9 @@ public class EventProcessingError {
 
     Exception getException() {
         return this.e;
+    }
+
+    boolean fatal() {
+        return fatal;
     }
 }
