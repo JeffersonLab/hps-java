@@ -11,14 +11,15 @@ import java.util.logging.SimpleFormatter;
 
 /**
  * Log messages to a file for a server program
- *
- * To change the log level (hard-coded to ALL), edit the log level at:<br/>
- * <code>logger.setLevel(Level.ALL);</a><br/>
- * and recompile the module.
  */
 public class ServerLoggingConfig {
 
     private static final String LOG_FILE_PATH = System.getProperty("user.dir") + File.separator + "logs";
+
+    /**
+     * Edit this and recompile the module to change the server log level
+     */
+    private static final Level LEVEL = Level.FINER;
 
     static {
         System.setProperty(
@@ -47,8 +48,8 @@ public class ServerLoggingConfig {
         handler.setFormatter(new SimpleFormatter());
         rootLogger.addHandler(handler);
         Logger logger = Logger.getLogger(ServerLoggingConfig.class.getPackage().getName());
-        logger.setLevel(Level.ALL);
+        logger.setLevel(LEVEL);
         rootLogger.setLevel(Level.WARNING);
-        //System.out.println("Log file: " + logFile.getAbsolutePath());
+        System.out.println("Server log file: " + logFile.getAbsolutePath());
     }
 }

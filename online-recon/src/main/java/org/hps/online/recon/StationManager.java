@@ -1,7 +1,11 @@
 package org.hps.online.recon;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -41,6 +45,7 @@ public class StationManager {
         File configFile;
         StationProperties props;
         int exitValue = -1;
+        String remoteTreeBind = null;
 
         /**
          * Convert station data to JSON.
@@ -149,7 +154,7 @@ public class StationManager {
      * @param station The station to start
      * @throws IOException If there is a problem starting the station's process
      */
-    synchronized void start(StationInfo station) throws IOException {
+    synchronized void start(final StationInfo station) throws IOException {
 
         LOG.info("Starting station: " + station.stationName);
 
@@ -192,10 +197,45 @@ public class StationManager {
             Process p = pb.start();
 
             // These won't be set if exception is thrown but that's fine because
-            // process failed to start.
+            // the process failed to start.
             station.process = p;
             station.pid = getPid(p);
             station.active = true;
+
+            // Add remote tree bind by reading file written by the remote AIDA driver.
+            final String dirPath = dir.getCanonicalPath();
+            new Thread() {
+                public void run() {
+                    File remoteTreeFile = new File(dirPath + File.separator + "remoteTreeBind");
+                    while (true) {
+                        // Check for file with remote tree bind information written by the driver
+                        if (remoteTreeFile.exists()) {
+                            try {
+                                InputStream in = new FileInputStream(remoteTreeFile);
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                                String remoteTreeBind = reader.readLine().trim();
+                                station.remoteTreeBind = remoteTreeBind;
+                                reader.close();
+                                LOG.info("Adding station remote tree bind: " + remoteTreeBind);
+                                server.agg.addRemote(station.remoteTreeBind);
+                                LOG.info("Done adding station remote tree bind");
+                                break;
+                            } catch (Exception e) {
+                                LOG.log(Level.WARNING, "Failed to add station remote tree bind", e);
+                                break;
+                            }
+                        } else {
+                            LOG.warning("Remote tree file does not exist: " + remoteTreeFile);
+                        }
+                        // Wait awhile before checking for the file again
+                        try {
+                            Thread.sleep(5000L);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }.start();
 
             LOG.info("Successfully started station: " + station.stationName);
         } else {
@@ -406,6 +446,14 @@ public class StationManager {
             LOG.info("Stopping station: " + info.stationName);
             Process p = info.process;
             if (!info.active) {
+
+                // Dismount the station's AIDA tree
+                if (info.remoteTreeBind != null) {
+                    server.agg.unmount(info.remoteTreeBind);
+                    info.remoteTreeBind = null;
+                }
+
+                // Wake up the station
                 EtSystem etSystem = server.getEtSystem();
                 try {
                     EtStation etStation =
@@ -415,6 +463,7 @@ public class StationManager {
                     LOG.log(Level.WARNING, "Error waking up station", e);
                 }
 
+                // Destroy the station's system process
                 p.destroy();
                 try {
                     LOG.fine("Waiting for station to stop: " + info.stationName);
@@ -423,15 +472,15 @@ public class StationManager {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                //if (!p.isAlive()) {
+
+                // Set station info to indicate that it is inactive with no valid process
                 info.active = false;
                 info.pid = -1L;
                 info.process = null;
                 LOG.info("Stopped station: " + info.stationName);
+
                 success = true;
-                //} else {
-                //    LOG.severe("Failed to stop station: " + info.stationName);
-                //}
+
             } else {
                 LOG.warning("Station is not active so stop command is ignored: " + info.stationName);
             }
@@ -721,6 +770,9 @@ public class StationManager {
         return new Tailer(logFile, listener, delayMillis, true);
     }
 
+    /**
+     * Check the status of all station's periodically (run on a scheduled executor)
+     */
     class StationMonitor implements Runnable {
 
         StationManager mgr = StationManager.this;

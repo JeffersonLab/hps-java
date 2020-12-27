@@ -1,5 +1,7 @@
 package org.hps.online.recon;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.logging.Logger;
@@ -48,6 +50,8 @@ public abstract class RemoteAidaDriver extends Driver {
 
     protected String hostName = null;
 
+    private String remoteTreeFileName = null;
+
     public RemoteAidaDriver() {
         if (System.getProperties().containsKey(PORT_PROPERTY)) {
             this.setPort(Integer.parseInt(System.getProperties().getProperty(PORT_PROPERTY)));
@@ -68,6 +72,10 @@ public abstract class RemoteAidaDriver extends Driver {
 
     public void setHostName(String hostName) {
         this.hostName = hostName;
+    }
+
+    public void setRemoteTreeFileName(String remoteTreeFileName) {
+        this.remoteTreeFileName = remoteTreeFileName;
     }
 
     protected void endOfData() {
@@ -103,6 +111,14 @@ public abstract class RemoteAidaDriver extends Driver {
             boolean serverDuplex = true;
             treeServer = new RemoteServer(tree, serverDuplex);
             rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
+            if (this.remoteTreeFileName != null) {
+                LOG.info("Writing remote tree info to: " + this.remoteTreeFileName);
+                File remoteTreeFile = new File(this.remoteTreeFileName);
+                FileOutputStream fos = new FileOutputStream(remoteTreeFile);
+                fos.write(treeBindName.getBytes());
+                fos.close();
+                LOG.info("Done writing remote tree info");
+            }
             LOG.info("Connection successful!");
         } catch (Exception e) {
             LOG.severe("Connection failed!");

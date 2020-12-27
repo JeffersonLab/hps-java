@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -92,8 +93,7 @@ public class Station {
      */
     void setup() {
 
-        // Print start messages.
-        LOG.info("Started station setup: " + new Date().toString());
+        LOG.info("Started setup: " + new Date().toString());
 
         this.stationName = props.get("et.stationName").value().toString();
         LOG.config("Initializing station: " + stationName);
@@ -102,10 +102,11 @@ public class Station {
             LOG.config("Validating station properties...");
             props.validate();
         } catch (PropertyValidationException e) {
-            LOG.severe("Station properties are not valid!");
+            // Station cannot be started with invalid properties.
+            LOG.log(Level.SEVERE, "Station properties are not valid", e);
             throw new RuntimeException(e);
         }
-        LOG.config("Station properties validated!");
+        LOG.config("Station properties validated");
 
         Property<String> detector = props.get("lcsim.detector");
         Property<Integer> run = props.get("lcsim.run");
@@ -159,7 +160,7 @@ public class Station {
             throw new IllegalArgumentException("Failed to create event builder: " + builderClass.value(), e);
         }
         conditionsManager.addConditionsListener(builder);
-        LOG.config("Done creating event builder!");
+        LOG.config("Done creating event builder");
 
         // Setup the lcsim job manager.
         LOG.config("Initializing job manager...");
@@ -176,7 +177,7 @@ public class Station {
             LOG.config("Setting up steering resource: " + steering.value());
             mgr.setup(steering.value());
         }
-        LOG.config("Done initializing job manager!");
+        LOG.config("Done initializing job manager");
 
         // Activate the conditions system, if possible.
         if (conditionsSetup != null) {
@@ -188,20 +189,20 @@ public class Station {
                 throw new RuntimeException(e);
             }
             conditionsSetup.postInitialize();
-            LOG.config("Conditions system initialized successfully!");
+            LOG.config("Conditions system initialized successfully");
         }
 
         // Try to connect to the ET system, retrying up to the configured number of max attempts.
         LOG.config("Connecting to ET system...");
         try {
             this.conn = new EtParallelStation(props);
-            LOG.config("Successfully connected to ET system!");
+            LOG.config("Successfully connected to ET system");
         } catch (Exception e) {
-            LOG.severe("Failed to create ET station!");
+            LOG.severe("Failed to create ET station");
             throw new RuntimeException(e);
         }
 
-        // Cleanly shutdown the ET station on exit.
+        // Close the ET station on shutdown.
         final EtConnection shutdownConn = conn;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -212,13 +213,15 @@ public class Station {
                 }
             }
         });
+
+        LOG.info("Finished station setup: " + new Date().toString());
     }
 
     /**
      * Run the online reconstruction station.
      */
     void run() {
-        LOG.info("Started event processing: " + new Date().toString());
+        LOG.info("Started processing: " + new Date().toString());
         OnlineEventBus eventbus = new OnlineEventBus(this);
         eventbus.startProcessing();
         try {
@@ -226,7 +229,6 @@ public class Station {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // Should finish() be called here to activate endOfData() on Drivers?
-        LOG.info("Ended event processing: " + new Date().toString());
+        LOG.info("Ended processing: " + new Date().toString());
     }
 }

@@ -124,7 +124,9 @@ public final class Server {
 
     private EtSystemOpenConfig etConfig;
 
-    ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
+    ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+
+    final InlineAggregator agg = new InlineAggregator();
 
     /**
      * Handles a single client request.
@@ -745,7 +747,6 @@ public final class Server {
 
             // Update active status of all stations.
             StationManager mgr = Server.this.getStationManager();
-            //mgr.updateAll();
 
             // Put station status counts.
             JSONObject stationRes = new JSONObject();
@@ -924,6 +925,15 @@ public final class Server {
      */
     Server() {
         this.stationManager = new StationManager(this);
+
+        try {
+            // FIXME: Hard-coded settings on the aggregator
+            agg.connect();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to connect aggregator", e);
+        }
+        // Run the plot aggregator every 5 seconds
+        exec.scheduleAtFixedRate(agg, 0, 5, TimeUnit.SECONDS);
     }
 
     /**
@@ -1113,15 +1123,24 @@ public final class Server {
     }
 
     void shutdown() {
+
+        LOG.info("Shutting down monitoring threads...");
         exec.shutdownNow();
-        //this.debugPrintThreads();
+
+        LOG.info("Disconnecting aggregator...");
+        agg.disconnect();
+
+        LOG.info("Active threads...");
+        this.debugPrintThreads();
+
+        LOG.info("Exiting application...");
         System.exit(0);
     }
 
     void debugPrintThreads() {
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for (Thread thread : threadSet) {
-            System.err.println(thread.getName());
+            LOG.info(thread.getName());
         }
     }
 
