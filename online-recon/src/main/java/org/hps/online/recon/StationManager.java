@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +16,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
 import org.hps.online.recon.properties.Property;
+import org.jlab.coda.et.EtStation;
+import org.jlab.coda.et.EtSystem;
 import org.json.JSONObject;
 
 /**
@@ -37,6 +40,7 @@ public class StationManager {
         String stationName;
         File configFile;
         StationProperties props;
+        int exitValue = -1;
 
         /**
          * Convert station data to JSON.
@@ -108,8 +112,13 @@ public class StationManager {
     private final List<StationInfo> stations = Collections.synchronizedList(
             new ArrayList<StationInfo>());
 
+    StationMonitor stationMonitor = new StationMonitor();
+
     StationManager(Server server) {
         this.server = server;
+
+        // Schedule the station monitor to run every 500 milliseconds
+        this.server.exec.scheduleAtFixedRate(stationMonitor, 0, 500, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -143,16 +152,6 @@ public class StationManager {
     synchronized void start(StationInfo station) throws IOException {
 
         LOG.info("Starting station: " + station.stationName);
-
-        // This fails too much to be useful.
-        /*
-        if (!server.isEtSystemAlive()) {
-            LOGGER.severe("Station cannot be started because ET system is down: " + station.stationName);
-            throw new RuntimeException("ET system is not alive!");
-        }
-        */
-
-        update(station);
 
         if (!station.active) {
 
@@ -364,7 +363,6 @@ public class StationManager {
         LOG.info("Stopping all active stations!");
         int n = 0;
         for (StationInfo info : this.stations) {
-            update(info);
             if (info.active) {
                 if (stop(info)) {
                     ++n;
@@ -401,14 +399,23 @@ public class StationManager {
      * @param info The station info
      * @return True if the station was stopped successfully
      */
+    // TODO: Throw an exception instead of returning false if an error occurs
     synchronized boolean stop(StationInfo info) {
         boolean success = false;
         if (info != null) {
+            LOG.info("Stopping station: " + info.stationName);
             Process p = info.process;
-            if (p != null) {
-                LOG.info("Stopping station: " + info.stationName);
+            if (!info.active) {
+                EtSystem etSystem = server.getEtSystem();
+                try {
+                    EtStation etStation =
+                            server.getEtSystem().stationNameToObject(info.stationName);
+                    etSystem.wakeUpAll(etStation);
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Error waking up station", e);
+                }
+
                 p.destroy();
-                // FIXME: Hangs here...do we need to wake up the ET station if it is sleeping?
                 try {
                     LOG.fine("Waiting for station to stop: " + info.stationName);
                     p.waitFor();
@@ -416,15 +423,15 @@ public class StationManager {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (!p.isAlive()) {
-                    info.active = false;
-                    info.pid = -1L;
-                    info.process = null;
-                    LOG.info("Stopped station: " + info.stationName);
-                    success = true;
-                } else {
-                    LOG.severe("Failed to stop station: " + info.stationName);
-                }
+                //if (!p.isAlive()) {
+                info.active = false;
+                info.pid = -1L;
+                info.process = null;
+                LOG.info("Stopped station: " + info.stationName);
+                success = true;
+                //} else {
+                //    LOG.severe("Failed to stop station: " + info.stationName);
+                //}
             } else {
                 LOG.warning("Station is not active so stop command is ignored: " + info.stationName);
             }
@@ -439,7 +446,6 @@ public class StationManager {
      */
     synchronized boolean remove(StationInfo info) {
         LOG.info("Removing station: " + info.stationName);
-        update(info);
         if (info.active == false) {
             this.stations.remove(info);
             LOG.info("Removed station: " + info.stationName);
@@ -518,21 +524,6 @@ public class StationManager {
     }
 
     /**
-     * Update the active status of a station from its process state
-     * @param station The station to update
-     */
-    synchronized void update(StationInfo station) {
-        if (station.process != null) {
-            station.active = station.process.isAlive();
-            if (!station.active) {
-                // Station no longer has a valid system process.
-                station.pid = -1L;
-                station.process = null;
-            }
-        }
-    }
-
-    /**
      * Get the number of stations.
      * @return The number of stations
      */
@@ -547,7 +538,6 @@ public class StationManager {
     synchronized int getActiveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
-            update(station);
             if (station.active) {
                 ++n;
             }
@@ -562,7 +552,6 @@ public class StationManager {
     synchronized int getInactiveCount() {
         int n = 0;
         for (StationInfo station : this.stations) {
-            update(station);
             if (!station.active) {
                 ++n;
             }
@@ -577,7 +566,6 @@ public class StationManager {
     synchronized int startAll() {
         int started = 0;
         for (StationInfo station : this.stations) {
-            update(station);
             if (!station.active) {
                 try {
                     this.start(station);
@@ -616,7 +604,6 @@ public class StationManager {
      */
     synchronized boolean cleanup(StationInfo station) {
         LOG.info("Cleaning up station: " + station.stationName);
-        update(station);
         boolean deleted = false;
         if (!station.active) {
             try {
@@ -691,15 +678,6 @@ public class StationManager {
     }
 
     /**
-     * Update the status of all stations.
-     */
-    synchronized void updateAll() {
-        for (StationInfo station : this.stations) {
-            update(station);
-        }
-    }
-
-    /**
      * Get a list of station directories from a list of IDs.
      * @param ids The list of station IDs
      * @return The list of station directories
@@ -733,7 +711,6 @@ public class StationManager {
             throw new IllegalArgumentException("Station ID does not exist: " + id);
         }
         StationInfo station = this.find(id);
-        update(station);
         if (!station.active) {
             throw new RuntimeException("Station is not active: " + station.stationName);
         }
@@ -742,5 +719,27 @@ public class StationManager {
             throw new RuntimeException("Station log file does not exist: " + logFile.getPath());
         }
         return new Tailer(logFile, listener, delayMillis, true);
+    }
+
+    class StationMonitor implements Runnable {
+
+        StationManager mgr = StationManager.this;
+
+        public void run() {
+            LOG.finest("StationMonitor is running...");
+            for (StationInfo station : mgr.getStations()) {
+                if (station.process != null) {
+                    station.active = station.process.isAlive();
+                    if (!station.active) {
+                        station.exitValue = station.process.exitValue();
+                        station.pid = -1L;
+                        station.process = null;
+                        LOG.info("Station " + station.stationName + " is now inactive with exit value: "
+                                + station.exitValue);
+                    }
+                }
+            }
+            LOG.finest("StationMonitor is done running");
+        }
     }
 }

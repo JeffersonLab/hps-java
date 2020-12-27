@@ -10,8 +10,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +33,8 @@ import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStation;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
+import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtTooManyException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -114,6 +119,12 @@ public final class Server {
      * The server work directory.
      */
     private File workDir;
+
+    private EtSystem etSystem;
+
+    private EtSystemOpenConfig etConfig;
+
+    ScheduledExecutorService exec = Executors.newScheduledThreadPool(2);
 
     /**
      * Handles a single client request.
@@ -205,7 +216,7 @@ public final class Server {
                     e.printStackTrace();
                 }
             }
-            LOG.fine("Done running client thread!");
+            LOG.fine("Done running client thread");
         }
 
         /**
@@ -424,7 +435,6 @@ public final class Server {
             if (ids.size() == 0) {
                 // Return info on all stations.
                 for (StationInfo station : stationManager.getStations()) {
-                    stationManager.update(station);
                     JSONObject jo = station.toJSON();
                     arr.put(jo);
                 }
@@ -437,7 +447,6 @@ public final class Server {
                         res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
                         break;
                     } else {
-                        stationManager.update(station);
                         JSONObject jo = station.toJSON();
                         arr.put(jo);
                     }
@@ -736,7 +745,7 @@ public final class Server {
 
             // Update active status of all stations.
             StationManager mgr = Server.this.getStationManager();
-            mgr.updateAll();
+            //mgr.updateAll();
 
             // Put station status counts.
             JSONObject stationRes = new JSONObject();
@@ -822,36 +831,24 @@ public final class Server {
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
      */
-    // TODO: Connection to ET ring should always be up
     synchronized private void getEtStatus(JSONObject jo, boolean verbose) {
-        EtSystem sys = null;
         try {
-            Property<String> buffer = stationProperties.get("et.buffer");
-            Property<String> host = stationProperties.get("et.host");
-            Property<Integer> port = stationProperties.get("et.port");
-
-            System.out.println("port.type="+port.type().getCanonicalName());
-
-            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(buffer.value(),
-                    host.value(), port.value());
-            sys = new EtSystem(etConfig, EtConstants.debugWarn);
-            sys.open();
-            jo.put("alive", sys.alive());
+            jo.put("alive", etSystem.alive());
             jo.put("host", etConfig.getHost());
             jo.put("port", etConfig.getTcpPort());
-            if (sys.alive()) {
-                jo.put("pid", sys.getPid());
-                jo.put("num_stations", sys.getNumStations());
-                jo.put("attachments", sys.getNumAttachments());
-                jo.put("attachments_max", sys.getAttachmentsMax());
+            if (etSystem.alive()) {
+                jo.put("pid", etSystem.getPid());
+                jo.put("num_stations", etSystem.getNumStations());
+                jo.put("attachments", etSystem.getNumAttachments());
+                jo.put("attachments_max", etSystem.getAttachmentsMax());
             }
             if (verbose) {
                 JSONObject joRes = new JSONObject();
                 final List<StationInfo> stations =
                         Server.this.getStationManager().getStations();
                 for (StationInfo station : stations) {
-                    if (sys.stationExists(station.stationName)) {
-                        EtStation etStation = sys.stationNameToObject(station.stationName);
+                    if (etSystem.stationExists(station.stationName)) {
+                        EtStation etStation = etSystem.stationNameToObject(station.stationName);
                         JSONObject joStat = new JSONObject();
                         joStat.put("usable", etStation.isUsable());
                         joStat.put("input_count", etStation.getInputCount());
@@ -865,10 +862,6 @@ public final class Server {
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error getting ET status", e);
             jo.put("error", e.getMessage());
-        } finally {
-            if (sys != null) {
-                sys.close();
-            }
         }
     }
 
@@ -876,23 +869,10 @@ public final class Server {
      * Get whether the ET system is alive or not.
      * @return True if ET system is alive; false if fail to connect
      */
-    /*
-    boolean isEtSystemAlive() {
-        try {
-            EtSystemOpenConfig etConfig = new EtSystemOpenConfig(this.stationConfig.getBufferName(),
-                    this.stationConfig.getHost(), this.stationConfig.getPort());
-            EtSystem sys = new EtSystem(etConfig, EtConstants.debugWarn);
-            sys.open();
-            try {
-                return sys.alive();
-            } finally {
-                sys.close();
-            }
-        } catch (Exception e) {
-            return false;
-        }
+    boolean isEtAlive() {
+        return etSystem.alive();
     }
-    */
+
 
     /**
      * Get ET station status from code.
@@ -925,18 +905,25 @@ public final class Server {
         } catch (ParseException e) {
             throw new RuntimeException("Error parsing command line", e);
         }
-        server.start();
+        try {
+            server.openEtConnection();
+            server.start();
+        } catch (EtException|IOException|EtTooManyException etEx) {
+            System.err.println("Failed to open ET system");
+            etEx.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Error starting server");
+            e.printStackTrace();
+        } finally {
+            server.shutdown();
+        }
     }
-
-
 
     /**
      * Create a new server instance.
      */
     Server() {
         this.stationManager = new StationManager(this);
-
-        // TODO: start process monitor here
     }
 
     /**
@@ -977,7 +964,7 @@ public final class Server {
      * Get the station manager.
      * @return The station manager
      */
-    public StationManager getStationManager() {
+    StationManager getStationManager() {
         return this.stationManager;
     }
 
@@ -1086,15 +1073,64 @@ public final class Server {
         }
     }
 
+    void openEtConnection() throws EtException, IOException, EtTooManyException {
+
+        LOG.config("Opening ET system...");
+        Property<String> buffer = stationProperties.get("et.buffer");
+        Property<String> host = stationProperties.get("et.host");
+        Property<Integer> port = stationProperties.get("et.port");
+        EtSystemOpenConfig etConfig = new EtSystemOpenConfig(buffer.value(),
+                    host.value(), port.value());
+        etSystem = new EtSystem(etConfig, EtConstants.debugWarn);
+        etSystem.open();
+
+        // Shutdown hook for ET cleanup
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    if (etSystem != null) {
+                        if (etSystem.alive()) {
+                            LOG.info("Closing ET system...");
+                            etSystem.close();
+                            LOG.info("ET system closed!");
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Run a monitoring thread to shutdown the server if ET system closes
+        exec.scheduleAtFixedRate(new EtMonitor(), 0, 5, TimeUnit.SECONDS);
+
+        LOG.config("Done opening ET system!");
+    }
+
+    EtSystem getEtSystem() {
+        return etSystem;
+    }
+
+    void shutdown() {
+        exec.shutdownNow();
+        //this.debugPrintThreads();
+        System.exit(0);
+    }
+
+    void debugPrintThreads() {
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        for (Thread thread : threadSet) {
+            System.err.println(thread.getName());
+        }
+    }
+
     /**
      * Start the server.
      */
-    void start() {
+    void start() throws Exception {
 
-        // TODO: Open connection to ET system here and leave open
-
-        // TODO: shutdown hook for cleanup
-
+        // Client connection loop
         LOG.info("Starting server on port: " + this.port);
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             while (true) {
@@ -1104,5 +1140,20 @@ public final class Server {
         } catch (IOException e) {
             throw new RuntimeException("Server exception", e);
         }
+    }
+
+    class EtMonitor implements Runnable {
+
+        @Override
+        public void run() {
+            LOG.finest("EtMonitor is running...");
+            if (!Server.this.etSystem.alive()) {
+                LOG.severe("ET connection went down!");
+                Server.this.etSystem = null;
+                Server.this.shutdown();
+            }
+            LOG.finest("EtMonitor is done running");
+        }
+
     }
 }
