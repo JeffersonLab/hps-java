@@ -25,8 +25,13 @@ import org.jlab.coda.et.EtStation;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
+import org.jlab.coda.et.exception.EtClosedException;
+import org.jlab.coda.et.exception.EtDeadException;
+import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtTooManyException;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioEvent;
+import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
@@ -111,13 +116,17 @@ public final class EvioFileProducer {
      * @param args the command line arguments
      */
     public static void main(final String[] args) {
-        EvioFileProducer efp = new EvioFileProducer();
+        EvioFileProducer producer = new EvioFileProducer();
         try {
-            efp.parse(args);
+            producer.parse(args);
         } catch (Exception e) {
             throw new RuntimeException("Error parsing command line", e);
         }
-        efp.run();
+        try {
+            producer.run();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -326,7 +335,7 @@ public final class EvioFileProducer {
         logConfig();
     }
 
-    private void run() {
+    private void run() throws Exception {
 
         EtSystem sys = null;
         EvioReader reader = null;
@@ -403,37 +412,37 @@ public final class EvioFileProducer {
                     }
 
                     // Write the next EVIO event to the EtEvent's buffer.
-                    LOG.finest("Writing to buffer...");
-                    final ByteBuffer buf = mevs[0].getDataBuffer();
-                    buf.order(ByteOrder.nativeOrder());
-                    final EventWriter writer = new EventWriter(buf, 100000, 100, null, null);
-                    writer.writeEvent(event);
-                    LOG.finest("Done writing to buffer!");
                     try {
-                        writer.close();
-                    } catch (final Exception e) {
-                        LOG.log(Level.WARNING, "Error while closing writer.", e);
-                    }
-                    mevs[0].setLength(buf.position());
-                    mevs[0].setByteOrder(ByteOrder.nativeOrder());
+                        LOG.finest("Writing to buffer...");
+                        final ByteBuffer buf = mevs[0].getDataBuffer();
+                        buf.order(ByteOrder.nativeOrder());
+                        final EventWriter writer = new EventWriter(buf, 100000, 100, null, null);
+                        writer.writeEvent(event);
+                        LOG.finest("Done writing to buffer!");
+                        try {
+                            writer.close();
+                        } catch (final Exception e) {
+                            LOG.log(Level.WARNING, "Error while closing writer.", e);
+                        }
+                        mevs[0].setLength(buf.position());
+                        mevs[0].setByteOrder(ByteOrder.nativeOrder());
 
-                    for (final EtEvent mev : mevs) {
-                        LOG.finest("event length = " + mev.getLength() + ", remaining bytes: "
-                                + mev.getDataBuffer().remaining());
-                    }
+                        for (final EtEvent mev : mevs) {
+                            LOG.finest("event length = " + mev.getLength() + ", remaining bytes: "
+                                    + mev.getDataBuffer().remaining());
+                        }
 
-                    // Put events onto the ET ring.
-                    LOG.finest("Putting events onto ET ring...");
-                    sys.putEvents(att, mevs);
-                    LOG.finest("Successfully wrote events to ET ring!");
+                        // Put events onto the ET ring.
+                        LOG.finest("Putting events onto ET ring...");
+                        sys.putEvents(att, mevs);
+                        LOG.finest("Successfully wrote events to ET ring!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 LOG.info(eventCount + " events were read from " + evioFile.getPath());
                 reader.close();
             }
-
-        } catch (final Exception e) { /* Catches all event processing errors. */
-            // This catches and re-throws all errors from processing the EVIO events and configuring the ET system.
-            throw new RuntimeException("Error streaming EVIO events to ET system", e);
         } finally {
             // Cleanup the EVIO reader if needed.
             if (reader != null && !reader.isClosed()) {
