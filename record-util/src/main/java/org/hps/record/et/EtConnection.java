@@ -28,10 +28,10 @@ import org.jlab.coda.et.exception.EtWakeUpException;
  * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class EtConnection {
-   
-    protected EtConnection() {        
+
+    protected EtConnection() {
     }
-    
+
     /**
      * Create an EtConnection with full list of configuration parameters.
      *
@@ -210,7 +210,7 @@ public class EtConnection {
      * @throws EtWakeUpException if <code>getEvents</code> throws this exception type
      * @throws EtClosedException if <code>getEvents</code> throws this exception type
      */
-    EtEvent[] readEtEvents() throws IOException, EtException, EtDeadException, EtEmptyException, EtBusyException,
+    public EtEvent[] readEtEvents() throws IOException, EtException, EtDeadException, EtEmptyException, EtBusyException,
             EtTimeoutException, EtWakeUpException, EtClosedException {
         return getEtSystem().getEvents(getEtAttachment(), this.waitMode, Modify.NOTHING, this.waitTime, this.chunkSize);
     }
