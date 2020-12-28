@@ -66,8 +66,10 @@
     </execute>
     <drivers>
 
-        <driver name="RemoteHistExampleDriver" type="org.hps.online.recon.example.HistExampleDriver">
+        <driver name="RemoteHistExampleDriver" type="org.hps.online.recon.aida.HistExampleDriver">
             <hostName>localhost</hostName>
+            <!-- Name of file that indicates remote tree setup was successful -->
+            <remoteTreeFileName>remoteTreeBind</remoteTreeFileName>
         </driver>
 
          <!-- Driver to reject "bad" events -->
