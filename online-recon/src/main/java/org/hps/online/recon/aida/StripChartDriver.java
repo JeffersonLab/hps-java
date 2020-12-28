@@ -1,4 +1,4 @@
-package org.hps.online.recon.example;
+package org.hps.online.recon.aida;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -28,6 +28,7 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * Time event processing and make plots in a remote AIDA tree
  * that can be accessed using an RMI client.
  */
+// TODO: Move to plotting package
 public class StripChartDriver extends Driver {
 
     static {

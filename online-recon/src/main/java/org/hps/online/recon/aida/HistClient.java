@@ -1,4 +1,4 @@
-package org.hps.online.recon.example;
+package org.hps.online.recon.aida;
 
 import java.awt.Component;
 import java.awt.event.WindowAdapter;
@@ -40,6 +40,7 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
  * Displays plots from the <code>RemoteChronoDriver</code>
  * through an RMI connection
  */
+// TODO: Move to plotting package
 public class HistClient {
 
     static {

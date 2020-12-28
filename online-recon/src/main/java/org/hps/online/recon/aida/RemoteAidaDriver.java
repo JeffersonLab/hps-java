@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.aida;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.logging.Logger;
 
+import org.hps.online.recon.Server;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -24,7 +25,13 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * network port, or it can be set using {{@link #setPort(int)}
  * from within lcsim xml. If they are both set, then the XML
  * will override the system setting.
+ *
+ * The {@link #setRemoteTreeFileName(String)} method can be used
+ * for crude interprocess communication by writing the remote tree
+ * bind URL to a file so that this information is available to
+ * other processes such as the {@link Server}.
  */
+// TODO: Move to plotting package (?)
 public abstract class RemoteAidaDriver extends Driver {
 
     private static final String PORT_PROPERTY = "remoteAidaPort";
@@ -112,6 +119,7 @@ public abstract class RemoteAidaDriver extends Driver {
             treeServer = new RemoteServer(tree, serverDuplex);
             rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
             if (this.remoteTreeFileName != null) {
+                // If activated then write the connection info to a file.
                 LOG.info("Writing remote tree info to: " + this.remoteTreeFileName);
                 File remoteTreeFile = new File(this.remoteTreeFileName);
                 FileOutputStream fos = new FileOutputStream(remoteTreeFile);
