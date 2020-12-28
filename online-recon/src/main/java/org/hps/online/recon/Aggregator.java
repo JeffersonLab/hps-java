@@ -46,7 +46,10 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * NOTE: This component is kept here as an example of a standalone program
  * for plot aggregation, but its functionality has been integrated into the
  * {@link Server}, so it should only be used in special circumstances.
+ *
+ * @deprecated Use {@link Server} with the included {@link InlineAggregator}
  */
+@Deprecated
 public class Aggregator {
 
     // Application return codes
