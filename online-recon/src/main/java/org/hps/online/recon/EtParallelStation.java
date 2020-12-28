@@ -20,6 +20,11 @@ class EtParallelStation extends EtConnection {
 
     private static final int STATION_POSITION = 1;
 
+    /**
+     * Create an ET connection from station properties
+     * @param props The station properties
+     * @throws Exception If there is an error opening the ET system
+     */
     EtParallelStation(StationProperties props) throws Exception {
 
         Property<String> host = props.get("et.host");
@@ -88,7 +93,7 @@ class EtParallelStation extends EtConnection {
      * Cleanup the connection by detaching the station and removing it from the ET system.
      */
     synchronized public void cleanup() {
-        LOGGER.fine("Cleaning up ET connection");
+        LOGGER.info("Cleaning up ET connection");
         try {
             LOGGER.fine("Checking if sys is alive");
             if (!this.sys.alive()) {
@@ -111,6 +116,6 @@ class EtParallelStation extends EtConnection {
             LOGGER.warning("Error during cleanup");
             e.printStackTrace();
         }
-        LOGGER.fine("Done cleaning up ET connection!");
+        LOGGER.info("Done cleaning up ET connection!");
     }
 }
