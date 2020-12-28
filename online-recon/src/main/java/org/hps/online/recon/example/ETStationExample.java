@@ -27,7 +27,10 @@ import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
 
 /**
- * Example ET station configured as parallel and round-robin
+ * Example ET event processing station configured as parallel and round-robin
+ *
+ * This mimics the behavior of the online recon
+ * {@link org.hps.online.recon.Station} for testing purposes.
  */
 public class ETStationExample {
 
@@ -147,11 +150,8 @@ public class ETStationExample {
                     log.info("LCIO num: " + lcio.getEventNumber());
                 }
             }
-
-            // Is this needed???
-            //log.info("Putting events...");
-            //sys.putEvents(att, evts);
-            //log.info("Done putting events!");
+            // Dump events so that they don't fill up the ET buffer
+            sys.dumpEvents(att, evts);
         }
     }
 }

@@ -12,7 +12,10 @@ import hep.aida.ref.remote.rmi.RmiRemoteUtils;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 import hep.aida.ref.remote.rmi.interfaces.RmiServer;
 
-public class RmiList {
+/**
+ * RMI and remote tree access debugging
+ */
+public class RmiDebug {
 
     public static void main(String[] args) {
 
