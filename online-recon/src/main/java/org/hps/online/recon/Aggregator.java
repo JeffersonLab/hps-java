@@ -42,6 +42,10 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
  * </pre>
  *
  * Currently handles only 1D and 2D histograms.
+ *
+ * NOTE: This component is kept here as an example of a standalone program
+ * for plot aggregation, but its functionality has been integrated into the
+ * {@link Server}, so it should only be used in special circumstances.
  */
 public class Aggregator {
 

@@ -32,16 +32,20 @@ public class OnlineEventBus extends EventBus {
 
     private final Logger logger = Logger.getLogger(OnlineEventBus.class.getPackage().getName());
 
+    // Store a collection of all event numbers processed for debugging
+    // TODO: Make this a station property and pass it to the event bus when running the job
+    private final boolean STORE_EVENT_NUMBERS = true;
+
     public OnlineEventBus(Station station) {
-        logger.config("Initializing event bus for station: " + station.getStationName());
+        logger.config("Initializing online event bus for station: " + station.getStationName());
         this.station = station;
         this.conn = this.station.getEtConnection();
         register(this);
         register(new EtListener(this));
-        register(new ConditionsListener(this));
+        register(new ConditionsListener(this)); // FIXME: Only add this if conditions weren't initialized
         register(new EvioListener(this));
-        register(new LcioListener(this)); // dead event sink
-        logger.config("Event bus initialized!");
+        register(new LcioListener(this, STORE_EVENT_NUMBERS));
+        logger.config("Online event bus initialized");
     }
 
     /**
@@ -94,6 +98,7 @@ public class OnlineEventBus extends EventBus {
                 e.printStackTrace();
             }
         }
+        // This will call the <code>endOfData()</code> methods on the drivers
         getStation().getJobManager().getDriverAdapter().finish(null);
         logger.info("Event processing is stopped!");
     }
@@ -124,21 +129,35 @@ public class OnlineEventBus extends EventBus {
     }
 
     /**
-     * The user can stop event processing by interrupting this thread.
+     * The user can stop event processing by accessing and then interrupting this thread.
      * @return The event processing thread
      */
     public Thread getEventProcessingThread() {
         return this.eventProc;
     }
 
+    /**
+     * Get the logger for the event bus
+     * @return The logger for the event bus
+     */
     Logger getLogger() {
         return this.logger;
     }
 
+    /**
+     * Get the {@link org.hps.online.recon.Station} associated with this event bus
+     * @return The {@link org.hps.online.recon.Station} associated with this event bus
+     */
     Station getStation() {
         return this.station;
     }
 
+    /**
+     * A thread for running the event bus loop
+     *
+     * This shouldn't be used directly. Instead call the {@link OnlineEventBus#startProcessing()}
+     * method.
+     */
     class EventProcessingThread extends Thread {
 
         final OnlineEventBus eventbus = OnlineEventBus.this;

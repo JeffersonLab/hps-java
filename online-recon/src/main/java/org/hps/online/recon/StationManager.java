@@ -25,12 +25,14 @@ import org.jlab.coda.et.EtSystem;
 import org.json.JSONObject;
 
 /**
- * Manages online reconstruction stations.
+ * Manages online reconstruction stations by creating, starting, and stopping them,
+ * as well as setting up the connection to their remote AIDA trees for the
+ * {@link InlineAggregator}.
  */
 public class StationManager {
 
     /**
-     * Information for managing a single online reconstruction station.
+     * Information for managing a single online reconstruction station
      */
     class StationInfo {
 
@@ -119,6 +121,10 @@ public class StationManager {
 
     StationMonitor stationMonitor = new StationMonitor();
 
+    /**
+     * Create a new instance of this class
+     * @param server Reference to the containing {@link Server}
+     */
     StationManager(Server server) {
         this.server = server;
 
@@ -202,7 +208,8 @@ public class StationManager {
             station.pid = getPid(p);
             station.active = true;
 
-            // Add remote tree bind by reading file written by the remote AIDA driver.
+            // Add remote tree bind by reading a file written by the remote AIDA driver
+            // which contains the URL for connecting to the station.
             final String dirPath = dir.getCanonicalPath();
             new Thread() {
                 public void run() {

@@ -5,7 +5,7 @@
  * in its own process.
  *
  * To run online reconstruction on a host machine, the {@link Server} must be started
- * with a set of properties defined in {@link StationConfiguration} that specifies the
+ * with a set of properties defined in {@link StationProperties} that specifies the
  * parameters for the ET system and the LCSim reconstruction.
  *
  * The {@link Client} class is used to send commands to the {@link Server}.
@@ -31,11 +31,5 @@
  * java -jar hps-distribution-bin.jar org.hps.online.recon.Server --help
  * </code>
  * </pre>
- *
- * An optional task runs server-side to automatically add output ROOT plots
- * periodically and write them to an output target file.
- *
- * @author jeremym
- * @version 1.0
  */
 package org.hps.online.recon;

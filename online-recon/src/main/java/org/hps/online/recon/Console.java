@@ -17,8 +17,6 @@ import org.hps.online.recon.commands.CommandFactory;
 
 /**
  * Interactive console for online reconstruction client.
- * 
- * @author jeremym
  */
 public class Console {
 
@@ -31,12 +29,12 @@ public class Console {
      * True to echo commands as they are executed.
      */
     private boolean echo = false;
-    
+
     /**
      * Factory class for creating <code>Command</code> objects.
      */
     private CommandFactory cf = new CommandFactory();
-    
+
     /**
      * Class constructor.
      * @param client The reference to the client object
@@ -44,7 +42,7 @@ public class Console {
     Console(Client client) {
         this.client = client;
     }
-    
+
     /**
      * Set whether to echo commands back to the terminal.
      * @param echo True to echo commands back to the terminal
@@ -52,18 +50,18 @@ public class Console {
     void setEcho(boolean echo) {
         this.echo = echo;
     }
-    
+
     /**
      * Run the console, accepting and executing user input.
      */
     void run() {
         String userInput;
-        
+
         Scanner sn = new Scanner(System.in);
 
         System.out.println("HPS Online Reconstruction");
         System.out.println("Type 'help' or 'help [command]' for more information or 'exit' to quit.");
-        
+
         while (true) {
             System.out.print("online> ");
             userInput = sn.nextLine().trim();
@@ -78,10 +76,10 @@ public class Console {
             }
 
         }
-        
+
         sn.close();
     }
-    
+
     /**
      * Execute a line of input.
      * @param userInput The user input to execute
@@ -106,7 +104,7 @@ public class Console {
                 } else if (cmdStr.equals("help")) {
                     if (args.size() == 0) {
                         printHelp();
-                    } else {                        
+                    } else {
                         printCommandHelp(args.get(0));
                     }
                 } else if (cmdStr.equals("port")) {
@@ -135,8 +133,8 @@ public class Console {
                             System.out.println("Output is being written to the terminal.");
                         }
                     } else {
-                        String filename = args.get(0);                        
-                        client.setOutputFile(filename);                        
+                        String filename = args.get(0);
+                        client.setOutputFile(filename);
                     }
                 } else if (cmdStr.equals("terminal")) {
                     if (client.getOutputFile() != null) {
@@ -173,7 +171,7 @@ public class Console {
         }
         return false;
     }
-    
+
     /**
      * Execute a file containing commands.
      * @param file The path to the file
@@ -188,7 +186,7 @@ public class Console {
             }
         }
     }
-    
+
     /**
      * Print help for the interactive console.
      */
@@ -208,7 +206,7 @@ public class Console {
             System.out.println("    " + command + " - " + cf.create(command).getDescription());
         }
     }
-    
+
     /**
      * Print the help for a specific command.
      * @param command The name of the command to print

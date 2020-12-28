@@ -66,6 +66,10 @@ public class StationProperties extends PropertyStore {
         });
     }
 
+    /**
+     * Copy constructor
+     * @param sp The source properties to copy into the new object
+     */
     public StationProperties(StationProperties sp) {
         for (Property<?> p : sp.props.values()) {
             add((Property<?>) p.clone());

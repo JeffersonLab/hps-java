@@ -39,9 +39,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Server for managing instances of the online reconstruction.
+ * Server for managing reconstruction {@link Station} instances
  *
- * Accepts commands from the Client class and sends back a JSON result.
+ * Accepts commands from the {@link Client} and sends back a JSON result.
+ *
+ * The server will fail to start if the ET system does not open, and it
+ * will automatically shutdown if the ET connection goes down.
  */
 public final class Server {
 
@@ -120,12 +123,24 @@ public final class Server {
      */
     private File workDir;
 
+    /**
+     * Reference to active ET system
+     */
     private EtSystem etSystem;
 
+    /**
+     * Reference to the current ET config
+     */
     private EtSystemOpenConfig etConfig;
 
+    /**
+     * Executor for executing various tasks such as the ET and station monitors
+     */
     ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
 
+    /**
+     * Remote AIDA plot aggregator
+     */
     final InlineAggregator agg = new InlineAggregator();
 
     /**
@@ -141,7 +156,7 @@ public final class Server {
 
         /**
          * Handle client request by dispatching to a command handler and
-         * sending back response to client.
+         * sending a response back to the client.
          */
         public void run() {
             try {
@@ -229,6 +244,7 @@ public final class Server {
          * @throws IOException
          * @throws InterruptedException
          */
+        // FIXME: Clean this up (can it be made less complicated?)
         private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in)
                 throws IOException, InterruptedException {
 
@@ -280,7 +296,7 @@ public final class Server {
          * @return The <code>CommandHandler</code> or null if does not exist
          */
         CommandHandler getCommandHandler(String command) {
-            // TODO: Setup a map for this dispatch
+            // TODO: Setup a map for this command dispatch
             CommandHandler handler = null;
             if (command.equals("create")) {
                 handler = new CreateCommandHandler();
@@ -326,7 +342,7 @@ public final class Server {
     }
 
     /**
-     * Handler for a client command on the server.
+     * Server-side handler for a client command
      */
     abstract class CommandHandler {
 
@@ -354,6 +370,10 @@ public final class Server {
     abstract class CommandResult {
     }
 
+    /**
+     * Connection that handlers can throw if there is a command
+     * processing error
+     */
     @SuppressWarnings("serial")
     class CommandException extends Exception {
 
@@ -368,7 +388,7 @@ public final class Server {
 
     /**
      * Return a result which describes result of command execution
-     * i.e. success or failure.
+     * i.e. success or failure (JSON format).
      */
     public class CommandStatus extends CommandResult {
 
@@ -593,6 +613,10 @@ public final class Server {
         }
     }
 
+    /**
+     * Handle the <code>prop-set</code> command.
+     *
+     */
     class PropSetCommandHandler extends CommandHandler {
         CommandResult execute(JSONObject parameters) throws CommandException {
             String name = parameters.getString("name");
@@ -921,6 +945,29 @@ public final class Server {
     }
 
     /**
+     * Interrupt all active threads in the server process and stop them, if necessary
+     *
+     * FIXME: This is very hacky and maybe not advisable!
+     */
+    private void cleanUpThreads() {
+        LOG.fine("Cleaning up threads...");
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        for (Thread thread : threadSet) {
+            LOG.fine("Cleaning up thread: " + thread.getName());
+            thread.interrupt();
+            try {
+                thread.join(1000L);
+            } catch (InterruptedException e) {
+            }
+            if (thread.isAlive()) {
+                thread.stop();
+            }
+            LOG.fine("Done cleaning up thread");
+        }
+        LOG.fine("Done cleaning up threads");
+    }
+
+    /**
      * Create a new server instance.
      */
     Server() {
@@ -933,7 +980,7 @@ public final class Server {
             throw new RuntimeException("Failed to connect aggregator", e);
         }
         // Run the plot aggregator every 5 seconds
-        exec.scheduleAtFixedRate(agg, 0, 5, TimeUnit.SECONDS);
+        exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -1020,6 +1067,7 @@ public final class Server {
      * @param args The command line arguments
      * @throws ParseException If there is a problem parsing the command line
      */
+    // TODO: Read all settings from a config file instead using PropertySet class
     void parse(String args[]) throws ParseException {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
@@ -1083,6 +1131,12 @@ public final class Server {
         }
     }
 
+    /**
+     * Open a connection to the ET system
+     * @throws EtException If there is an error connecting
+     * @throws IOException If there is an IO error
+     * @throws EtTooManyException If there are too many ET connections already
+     */
     void openEtConnection() throws EtException, IOException, EtTooManyException {
 
         LOG.config("Opening ET system...");
@@ -1122,6 +1176,10 @@ public final class Server {
         return etSystem;
     }
 
+    /**
+     * Shutdown the server, attempting to cleanup all active
+     * components, stations, and threads
+     */
     void shutdown() {
 
         LOG.info("Shutting down monitoring threads...");
@@ -1130,8 +1188,13 @@ public final class Server {
         LOG.info("Disconnecting aggregator...");
         agg.disconnect();
 
-        LOG.info("Active threads...");
-        this.debugPrintThreads();
+        stationManager.stopAll();
+
+        //LOG.info("Active threads...");
+        //this.debugPrintThreads();
+
+        // TODO: Check if this is necessary
+        cleanUpThreads();
 
         LOG.info("Exiting application...");
         System.exit(0);
@@ -1161,6 +1224,10 @@ public final class Server {
         }
     }
 
+    /**
+     * Continuously monitor the ET system and exit the application
+     * if it goes down (run on a scheduled thread executor)
+     */
     class EtMonitor implements Runnable {
 
         @Override

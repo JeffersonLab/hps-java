@@ -33,12 +33,24 @@ public class Station {
      */
     private StationProperties props = new StationProperties();
 
+    /**
+     * Reference to the lcsim job manager
+     */
     private JobManager mgr;
 
+    /**
+     * Reference to the EVIO event builder
+     */
     private LCSimEventBuilder builder;
 
+    /**
+     * The ET connection for managing the station
+     */
     private EtConnection conn;
 
+    /**
+     * The name of the station in the ET system
+     */
     private String stationName;
 
     /**
@@ -57,18 +69,34 @@ public class Station {
         return this.props;
     }
 
+    /**
+     * Get the job manager
+     * @return The job manager
+     */
     public JobManager getJobManager() {
         return mgr;
     }
 
+    /**
+     * Get the event builder
+     * @return The event builder
+     */
     public LCSimEventBuilder getEventBuilder() {
         return builder;
     }
 
+    /**
+     * Get the name of the station in the ET system
+     * @return The name of the station in the ET system
+     */
     public String getStationName() {
         return stationName;
     }
 
+    /**
+     * Get the ET connection
+     * @return The ET connection
+     */
     public EtConnection getEtConnection() {
         return this.conn;
     }
@@ -218,7 +246,8 @@ public class Station {
     }
 
     /**
-     * Run the online reconstruction station.
+     * Run the online reconstruction station by streaming ET events
+     * using the {@link org.hps.online.recon.eventbus.OnlineEventBus}
      */
     void run() {
         LOG.info("Started processing: " + new Date().toString());

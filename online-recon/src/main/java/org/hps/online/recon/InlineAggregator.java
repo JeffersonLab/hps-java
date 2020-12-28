@@ -33,7 +33,10 @@ public class InlineAggregator implements Runnable {
 
     private static Logger LOG = Logger.getLogger(InlineAggregator.class.getPackage().getName());
 
+    /** Data where remote AIDA trees are mounted. */
     private static final String REMOTES_DIR = "/remotes";
+
+    /** Directory where plots are aggregated. */
     private static final String AGG_DIR = "/combined";
 
     /** Network port; set with "port" property */
@@ -45,13 +48,15 @@ public class InlineAggregator implements Runnable {
     /** Name of the host to bind; set with "host" property */
     private String hostName = null;
 
-    /** Interval between aggregation; set with "interval" property */
+    /** Interval between aggregation in milliseconds; set with "interval" property */
     private Long updateInterval = 5000L;
 
+    /** URLs of the remote AIDA trees that are currently mounted
+     * e.g. <pre>//localhost:4321/MyTree</pre>. */
     private Set<String> remotes = new HashSet<String>();
 
     /**
-     * AIDA objects
+     * AIDA objects for the primary tree
      */
     private IAnalysisFactory af = IAnalysisFactory.create();
     private ITreeFactory tf = af.createTreeFactory();
@@ -68,6 +73,9 @@ public class InlineAggregator implements Runnable {
      */
     private volatile boolean updatable = false;
 
+    /**
+     * Create an instance of the aggregator
+     */
     public InlineAggregator() {
     }
 
@@ -91,6 +99,10 @@ public class InlineAggregator implements Runnable {
         return this.updateInterval;
     }
 
+    /**
+     * Open the main AIDA remote tree
+     * @throws IOException If there is an error when opening the tree
+     */
     synchronized void connect() throws IOException {
         if (this.hostName == null) {
             this.hostName = InetAddress.getLocalHost().getHostName();
@@ -110,15 +122,39 @@ public class InlineAggregator implements Runnable {
         LOG.config("Done creating aggregator server tree!");
     }
 
+    /**
+     * Get the name of the directory for combining plots from a
+     * tree bind name (URL)
+     * @param remoteName The tree bind name
+     * @return The AIDA directory for combining plots
+     */
     private static String toAggregateName(String remoteName) {
         String[] sp = remoteName.split("/");
+        if (sp.length < 3) {
+            throw new IllegalArgumentException("Bad remote name: " + remoteName);
+        }
         return remoteName.replace(REMOTES_DIR + "/" + sp[2], AGG_DIR);
     }
 
+    /**
+     * Convert tree bind name (URL) to an AIDA directory
+     * @param treeBindName The tree bind name
+     * @return The AIDA directory
+     */
     static String toMountName(String treeBindName) {
-        return REMOTES_DIR + "/" + treeBindName.replace("//", "").replace("/", "_").replace(":", "_").replace(".", "_");
+        return REMOTES_DIR + "/" + treeBindName.replace("//", "")
+                .replace("/", "_")
+                .replace(":", "_")
+                .replace(".", "_");
     }
 
+    /**
+     * List object names at the path in the AIDA tree
+     * @param path The path in the tree
+     * @param recursive Whether objects should be lised recursively
+     * @param type Filter by object type (use <code>null</code> for all)
+     * @return A list of the full object paths in the tree
+     */
     private String[] listObjectNames(String path, boolean recursive, String type) {
         String[] names = null;
         if (type != null) {
@@ -148,6 +184,10 @@ public class InlineAggregator implements Runnable {
         return names;
     }
 
+    /**
+     * Clear the aggregated plots in the tree (does not do anything
+     * to the remote mounted trees)
+     */
     private synchronized void clearTree() {
         LOG.fine("Clearing tree...");
         String[] objectNames = listObjectNames(AGG_DIR, true, null);
@@ -163,6 +203,10 @@ public class InlineAggregator implements Runnable {
         LOG.fine("Done clearing tree");
     }
 
+    /**
+     * Update the aggregated plots by adding all the histograms from the remote
+     * trees together
+     */
     private synchronized void update() {
         LOG.fine("Aggregator is updating plots...");
         try {
@@ -195,6 +239,11 @@ public class InlineAggregator implements Runnable {
         LOG.fine("Aggregator is done updating plots");
     }
 
+    /**
+     * Add an AIDA object to another
+     * @param srcName The source AIDA object
+     * @param obj The target AIDAobject
+     */
     private void add(String srcName, IManagedObject obj) {
         if (obj instanceof IBaseHistogram) {
             LOG.fine("Adding: " + srcName);
@@ -211,6 +260,12 @@ public class InlineAggregator implements Runnable {
         }
     }
 
+    /**
+     * Disconnect the aggregator
+     *
+     * The object is unusable after this unless {@link #connect()}
+     * is called again.
+     */
     synchronized void disconnect() {
 
         // Flag as invalid for updates
@@ -241,6 +296,11 @@ public class InlineAggregator implements Runnable {
         LOG.info("Done disconnecting aggregator");
     }
 
+    /**
+     * Add a new remote AIDA tree
+     * @param remoteTreeBind The URL of the remote tree
+     * @throws IOException If there is an exception opening the remote tree
+     */
     synchronized void addRemote(String remoteTreeBind) throws IOException {
         try {
             updatable = false;
@@ -274,6 +334,10 @@ public class InlineAggregator implements Runnable {
         }
     }
 
+    /**
+     * Unmount a remote tree e.g. when a station goes inactive
+     * @param remoteTreeBind The URL of the remote tree
+     */
     synchronized void unmount(String remoteTreeBind) {
         try {
             updatable = false;
@@ -290,11 +354,17 @@ public class InlineAggregator implements Runnable {
         }
     }
 
+    /**
+     * Clear the aggregated plots and then add all the remote plots together
+     * (run periodically on a scheduled thread executor)
+     */
     public void run() {
         if (updatable && remotes.size() > 0) {
             clearTree();
             update();
         } else {
+            // This can happen if there are no remote trees, a tree is being mounted/dismounted,
+            // or the main tree has been disconnected.
             LOG.warning("Skipping aggregation because not updatable or no remotes were added");
         }
     }

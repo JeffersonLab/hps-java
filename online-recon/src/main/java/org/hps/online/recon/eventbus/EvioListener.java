@@ -23,6 +23,14 @@ public class EvioListener {
         this.builder = eventbus.getStation().getEventBuilder();
     }
 
+    /**
+     * Receive an EVIO event, convert it to raw LCIO using the
+     * event builder, and then process it using the job manager
+     * to perform reconstruction. The LCIO event is then posted
+     * to the event bus.
+     *
+     * @param evioEvent The input EVIO event
+     */
     @Subscribe
     public void receiveEvioAndPostLcio(EvioEvent evioEvent) {
         try {

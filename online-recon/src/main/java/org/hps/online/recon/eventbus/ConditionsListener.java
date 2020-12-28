@@ -39,7 +39,7 @@ public class ConditionsListener {
 
         if (run != null) {
             DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
-            if (mgr.getRun() != run || !mgr.isInitialized()) {
+            if ((mgr.getRun() != run || !mgr.isInitialized()) && !mgr.isFrozen()) {
                 try {
                     Property<String> detector =
                             eventbus.getStation().getProperties().get("lcsim.detector");

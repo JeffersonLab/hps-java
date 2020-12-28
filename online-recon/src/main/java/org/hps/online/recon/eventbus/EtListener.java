@@ -19,6 +19,11 @@ public class EtListener {
         this.eventbus = eventbus;
     }
 
+    /**
+     * Convert ET events to EVIO and post them to the event bus.
+     * @param etEvent The input ET event
+     * @throws Exception If there is an error converting the ET data to EVIO
+     */
     @Subscribe
     public void receiveEtAndPostEvio(EtEvent etEvent) throws Exception {
         try {
