@@ -208,7 +208,7 @@ public class InlineAggregator implements Runnable {
      * trees together
      */
     private synchronized void update() {
-        LOG.fine("Aggregator is updating plots...");
+        LOG.finer("Aggregator is updating plots...");
         try {
             String[] dirs = this.listObjectNames(REMOTES_DIR, false, null);
             for (String dir : dirs) {
@@ -236,7 +236,7 @@ public class InlineAggregator implements Runnable {
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error updating plots", e);
         }
-        LOG.fine("Aggregator is done updating plots");
+        LOG.finer("Aggregator is done updating plots");
     }
 
     /**
@@ -246,17 +246,17 @@ public class InlineAggregator implements Runnable {
      */
     private void add(String srcName, IManagedObject obj) {
         if (obj instanceof IBaseHistogram) {
-            LOG.fine("Adding: " + srcName);
+            LOG.finer("Adding: " + srcName);
             IBaseHistogram srcBase = (IBaseHistogram) serverTree.find(srcName);
-            LOG.fine("src entries: " + srcBase.entries());
+            LOG.finer("src entries: " + srcBase.entries());
             IBaseHistogram tgtBase = (IBaseHistogram) obj;
-            LOG.fine("target entries before: " + tgtBase.entries());
+            LOG.finer("target entries before: " + tgtBase.entries());
             if (obj instanceof IHistogram1D) {
                 ((IHistogram1D) obj).add((IHistogram1D) serverTree.find(srcName));
             } else if (obj instanceof IHistogram2D) {
                 ((IHistogram2D) obj).add((IHistogram2D) serverTree.find(srcName));
             }
-            LOG.fine("target entries after: " + tgtBase.entries());
+            LOG.finer("target entries after: " + tgtBase.entries());
         }
     }
 
@@ -312,7 +312,7 @@ public class InlineAggregator implements Runnable {
 
             LOG.info("Creating remote tree: " + remoteTreeBind);
             remoteTree = tf.create(remoteTreeBind, RmiStoreFactory.storeType, true, false, options);
-            LOG.info("Done creating remote tree!");
+            LOG.info("Done creating remote tree");
             String mountName = toMountName(remoteTreeBind);
             LOG.info("Mounting remote tree to: " + mountName);
             serverTree.mount(mountName, remoteTree, "/");
@@ -328,7 +328,7 @@ public class InlineAggregator implements Runnable {
 
             remotes.add(remoteTreeBind);
             LOG.info("Number of remotes after add: " + remotes.size());
-            LOG.info("Done adding remote");
+            LOG.info("Done adding remote tree");
         } finally {
             updatable = true;
         }

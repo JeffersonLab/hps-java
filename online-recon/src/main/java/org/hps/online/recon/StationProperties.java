@@ -1,7 +1,7 @@
 package org.hps.online.recon;
 
 import org.hps.evio.LCSimEngRunEventBuilder;
-import org.hps.online.recon.properties.BooleanProperty;
+//import org.hps.online.recon.properties.BooleanProperty;
 import org.hps.online.recon.properties.IntegerProperty;
 import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyStore;
@@ -44,11 +44,11 @@ public class StationProperties extends PropertyStore {
                 new StringProperty ( "lcsim.detector",        "Name of detector",               null,           true),
                 new StringProperty ( "lcsim.steering",        "Steering resource or file",      null,           true),
                 new IntegerProperty( "lcsim.run",             "Run number for conditions",      null,           false),
-                new IntegerProperty( "lcsim.remoteAidaPort",  "Port for remote AIDA",           2001,           true),
+                new IntegerProperty( "lcsim.remoteAidaPort",  "Port for remote AIDA",           null,           true),
                 new StringProperty ( "lcsim.conditions",      "Conditions URL",                 null,           false),
                 new StringProperty(  "lcsim.tag",             "Conditions tag",                 null,           false),
-                new IntegerProperty( "lcsim.maxEvents",       "Max events to process",          -1,             false),
-                new BooleanProperty( "lcsim.freeze",          "Freeze conditions post-init",    true,           false),
+                //new IntegerProperty( "lcsim.maxEvents",       "Max events to process",          -1,             false),
+                //new BooleanProperty( "lcsim.freeze",          "Freeze conditions post-init",    true,           false),
                 new StringProperty(  "lcsim.builder",         "LCIO event builder",             BUILDER,        true),
                 new StringProperty ( "station.outputName",    "Base name for output files",     "output",       true),
                 new StringProperty ( "station.outputDir",     "Directory for output files",     DIR,            true),
@@ -62,7 +62,7 @@ public class StationProperties extends PropertyStore {
                 new IntegerProperty( "et.mode",               "Mode when getting events",       MODE.ordinal(), false),
                 new IntegerProperty( "et.chunk",              "Chunk size when getting events", 1,              false),
                 new IntegerProperty( "et.prescale",           "Event prescale factor",          1,              false),
-                new IntegerProperty( "et.connectionAttempts", "ET connection attempts",         10,             false)
+                new IntegerProperty( "et.connectionAttempts", "Max ET connection attempts",     10,             false)
         });
     }
 

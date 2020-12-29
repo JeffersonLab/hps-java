@@ -157,6 +157,7 @@ public class StationManager {
 
     /**
      * Start an online reconstruction station's system process.
+     *
      * @param station The station to start
      * @throws IOException If there is a problem starting the station's process
      */
@@ -210,11 +211,20 @@ public class StationManager {
 
             // Add remote tree bind by reading a file written by the remote AIDA driver
             // which contains the URL for connecting to the station.
-            final String dirPath = dir.getCanonicalPath();
+            /*
+
+            final File remoteTreeFile = ;
             new Thread() {
                 public void run() {
-                    File remoteTreeFile = new File(dirPath + File.separator + "remoteTreeBind");
-                    while (true) {
+                    int maxAttempts = 10;
+                    for (int i = 0; i < maxAttempts; i++) {
+                        // Wait 10 seconds before checking for the file as station is just starting up...
+                        try {
+                            Thread.sleep(10000L);
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         // Check for file with remote tree bind information written by the driver
                         if (remoteTreeFile.exists()) {
                             try {
@@ -232,21 +242,51 @@ public class StationManager {
                                 break;
                             }
                         } else {
-                            LOG.warning("Remote tree file does not exist: " + remoteTreeFile);
-                        }
-                        // Wait awhile before checking for the file again
-                        try {
-                            Thread.sleep(5000L);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            LOG.fine("Remote tree file does not exist (yet): " + remoteTreeFile);
                         }
                     }
+                    LOG.warning("Failed to find remote tree bind information from: " + remoteTreeFile);
+                    LOG.warning("Stop and then restart the station to try again...");
                 }
             }.start();
+            */
+
+            // FIXME: This may block forever if the file never shows up... :(
+            // FIXME: We could also just come up with a scheme like host:2000+station_num:stationName
+            // to figure out the remote AIDA address
+            final String remoteAidaPath = dir.getCanonicalPath() + File.separator + "remoteTreeBind";
+            setupRemoteAida(station, new File(remoteAidaPath));
 
             LOG.info("Successfully started station: " + station.stationName);
         } else {
             LOG.warning("Station is already active: " + station.stationName);
+        }
+    }
+
+    void setupRemoteAida(StationInfo station, final File remoteTreeFile) throws IOException {
+        while (!remoteTreeFile.exists()) {
+            // Wait 10 seconds before checking for the file as station is starting up...
+            try {
+                Thread.sleep(10000L);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                break;
+            }
+            // Check for file with remote tree bind information written by the driver
+            if (remoteTreeFile.exists()) {
+                InputStream in = new FileInputStream(remoteTreeFile);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                String remoteTreeBind = reader.readLine().trim();
+                station.remoteTreeBind = remoteTreeBind;
+                reader.close();
+                LOG.info("Adding station remote tree bind: " + remoteTreeBind);
+                server.agg.addRemote(station.remoteTreeBind);
+                LOG.info("Done adding station remote tree bind");
+                break;
+            } else {
+                LOG.fine("Remote tree file does not exist yet: " + remoteTreeFile);
+            }
         }
     }
 
