@@ -53,6 +53,7 @@ public class InlineAggregator implements Runnable {
 
     /** URLs of the remote AIDA trees that are currently mounted
      * e.g. <pre>//localhost:4321/MyTree</pre>. */
+    // TODO: Make this a map of tree bind names to their ITree objects
     private Set<String> remotes = new HashSet<String>();
 
     /**
@@ -74,7 +75,7 @@ public class InlineAggregator implements Runnable {
     private volatile boolean updatable = false;
 
     /**
-     * Create an instance of the aggregator
+     * Create an instance of the plot aggregator
      */
     public InlineAggregator() {
     }
@@ -302,6 +303,10 @@ public class InlineAggregator implements Runnable {
      * @throws IOException If there is an exception opening the remote tree
      */
     synchronized void addRemote(String remoteTreeBind) throws IOException {
+        if (remoteTreeBind == null) {
+            LOG.warning("remoteTreeBind was null");
+            return;
+        }
         try {
             updatable = false;
 
@@ -327,8 +332,8 @@ public class InlineAggregator implements Runnable {
             }
 
             remotes.add(remoteTreeBind);
+            LOG.info("Done adding remote tree: " + remoteTreeBind);
             LOG.info("Number of remotes after add: " + remotes.size());
-            LOG.info("Done adding remote tree");
         } finally {
             updatable = true;
         }
@@ -339,14 +344,16 @@ public class InlineAggregator implements Runnable {
      * @param remoteTreeBind The URL of the remote tree
      */
     synchronized void unmount(String remoteTreeBind) {
+        LOG.info("Unmounting remote tree: " + remoteTreeBind);
         try {
             updatable = false;
             String path = toMountName(remoteTreeBind);
             LOG.info("Unmounting: " + path);
+            // TODO: check if path exists here first...
             this.serverTree.unmount(path);
-            remotes.remove(remoteTreeBind); // TODO: Check that this works okay
+            remotes.remove(remoteTreeBind); // TODO: Double check that this works
             LOG.info("Number of remotes after remove: " + remotes.size());
-            LOG.info("Done unmounting");
+            LOG.info("Done unmounting remote tree: " + remoteTreeBind);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error unmounting tree", e);
         } finally {
@@ -365,7 +372,7 @@ public class InlineAggregator implements Runnable {
         } else {
             // This can happen if there are no remote trees, a tree is being mounted/dismounted,
             // or the main tree has been disconnected.
-            LOG.warning("Skipping aggregation because not updatable or no remotes were added");
+            LOG.finest("Skipping aggregation because not updatable or no remotes were added");
         }
     }
 }

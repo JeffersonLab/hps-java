@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
 import org.hps.online.recon.eventbus.OnlineEventBus;
@@ -106,6 +105,7 @@ public class Station {
      * @param args The command line arguments
      */
     public static void main(String args[]) {
+        LOG.info("Station.main");
         if (args.length == 0) {
             throw new RuntimeException("Missing configuration properties file");
         }
@@ -144,7 +144,7 @@ public class Station {
         Property<String> tag = props.get("lcsim.tag");
         Property<String> builderClass = props.get("lcsim.builder");
         Property<String> conditionsUrl = props.get("lcsim.conditions");
-        Property<Integer> remoteAidaPort = props.get("lcsim.remoteAidaPort");
+        Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
 
         LOG.config("Station properties: " + props.toJSON().toString());
 
@@ -154,30 +154,26 @@ public class Station {
             LOG.config("Conditions URL: " + conditionsUrl.value());
         }
 
-        // Remote AIDA port
-        if (remoteAidaPort.valid()) {
-            System.setProperty("remoteAidaPort", remoteAidaPort.value().toString());
-            LOG.config("Remote AIDA port: " + remoteAidaPort.value());
-        }
-
         // Setup the condition system from properties.
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        DatabaseConditionsManagerSetup conditionsSetup = null;
+        //DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
+        DatabaseConditionsManagerSetup conditionsSetup = new DatabaseConditionsManagerSetup();
+        //
+        conditionsSetup.setDetectorName(detector.value());
         if (run.value() != null) {
-            conditionsSetup = new DatabaseConditionsManagerSetup();
-            conditionsSetup.setDetectorName(detector.value());
             conditionsSetup.setRun(run.value());
             conditionsSetup.setFreeze(true);
-            if (tag.valid()) {
-                Set<String> tags = new HashSet<String>();
-                tags.add(tag.value());
-                conditionsSetup.setTags(tags);
-            }
-            LOG.config("Conditions will be initialized: detector=" + detector.value()
-                    + ", run=" + run.value() + ", tag=" + tag.value());
-        } else {
-            LOG.config("Conditions will be initialized from EVIO data.");
         }
+
+        if (tag.valid()) {
+            Set<String> tags = new HashSet<String>();
+            tags.add(tag.value());
+            conditionsSetup.setTags(tags);
+        }
+        LOG.config("Conditions will be initialized: detector=" + detector.value()
+                + ", run=" + run.value() + ", tag=" + tag.value());
+        //} else {
+        //    LOG.config("Conditions will be initialized from EVIO data.");
+        //}
 
         // Setup event builder and register with conditions system.
         LOG.config("Creating event builder: " + builderClass.value());
@@ -187,7 +183,8 @@ public class Station {
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create event builder: " + builderClass.value(), e);
         }
-        conditionsManager.addConditionsListener(builder);
+        //conditionsManager.addConditionsListener(builder);
+        conditionsSetup.addConditionsListener(builder);
         LOG.config("Done creating event builder");
 
         // Setup the lcsim job manager.
@@ -197,6 +194,16 @@ public class Station {
         final String outputFilePath = outputDir.value() + File.separator + outputName.value();
         LOG.config("Output file path: " + outputFilePath);
         mgr.addVariableDefinition("outputFile", outputFilePath);
+
+        // Remote AIDA port
+        if (remoteTreeBind.valid()) {
+            String rtb = remoteTreeBind.value();
+            mgr.addVariableDefinition("remoteTreeBind", rtb);
+            LOG.config("remoteTreeBind: " + remoteTreeBind.value());
+        } else {
+            LOG.warning("remoteTreeBind is not valid");
+        }
+
         if (steering.value().startsWith("file://")) {
             String steeringPath = steering.value().replace("file://", "");
             LOG.config("Setting up steering file: " + steeringPath);
@@ -205,20 +212,19 @@ public class Station {
             LOG.config("Setting up steering resource: " + steering.value());
             mgr.setup(steering.value());
         }
-        LOG.config("Done initializing job manager");
 
         // Activate the conditions system, if possible.
-        if (conditionsSetup != null) {
-            LOG.config("Initializing conditions system...");
-            conditionsSetup.configure();
-            try {
-                conditionsSetup.setup();
-            } catch (ConditionsNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            conditionsSetup.postInitialize();
-            LOG.config("Conditions system initialized successfully");
+        //if (conditionsSetup != null) {
+        LOG.config("Initializing conditions system...");
+        conditionsSetup.configure();
+        try {
+            conditionsSetup.setup();
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException(e);
         }
+        conditionsSetup.postInitialize();
+        LOG.config("Conditions system initialized successfully");
+        //}
 
         // Try to connect to the ET system, retrying up to the configured number of max attempts.
         LOG.config("Connecting to ET system...");
@@ -229,6 +235,10 @@ public class Station {
             LOG.severe("Failed to create ET station");
             throw new RuntimeException(e);
         }
+
+        // activate startOfData() hooks in drivers
+        mgr.getDriverAdapter().start(null);
+        LOG.config("Done initializing job manager");
 
         // Close the ET station on shutdown.
         final EtConnection shutdownConn = conn;
@@ -253,8 +263,9 @@ public class Station {
         LOG.info("Started processing: " + new Date().toString());
         OnlineEventBus eventbus = new OnlineEventBus(this);
         eventbus.startProcessing();
+        final Thread ept = eventbus.getEventProcessingThread();
         try {
-            eventbus.getEventProcessingThread().join();
+            ept.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

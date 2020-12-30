@@ -27,7 +27,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListenerAdapter;
-import org.hps.online.recon.StationManager.StationInfo;
+import org.hps.online.recon.StationManager.StationProcess;
 import org.hps.online.recon.properties.Property;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStation;
@@ -456,14 +456,14 @@ public final class Server {
             JSONArray arr = new JSONArray();
             if (ids.size() == 0) {
                 // Return info on all stations.
-                for (StationInfo station : stationManager.getStations()) {
+                for (StationProcess station : stationManager.getStations()) {
                     JSONObject jo = station.toJSON();
                     arr.put(jo);
                 }
             } else {
                 // Return info on selected station IDs.
                 for (Integer id : ids) {
-                    StationInfo station = stationManager.find(id);
+                    StationProcess station = stationManager.find(id);
                     if (station == null) {
                         // One of the station IDs is invalid.  Just return message about the first bad one.
                         res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
@@ -488,42 +488,56 @@ public final class Server {
         CommandResult execute(JSONObject parameters) throws CommandException {
             CommandStatus res = null;
             int count = 1;
-            boolean start = false;
+
             if (parameters.has("count")) {
                 count = parameters.getInt("count");
             }
             LOG.info("Creating stations: " + count);
+
+            boolean start = false;
             if (parameters.has("start")) {
                 start = parameters.getBoolean("start");
                 LOG.info("Stations will be automatically started: " + start);
             }
-            int started = 0;
-            int created = 0;
+
+            // Create the stations
+            List<StationProcess> stats = new ArrayList<StationProcess>();
             for (int i = 0; i < count; i++) {
-                LOG.info("Creating station " + (i + 1) + " of " + count);
-                StationInfo station = Server.this.stationManager.create(parameters);
-                LOG.info("Created station: " + station.stationName);
-                ++created;
-                if (start) {
-                    LOG.info("Starting station: " + station.stationName);
-                    try {
-                        Server.this.stationManager.start(station);
-                        ++started;
-                    } catch (IOException e) {
-                        LOG.log(Level.SEVERE, "Station " + station.stationName + " failed to start.", e);
-                    }
+                try {
+                    LOG.info("Creating station " + (i + 1) + " of " + count);
+                    StationProcess station = Server.this.stationManager.create(parameters);
+                    stats.add(station);
+                    LOG.info("Created station: " + station.stationName);
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Error creating station: " + i, e);
                 }
             }
-            LOG.info("Created " + created + " stations.");
+            LOG.info("Number of stations created: " + stats.size());
+
+            // Start the stations
+            int started = 0;
             if (start) {
+                for (StationProcess sp : stats) {
+                    LOG.info("Starting station: " + sp.stationName);
+                    try {
+                        Server.this.stationManager.start(sp);
+                        ++started;
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, "Station " + sp.stationName + " failed to start.", e);
+                    }
+                }
                 LOG.info("Started " + started + " stations.");
                 if (started < count) {
                     res = new CommandStatus(STATUS_ERROR, "Some stations failed to start.");
                 } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Created and started " + started + " stations successfully.");
+                    res = new CommandStatus(STATUS_SUCCESS, "Created and started all stations successfully.");
                 }
             } else {
-                res = new CommandStatus(STATUS_SUCCESS, "Created " + created + " stations successfully.");
+                if (stats.size() == count) {
+                    res = new CommandStatus(STATUS_SUCCESS, "Created all stations successfully");
+                } else {
+                    res = new CommandStatus(STATUS_ERROR, "Could not create some stations.");
+                }
             }
             return res;
         }
@@ -856,7 +870,7 @@ public final class Server {
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
      */
-    synchronized private void getEtStatus(JSONObject jo, boolean verbose) {
+    private void getEtStatus(JSONObject jo, boolean verbose) {
         try {
             jo.put("alive", etSystem.alive());
             jo.put("host", etConfig.getHost());
@@ -869,9 +883,9 @@ public final class Server {
             }
             if (verbose) {
                 JSONObject joRes = new JSONObject();
-                final List<StationInfo> stations =
+                final List<StationProcess> stations =
                         Server.this.getStationManager().getStations();
-                for (StationInfo station : stations) {
+                for (StationProcess station : stations) {
                     if (etSystem.stationExists(station.stationName)) {
                         EtStation etStation = etSystem.stationNameToObject(station.stationName);
                         JSONObject joStat = new JSONObject();
@@ -918,7 +932,6 @@ public final class Server {
         return statusString;
     }
 
-
     /**
      * Run from command line.
      * @param args The command line args
@@ -949,6 +962,7 @@ public final class Server {
      *
      * FIXME: This is very hacky and maybe not advisable!
      */
+    /*
     private void cleanUpThreads() {
         LOG.fine("Cleaning up threads...");
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
@@ -966,6 +980,7 @@ public final class Server {
         }
         LOG.fine("Done cleaning up threads");
     }
+    */
 
     /**
      * Create a new server instance.
@@ -988,7 +1003,7 @@ public final class Server {
      * @param name The name of the station
      * @return The File for the new directory
      */
-    synchronized File createStationDir(String name) {
+    File createStationDir(String name) {
         String path = this.workDir.getPath() + File.separator + name;
         File dir = new File(path);
         dir.mkdir();
@@ -1010,7 +1025,7 @@ public final class Server {
      * Set the string for station base name.
      * @param stationBase The string for station base name
      */
-    synchronized void setStationBaseName(String stationBase) {
+    void setStationBaseName(String stationBase) {
         if (stationBase == null) {
             throw new IllegalArgumentException("The stationBase argument points to null.");
         }
@@ -1057,7 +1072,7 @@ public final class Server {
      * Set the server base working directory.
      * @param workDir The new server working directory
      */
-    synchronized void setWorkDir(File workDir) {
+    void setWorkDir(File workDir) {
         checkWorkDir(workDir);
         this.workDir = workDir;
     }
@@ -1143,10 +1158,27 @@ public final class Server {
         Property<String> buffer = stationProperties.get("et.buffer");
         Property<String> host = stationProperties.get("et.host");
         Property<Integer> port = stationProperties.get("et.port");
-        EtSystemOpenConfig etConfig = new EtSystemOpenConfig(buffer.value(),
-                    host.value(), port.value());
+        Property<Integer> maxAttempts = stationProperties.get("et.connectionAttempts");
+        etConfig = new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
         etSystem = new EtSystem(etConfig, EtConstants.debugWarn);
-        etSystem.open();
+
+        for (int i = 0; i < maxAttempts.value(); i++) {
+            try {
+                LOG.config("ET connection attempt: " + (i + 1));
+                etSystem.open();
+                break;
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to connect to ET system", e);
+            }
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (!etSystem.alive()) {
+            throw new EtException("Failed to connect to ET system after " + maxAttempts.value() + " attempts");
+        }
 
         // Shutdown hook for ET cleanup
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -1157,6 +1189,8 @@ public final class Server {
                         if (etSystem.alive()) {
                             LOG.info("Closing ET system...");
                             etSystem.close();
+                            etSystem = null;
+                            etConfig = null;
                             LOG.info("ET system closed!");
                         }
                     }
@@ -1182,19 +1216,20 @@ public final class Server {
      */
     void shutdown() {
 
-        LOG.info("Shutting down monitoring threads...");
-        exec.shutdownNow();
-
-        LOG.info("Disconnecting aggregator...");
-        agg.disconnect();
-
         stationManager.stopAll();
+
+        LOG.info("Shutting down monitoring threads...");
+        //exec.shutdownNow();
+        exec.shutdown();
+
+        //LOG.info("Disconnecting aggregator...");
+        agg.disconnect();
 
         //LOG.info("Active threads...");
         //this.debugPrintThreads();
 
-        // TODO: Check if this is necessary
-        cleanUpThreads();
+        // TODO: Check if this is necessary or should be moved to shutdown hook
+        //cleanUpThreads();
 
         LOG.info("Exiting application...");
         System.exit(0);
@@ -1232,13 +1267,13 @@ public final class Server {
 
         @Override
         public void run() {
-            LOG.finest("EtMonitor is running...");
+            //LOG.finest("EtMonitor is running...");
             if (!Server.this.etSystem.alive()) {
                 LOG.severe("ET connection went down!");
                 Server.this.etSystem = null;
                 Server.this.shutdown();
             }
-            LOG.finest("EtMonitor is done running");
+            //LOG.finest("EtMonitor is done running");
         }
 
     }
