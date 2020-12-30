@@ -28,7 +28,9 @@ public class EtListener {
     public void receiveEtAndPostEvio(EtEvent etEvent) throws Exception {
         try {
             EvioEvent evioEvent = new EvioReader(etEvent.getDataBuffer()).parseNextEvent();
+            /*
             eventbus.getLogger().info("Created EVIO event: " + EvioEventUtilities.getEventIdData(evioEvent)[0]);
+            */
             eventbus.post(evioEvent);
         } catch (Exception e) {
             eventbus.post(new EventProcessingError(e, false));
