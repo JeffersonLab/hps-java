@@ -17,7 +17,7 @@ public class LoadCommand extends Command {
 
     private Properties prop;
 
-    LoadCommand() {
+    public LoadCommand() {
         super("config", "Set new server configuration properties", "[config.properties]",
                 "Configuration will take effect for newly created stations."
                 + " If no new config is provided the existing config will be printed.");

@@ -31,12 +31,12 @@ public final class Client {
      * Package logger.
      */
     private static Logger LOGGER = Logger.getLogger(Client.class.getPackage().getName());
-    
+
     /**
      * Hostname of the server with default.
      */
     private String hostname = "localhost";
-    
+
     /**
      * Port of the server with default from server.
      */
@@ -47,33 +47,33 @@ public final class Client {
      * By default it is null, which results in output being written to the console (System.out).
      */
     private File outputFile;
-    
+
     /**
      * Parser for base options.
      */
     private CommandLineParser parser = new DefaultParser();
-           
+
     /**
      * Append rather than overwrite if writing to output file.
      */
     private boolean append = false;
-    
+
     /**
      * Run interactive console after command file.
      */
     private boolean interactive = false;
-    
+
     /**
      * The factory for creating <code>Command</code> objects.
      */
     private CommandFactory cf = new CommandFactory();
-    
+
     /**
      * Writer for file output.
      * If null output is written to System.out.
      */
     PrintWriter pw = null;
-    
+
     /**
      * The base options (commands have their own Options objects).
      */
@@ -86,13 +86,13 @@ public final class Client {
         OPTIONS.addOption(new Option("a", "append", false, "append if writing to output file (default will overwrite)"));
         OPTIONS.addOption(new Option("i", "interactive", false, "start interactive console after executing command file"));
     }
-   
+
     /**
      * Class constructor.
      */
-    Client() { 
+    Client() {
     }
-    
+
     /**
      * Print the base command usage.
      */
@@ -105,13 +105,13 @@ public final class Client {
                     + "Run with no client arguments to start the interactive console." + '\n'
                     + "Provide a file with commands as a single argument to execute it.");
     }
-                   
+
     /**
      * Run the client using command line arguments
      * @param args The command line arguments
      */
     void run(String args[]) {
-        
+
         // Parse base options.
         CommandLine cl;
         try {
@@ -143,12 +143,12 @@ public final class Client {
             this.outputFile = new File(cl.getOptionValue("o"));
             LOGGER.config("Output file: " + this.outputFile.getPath());
         }
-        
+
         if (cl.hasOption("a")) {
             this.append = true;
             LOGGER.config("Appending to output file: " + this.append);
         }
-        
+
         if (cl.hasOption("i")) {
             this.interactive = true;
             LOGGER.config("Interactive mode enable: " + this.interactive);
@@ -156,7 +156,7 @@ public final class Client {
 
         // If extra arguments are provided then try to run a command.
         if (argList.size() != 0) {
-            
+
             // See if a command was provided.
             String commandName = argList.get(0);
             Command command = cf.create(commandName);
@@ -219,13 +219,13 @@ public final class Client {
             cn.run();
         }
     }
-    
+
     /**
      * Send a command to the online reconstruction server.
      * @param command The client command to send
      */
     void send(Command command) {
-        
+
         // Setup writing to output file.
         try {
             if (this.outputFile != null) {
@@ -235,11 +235,11 @@ public final class Client {
         } catch (IOException e) {
             throw new RuntimeException("Error opening output file: " + this.outputFile.getPath(), e);
         }
-        
+
         // Open socket to server.
         try (final Socket socket = new Socket(hostname, port)) {
-                        
-            // Send command to the server.           
+
+            // Send command to the server.
             final PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.write(command.toString() + '\n');
             writer.flush();
@@ -257,30 +257,30 @@ public final class Client {
                 printResponse(new JSONArray(resp));
             } else {
                 // Try to read continuous data stream from server.
-                
+
                 LOGGER.info("Reading stream from server");
 
                 System.out.println("Press 'q' and Enter to exit." + '\n');
-                
+
                 // Print first line which was already read.
                 printResponse(resp);
- 
+
                 // Read server responses on separate thread so we can interrupt.
                 Thread readThread = new Thread() {
                     public void run() {
                         while (!this.isInterrupted()) {
-                            try {                        
-                                // This blocks waiting for server response.               
+                            try {
+                                // This blocks waiting for server response.
                                 String line = br.readLine();
-                                
+
                                 // Line will be null if server is killed.
                                 if (line == null) {
                                     break;
                                 }
-                                                        
+
                                 // Print server response line.
                                 printResponse(line);
-                        
+
                                 // Let the server know we are still alive.
                                 writer.write(Server.KEEPALIVE_RESPONSE + '\n');
                             } catch (IOException e) {
@@ -288,15 +288,15 @@ public final class Client {
                                 break;
                             }
                         }
-                    }       
+                    }
                 };
                 readThread.start();
-                                
+
                 // Read data stream from server until user quits or presses Ctrl+C.
                 while (true) {
                     // Quit if user presses 'q' key and Enter.
                     if (System.in.available() > 0) {
-                        if ((char)System.in.read() == 'q') {                           
+                        if ((char)System.in.read() == 'q') {
                             break;
                         }
                     }
@@ -306,7 +306,7 @@ public final class Client {
                     }
                     Thread.sleep(100);
                 }
-                
+
                 // Kill the read thread.
                 if (readThread.isAlive()) {
                     readThread.interrupt();
@@ -316,21 +316,21 @@ public final class Client {
                     }
                 }
             }
-            
+
             // Close the PrintWriter.
             if (pw != null) {
                 System.out.println("Wrote server response to: " + this.outputFile.getPath());
                 pw.flush();
                 pw.close();
             }
-            
+
             // Close the socket's BufferedReader.
             try {
                 br.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            
+
             // Close the socket's InputStream.
             try {
                 is.close();
@@ -341,7 +341,7 @@ public final class Client {
             throw new RuntimeException("Client error", e);
         }
     }
-    
+
     /**
      * Run the client from the command line.
      * @param args The argument array
@@ -350,7 +350,7 @@ public final class Client {
         Client client = new Client();
         client.run(args);
     }
-    
+
     /**
      * Get the hostname of the server.
      * @return The hostname of the server
@@ -358,7 +358,7 @@ public final class Client {
     String getHostname() {
         return this.hostname;
     }
-    
+
     /**
      * Get the port number of the server.
      * @return The port number of the server
@@ -366,18 +366,18 @@ public final class Client {
     int getPort() {
         return this.port;
     }
-    
+
     /**
      * Get the output file for writing server responses.
-     * 
+     *
      * If this is <code>null</code> then server responses are written to <code>System.out</code>.
-     * 
+     *
      * @return The output file for writing server responses
      */
     File getOutputFile() {
         return this.outputFile;
     }
-        
+
     /**
      * Set the port number of the server.
      * @param port The port number of the server
@@ -385,7 +385,7 @@ public final class Client {
     void setPort(int port) {
         this.port = port;
     }
-    
+
     /**
      * Set the hostname of the server.
      * @param hostname The hostname of the server
@@ -393,7 +393,7 @@ public final class Client {
     void setHostname(String hostname) {
         this.hostname = hostname;
     }
-    
+
     /**
      * Set the path to the output file for writing server responses.
      * @param outputPath The output file path or null to print to the terminal
@@ -404,19 +404,19 @@ public final class Client {
         } else {
             this.outputFile = null;
         }
-    }        
-    
+    }
+
     /**
      * Set whether to append to the output file.
-     * 
+     *
      * By default existing output files are overwritten.
-     * 
+     *
      * @param append True to append to the output file
      */
     void setAppend(boolean append) {
         this.append = append;
     }
-    
+
     /**
      * Get whether to append to the output file.
      * @return Whether to append to the output file
@@ -424,7 +424,7 @@ public final class Client {
     boolean getAppend() {
         return this.append;
     }
-    
+
     /**
      * Print JSON object to file or <code>System.out</code>.
      * @param jo The JSON object to print out
@@ -448,7 +448,7 @@ public final class Client {
             System.out.println(ja.toString(4));
         }
     }
-    
+
     /**
      * Print server response line to file or <code>System.out</code>.
      * @param jo The line to print out

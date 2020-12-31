@@ -10,7 +10,7 @@ import org.hps.online.recon.Command;
  */
 public final class SetCommand extends Command {
 
-    SetCommand() {
+    public SetCommand() {
         super("set", "Set a configuration property", "[name] [value]", "");
     }
 

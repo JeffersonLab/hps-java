@@ -1,11 +1,11 @@
 package org.hps.online.recon.commands;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.hps.online.recon.Command;
+import org.reflections.Reflections;
 
 /**
  * Factory for creating instances of <code>Command</code> class.
@@ -17,74 +17,48 @@ public class CommandFactory {
     /**
      * Map of command names to their classes.
      */
-    private Map<String, Class<?>> classMap =
-            new LinkedHashMap<String, Class<?>>();
+    private Map<String, Class<? extends Command>> commands =
+            new LinkedHashMap<String, Class<? extends Command>>();
 
     /**
-     * The set of valid commands.
-     */
-    private Set<String> commands;
-
-    /**
-     * Class constructor.
-     *
-     * Defines the class map and the set of valid commands.
+     * Class constructor which registers all commands using reflection.
      */
     public CommandFactory() {
 
-        // Add command classes.
-        // TODO: register these automatically using introspection
-        classMap.put("create",   CreateCommand.class);
-        classMap.put("start",    StartCommand.class);
-        classMap.put("stop",     StopCommand.class);
-        classMap.put("list",     ListCommand.class);
-        classMap.put("remove",   RemoveCommand.class);
-
-        classMap.put("log",      LogCommand.class);
-
-        //classMap.put("settings", SettingsCommand.class);
-
-        classMap.put("status",   StatusCommand.class);
-
-        classMap.put("load", LoadCommand.class);
-        classMap.put("set", SetCommand.class);
-
-        // Set of valid commands.
-        commands = classMap.keySet();
-    }
-
-    /**
-     * Get the set of valid commands.
-     * @return The set of valid commands
-     */
-    public Set<String> getCommandNames() {
-        return Collections.unmodifiableSet(commands);
+        Reflections reflections = new Reflections(this.getClass().getPackage().getName());
+        Set<Class<? extends Command>> classes = reflections.getSubTypesOf(Command.class);
+        for (Class<? extends Command> klass : classes) {
+            try {
+                commands.put(klass.getConstructor().newInstance().getName(), klass);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
      * Create a command by name.
      * @param name The name of the command
-     * @return The command or null if does not exist
+     * @return The command with the given name
+     * @throw IllegalArgumentException If the command does not exist
+     * @throws RuntimeException If there is a problem creating the command
      */
     public Command create(String name) {
-        Command cmd = null;
-        Class<?> klass = this.classMap.get(name);
-        if (klass != null) {
-            try {
-                cmd = (Command) klass.newInstance();
-            } catch (Exception  e) {
-                throw new RuntimeException("Error creating class", e);
-            }
+        if (!commands.containsKey(name)) {
+            throw new IllegalArgumentException("Unknown command name: " + name);
         }
-        return cmd;
+        try {
+            return commands.get(name).getConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating command: " + name, e);
+        }
     }
 
     /**
-     * Check if a command name is valid.
-     * @param name The name of the command
-     * @return True if name is a valid command that can be created by the factory
+     * Get the list of command names
+     * @return The list of command names
      */
-    public boolean has(String name) {
-        return this.commands.contains(name);
+    public Set<String> getCommandNames() {
+        return commands.keySet();
     }
 }

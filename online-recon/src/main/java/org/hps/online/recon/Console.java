@@ -65,16 +65,14 @@ public class Console {
         while (true) {
             System.out.print("online> ");
             userInput = sn.nextLine().trim();
-            boolean exit = false;
+            if (userInput.split(" ")[0].startsWith("exit")) {
+                break;
+            }
             try {
-                exit = exec(userInput);
+                exec(userInput);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (exit) {
-                break;
-            }
-
         }
 
         sn.close();
@@ -84,8 +82,9 @@ public class Console {
      * Execute a line of input.
      * @param userInput The user input to execute
      * @return True if console should exit after this command
+     * @throws ParseException
      */
-    private boolean exec(String userInput) {
+    private void exec(String userInput) throws ParseException {
         if (echo) {
             System.out.println(userInput);
         }
@@ -98,10 +97,7 @@ public class Console {
                 if (args.size() > 0) {
                     args.remove(0);
                 }
-
-                if (cmdStr.equals("exit")) {
-                    return true;
-                } else if (cmdStr.equals("help")) {
+                if (cmdStr.equals("help")) {
                     if (args.size() == 0) {
                         printHelp();
                     } else {
@@ -148,28 +144,15 @@ public class Console {
                         System.out.println(client.getAppend());
                     }
                 } else {
-                    if (cf.has(cmdStr)) {
-                        Command cmd = cf.create(cmdStr);
-                        DefaultParser parser = new DefaultParser();
-                        try {
-                            String cmdArr[] = args.toArray(new String[0]);
-                            CommandLine cl = parser.parse(cmd.getOptionsNoHelp(), cmdArr);
-                            try {
-                                cmd.process(cl);
-                                client.send(cmd);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        System.err.println("Unknown client commnd: " + cmdStr);
-                    }
+                    Command cmd = cf.create(cmdStr);
+                    DefaultParser parser = new DefaultParser();
+                    String cmdArr[] = args.toArray(new String[0]);
+                    CommandLine cl = parser.parse(cmd.getOptionsNoHelp(), cmdArr);
+                    cmd.process(cl);
+                    client.send(cmd);
                 }
             }
         }
-        return false;
     }
 
     /**
@@ -178,7 +161,7 @@ public class Console {
      * @throws FileNotFoundException If the file does not exist
      * @throws IOException If there is a problem reading the file
      */
-    void execFile(File file) throws FileNotFoundException, IOException {
+    void execFile(File file) throws FileNotFoundException, IOException, ParseException {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -212,10 +195,6 @@ public class Console {
      * @param command The name of the command to print
      */
     void printCommandHelp(String command) {
-        if (cf.has(command)) {
-            cf.create(command).printUsageNoHelp();
-        } else {
-            System.err.println("Unknown command: " + command);
-        }
+        cf.create(command).printUsageNoHelp();
     }
 }
