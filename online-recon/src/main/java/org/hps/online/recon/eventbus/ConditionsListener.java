@@ -1,6 +1,5 @@
 package org.hps.online.recon.eventbus;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.online.recon.properties.Property;
 import org.hps.record.evio.EventTagConstant;
 import org.hps.record.evio.EvioEventUtilities;
@@ -18,9 +17,14 @@ import com.google.common.eventbus.Subscribe;
 public class ConditionsListener {
 
     OnlineEventBus eventbus;
+    Property<String> detectorProp = null;
 
     ConditionsListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
+        detectorProp = eventbus.getStation().getProperties().get("lcsim.detector");
+        if (!detectorProp.valid()) {
+            throw new IllegalArgumentException("Cannot initialize ConditionsListener with invalid detector prop");
+        }
     }
 
     @Subscribe
@@ -38,20 +42,12 @@ public class ConditionsListener {
         }
 
         if (run != null) {
-            DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
-            if ((mgr.getRun() != run || !mgr.isInitialized()) && !mgr.isFrozen()) {
-                try {
-                    Property<String> detector =
-                            eventbus.getStation().getProperties().get("lcsim.detector");
-                    if (detector.valid()) {
-                        ConditionsManager.defaultInstance().setDetector(detector.value(), run);
-                    } else {
-                        eventbus.getLogger().warning("Could not initialize conditions from EVIO because detector "
-                                + "name is not valid.");
-                    }
-                } catch (final ConditionsNotFoundException e) {
-                    eventbus.post(new EventProcessingError(e, true));
-                }
+            try {
+                eventbus.getLogger().info("Setting conditions from EVIO: " + detectorProp.value() + ":" + run);
+                ConditionsManager.defaultInstance().setDetector(detectorProp.value(), run);
+            } catch (ConditionsNotFoundException e) {
+                // Post fatal error because conditions are not found
+                eventbus.post(new EventProcessingError(e, true));
             }
         }
     }

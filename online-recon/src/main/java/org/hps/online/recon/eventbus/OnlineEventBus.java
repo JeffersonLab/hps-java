@@ -33,17 +33,16 @@ public class OnlineEventBus extends EventBus {
 
     private final Logger logger = Logger.getLogger(OnlineEventBus.class.getPackage().getName());
 
-    // Store a collection of all event numbers processed for debugging
-    //private final boolean STORE_EVENT_NUMBERS = false;
-
     public OnlineEventBus(Station station) {
         logger.config("Initializing online event bus for station: " + station.getStationName());
         this.station = station;
         this.conn = this.station.getEtConnection();
         register(this);
+        //station.getConditionsSetup().
+        register(new ConditionsListener(this));
         register(new EtListener(this));
         register(new EvioListener(this));
-        register(new LcioListener(this/*, STORE_EVENT_NUMBERS*/));
+        register(new LcioListener(this));
         logger.config("Online event bus initialized");
     }
 
@@ -111,6 +110,8 @@ public class OnlineEventBus extends EventBus {
 
     @Subscribe
     public void receiveStart(Start start) {
+        logger.info("Received start: " + start.getDate().toString());
+        // For now this is managed by the station's setup routine
         //station.getJobManager().getDriverAdapter().start(null);
     }
 
@@ -163,11 +164,11 @@ public class OnlineEventBus extends EventBus {
 
         public void run() {
             try {
-                getLogger().info("event bus loop starting");
+                //getLogger().info("event bus loop starting");
                 eventbus.loop();
-                getLogger().info("event bus loop stopped");
+                //getLogger().info("event bus loop stopped");
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Loop stopped from error", e);
             }
         }
     }

@@ -1,5 +1,6 @@
 package org.hps.online.recon.eventbus;
 
+import org.hps.online.recon.properties.Property;
 import org.lcsim.event.EventHeader;
 
 import com.google.common.eventbus.Subscribe;
@@ -9,32 +10,36 @@ import com.google.common.eventbus.Subscribe;
  */
 public class LcioListener {
 
-    OnlineEventBus eventbus;
-    int eventsReceived = 0;
-    //Set<Integer> eventNumbers = new HashSet<Integer>();
-    //boolean storeEventNumbers = false;
+    private OnlineEventBus eventbus;
+    private int eventsReceived = 0;
+    private Integer printInterval = 1;
 
-    LcioListener(OnlineEventBus eventbus/*, boolean storeEventNumbers*/) {
+    LcioListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
-        //this.storeEventNumbers = storeEventNumbers;
+        Property<Integer> printInterval = eventbus.getStation().getProperties().get("station.printInterval");
+        if (printInterval.valid()) {
+            this.printInterval = printInterval.value();
+            eventbus.getLogger().config("Set print interval: " + this.printInterval);
+        }
     }
 
     @Subscribe
     public void receiveLcio(EventHeader event) {
-        eventbus.getLogger().info("LcioListener - received event: " + event.getEventNumber());
+        if (eventsReceived % printInterval == 0) {
+            eventbus.getLogger().info("LCIO event: " + event.getEventNumber());
+        }
         ++eventsReceived;
-        /*if (storeEventNumbers) {
-            eventNumbers.add(event.getEventNumber());
-        }*/
     }
 
     @Subscribe
     public void receiveStop(Stop stop) {
-        this.eventbus.getLogger().info("Total LCIO events received: " + eventsReceived);
-        /*
-        if (storeEventNumbers) {
-            this.eventbus.getLogger().info("Events processed:" + '\n' + Arrays.toString(eventNumbers.toArray()));
+        this.eventbus.getLogger().info("Total LCIO events: " + eventsReceived);
+    }
+
+    @Subscribe
+    public void receiveStart(Start start) {
+        if (this.eventsReceived > 0) {
+            this.eventsReceived = 0;
         }
-        */
     }
 }

@@ -8,10 +8,10 @@ import org.hps.online.recon.Command;
 /**
  * Set a configuration property
  */
-public final class PropSetCommand extends Command {
+public final class SetCommand extends Command {
 
-    PropSetCommand() {
-        super("prop-set", "Set a configuration property", "[name] [value]", "");
+    SetCommand() {
+        super("set", "Set a configuration property", "[name] [value]", "");
     }
 
     protected void process(CommandLine cl) {

@@ -51,6 +51,7 @@ public class StationProperties extends PropertyStore {
                 new StringProperty ( "station.outputName",    "Base name for output files",     "output",       true),
                 new StringProperty ( "station.outputDir",     "Directory for output files",     DIR,            true),
                 new StringProperty(  "station.loggingConfig", "Logging config file",            null,           false),
+                new IntegerProperty( "station.printInterval", "Event print interval",           1,              false),
                 new StringProperty ( "et.buffer",             "Name of ET buffer file",         BUFFER,         true),
                 new StringProperty ( "et.host",               "Host for ET connection",         "localhost",    true),
                 new IntegerProperty( "et.port",               "Port for ET connection",         11111,          true),

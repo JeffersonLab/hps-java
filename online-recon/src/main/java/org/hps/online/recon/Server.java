@@ -7,10 +7,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,8 +24,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.input.Tailer;
-import org.apache.commons.io.input.TailerListenerAdapter;
-import org.hps.online.recon.StationManager.StationProcess;
+import org.hps.online.recon.CommandResult.Error;
+import org.hps.online.recon.CommandResult.LogStreamResult;
+import org.hps.online.recon.handlers.CommandHandlerFactory;
 import org.hps.online.recon.properties.Property;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStation;
@@ -35,7 +34,6 @@ import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.exception.EtException;
 import org.jlab.coda.et.exception.EtTooManyException;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -72,21 +70,6 @@ public final class Server {
      * Minimum allowed server port number.
      */
     private static final int MIN_PORT = 1024;
-
-    /**
-     * Error status string.
-     */
-    private static final String STATUS_ERROR = "ERROR";
-
-    /**
-     * Success status string.
-     */
-    private static final String STATUS_SUCCESS = "SUCCESS";
-
-    /**
-     * Warning status string.
-     */
-    private static final String STATUS_WARNING = "WARNING";
 
     /**
      * The pool of threads for processing client commands.
@@ -143,6 +126,8 @@ public final class Server {
      */
     final InlineAggregator agg = new InlineAggregator();
 
+    CommandHandlerFactory handlers = null;
+
     /**
      * Handles a single client request.
      */
@@ -175,12 +160,20 @@ public final class Server {
                 // Command result to send back to client.
                 CommandResult res = null;
 
-                // Find the handler for the command.
-                CommandHandler handler = getCommandHandler(command);
-                if (handler == null) {
+                // Get command handler
+                CommandHandler handler = null;
+                try {
+                    // Find the handler for the command.
+                    LOG.info("Getting handler for command: " + command);
+                    handler = handlers.getCommandHandler(command);
+                    LOG.info("Got command handler: " + handler.getClass().getCanonicalName());
+                } catch (IllegalArgumentException e) {
                     // Command name is invalid. This shouldn't happen normally.
-                    res = new CommandStatus(STATUS_ERROR, "Unknown command: " + command);
-                } else {
+                    res = new Error("Unknown command: " + command);
+                }
+
+                // Execute command
+                if (handler != null) {
                     try {
                         // Execute the command and get its result.
                         LOG.info("Executing command: " + command);
@@ -188,7 +181,7 @@ public final class Server {
                     } catch (Exception e) {
                         // Some kind of error occurred executing the command.
                         LOG.log(Level.SEVERE, "Error executing command: " + command, e);
-                        res = new CommandStatus(STATUS_ERROR, e.getMessage());
+                        res = new Error(e.getMessage());
                     }
                 }
 
@@ -224,13 +217,12 @@ public final class Server {
                 }
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Error sending or receiving data", e);
-                e.printStackTrace();
             } finally {
                 // Close the socket.
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.SEVERE, "Error closing socket", e);
                 }
             }
             LOG.fine("Done running client thread");
@@ -289,589 +281,25 @@ public final class Server {
 
             LOG.info("Done running tailer");
         }
+    }
 
-        /**
-         * Find a <code>CommandHandler</code> for the given command name.
-         * @param command The command name
-         * @return The <code>CommandHandler</code> or null if does not exist
-         */
-        CommandHandler getCommandHandler(String command) {
-            // TODO: Setup a map for this command dispatch
-            CommandHandler handler = null;
-            if (command.equals("create")) {
-                handler = new CreateCommandHandler();
-            } else if (command.equals("start")) {
-                handler = new StartCommandHandler();
-            } else if (command.equals("stop")) {
-                handler = new StopCommandHandler();
-            } else if (command.equals("list")) {
-                handler = new ListCommandHandler();
-            } else if (command.equals("config")) {
-                handler = new ConfigCommandHandler();
-            } else if (command.equals("remove")) {
-                handler = new RemoveCommandHandler();
-            } else if (command.equals("cleanup")) {
-                handler = new CleanupCommandHandler();
-            } else if (command.equals("settings")) {
-                handler = new SettingsCommandHandler();
-            } else if (command.equals("status")) {
-                handler = new StatusCommandHandler();
-            } else if (command.equals("log")) {
-                handler = new LogCommandHandler();
-            } else if (command.equals("prop-set")) {
-                handler = new PropSetCommandHandler();
-            }
-            return handler;
-        }
+    public Logger getLogger() {
+        return LOG;
     }
 
     /**
-     * Get a list of station IDs from JSON parameters.
-     * @param parameters The JSON parameters
-     * @return A list of station IDs
+     * Get the station properties (config settings)
+     * @return The station properties
      */
-    static List<Integer> getStationIDs(JSONObject parameters) {
-        List<Integer> ids = new ArrayList<Integer>();
-        if (parameters.has("ids")) {
-            JSONArray arr = parameters.getJSONArray("ids");
-            for (int i = 0; i < arr.length(); i++) {
-                ids.add(arr.getInt(i));
-            }
-        }
-        return ids;
-    }
-
-    /**
-     * Server-side handler for a client command
-     */
-    abstract class CommandHandler {
-
-        Server server = null;
-
-        CommandHandler() {
-        }
-
-        CommandHandler(Server server) {
-            this.server = server;
-        }
-
-        /**
-         * Execute the command.
-         * @param jo The JSON input parameters
-         * @return The command result
-         */
-        abstract CommandResult execute(JSONObject jo) throws CommandException;
-
-    }
-
-    /**
-     * Generic class for returning command results.
-     */
-    abstract class CommandResult {
-    }
-
-    /**
-     * Connection that handlers can throw if there is a command
-     * processing error
-     */
-    @SuppressWarnings("serial")
-    class CommandException extends Exception {
-
-        public CommandException(String msg) {
-            super(msg);
-        }
-
-        public CommandException(String msg, Exception e) {
-            super(msg, e);
-        }
-    }
-
-    /**
-     * Return a result which describes result of command execution
-     * i.e. success or failure (JSON format).
-     */
-    public class CommandStatus extends CommandResult {
-
-        String message;
-        String status;
-
-        CommandStatus(String status, String message) {
-            this.status = status;
-            this.message = message;
-        }
-
-        JSONObject toJSON() {
-            JSONObject jo = new JSONObject();
-            jo.put("status", status);
-            jo.put("message", message);
-            return jo;
-        }
-
-        public String toString() {
-            return toJSON().toString();
-        }
-    }
-
-    /**
-     * Return a generic result with an object which can be converted to
-     * a JSON string.
-     */
-    class GenericResult extends CommandResult {
-
-        final Object o;
-
-        GenericResult(Object o) {
-            this.o = o;
-        }
-
-        public String toString() {
-            return o.toString();
-        }
-    }
-
-    /**
-     * Return a JSON object.
-     */
-    class JSONResult extends CommandResult {
-
-        final JSONObject jo;
-
-        JSONResult(JSONObject jo) {
-            this.jo = jo;
-        }
-
-        public String toString() {
-            return jo.toString();
-        }
-    }
-
-    /**
-     * Handle the list command.
-     */
-    class ListCommandHandler extends CommandHandler {
-
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            List<Integer> ids = getStationIDs(parameters);
-            JSONArray arr = new JSONArray();
-            if (ids.size() == 0) {
-                // Return info on all stations.
-                for (StationProcess station : stationManager.getStations()) {
-                    JSONObject jo = station.toJSON();
-                    arr.put(jo);
-                }
-            } else {
-                // Return info on selected station IDs.
-                for (Integer id : ids) {
-                    StationProcess station = stationManager.find(id);
-                    if (station == null) {
-                        // One of the station IDs is invalid.  Just return message about the first bad one.
-                        res = new CommandStatus(STATUS_ERROR, "Station with this ID does not exist: " + id);
-                        break;
-                    } else {
-                        JSONObject jo = station.toJSON();
-                        arr.put(jo);
-                    }
-                }
-            }
-            if (res == null) {
-                res = new GenericResult(arr);
-            }
-            return res;
-        }
-    }
-
-    /**
-     * Handle the create command.
-     */
-    class CreateCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) throws CommandException {
-            CommandStatus res = null;
-            int count = 1;
-
-            if (parameters.has("count")) {
-                count = parameters.getInt("count");
-            }
-            LOG.info("Creating stations: " + count);
-
-            boolean start = false;
-            if (parameters.has("start")) {
-                start = parameters.getBoolean("start");
-                LOG.info("Stations will be automatically started: " + start);
-            }
-
-            // Create the stations
-            List<StationProcess> stats = new ArrayList<StationProcess>();
-            for (int i = 0; i < count; i++) {
-                try {
-                    LOG.info("Creating station " + (i + 1) + " of " + count);
-                    StationProcess station = Server.this.stationManager.create(parameters);
-                    stats.add(station);
-                    LOG.info("Created station: " + station.stationName);
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Error creating station: " + i, e);
-                }
-            }
-            LOG.info("Number of stations created: " + stats.size());
-
-            // Start the stations
-            int started = 0;
-            if (start) {
-                for (StationProcess sp : stats) {
-                    LOG.info("Starting station: " + sp.stationName);
-                    try {
-                        Server.this.stationManager.start(sp);
-                        ++started;
-                    } catch (IOException e) {
-                        LOG.log(Level.SEVERE, "Station " + sp.stationName + " failed to start.", e);
-                    }
-                }
-                LOG.info("Started " + started + " stations.");
-                if (started < count) {
-                    res = new CommandStatus(STATUS_ERROR, "Some stations failed to start.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Created and started all stations successfully.");
-                }
-            } else {
-                if (stats.size() == count) {
-                    res = new CommandStatus(STATUS_SUCCESS, "Created all stations successfully");
-                } else {
-                    res = new CommandStatus(STATUS_ERROR, "Could not create some stations.");
-                }
-            }
-            stats = null;
-            return res;
-        }
-    }
-
-    /**
-     * Handle the start command.
-     */
-    class StartCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            List<Integer> ids = getStationIDs(parameters);
-            int started = 0;
-            if (ids.size() == 0) {
-                int inactive = Server.this.getStationManager().getInactiveCount();
-                LOG.info("Attepting to start " + inactive + " inactive stations.");
-                started = Server.this.getStationManager().startAll();
-                if (started < inactive) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to start some stations.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Started all stations successfull.");
-                }
-            } else {
-                started = Server.this.getStationManager().start(ids);
-                if (started < ids.size()) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to start some stations.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Started " + ids.size() + " stations successfully.");
-                }
-            }
-            if (started == 0) {
-                res = new CommandStatus(STATUS_WARNING, "No stations were started.");
-            }
-
-            return res;
-        }
-    }
-
-    /**
-     * Handle the stop command.
-     */
-    class StopCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            List<Integer> ids = getStationIDs(parameters);
-            int stopped = 0;
-            if (ids.size() == 0) {
-                int nactive = Server.this.getStationManager().getActiveCount();
-                stopped = Server.this.getStationManager().stopAll();
-                if (stopped < nactive) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Stopped all stations.");
-                }
-            } else {
-                LOG.info("Stopping stations: " + ids.toString());
-                stopped = Server.this.getStationManager().stop(ids);
-                if (stopped < ids.size()) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to stop at least one station.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Stopped stations: " + ids.toString());
-                }
-            }
-            if (stopped == 0) {
-                res = new CommandStatus(STATUS_WARNING, "No stations were stopped.");
-            }
-            return res;
-        }
-    }
-
-    /**
-     * Handle the config command.
-     */
-    class ConfigCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            if (parameters.length() == 0) {
-                LOG.info("Returning existing station config.");
-                res = new JSONResult(Server.this.getStationProperties().toJSON());
-            } else {
-                LOG.config("Loading new station config: " + parameters.toString());
-                Server.this.getStationProperties().fromJSON(parameters);
-                LOG.info("New config loaded.");
-                res = new CommandStatus(STATUS_SUCCESS, "Loaded new station config. Create a new station to use it.");
-            }
-            return res;
-        }
-    }
-
-    /**
-     * Handle the <code>prop-set</code> command.
-     *
-     */
-    class PropSetCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) throws CommandException {
-            String name = parameters.getString("name");
-            String value = parameters.getString("value");
-            StationProperties statProp = getStationProperties();
-            if (statProp.has(name)) {
-                statProp.get(name).set(value);
-                LOG.info("Set prop: " + name + "=" + value);
-            } else {
-                throw new CommandException("Property does not exist: " + name);
-            }
-            return new CommandStatus(STATUS_SUCCESS, "Set prop: " + name + "=" + value);
-        }
-    }
-
-    StationProperties getStationProperties() {
+    public StationProperties getStationProperties() {
         return this.stationProperties;
-    }
-
-    /**
-     * Handle the remove command.
-     */
-    class RemoveCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            List<Integer> ids = getStationIDs(parameters);
-            int removed = 0;
-            if (ids.size() == 0) {
-                LOG.info("Removing all stations!");
-                removed = Server.this.getStationManager().removeAll();
-                if (Server.this.getStationManager().getStationCount() > 0) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Removed all stations.");
-                }
-            } else {
-                LOG.info("Removing stations: " + ids.toString());
-                removed = Server.this.getStationManager().remove(ids);
-                if (removed < ids.size()) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to remove at least one station.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Removed stations: " + ids.toString());
-                }
-            }
-            if (removed == 0) {
-                res = new CommandStatus(STATUS_ERROR, "No stations were removed.");
-            }
-            return res;
-        }
-    }
-
-    /**
-     * Handle the cleanup command.
-     */
-    class CleanupCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            List<Integer> ids = getStationIDs(parameters);
-            int cleaned = 0;
-            if (ids.size() == 0) {
-                LOG.info("Cleaning up all inactive stations!");
-                int inactive = Server.this.stationManager.getInactiveCount();
-                cleaned = Server.this.stationManager.cleanupAll();
-                if (cleaned < inactive) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
-                }
-            } else {
-                LOG.info("Cleaning up stations: " + ids.toString());
-                cleaned = Server.this.stationManager.cleanup(ids);
-                if (cleaned < ids.size()) {
-                    res = new CommandStatus(STATUS_ERROR, "Failed to cleanup at least one station.");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "Cleaned up " + cleaned + " stations.");
-                }
-            }
-            if (cleaned == 0) {
-                res = new CommandStatus(STATUS_ERROR, "No stations were cleaned up.");
-            }
-            return res;
-        }
-    }
-
-    /**
-     * Handle the settings command.
-     */
-    class SettingsCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject parameters) {
-            CommandResult res = null;
-            StationManager mgr = Server.this.getStationManager();
-            boolean error = false;
-            if (parameters.length() > 0) {
-                if (parameters.has("start")) {
-                    int startID = parameters.getInt("start");
-                    try {
-                        Server.this.getStationManager().setStationID(startID);
-                        LOG.config("Set new station start ID: " + mgr.getCurrentStationID());
-                    } catch (IllegalArgumentException e) {
-                        LOG.log(Level.SEVERE, "Failed to set new station ID", e);
-                        error = true;
-                    }
-                }
-                if (parameters.has("workdir")) {
-                    File newWorkDir = new File(parameters.getString("workdir"));
-                    try {
-                        Server.this.setWorkDir(newWorkDir);
-                    } catch (Exception e) {
-                        LOG.log(Level.SEVERE, "Failed to set new work dir: " + newWorkDir.getPath(), e);
-                        error = true;
-                    }
-                }
-                if (parameters.has("basename")) {
-                    String stationBase = parameters.getString("basename");
-                    try {
-                        Server.this.setStationBaseName(stationBase);
-                    } catch (IllegalArgumentException e) {
-                        LOG.log(Level.SEVERE, "Failed to set station base name: " + stationBase, e);
-                        error = true;
-                    }
-                }
-                if (error) {
-                    res = new CommandStatus(STATUS_ERROR, "At least one setting failed to update (see server log).");
-                } else {
-                    res = new CommandStatus(STATUS_SUCCESS, "All settings updated successfully.");
-                }
-            } else {
-                JSONObject jo = new JSONObject();
-                jo.put("start", mgr.getCurrentStationID());
-                jo.put("workdir", Server.this.getWorkDir());
-                jo.put("basename", Server.this.getStationBaseName());
-                res = new JSONResult(jo);
-            }
-
-            return res;
-        }
-    }
-
-    /**
-     * Handle status command.
-     */
-    class StatusCommandHandler extends CommandHandler {
-
-        CommandResult execute(JSONObject jo) {
-
-            boolean verbose = false;
-            if (jo.has("verbose")) {
-                verbose = jo.getBoolean("verbose");
-            }
-
-            JSONObject res = new JSONObject();
-
-            // Update active status of all stations.
-            StationManager mgr = Server.this.getStationManager();
-
-            // Put station status counts.
-            JSONObject stationRes = new JSONObject();
-            stationRes.put("total", mgr.getStationCount());
-            stationRes.put("active", mgr.getActiveCount());
-            stationRes.put("inactive", mgr.getInactiveCount());
-            res.put("stations", stationRes);
-
-            // Put ET system status.
-            JSONObject etRes = new JSONObject();
-            getEtStatus(etRes, verbose);
-            res.put("ET", etRes);
-
-            return new JSONResult(res);
-        }
-    }
-
-    /**
-     * Writes lines from <code>Tailer</code> to the client socket.
-     */
-    class SimpleLogListener extends TailerListenerAdapter {
-
-        BufferedWriter bw;
-
-        void setBufferedWriter(BufferedWriter bw) {
-            this.bw = bw;
-        }
-
-        public void handle(String line) {
-            try {
-                bw.write(line + '\n');
-                bw.flush();
-            } catch (IOException e) {
-                throw new RuntimeException("Error writing log line", e);
-            }
-        }
-    }
-
-    /**
-     * Encapsulates information needed for streaming log files
-     * back to the client.
-     */
-    class LogStreamResult extends CommandResult {
-
-        SimpleLogListener listener;
-        Tailer tailer;
-        File log;
-
-        LogStreamResult(Tailer tailer, SimpleLogListener listener, File log) {
-            this.listener = listener;
-            this.tailer = tailer;
-            this.log = log;
-        }
-    }
-
-    /**
-     * Tail a station's log file.
-     */
-    class LogCommandHandler extends CommandHandler {
-        CommandResult execute(JSONObject jo) {
-            CommandResult res = null;
-            List<Integer> ids = getStationIDs(jo);
-            if (ids.size() == 1) {
-                int id = ids.get(0);
-                Long delayMillis = 1000L;
-                if (jo.has("delayMillis")) {
-                    delayMillis = jo.getLong("delayMillis");
-                }
-                SimpleLogListener listener = new SimpleLogListener();
-                Tailer tailer = Server.this.getStationManager().getLogTailer(id, listener, delayMillis);
-                File logFile = Server.this.getStationManager().find(id).log;
-                res = new LogStreamResult(tailer, listener, logFile);
-            } else if (ids.size() > 1) {
-                res = new CommandStatus(STATUS_ERROR, "Multiple station IDs not supported for log command.");
-            } else if (ids.size() == 0) {
-                res = new CommandStatus(STATUS_ERROR, "No station IDs were given in parameters.");
-            }
-            return res;
-        }
     }
 
     /**
      * Get the status and state of the ET system.
      * @param jo The JSON object to update with status
      */
-    private void getEtStatus(JSONObject jo, boolean verbose) {
+    public void getEtStatus(JSONObject jo, boolean verbose) {
         try {
             jo.put("alive", etSystem.alive());
             jo.put("host", etConfig.getHost());
@@ -946,7 +374,7 @@ public final class Server {
         }
         try {
             server.openEtConnection();
-            server.start();
+            server.startServer();
         } catch (EtException|IOException|EtTooManyException etEx) {
             System.err.println("Failed to open ET system");
             etEx.printStackTrace();
@@ -959,36 +387,15 @@ public final class Server {
     }
 
     /**
-     * Interrupt all active threads in the server process and stop them, if necessary
-     */
-    /*
-    private void cleanUpThreads() {
-        LOG.fine("Cleaning up threads...");
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        for (Thread thread : threadSet) {
-            LOG.fine("Cleaning up thread: " + thread.getName());
-            thread.interrupt();
-            try {
-                thread.join(1000L);
-            } catch (InterruptedException e) {
-            }
-            if (thread.isAlive()) {
-                thread.stop();
-            }
-            LOG.fine("Done cleaning up thread");
-        }
-        LOG.fine("Done cleaning up threads");
-    }
-    */
-
-    /**
      * Create a new server instance.
      */
     Server() {
         this.stationManager = new StationManager(this);
 
+        handlers = new CommandHandlerFactory(this);
+
         try {
-            // FIXME: Hard-coded settings on the aggregator
+            // FIXME: Hard-coded connection settings on the aggregator
             agg.connect();
         } catch (Exception e) {
             throw new RuntimeException("Failed to connect aggregator", e);
@@ -1081,7 +488,6 @@ public final class Server {
      * @param args The command line arguments
      * @throws ParseException If there is a problem parsing the command line
      */
-    // TODO: Read all settings from a config file instead using PropertySet class
     void parse(String args[]) throws ParseException {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
@@ -1126,7 +532,6 @@ public final class Server {
             workPath = cl.getOptionValue("w");
         }
         setWorkDir(new File(workPath));
-
         LOG.config("Server work dir: " + this.workDir.getPath());
 
         // Base name for station to which will be appended the station ID.
@@ -1215,7 +620,7 @@ public final class Server {
      */
     void shutdown() {
 
-        stationManager.stopAll();
+        stationManager.stopStations(stationManager.getActiveStations());
 
         LOG.info("Shutting down monitoring threads...");
         //exec.shutdownNow();
@@ -1224,27 +629,14 @@ public final class Server {
         //LOG.info("Disconnecting aggregator...");
         agg.disconnect();
 
-        //LOG.info("Active threads...");
-        //this.debugPrintThreads();
-
-        // TODO: Check if this is necessary or should be moved to shutdown hook
-        //cleanUpThreads();
-
         LOG.info("Exiting application...");
         System.exit(0);
-    }
-
-    void debugPrintThreads() {
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-        for (Thread thread : threadSet) {
-            LOG.info(thread.getName());
-        }
     }
 
     /**
      * Start the server.
      */
-    void start() throws Exception {
+    void startServer() throws Exception {
 
         // Client connection loop
         LOG.info("Starting server on port: " + this.port);

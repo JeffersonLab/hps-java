@@ -2,8 +2,6 @@ package org.hps.online.recon;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
-import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -14,245 +12,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
-import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyValidationException;
 import org.json.JSONObject;
 
 /**
- * Manages online reconstruction stations by creating, starting, and stopping them,
- * as well as setting up the connection to their remote AIDA trees for the
- * {@link InlineAggregator}.
+ * Manages online reconstruction stations by creating, starting, and stopping
+ * them using a {@link StationProcess}, as well as setting up the connection
+ * to their remote AIDA trees for the {@link InlineAggregator}.
  */
 public class StationManager {
-
-    // Should aggregator manage this thread instead?
-    class RemoteTreeBind extends Thread {
-
-        String remoteTreeBind = null;
-        Integer maxAttempts = 5;
-
-        RemoteTreeBind(String remoteTreeBind, Integer maxAttempts) {
-            if (remoteTreeBind == null) {
-                throw new IllegalArgumentException("remoteTreeBind was null");
-            }
-            this.remoteTreeBind=remoteTreeBind;
-            if (maxAttempts != null) {
-                this.maxAttempts = maxAttempts;
-            }
-        }
-
-        // If this exits without a connection being made should it interrupt the station process???
-
-        public void run() {
-            for (long i = 0; i < this.maxAttempts; i++) {
-                long attempt = i + 1;
-                try {
-                    try {
-                        Thread.sleep(attempt*5000L);
-                    } catch (InterruptedException e) {
-                        LOG.log(Level.WARNING, "Interrupted", e);
-                        break;
-                    }
-                    LOG.info("remoteTreeBind connection attempt: " + attempt);
-                    LOG.info("Adding remote tree bind: " + remoteTreeBind);
-                    server.agg.addRemote(remoteTreeBind);
-                    LOG.info("Done adding remote tree bind: " + remoteTreeBind);
-                    break;
-                } catch (Exception e) {
-                    LOG.warning("Could not connect to: " + remoteTreeBind);
-                    if (attempt == this.maxAttempts) {
-                        LOG.warning("remoteTreeBind connection attempt timed out without connecting");
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Information for managing a single online reconstruction station
-     */
-    class StationProcess {
-
-        String stationName;
-        private int id;
-
-        private boolean active = false;
-        private Process process;
-        private long pid = -1L;
-        private int exitValue = -1;
-
-        private List<String> command;
-        File log;
-        private File dir;
-        private File configFile;
-
-        private StationProperties props;
-
-        RemoteTreeBind rtbThread = null;
-
-        /**
-         * Convert station data to JSON.
-         * @return The converted JSON data
-         */
-        JSONObject toJSON() {
-            JSONObject jo = new JSONObject();
-            jo.put("pid", pid);
-            jo.put("active", active);
-            jo.put("id", id);
-            jo.put("station", stationName);
-            jo.put("command", String.join(" ", command));
-            jo.put("dir", dir.getPath());
-            jo.put("log", log != null ? FilenameUtils.getBaseName(log.getPath()) : "");
-            jo.put("props", props.toJSON());
-            return jo;
-        }
-
-        synchronized void activate() throws IOException {
-
-            LOG.info("Activating station: " + stationName);
-
-            if (active) {
-                LOG.warning("Station is already active: " + stationName);
-                return;
-            }
-
-            // Make sure station directory exists.
-            if (!dir.exists()) {
-                LOG.info("Recreating missing station dir: " + dir.getPath());
-                dir.mkdir();
-            }
-
-            // The config file disappeared, probably from the cleanup command.
-            if (!configFile.exists()) {
-                LOG.info("Rewriting station config file: " + configFile.getPath());
-                writeStationProperties(props, dir, stationName);
-            }
-
-            ProcessBuilder pb = new ProcessBuilder(command);
-
-            pb.directory(dir);
-            log = new File(dir.getPath() + File.separator + "out." + Integer.valueOf(id).toString() + ".log");
-            if (log.exists()) {
-                if (log.delete()) {
-                    LOG.info("Deleted old log file: " + log.getPath());
-                } else {
-                    LOG.warning("Failed to delete old log file " + log.getPath());
-                }
-            }
-            pb.redirectErrorStream(true);
-            pb.redirectOutput(Redirect.appendTo(log));
-
-            LOG.info("Starting command: " + '\n' + String.join(" ", pb.command()) +'\n');
-
-            // Can throw exception.
-            process = pb.start();
-            pid = getPid(process);
-            LOG.info("Started process: " + pid);
-
-            // This attempts to connect to the remote AIDA tree multiple times with back off
-            // until it is up or max attempts are exceeded (after which station should be restarted).
-            if (this.props.get("lcsim.remoteTreeBind").valid()) {
-                LOG.fine("Starting remoteTreeBind connection thread");
-                Property<String> remoteTreeBind = this.props.get("lcsim.remoteTreeBind");
-                this.killRemoteTreeBindThread();
-                rtbThread = new RemoteTreeBind(remoteTreeBind.value(), null);
-                rtbThread.start();
-            }
-
-            setActive(true);
-
-            LOG.info("Setting station to active (connection to remote tree might be delayed)");
-        }
-
-        synchronized void killRemoteTreeBindThread() {
-            if (rtbThread != null && rtbThread.isAlive()) {
-                rtbThread.interrupt();
-                try {
-                    rtbThread.join();
-                } catch (InterruptedException e) {
-                    LOG.log(Level.WARNING, "Interrupted", e);
-                }
-                rtbThread = null;
-            }
-        }
-
-        // Set station info to indicate that it is inactive with no valid process
-        synchronized void deactivate() {
-
-            LOG.info("Deactivating station: " + stationName);
-
-            if (!active) {
-                LOG.warning("Station has already been deactivated: " + stationName);
-                return;
-            }
-
-            setActive(false);
-
-            killRemoteTreeBindThread();
-
-            // Dismount the station's AIDA tree
-            unmountRemoteTree();
-
-            destroyProcess();
-
-            LOG.info("Done deactivating station: " + stationName);
-        }
-
-        synchronized void setActive(boolean active) {
-            this.active = active;
-        }
-
-        boolean isActive() {
-            return this.active;
-        }
-
-        private void destroyProcess() {
-            // Destroy the station's system process
-            try {
-                if (process != null) {
-                    if (process.isAlive()) {
-                        LOG.fine("Killing process: " + pid);
-                        //process.destroy();
-                        process.destroyForcibly();
-                        try {
-                            LOG.fine("Waiting for station to stop: " + stationName);
-                            process.waitFor(30, TimeUnit.SECONDS);
-                            LOG.fine("Done waiting for station to stop: " + stationName);
-                            if (process.isAlive()) {
-                                LOG.warning("Station did not stop after 30 seconds");
-                            } else {
-                                exitValue = process.exitValue();
-
-                            }
-                        } catch (InterruptedException e) {
-                            LOG.log(Level.WARNING, "Interrupted", e);
-                        }
-                    } else {
-                        exitValue = process.exitValue();
-                    }
-                    process = null;
-                }
-                pid = -1L;
-                LOG.fine("Exit value: " + exitValue);
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error killing station process", e);
-            }
-        }
-
-        private void unmountRemoteTree() {
-            if (props.get("lcsim.remoteTreeBind").valid()) {
-                Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
-                try {
-                    server.agg.unmount(remoteTreeBind.value());
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Error unmounting AIDA tree", e);
-                }
-            }
-        }
-    }
 
     /**
      * Name of station properties file.
@@ -263,26 +33,6 @@ public class StationManager {
      * The package logger.
      */
     private static final Logger LOG = Logger.getLogger(StationManager.class.getPackage().getName());
-
-    /**
-     * Get the PID of a system process
-     * @param p The system process
-     * @return The process's PID
-     */
-    private static Long getPid(Process p) {
-        long pid = -1;
-        if (p != null) {
-            try {
-                Field f = p.getClass().getDeclaredField("pid");
-                f.setAccessible(true);
-                pid = f.getLong(p);
-                f.setAccessible(false);
-            } catch (Exception e) {
-                pid = -1;
-            }
-        }
-        return pid;
-    }
 
     /**
      * Reference to the server.
@@ -299,19 +49,25 @@ public class StationManager {
      */
     private int remoteAidaPortStart = 5000;
 
+    /**
+     * Host name for creating new stations.
+     */
     private String hostName = null;
 
     /**
-     * Define station list as synchronized because we do not want different
-     * threads mucking with it at the same time.
+     * Define station list as synchronized because we do not want different threads
+     * mucking with it at the same time.
      */
-    private final List<StationProcess> stations = Collections.synchronizedList(
-            new ArrayList<StationProcess>());
+    private final List<StationProcess> stations = Collections.synchronizedList(new ArrayList<StationProcess>());
 
+    /**
+     * Monitoring thread to deactivate stations where the process has died.
+     */
     StationMonitor stationMonitor = new StationMonitor();
 
     /**
      * Create a new instance of this class
+     *
      * @param server Reference to the containing {@link Server}
      */
     StationManager(Server server) {
@@ -330,6 +86,7 @@ public class StationManager {
 
     /**
      * Add information about a station
+     *
      * @param station The station information
      */
     void add(StationProcess station) {
@@ -339,6 +96,7 @@ public class StationManager {
 
     /**
      * Create the work directory for a station.
+     *
      * @param name The name of the station
      * @return The File of the new directory
      */
@@ -358,15 +116,15 @@ public class StationManager {
      * @param station The station to start
      * @throws IOException If there is a problem starting the station's process
      */
-    void start(final StationProcess station) throws IOException {
+    void startStation(final StationProcess station) throws IOException {
 
         LOG.info("Starting station: " + station.stationName);
 
-        synchronized(station) {
+        synchronized (station) {
             if (!station.isActive()) {
                 station.activate();
+                station.mountRemoteTree(server.agg);
                 LOG.info("Successfully started station: " + station.stationName);
-
             } else {
                 LOG.warning("Station is already active: " + station.stationName);
             }
@@ -375,8 +133,9 @@ public class StationManager {
 
     /**
      * Write station configuration properties to a file.
-     * @param sc The station configuration properties
-     * @param dir The target directory
+     *
+     * @param sc          The station configuration properties
+     * @param dir         The target directory
      * @param stationName The name of the station
      * @return The file with the station configuration
      */
@@ -392,17 +151,16 @@ public class StationManager {
 
     /**
      * Create a new station.
+     *
      * @param parameters The JSON parameters defining the station
      * @return The new station info
      */
-    StationProcess create(JSONObject parameters) {
-
-        LOG.info("StationManager.create");
+    public StationProcess create(JSONObject parameters) {
 
         // Get next station ID
         Integer stationID = getNextStationID();
         if (exists(stationID)) {
-            LOG.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
+            LOG.severe("Station ID " + stationID + " already exists.  Set a new station start ID or remove existing station to fix.");
             throw new IllegalArgumentException("Station ID already exists: " + stationID);
         }
 
@@ -422,14 +180,9 @@ public class StationManager {
         props.get("station.outputDir").set(dir.getPath());
 
         // Add new station info.
-        StationProcess info = new StationProcess();
-        info.id = stationID;
-        info.stationName = stationName;
-        info.dir = dir;
-        info.props = props;
+        StationProcess info = new StationProcess(stationID, stationName, dir, props);
 
-        final String remoteTreeBind = "//" + this.hostName
-                + ":" + (this.remoteAidaPortStart + stationID) + "/"
+        final String remoteTreeBind = "//" + this.hostName + ":" + (this.remoteAidaPortStart + stationID) + "/"
                 + stationName;
 
         LOG.info("remoteTreeBind: " + remoteTreeBind);
@@ -443,59 +196,29 @@ public class StationManager {
 
         // Write the properties file for the station to read in when running
         File scf = writeStationProperties(props, dir, stationName);
-        info.configFile = scf;
+        info.setConfigFile(scf);
 
         // Build the command to run the station
-        info.command = buildCommand(info);
+        info.buildCommand();
 
-        LOG.config("Command: " + String.join(" ", info.command));
+        LOG.config("Command: " + String.join(" ", info.getCommand()));
 
         // Register the station info
         add(info);
-
-        LOG.info("StationManager.create - done");
 
         return info;
     }
 
     /**
-     * Build the command for running the station.
-     * @param configFile The station configuration properties file
-     */
-    private List<String> buildCommand(StationProcess info) {
-
-        final StationProperties props = info.props;
-        Property<String> logConfigFile = props.get("station.loggingConfig");
-
-        List<String> command = new ArrayList<String>();
-
-        command.add("java");
-        command.add("-Xmx1g");
-
-        // Logging configuration
-        if (logConfigFile.valid()) {
-            command.add("-Djava.util.logging.config.file=" + logConfigFile.value());
-        } else {
-            command.add("-Djava.util.logging.config.class=" + LoggingConfig.class.getCanonicalName());
-        }
-
-        command.add("-cp");
-        command.add(System.getProperty("java.class.path"));
-        command.add(Station.class.getCanonicalName());
-        command.add(info.configFile.getPath());
-
-        return command;
-    }
-
-    /**
      * Find a station by its ID.
+     *
      * @param id The station's ID
      * @return The station or null if not found
      */
-    StationProcess find(int id) {
+    public StationProcess find(int id) {
         StationProcess station = null;
         for (StationProcess info : stations) {
-            if (info.id == id) {
+            if (info.getStationID() == id) {
                 station = info;
                 break;
             }
@@ -505,6 +228,7 @@ public class StationManager {
 
     /**
      * Get the next station ID, which automatically increments the stationID value.
+     *
      * @return The next station ID
      */
     synchronized int getNextStationID() {
@@ -514,14 +238,16 @@ public class StationManager {
 
     /**
      * Get an unmodifiable list of stations.
+     *
      * @return An unmodifiable list of stations
      */
-    List<StationProcess> getStations() {
+    public List<StationProcess> getStations() {
         return Collections.unmodifiableList(this.stations);
     }
 
     /**
      * Set the next station ID.
+     *
      * @param stationID The next station ID
      * @throws IllegalArgumentException If the new value is bad
      */
@@ -535,65 +261,35 @@ public class StationManager {
     }
 
     /**
-     * Stop all active stations.
-     * @return The number of stations stopped
-     */
-    synchronized int stopAll() {
-        LOG.info("Stopping all active stations!");
-        return this.stopStations(this.getActiveStations());
-        /*
-        for (StationProcess info : this.getActiveStations()) {
-            LOG.info("Stopping station: " + info.stationName);
-            if (stop(info)) {
-                ++n;
-            }
-        }
-        LOG.info("Stopped stations count: " + n);
-        return n;
-        */
-    }
-
-    /**
-     * Stop a station by its ID.
-     * @param id The ID of the station to stop
-     * @return True if the station was stopped successfully
-     */
-    boolean stop(int id) {
-        LOG.info("Stopping station with id: " + id);
-        StationProcess info = this.find(id);
-        boolean success = false;
-        if (info != null) {
-            success = stop(info);
-        } else {
-            throw new RuntimeException("Unknown process id: " + id);
-        }
-        return success;
-    }
-
-    /**
      * Stop a station.
      *
-     * This does not remove it from the station list.  The "remove" command
-     * must be used to do this separately.
+     * This does not remove it from the station list. The "remove" command must be
+     * used to do this separately.
      *
      * @param info The station info
      * @return True if the station was stopped successfully
      */
-    boolean stop(StationProcess info) {
-        LOG.info("Stopping station: " + info.stationName);
+    boolean stopStation(StationProcess station) {
+        LOG.info("Stopping station: " + station.stationName);
         try {
-            info.deactivate();
+            station.unmountRemoteTree(server.agg);
+            station.deactivate();
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error stopping station: " + info.stationName, e);
+            LOG.log(Level.WARNING, "Error stopping station: " + station.stationName, e);
         }
-        return info.isActive();
+        return station.isActive();
     }
 
-    int stopStations(List<StationProcess> stations) {
+    /**
+     * Stop a list of stations
+     * @param stations The list of stations
+     * @return Number of stations stopped
+     */
+    public int stopStations(List<StationProcess> stations) {
         int stopped = 0;
         for (StationProcess station : stations) {
             try {
-                station.deactivate();
+                stopStation(station);
                 ++stopped;
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Error deactivating station: " + station.stationName, e);
@@ -603,14 +299,21 @@ public class StationManager {
     }
 
     /**
-     * Remove a station from the manager.
+     * Remove an inactive station from the manager and delete its working directory.
+     *
      * @param info
      * @return True if the station was successfully removed.
      */
     boolean remove(StationProcess info) {
-        synchronized(info) {
+        synchronized (info) {
             LOG.info("Removing station: " + info.stationName);
             if (!info.isActive()) {
+                LOG.info("Deleting station work dir: " + info.getDirectory().getPath());
+                try {
+                    FileUtils.deleteDirectory(info.getDirectory());
+                } catch (IOException e) {
+                    LOG.log(Level.WARNING, "Error deleting station work dir: " + info.getDirectory().getPath(), e);
+                }
                 this.stations.remove(info);
                 LOG.info("Removed station: " + info.stationName);
                 return true;
@@ -622,48 +325,32 @@ public class StationManager {
     }
 
     /**
-     * Remove a list of stations by their IDs.
-     * @param ids The list of station IDs to remove
-     * @return The number of stations successfully removed
+     * Remove a list of stations
+     * @param stations
+     * @return
      */
-    int remove(List<Integer> ids) {
-        int n = 0;
-        List<StationProcess> stations = find(ids);
+
+    public int remove(List<StationProcess> stations) {
+        int tot = 0;
         for (StationProcess station : stations) {
-            if (remove(station)) {
-                ++n;
+            boolean removed = this.remove(station);
+            if (removed) {
+                ++tot;
             }
         }
-        return n;
-    }
-
-    /**
-     * Stop a list of stations by their IDs.
-     * @param ids The list of stations to stop
-     * @return The number of stations stopped
-     */
-    int stop(List<Integer> ids) {
-        List<StationProcess> stations = find(ids);
-        return this.stopStations(stations);
-    }
-
-    /**
-     * Remove all stations, returning number of stations removed.
-     * @return The number of stations removed
-     */
-    synchronized int removeAll() {
-        return remove(getStationIDs());
+        return tot;
     }
 
     /**
      * Find a list of stations by their IDs.
+     *
      * @param ids The IDs of the stations to find
      * @return A list of stations
      */
-    private List<StationProcess> find(List<Integer> ids) {
+    public List<StationProcess> find(List<Integer> ids) {
         List<StationProcess> stations = new ArrayList<StationProcess>();
         for (StationProcess station : this.stations) {
-            if (ids.contains(station.id)) {
+            if (ids.contains(station.getStationID())) {
                 stations.add(station);
             }
         }
@@ -671,57 +358,25 @@ public class StationManager {
     }
 
     /**
-     * Get a list of all station IDs
-     * @return A list of all station IDs
-     */
-    private List<Integer> getStationIDs() {
-        List<Integer> ids = new ArrayList<Integer>();
-        for (StationProcess station : this.stations) {
-            ids.add(station.id);
-        }
-        return ids;
-    }
-
-    /**
      * Get the number of stations.
+     *
      * @return The number of stations
      */
-    int getStationCount() {
+    public int getStationCount() {
         return this.stations.size();
     }
 
     /**
-     * Get the number of active stations.
-     * @return The number of active stations
-     */
-    int getActiveCount() {
-        return getActiveStations().size();
-    }
-
-    /**
-     * Get the number of inactive stations
-     * @return The number of inactive stations
-     */
-    int getInactiveCount() {
-        return getInactiveStations().size();
-    }
-
-    /**
      * Start all inactive stations.
+     *
      * @return The number of stations started
      */
-    synchronized int startAll() {
-        final List<StationProcess> inactiveStats = this.getInactiveStations();
-        LOG.info("Starting inactive stations: " + inactiveStats.size());
-        return startStations(inactiveStats);
-    }
-
-    int startStations(List<StationProcess> stations) {
+    public int startStations(List<StationProcess> stations) {
         int started = 0;
         for (StationProcess station : stations) {
             try {
                 LOG.info("Starting station: " + station.stationName);
-                start(station);
+                startStation(station);
                 ++started;
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
@@ -731,79 +386,15 @@ public class StationManager {
     }
 
     /**
-     * Start a list of stations by their IDs
-     * @param ids A list of station IDs to start
-     * @return The number of stations started
-     */
-    int start(List<Integer> ids) {
-        List<StationProcess> stations = this.find(ids);
-        return startStations(stations);
-    }
-
-    /**
-     * Cleanup a station by deleting its working directory.
-     * @param station The station to cleanup
-     * @return True if the station was successfully cleaned up
-     */
-    boolean cleanup(StationProcess station) {
-        LOG.info("Cleaning up station: " + station.stationName);
-        boolean deleted = false;
-        if (!station.active) {
-            try {
-                LOG.info("Deleting station work dir: " + station.dir.getPath());
-                FileUtils.deleteDirectory(station.dir);
-                deleted = true;
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to cleanup station: " + station.stationName, e);
-            }
-        } else {
-            LOG.warning("Cannot cleanup station which is still active: " + station.stationName);
-        }
-        LOG.info("Done cleaning up station: " + station.stationName);
-        return deleted;
-    }
-
-    /**
-     * Cleanup a list of stations by their IDs.
-     * @param ids A list of station IDs to cleanup
-     * @return The number of stations cleaned up
-     */
-    int cleanup(List<Integer> ids) {
-        int cleaned = 0;
-        List<StationProcess> stations = this.find(ids);
-        for (StationProcess station : stations) {
-            if (cleanup(station)) {
-                cleaned++;
-            }
-        }
-        return cleaned;
-    }
-
-    /**
-     * Cleanup all inactive stations.
-     * @return The number of stations cleanup up
-     */
-    synchronized int cleanupAll() {
-        int n = 0;
-        for (StationProcess station : this.stations) {
-            if (!station.active) {
-                if (cleanup(station)) {
-                    n++;
-                }
-            }
-        }
-        return n;
-    }
-
-    /**
      * Check if a station exists with given ID.
+     *
      * @param id The ID of the station
      * @return True if a station with this ID exists
      */
     private boolean exists(Integer id) {
         boolean exists = false;
         for (StationProcess station : this.stations) {
-            if (station.id == id) {
+            if (station.getStationID() == id) {
                 exists = true;
                 break;
             }
@@ -812,8 +403,9 @@ public class StationManager {
     }
 
     /**
-     * Get the current stationID to be used for the next station assignment,
-     * without incrementing it.
+     * Get the current stationID to be used for the next station assignment, without
+     * incrementing it.
+     *
      * @return The current station ID
      */
     int getCurrentStationID() {
@@ -821,40 +413,21 @@ public class StationManager {
     }
 
     /**
-     * Get a list of station directories from a list of IDs.
-     * @param ids The list of station IDs
-     * @return The list of station directories
-     */
-    List<File> getStationDirectories(List<Integer> ids) {
-        List<StationProcess> stations = this.find(ids);
-        List<File> dirs = new ArrayList<File>();
-        for (StationProcess station : stations) {
-            dirs.add(station.dir);
-        }
-        return dirs;
-    }
-
-    /**
-     * Get the list of all station directories.
-     * @return The list of all station directories
-     */
-    List<File> getStationDirectories() {
-        return getStationDirectories(this.getStationIDs());
-    }
-
-    /**
      * Create a <code>Tailer</code> for tailing the log file of a station.
-     * @param id The ID of the station
-     * @param listener The <code>TailerListener</code> to be attached to the <code>Tailer</code>
-     * @param delayMillis The delay in milliseconds between reading the <code>Tailer</code>
+     *
+     * @param id          The ID of the station
+     * @param listener    The <code>TailerListener</code> to be attached to the
+     *                    <code>Tailer</code>
+     * @param delayMillis The delay in milliseconds between reading the
+     *                    <code>Tailer</code>
      * @return The <code>Tailer</code> for the station's log file
      */
-    Tailer getLogTailer(Integer id, TailerListener listener, long delayMillis) {
+    public Tailer getLogTailer(Integer id, TailerListener listener, long delayMillis) {
         if (!this.exists(id)) {
             throw new IllegalArgumentException("Station ID does not exist: " + id);
         }
         StationProcess station = this.find(id);
-        if (!station.active) {
+        if (!station.isActive()) {
             throw new RuntimeException("Station is not active: " + station.stationName);
         }
         File logFile = station.log;
@@ -864,20 +437,20 @@ public class StationManager {
         return new Tailer(logFile, listener, delayMillis, true);
     }
 
-    List<StationProcess> getInactiveStations() {
+    public List<StationProcess> getInactiveStations() {
         List<StationProcess> stats = new ArrayList<StationProcess>();
         for (StationProcess sp : this.getStations()) {
-            if (!sp.active) {
+            if (!sp.isActive()) {
                 stats.add(sp);
             }
         }
         return stats;
     }
 
-    List<StationProcess> getActiveStations() {
+    public List<StationProcess> getActiveStations() {
         List<StationProcess> stats = new ArrayList<StationProcess>();
         for (StationProcess sp : this.getStations()) {
-            if (sp.active) {
+            if (sp.isActive()) {
                 stats.add(sp);
             }
         }
@@ -896,12 +469,14 @@ public class StationManager {
             for (StationProcess station : mgr.getStations()) {
                 // Set inactive state on stations that have stopped (possibly due to errors)
                 synchronized (station) {
-                    if (station.active && station.process != null && !station.process.isAlive()) {
+                    Process process = station.getProcess();
+                    if (station.isActive() && process != null && !process.isAlive()) {
                         LOG.info("Deactivating station: " + station.stationName);
-                        station.exitValue = station.process.exitValue();
+                        station.setExitValue(process.exitValue());
+                        station.unmountRemoteTree(server.agg);
                         station.deactivate();
-                        LOG.info("StationMonitor set station " + station.stationName
-                            + " to inactive with exit value: " + station.exitValue);
+                        LOG.info("StationMonitor set station " + station.stationName + " to inactive with exit value: "
+                                + station.getExitValue());
                     }
                 }
             }
@@ -910,14 +485,4 @@ public class StationManager {
     }
 }
 
-// Wake up the station
-/*
-EtSystem etSystem = server.getEtSystem();
-try {
-    EtStation etStation =
-            server.getEtSystem().stationNameToObject(stationName);
-    etSystem.wakeUpAll(etStation);
-} catch (Exception e) {
-    LOG.log(Level.WARNING, "Error waking up stat)ion", e);
-}
-*/
+

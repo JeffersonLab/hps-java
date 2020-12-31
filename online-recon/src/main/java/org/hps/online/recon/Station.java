@@ -15,6 +15,7 @@ import org.hps.online.recon.properties.PropertyValidationException;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.et.EtConnection;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+import org.lcsim.job.ConditionsSetup;
 
 /**
  * Online reconstruction station which processes events from the ET system
@@ -52,6 +53,8 @@ public class Station {
      */
     private String stationName;
 
+    private DatabaseConditionsManagerSetup conditionsSetup;
+
     /**
      * Create new online reconstruction station with given properties
      * @param config The station properties
@@ -84,6 +87,10 @@ public class Station {
         return builder;
     }
 
+    public ConditionsSetup getConditionsSetup() {
+        return this.conditionsSetup;
+    }
+
     /**
      * Get the name of the station in the ET system
      * @return The name of the station in the ET system
@@ -105,7 +112,6 @@ public class Station {
      * @param args The command line arguments
      */
     public static void main(String args[]) {
-        LOG.info("Station.main");
         if (args.length == 0) {
             throw new RuntimeException("Missing configuration properties file");
         }
@@ -126,6 +132,8 @@ public class Station {
         this.stationName = props.get("et.stationName").value().toString();
         LOG.config("Initializing station: " + stationName);
 
+        LOG.config("Station properties: " + props.toJSON().toString());
+
         try {
             LOG.config("Validating station properties...");
             props.validate();
@@ -136,6 +144,7 @@ public class Station {
         }
         LOG.config("Station properties validated");
 
+        // Get all the properties we will need
         Property<String> detector = props.get("lcsim.detector");
         Property<Integer> run = props.get("lcsim.run");
         Property<String> outputDir = props.get("station.outputDir");
@@ -146,8 +155,6 @@ public class Station {
         Property<String> conditionsUrl = props.get("lcsim.conditions");
         Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
 
-        LOG.config("Station properties: " + props.toJSON().toString());
-
         // Conditions URL
         if (conditionsUrl.valid()) {
             System.setProperty("org.hps.conditions.url", conditionsUrl.value());
@@ -155,15 +162,14 @@ public class Station {
         }
 
         // Setup the condition system from properties.
-        //DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        DatabaseConditionsManagerSetup conditionsSetup = new DatabaseConditionsManagerSetup();
-        //
+        conditionsSetup = new DatabaseConditionsManagerSetup();
         conditionsSetup.setDetectorName(detector.value());
         if (run.value() != null) {
             conditionsSetup.setRun(run.value());
             conditionsSetup.setFreeze(true);
         }
 
+        // Condition tag
         if (tag.valid()) {
             Set<String> tags = new HashSet<String>();
             tags.add(tag.value());

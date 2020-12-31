@@ -34,17 +34,20 @@ public class CommandFactory {
 
         // Add command classes.
         // TODO: register these automatically using introspection
-        classMap.put("cleanup",  CleanupCommand.class);
-        classMap.put("config",   ConfigCommand.class);
         classMap.put("create",   CreateCommand.class);
-        classMap.put("list",     ListCommand.class);
-        classMap.put("remove",   RemoveCommand.class);
-        classMap.put("settings", SettingsCommand.class);
         classMap.put("start",    StartCommand.class);
         classMap.put("stop",     StopCommand.class);
-        classMap.put("status",   StatusCommand.class);
+        classMap.put("list",     ListCommand.class);
+        classMap.put("remove",   RemoveCommand.class);
+
         classMap.put("log",      LogCommand.class);
-        classMap.put("prop-set", PropSetCommand.class);
+
+        //classMap.put("settings", SettingsCommand.class);
+
+        classMap.put("status",   StatusCommand.class);
+
+        classMap.put("load", LoadCommand.class);
+        classMap.put("set", SetCommand.class);
 
         // Set of valid commands.
         commands = classMap.keySet();
