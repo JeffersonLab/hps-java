@@ -539,6 +539,7 @@ public final class Server {
                     res = new CommandStatus(STATUS_ERROR, "Could not create some stations.");
                 }
             }
+            stats = null;
             return res;
         }
     }
@@ -959,8 +960,6 @@ public final class Server {
 
     /**
      * Interrupt all active threads in the server process and stop them, if necessary
-     *
-     * FIXME: This is very hacky and maybe not advisable!
      */
     /*
     private void cleanUpThreads() {

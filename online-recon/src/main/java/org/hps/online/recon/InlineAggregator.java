@@ -304,7 +304,11 @@ public class InlineAggregator implements Runnable {
      */
     synchronized void addRemote(String remoteTreeBind) throws IOException {
         if (remoteTreeBind == null) {
-            LOG.warning("remoteTreeBind was null");
+            LOG.warning("remoteTreeBind is null");
+            return;
+        }
+        if (remotes.contains(remoteTreeBind)) {
+            LOG.warning("remote already exists");
             return;
         }
         try {
@@ -345,13 +349,16 @@ public class InlineAggregator implements Runnable {
      */
     synchronized void unmount(String remoteTreeBind) {
         LOG.info("Unmounting remote tree: " + remoteTreeBind);
+        if (!remotes.contains(remoteTreeBind)) {
+            LOG.warning("no remote called: " + remoteTreeBind);
+            return;
+        }
         try {
             updatable = false;
             String path = toMountName(remoteTreeBind);
             LOG.info("Unmounting: " + path);
-            // TODO: check if path exists here first...
             this.serverTree.unmount(path);
-            remotes.remove(remoteTreeBind); // TODO: Double check that this works
+            remotes.remove(remoteTreeBind);
             LOG.info("Number of remotes after remove: " + remotes.size());
             LOG.info("Done unmounting remote tree: " + remoteTreeBind);
         } catch (Exception e) {

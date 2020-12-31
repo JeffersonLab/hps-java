@@ -69,19 +69,14 @@ public abstract class RemoteAidaDriver extends Driver {
         treeServer = null;
     }
 
-    synchronized  final void connect() throws IOException {
+    synchronized final void connect() throws IOException {
         if (remoteTreeBind == null) {
             throw new IllegalStateException("remoteTreeBind is not set");
         }
         LOG.info("Connecting tree server: " + remoteTreeBind);
-        //try {
         boolean serverDuplex = true;
         treeServer = new RemoteServer(tree, serverDuplex);
         rmiTreeServer = new RmiServerImpl(treeServer, remoteTreeBind);
         LOG.info("Done connecting tree server: " + remoteTreeBind);
-        //} catch (Exception e) {
-        //    LOG.log(Level.SEVERE, "Failed to setup remote tree server", e);
-        //    throw new RuntimeException(e);
-        //}
     }
 }

@@ -171,9 +171,6 @@ public class Station {
         }
         LOG.config("Conditions will be initialized: detector=" + detector.value()
                 + ", run=" + run.value() + ", tag=" + tag.value());
-        //} else {
-        //    LOG.config("Conditions will be initialized from EVIO data.");
-        //}
 
         // Setup event builder and register with conditions system.
         LOG.config("Creating event builder: " + builderClass.value());
@@ -183,7 +180,6 @@ public class Station {
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create event builder: " + builderClass.value(), e);
         }
-        //conditionsManager.addConditionsListener(builder);
         conditionsSetup.addConditionsListener(builder);
         LOG.config("Done creating event builder");
 
@@ -213,8 +209,7 @@ public class Station {
             mgr.setup(steering.value());
         }
 
-        // Activate the conditions system, if possible.
-        //if (conditionsSetup != null) {
+        // Activate the conditions system.
         LOG.config("Initializing conditions system...");
         conditionsSetup.configure();
         try {
@@ -224,7 +219,6 @@ public class Station {
         }
         conditionsSetup.postInitialize();
         LOG.config("Conditions system initialized successfully");
-        //}
 
         // Try to connect to the ET system, retrying up to the configured number of max attempts.
         LOG.config("Connecting to ET system...");
@@ -236,8 +230,13 @@ public class Station {
             throw new RuntimeException(e);
         }
 
-        // activate startOfData() hooks in drivers
-        mgr.getDriverAdapter().start(null);
+        // Activate startOfData() hooks in drivers
+        try {
+            mgr.getDriverAdapter().start(null);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to initialize driver startOfData() methods", e);
+            throw new RuntimeException(e);
+        }
         LOG.config("Done initializing job manager");
 
         // Close the ET station on shutdown.

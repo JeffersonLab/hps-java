@@ -42,12 +42,6 @@ public class OnlineEventBus extends EventBus {
         this.conn = this.station.getEtConnection();
         register(this);
         register(new EtListener(this));
-        /*
-        DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
-        if (!(mgr.isInitialized() && mgr.isFrozen())) {
-            register(new ConditionsListener(this));
-        }
-        */
         register(new EvioListener(this));
         register(new LcioListener(this/*, STORE_EVENT_NUMBERS*/));
         logger.config("Online event bus initialized");
@@ -61,6 +55,7 @@ public class OnlineEventBus extends EventBus {
         while (true) {
             EtEvent[] events = null;
             try {
+                logger.fine("Reading ET events");
                 events = conn.readEtEvents();
                 //logger.fine("Read ET events: " + events.length);
                 for (EtEvent event : events) {

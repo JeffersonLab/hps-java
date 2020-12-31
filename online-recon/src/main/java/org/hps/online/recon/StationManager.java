@@ -28,6 +28,49 @@ import org.json.JSONObject;
  */
 public class StationManager {
 
+    // Should aggregator manage this thread instead?
+    class RemoteTreeBind extends Thread {
+
+        String remoteTreeBind = null;
+        Integer maxAttempts = 5;
+
+        RemoteTreeBind(String remoteTreeBind, Integer maxAttempts) {
+            if (remoteTreeBind == null) {
+                throw new IllegalArgumentException("remoteTreeBind was null");
+            }
+            this.remoteTreeBind=remoteTreeBind;
+            if (maxAttempts != null) {
+                this.maxAttempts = maxAttempts;
+            }
+        }
+
+        // If this exits without a connection being made should it interrupt the station process???
+
+        public void run() {
+            for (long i = 0; i < this.maxAttempts; i++) {
+                long attempt = i + 1;
+                try {
+                    try {
+                        Thread.sleep(attempt*5000L);
+                    } catch (InterruptedException e) {
+                        LOG.log(Level.WARNING, "Interrupted", e);
+                        break;
+                    }
+                    LOG.info("remoteTreeBind connection attempt: " + attempt);
+                    LOG.info("Adding remote tree bind: " + remoteTreeBind);
+                    server.agg.addRemote(remoteTreeBind);
+                    LOG.info("Done adding remote tree bind: " + remoteTreeBind);
+                    break;
+                } catch (Exception e) {
+                    LOG.warning("Could not connect to: " + remoteTreeBind);
+                    if (attempt == this.maxAttempts) {
+                        LOG.warning("remoteTreeBind connection attempt timed out without connecting");
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Information for managing a single online reconstruction station
      */
@@ -47,6 +90,8 @@ public class StationManager {
         private File configFile;
 
         private StationProperties props;
+
+        RemoteTreeBind rtbThread = null;
 
         /**
          * Convert station data to JSON.
@@ -105,29 +150,33 @@ public class StationManager {
             // Can throw exception.
             process = pb.start();
             pid = getPid(process);
+            LOG.info("Started process: " + pid);
 
+            // This attempts to connect to the remote AIDA tree multiple times with back off
+            // until it is up or max attempts are exceeded (after which station should be restarted).
             if (this.props.get("lcsim.remoteTreeBind").valid()) {
+                LOG.fine("Starting remoteTreeBind connection thread");
                 Property<String> remoteTreeBind = this.props.get("lcsim.remoteTreeBind");
-                for (long i = 0; i < 10; i++) {
-                    long attempt = i + 1;
-                    try {
-                        try {
-                            Thread.sleep(attempt*3000L);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException("Interrupted", e);
-                        }
-                        LOG.info("Adding remote tree bind: " + remoteTreeBind.value());
-                        server.agg.addRemote(remoteTreeBind.value());
-                        LOG.info("Done adding remote tree bind: " + remoteTreeBind.value());
-                        break;
-                    } catch (Exception e) {
-                        LOG.log(Level.WARNING, "Cannot connect to: " + remoteTreeBind.value(), e);
-                    }
-                }
+                this.killRemoteTreeBindThread();
+                rtbThread = new RemoteTreeBind(remoteTreeBind.value(), null);
+                rtbThread.start();
             }
 
-            LOG.info("Setting station to active");
-            active = true;
+            setActive(true);
+
+            LOG.info("Setting station to active (connection to remote tree might be delayed)");
+        }
+
+        synchronized void killRemoteTreeBindThread() {
+            if (rtbThread != null && rtbThread.isAlive()) {
+                rtbThread.interrupt();
+                try {
+                    rtbThread.join();
+                } catch (InterruptedException e) {
+                    LOG.log(Level.WARNING, "Interrupted", e);
+                }
+                rtbThread = null;
+            }
         }
 
         // Set station info to indicate that it is inactive with no valid process
@@ -140,41 +189,68 @@ public class StationManager {
                 return;
             }
 
-            active = false;
+            setActive(false);
+
+            killRemoteTreeBindThread();
 
             // Dismount the station's AIDA tree
-            if (props.get("lcsim.remoteTreeBind").valid()) {
-                Property<String> rtb = props.get("lcsim.remoteTreeBind");
-                server.agg.unmount(rtb.value());
-            }
+            unmountRemoteTree();
 
-            // Destroy the station's system process
-            if (process != null) {
-                if (process.isAlive()) {
-                    //process.destroy();
-                    process.destroyForcibly();
-                    try {
-                        LOG.fine("Waiting for station to stop: " + stationName);
-                        process.waitFor(30, TimeUnit.SECONDS);
-                        LOG.fine("Done waiting for station to stop: " + stationName);
-                        if (process.isAlive()) {
-                            LOG.severe("station did not stop after 30 seconds!");
-                            throw new RuntimeException("Station failed to stop");
-                        }
-                        exitValue = process.exitValue();
-                        LOG.fine("Exit value: " + exitValue);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    exitValue = process.exitValue();
-                }
-                process = null;
-            }
-
-            pid = -1L;
+            destroyProcess();
 
             LOG.info("Done deactivating station: " + stationName);
+        }
+
+        synchronized void setActive(boolean active) {
+            this.active = active;
+        }
+
+        boolean isActive() {
+            return this.active;
+        }
+
+        private void destroyProcess() {
+            // Destroy the station's system process
+            try {
+                if (process != null) {
+                    if (process.isAlive()) {
+                        LOG.fine("Killing process: " + pid);
+                        //process.destroy();
+                        process.destroyForcibly();
+                        try {
+                            LOG.fine("Waiting for station to stop: " + stationName);
+                            process.waitFor(30, TimeUnit.SECONDS);
+                            LOG.fine("Done waiting for station to stop: " + stationName);
+                            if (process.isAlive()) {
+                                LOG.warning("Station did not stop after 30 seconds");
+                            } else {
+                                exitValue = process.exitValue();
+
+                            }
+                        } catch (InterruptedException e) {
+                            LOG.log(Level.WARNING, "Interrupted", e);
+                        }
+                    } else {
+                        exitValue = process.exitValue();
+                    }
+                    process = null;
+                }
+                pid = -1L;
+                LOG.fine("Exit value: " + exitValue);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error killing station process", e);
+            }
+        }
+
+        private void unmountRemoteTree() {
+            if (props.get("lcsim.remoteTreeBind").valid()) {
+                Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
+                try {
+                    server.agg.unmount(remoteTreeBind.value());
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Error unmounting AIDA tree", e);
+                }
+            }
         }
     }
 
@@ -287,7 +363,7 @@ public class StationManager {
         LOG.info("Starting station: " + station.stationName);
 
         synchronized(station) {
-            if (!station.active) {
+            if (!station.isActive()) {
                 station.activate();
                 LOG.info("Successfully started station: " + station.stationName);
 
@@ -327,7 +403,7 @@ public class StationManager {
         Integer stationID = getNextStationID();
         if (exists(stationID)) {
             LOG.severe("Station ID " + stationID + " already exists.  Set a new station start ID to fix.");
-            throw new RuntimeException("Station ID already exists: " + stationID);
+            throw new IllegalArgumentException("Station ID already exists: " + stationID);
         }
 
         LOG.info("New station ID: " + stationID);
@@ -464,7 +540,8 @@ public class StationManager {
      */
     synchronized int stopAll() {
         LOG.info("Stopping all active stations!");
-        int n = 0;
+        return this.stopStations(this.getActiveStations());
+        /*
         for (StationProcess info : this.getActiveStations()) {
             LOG.info("Stopping station: " + info.stationName);
             if (stop(info)) {
@@ -473,6 +550,7 @@ public class StationManager {
         }
         LOG.info("Stopped stations count: " + n);
         return n;
+        */
     }
 
     /**
@@ -503,8 +581,25 @@ public class StationManager {
      */
     boolean stop(StationProcess info) {
         LOG.info("Stopping station: " + info.stationName);
-        info.deactivate();
-        return !info.active;
+        try {
+            info.deactivate();
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Error stopping station: " + info.stationName, e);
+        }
+        return info.isActive();
+    }
+
+    int stopStations(List<StationProcess> stations) {
+        int stopped = 0;
+        for (StationProcess station : stations) {
+            try {
+                station.deactivate();
+                ++stopped;
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error deactivating station: " + station.stationName, e);
+            }
+        }
+        return stopped;
     }
 
     /**
@@ -515,7 +610,7 @@ public class StationManager {
     boolean remove(StationProcess info) {
         synchronized(info) {
             LOG.info("Removing station: " + info.stationName);
-            if (!info.active) {
+            if (!info.isActive()) {
                 this.stations.remove(info);
                 LOG.info("Removed station: " + info.stationName);
                 return true;
@@ -548,14 +643,8 @@ public class StationManager {
      * @return The number of stations stopped
      */
     int stop(List<Integer> ids) {
-        int n = 0;
         List<StationProcess> stations = find(ids);
-        for (StationProcess station : stations) {
-            if (stop(station)) {
-                ++n;
-            }
-        }
-        return n;
+        return this.stopStations(stations);
     }
 
     /**
@@ -606,13 +695,7 @@ public class StationManager {
      * @return The number of active stations
      */
     int getActiveCount() {
-        int n = 0;
-        for (StationProcess station : this.stations) {
-            if (station.active) {
-                ++n;
-            }
-        }
-        return n;
+        return getActiveStations().size();
     }
 
     /**
@@ -620,13 +703,7 @@ public class StationManager {
      * @return The number of inactive stations
      */
     int getInactiveCount() {
-        int n = 0;
-        for (StationProcess station : this.stations) {
-            if (!station.active) {
-                ++n;
-            }
-        }
-        return n;
+        return getInactiveStations().size();
     }
 
     /**
@@ -634,14 +711,20 @@ public class StationManager {
      * @return The number of stations started
      */
     synchronized int startAll() {
-        int started = 0;
         final List<StationProcess> inactiveStats = this.getInactiveStations();
-        for (StationProcess station : inactiveStats) {
+        LOG.info("Starting inactive stations: " + inactiveStats.size());
+        return startStations(inactiveStats);
+    }
+
+    int startStations(List<StationProcess> stations) {
+        int started = 0;
+        for (StationProcess station : stations) {
             try {
-                this.start(station);
+                LOG.info("Starting station: " + station.stationName);
+                start(station);
                 ++started;
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
             }
         }
         return started;
@@ -653,17 +736,8 @@ public class StationManager {
      * @return The number of stations started
      */
     int start(List<Integer> ids) {
-        int started = 0;
         List<StationProcess> stations = this.find(ids);
-        for (StationProcess station : stations) {
-            try {
-                start(station);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
-            }
-            ++started;
-        }
-        return started;
+        return startStations(stations);
     }
 
     /**
@@ -830,7 +904,6 @@ public class StationManager {
                             + " to inactive with exit value: " + station.exitValue);
                     }
                 }
-                //}
             }
             LOG.finest("StationMonitor is done running");
         }

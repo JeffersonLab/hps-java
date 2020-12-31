@@ -2,6 +2,7 @@ package org.hps.online.recon.eventbus;
 
 import org.hps.job.JobManager;
 import org.hps.record.LCSimEventBuilder;
+import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.event.EventHeader;
 
@@ -38,12 +39,14 @@ public class EvioListener {
             eventbus.getLogger().info("Station " + eventbus.getStation().getStationName()
                     + " processing EVIO event to LCIO: "
                     + EvioEventUtilities.getEventIdData(evioEvent)[0]);*/
-            builder.readEvioEvent(evioEvent);
-            EventHeader lcioEvent = builder.makeLCSimEvent(evioEvent);
-            eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
-            mgr.processEvent(lcioEvent);
-            eventbus.getLogger().info("Processed LCIO event: " + lcioEvent.getEventNumber());
-            eventbus.post(lcioEvent);
+            if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
+                builder.readEvioEvent(evioEvent);
+                EventHeader lcioEvent = builder.makeLCSimEvent(evioEvent);
+                eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
+                mgr.processEvent(lcioEvent);
+                eventbus.getLogger().info("Processed LCIO event: " + lcioEvent.getEventNumber());
+                eventbus.post(lcioEvent);
+            }
         } catch (Exception e) {
             eventbus.post(new EventProcessingError(e, false));
         }
