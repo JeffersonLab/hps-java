@@ -20,8 +20,8 @@ public class CommandHandlerFactory {
                 CommandHandler handler =
                         handlerClass.getDeclaredConstructor(Server.class).newInstance(server);
                 handlers.put(handler.getCommandName(), handler);
-                server.getLogger().config("Added handler: " + handler.getCommandName()
-                    + " -> " + handler.getClass().getCanonicalName());
+                /*(server.getLogger().config("Added handler: " + handler.getCommandName()
+                    + " -> " + handler.getClass().getCanonicalName());*/
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
