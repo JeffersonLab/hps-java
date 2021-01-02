@@ -15,6 +15,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
 import org.hps.online.recon.properties.PropertyValidationException;
+import org.jlab.coda.et.EtStation;
+import org.jlab.coda.et.EtSystem;
 import org.json.JSONObject;
 
 /**
@@ -306,7 +308,7 @@ public class StationManager {
      */
     boolean remove(StationProcess info) {
         synchronized (info) {
-            LOG.info("Removing station: " + info.stationName);
+            LOG.info("Removing recon station: " + info.stationName);
             if (!info.isActive()) {
                 LOG.info("Deleting station work dir: " + info.getDirectory().getPath());
                 try {
@@ -314,8 +316,22 @@ public class StationManager {
                 } catch (IOException e) {
                     LOG.log(Level.WARNING, "Error deleting station work dir: " + info.getDirectory().getPath(), e);
                 }
+
+                try {
+                    EtSystem sys = server.getEtSystem();
+                    EtStation stat = sys.stationNameToObject(info.stationName);
+                    if (stat != null) {
+                        LOG.info("Removing ET station: " + info.stationName);
+                        sys.removeStation(stat);
+                        LOG.info("Done removing ET station");
+                    }
+                    stat = null;
+                } catch (Exception e) {
+
+                }
+
                 this.stations.remove(info);
-                LOG.info("Removed station: " + info.stationName);
+                LOG.info("Removed recon station: " + info.stationName);
                 return true;
             } else {
                 LOG.warning("Failed to remove station because it is still active: " + info.stationName);
