@@ -90,7 +90,7 @@ public class StationManager {
      * @param station The station information
      */
     void add(StationProcess station) {
-        LOG.info("StationManager.add - " + station.stationName);
+        LOG.info("Adding station: " + station.stationName);
         stations.add(station);
     }
 
@@ -160,7 +160,7 @@ public class StationManager {
         // Get next station ID
         Integer stationID = getNextStationID();
         if (exists(stationID)) {
-            LOG.severe("Station ID " + stationID + " already exists.  Set a new station start ID or remove existing station to fix.");
+            LOG.severe("Station ID " + stationID + " already exists. Remove existing station to fix.");
             throw new IllegalArgumentException("Station ID already exists: " + stationID);
         }
 
@@ -182,9 +182,9 @@ public class StationManager {
         // Add new station info.
         StationProcess info = new StationProcess(stationID, stationName, dir, props);
 
+        // Set the AIDA remote tree bind information
         final String remoteTreeBind = "//" + this.hostName + ":" + (this.remoteAidaPortStart + stationID) + "/"
                 + stationName;
-
         LOG.info("remoteTreeBind: " + remoteTreeBind);
         props.get("lcsim.remoteTreeBind").from(remoteTreeBind);
 

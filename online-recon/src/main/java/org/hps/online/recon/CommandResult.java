@@ -47,12 +47,18 @@ public abstract class CommandResult {
         }
     }
 
+    /**
+     * Error status
+     */
     public static class Error extends CommandStatus {
         public Error(String message) {
             super(CommandResult.STATUS_ERROR, message);
         }
     }
 
+    /**
+     * Success status
+     */
     public static class Success extends CommandStatus {
         public Success(String message) {
             super(CommandResult.STATUS_SUCCESS, message);
@@ -60,7 +66,7 @@ public abstract class CommandResult {
     }
 
     /**
-     * Return a generic result with an object which can be converted to
+     * Return a generic result with an object that can be converted to
      * a JSON string.
      */
     public static class GenericResult extends CommandResult {
@@ -93,8 +99,8 @@ public abstract class CommandResult {
     }
 
     /**
-     * Encapsulates information needed for streaming log files
-     * back to the client.
+     * Return a result which encapsulates information needed for
+     * streaming a log file back to the client.
      */
     public static class LogStreamResult extends CommandResult {
 

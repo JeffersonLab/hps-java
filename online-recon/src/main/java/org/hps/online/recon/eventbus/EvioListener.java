@@ -41,10 +41,12 @@ public class EvioListener {
                     + EvioEventUtilities.getEventIdData(evioEvent)[0]);*/
             if (EvioEventUtilities.isPhysicsEvent(evioEvent)) {
                 builder.readEvioEvent(evioEvent);
+                eventbus.getLogger().fine("Received EVIO event: "
+                        + EvioEventUtilities.getEventIdData(evioEvent)[0]);
                 EventHeader lcioEvent = builder.makeLCSimEvent(evioEvent);
-                eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
+                //eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
                 mgr.processEvent(lcioEvent);
-                eventbus.getLogger().info("Processed LCIO event: " + lcioEvent.getEventNumber());
+                eventbus.getLogger().fine("Processed LCIO event: " + lcioEvent.getEventNumber());
                 eventbus.post(lcioEvent);
             }
         } catch (Exception e) {

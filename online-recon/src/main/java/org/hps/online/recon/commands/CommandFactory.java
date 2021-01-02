@@ -61,4 +61,8 @@ public class CommandFactory {
     public Set<String> getCommandNames() {
         return commands.keySet();
     }
+
+    public boolean commandExists(String name) {
+        return commands.containsKey(name);
+    }
 }

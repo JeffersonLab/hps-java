@@ -159,10 +159,10 @@ public final class Client {
 
             // See if a command was provided.
             String commandName = argList.get(0);
-            Command command = cf.create(commandName);
 
-            // There was a valid command to execute.
-            if (command != null) {
+            if (cf.commandExists(commandName)) {
+
+                Command command = cf.create(commandName);
 
                 // Remove command from arg list.
                 argList.remove(0);

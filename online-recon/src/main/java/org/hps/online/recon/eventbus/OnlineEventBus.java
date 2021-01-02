@@ -38,7 +38,6 @@ public class OnlineEventBus extends EventBus {
         this.station = station;
         this.conn = this.station.getEtConnection();
         register(this);
-        //station.getConditionsSetup().
         register(new ConditionsListener(this));
         register(new EtListener(this));
         register(new EvioListener(this));
@@ -54,9 +53,8 @@ public class OnlineEventBus extends EventBus {
         while (true) {
             EtEvent[] events = null;
             try {
-                logger.fine("Reading ET events");
+                logger.finest("Reading ET events");
                 events = conn.readEtEvents();
-                //logger.fine("Read ET events: " + events.length);
                 for (EtEvent event : events) {
                     logger.fine("Read ET event: " + event.getId());
                     this.post(event);
@@ -93,7 +91,7 @@ public class OnlineEventBus extends EventBus {
             }
         }
         this.station.getJobManager().getDriverAdapter().finish(null);
-        logger.info("Event processing is stopped!");
+        logger.info("Event processing is stopped");
     }
 
     @Subscribe
@@ -108,6 +106,9 @@ public class OnlineEventBus extends EventBus {
         }
     }
 
+    // FIXME:
+    // [SEVERE] Could not dispatch event: org.hps.online.recon.eventbus.OnlineEventBus@2da89706 to
+    // public void org.hps.online.recon.eventbus.OnlineEventBus.receiveStart(org.hps.online.recon.eventbus.Start)
     @Subscribe
     public void receiveStart(Start start) {
         logger.info("Received start: " + start.getDate().toString());

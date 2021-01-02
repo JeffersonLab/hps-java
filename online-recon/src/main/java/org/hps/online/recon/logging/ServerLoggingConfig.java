@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import org.hps.online.recon.Server;
 
 /**
  * Log messages to a file for a server program
@@ -47,7 +49,7 @@ public class ServerLoggingConfig {
         handler.setLevel(Level.ALL);
         handler.setFormatter(new SimpleFormatter());
         rootLogger.addHandler(handler);
-        Logger logger = Logger.getLogger(ServerLoggingConfig.class.getPackage().getName());
+        Logger logger = Logger.getLogger(Server.class.getPackage().getName());
         logger.setLevel(LEVEL);
         rootLogger.setLevel(Level.WARNING);
         System.out.println("Server log file: " + logFile.getAbsolutePath());

@@ -16,8 +16,10 @@ import com.google.common.eventbus.Subscribe;
  */
 public class ConditionsListener {
 
-    OnlineEventBus eventbus;
-    Property<String> detectorProp = null;
+    private OnlineEventBus eventbus;
+    private Property<String> detectorProp = null;
+    private Integer currentRun = null;
+    private ConditionsManager mgr;
 
     ConditionsListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
@@ -25,26 +27,25 @@ public class ConditionsListener {
         if (!detectorProp.valid()) {
             throw new IllegalArgumentException("Cannot initialize ConditionsListener with invalid detector prop");
         }
+        mgr = ConditionsManager.defaultInstance();
     }
 
     @Subscribe
     public void checkConditions(EvioEvent evioEvent) {
 
-        Integer run = null;
-
         if (EventTagConstant.PRESTART.matches(evioEvent)) {
-            run = EvioEventUtilities.getControlEventData(evioEvent)[1];
+            currentRun = EvioEventUtilities.getControlEventData(evioEvent)[1];
         } else {
             final BaseStructure headBank = EvioEventUtilities.getHeadBank(evioEvent);
             if (headBank != null) {
-                run = headBank.getIntData()[1];
+                currentRun = headBank.getIntData()[1];
             }
         }
 
-        if (run != null) {
+        if (currentRun != null && currentRun != mgr.getRun()) {
             try {
-                eventbus.getLogger().info("Setting conditions from EVIO: " + detectorProp.value() + ":" + run);
-                ConditionsManager.defaultInstance().setDetector(detectorProp.value(), run);
+                eventbus.getLogger().info("Setting conditions from EVIO: " + detectorProp.value() + ":" + currentRun);
+                ConditionsManager.defaultInstance().setDetector(detectorProp.value(), currentRun);
             } catch (ConditionsNotFoundException e) {
                 // Post fatal error because conditions are not found
                 eventbus.post(new EventProcessingError(e, true));

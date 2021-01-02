@@ -1,4 +1,4 @@
-package org.hps.online.recon;
+package org.hps.online.recon.logging;
 
 import java.io.IOException;
 import java.io.InputStream;

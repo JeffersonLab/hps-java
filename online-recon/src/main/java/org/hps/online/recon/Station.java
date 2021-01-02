@@ -197,7 +197,8 @@ public class Station {
         LOG.config("Output file path: " + outputFilePath);
         mgr.addVariableDefinition("outputFile", outputFilePath);
 
-        // Remote AIDA port
+        // Remote AIDA tree bind
+        // TODO: Figure out if there is a RemoteAidaDriver to active this
         if (remoteTreeBind.valid()) {
             String rtb = remoteTreeBind.value();
             mgr.addVariableDefinition("remoteTreeBind", rtb);

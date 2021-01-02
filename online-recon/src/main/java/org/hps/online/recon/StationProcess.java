@@ -11,6 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
+import org.hps.online.recon.InlineAggregator.RemoteTreeBindThread;
+import org.hps.online.recon.logging.LoggingConfig;
 import org.hps.online.recon.properties.Property;
 import org.json.JSONObject;
 
@@ -108,18 +110,6 @@ public class StationProcess {
         pid = getPid(process);
         LOG.info("Started process: " + pid);
 
-        // This attempts to connect to the remote AIDA tree multiple times with back off
-        // until it is up or max attempts are exceeded (after which station should be restarted).
-        /*
-        if (this.props.get("lcsim.remoteTreeBind").valid()) {
-            LOG.fine("Starting remoteTreeBind connection thread");
-            Property<String> remoteTreeBind = this.props.get("lcsim.remoteTreeBind");
-            this.killRemoteTreeBindThread();
-            rtbThread = new RemoteTreeBindThread(server.agg, remoteTreeBind.value(), null);
-            rtbThread.start();
-        }
-        */
-
         setActive(true);
 
         LOG.info("Setting station to active (connection to remote tree might be delayed)");
@@ -129,8 +119,7 @@ public class StationProcess {
         killRemoteTreeBindThread();
         if (this.props.get("lcsim.remoteTreeBind").valid()) {
             LOG.fine("Starting remoteTreeBind connection thread");
-            Property<String> remoteTreeBind = this.props.get("lcsim.remoteTreeBind");
-            rtbThread = new RemoteTreeBindThread(agg, remoteTreeBind.value(), null);
+            rtbThread = agg.new RemoteTreeBindThread(this, null);
             rtbThread.start();
         }
     }
@@ -295,6 +284,10 @@ public class StationProcess {
 
     public File getLogFile() {
         return this.log;
+    }
+
+    public StationProperties getProperties() {
+        return this.props;
     }
 
     void buildCommand() {

@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.online.recon.properties.Property;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IBaseHistogram;
 import hep.aida.IHistogram;
@@ -380,6 +382,63 @@ public class InlineAggregator implements Runnable {
             // This can happen if there are no remote trees, a tree is being mounted/dismounted,
             // or the main tree has been disconnected.
             LOG.finest("Skipping aggregation because not updatable or no remotes were added");
+        }
+    }
+
+    /**
+     * Thread for mounting a remote AIDA tree asynchronously, e.g. for a running {@link Station}
+     * after it has been started
+     *
+     * Multiple attempts are made until <code>maxAttempts</code> are reached. If no connection is made
+     * then the {@link StationProcess} will be deactivated automatically.
+     */
+    class RemoteTreeBindThread extends Thread {
+
+        StationProcess station;
+        String remoteTreeBind;
+        Integer maxAttempts = 5;
+
+        RemoteTreeBindThread(StationProcess station, Integer maxAttempts) {
+            if (station == null) {
+                throw new IllegalArgumentException("station is null");
+            }
+            this.station = station;
+            Property<String> rtbProp = this.station.getProperties().get("lcsim.remoteTreeBind");
+            if (!rtbProp.valid()) {
+                throw new IllegalArgumentException("Remote tree bind for station is not valid: " + station.stationName);
+            }
+            this.remoteTreeBind = rtbProp.value();
+            if (maxAttempts != null) {
+                if (maxAttempts <= 0) {
+                    throw new IllegalArgumentException("Bad value for max attempts: " + maxAttempts);
+                }
+                this.maxAttempts = maxAttempts;
+            }
+        }
+
+        public void run() {
+            for (long attempt = 1; attempt <= this.maxAttempts; attempt++) {
+                try {
+                    try {
+                        Thread.sleep(attempt*5000L);
+                    } catch (InterruptedException e) {
+                        LOG.log(Level.WARNING, "Interrupted", e);
+                        break;
+                    }
+                    LOG.info("Remote tree connection attempt: " + attempt);
+                    LOG.info("Adding remote tree: " + remoteTreeBind);
+                    addRemote(remoteTreeBind);
+                    LOG.info("Done adding remote tree: " + remoteTreeBind);
+                    break;
+                } catch (Exception e) {
+                    LOG.warning("Could not connect to: " + remoteTreeBind);
+                    // If all attempts failed then automatically deactivate the station
+                    if (attempt == this.maxAttempts) {
+                        LOG.warning("Deactivating station because remote tree connection failed: " + station.getStationName());
+                        station.deactivate();
+                    }
+                }
+            }
         }
     }
 }
