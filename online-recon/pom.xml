@@ -76,17 +76,7 @@
               <jvmSettings>
                 <maxMemorySize>1g</maxMemorySize>
                 <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.ServerLoggingConfig</systemProperty>
-                </systemProperties>
-              </jvmSettings>
-            </program>
-            <program>
-              <mainClass>org.hps.online.recon.Aggregator</mainClass>
-              <id>hps-recon-aggregator</id>
-              <jvmSettings>
-                <maxMemorySize>2g</maxMemorySize>
-                <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.AggregatorLoggingConfig</systemProperty>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.ServerLoggingConfig</systemProperty>
                 </systemProperties>
               </jvmSettings>
             </program>
@@ -96,7 +86,7 @@
               <jvmSettings>
                 <maxMemorySize>500m</maxMemorySize>
                 <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.ClientLoggingConfig</systemProperty>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.ClientLoggingConfig</systemProperty>
                 </systemProperties>
               </jvmSettings>
             </program>
@@ -106,7 +96,7 @@
               <jvmSettings>
                 <maxMemorySize>2g</maxMemorySize>
                 <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.LoggingConfig</systemProperty>
+                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.LoggingConfig</systemProperty>
                 </systemProperties>
               </jvmSettings>
             </program>

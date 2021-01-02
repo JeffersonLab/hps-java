@@ -1,6 +1,5 @@
 package org.hps.online.recon.eventbus;
 
-import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
