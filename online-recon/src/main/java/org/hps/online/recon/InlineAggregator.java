@@ -51,7 +51,7 @@ public class InlineAggregator implements Runnable {
     private String hostName = null;
 
     /** Interval between aggregation in milliseconds; set with "interval" property */
-    private Long updateInterval = 5000L;
+    private Long updateInterval = 2000L;
 
     /** URLs of the remote AIDA trees that are currently mounted
      * e.g. <pre>//localhost:4321/MyTree</pre>. */
@@ -245,21 +245,21 @@ public class InlineAggregator implements Runnable {
     /**
      * Add an AIDA object to another
      * @param srcName The source AIDA object
-     * @param obj The target AIDAobject
+     * @param target The target AIDAobject
      */
-    private void add(String srcName, IManagedObject obj) {
-        if (obj instanceof IBaseHistogram) {
+    private void add(String srcName, IManagedObject target) {
+        if (target instanceof IBaseHistogram) {
             LOG.finer("Adding: " + srcName);
-            IBaseHistogram srcBase = (IBaseHistogram) serverTree.find(srcName);
-            LOG.finer("src entries: " + srcBase.entries());
-            IBaseHistogram tgtBase = (IBaseHistogram) obj;
-            LOG.finer("target entries before: " + tgtBase.entries());
-            if (obj instanceof IHistogram1D) {
-                ((IHistogram1D) obj).add((IHistogram1D) serverTree.find(srcName));
-            } else if (obj instanceof IHistogram2D) {
-                ((IHistogram2D) obj).add((IHistogram2D) serverTree.find(srcName));
+            IBaseHistogram srcHisto = (IBaseHistogram) serverTree.find(srcName);
+            LOG.finer("src entries: " + srcHisto.entries());
+            IBaseHistogram targetHisto = (IBaseHistogram) target;
+            LOG.finer("target entries before: " + targetHisto.entries());
+            if (target instanceof IHistogram1D) {
+                ((IHistogram1D) target).add((IHistogram1D) srcHisto);
+            } else if (target instanceof IHistogram2D) {
+                ((IHistogram2D) target).add((IHistogram2D) srcHisto);
             }
-            LOG.finer("target entries after: " + tgtBase.entries());
+            LOG.finer("target entries after: " + targetHisto.entries());
         }
     }
 
@@ -376,8 +376,15 @@ public class InlineAggregator implements Runnable {
      */
     public void run() {
         if (updatable && remotes.size() > 0) {
-            clearTree();
-            update();
+            updatable = false;
+            try {
+                clearTree();
+                update();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error updating plots", e);
+            } finally {
+                updatable = true;
+            }
         } else {
             // This can happen if there are no remote trees, a tree is being mounted/dismounted,
             // or the main tree has been disconnected.
@@ -423,6 +430,7 @@ public class InlineAggregator implements Runnable {
                         Thread.sleep(attempt*5000L);
                     } catch (InterruptedException e) {
                         LOG.log(Level.WARNING, "Interrupted", e);
+                        // TODO: Should disconnect station here???
                         break;
                     }
                     LOG.info("Remote tree connection attempt: " + attempt);
