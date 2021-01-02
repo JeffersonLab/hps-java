@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
-    <!--
-      @brief Steering file that will be used for pass 1 reconstruction of
-             the 2016 Engineering Run data.
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
-      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
-    -->
     <execute>
+
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
+
         <!--RF driver-->
         <driver name="RfFitter"/>
 
@@ -19,6 +15,7 @@
         <driver name="ReconClusterer" />
         <driver name="ClusterRFTimeCorrDriver"/>
         <driver name="CopyCluster" />
+
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -58,15 +55,21 @@
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
+
         <driver name="ReconParticleDriver" />
+
+        <!-- Create example histograms in remote AIDA tree -->
         <driver name="RemoteHistExampleDriver"/>
-        <driver name="LCIOWriter"/>
+
+        <!--<driver name="LCIOWriter"/>-->
+
         <driver name="CleanupDriver"/>
 
     </execute>
     <drivers>
 
         <driver name="RemoteHistExampleDriver" type="org.hps.online.recon.aida.HistExampleDriver">
+            <!-- AIDA tree bind provided using external variable -->
             <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>
         </driver>
 
@@ -147,6 +150,7 @@
         </driver>
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
+
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" >
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
@@ -157,23 +161,29 @@
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-	    <maxElectronP> 2.15 </maxElectronP>
-	    <maxVertexP> 2.8 </maxVertexP>
-	    <minVertexChisqProb> 0.0 </minVertexChisqProb>
-	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
+	        <maxElectronP> 2.15 </maxElectronP>
+	        <maxVertexP> 2.8 </maxVertexP>
+	        <minVertexChisqProb> 0.0 </minVertexChisqProb>
+	        <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <trackClusterTimeOffset>55</trackClusterTimeOffset>
         </driver>
+
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-	  <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-	  <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
-	</driver>
+	        <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+	        <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
+	    </driver>
+	    <!--
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
+
+        -->
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <!--
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
+        -->
     </drivers>
 </lcsim>
