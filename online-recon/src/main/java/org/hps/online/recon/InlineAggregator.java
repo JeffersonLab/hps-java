@@ -1,6 +1,7 @@
 package org.hps.online.recon;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -26,6 +27,8 @@ import hep.aida.ref.remote.RemoteServer;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 import hep.aida.ref.remote.rmi.interfaces.RmiServer;
 import hep.aida.ref.remote.rmi.server.RmiServerImpl;
+import hep.aida.ref.rootwriter.RootFileStore;
+import hep.aida.ref.xml.AidaXMLStore;
 
 /**
  * Version of the plot {@link Aggregator} for running inside the {@link Server}
@@ -154,7 +157,7 @@ public class InlineAggregator implements Runnable {
     /**
      * List object names at the path in the AIDA tree
      * @param path The path in the tree
-     * @param recursive Whether objects should be lised recursively
+     * @param recursive Whether objects should be listed recursively
      * @param type Filter by object type (use <code>null</code> for all)
      * @return A list of the full object paths in the tree
      */
@@ -389,6 +392,47 @@ public class InlineAggregator implements Runnable {
             // This can happen if there are no remote trees, a tree is being mounted/dismounted,
             // or the main tree has been disconnected.
             LOG.finest("Skipping aggregation because not updatable or no remotes were added");
+        }
+    }
+
+    /**
+     * Save an AIDA file with the current tree contents
+     * @param file The output AIDA or ROOT file
+     * @throws IOException If there is a problem saving the tree
+     */
+    void save(File file) throws IOException {
+        try {
+            this.updatable = false;
+            String path = file.getCanonicalPath();
+
+            // Modified code from AIDA class in lcsim
+            if (path.endsWith(".root")) {
+                if (file.exists()) {
+                    LOG.info("Deleting old ROOT file: " + path);
+                    file.delete();
+                }
+                RootFileStore store = new RootFileStore(path);
+                store.open();
+                store.add(serverTree);
+                store.close();
+                LOG.info("Saved ROOT file: " + path);
+            } else {
+                if (!path.endsWith(".aida")) {
+                    path = path + ".aida";
+                    file = new File(path);
+                }
+                if (file.exists()) {
+                    LOG.info("Deleting old AIDA file: " + path);
+                    file.delete();
+                }
+                AidaXMLStore store = new AidaXMLStore();
+                de.schlichtherle.io.File newFile = new de.schlichtherle.io.File(path);
+                store.commit(serverTree, newFile, null, false, false, false);
+                //store.commit(serverTree, newFile, null, true /*useZip*/, false, false);
+                LOG.info("Saved AIDA file: " + file.getPath());
+            }
+        } finally {
+            updatable = true;
         }
     }
 

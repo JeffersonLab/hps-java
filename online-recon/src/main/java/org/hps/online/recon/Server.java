@@ -236,7 +236,6 @@ public final class Server {
          * @throws IOException
          * @throws InterruptedException
          */
-        // FIXME: Clean this up (can it be made less complicated?)
         private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in)
                 throws IOException, InterruptedException {
 
@@ -389,7 +388,7 @@ public final class Server {
     /**
      * Create a new server instance.
      */
-    Server() {
+    private Server() {
         this.stationManager = new StationManager(this);
 
         handlers = new CommandHandlerFactory(this);
@@ -614,6 +613,10 @@ public final class Server {
         return etSystem;
     }
 
+    public void save(File file) throws IOException {
+        this.agg.save(file);
+    }
+
     /**
      * Shutdown the server, attempting to cleanup all active
      * components, stations, and threads
@@ -636,7 +639,7 @@ public final class Server {
     /**
      * Start the server.
      */
-    void startServer() throws Exception {
+    private void startServer() throws Exception {
 
         // Client connection loop
         LOG.info("Starting server on port: " + this.port);
