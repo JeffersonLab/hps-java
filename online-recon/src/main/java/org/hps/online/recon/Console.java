@@ -65,7 +65,7 @@ public class Console {
         while (true) {
             System.out.print("online> ");
             userInput = sn.nextLine().trim();
-            if (userInput.split(" ")[0].startsWith("exit")) {
+            if (userInput.split(" ")[0].equals("exit")) {
                 break;
             }
             try {
