@@ -21,7 +21,7 @@ class CreateCommandHandler extends CommandHandler {
 
     static final Logger LOG = Logger.getLogger(CreateCommandHandler.class.getPackage().getName());
 
-    protected CreateCommandHandler(Server server) {
+    CreateCommandHandler(Server server) {
         super(server);
     }
 

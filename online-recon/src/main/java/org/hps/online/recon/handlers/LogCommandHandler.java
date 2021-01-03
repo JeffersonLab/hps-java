@@ -16,7 +16,7 @@ import org.json.JSONObject;
  */
 class LogCommandHandler extends CommandHandler {
 
-    protected LogCommandHandler(Server server) {
+    LogCommandHandler(Server server) {
         super(server);
     }
 

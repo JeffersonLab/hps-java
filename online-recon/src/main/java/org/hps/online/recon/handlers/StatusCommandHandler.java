@@ -2,9 +2,8 @@ package org.hps.online.recon.handlers;
 
 import org.hps.online.recon.CommandHandler;
 import org.hps.online.recon.CommandResult;
-import org.hps.online.recon.Server;
-import org.hps.online.recon.StationManager;
 import org.hps.online.recon.CommandResult.JSONResult;
+import org.hps.online.recon.Server;
 import org.json.JSONObject;
 
 /**
@@ -12,7 +11,7 @@ import org.json.JSONObject;
  */
 class StatusCommandHandler extends CommandHandler {
 
-    protected StatusCommandHandler(Server server) {
+    StatusCommandHandler(Server server) {
         super(server);
     }
 

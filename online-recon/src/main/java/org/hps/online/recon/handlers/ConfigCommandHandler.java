@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 class ConfigCommandHandler extends CommandHandler {
 
-    protected ConfigCommandHandler(Server server) {
+    ConfigCommandHandler(Server server) {
         super(server);
     }
 

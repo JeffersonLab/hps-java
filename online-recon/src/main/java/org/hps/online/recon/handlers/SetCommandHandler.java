@@ -13,7 +13,7 @@ import org.json.JSONObject;
  */
 class SetCommandHandler extends CommandHandler {
 
-    protected SetCommandHandler(Server server) {
+    SetCommandHandler(Server server) {
         super(server);
     }
 

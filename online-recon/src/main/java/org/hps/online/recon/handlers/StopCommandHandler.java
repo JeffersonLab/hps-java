@@ -15,7 +15,7 @@ import org.json.JSONObject;
  */
 class StopCommandHandler extends CommandHandler {
 
-    protected StopCommandHandler(Server server) {
+    StopCommandHandler(Server server) {
         super(server);
     }
 

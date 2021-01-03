@@ -15,7 +15,7 @@ import org.json.JSONObject;
  */
 class RemoveCommandHandler extends CommandHandler {
 
-    protected RemoveCommandHandler(Server server) {
+    RemoveCommandHandler(Server server) {
         super(server);
     }
 
