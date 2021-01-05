@@ -42,7 +42,7 @@ public class OnlineEventBus extends EventBus {
         register(new EtListener(this));
         register(new EvioListener(this));
         register(new LcioListener(this));
-        logger.config("Online event bus initialized");
+        logger.config("Online event bus initialized for station: " + station.getStationName());
     }
 
     /**
@@ -66,14 +66,14 @@ public class OnlineEventBus extends EventBus {
             }
             if (Thread.interrupted()) {
                 // Thread was externally interrupted and processing should stop.
-                post(new Stop("Interrupted"));
+                post(new Stop("Event processing was interrupted"));
             }
         }
     }
 
     public void startProcessing() {
         logger.config("Starting event processing thread");
-        post(new Start(new Date()));
+        post(new Start());
         eventProc = new EventProcessingThread();
         eventProc.start();
         logger.config("Event processing thread started");
@@ -81,52 +81,68 @@ public class OnlineEventBus extends EventBus {
 
     @Subscribe
     public void receiveStop(Stop stop) {
-        logger.info("Stopping event processing: " + stop.getReason());
-        if (eventProc.isAlive()) {
-            eventProc.interrupt();
-            try {
-                eventProc.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        try {
+            logger.info("Stopping event processing: " + stop.getReason());
+            if (eventProc.isAlive()) {
+                eventProc.interrupt();
+                try {
+                    eventProc.join();
+                } catch (InterruptedException e) {
+                    logger.log(Level.WARNING, "Interrupted", e);
+                }
             }
+            this.station.getJobManager().getDriverAdapter().finish(null);
+            logger.info("Event processing is stopped");
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Problem receiving stop command", e);
         }
-        this.station.getJobManager().getDriverAdapter().finish(null);
-        logger.info("Event processing is stopped");
     }
 
     @Subscribe
     public void receiveError(EventProcessingError e) {
-        if (e.fatal()) {
-            logger.log(Level.SEVERE, "Fatal error - event processing will stop", e.getException());
-            e.getException().printStackTrace();
-            post(new Stop("Fatal error"));
-        } else {
-            logger.log(Level.WARNING, "Error occurred - event processing will continue", e.getException());
-            e.getException().printStackTrace();
+        try {
+            if (e.fatal()) {
+                logger.log(Level.SEVERE, "Fatal error occurred - event processing will stop", e.getException());
+                post(new Stop("Fatal error"));
+            } else {
+                logger.log(Level.WARNING, "A non-fatal error occurred - event processing will continue", e.getException());
+        }
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Problem processing error", ex);
         }
     }
 
-    // FIXME:
-    // [SEVERE] Could not dispatch event: org.hps.online.recon.eventbus.OnlineEventBus@2da89706 to
-    // public void org.hps.online.recon.eventbus.OnlineEventBus.receiveStart(org.hps.online.recon.eventbus.Start)
+
     @Subscribe
     public void receiveStart(Start start) {
-        logger.info("Received start: " + start.getDate().toString());
-        // For now this is managed by the station's setup routine
-        //station.getJobManager().getDriverAdapter().start(null);
+        try {
+            logger.info("Received start: " + start.getDate().toString());
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Problem receiving the Start event", e);
+        }
     }
 
     @Subscribe
     public void postEndRun(EvioEvent evioEvent) {
-        if (EvioEventUtilities.isEndEvent(evioEvent)) {
-            post(new EndRun(ConditionsManager.defaultInstance().getRun(), new Date()));
+        try {
+            if (EvioEventUtilities.isEndEvent(evioEvent)) {
+                // TODO: Get date of end run from the EVIO event
+                post(new EndRun(ConditionsManager.defaultInstance().getRun(), new Date()));
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Problem posting end run", e);
         }
+
     }
 
     @Subscribe
     public void receiveEndRun(EndRun end) {
-        logger.info("Run " + end.getRun() + " ended at: " + end.getDate());
-        post(new Stop("Run ended"));
+        try {
+            logger.info("Run " + end.getRun() + " ended at: " + end.getDate());
+            post(new Stop("Run ended"));
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Problem receiving the EndRun event", e);
+        }
     }
 
     /**

@@ -1,5 +1,7 @@
 package org.hps.online.recon.eventbus;
 
+import java.util.logging.Level;
+
 import org.hps.job.JobManager;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventUtilities;
@@ -50,6 +52,7 @@ public class EvioListener {
                 eventbus.post(lcioEvent);
             }
         } catch (Exception e) {
+            eventbus.getLogger().log(Level.SEVERE, "Error converting EVIO to LCIO", e);
             eventbus.post(new EventProcessingError(e, false));
         }
     }

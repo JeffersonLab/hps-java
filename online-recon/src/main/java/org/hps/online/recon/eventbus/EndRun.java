@@ -12,6 +12,9 @@ public class EndRun {
     Date date = null;
 
     EndRun(Integer run, Date date) {
+        if (run == null) {
+            throw new IllegalArgumentException("The run argument is null");
+        }
         this.run = run;
         this.date = date;
         if (this.date == null) {

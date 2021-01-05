@@ -8,8 +8,13 @@ public class Start {
 
     Start(Date date) {
         if (date == null) {
-            date = new Date();
+            throw new IllegalArgumentException("Date argument is null");
         }
+        this.date = date;
+    }
+
+    Start() {
+        this.date = new Date();
     }
 
     Date getDate() {
