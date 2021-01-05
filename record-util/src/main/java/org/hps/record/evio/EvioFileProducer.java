@@ -25,21 +25,14 @@ import org.jlab.coda.et.EtStation;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
-import org.jlab.coda.et.exception.EtClosedException;
-import org.jlab.coda.et.exception.EtDeadException;
-import org.jlab.coda.et.exception.EtException;
-import org.jlab.coda.et.exception.EtTooManyException;
 import org.jlab.coda.jevio.EventWriter;
 import org.jlab.coda.jevio.EvioEvent;
-import org.jlab.coda.jevio.EvioException;
 import org.jlab.coda.jevio.EvioReader;
 
 /**
  * A command line utility for streaming EVIO files to an ET server.
  * <p>
  * The original version was copied from the CODA ET module and modified.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioFileProducer {
 
@@ -346,6 +339,7 @@ public final class EvioFileProducer {
             LOG.info("Opening ET system on host " + this.host + ", port " + this.port + " and file " + this.etName);
             final EtSystemOpenConfig config = new EtSystemOpenConfig(this.etName, this.host, this.port);
             sys = new EtSystem(config, EtConstants.debugInfo);
+            // TODO: Add multiple connection attempts as the initial handshake tends to fail a lot
             sys.open();
             final EtStation gc = sys.stationNameToObject(GRAND_CENTRAL);
             final EtAttachment att = sys.attach(gc);
