@@ -237,15 +237,6 @@ public class Station {
             throw new RuntimeException(e);
         }
 
-        // Activate startOfData() hooks in drivers
-        try {
-            mgr.getDriverAdapter().start(null);
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to initialize driver startOfData() methods", e);
-            throw new RuntimeException(e);
-        }
-        LOG.config("Done initializing job manager");
-
         // Close the ET station on shutdown.
         final EtConnection shutdownConn = conn;
         Runtime.getRuntime().addShutdownHook(new Thread() {

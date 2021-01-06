@@ -42,7 +42,7 @@ public class OnlineEventBus extends EventBus {
         register(new EtListener(this));
         register(new EvioListener(this));
         register(new LcioListener(this));
-        logger.config("Online event bus initialized for station: " + station.getStationName());
+        logger.config("Done initializing online event bus for station: " + station.getStationName());
     }
 
     /**
@@ -117,6 +117,10 @@ public class OnlineEventBus extends EventBus {
     public void receiveStart(Start start) {
         try {
             logger.info("Received start: " + start.getDate().toString());
+
+            logger.info("Activating start on drivers");
+            this.station.getJobManager().getDriverAdapter().start(null);
+
         } catch (Exception e) {
             logger.log(Level.WARNING, "Problem receiving the Start event", e);
         }
@@ -130,7 +134,7 @@ public class OnlineEventBus extends EventBus {
                 post(new EndRun(ConditionsManager.defaultInstance().getRun(), new Date()));
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Problem posting end run", e);
+            logger.log(Level.WARNING, "Error in postEndRun() method", e);
         }
 
     }
@@ -141,7 +145,7 @@ public class OnlineEventBus extends EventBus {
             logger.info("Run " + end.getRun() + " ended at: " + end.getDate());
             post(new Stop("Run ended"));
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Problem receiving the EndRun event", e);
+            logger.log(Level.WARNING, "Error in receiveEndRun() method", e);
         }
     }
 
@@ -185,7 +189,7 @@ public class OnlineEventBus extends EventBus {
                 eventbus.loop();
                 //getLogger().info("event bus loop stopped");
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Loop stopped from error", e);
+                logger.log(Level.SEVERE, "Loop stopped due to an error", e);
             }
         }
     }

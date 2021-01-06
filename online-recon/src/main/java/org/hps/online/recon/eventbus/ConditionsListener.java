@@ -25,7 +25,7 @@ public class ConditionsListener {
         this.eventbus = eventbus;
         detectorProp = eventbus.getStation().getProperties().get("lcsim.detector");
         if (!detectorProp.valid()) {
-            throw new IllegalArgumentException("Cannot initialize ConditionsListener with invalid detector prop");
+            throw new IllegalArgumentException("The detector property is not valid");
         }
         mgr = ConditionsManager.defaultInstance();
     }
