@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
-import org.hps.online.recon.InlineAggregator.RemoteTreeBindThread;
+import org.hps.online.recon.PlotAggregator.RemoteTreeBindThread;
 import org.hps.online.recon.logging.LoggingConfig;
 import org.hps.online.recon.properties.Property;
 import org.json.JSONObject;
@@ -115,7 +115,7 @@ public class StationProcess {
         LOG.info("Setting station to active (connection to remote tree might be delayed)");
     }
 
-    synchronized void mountRemoteTree(InlineAggregator agg) {
+    synchronized void mountRemoteTree(PlotAggregator agg) {
         killRemoteTreeBindThread();
         if (this.props.get("lcsim.remoteTreeBind").valid()) {
             LOG.fine("Starting remoteTreeBind connection thread");
@@ -197,7 +197,7 @@ public class StationProcess {
         }
     }
 
-    void unmountRemoteTree(InlineAggregator agg) {
+    void unmountRemoteTree(PlotAggregator agg) {
 
         // Kill the RTB thread if active
         killRemoteTreeBindThread();

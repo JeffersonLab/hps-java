@@ -22,7 +22,7 @@ import org.json.JSONObject;
 /**
  * Manages online reconstruction stations by creating, starting, and stopping
  * them using a {@link StationProcess}, as well as setting up the connection
- * to their remote AIDA trees for the {@link InlineAggregator}.
+ * to their remote AIDA trees for the {@link PlotAggregator}.
  */
 public class StationManager {
 

@@ -31,12 +31,30 @@ import hep.aida.ref.rootwriter.RootFileStore;
 import hep.aida.ref.xml.AidaXMLStore;
 
 /**
- * Version of the plot {@link Aggregator} for running inside the {@link Server}
- * on a scheduled thread executor
+ * Creates an AIDA tree that is used to combine histograms from multiple
+ * online recon {@link Station}s by connecting to their remote trees
+ * and adding histogram objects with the same paths together
+ *
+ * The resulting combined plots can then be viewed in a remote AIDA client
+ * such as JAS3 with the Remote AIDA plugin or in a browser by connecting to
+ * a webapp that is using the aidatld library.
+ *
+ * The station trees are mounted into a server tree and added together
+ * into a combined set of histograms in a separate directory structure.
+ * The remote plots are read-only, so a station's plots can only be reset
+ * by restarting it. The remotely mounted trees are automatically
+ * unmounted when a station is deactivated (stopped).
+ *
+ * This class implements <code>Runnable</code> and is designed to be run
+ * periodically using a scheduled thread executor by the {@code Server}.
+ *
+ * The <code>RemoteTreeBindThread</code> is used to connect asynchronously
+ * to a station that has been activated for event processing.
  */
-public class InlineAggregator implements Runnable {
+// TODO: Replace the updatable flag with use of synchronized keyword
+public class PlotAggregator implements Runnable {
 
-    private static Logger LOG = Logger.getLogger(InlineAggregator.class.getPackage().getName());
+    private static Logger LOG = Logger.getLogger(PlotAggregator.class.getPackage().getName());
 
     /** Data where remote AIDA trees are mounted. */
     private static final String REMOTES_DIR = "/remotes";
@@ -82,7 +100,7 @@ public class InlineAggregator implements Runnable {
     /**
      * Create an instance of the plot aggregator
      */
-    public InlineAggregator() {
+    public PlotAggregator() {
     }
 
     public void setPort(int port) {
@@ -129,10 +147,10 @@ public class InlineAggregator implements Runnable {
     }
 
     /**
-     * Get the name of the directory for combining plots from a
+     * Get the target path for combining plots from a remote
      * tree bind name (URL)
      * @param remoteName The tree bind name
-     * @return The AIDA directory for combining plots
+     * @return The target AIDA path for combining plots
      */
     private static String toAggregateName(String remoteName) {
         String[] sp = remoteName.split("/");
@@ -143,7 +161,7 @@ public class InlineAggregator implements Runnable {
     }
 
     /**
-     * Convert tree bind name (URL) to an AIDA directory
+     * Convert the tree bind name (URL) of a remote to an AIDA directory
      * @param treeBindName The tree bind name
      * @return The AIDA directory
      */
@@ -155,7 +173,7 @@ public class InlineAggregator implements Runnable {
     }
 
     /**
-     * List object names at the path in the AIDA tree
+     * List object names at a path in the server AIDA tree
      * @param path The path in the tree
      * @param recursive Whether objects should be listed recursively
      * @param type Filter by object type (use <code>null</code> for all)
@@ -191,8 +209,10 @@ public class InlineAggregator implements Runnable {
     }
 
     /**
-     * Clear the aggregated plots in the tree (does not do anything
-     * to the remote mounted trees)
+     * Clear the aggregated plots in the tree
+     *
+     * This does nothing to the remote trees that have been mounted,
+     * since they are read-only.
      */
     private synchronized void clearTree() {
         LOG.fine("Clearing tree...");
@@ -247,8 +267,8 @@ public class InlineAggregator implements Runnable {
 
     /**
      * Add an AIDA object to another
-     * @param srcName The source AIDA object
-     * @param target The target AIDAobject
+     * @param srcName The source AIDA object path (from the remote)
+     * @param target The target AIDA object (the combined histogram)
      */
     private void add(String srcName, IManagedObject target) {
         if (target instanceof IBaseHistogram) {
@@ -267,7 +287,7 @@ public class InlineAggregator implements Runnable {
     }
 
     /**
-     * Disconnect the aggregator
+     * Disconnect the object's remote tree server
      *
      * The object is unusable after this unless {@link #connect()}
      * is called again.
@@ -355,7 +375,7 @@ public class InlineAggregator implements Runnable {
     synchronized void unmount(String remoteTreeBind) {
         LOG.info("Unmounting remote tree: " + remoteTreeBind);
         if (!remotes.contains(remoteTreeBind)) {
-            LOG.warning("no remote called: " + remoteTreeBind);
+            LOG.warning("No remote with name: " + remoteTreeBind);
             return;
         }
         try {
@@ -375,8 +395,8 @@ public class InlineAggregator implements Runnable {
 
     /**
      * Clear the aggregated plots and then add all the remote plots together
-     * (run periodically on a scheduled thread executor)
      */
+    @Override
     public void run() {
         if (updatable && remotes.size() > 0) {
             updatable = false;
@@ -397,7 +417,7 @@ public class InlineAggregator implements Runnable {
 
     /**
      * Save an AIDA file with the current tree contents
-     * @param file The output AIDA or ROOT file
+     * @param file The output AIDA or ROOT file (use '.aida' or '.root' to specify)
      * @throws IOException If there is a problem saving the tree
      */
     void save(File file) throws IOException {

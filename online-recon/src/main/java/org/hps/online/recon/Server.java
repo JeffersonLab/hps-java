@@ -124,7 +124,7 @@ public final class Server {
     /**
      * Remote AIDA plot aggregator
      */
-    final InlineAggregator agg = new InlineAggregator();
+    final PlotAggregator agg = new PlotAggregator();
 
     CommandHandlerFactory handlers = null;
 
