@@ -1,5 +1,6 @@
 package org.hps.evio;
 
+import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,11 +42,62 @@ public class SvtEventFlagger {
     private boolean positionGood = false;
     private boolean burstmodeNoiseGood = false;
     private boolean latencyGood = false;
+    private boolean readoutOverlapGood = false;
     private double nominalAngleTop = 0;
     private double nominalAngleBottom = 0;
+    private Vector<Long> readTimes = new Vector<>();
+    private Vector<Long> readEvTimes = new Vector<>();
+    private Long trigPhase = new Long(8);
+    private Long syncPhase = new Long(320);
+    private Long trigDel = new Long(6696);
 
     public void writeFlags(EventHeader event) {
         Date eventDate = getEventTimeStamp(event);
+        Long evTime = event.getTimeStamp();
+        Long trigArrT = evTime + trigDel + (24 - (evTime + trigPhase)%24 );
+        Long trigSyncTime = trigArrT + (840 - (trigArrT + syncPhase)%840);
+
+        // Remove reads that have already happened
+        for(int ri = readTimes.size()-1; ri >= 0; ri--) {
+            if (readTimes.size() == 0) break;
+            if (readTimes.get(ri) < evTime - 840) {
+                readTimes.remove(ri);
+                readEvTimes.remove(ri);
+            }
+        }
+        //System.out.format("evTime: %d\n", evTime);
+        //System.out.format("trigArrT: %d\n", trigArrT);
+        //System.out.format("trigSyncTime: %d\n", trigSyncTime);
+        //System.out.format("buffSize: %d\n", readTimes.size());
+        //System.out.print("\n");
+
+        // Add new reads to buffer from this trigger
+        int readLen = readTimes.size();
+        for (int ss = 0; ss < 6; ss++) {
+            if (ss > 0) {
+                readTimes.add(readTimes.get(readTimes.size()-1) + 3360);
+                readEvTimes.add(evTime);
+            } else {
+                if (readLen == 0) {
+                    readTimes.add(trigSyncTime);
+                    readEvTimes.add(evTime);
+                } else if (readTimes.get(readTimes.size()-1) + 3360 > trigSyncTime) {
+                    readTimes.add(readTimes.get(readTimes.size()-1) + 3360);
+                    readEvTimes.add(evTime);
+                } else {
+                    readTimes.add(trigSyncTime);
+                    readEvTimes.add(evTime);
+                }
+            }
+        }
+
+        // Check if this event overlaps a read in the buffer
+        readoutOverlapGood = false;
+        if (!(evTime - readTimes.get(0) > -500 && evTime - readTimes.get(0) < 0)) {
+            readoutOverlapGood = true;
+        }
+
+        //Check date against the HV position state for that time
         if (eventDate != null) {
             biasGood = false;
             if (svtBiasConstants != null) {
@@ -76,7 +128,6 @@ public class SvtEventFlagger {
                     latencyGood = true;
                 }
             }
-//        System.out.format("%f %b\n", svtTimingConstants.getOffsetTime() + (((event.getTimeStamp() - 4 * svtTimingConstants.getOffsetPhase()) % 24) - 12), latencyGood);
         }
 
         burstmodeNoiseGood = isBurstmodeNoiseGood(event);
@@ -85,6 +136,7 @@ public class SvtEventFlagger {
         event.getIntegerParameters().put("svt_position_good", new int[]{positionGood ? 1 : 0});
         event.getIntegerParameters().put("svt_burstmode_noise_good", new int[]{burstmodeNoiseGood ? 1 : 0});
         event.getIntegerParameters().put("svt_latency_good", new int[]{latencyGood ? 1 : 0});
+        event.getIntegerParameters().put("svt_readout_overlap_good", new int[]{readoutOverlapGood ? 1 : 0});
     }
 
     private Date getEventTimeStamp(EventHeader event) {
