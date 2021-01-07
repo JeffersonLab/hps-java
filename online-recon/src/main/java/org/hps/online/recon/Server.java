@@ -44,6 +44,7 @@ import org.json.JSONObject;
  * The server will fail to start if the ET system does not open, and it
  * will automatically shutdown if the ET connection goes down.
  */
+// TODO: Add CL argument for setting host name (e.g. to set 'localhost')
 public final class Server {
 
     /**

@@ -7,6 +7,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogramFactory;
 import hep.aida.dev.IDevTree;
 import hep.aida.ref.BatchAnalysisFactory;
 import hep.aida.ref.remote.RemoteServer;
@@ -33,7 +35,9 @@ public abstract class RemoteAidaDriver extends Driver {
     protected RmiServer rmiTreeServer;
 
     protected AIDA aida = AIDA.defaultInstance();
+    protected IAnalysisFactory af = aida.analysisFactory();
     protected IDevTree tree = (IDevTree) aida.tree();
+    protected IHistogramFactory hf = aida.analysisFactory().createHistogramFactory(tree);
 
     private String remoteTreeBind = null;
 
@@ -60,16 +64,22 @@ public abstract class RemoteAidaDriver extends Driver {
         }
     }
 
-    protected abstract void process(EventHeader event);
-
     synchronized final void disconnect() {
-        ((RmiServerImpl) rmiTreeServer).disconnect();
-        treeServer.close();
-        rmiTreeServer = null;
-        treeServer = null;
+        if (rmiTreeServer != null) {
+            ((RmiServerImpl) rmiTreeServer).disconnect();
+            rmiTreeServer = null;
+        }
+        if (treeServer != null) {
+            treeServer.close();
+            treeServer = null;
+        }
     }
 
     synchronized final void connect() throws IOException {
+        if (rmiTreeServer != null) {
+            LOG.warning("Already connected (rmi tree server is not null)");
+            return;
+        }
         if (remoteTreeBind == null) {
             throw new IllegalStateException("remoteTreeBind is not set");
         }
@@ -79,4 +89,6 @@ public abstract class RemoteAidaDriver extends Driver {
         rmiTreeServer = new RmiServerImpl(treeServer, remoteTreeBind);
         LOG.info("Done connecting tree server: " + remoteTreeBind);
     }
+
+    protected abstract void process(EventHeader event);
 }

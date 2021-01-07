@@ -40,10 +40,9 @@ import hep.aida.ref.plotter.Plotter;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 
 /**
- * Displays plots from the <code>RemoteChronoDriver</code>
+ * Displays plots from the <code>StripChartDriver</code>
  * through an RMI connection
  */
-// TODO: Move to plotting package
 public class StripChartClient {
 
     static {

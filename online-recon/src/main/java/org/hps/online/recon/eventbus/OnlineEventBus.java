@@ -185,9 +185,9 @@ public class OnlineEventBus extends EventBus {
 
         public void run() {
             try {
-                //getLogger().info("event bus loop starting");
+                getLogger().config("event bus loop starting");
                 eventbus.loop();
-                //getLogger().info("event bus loop stopped");
+                getLogger().config("event bus loop stopped");
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Loop stopped due to an error", e);
             }

@@ -16,12 +16,12 @@ class ConfigCommandHandler extends CommandHandler {
     public CommandResult execute(JSONObject parameters) {
         CommandResult res = null;
         if (parameters.length() == 0) {
-            logger.info("Returning existing station config.");
+            logger.config("Returning existing station config.");
             res = new JSONResult(server.getStationProperties().toJSON());
         } else {
             logger.config("Loading new station config: " + parameters.toString());
             server.getStationProperties().fromJSON(parameters);
-            logger.info("New config loaded.");
+            logger.config("New config loaded.");
             res = new Success("Loaded new station config. Create a new station to use it.");
         }
         return res;
