@@ -26,6 +26,9 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogram3D;
 import hep.aida.IManagedObject;
+import hep.aida.IProfile;
+import hep.aida.IProfile1D;
+import hep.aida.IProfile2D;
 import hep.aida.ITree;
 import hep.aida.ITreeFactory;
 import hep.aida.dev.IDevTree;
@@ -316,8 +319,11 @@ public class PlotAggregator implements Runnable {
             // Add two clouds
             LOG.finer("Adding clouds");
             add((ICloud) src, (ICloud) target);
+        } else if (src instanceof IProfile) {
+            // Add two profile histograms
+            LOG.finer("Adding profile histograms");
+            add((IProfile) src, (IProfile) target);
         }
-        // TODO: Handle Profile objects also
 
         LOG.finer("Target entries after: " + target.entries());
     }
@@ -340,6 +346,25 @@ public class PlotAggregator implements Runnable {
             ((IHistogram2D) target).add((IHistogram2D) src);
         } else if (target instanceof IHistogram3D) {
             ((IHistogram3D) target).add((IHistogram3D) src);
+        }
+    }
+
+    /**
+     * Add two profile histograms together
+     *
+     * Entries in <code>src</code> will be added to those in <code>target</code>
+     *
+     * @param src The source profile histogram
+     * @param target The target profile histogram
+     */
+    private static void add(IProfile src, IProfile target) {
+        if (src.entries() == 0) {
+            return;
+        }
+        if (target instanceof IProfile1D) {
+            ((IProfile1D) target).add((IProfile1D) src);
+        } else if (target instanceof IHistogram2D) {
+            ((IProfile2D) target).add((IProfile2D) src);
         }
     }
 
@@ -367,6 +392,7 @@ public class PlotAggregator implements Runnable {
 
     /**
      * Convert all AIDA clouds to histograms within a tree
+     *
      * @param tree The AIDA tree
      * @throws IOException If there is an error converting the clouds
      */
