@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -128,6 +129,9 @@ public final class Server {
     final PlotAggregator agg = new PlotAggregator();
 
     CommandHandlerFactory handlers = null;
+
+    InetAddress host;
+    String hostName = null;
 
     /**
      * Handles a single client request.
@@ -488,9 +492,10 @@ public final class Server {
      * @param args The command line arguments
      * @throws ParseException If there is a problem parsing the command line
      */
-    void parse(String args[]) throws ParseException {
+    private void parse(String args[]) throws ParseException {
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
+        options.addOption(new Option("H", "host", true, "server host name"));
         options.addOption(new Option("p", "port", true, "server port"));
         options.addOption(new Option("s", "start", true, "starting station ID (default 1)"));
         options.addOption(new Option("w", "workdir", true, "work dir (default is current dir where server is started)"));
@@ -547,6 +552,10 @@ public final class Server {
                 throw new RuntimeException("Config file does not exist: " + configFile.getPath());
             }
             this.stationProperties.load(configFile);
+        }
+
+        if (cl.hasOption("H")) {
+            this.hostName = cl.getOptionValue("H");
         }
     }
 
@@ -642,9 +651,15 @@ public final class Server {
      */
     private void startServer() throws Exception {
 
+        if (this.hostName != null) {
+            this.host = InetAddress.getByName(this.hostName);
+        } else {
+            this.host = InetAddress.getLocalHost();
+        }
+
         // Client connection loop
-        LOG.info("Starting server on port: " + this.port);
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        LOG.info("Starting server: " + this.host.getHostName() + ":" + this.port);
+        try (ServerSocket serverSocket = new ServerSocket(port, 0, this.host)) {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 clientProcessingPool.submit(new ClientTask(clientSocket));

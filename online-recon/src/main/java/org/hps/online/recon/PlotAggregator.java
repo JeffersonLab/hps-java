@@ -87,7 +87,7 @@ public class PlotAggregator implements Runnable {
     private String hostName = null;
 
     /** Interval between aggregation in milliseconds; set with "interval" property */
-    private Long updateInterval = 2000L;
+    private Long updateInterval = 5000L;
 
     /** URLs of the remote AIDA trees that are currently mounted
      * e.g. <pre>//localhost:4321/MyTree</pre> */
@@ -126,6 +126,12 @@ public class PlotAggregator implements Runnable {
     }
 
     void setUpdateInterval(Long updateInterval) {
+        if (updateInterval < 1000L) {
+            throw new IllegalArgumentException("Update interval must be >= 1 second");
+        }
+        if (updateInterval > 30000L) {
+            throw new IllegalArgumentException("Update interval must be <= 30 seconds");
+        }
         this.updateInterval = updateInterval;
     }
 
@@ -245,7 +251,7 @@ public class PlotAggregator implements Runnable {
      * trees together
      */
     private void update() {
-        LOG.finer("Plot aggregator is updating...");
+        LOG.fine("Plot aggregator is updating...");
         try {
             String[] dirs = this.listObjectNames(REMOTES_DIR, false, null);
 
@@ -277,9 +283,9 @@ public class PlotAggregator implements Runnable {
                     } catch (IllegalArgumentException e) {
                         if (srcObject instanceof IBaseHistogram) {
                             // Create a new target histogram by copying one of the remote objects
-                            LOG.info("Copying: " + remoteName + " -> " + targetPath);
+                            LOG.finer("Copying: " + remoteName + " -> " + targetPath);
                             serverTree.cp(remoteName, targetPath, false);
-                            LOG.info("Copied object " + srcObject.name() + " entries: "
+                            LOG.finer("Copied object " + srcObject.name() + " entries: "
                                     + ((IBaseHistogram) srcObject).entries());
                         }
                     }
@@ -290,7 +296,7 @@ public class PlotAggregator implements Runnable {
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error updating plots", e);
         }
-        LOG.finer("Plot aggregator is done updating");
+        LOG.fine("Plot aggregator is done updating");
     }
 
     private boolean objectExists(String path) {
@@ -308,24 +314,24 @@ public class PlotAggregator implements Runnable {
      * @param target The target AIDA object (the combined histogram)
      */
     private static void add(IBaseHistogram src, IBaseHistogram target) {
-        LOG.finer("Adding plots: " + src.title() + " -> " + target.title());
-        LOG.finer("Source entries: " + src.entries());
-        LOG.finer("Target entries before: " + target.entries());
+        LOG.finest("Adding plots: " + src.title() + " -> " + target.title());
+        LOG.finest("Source entries: " + src.entries());
+        LOG.finest("Target entries before: " + target.entries());
         if (src instanceof IHistogram) {
             // Add two histograms
-            LOG.finer("Adding histograms");
+            LOG.finest("Adding histograms");
             add((IHistogram) src, (IHistogram) target);
         } else if (src instanceof ICloud) {
             // Add two clouds
-            LOG.finer("Adding clouds");
+            LOG.finest("Adding clouds");
             add((ICloud) src, (ICloud) target);
         } else if (src instanceof IProfile) {
             // Add two profile histograms
-            LOG.finer("Adding profile histograms");
+            LOG.finest("Adding profile histograms");
             add((IProfile) src, (IProfile) target);
         }
 
-        LOG.finer("Target entries after: " + target.entries());
+        LOG.finest("Target entries after: " + target.entries());
     }
 
     /**
@@ -375,11 +381,11 @@ public class PlotAggregator implements Runnable {
      */
     private static void add(ICloud src, ICloud target) {
         if (src.isConverted() || target.isConverted()) {
-            LOG.finer("Skipping add of converted cloud: " + src.title());
+            LOG.warning("Skipping add of converted cloud: " + src.title());
             return;
         }
-        LOG.finer("Cloud src entries: " + ((ICloud1D)src).entries());
-        LOG.finer("Cloud target entries before: " + ((ICloud1D)target).entries());
+        LOG.finest("Cloud src entries: " + ((ICloud1D)src).entries());
+        LOG.finest("Cloud target entries before: " + ((ICloud1D)target).entries());
         if (src instanceof ICloud1D) {
             for (int i=0; i<src.entries(); i++) {
                 ((ICloud1D)target).fill(
@@ -387,7 +393,7 @@ public class PlotAggregator implements Runnable {
                         ((ICloud1D) src).weight(i));
             }
         }
-        LOG.finer("Cloud target entries after: " + ((ICloud1D)src).entries());
+        LOG.finest("Cloud target entries after: " + ((ICloud1D)src).entries());
     }
 
     /**
@@ -411,7 +417,7 @@ public class PlotAggregator implements Runnable {
                 if (cloud.isConverted()) {
                     continue;
                 }
-                LOG.finer("Converting cloud to hist: " + cloud.title());
+                LOG.finest("Converting cloud to hist: " + cloud.title());
                 try {
                     if (obj instanceof ICloud1D) {
                         ICloud1D c1d = (ICloud1D) obj;
@@ -450,14 +456,14 @@ public class PlotAggregator implements Runnable {
             String path = objects[i];
             String type = types[i];
             if (!type.equals("dir")) {
-                LOG.finer("Copying object to target tree: " + path);
+                LOG.finest("Copying object to target tree: " + path);
                 IManagedObject object = srcTree.find(path);
                 List<String> spl = new ArrayList<String>(Arrays.asList(path.split("/")));
                 spl.remove(spl.size() - 1);
                 String dir = String.join("/", spl);
                 targetTree.add(dir, object);
             } else {
-                LOG.finer("Creating dir in output tree: " + path);
+                LOG.finest("Creating dir in output tree: " + path);
                 targetTree.mkdirs(path);
             }
         }
@@ -519,25 +525,24 @@ public class PlotAggregator implements Runnable {
 
         LOG.info("Creating remote tree: " + remoteTreeBind);
         remoteTree = tf.create(remoteTreeBind, RmiStoreFactory.storeType, true, false, options);
-        LOG.info("Done creating remote tree");
         String mountName = toMountName(remoteTreeBind);
 
         synchronized (serverTree) {
-            LOG.info("Mounting remote tree to: " + mountName);
+            LOG.fine("Mounting remote tree to: " + mountName);
             serverTree.mount(mountName, remoteTree, "/");
 
             String remoteDir = toMountName(remoteTreeBind);
-            LOG.info("Adding dirs for: " + remoteDir);
+            LOG.fine("Adding dirs for: " + remoteDir);
             String[] dirNames = listObjectNames(remoteDir, true, "dir");
             for (String dirName : dirNames) {
                 String aggName = toAggregateName(dirName);
-                LOG.info("Making aggregation dir: " + aggName);
+                LOG.fine("Making aggregation dir: " + aggName);
                 this.serverTree.mkdirs(aggName);
             }
         }
 
         remotes.add(remoteTreeBind);
-        LOG.info("Done adding remote tree: " + remoteTreeBind);
+        LOG.info("Done creating remote tree: " + remoteTreeBind);
         LOG.info("Number of remotes after add: " + remotes.size());
     }
 
@@ -554,7 +559,7 @@ public class PlotAggregator implements Runnable {
         synchronized(this.serverTree) {
             try {
                 String path = toMountName(remoteTreeBind);
-                LOG.info("Unmounting: " + path);
+                LOG.fine("Unmounting: " + path);
                 this.serverTree.unmount(path);
                 remotes.remove(remoteTreeBind);
                 LOG.info("Number of remotes after remove: " + remotes.size());

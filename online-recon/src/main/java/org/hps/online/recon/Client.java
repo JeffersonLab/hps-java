@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -30,12 +32,12 @@ public final class Client {
     /**
      * Package logger.
      */
-    private static Logger LOGGER = Logger.getLogger(Client.class.getPackage().getName());
+    private static Logger LOG = Logger.getLogger(Client.class.getPackage().getName());
 
     /**
-     * Hostname of the server with default.
+     * Host name of the server
      */
-    private String hostname = "localhost";
+    private String hostName = null;
 
     /**
      * Port of the server with default from server.
@@ -72,16 +74,16 @@ public final class Client {
      * Writer for file output.
      * If null output is written to System.out.
      */
-    PrintWriter pw = null;
+    private PrintWriter pw = null;
 
     /**
      * The base options (commands have their own Options objects).
      */
     private static Options OPTIONS = new Options();
     static {
-        OPTIONS.addOption(new Option("", "help", false, "print help"));
+        OPTIONS.addOption(new Option("h", "help", false, "print help"));
         OPTIONS.addOption(new Option("p", "port", true, "server port"));
-        OPTIONS.addOption(new Option("h", "host", true, "server hostname"));
+        OPTIONS.addOption(new Option("H", "host", true, "server hostname"));
         OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
         OPTIONS.addOption(new Option("a", "append", false, "append if writing to output file (default will overwrite)"));
         OPTIONS.addOption(new Option("i", "interactive", false, "start interactive console after executing command file"));
@@ -90,7 +92,7 @@ public final class Client {
     /**
      * Class constructor.
      */
-    Client() {
+    private Client() {
     }
 
     /**
@@ -112,47 +114,7 @@ public final class Client {
      */
     void run(String args[]) {
 
-        // Parse base options.
-        CommandLine cl;
-        try {
-            cl = this.parser.parse(OPTIONS, args, true);
-        } catch (ParseException e) {
-            throw new RuntimeException("Error parsing arguments", e);
-        }
-
-        // Print usage and exit.
-        if (cl.hasOption("help")) {
-            this.printUsage();
-            System.exit(0);
-        }
-
-        // Get extra arg list.
-        List<String> argList = cl.getArgList();
-
-        if (cl.hasOption("p")) {
-            this.port = Integer.parseInt(cl.getOptionValue("p"));
-            LOGGER.config("Port: " + this.port);
-        }
-
-        if (cl.hasOption("h")) {
-            this.hostname = cl.getOptionValue("h");
-            LOGGER.config("Hostname: " + this.hostname);
-        }
-
-        if (cl.hasOption("o")) {
-            this.outputFile = new File(cl.getOptionValue("o"));
-            LOGGER.config("Output file: " + this.outputFile.getPath());
-        }
-
-        if (cl.hasOption("a")) {
-            this.append = true;
-            LOGGER.config("Appending to output file: " + this.append);
-        }
-
-        if (cl.hasOption("i")) {
-            this.interactive = true;
-            LOGGER.config("Interactive mode enable: " + this.interactive);
-        }
+        List<String> argList = parseOptions(args);
 
         // If extra arguments are provided then try to run a command.
         if (argList.size() != 0) {
@@ -190,7 +152,7 @@ public final class Client {
                 command.process(cmdResult);
 
                 // Send the command to server.
-                LOGGER.info("Sending command " + command.toString());
+                LOG.info("Sending command " + command.toString());
                 send(command);
             } else {
                 // If there is a single argument, see if it looks like a command file to execute.
@@ -220,6 +182,58 @@ public final class Client {
         }
     }
 
+    private List<String> parseOptions(String[] args) {
+        // Parse base options.
+        CommandLine cl;
+        try {
+            cl = this.parser.parse(OPTIONS, args, true);
+        } catch (ParseException e) {
+            throw new RuntimeException("Error parsing arguments", e);
+        }
+
+        // Print usage and exit.
+        if (cl.hasOption("help")) {
+            this.printUsage();
+            System.exit(0);
+        }
+
+        // Get extra arg list.
+        List<String> argList = cl.getArgList();
+
+        if (cl.hasOption("p")) {
+            this.port = Integer.parseInt(cl.getOptionValue("p"));
+            LOG.config("Port: " + this.port);
+        }
+
+        if (cl.hasOption("H")) {
+            this.hostName = cl.getOptionValue("H");
+            LOG.config("User specified host name: " + this.hostName);
+        } else {
+            try {
+                this.hostName = InetAddress.getLocalHost().getHostName();
+                LOG.config("Default host name: " + this.hostName);
+            } catch (UnknownHostException e) {
+               throw new RuntimeException(e);
+            }
+        }
+
+        if (cl.hasOption("o")) {
+            this.outputFile = new File(cl.getOptionValue("o"));
+            LOG.config("Output file: " + this.outputFile.getPath());
+        }
+
+        if (cl.hasOption("a")) {
+            this.append = true;
+            LOG.config("Appending to output file: " + this.append);
+        }
+
+        if (cl.hasOption("i")) {
+            this.interactive = true;
+            LOG.config("Interactive mode enable: " + this.interactive);
+        }
+        return argList;
+    }
+
     /**
      * Send a command to the online reconstruction server.
      * @param command The client command to send
@@ -236,8 +250,10 @@ public final class Client {
             throw new RuntimeException("Error opening output file: " + this.outputFile.getPath(), e);
         }
 
+        LOG.info("Opening connection to server: " + this.hostName + ":" + port);
+
         // Open socket to server.
-        try (final Socket socket = new Socket(hostname, port)) {
+        try (final Socket socket = new Socket(this.hostName, port)) {
 
             // Send command to the server.
             final PrintWriter writer = new PrintWriter(socket.getOutputStream());
@@ -258,7 +274,7 @@ public final class Client {
             } else {
                 // Try to read continuous data stream from server.
 
-                LOGGER.info("Reading stream from server");
+                LOG.info("Reading stream from server");
 
                 System.out.println("Press 'q' and Enter to exit." + '\n');
 
@@ -356,7 +372,7 @@ public final class Client {
      * @return The hostname of the server
      */
     String getHostname() {
-        return this.hostname;
+        return this.hostName;
     }
 
     /**
@@ -391,7 +407,7 @@ public final class Client {
      * @param hostname The hostname of the server
      */
     void setHostname(String hostname) {
-        this.hostname = hostname;
+        this.hostName = hostname;
     }
 
     /**

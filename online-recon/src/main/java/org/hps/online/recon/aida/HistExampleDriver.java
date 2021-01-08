@@ -20,6 +20,7 @@ public class HistExampleDriver extends RemoteAidaDriver {
 
     private static final String ECAL_DIR = "/subdet/ecal";
     private static final String TRACKER_DIR = "/subdet/tracker";
+    private static final String PERF_DIR = "/perf";
 
     private IHistogram1D tracksPerEventH1D;
     private IHistogram1D rawHitsPerTrackH1D;
@@ -27,6 +28,7 @@ public class HistExampleDriver extends RemoteAidaDriver {
     private IHistogram1D ecalReadoutHitsPerEventH1D;
     private IHistogram1D adcValuesH1D;
     private IHistogram1D clustersPerEventH1D;
+    private IHistogram1D eventCountH1D;
     private ICloud1D rawTrackerHitsPerEventC1D;
     private ICloud1D chi2C1D;
     private ICloud1D pxC1D;
@@ -80,12 +82,16 @@ public class HistExampleDriver extends RemoteAidaDriver {
 
         adcValuesH1D = aida.histogram1D("Readout Hit ADC Values", 300, 0, 300.);
 
+        tree.mkdir(PERF_DIR);
+        tree.cd(PERF_DIR);
+        eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
+
         super.startOfData();
     }
 
     public void process(EventHeader event) {
 
-        this.getLogger().info("HistExampleDriver filling histos");
+        eventCountH1D.fill(0.5);
 
         List<Track> tracks = event.get(Track.class, TRACK_COLLECTION_NAME);
 

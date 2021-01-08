@@ -21,7 +21,7 @@ public class ServerLoggingConfig {
     /**
      * Edit this and recompile the module to change the server log level
      */
-    private static final Level LEVEL = Level.FINER;
+    private static final Level LEVEL = Level.CONFIG;
 
     static {
         System.setProperty(
