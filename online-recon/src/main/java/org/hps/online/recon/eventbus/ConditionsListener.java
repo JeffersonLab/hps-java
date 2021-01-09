@@ -1,5 +1,7 @@
 package org.hps.online.recon.eventbus;
 
+import java.util.Date;
+
 import org.hps.online.recon.properties.Property;
 import org.hps.record.evio.EventTagConstant;
 import org.hps.record.evio.EvioEventUtilities;
@@ -50,6 +52,14 @@ public class ConditionsListener {
                 // Post fatal error because conditions are not found
                 eventbus.post(new EventProcessingError(e, true));
             }
+        }
+
+        try {
+            if (EvioEventUtilities.isEndEvent(evioEvent)) {
+                eventbus.post(new EndRun(currentRun, new Date()));
+            }
+        } catch (Exception e) {
+            eventbus.post(new EventProcessingError(e, false));
         }
     }
 }

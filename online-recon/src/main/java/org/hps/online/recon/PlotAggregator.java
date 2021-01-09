@@ -21,6 +21,7 @@ import hep.aida.ICloud;
 import hep.aida.ICloud1D;
 import hep.aida.ICloud2D;
 import hep.aida.ICloud3D;
+import hep.aida.IDataPointSet;
 import hep.aida.IHistogram;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -44,9 +45,9 @@ import hep.aida.ref.xml.AidaXMLStore;
  * online recon {@link Station}s by connecting to their remote trees
  * and adding histogram objects with the same paths together
  *
- * The resulting combined plots can then be viewed in a remote AIDA client
+ * The resulting combined plots can then be viewed in a remote AIDA client,
  * such as JAS3 with the Remote AIDA plugin or in a browser by connecting to
- * a webapp that is using the aidatld library.
+ * a webapp running the aidatld library.
  *
  * The station trees are mounted into a server tree and added together
  * into a combined set of histograms in a separate directory structure.
@@ -75,23 +76,22 @@ public class PlotAggregator implements Runnable {
     private static final String COMBINED_DIR = "/combined";
 
     /** Number of bins to use for converting clouds to histograms */
-    private static final int CLOUD_BINS = 50;
+    private static final int CLOUD_BINS = 100;
 
-    /** Network port; set with "port" property */
+    /** Network port for AIDA connection */
     private int port = 3001;
 
-    /** Name of the remote server; set with "name" property */
+    /** Name of the remote server for RMI */
     private String serverName = "HPSRecon";
 
-    /** Name of the host to bind; set with "host" property */
+    /** Name of the host to bind */
     private String hostName = null;
 
-    /** Interval between aggregation in milliseconds; set with "interval" property */
+    /** Interval of plot aggregation in milliseconds */
     private Long updateInterval = 5000L;
 
     /** URLs of the remote AIDA trees that are currently mounted
      * e.g. <pre>//localhost:4321/MyTree</pre> */
-    // TODO: Make this a map of tree bind names to their ITree objects
     private Set<String> remotes = new HashSet<String>();
 
     /**
@@ -113,18 +113,34 @@ public class PlotAggregator implements Runnable {
     public PlotAggregator() {
     }
 
+    /**
+     * Set the network port
+     * @param port The network port
+     */
     void setPort(int port) {
         this.port = port;
     }
 
+    /**
+     * Set the server name
+     * @param serverName The server name
+     */
     void setServerName(String serverName) {
         this.serverName = serverName;
     }
 
+    /**
+     * Set the host name
+     * @param hostName The host name
+     */
     void setHostName(String hostName) {
         this.hostName = hostName;
     }
 
+    /**
+     * Set the update interval in millis
+     * @param updateInterval The update interval in millis
+     */
     void setUpdateInterval(Long updateInterval) {
         if (updateInterval < 1000L) {
             throw new IllegalArgumentException("Update interval must be >= 1 second");
@@ -135,6 +151,10 @@ public class PlotAggregator implements Runnable {
         this.updateInterval = updateInterval;
     }
 
+    /**
+     * Get the update interval
+     * @return The update interval
+     */
     Long getUpdateInterval() {
         return this.updateInterval;
     }
@@ -148,22 +168,19 @@ public class PlotAggregator implements Runnable {
             this.hostName = InetAddress.getLocalHost().getHostName();
         }
         String treeBindName = "//"+this.hostName+":"+port+"/"+serverName;
-        LOG.config("Creating aggregator server tree: " + treeBindName);
+        LOG.config("Creating server tree: " + treeBindName);
         boolean serverDuplex = true;
         treeServer = new RemoteServer(serverTree, serverDuplex);
         rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
 
         serverTree.mkdir(COMBINED_DIR);
         serverTree.mkdir(REMOTES_DIR);
-
-        LOG.config("Done creating aggregator server tree!");
     }
 
     /**
-     * Get the target path for combining plots from a remote
-     * tree bind name (URL)
+     * Get the base path for aggregating plots for a remote tree
      * @param remoteName The tree bind name
-     * @return The target AIDA path for combining plots
+     * @return The AIDA path for combining plots
      */
     private static String toAggregateName(String remoteName) {
         String[] sp = remoteName.split("/");
@@ -174,7 +191,7 @@ public class PlotAggregator implements Runnable {
     }
 
     /**
-     * Convert the tree bind name (URL) of a remote to an AIDA directory
+     * Convert the remote tree bind (URL) of a remote to a valid AIDA directory name
      * @param treeBindName The tree bind name
      * @return The AIDA directory
      */
@@ -189,17 +206,20 @@ public class PlotAggregator implements Runnable {
      * List object names at a path in the server AIDA tree
      * @param path The path in the tree
      * @param recursive Whether objects should be listed recursively
-     * @param type Filter by object type (use <code>null</code> for all)
+     * @param type Filter by a set of object types (use <code>null</code> for all)
      * @return A list of the full object paths in the tree
      */
-    private String[] listObjectNames(String path, boolean recursive, String type) {
+    private String[] listObjectNames(String path, boolean recursive, Set<String> types) {
         String[] names = null;
-        if (type != null) {
+        if (types != null) {
+            if (types.size() == 0) {
+                throw new IllegalArgumentException("Set of types for filtering is empty");
+            }
             List<String> filtNames = new ArrayList<String>();
             String[] objectNames = serverTree.listObjectNames(path, recursive);
             String[] objectTypes = serverTree.listObjectTypes(path, recursive);
             for (int i = 0; i < objectNames.length; i++) {
-                if (objectTypes[i].equals(type)) {
+                if (types.contains(objectTypes[i])) {
                     filtNames.add(objectNames[i]);
                 }
             }
@@ -227,7 +247,7 @@ public class PlotAggregator implements Runnable {
      * This does nothing to the remote trees that have been mounted,
      * since they are read-only.
      */
-    private void clearTree() {
+    private synchronized void clearTree() {
         LOG.fine("Clearing tree...");
         String[] objectNames = listObjectNames(COMBINED_DIR, true, null);
         for (String name : objectNames) {
@@ -239,6 +259,8 @@ public class PlotAggregator implements Runnable {
                         LOG.finer("Clearing " + hist.title() + " with entries: " + hist.entries());
                         ((IBaseHistogram) obj).reset();
                     }
+                } else if (obj instanceof IDataPointSet) {
+                    ((IDataPointSet) obj).clear();
                 }
             } catch (IllegalArgumentException e) {
             }
@@ -250,7 +272,7 @@ public class PlotAggregator implements Runnable {
      * Update the aggregated plots by adding all the histograms from the remote
      * trees together
      */
-    private void update() {
+    private synchronized void update() {
         LOG.fine("Plot aggregator is updating...");
         try {
             String[] dirs = this.listObjectNames(REMOTES_DIR, false, null);
@@ -380,8 +402,8 @@ public class PlotAggregator implements Runnable {
      * @param target The target cloud
      */
     private static void add(ICloud src, ICloud target) {
-        if (src.isConverted() || target.isConverted()) {
-            LOG.warning("Skipping add of converted cloud: " + src.title());
+        if (src.isConverted()) {
+            LOG.warning("Skipping add of converted src cloud: " + src.title());
             return;
         }
         LOG.finest("Cloud src entries: " + ((ICloud1D)src).entries());
@@ -455,16 +477,16 @@ public class PlotAggregator implements Runnable {
         for (int i=0; i<objects.length; i++) {
             String path = objects[i];
             String type = types[i];
-            if (!type.equals("dir")) {
+            if (type.equals("dir")) {
+                LOG.finest("Creating dir in output tree: " + path);
+                targetTree.mkdirs(path);
+            } else {
                 LOG.finest("Copying object to target tree: " + path);
                 IManagedObject object = srcTree.find(path);
                 List<String> spl = new ArrayList<String>(Arrays.asList(path.split("/")));
                 spl.remove(spl.size() - 1);
                 String dir = String.join("/", spl);
                 targetTree.add(dir, object);
-            } else {
-                LOG.finest("Creating dir in output tree: " + path);
-                targetTree.mkdirs(path);
             }
         }
     }
@@ -513,10 +535,9 @@ public class PlotAggregator implements Runnable {
             return;
         }
         if (remotes.contains(remoteTreeBind)) {
-            LOG.warning("remote already exists");
+            LOG.warning("Remote already exists: " + remoteTreeBind);
             return;
         }
-
 
         boolean clientDuplex = true;
         boolean hurry = false;
@@ -533,7 +554,9 @@ public class PlotAggregator implements Runnable {
 
             String remoteDir = toMountName(remoteTreeBind);
             LOG.fine("Adding dirs for: " + remoteDir);
-            String[] dirNames = listObjectNames(remoteDir, true, "dir");
+            Set<String> dirType = new HashSet<String>();
+            dirType.add("dir");
+            String[] dirNames = listObjectNames(remoteDir, true, dirType);
             for (String dirName : dirNames) {
                 String aggName = toAggregateName(dirName);
                 LOG.fine("Making aggregation dir: " + aggName);
@@ -655,9 +678,6 @@ public class PlotAggregator implements Runnable {
     /**
      * Thread for mounting a remote AIDA tree asynchronously, e.g. for a running {@link Station}
      * after it has been started
-     *
-     * Multiple attempts are made until <code>maxAttempts</code> are reached. If no connection is made
-     * then the {@link StationProcess} will be deactivated automatically.
      */
     class RemoteTreeBindThread extends Thread {
 
@@ -666,6 +686,7 @@ public class PlotAggregator implements Runnable {
         Integer maxAttempts = 5;
 
         RemoteTreeBindThread(StationProcess station, Integer maxAttempts) {
+            super("Remote Tree Bind Thread");
             if (station == null) {
                 throw new IllegalArgumentException("station is null");
             }
@@ -686,31 +707,34 @@ public class PlotAggregator implements Runnable {
         /**
          * Attempts to connect to a remote AIDA tree up to a maximum number of attempts,
          * after which the station will be automatically deactivated if the connection
-         * was unsuccessful
+         * was unsuccessful (uses back off up to 25 seconds for last attempt)
          */
         public void run() {
-            for (long attempt = 1; attempt <= this.maxAttempts; attempt++) {
-                try {
+            try {
+                for (long attempt = 1; attempt <= this.maxAttempts; attempt++) {
                     try {
-                        Thread.sleep(attempt*5000L);
-                    } catch (InterruptedException e) {
-                        LOG.log(Level.WARNING, "Interrupted", e);
-                        // TODO: Should disconnect station here???
+                        try {
+                            long waitSec = attempt*5000L;
+                            LOG.config("Waiting: " + waitSec + " sec");
+                            Thread.sleep(waitSec);
+                        } catch (InterruptedException e) {
+                            LOG.log(Level.WARNING, "Interrupted (probably the station died)", e);
+                            break;
+                        }
+                        if (!station.isActive()) {
+                            LOG.warning("Cannot connect to tree - station went inactive");
+                            break;
+                        }
+                        LOG.info("Remote tree connection attempt: " + attempt + "/" + this.maxAttempts);
+                        addRemote(remoteTreeBind);
+                        LOG.info("Successfully added remote tree: " + remoteTreeBind);
                         break;
-                    }
-                    LOG.info("Remote tree connection attempt: " + attempt);
-                    LOG.info("Adding remote tree: " + remoteTreeBind);
-                    addRemote(remoteTreeBind);
-                    LOG.info("Done adding remote tree: " + remoteTreeBind);
-                    break;
-                } catch (Exception e) {
-                    LOG.warning("Could not connect to: " + remoteTreeBind);
-                    // If all attempts failed then automatically deactivate the station
-                    if (attempt == this.maxAttempts) {
-                        LOG.warning("Deactivating station because remote tree connection failed: " + station.getStationName());
-                        station.deactivate();
+                    } catch (Exception e) {
+                        LOG.warning("Connection attempt failed: " + remoteTreeBind);
                     }
                 }
+            } finally {
+                station.rtbThread = null;
             }
         }
     }

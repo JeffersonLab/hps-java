@@ -1,5 +1,8 @@
 package org.hps.online.recon.properties;
 
+/**
+ * A property with a boolean value
+ */
 public class BooleanProperty extends Property<Boolean> {
 
     public BooleanProperty(String name, String description, Boolean defaultValue, boolean required) {

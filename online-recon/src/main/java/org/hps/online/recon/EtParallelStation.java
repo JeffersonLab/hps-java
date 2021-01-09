@@ -73,7 +73,12 @@ class EtParallelStation extends EtConnection {
             stationConfig.setPrescale(prescale.value());
         }
 
+        stat = sys.stationNameToObject(stationName.value());
+        if (stat != null) {
+            throw new IllegalStateException("ET station already exists: " + stationName.value());
+        }
         stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
+        LOGGER.info("Created new ET station: " + stationName.value());
         att = sys.attach(stat);
 
         LOGGER.info("Initialized station: " + stat.getName());
@@ -95,22 +100,22 @@ class EtParallelStation extends EtConnection {
     synchronized public void cleanup() {
         LOGGER.info("Cleaning up ET connection");
         try {
-            LOGGER.fine("Checking if sys is alive");
+            LOGGER.info("Checking if sys is alive");
             if (!this.sys.alive()) {
                 LOGGER.fine("sys is not alive!");
                 return;
             }
-            LOGGER.fine("Waking up attachment");
+            LOGGER.info("Waking up attachment");
             try {
                 this.sys.wakeUpAttachment(att);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            LOGGER.fine("Detaching from sys");
+            LOGGER.info("Detaching from sys");
             this.sys.detach(this.att);
-            LOGGER.fine("Removing station");
+            LOGGER.info("Removing station");
             this.sys.removeStation(this.stat);
-            LOGGER.fine("Closing station");
+            LOGGER.info("Closing station");
             this.sys.close();
         } catch (final Exception e) {
             LOGGER.warning("Error during cleanup");

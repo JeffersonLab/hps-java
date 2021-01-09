@@ -8,8 +8,7 @@ import org.hps.online.recon.StationProperties;
 import org.json.JSONObject;
 
 /**
- * Handle the <code>set</code> command.
- *
+ * Handle the <i>set</i> command
  */
 class SetCommandHandler extends CommandHandler {
 

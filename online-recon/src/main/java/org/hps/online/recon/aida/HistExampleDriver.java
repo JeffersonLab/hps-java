@@ -62,7 +62,7 @@ public class HistExampleDriver extends RemoteAidaDriver {
         rawHitsPerTrackH1D.annotation().addItem("xAxisLabel", "Hits / Track");
         rawHitsPerTrackH1D.annotation().addItem("yAxisLabel", "Count");
 
-        rawTrackerHitsPerEventC1D = hf.createCloud1D("Raw Tracker Hits Per Event");
+        rawTrackerHitsPerEventC1D = createCloud1D("Raw Tracker Hits Per Event");
         chi2C1D = createCloud1D("chi2");
         pxC1D = createCloud1D("PX");
         pyC1D = createCloud1D("PY");

@@ -46,7 +46,7 @@ public class EvioListener {
                 eventbus.getLogger().fine("Received EVIO event: "
                         + EvioEventUtilities.getEventIdData(evioEvent)[0]);
                 EventHeader lcioEvent = builder.makeLCSimEvent(evioEvent);
-                //eventbus.getLogger().info("Built LCIO event: " + lcioEvent.getEventNumber());
+                eventbus.getLogger().fine("Built LCIO event: " + lcioEvent.getEventNumber());
                 mgr.processEvent(lcioEvent);
                 eventbus.getLogger().fine("Processed LCIO event: " + lcioEvent.getEventNumber());
                 eventbus.post(lcioEvent);

@@ -7,7 +7,7 @@ import org.hps.online.recon.Server;
 import org.json.JSONObject;
 
 /**
- * Handle status command.
+ * Handle the <i>status</i> command
  */
 class StatusCommandHandler extends CommandHandler {
 

@@ -1,5 +1,8 @@
 package org.hps.online.recon.properties;
 
+/**
+ * A property with an integer value
+ */
 public class IntegerProperty extends Property<Integer> {
 
     public IntegerProperty(String name, String description, Integer defaultValue, boolean required) {

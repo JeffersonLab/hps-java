@@ -100,7 +100,7 @@ public final class Client {
      */
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
-        final String commands = String.join(" ", cf.getCommandNames());
+        final String commands = String.join(" ", cf.getCommandNamesSorted());
         help.printHelp(80, "Client [options] [[file] | [command] [command_options]]", "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
                     + "Use 'Client [command] --help' for information about a specific command." + '\n'
@@ -274,63 +274,13 @@ public final class Client {
             } else {
                 // Try to read continuous data stream from server.
 
-                LOG.info("Reading stream from server");
-
-                System.out.println("Press 'q' and Enter to exit." + '\n');
+                LOG.info("Reading stream from server - press any key to exit");
 
                 // Print first line which was already read.
                 printResponse(resp);
 
-                // Read server responses on separate thread so we can interrupt.
-                Thread readThread = new Thread() {
-                    public void run() {
-                        while (!this.isInterrupted()) {
-                            try {
-                                // This blocks waiting for server response.
-                                String line = br.readLine();
-
-                                // Line will be null if server is killed.
-                                if (line == null) {
-                                    break;
-                                }
-
-                                // Print server response line.
-                                printResponse(line);
-
-                                // Let the server know we are still alive.
-                                writer.write(Server.KEEPALIVE_RESPONSE + '\n');
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                break;
-                            }
-                        }
-                    }
-                };
-                readThread.start();
-
-                // Read data stream from server until user quits or presses Ctrl+C.
-                while (true) {
-                    // Quit if user presses 'q' key and Enter.
-                    if (System.in.available() > 0) {
-                        if ((char)System.in.read() == 'q') {
-                            break;
-                        }
-                    }
-                    // Quit if read thread dies.
-                    if (!readThread.isAlive()) {
-                        break;
-                    }
-                    Thread.sleep(100);
-                }
-
-                // Kill the read thread.
-                if (readThread.isAlive()) {
-                    readThread.interrupt();
-                    readThread.join(1000);
-                    if (readThread.isAlive()) {
-                        readThread.stop();
-                    }
-                }
+                // We block the client thread but that's fine (server streaming log data to us)
+                readLoop(br, writer);
             }
 
             // Close the PrintWriter.
@@ -355,6 +305,66 @@ public final class Client {
             }
         } catch (Exception e) {
             throw new RuntimeException("Client error", e);
+        }
+    }
+
+    /**
+     * Read server output until user presses a key to continue
+     * @param br The reader for getting server data
+     * @param writer The writer for writing response to server
+     */
+    private void readLoop(final BufferedReader br, final PrintWriter writer) {
+
+        // Read server responses in separate thread
+        Thread readThread = new Thread("Client Read Thread") {
+            public void run() {
+                while (true) {
+                    try {
+                        if (br.ready()) {
+                            String line = br.readLine();
+                            printResponse(line);
+                        }
+                        try {
+                            Thread.sleep(100L);
+                        } catch (InterruptedException e) {
+                            break;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                }
+            }
+        };
+        readThread.start();
+
+        // Wait until user presses any key before continuing
+        while(readThread.isAlive() && !readThread.isInterrupted()) {
+            try {
+                // Any client input breaks the read loop
+                if (System.in.available() > 0) {
+                    System.err.println("<<<< You pressed the keyboard >>>>");
+                    break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                break;
+            }
+        }
+
+        // Kill the read thread
+        try {
+
+            readThread.interrupt();
+            readThread.join(5000L);
+            readThread = null;
+
+            // This tells the server to stop sending log info
+            writer.write("STOP" + '\n');
+            writer.flush();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

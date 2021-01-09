@@ -13,7 +13,7 @@ import org.hps.online.recon.Command;
 public class LogCommand extends Command {
 
     public LogCommand() {
-        super("log", "Tail log file of station", "[ID]", "Provide a single station ID.");
+        super("log", "Tail log file of station (hit any key to stop tailing)", "[ID]", "Provide a single station ID.");
     }
 
     protected Options getOptions() {

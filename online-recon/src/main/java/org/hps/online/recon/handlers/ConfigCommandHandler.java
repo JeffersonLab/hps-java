@@ -7,6 +7,9 @@ import org.hps.online.recon.CommandResult.Success;
 import org.hps.online.recon.Server;
 import org.json.JSONObject;
 
+/**
+ * Handle the <i>config</i> command
+ */
 class ConfigCommandHandler extends CommandHandler {
 
     ConfigCommandHandler(Server server) {

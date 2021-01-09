@@ -12,7 +12,7 @@ import java.util.logging.SimpleFormatter;
 import org.hps.online.recon.Server;
 
 /**
- * Log messages to a file for a server program
+ * Logging config for the online reconstruction {@link org.hps.online.recon.Server}
  */
 public class ServerLoggingConfig {
 

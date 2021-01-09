@@ -39,6 +39,9 @@ public class StationProperties extends PropertyStore {
 
     private final static String BUILDER = LCSimEngRunEventBuilder.class.getCanonicalName();
 
+    /**
+     * Defines a set of properties specific to configuring and running an online reconstruction {@link Station}
+     */
     public StationProperties() {
         this.add(new Property<?>[] {
                 new StringProperty ( "lcsim.detector",        "Name of detector",               null,           true),

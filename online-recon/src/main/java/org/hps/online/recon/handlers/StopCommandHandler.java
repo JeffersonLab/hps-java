@@ -11,7 +11,7 @@ import org.hps.online.recon.CommandResult.Success;
 import org.json.JSONObject;
 
 /**
- * Handle the stop command.
+ * Handle the <i>stop</i> command.
  */
 class StopCommandHandler extends CommandHandler {
 

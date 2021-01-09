@@ -15,7 +15,7 @@ import org.hps.online.recon.StationProcess;
 import org.json.JSONObject;
 
 /**
- * Handle the create command.
+ * Handle the <i>create</i> command.
  */
 class CreateCommandHandler extends CommandHandler {
 

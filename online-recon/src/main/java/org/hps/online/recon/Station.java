@@ -53,6 +53,9 @@ public class Station {
      */
     private String stationName;
 
+    /**
+     * The conditions system setup
+     */
     private DatabaseConditionsManagerSetup conditionsSetup;
 
     /**
@@ -87,6 +90,10 @@ public class Station {
         return builder;
     }
 
+    /**
+     * Get the conditions setup for the station
+     * @return The conditions setup for the station
+     */
     public ConditionsSetup getConditionsSetup() {
         return this.conditionsSetup;
     }
@@ -198,7 +205,6 @@ public class Station {
         mgr.addVariableDefinition("outputFile", outputFilePath);
 
         // Remote AIDA tree bind
-        // TODO: Figure out if there is a RemoteAidaDriver to active this
         if (remoteTreeBind.valid()) {
             String rtb = remoteTreeBind.value();
             mgr.addVariableDefinition("remoteTreeBind", rtb);

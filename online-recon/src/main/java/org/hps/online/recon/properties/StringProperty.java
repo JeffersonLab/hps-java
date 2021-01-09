@@ -1,5 +1,8 @@
 package org.hps.online.recon.properties;
 
+/**
+ * Property with a string value
+ */
 public class StringProperty extends Property<String> {
 
     public StringProperty(String name, String description, String defaultValue, boolean required) {

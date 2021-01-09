@@ -12,7 +12,7 @@ import org.hps.online.recon.SimpleLogListener;
 import org.json.JSONObject;
 
 /**
- * Tail a station's log file.
+ * Handle the <i>log</i> command for tailing a station's log file
  */
 class LogCommandHandler extends CommandHandler {
 

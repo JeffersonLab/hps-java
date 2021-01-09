@@ -12,10 +12,10 @@ import org.apache.commons.cli.Options;
 import org.json.JSONObject;
 
 /**
- * Command to be sent to the online reconstruction server.
+ * Command for the online reconstruction server
  *
  * Commands are sent as JSON containing the name of the command
- * and a parameter map.
+ * and a map of parameters.
  */
 public abstract class Command {
 

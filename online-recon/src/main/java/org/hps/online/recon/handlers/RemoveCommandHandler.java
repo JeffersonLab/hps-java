@@ -11,7 +11,7 @@ import org.hps.online.recon.CommandResult.Success;
 import org.json.JSONObject;
 
 /**
- * Handle the remove command.
+ * Handle the <i>remove</i> command.
  */
 class RemoveCommandHandler extends CommandHandler {
 

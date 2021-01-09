@@ -119,17 +119,15 @@ public class StationManager {
      * @throws IOException If there is a problem starting the station's process
      */
     void startStation(final StationProcess station) throws IOException {
-
         LOG.info("Starting station: " + station.stationName);
-
-        synchronized (station) {
-            if (!station.isActive()) {
+        if (!station.isActive()) {
+            synchronized (station) {
                 station.activate();
                 station.mountRemoteTree(server.agg);
-                LOG.info("Successfully started station: " + station.stationName);
-            } else {
-                LOG.warning("Station is already active: " + station.stationName);
             }
+            LOG.info("Successfully started station: " + station.stationName);
+        } else {
+            LOG.warning("Station is already active: " + station.stationName);
         }
     }
 
@@ -275,11 +273,30 @@ public class StationManager {
         LOG.info("Stopping station: " + station.stationName);
         try {
             station.unmountRemoteTree(server.agg);
+            wakeUp(station);
             station.deactivate();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error stopping station: " + station.stationName, e);
         }
         return station.isActive();
+    }
+
+    /**
+     * Wake up an ET station
+     * @param station The station to wake up
+     */
+    private void wakeUp(StationProcess station) {
+        try {
+            EtSystem sys = this.server.getEtSystem();
+            EtStation stat = sys.stationNameToObject(station.getStationName());
+            if (stat != null) {
+                sys.wakeUpAll(stat);
+            } else {
+                LOG.log(Level.WARNING, "No ET station named: " + station.getStationName());
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Error waking up attachment: " + station.getStationName(), e);
+        }
     }
 
     /**
@@ -301,6 +318,20 @@ public class StationManager {
     }
 
     /**
+     * Stop all active stations
+     */
+    synchronized void stopAll() {
+        stopStations(this.getActiveStations());
+    }
+
+    /**
+     * Remove all inactive stations
+     */
+    synchronized void removeAll() {
+        remove(this.getInactiveStations());
+    }
+
+    /**
      * Remove an inactive station from the manager and delete its working directory.
      *
      * @param info
@@ -310,7 +341,7 @@ public class StationManager {
         synchronized (info) {
             LOG.info("Removing recon station: " + info.stationName);
             if (!info.isActive()) {
-                LOG.info("Deleting station work dir: " + info.getDirectory().getPath());
+                LOG.config("Deleting station work dir: " + info.getDirectory().getPath());
                 try {
                     FileUtils.deleteDirectory(info.getDirectory());
                 } catch (IOException e) {
@@ -321,13 +352,13 @@ public class StationManager {
                     EtSystem sys = server.getEtSystem();
                     EtStation stat = sys.stationNameToObject(info.stationName);
                     if (stat != null) {
-                        LOG.info("Removing ET station: " + info.stationName);
+                        LOG.config("Removing ET station: " + info.stationName);
                         sys.removeStation(stat);
-                        LOG.info("Done removing ET station");
+                        LOG.config("Done removing ET station: " + info.stationName);
                     }
                     stat = null;
                 } catch (Exception e) {
-
+                    LOG.log(Level.WARNING, "Error removing ET station", e);
                 }
 
                 this.stations.remove(info);
@@ -453,6 +484,10 @@ public class StationManager {
         return new Tailer(logFile, listener, delayMillis, true);
     }
 
+    /**
+     * Get a list of inactive stations
+     * @return A list of inactive stations
+     */
     public List<StationProcess> getInactiveStations() {
         List<StationProcess> stats = new ArrayList<StationProcess>();
         for (StationProcess sp : this.getStations()) {
@@ -463,6 +498,10 @@ public class StationManager {
         return stats;
     }
 
+    /**
+     * Get a list of active stations
+     * @return A list of active stations
+     */
     public List<StationProcess> getActiveStations() {
         List<StationProcess> stats = new ArrayList<StationProcess>();
         for (StationProcess sp : this.getStations()) {
@@ -484,16 +523,14 @@ public class StationManager {
             LOG.finest("StationMonitor is running...");
             for (StationProcess station : mgr.getStations()) {
                 // Set inactive state on stations that have stopped (possibly due to errors)
-                synchronized (station) {
-                    Process process = station.getProcess();
-                    if (station.isActive() && process != null && !process.isAlive()) {
-                        LOG.info("Deactivating station: " + station.stationName);
-                        station.setExitValue(process.exitValue());
-                        station.unmountRemoteTree(server.agg);
-                        station.deactivate();
-                        LOG.info("StationMonitor set station " + station.stationName + " to inactive with exit value: "
-                                + station.getExitValue());
-                    }
+                Process process = station.getProcess();
+                if (station.isActive() && process != null && !process.isAlive()) {
+                    LOG.info("Deactivating station: " + station.stationName);
+                    station.setExitValue(process.exitValue());
+                    station.unmountRemoteTree(server.agg);
+                    station.deactivate();
+                    LOG.info("StationMonitor set station " + station.stationName + " to inactive with exit value: "
+                            + station.getExitValue());
                 }
             }
             LOG.finest("StationMonitor is done running");

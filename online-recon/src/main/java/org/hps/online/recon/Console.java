@@ -59,6 +59,7 @@ public class Console {
 
         Scanner sn = new Scanner(System.in);
 
+
         System.out.println("HPS Online Reconstruction");
         System.out.println("Type 'help' or 'help [command]' for more information or 'exit' to quit.");
 
@@ -185,7 +186,7 @@ public class Console {
         System.out.println("    append [true|false] - true to append to output file or false to overwrite");
         System.out.println("    terminal - redirect server output back to the terminal");
         System.out.println('\n' + "COMMANDS" + '\n');
-        for (String command : cf.getCommandNames()) {
+        for (String command : cf.getCommandNamesSorted()) {
             System.out.println("    " + command + " - " + cf.create(command).getDescription());
         }
     }

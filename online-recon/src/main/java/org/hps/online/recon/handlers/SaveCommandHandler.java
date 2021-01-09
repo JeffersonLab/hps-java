@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 /**
  * Handle the <i>save</i> command which writes the contents
- * of the current AIDA tree to a local file.
+ * of the current AIDA tree to a local ROOT or AIDA file
  */
 class SaveCommandHandler extends CommandHandler {
 

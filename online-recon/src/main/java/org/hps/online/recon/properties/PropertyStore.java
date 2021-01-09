@@ -14,6 +14,9 @@ import java.util.Properties;
 
 import org.json.JSONObject;
 
+/**
+ * A store of {@link Property} objects
+ */
 public class PropertyStore {
 
     protected final Map<String, Property<?>> props = new HashMap<String, Property<?>>();

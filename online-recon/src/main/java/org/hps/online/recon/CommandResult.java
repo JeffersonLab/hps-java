@@ -21,6 +21,8 @@ public abstract class CommandResult {
      */
     public static final String STATUS_SUCCESS = "SUCCESS";
 
+    public static final String STATUS_SHUTDOWN = "SHUTDOWN";
+
     /**
      * Return a result which describes result of command execution
      * i.e. success or failure (JSON format).
@@ -62,6 +64,32 @@ public abstract class CommandResult {
     public static class Success extends CommandStatus {
         public Success(String message) {
             super(CommandResult.STATUS_SUCCESS, message);
+        }
+    }
+
+    /**
+     * Special status indicating the server should be shutdown,
+     * optionally with a wait time in seconds
+     */
+    public static class Shutdown extends CommandStatus {
+
+        int wait = 0;
+
+        public Shutdown() {
+            super(CommandResult.STATUS_SHUTDOWN, "Server will shutdown");
+        }
+
+        public Shutdown(int wait) {
+            super(CommandResult.STATUS_SHUTDOWN, "Server will shutdown");
+            this.wait = wait;
+        }
+
+        void setWait(int wait) {
+            this.wait = wait;
+        }
+
+        int getWait() {
+            return wait;
         }
     }
 

@@ -27,6 +27,7 @@ public class LcioListener {
     public void receiveLcio(EventHeader event) {
         if (eventsReceived % printInterval == 0) {
             eventbus.getLogger().info("Received LCIO event: " + event.getEventNumber());
+            eventbus.getLogger().info("Total received: " + eventsReceived);
         }
         ++eventsReceived;
     }

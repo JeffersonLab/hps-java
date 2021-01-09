@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Handle the list command.
+ * Handle the <i>list</i> command.
  */
 class ListCommandHandler extends CommandHandler {
 

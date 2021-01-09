@@ -1,6 +1,9 @@
 package org.hps.online.recon.commands;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,8 +12,6 @@ import org.reflections.Reflections;
 
 /**
  * Factory for creating instances of <code>Command</code> class.
- *
- * @author jeremym
  */
 public class CommandFactory {
 
@@ -24,7 +25,6 @@ public class CommandFactory {
      * Class constructor which registers all commands using reflection.
      */
     public CommandFactory() {
-
         Reflections reflections = new Reflections(this.getClass().getPackage().getName());
         Set<Class<? extends Command>> classes = reflections.getSubTypesOf(Command.class);
         for (Class<? extends Command> klass : classes) {
@@ -62,6 +62,22 @@ public class CommandFactory {
         return commands.keySet();
     }
 
+    /**
+     * Get a sorted list of command names
+     * @return A sorted list of command names
+     */
+    public List<String> getCommandNamesSorted() {
+        List<String> list = new ArrayList<String>(commands.keySet());
+        Collections.sort(list);
+        return list;
+    }
+
+
+    /**
+     * Check whether a command exists
+     * @param name The command name
+     * @return True if the command exists
+     */
     public boolean commandExists(String name) {
         return commands.containsKey(name);
     }

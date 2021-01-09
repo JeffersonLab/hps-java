@@ -1,15 +1,11 @@
 package org.hps.online.recon.eventbus;
 
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.online.recon.Station;
 import org.hps.record.et.EtConnection;
-import org.hps.record.evio.EvioEventUtilities;
 import org.jlab.coda.et.EtEvent;
-import org.jlab.coda.jevio.EvioEvent;
-import org.lcsim.conditions.ConditionsManager;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -126,6 +122,8 @@ public class OnlineEventBus extends EventBus {
         }
     }
 
+    // Moved to ConditionsListener
+    /*
     @Subscribe
     public void postEndRun(EvioEvent evioEvent) {
         try {
@@ -137,7 +135,7 @@ public class OnlineEventBus extends EventBus {
             logger.log(Level.WARNING, "Error in postEndRun() method", e);
         }
 
-    }
+    }*/
 
     @Subscribe
     public void receiveEndRun(EndRun end) {
@@ -185,9 +183,9 @@ public class OnlineEventBus extends EventBus {
 
         public void run() {
             try {
-                getLogger().config("event bus loop starting");
+                getLogger().config("Event bus loop starting");
                 eventbus.loop();
-                getLogger().config("event bus loop stopped");
+                getLogger().config("Event bus loop stopped");
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Loop stopped due to an error", e);
             }

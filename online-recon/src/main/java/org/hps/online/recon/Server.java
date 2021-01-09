@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -45,8 +46,15 @@ import org.json.JSONObject;
  * The server will fail to start if the ET system does not open, and it
  * will automatically shutdown if the ET connection goes down.
  */
-// TODO: Add CL argument for setting host name (e.g. to set 'localhost')
 public final class Server {
+
+    // Return codes
+    final static int OKAY = 0;
+    final static int ERROR = 1001;
+    final static int PARSE_ERROR = 1002;
+    final static int DISCONNECTED = 1003; // ET disconnected
+    final static int RUNTIME_ERROR = 1004;
+    final public static int SHUTDOWN = 1005;
 
     /**
      * When streaming data, client sends to server to keep connection alive.
@@ -121,17 +129,29 @@ public final class Server {
     /**
      * Executor for executing various tasks such as the ET and station monitors
      */
-    ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
 
     /**
      * Remote AIDA plot aggregator
      */
     final PlotAggregator agg = new PlotAggregator();
 
+    /**
+     * Factory for creating a command handler for a client command
+     */
     CommandHandlerFactory handlers = null;
 
+    /**
+     * Internet host
+     */
     InetAddress host;
+
+    /**
+     * Host name which can be set with a command line option
+     */
     String hostName = null;
+
+    boolean isShutdown = false;
 
     /**
      * Handles a single client request.
@@ -149,9 +169,13 @@ public final class Server {
          * sending a response back to the client.
          */
         public void run() {
+
+            // Command result to send back to client.
+            CommandResult res = null;
+
             try {
 
-                LOG.fine("Got new connection from: " + socket.getInetAddress().getHostName());
+                LOG.fine("New connection from: " + socket.getInetAddress().getHostName());
 
                 // Read input from client.
                 Scanner in = new Scanner(socket.getInputStream());
@@ -160,18 +184,16 @@ public final class Server {
                 // Get the command and its parameters.
                 String command = jo.getString("command");
                 JSONObject params = jo.getJSONObject("parameters");
-                LOG.info("Received client command <" + command + "> with parameters " + params);
+                LOG.info("Received client command '" + command + "' with parameters: " + params);
 
-                // Command result to send back to client.
-                CommandResult res = null;
 
                 // Get command handler
                 CommandHandler handler = null;
                 try {
                     // Find the handler for the command.
-                    LOG.info("Getting handler for command: " + command);
+                    LOG.config("Getting handler for command: " + command);
                     handler = handlers.getCommandHandler(command);
-                    LOG.info("Got command handler: " + handler.getClass().getCanonicalName());
+                    LOG.config("Got command handler: " + handler.getClass().getCanonicalName());
                 } catch (IllegalArgumentException e) {
                     // Command name is invalid. This shouldn't happen normally.
                     res = new Error("Unknown command: " + command);
@@ -183,6 +205,7 @@ public final class Server {
                         // Execute the command and get its result.
                         LOG.info("Executing command: " + command);
                         res = handler.execute(params);
+                        LOG.info("Done executing command: " + command);
                     } catch (Exception e) {
                         // Some kind of error occurred executing the command.
                         LOG.log(Level.SEVERE, "Error executing command: " + command, e);
@@ -198,6 +221,7 @@ public final class Server {
                     if (res instanceof LogStreamResult) {
                         // Stream log file back to client.
                         runTailer(res, bw, in);
+
                     } else {
                         // Send single line command result back to client.
                         bw.write(res.toString());
@@ -231,6 +255,21 @@ public final class Server {
                 }
             }
             LOG.fine("Done running client thread");
+
+            // Handle special shutdown command
+            if (res != null && res instanceof CommandResult.Shutdown) {
+                LOG.info("Got shutdown command");
+                int wait = ((CommandResult.Shutdown) res).getWait();
+                if (wait > 0) {
+                    LOG.info("Waiting before shutdown: " + wait + " sec");
+                    try {
+                        Thread.sleep(1000L*wait);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Server.this.shutdown(true);
+            }
         }
 
         /**
@@ -250,40 +289,28 @@ public final class Server {
             SimpleLogListener listener = logStreamResult.listener;
             listener.setBufferedWriter(bw);
 
-            bw.write("--- " + logStreamResult.log.getPath() + " ---" + '\n');
+            bw.write("---- " + logStreamResult.log.getPath() + " ----" + '\n');
 
             final Tailer tailer = logStreamResult.tailer;
 
-            // Create a thread to stop the tailer if the client closes the connection.
-            Thread clientCheckThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            // If the client stops sending keep alive responses, then
-                            // this will fail eventually and an exception will be thrown.
-                            in.nextLine();
-                        }
-                    } catch (Exception e) {
-                        //e.printStackTrace();
-                        tailer.stop();
-                    }
-                }
-            });
-            clientCheckThread.start();
-
-            // Main thread will block here until client closes the connection.
             LOG.info("Running tailer");
-            tailer.run();
 
-            // Kill the thread checking the client, in case it is still alive.
-            if (clientCheckThread.isAlive()) {
-                LOG.fine("Killing client check thread");
-                clientCheckThread.interrupt();
-                clientCheckThread.join();
+            Thread tailerThread = new Thread(tailer);
+            tailerThread.start();
+            LOG.info("Done starting tailer");
+
+            // Any input from client and we assume that the tailer should stop
+            LOG.config("Waiting for any client input...");
+            in.nextLine();
+            LOG.config("Stopping tailer");
+            //LOG.config("Client input: " + something);
+
+            tailerThread.interrupt();
+            tailerThread.join(10000L);
+            if (tailerThread.isAlive()) {
+                LOG.warning("Stopping misbehaved tailer thread");
+                tailerThread.stop();
             }
-
-            LOG.info("Done running tailer");
         }
     }
 
@@ -310,9 +337,9 @@ public final class Server {
             jo.put("port", etConfig.getTcpPort());
             if (etSystem.alive()) {
                 jo.put("pid", etSystem.getPid());
-                jo.put("num_stations", etSystem.getNumStations());
+                jo.put("stations", etSystem.getNumStations());
                 jo.put("attachments", etSystem.getNumAttachments());
-                jo.put("attachments_max", etSystem.getAttachmentsMax());
+                jo.put("maxAttachments", etSystem.getAttachmentsMax());
             }
             if (verbose) {
                 JSONObject joRes = new JSONObject();
@@ -322,10 +349,10 @@ public final class Server {
                     if (etSystem.stationExists(station.stationName)) {
                         EtStation etStation = etSystem.stationNameToObject(station.stationName);
                         JSONObject joStat = new JSONObject();
-                        joStat.put("usable", etStation.isUsable());
-                        joStat.put("input_count", etStation.getInputCount());
-                        joStat.put("status", getStatusString(etStation.getStatus()));
                         joStat.put("id", etStation.getId());
+                        joStat.put("usable", etStation.isUsable());
+                        joStat.put("status", getStatusString(etStation.getStatus()));
+                        joStat.put("attachments", etStation.getNumAttachments());
                         joRes.put(station.stationName, joStat);
                     }
                 }
@@ -374,19 +401,21 @@ public final class Server {
         try {
             server.parse(args);
         } catch (ParseException e) {
-            throw new RuntimeException("Error parsing command line", e);
+            System.err.println("Error parsing command line options");
+            e.printStackTrace();
+            System.exit(PARSE_ERROR);
         }
+
         try {
-            server.openEtConnection();
-            server.startServer();
+            server.run();
         } catch (EtException|IOException|EtTooManyException etEx) {
             System.err.println("Failed to open ET system");
             etEx.printStackTrace();
+            System.exit(DISCONNECTED);
         } catch (Exception e) {
-            System.err.println("Error starting server");
+            System.err.println("Server runtime error");
             e.printStackTrace();
-        } finally {
-            server.shutdown();
+            System.exit(RUNTIME_ERROR);
         }
     }
 
@@ -395,17 +424,7 @@ public final class Server {
      */
     private Server() {
         this.stationManager = new StationManager(this);
-
         handlers = new CommandHandlerFactory(this);
-
-        try {
-            // FIXME: Hard-coded connection settings on the aggregator
-            agg.connect();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to connect aggregator", e);
-        }
-        // Run the plot aggregator every 5 seconds
-        exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -511,7 +530,7 @@ public final class Server {
             help.printHelp("Server",
                     "Start the online reconstruction server",
                     options, "");
-            System.exit(0);
+            System.exit(OKAY);
         }
 
         // Port number of ET server.
@@ -565,7 +584,7 @@ public final class Server {
      * @throws IOException If there is an IO error
      * @throws EtTooManyException If there are too many ET connections already
      */
-    void openEtConnection() throws EtException, IOException, EtTooManyException {
+    synchronized void openEtConnection() throws EtException, IOException, EtTooManyException {
 
         LOG.config("Opening ET system...");
         Property<String> buffer = stationProperties.get("et.buffer");
@@ -593,28 +612,8 @@ public final class Server {
             throw new EtException("Failed to connect to ET system after " + maxAttempts.value() + " attempts");
         }
 
-        // Shutdown hook for ET cleanup
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    if (etSystem != null) {
-                        if (etSystem.alive()) {
-                            LOG.info("Closing ET system...");
-                            etSystem.close();
-                            etSystem = null;
-                            etConfig = null;
-                            LOG.info("ET system closed!");
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
         // Run a monitoring thread to shutdown the server if ET system closes
-        exec.scheduleAtFixedRate(new EtMonitor(), 0, 5, TimeUnit.SECONDS);
+        exec.scheduleAtFixedRate(new EtMonitor(), 0, 2, TimeUnit.SECONDS);
 
         LOG.config("Done opening ET system!");
     }
@@ -628,45 +627,135 @@ public final class Server {
     }
 
     /**
-     * Shutdown the server, attempting to cleanup all active
-     * components, stations, and threads
+     * Setup and run the server connection loop (from main)
      */
-    void shutdown() {
+    private void run() throws Exception {
 
-        stationManager.stopStations(stationManager.getActiveStations());
+        // Set the host name
+        setHost();
 
-        LOG.info("Shutting down monitoring threads...");
-        //exec.shutdownNow();
-        exec.shutdown();
+        // Open connection to ET system
+        openEtConnection();
 
-        //LOG.info("Disconnecting aggregator...");
-        agg.disconnect();
+        // Startup the plot aggregation engine
+        startPlotAggregator();
 
-        LOG.info("Exiting application...");
-        System.exit(0);
-    }
-
-    /**
-     * Start the server.
-     */
-    private void startServer() throws Exception {
-
-        if (this.hostName != null) {
-            this.host = InetAddress.getByName(this.hostName);
-        } else {
-            this.host = InetAddress.getLocalHost();
-        }
+        // Add the shutdown hook
+        addShutdownHook();
 
         // Client connection loop
+        loop();
+    }
+
+    private void startPlotAggregator() {
+        try {
+            // FIXME: Hard-coded connection settings on the aggregator
+            agg.connect();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to connect aggregator", e);
+        }
+        // Run the plot aggregator every N seconds
+        exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
+    }
+
+    // This will never exit unless an external kill signal is received or the ET ring goes down.
+    private void loop() {
         LOG.info("Starting server: " + this.host.getHostName() + ":" + this.port);
         try (ServerSocket serverSocket = new ServerSocket(port, 0, this.host)) {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 clientProcessingPool.submit(new ClientTask(clientSocket));
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Server exception", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    private void setHost() throws UnknownHostException {
+        if (this.hostName != null) {
+            this.host = InetAddress.getByName(this.hostName);
+        } else {
+            this.host = InetAddress.getLocalHost();
+        }
+    }
+
+    public synchronized void shutdown(boolean doExit) {
+
+        if (this.isShutdown) {
+            LOG.warning("Server is already shutdown");
+            return;
+        }
+
+        LOG.info("Shutting down server");
+
+        //LOG.config("Killing client connections");
+        //clientProcessingPool.shutdown();
+
+        LOG.config("Stopping all stations");
+        try {
+            stationManager.stopAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        LOG.config("Removing all stations");
+        try {
+            stationManager.removeAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        LOG.config("Shutting down monitoring threads");
+        try {
+            //exec.shutdownNow();
+            exec.shutdown();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        LOG.info("Done shutting down server");
+        try {
+            agg.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Close ET connection
+        try {
+            if (etSystem != null) {
+                if (etSystem.alive()) {
+                    LOG.info("Closing ET system...");
+                    etSystem.close();
+                    etSystem = null;
+                    etConfig = null;
+                    LOG.info("ET system closed!");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        this.isShutdown = true;
+
+        LOG.info("Done shutting down server");
+
+        if (doExit) {
+            LOG.info("Exiting application");
+            Runtime.getRuntime().removeShutdownHook(shutdownHook);
+            shutdownHook = null;
+            System.exit(SHUTDOWN);
+        }
+    }
+
+    private Thread shutdownHook = new Thread("Shutdown Hook") {
+        @Override
+        public void run() {
+            Server.this.shutdown(false);
+        }
+    };
+
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     /**
@@ -677,13 +766,10 @@ public final class Server {
 
         @Override
         public void run() {
-            //LOG.finest("EtMonitor is running...");
-            if (!Server.this.etSystem.alive()) {
-                LOG.severe("ET connection went down!");
-                Server.this.etSystem = null;
-                Server.this.shutdown();
+            if (!Server.this.isEtAlive()) {
+                LOG.severe("ET connection went down! Server will exit...");
+                System.exit(Server.DISCONNECTED);
             }
-            //LOG.finest("EtMonitor is done running");
         }
 
     }

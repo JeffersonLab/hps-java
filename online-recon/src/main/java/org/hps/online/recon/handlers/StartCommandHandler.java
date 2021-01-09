@@ -12,7 +12,7 @@ import org.hps.online.recon.StationProcess;
 import org.json.JSONObject;
 
 /**
- * Handle the start command.
+ * Handle the <i>start</i> command.
  */
 class StartCommandHandler extends CommandHandler {
 

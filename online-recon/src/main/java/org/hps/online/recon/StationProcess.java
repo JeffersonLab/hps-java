@@ -27,23 +27,74 @@ public class StationProcess {
      * Name of station properties file.
      */
     private static final String STATION_CONFIG_NAME = "station.properties";
+
+    /**
+     * Name of the station
+     */
     String stationName;
+
+    /**
+     * Server's ID of the station
+     */
     private int id;
 
+    /**
+     * Whether the station has an active system process or not
+     */
     private boolean active = false;
+
+    /**
+     * The station's system process
+     */
     private Process process;
+
+    /**
+     * The PID of the station process
+     */
     private long pid = -1L;
+
+    /**
+     * The exit value of the process
+     */
     private int exitValue = -1;
 
+    /**
+     * The command for running the station
+     */
     private List<String> command;
+
+    /**
+     * The log file for the station
+     */
     File log;
+
+    /**
+     * The run directory for the station
+     */
     private File dir;
+
+    /**
+     * The input station properties file for the station
+     */
     private File configFile;
 
+    /**
+     * The station's key-value properties
+     */
     private StationProperties props;
 
+    /**
+     * Thread for asynchronously binding to the server tree
+     */
     RemoteTreeBindThread rtbThread = null;
 
+    /**
+     * Create a station process
+     * @param id The ID of the station
+     * @param stationName The name of the station
+     * @param dir The station's directory
+     * @param props The station's config properties
+     */
     StationProcess(Integer id, String stationName, File dir, StationProperties props) {
         this.id = id;
         this.stationName = stationName;
@@ -68,7 +119,14 @@ public class StationProcess {
         return jo;
     }
 
-    synchronized void activate(/*Server server*/) throws IOException {
+    /**
+     * Activate the station for reading events
+     *
+     * This is called by the {@link StationManager#startStation(StationProcess)} method.
+     *
+     * @throws IOException If there is a problem activating the station's process
+     */
+    synchronized void activate() throws IOException {
 
         LOG.info("Activating station: " + stationName);
 
@@ -115,8 +173,12 @@ public class StationProcess {
         LOG.info("Setting station to active (connection to remote tree might be delayed)");
     }
 
+    /**
+     * Mount this station's AIDA tree into the server tree asynchronously
+     * by using a <code>RemoteTreeBindThread</code>s
+     * @param agg The aggregator containing the server tree
+     */
     synchronized void mountRemoteTree(PlotAggregator agg) {
-        killRemoteTreeBindThread();
         if (this.props.get("lcsim.remoteTreeBind").valid()) {
             LOG.fine("Starting remoteTreeBind connection thread");
             rtbThread = agg.new RemoteTreeBindThread(this, null);
@@ -124,6 +186,9 @@ public class StationProcess {
         }
     }
 
+    /**
+     * Kill the remote tree bind thread if it is active
+     */
     synchronized void killRemoteTreeBindThread() {
         if (rtbThread != null && rtbThread.isAlive()) {
             rtbThread.interrupt();
@@ -132,14 +197,18 @@ public class StationProcess {
             } catch (InterruptedException e) {
                 LOG.log(Level.WARNING, "Interrupted", e);
             }
-            rtbThread = null;
         }
+        rtbThread = null;
     }
 
-    // Set station info to indicate that it is inactive with no valid process
-    synchronized void deactivate(/*Server server*/) {
+    /**
+     * Deactivate a station by killing its system process
+     *
+     * This is called by {@link StationManager#stopStation(StationProcess)}.
+     */
+    synchronized void deactivate() {
 
-        LOG.info("Deactivating station: " + stationName);
+        LOG.log(Level.CONFIG, "Deactivating station: " + stationName/*, new Exception()*/);
 
         if (!active) {
             LOG.warning("Station has already been deactivated: " + stationName);
@@ -148,24 +217,33 @@ public class StationProcess {
 
         setActive(false);
 
-        // Dismount the station's AIDA tree
-        //unmountRemoteTree(server.agg);
+        killRemoteTreeBindThread();
 
         destroyProcess();
 
-        LOG.info("Done deactivating station: " + stationName);
+        LOG.config("Done deactivating station: " + stationName);
     }
 
+    /**
+     * Set the station to active
+     * @param active True to set station to active
+     */
     synchronized void setActive(boolean active) {
         this.active = active;
     }
 
+    /**
+     * Get whether the station is active or not
+     * @return True if station is active
+     */
     boolean isActive() {
         return this.active;
     }
 
-    private void destroyProcess() {
-        // Destroy the station's system process
+    /**
+     * Destroy the station's system process
+     */
+    synchronized private void destroyProcess() {
         try {
             if (process != null) {
                 if (process.isAlive()) {
@@ -173,14 +251,13 @@ public class StationProcess {
                     //process.destroy();
                     process.destroyForcibly();
                     try {
-                        LOG.fine("Waiting for station to stop: " + stationName);
-                        process.waitFor(30, TimeUnit.SECONDS);
+                        LOG.fine("Waiting 10 seconds for station to stop: " + stationName);
+                        process.waitFor(10, TimeUnit.SECONDS);
                         LOG.fine("Done waiting for station to stop: " + stationName);
                         if (process.isAlive()) {
-                            LOG.warning("Station did not stop after 30 seconds");
+                            LOG.warning("Failed to destroy station process: " + stationName);
                         } else {
                             exitValue = process.exitValue();
-
                         }
                     } catch (InterruptedException e) {
                         LOG.log(Level.WARNING, "Interrupted", e);
@@ -193,15 +270,15 @@ public class StationProcess {
             pid = -1L;
             LOG.fine("Exit value: " + exitValue);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error killing station process", e);
+            LOG.log(Level.WARNING, "Error destroying station system process", e);
         }
     }
 
-    void unmountRemoteTree(PlotAggregator agg) {
-
-        // Kill the RTB thread if active
-        killRemoteTreeBindThread();
-
+    /**
+     * Unmount the remote tree for this station
+     * @param agg The aggregator containing the remote tree
+     */
+    synchronized void unmountRemoteTree(PlotAggregator agg) {
         // Unmount the remote tree for this station
         if (props.get("lcsim.remoteTreeBind").valid()) {
             Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
@@ -250,46 +327,89 @@ public class StationProcess {
         return pid;
     }
 
+    /**
+     * Get the station ID
+     * @return The station ID
+     */
     Integer getStationID() {
         return this.id;
     }
 
+    /**
+     * Get the station directory
+     * @return The station directory
+     */
     File getDirectory() {
         return this.dir;
     }
 
+    /**
+     * Get the station's system process
+     * @return The station's system process
+     */
     Process getProcess() {
         return process;
     }
 
+    /**
+     * Set the exit value
+     * @param exitValue The exit value
+     */
     void setExitValue(int exitValue) {
         this.exitValue = exitValue;
     }
 
+    /**
+     * Get the exit value
+     * @return The exit value
+     */
     int getExitValue() {
         return this.exitValue;
     }
 
+    /**
+     * Set the config properties file
+     * @param file The config properties file
+     */
     void setConfigFile(File file) {
         this.configFile = file;
     }
 
+    /**
+     * Get the command for running the station's system process
+     * @return The command for running the station's system process
+     */
     List<String> getCommand() {
         return this.command;
     }
 
+    /**
+     * Get the name of the station
+     * @return The name of the station
+     */
     public String getStationName() {
         return this.stationName;
     }
 
+    /**
+     * Get the log file for the station
+     * @return The log file for the station
+     */
     public File getLogFile() {
         return this.log;
     }
 
+    /**
+     * Get the station's config properties
+     * @return The station's config properties
+     */
     public StationProperties getProperties() {
         return this.props;
     }
 
+    /**
+     * Build the command for running the station
+     */
     void buildCommand() {
 
         Property<String> logConfigFile = props.get("station.loggingConfig");

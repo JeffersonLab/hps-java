@@ -7,29 +7,5 @@
  * To run online reconstruction on a host machine, the {@link Server} must be started
  * with a set of properties defined in {@link StationProperties} that specifies the
  * parameters for the ET system and the LCSim reconstruction.
- *
- * The {@link Client} class is used to send commands to the {@link Server}.
- *
- * The basic client documentation can be printed using:
- *
- * <pre>
- * <code>
- * java -jar hps-distribution-bin.jar org.hps.online.recon.Client --help
- * </code>
- * </pre>
- *
- * The documentation for each command can be printed using:
- * <pre>
- * <code>
- * java -jar hps-distribution-bin.jar org.hps.online.recon.Client [command] --help
- * </code>
- * </pre>
- *
- * Similarly, the server options can be shown using:
- * <pre>
- * <code>
- * java -jar hps-distribution-bin.jar org.hps.online.recon.Server --help
- * </code>
- * </pre>
  */
 package org.hps.online.recon;
