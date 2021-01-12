@@ -24,12 +24,9 @@ import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -94,10 +91,13 @@ public class KalmanPatRecDriver extends Driver {
     private double beamSigmaX;
     private double beamPositionY;
     private double beamSigmaY;
+    private double lowPhThresh;                 // Threshold in residual ratio to prefer a low-ph hit over a high-ph hit
+    private double minSeedEnergy=-1.;           // Minimum energy of a hit for it to be used in a pattern recognition seed
     private boolean useBeamPositionConditions;  // True to use beam position from database
     private boolean useFixedVertexZPosition;    // True to override the database just for the z beam position
     private Level logLevel = Level.WARNING;     // Set log level from steering
-    private boolean addResiduals;      // If true add the hit-on-track residuals to the LCIO event
+    private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
+    private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     
     
     public String getOutputFullTrackCollectionName() {
@@ -181,7 +181,7 @@ public class KalmanPatRecDriver extends Driver {
             detPlanes.add((SiStripPlane) (vol));
         }
         
-        det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
+        sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
         KalmanParams kPar = new KalmanParams();
@@ -213,6 +213,7 @@ public class KalmanPatRecDriver extends Driver {
         if (beamPositionY != 0.0) kPar.setBeamSpotZ(-beamPositionY);
         if (beamSigmaY != 0.0) kPar.setBeamSizeZ(beamSigmaY);
         if (mxChi2Vtx != 0.0) kPar.setMaxChi2Vtx(mxChi2Vtx);
+        if (minSeedEnergy >= 0.) kPar.setMinSeedEnergy(minSeedEnergy);
       
         // Here we set the seed strategies for the pattern recognition
         if (strategies != null || (strategiesTop != null && strategiesBot != null)) {
@@ -277,8 +278,7 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        
-        
+                
         List<Track> outputFullTracks = new ArrayList<Track>();
         
         //For additional track information
@@ -293,7 +293,7 @@ public class KalmanPatRecDriver extends Driver {
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
        
-        prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
+        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
@@ -306,6 +306,18 @@ public class KalmanPatRecDriver extends Driver {
             event.put("KFUnbiasRes", trackResiduals, TrackResidualsData.class,0);
             event.put("KFUnbiasResRelations",trackResidualsRelations, LCRelation.class,0);
         }
+
+        if (kPlot != null) {
+            long startTime = System.nanoTime();
+            
+            kPlot.process(event, sensors, kPatList, outputFullTracks);
+            long endPlottingTime = System.nanoTime();
+            double runTime = (double)(endPlottingTime - startTime)/1000000.;
+            plottingTime += runTime;           
+        }
+        
+        KI.clearInterface();
+        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", event.getEventNumber()));
     }
     
     class SortByZ implements Comparator<Pair<double[], double[]>> {
@@ -324,13 +336,13 @@ public class KalmanPatRecDriver extends Driver {
         }
     }
 
-    private void prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
+    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
             System.out.format("KalmanPatRecDriver.process:" + stripHitInputCollectionName + " does not exist; skipping event %d\n", evtNumb);
-            return;
+            return null;
         }
         
         long startTime = System.nanoTime();
@@ -341,21 +353,11 @@ public class KalmanPatRecDriver extends Driver {
         nEvents++;
         logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
-        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
-            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
-            for (LCRelation relation : trueHitRelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-                    rawtomc.add(relation.getFrom(), relation.getTo());
-                }
-        }
-        
-        List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        if (rawhits == null) {
-            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
-            return;
-        }
-        
+        //List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        //if (rawhits == null) {
+        //    logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
+        //    return null;
+        //}        
         
         int nKalTracks = 0;
         for (int topBottom=0; topBottom<2; ++topBottom) {
@@ -458,18 +460,7 @@ public class KalmanPatRecDriver extends Driver {
         runTime = (double)(endInterfaceTime - endTime)/1000000.;
         interfaceTime += runTime;
         
-        if (kPlot != null) {
-            kPlot.process(event, runTime, kPatList, outputFullTracks, rawtomc);
-            long endPlottingTime = System.nanoTime();
-            runTime = (double)(endPlottingTime - endInterfaceTime)/1000000.;
-            plottingTime += runTime;
-            
-        }
-        
-        KI.clearInterface();
-        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));
-
-        return;
+        return kPatList;
     }
 
     @Override
@@ -575,6 +566,14 @@ public class KalmanPatRecDriver extends Driver {
     }
     public void setNumStrategyIter1(int numStrategyIter1) {
         this.numStrategyIter1 = numStrategyIter1;
+    }
+    public void setMinSeedEnergy(double minSeedEnergy) {
+        this.minSeedEnergy = minSeedEnergy;
+        System.out.format("KalmanPatRecDriver: minimum seed energy from steering = %8.4f\n", minSeedEnergy);
+    }
+    public void setLowPhThresh(double lowPhThresh) {
+        this.lowPhThresh = lowPhThresh;
+        System.out.format("KalmanPatRecDriver: setting lowPhThresh from steering : %12.4f\n", lowPhThresh);
     }
     public void setSeedStrategy(String seedStrategy) {
         if (strategies == null) {

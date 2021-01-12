@@ -29,8 +29,7 @@ class MeasurementSite {
     private double alpha;
     double radLen; // radiation length in silicon
     private double dEdx; // in GeV/mm
-    private double mxResid; // Maximum residual for adding a hit
-    private double mxResidShare; // Maximum residual for a shared hit
+    private KalmanParams kPar;
     double B;
     final static private boolean debug = false;
     private static Logger logger;
@@ -58,7 +57,7 @@ class MeasurementSite {
         } else if (predicted) { 
             str=str+"    This site has been predicted\n"; 
         }
-        str=str+String.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, mxResid);
+        str=str+String.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, kPar.mxResid);
         str = str + m.toString("for this site");
         double B = KalmanInterface.getField(m.p.X(), m.Bfield).mag();
         Vec tB = KalmanInterface.getField(m.p.X(), m.Bfield).unitVec();
@@ -79,10 +78,9 @@ class MeasurementSite {
         return str;
     }
 
-    MeasurementSite(int thisSite, SiModule data, double mxResid, double mxResidShare) {
+    MeasurementSite(int thisSite, SiModule data, KalmanParams kPar) {
         this.thisSite = thisSite;
-        this.mxResid = mxResid;
-        this.mxResidShare = mxResidShare;
+        this.kPar = kPar;
         this.m = data;       
         hitID = -1;
         double c = 2.99793e8; // Speed of light in m/s
@@ -135,17 +133,18 @@ class MeasurementSite {
 
     int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds) {
         double [] dT = {-1000., 1000.};
-        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, dT);
+        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, dT, 0);
     }
     
-    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange) {
-        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, tRange, false);
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, int trial) {
+        return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, tRange, trial, false);
     }
 
-    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, boolean verbose2) { // Create predicted state vector by propagating from previous site
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, int trial, boolean verbose2) { // Create predicted state vector by propagating from previous site
         // pS = state vector that we are predicting from
         // mPS = Si module that we are predicting from, if any
         // tRange = allowed time range [tmin,tmax] for picking up a hit
+        // minE = minimum hit energy for it to be picked up, unless no other hit exists
         // sharingOK = whether to allow sharing of a hit between multiple tracks
         // pickup = whether we are doing pattern recognition here and need to pick up hits to add to the track
         int returnFlag = 0;
@@ -275,8 +274,7 @@ class MeasurementSite {
         // Loop over hits and find the one that is closest, unless the hit has been specified
         int nHits = m.hits.size();
         if (nHits > 0) {
-            double minResid = 999.;
-            double cut = mxResid;
+            double cut = kPar.mxResid[trial];
             int theHit = hitNumber;
             if (theHit < 0 && pickup) {
                 // Don't pick up a hit if the track projection is outside of the bounds of the strip
@@ -285,36 +283,76 @@ class MeasurementSite {
                     Vec rGlobal = pS.helix.toGlobal(X0); // Transform from field coordinates to global coordinates
                     rLocal = m.toLocal(rGlobal);   // Rotate into the detector coordinate system
                 }
-                if (rLocal.v[0] > m.xExtent[0] - tol && rLocal.v[0] < m.xExtent[1] + tol) { 
+                if (rLocal.v[0] > m.xExtent[0] - tol && rLocal.v[0] < m.xExtent[1] + tol) {
+                    int theHitAll = theHit;
+                    double minResid = 999.;
+                    double minResidAll = 999.;
                     for (int i = 0; i < nHits; i++) {
                         if (m.hits.get(i).tracks.size() > 0) continue; // Skip used hits
                         //if (m.hits.get(i).tksMC.size()==0) {  // For cheating, using MC truth to avoid noise hits.
                         //    continue;
                         //}
-                        double residual = m.hits.get(i).v - aP.mPred;
+                        double residual = Math.abs(m.hits.get(i).v - aP.mPred);
+                        double ctv = (m.hits.get(i).v - aP.mPred)/m.hits.get(i).sigma;
                         if (debug) {
-                            double ctv = residual/m.hits.get(i).sigma;
-                            System.out.format("  MeasurementSite.makePrediction: Found unused hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, mxResid); 
+                            System.out.format("  MeasurementSite.makePrediction: Found unused hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, kPar.mxResid[trial]); 
+                            System.out.format("        Hit energy=%10.4f, cut = %10.4f\n",m.hits.get(i).energy, kPar.minSeedE[m.Layer]);
                         }
-                        if (Math.abs(residual) < minResid) {
-                            theHit = i;
-                            minResid = Math.abs(residual);
+                        if (residual < minResid) {
+                            if (m.hits.get(i).energy > kPar.minSeedE[m.Layer]) {
+                                theHit = i;
+                                minResid = residual;
+                            }
+                        }
+                        if (residual < minResidAll) {
+                            theHitAll = i;
+                            minResidAll = residual;
                         }
                     }
-                    double minResid2 = 999.;
-                    if (theHit < 0 && sharingOK) {  // Look for good shared hits
-                        for (int i = 0; i < nHits; i++) {
-                            double residual = m.hits.get(i).v - aP.mPred;
-                            if (debug) {                         
-                                double ctv = residual/m.hits.get(i).sigma;
-                                System.out.format("  MeasurementSite.makePrediction: Found used hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, mxResid); 
-                            }
-                            if (Math.abs(residual) < minResid2) {
-                                theHit = i;
-                                minResid2 = Math.abs(residual);
+                    double sigmas = 999.;
+                    if (theHitAll >= 0) {
+                        sigmas = minResidAll/m.hits.get(theHitAll).sigma;
+                    }
+                    if (theHitAll < 0 || sigmas > cut) {  // Look for good shared hits only if there is no other option
+                        if (sharingOK) {
+                            double minResid2 = minResidAll;
+                            for (int i = 0; i < nHits; i++) {
+                                double residual = m.hits.get(i).v - aP.mPred;
+                                if (debug) {                         
+                                    double ctv = residual/m.hits.get(i).sigma;
+                                    System.out.format("  MeasurementSite.makePrediction: Found used hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, kPar.mxResid[trial]); 
+                                }
+                                if (Math.abs(residual) < minResid2 && m.hits.get(i).energy > kPar.minSeedE[m.Layer]) {   // Shared hits should never be low energy
+                                    theHit = i;
+                                    minResid2 = Math.abs(residual);
+                                    cut = kPar.mxResidShare;
+                                    if (debug) System.out.format("MeasurementSite.makePrediction: shared hit candidate %d with residual %10.4f\n", theHit, residual);
+                                }
                             }
                         }
-                        cut = mxResidShare;
+                    } else {
+                        if (theHit < 0) {   // A low-pulse-height hit is the only option
+                            theHit = theHitAll;
+                        } else if (theHit != theHitAll){
+                            double cutVal = minResid/m.hits.get(theHit).sigma;
+                            if (debug) {
+                                System.out.format("MeasurementSite.makePrediction: hit with ph=%8.2f versus ph=%8.2f\n", m.hits.get(theHitAll).energy,m.hits.get(theHit).energy);
+                                System.out.format("  Residuals = %10.4f for %d and %10.4f for %d, cutVal=%10.4f\n", minResidAll, theHit, minResid, theHitAll, cutVal);
+                            }
+                            if (cutVal < cut) {  // A high-ph hit and a low-ph hit are within the cut. Now we have to decide. . .
+                                if (cutVal > kPar.mxResidShare) { // If the high-ph hit is really good, just keep it
+                                    if (minResidAll/minResid < kPar.lowPhThresh) { // the low-ph hit is attractive enough that we will take it
+                                        if (debug) {
+                                            System.out.format("MeasurementSite.makePrediction: choosing hit with ph=%8.2f over hit with ph=%8.2f\n", m.hits.get(theHitAll).energy,m.hits.get(theHit).energy);
+                                            System.out.format("  Residuals = %10.4f for %d and %10.4f for %d, ratio=%9.4f\n", minResidAll, theHit, minResid, theHitAll, minResidAll/minResid);
+                                        }
+                                        theHit = theHitAll;
+                                    }
+                                }
+                            } else {  // Maybe the low-pulse-height hit will pass
+                                theHit = theHitAll;
+                            }
+                        }
                     }
                 }
             }
@@ -322,9 +360,9 @@ class MeasurementSite {
                 aP.r = m.hits.get(theHit).v - aP.mPred;
                 if (debug) {
                     if (hitNumber >= 0) {
-                        System.out.format("MeasurementSite.makePrediction: specified hit=%d with residual=%10.7f\n", theHit, minResid);
+                        System.out.format("MeasurementSite.makePrediction: specified hit=%d with residual=%10.7f\n", theHit, aP.r);
                     } else {
-                        System.out.format("MeasurementSite.makePrediction: selected hit=%d with minimum residual=%10.7f\n", theHit, minResid);
+                        System.out.format("MeasurementSite.makePrediction: selected hit=%d with minimum residual=%10.7f\n", theHit, aP.r);
                     }
                     System.out.format("MeasurementSite.makePrediction: intersection with old helix is at phi=%10.7f, z=%10.7f\n", phi,
                             aP.mPred);
@@ -491,16 +529,16 @@ class MeasurementSite {
         }
         if (theHit >= 0) {
             Measurement hit = m.hits.get(theHit);
-            if (chi2incMin < mxResid*mxResid && hit.time < tRange[1] && hit.time > tRange[0]) {
+            if (chi2incMin < kPar.mxResid[0]*kPar.mxResid[0] && hit.time < tRange[1] && hit.time > tRange[0]) {
                 hitID = theHit;
                 if (filter()) {
                     if (debug) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
                     if (chi2inc < cut) {
-                        if (debug) {
-                            System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
-                            hit.print("short");
-                            System.out.format("\n");
-                        }
+                        //if (debug) {
+                        System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
+                        hit.print("short");
+                        System.out.format("\n");
+                        //}
                         return m.hits.get(hitID);
                     } else {
                         hitID = -1;

@@ -74,7 +74,7 @@ class KalmanTrackFit2 {
                     continue;
                 }
                 thisSite++;
-                newSite = new MeasurementSite(idx, m, mxResid, mxResid);
+                newSite = new MeasurementSite(idx, m, kPar);
                 int hitNumber = 0;
                 if (m.hits.size() == 0) hitNumber = -1;
                 if (idx == start) {
@@ -163,7 +163,7 @@ class KalmanTrackFit2 {
                 thisSite++;
                 int hitNumber = 0;
                 if (m.hits.size() == 0) hitNumber = -1;
-                MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
+                MeasurementSite newSite = new MeasurementSite(thisSite, m, kPar);
                 if (thisSite == 0) {
                     if (newSite.makePrediction(sH, hitNumber, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make initial prediction at site %d.  Abort\n", thisSite);
@@ -276,7 +276,7 @@ class KalmanTrackFit2 {
 
         finalSite = sites.size() - 1;
 
-        int nLyrs = 12;
+        int nLyrs = 14;
         int [] lyrPtr = new int[nLyrs+1];
         for (int i=0; i<sites.size(); ++i) {
             MeasurementSite site = sites.get(i);
