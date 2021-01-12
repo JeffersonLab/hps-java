@@ -32,6 +32,9 @@ public class StuckFADCBit {
                 return value & ~(1<<index);
             }
         }
+        public int toggle(int value) {
+            return value ^ (1<<index);
+        }
         public boolean isStuck(int value) {
             return ((value >> index) & 1) == state;
         }
@@ -43,6 +46,15 @@ public class StuckFADCBit {
             int ox = x & ~(1<<index);
             int oy = y & ~(1<<index);
             return ox==oy && bx!=by;
+        }
+        public boolean arePartners(EcalChannel x, EcalChannel y) {
+            if (x.getCrate() != y.getCrate()) {
+                return false;
+            }
+            if (x.getSlot() != y.getSlot()) {
+                return false;
+            }
+            return arePartners(x.getChannel(), y.getChannel());
         }
     }
 
@@ -105,7 +117,8 @@ public class StuckFADCBit {
      * @return
      */
     public static String toString(EcalChannel c) {
-        return String.format("%d/%d/%d", c.getCrate(), c.getSlot(), c.getChannel());
+        return String.format("%d/%d/%d(%4s)", c.getCrate(), c.getSlot(), c.getChannel(),
+                Integer.toBinaryString(c.getChannel())).replace(' ','0');
     }
 
     /**
@@ -149,6 +162,18 @@ public class StuckFADCBit {
      */
     public static EcalChannel unstick(EcalConditions condi, EcalChannel channel, Stuck stuck) {
         final int unstuckChannel = stuck.unStick(channel.getChannel());
+        return getChannel(condi, channel.getCrate(), channel.getSlot(), unstuckChannel);
+    }
+
+    /**
+     * Get the channel after toggling the given bit. 
+     * @param condi
+     * @param channel
+     * @param stuck
+     * @return 
+     */
+    public static EcalChannel toggle(EcalConditions condi, EcalChannel channel, Stuck stuck) {
+        final int unstuckChannel = stuck.toggle(channel.getChannel());
         return getChannel(condi, channel.getCrate(), channel.getSlot(), unstuckChannel);
     }
 

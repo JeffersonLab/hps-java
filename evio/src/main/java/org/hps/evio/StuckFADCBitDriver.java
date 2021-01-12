@@ -33,6 +33,8 @@ import org.lcsim.util.Driver;
  */
 public class StuckFADCBitDriver extends Driver {
     
+    private final boolean VALIDATE = false;
+    
     private static final int RUN_MIN = 10651;
     private static final int RUN_MAX = 10678;
     private static final Set<CrateSlot> STUCK_SLOTS = new HashSet<>(Arrays.asList(new CrateSlot(1,3)));
@@ -105,9 +107,15 @@ public class StuckFADCBitDriver extends Driver {
             nOldBad++;
         }
 
-        List<RawTrackerHit> newHits = fixSafe(oldHits);
+        List<RawTrackerHit> newHits;
 
-        //analyze(oldHits,newHits);
+        if (VALIDATE) {
+            newHits = fix(oldHits);
+            analyze(oldHits,newHits);
+        }
+        else {
+            newHits = fixSafe(oldHits);
+        }
 
         event.remove(HIT_COLLECTION_NAME);
         event.put(HIT_COLLECTION_NAME, newHits, HIT_CLASS, 0, READOUT_NAME);
@@ -178,6 +186,17 @@ public class StuckFADCBitDriver extends Driver {
     }
 
     /**
+     * Get channel with the stuck bit unstuck.
+     * @param channel
+     * @return 
+     */
+    private EcalChannel toggle(EcalChannel channel) {
+        EcalChannel newChan = StuckFADCBit.toggle(ecalConditions, channel, STUCK_BIT); 
+        register(channel, newChan);
+        return newChan;
+    }
+    
+    /**
      * Get hit with the stuck bit unstuck. 
      * @param hit
      * @return 
@@ -203,6 +222,19 @@ public class StuckFADCBitDriver extends Driver {
         return ret;
     }
 
+    /**
+     * Get hits with the stuck bit unstuck, if appropriate based on pedestal.
+     * @param hits
+     * @return 
+     */
+    private List<RawTrackerHit> fix(List<RawTrackerHit> hits) {
+        List<RawTrackerHit> ret = new ArrayList<>();
+        for (RawTrackerHit hit : hits) {
+            ret.add(fix(hit));
+        }
+        return ret;
+    }
+    
     /**
      * Unstick any FADC bits if appropriate.  Use channel ordering if possible,
      * otherwise pedestals, to determine their stuckness.
@@ -249,7 +281,7 @@ public class StuckFADCBitDriver extends Driver {
                 }
 
                 // two non-identical partner channels in the same event,
-                // mark both as unstuck:
+                // mark both as unstuck (this should never happen):
                 else if (arePartners(c1,c2)) {
                     stuckCandidate[i1] = false;
                     stuckCandidate[i2] = false;
@@ -298,37 +330,53 @@ public class StuckFADCBitDriver extends Driver {
      */
     private boolean analyze(List<RawTrackerHit> oldHits, List<RawTrackerHit> newHits) {
         boolean ret = true;
-        for (int i1=0; i1<oldHits.size(); i1++){
+        for (int i1=0; i1<oldHits.size(); i1++) {
             EcalChannel c1old = getChannel(oldHits.get(i1));
             EcalChannel c1new = getChannel(newHits.get(i1));
+            if (!isAffected(c1old)) continue;
             for (int i2=i1+1; i2<oldHits.size(); i2++) {
                 EcalChannel c2old = getChannel(oldHits.get(i2));
                 EcalChannel c2new = getChannel(newHits.get(i2));
+                if (!isAffected(c2old)) continue;
+                // if unfixed, never should have bit partners:
+                if (STUCK_BIT.arePartners(c1old, c2old)) {
+                    String msg = "ERROR(A) "+StuckFADCBit.toString(c1old)+" -> "+StuckFADCBit.toString(c2old);
+                    Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
+                    ret = false;
+                }
                 if (StuckFADCBit.equals(c1old,c2old)) {
                     // if unfixed, they both should have the stuck bit stuck:
                     if (!STUCK_BIT.isStuck(c1old.getChannel())) {
-                        String msg = "This should never happen (4) "+StuckFADCBit.toString(c1old)+" -> "+StuckFADCBit.toString(c2old);
+                        String msg = "ERROR(4) "+StuckFADCBit.toString(c1old)+" -> "+StuckFADCBit.toString(c2old);
                         Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
                         ret = false;
                     }
                     // if fixed, the 1st should have the stuck bit unset:
                     if ((c1new.getChannel()&(1<<STUCK_BIT.index)) != 0) {
-                        String msg = "This should never happen (2) "+StuckFADCBit.toString(c1new)+" -> "+StuckFADCBit.toString(c2new);
+                        String msg = "ERROR(2) "+StuckFADCBit.toString(c1new)+" -> "+StuckFADCBit.toString(c2new);
                         Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
                         ret = false;
                     }
                     // if fixed, the 2nd should have the stuck bit set:
                     if ((c2new.getChannel()&(1<<STUCK_BIT.index)) == 0) {
-                        String msg = "This should never happen (3) "+StuckFADCBit.toString(c1new)+" -> "+StuckFADCBit.toString(c2new);
+                        String msg = "ERROR(3) "+StuckFADCBit.toString(c1new)+" -> "+StuckFADCBit.toString(c2new);
                         Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
                         ret = false;
                     }
                 }
-                // if fixed, there should never be identical hits:
+                // if properly fixed, there should never be identical hits:
                 if (StuckFADCBit.equals(c1new,c2new)) {
-                    String msg = "This should never happen (5) "+StuckFADCBit.toString(c1new)+" -> "+StuckFADCBit.toString(c2new);
+                    String msg = "ERROR(5) "+StuckFADCBit.toString(c1new)+" -> "+StuckFADCBit.toString(c2new);
                     Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
                     ret = false;
+                    EcalChannel cUnStuck = toggle(c1new);
+                    double measPed1 = StuckFADCBit.getPedestal(newHits.get(i1));
+                    double measPed2 = StuckFADCBit.getPedestal(newHits.get(i2));
+                    double dbPed1 = StuckFADCBit.getPedestal(ecalConditions, c1new);
+                    double dbPed2 = StuckFADCBit.getPedestal(ecalConditions, cUnStuck);
+                    msg  = String.format(" %s/db=%.1f/m=%.2f",StuckFADCBit.toString(c1new),dbPed1,measPed1);
+                    msg += String.format("  %s/db=%.1f/m=%.1f",StuckFADCBit.toString(cUnStuck),dbPed2,measPed2);
+                    Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
                 }
             }
         }
