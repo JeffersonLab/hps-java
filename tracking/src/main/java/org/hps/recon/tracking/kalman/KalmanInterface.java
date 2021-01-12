@@ -799,7 +799,7 @@ public class KalmanInterface {
                     globalY.print("globalY");
                     System.out.format("     Adding measurement %10.5f to layer %d, module %d\n", umeas, module.Layer, module.detector);
                 }
-                Measurement m = new Measurement(umeas, du, 0., rGlobal, rLocal.v[1]);
+                Measurement m = new Measurement(umeas, du, 0., hit.getdEdx()*1000000., rGlobal, rLocal.v[1]);
                 //rGlobal.print("new global hit location");
 
                 module.addMeasurement(m);
@@ -937,7 +937,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du, time);
+                Measurement m = new Measurement(umeas, du, time, localHit.getdEdx()*1000000.);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
@@ -1037,7 +1037,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du, 0.);
+                Measurement m = new Measurement(umeas, du, 0., hit.getdEdx()*1000000.);
 
                 KalHit hitPair = new KalHit(mod,m);
                 trackHitsKalman.add(hitPair);
@@ -1291,7 +1291,9 @@ public class KalmanInterface {
                 vPos = vPos - 0.03;
             }
         }
-        for (int topBottom=0; topBottom<2; ++topBottom) {
+        int [] nTkpL = {0, 0};
+        int [] nTkpS = {0, 0};
+        for (int topBottom=0; topBottom<2; ++topBottom) {   // Plotting tracks as lines
             for (KalTrack tkr : patRecList[topBottom]) {
                 printWriter3.format("$tkr%d_%d << EOD\n", tkr.ID, topBottom);
                 for (MeasurementSite site : tkr.SiteList) {
@@ -1321,13 +1323,15 @@ public class KalmanInterface {
                 printWriter3.format("EOD\n");
             }
 
-            for (KalTrack tkr : patRecList[topBottom]) {
+            for (KalTrack tkr : patRecList[topBottom]) {    // Plotting hits on tracks
                 printWriter3.format("$tkp%d_%d << EOD\n", tkr.ID, topBottom);
                 for (MeasurementSite site : tkr.SiteList) {
                     SiModule module = site.m;
                     int hitID = site.hitID;
                     if (hitID < 0) continue;
                     Measurement mm = module.hits.get(hitID);
+                    if (mm.energy < kPar.minSeedE[module.Layer]) continue;
+                    if (mm.tracks.size() > 1) continue;
                     Vec rLoc = null;
                     if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
                         StateVector aS = site.aS;
@@ -1347,11 +1351,69 @@ public class KalmanInterface {
                 }
                 printWriter3.format("EOD\n");
             }
+            for (KalTrack tkr : patRecList[topBottom]) {    // Plotting shared hits on tracks
+                printWriter3.format("$tkpS%d_%d << EOD\n", tkr.ID, topBottom);
+                for (MeasurementSite site : tkr.SiteList) {
+                    SiModule module = site.m;
+                    int hitID = site.hitID;
+                    if (hitID < 0) continue;
+                    Measurement mm = module.hits.get(hitID);
+                    if (mm.energy < kPar.minSeedE[module.Layer]) continue;
+                    if (mm.tracks.size() <= 1) continue;
+                    Vec rLoc = null;
+                    if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
+                        StateVector aS = site.aS;
+                        double phiS = aS.helix.planeIntersect(module.p);
+                        if (!Double.isNaN(phiS)) {
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
+                            rLoc = module.toLocal(rGlobal);     // Position in the detector frame
+                        } else {
+                            rLoc = new Vec(0.,0.,0.);
+                        }
+                    } else {
+                        rLoc = module.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
+                    }
+                    Vec rmG = module.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                    printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                    nTkpS[topBottom]++;
+                }
+                printWriter3.format("EOD\n");
+            }
+            for (KalTrack tkr : patRecList[topBottom]) {    // Plotting low-ph hits on tracks
+                printWriter3.format("$tkpL%d_%d << EOD\n", tkr.ID, topBottom);
+                for (MeasurementSite site : tkr.SiteList) {
+                    SiModule module = site.m;
+                    int hitID = site.hitID;
+                    if (hitID < 0) continue;
+                    Measurement mm = module.hits.get(hitID);
+                    if (mm.energy >= kPar.minSeedE[module.Layer]) continue;
+                    Vec rLoc = null;
+                    if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
+                        StateVector aS = site.aS;
+                        double phiS = aS.helix.planeIntersect(module.p);
+                        if (!Double.isNaN(phiS)) {
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
+                            rLoc = module.toLocal(rGlobal);           // Position in the detector frame
+                        } else {
+                            rLoc = new Vec(0.,0.,0.);
+                        }
+                    } else {
+                        rLoc = module.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
+                    }
+                    Vec rmG = module.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                    printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                    nTkpL[topBottom]++;
+                }
+                printWriter3.format("EOD\n");
+            }
         }
         printWriter3.format("$pnts << EOD\n");
         for (SiModule si : SiMlist) {
-            for (Measurement mm : si.hits) {
+            for (Measurement mm : si.hits) {    // Plotting high-amplitude hits not on tracks
                 if (mm.tracks.size() > 0) continue;
+                if (mm.energy < kPar.minSeedE[si.Layer]) continue;
                 Vec rLoc = null;
                 if (mm.rGlobal == null) {
                     rLoc = new Vec(0.,0.,0.);      // Use the center of the detector if there is no MC truth info
@@ -1363,10 +1425,34 @@ public class KalmanInterface {
             }
         }
         printWriter3.format("EOD\n");
-        printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
+        printWriter3.format("$pntsL << EOD\n");
+        for (SiModule si : SiMlist) {
+            for (Measurement mm : si.hits) {    // Plotting low-amplitude hits not on tracks
+                if (mm.tracks.size() > 0) continue;
+                if (mm.energy >= kPar.minSeedE[si.Layer]) continue;
+                Vec rLoc = null;
+                if (mm.rGlobal == null) {
+                    rLoc = new Vec(0.,0.,0.);      // Use the center of the detector if there is no MC truth info
+                } else {
+                    rLoc = si.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
+                }
+                Vec rmG = si.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+            }
+        }
+        printWriter3.format("EOD\n");
+        int idx = 1;
+        printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2 lc %d", idx);
+        idx++;
+        printWriter3.format(", $pntsL u 1:2:3 with points pt 4 ps 1 lc %d", idx);
         for (int topBottom=0; topBottom<2; ++topBottom) {
-            for (KalTrack tkr : patRecList[topBottom]) { printWriter3.format(", $tkr%d_%d u 1:2:3 with lines lw 3", tkr.ID, topBottom); }
-            for (KalTrack tkr : patRecList[topBottom]) { printWriter3.format(", $tkp%d_%d u 1:2:3 with points pt 7 ps 2", tkr.ID, topBottom); }
+            for (KalTrack tkr : patRecList[topBottom]) { 
+                idx++;
+                printWriter3.format(", $tkr%d_%d u 1:2:3 with lines lw 3 lc %d", tkr.ID, topBottom, idx); 
+                printWriter3.format(", $tkp%d_%d u 1:2:3 with points pt 7 ps 2 lc %d", tkr.ID, topBottom, idx); 
+                if (nTkpL[topBottom] > 0) printWriter3.format(", $tkpL%d_%d u 1:2:3 with points pt 9 ps 2 lc %d", tkr.ID, topBottom, idx);
+                if (nTkpS[topBottom] > 0) printWriter3.format(", $tkpS%d_%d u 1:2:3 with points pt 15 ps 2 lc %d", tkr.ID, topBottom, idx);
+            }
         }
         printWriter3.format("\n");
         printWriter3.close();

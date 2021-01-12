@@ -57,7 +57,6 @@ class KalmanPatRecHPS {
     private double [] vtx;           // Vertex position
     private double rho;
     private double radLen;
-    private int numLayers;
     private int firstLayer;
     private Plane p0;
 
@@ -73,7 +72,6 @@ class KalmanPatRecHPS {
         }
         rho = 2.329;                   // Density of silicon in g/cm^2
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
-        numLayers = 14;
         firstLayer = kPar.firstLayer;
         
         // Some arrays for making preliminary cuts on seeds
@@ -82,8 +80,8 @@ class KalmanPatRecHPS {
         ah = new boolean[5];   // true if stereo layer, false for axial
         
         // Arrays for covariance matrix propagation
-        yScat = new ArrayList<Double>(numLayers);  // List of approx. y locations where scattering in Si occurs
-        XLscat = new ArrayList<Double>(numLayers); // Thicknesses of the scattering layers, in radiation lengths
+        yScat = new ArrayList<Double>(KalmanParams.numLayers);  // List of approx. y locations where scattering in Si occurs
+        XLscat = new ArrayList<Double>(KalmanParams.numLayers); // Thicknesses of the scattering layers, in radiation lengths
         
         p0 = new Plane(new Vec(0., kPar.beamSpot[1], 0.), new Vec(0., 1., 0.));  // xy plane at the target position
     }
@@ -107,9 +105,9 @@ class KalmanPatRecHPS {
         // Make a list of hits for each tracker layer, 0 through 13
         // This is needed because one layer can have multiple SiModules
         // Also make a list of Si modules with hits in each layer
-        lyrHits = new ArrayList<ArrayList<KalHit>>(numLayers);
-        moduleList = new ArrayList<ArrayList<SiModule>>(numLayers);
-        for (int lyr = 0; lyr < numLayers; lyr++) {
+        lyrHits = new ArrayList<ArrayList<KalHit>>(KalmanParams.numLayers);
+        moduleList = new ArrayList<ArrayList<SiModule>>(KalmanParams.numLayers);
+        for (int lyr = 0; lyr < KalmanParams.numLayers; lyr++) {
             ArrayList<KalHit> hits = new ArrayList<KalHit>();
             ArrayList<SiModule> modules = new ArrayList<SiModule>();
             lyrHits.add(hits);
@@ -128,10 +126,10 @@ class KalmanPatRecHPS {
         if (debug) System.out.format("Entering KalmanPatRecHPS for event %d, top-bottom=%d with %d modules, for %d trials.\n", 
                                          eventNumber, topBottom, nModules, kPar.nTrials);
         
-        if (yScat.size() != numLayers) {
+        if (yScat.size() != KalmanParams.numLayers) {
             yScat.clear();
             XLscat.clear();
-            for (int lyr = 0; lyr < numLayers; lyr++) {
+            for (int lyr = 0; lyr < KalmanParams.numLayers; lyr++) {
                 if (debug) {
                     System.out.format("Layer %d modules:  ", lyr);
                     for (SiModule thisSi : moduleList.get(lyr)) {
@@ -182,7 +180,7 @@ class KalmanPatRecHPS {
             
             // Remove references from the hits to the track candidates of the previous iteration
             if (trial != 0) {
-                for (int lyr = 0; lyr < numLayers; lyr++) {
+                for (int lyr = 0; lyr < KalmanParams.numLayers; lyr++) {
                     for (KalHit ht : lyrHits.get(lyr)) {
                         ht.tkrCandidates.clear();
                     }
@@ -208,6 +206,7 @@ class KalmanPatRecHPS {
                     KalHit kht = lyrHits.get(list[0]).get(idx[0]);
                     Measurement hit = kht.hit;
                     if (hit.tracks.size() > 0) continue; // don't use hits already on KalTrack tracks
+                    if (hit.energy < kPar.minSeedE[kht.module.Layer]) continue; // don't use hits with small energy to make seeds
                     SiModule mod = kht.module;
                     ah[0] = mod.isStereo;
                     if (!mod.isStereo) {
@@ -218,6 +217,7 @@ class KalmanPatRecHPS {
                         kht = lyrHits.get(list[1]).get(idx[1]);
                         hit = kht.hit;
                         if (hit.tracks.size() > 0) continue;
+                        if (hit.energy < kPar.minSeedE[kht.module.Layer]) continue;
                         mod = kht.module;
                         ah[1] = mod.isStereo;
                         if (!mod.isStereo) {
@@ -229,6 +229,7 @@ class KalmanPatRecHPS {
                             kht = lyrHits.get(list[2]).get(idx[2]);
                             hit = kht.hit;
                             if (hit.tracks.size() > 0) continue;
+                            if (hit.energy < kPar.minSeedE[kht.module.Layer]) continue;
                             mod = kht.module;
                             ah[2] = mod.isStereo;
                             if (!mod.isStereo) {
@@ -240,6 +241,7 @@ class KalmanPatRecHPS {
                                 kht = lyrHits.get(list[3]).get(idx[3]);
                                 hit = kht.hit;
                                 if (hit.tracks.size() > 0) continue;
+                                if (hit.energy < kPar.minSeedE[kht.module.Layer]) continue;
                                 mod = kht.module;
                                 ah[3] = mod.isStereo;
                                 if (!mod.isStereo) {
@@ -251,6 +253,7 @@ class KalmanPatRecHPS {
                                     kht = lyrHits.get(list[4]).get(idx[4]);
                                     hit = kht.hit;
                                     if (hit.tracks.size() > 0) continue;
+                                    if (hit.energy < kPar.minSeedE[kht.module.Layer]) continue;
                                     mod = kht.module;
                                     ah[4] = mod.isStereo;
                                     if (!mod.isStereo) {
@@ -387,7 +390,7 @@ class KalmanPatRecHPS {
                     StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot);
                     TrackCandidate candidateTrack = new TrackCandidate(candID, seed.hits, kPar, hitMap, eventNumber);
                     candID++;
-                    filterTrack(candidateTrack, list[0], numLayers - 1, sI, trial, true, true);
+                    filterTrack(candidateTrack, list[0], KalmanParams.numLayers - 1, sI, trial, true, true);
                     if (!candidateTrack.filtered) {
                         if (debug) {
                             System.out.format("KalmanPatRecHPS: filtering of this seed failed. chi2=%10.5f, nHits=%d\n", candidateTrack.chi2f,
@@ -406,7 +409,7 @@ class KalmanPatRecHPS {
                     if (debug) {
                         candidateTrack.print("after initial filtering", false);
                         System.out.format("Hits after initial filtering= ");
-                        for (int i = 0; i < numLayers; i++) {
+                        for (int i = 0; i < KalmanParams.numLayers; i++) {
                             int lHit = -1;
                             for (KalHit ht : candidateTrack.hits) {
                                 if (ht.module.Layer == i) lHit = ht.module.hits.indexOf(ht.hit);
@@ -449,7 +452,7 @@ class KalmanPatRecHPS {
                         if (debug) {
                             candidateTrack.print("after filtering inward", false);
                             System.out.format("Hits after filtering to layer 2: ");
-                            for (int i = 0; i < numLayers; i++) {
+                            for (int i = 0; i < KalmanParams.numLayers; i++) {
                                 int lHit = -1;
                                 for (KalHit ht : candidateTrack.hits) { 
                                     if (ht.module.Layer == i) lHit = ht.module.hits.indexOf(ht.hit);
@@ -527,7 +530,7 @@ class KalmanPatRecHPS {
                     if (lastSite.m.Layer < firstSite.m.Layer) startSite = lastSite;
                     else startSite = firstSite;
                     CommonOps_DDRM.scale(10., startSite.aF.helix.C);
-                    filterTrack(candidateTrack, firstLayer, numLayers - 1, startSite.aF, trial, true, false);
+                    filterTrack(candidateTrack, firstLayer, KalmanParams.numLayers - 1, startSite.aF, trial, true, false);
                     if (!candidateTrack.filtered) {
                         if (debug) { System.out.format("KalmanPatRecHPS: %d failed filtering of all layers. Try next seed.\n", candidateTrack.ID); }
                         candidateTrack.good = false;
@@ -536,7 +539,7 @@ class KalmanPatRecHPS {
                     if (debug) {
                         candidateTrack.print("after final filtering", false);
                         System.out.format("Layer hits after final filtering: ");
-                        for (int i = 0; i < numLayers; i++) {
+                        for (int i = 0; i < KalmanParams.numLayers; i++) {
                             int lHit = -1;
                             for (KalHit ht : candidateTrack.hits) { 
                                 if (ht.module.Layer == i) lHit = ht.module.hits.indexOf(ht.hit);
@@ -1262,12 +1265,12 @@ class KalmanPatRecHPS {
                     //Vec newB = KalmanInterface.getField(originB, m.Bfield);
                     //System.out.format("  B=%10.4f   t=%s\n", newB.mag(), newB.unitVec().toString());
                 }
-                newSite = new MeasurementSite(lyr, m, kPar.mxResid[trial], kPar.mxResidShare);
+                newSite = new MeasurementSite(lyr, m, kPar);
                 int rF;
                 double [] tRange = {tkrCandidate.tMax - kPar.mxTdif, tkrCandidate.tMin + kPar.mxTdif}; 
                 if (prevSite == null) { // For first layer use the initializer state vector               
                     boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made if hitno=-1
-                    rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange);
+                    rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
                         tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
@@ -1291,8 +1294,7 @@ class KalmanPatRecHPS {
                     }
                 } else {
                     boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made if hitno=-1
-                    rF = newSite.makePrediction(prevSite.aF, prevSite.m, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp,
-                            checkBounds, tRange);
+                    rF = newSite.makePrediction(prevSite.aF, prevSite.m, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
                         tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);

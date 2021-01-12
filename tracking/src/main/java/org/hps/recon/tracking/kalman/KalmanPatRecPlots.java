@@ -11,11 +11,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
 import org.ejml.dense.row.MatrixFeatures_DDRM;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.util.Pair;
+import org.lcsim.detector.DetectorElementStore;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
@@ -62,7 +69,10 @@ class KalmanPatRecPlots {
     private Efficiency pEff;
     private Logger logger;
     private int numBadCov;
-    private String ecalClusterCollectionName;
+    private String ecalClusterCollectionName = "EcalClusters";
+    private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
+    private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
+    private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
 
     KalmanPatRecPlots(boolean verbose, KalmanInterface KI, IDDecoder decoder, int numEvtPlots, org.lcsim.geometry.FieldMap fm) {
         this.verbose = verbose;
@@ -71,7 +81,6 @@ class KalmanPatRecPlots {
         this.fm = fm;
         this.numEvtPlots = numEvtPlots;
         logger = Logger.getLogger(KalmanPatRecPlots.class.getName());
-        ecalClusterCollectionName = "EcalClusters";
         
         if (aida == null) aida = AIDA.defaultInstance();
         aida.tree().cd("/");
@@ -132,6 +141,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("GBL track number MC particles",10,0.,10.);
         aida.histogram1D("GBL number of wrong hits on track",12,0.,12.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
+        aida.histogram1D("Kalman track number of shared hits", 10, 0., 10.);
         aida.histogram1D("GBL d0", 100, -5., 5.);
         aida.histogram1D("GBL z0", 100, -2., 2.);
         aida.histogram1D("GBL pt inverse", 200, -1.5, 1.5);
@@ -168,10 +178,14 @@ class KalmanPatRecPlots {
         pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
     }
     
-    void process(EventHeader event, ArrayList<KalTrack>[] kPatList, 
+    void process(EventHeader event, List<HpsSiSensor> sensors, ArrayList<KalTrack>[] kPatList, 
             List<Track> outputFullTracks) {
         
         nEvents++;
+        
+        setupSensors(event);
+        
+        // Set up relatations between raw hits and MC hits
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
             List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
@@ -181,6 +195,115 @@ class KalmanPatRecPlots {
                 }
         }
         
+        // Analysis of tracker hits (noise hits versus real hits)
+        // Get the list of fitted hits from the event
+        List<LCRelation> fittedHits = event.get(LCRelation.class, fittedHitsCollectionName);
+
+        // Map the fitted hits to their corresponding raw hits
+        Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+
+        List<RawTrackerHit> rawHitsList = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+        for (LCRelation fittedHit : fittedHits) {
+            fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+        }
+        Map<String, Integer> hits = new HashMap<String, Integer>();
+        for (HpsSiSensor sensor : sensors) {
+            hits.put(sensor.getName(), 0);
+        }
+        
+        // Map the raw hits to the Kalman tracks and to TrackerHit
+        Map<TrackerHit, KalTrack> hitToTk = new HashMap<TrackerHit, KalTrack>();
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack kTk : kPatList[topBottom]) {
+                for (MeasurementSite site : kTk.SiteList) {
+                    if (site.hitID < 0) continue;
+                    StateVector aS = site.aS;
+                    SiModule mod = site.m;
+                    if (aS != null && mod != null) {
+                        TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                        hitToTk.put(hpsHit, kTk);
+                        List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                        double totalPh = 0.;
+                        HpsSiSensor sensor = null;
+                        int Layer = -1;
+                        int nstrip = 0;
+                        double chan = 0.;
+                        for (RawTrackerHit rawHit : rawHits) { 
+                            double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+                            totalPh += amplitude;
+                            nstrip++;
+                            chan += rawHit.getIdentifierFieldValue("strip");
+                            if (sensor == null) {
+                                sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                                Layer = sensor.getLayerNumber();
+                            }
+                        }
+                        chan = chan/(double)nstrip;
+                        aida.histogram1D("hits/" + sensor.getName() + " average channel with track", 640, 0, 640).fill(chan);
+                        aida.histogram1D("hits/dEdx of hits on tracks",250,0.,20.).fill(hpsHit.getdEdx()*1000000.);
+                        aida.histogram1D("hits/Layer " + Integer.toString(Layer) + " cluster amplitude of hit on track", 250, 0., 5000.).fill(totalPh);
+                        aida.histogram1D("hits/cluster amplitude of hit on track", 250, 0., 5000.).fill(totalPh);
+                    }
+                }
+            }
+        }
+        Map<RawTrackerHit, TrackerHit> hitToTkHit = new HashMap<RawTrackerHit, TrackerHit>();
+        List<TrackerHit> stripHits = event.get(TrackerHit.class, stripHitInputCollectionName);
+        if (stripHits != null) {
+            for (TrackerHit tkHit : stripHits) {
+                KalTrack kTk = hitToTk.get(tkHit);
+                List<RawTrackerHit> rawHits = tkHit.getRawHits();
+                double totalPh = 0.;
+                HpsSiSensor sensor = null;
+                int Layer = -1;
+                int nstrip = 0;
+                double chan = 0.;
+                for (RawTrackerHit rawHit : rawHits) { 
+                    hitToTkHit.put(rawHit, tkHit);
+                    double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+                    totalPh += amplitude;
+                    nstrip++;
+                    chan += rawHit.getIdentifierFieldValue("strip");
+                    if (sensor == null) {
+                        sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        Layer = sensor.getLayerNumber();
+                    }
+                }
+                if (kTk == null) {
+                    chan = chan/(double)nstrip;
+                    aida.histogram1D("hits/" + sensor.getName() + " average channel with no track", 640, 0, 640).fill(chan);
+                    aida.histogram1D("hits/Layer " + Integer.toString(Layer) + " cluster amplitude with no track", 250, 0., 5000.).fill(totalPh);
+                    aida.histogram1D("hits/" + sensor.getName() + " cluster amplitude with no track", 250, 0., 5000.).fill(totalPh);
+                    aida.histogram1D("hits/cluster amplitude with no track", 250, 0., 5000.).fill(totalPh);
+                }
+            }
+        }
+        // Look for raw strip hits that were not associated with a tracker hit
+        for (RawTrackerHit rawHit : rawHitsList) {
+            // Access the sensor associated with the raw hit
+            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+            int Layer = sensor.getLayerNumber();
+            aida.histogram1D("hits/layer number", 20,0.,20.).fill(Layer);
+            Integer nHits = hits.get(sensor.getName());
+            if (nHits == null) {
+                nHits = 0;
+            }
+            nHits++;
+            hits.put(rawHit.getDetectorElement().getName(), nHits);
+            TrackerHit hpsHit = hitToTkHit.get(rawHit);
+            if (hpsHit != null) continue;
+            
+            double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+            aida.histogram1D("hits/" + sensor.getName() + " strip amplitude with no tracker hit", 250, 0., 5000.).fill(amplitude);
+            aida.histogram1D("hits/strip amplitude with no tracker hit", 250, 0., 5000.).fill(amplitude);
+            int channel = rawHit.getIdentifierFieldValue("strip");
+            aida.histogram1D("hits/" + sensor.getName() + " channel with no tracker hit", 640, 0, 640).fill(channel);
+            double t0 = FittedRawTrackerHit.getT0(fittedRawTrackerHitMap.get(rawHit));
+            aida.histogram1D("hits/" + sensor.getName() + " t0 with no tracker hit", 250, -400., 100.).fill(t0);
+        }
+
+        
+        // Tracker ECAL matching analysis
         if (event.hasCollection(Cluster.class, ecalClusterCollectionName)) {
             List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName);
             for (Track tkr : outputFullTracks) {            
@@ -243,6 +366,7 @@ class KalmanPatRecPlots {
         
         int minHits = 999;
         int nKalTracks = 0;
+        boolean sharedHitTrack = false;
         for (int topBottom=0; topBottom<2; ++topBottom) {
             for (KalTrack kTk : kPatList[topBottom]) {
                 nKalTracks++;
@@ -296,6 +420,7 @@ class KalmanPatRecPlots {
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
+                int nShared = 0;
                 for (MeasurementSite site : kTk.SiteList) {
                     if (verbose) site.print(String.format("track %d", kTk.ID));
                     StateVector aS = site.aS;
@@ -319,6 +444,10 @@ class KalmanPatRecPlots {
                                 //site.print("the bad site");
                                 //mod.print("the bad module");
                                 continue;
+                            }
+                            if (mod.hits.get(site.hitID).tracks.size() > 1) {
+                                nShared++;
+                                sharedHitTrack = true;
                             }
                             aida.histogram1D("Kalman layer hit").fill(mod.Layer);
                             double resid = mod.hits.get(site.hitID).v - hitV;
@@ -363,6 +492,7 @@ class KalmanPatRecPlots {
                         }
                     }
                 }
+                aida.histogram1D("Kalman track number of shared hits").fill(nShared);
                 aida.histogram1D("Kalman track number MC particles").fill(mcParts.size());
                 // Which MC particle is the best match?
                 int idBest = -1;
@@ -672,7 +802,7 @@ class KalmanPatRecPlots {
             } //loop on GBL Tracks
         } //check if event has GBLTracks
         
-        if (nPlotted < numEvtPlots) {  // && minHits == 5) {
+        if (nPlotted < numEvtPlots && sharedHitTrack) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
             //KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;
@@ -798,6 +928,41 @@ class KalmanPatRecPlots {
             aida.saveAs(outputFileName);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void setupSensors(EventHeader event) {
+        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+        // Get the ID dictionary and field information.
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        int fieldIdx = dict.getFieldIndex("side");
+        int sideIdx = dict.getFieldIndex("strip");
+        for (RawTrackerHit hit : rawTrackerHits) {
+            // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
+            IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+            expId.setValue(fieldIdx, 0);
+            expId.setValue(sideIdx, 0);
+            IIdentifier strippedId = dict.pack(expId);
+            // Find the sensor DetectorElement.
+            List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
+            if (des == null || des.size() == 0) {
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            } else if (des.size() == 1) {
+                hit.setDetectorElement((SiSensor) des.get(0));
+            } else {
+                // Use first sensor found, which should work unless there are sensors with duplicate IDs.
+                for (IDetectorElement de : des) {
+                    if (de instanceof SiSensor) {
+                        hit.setDetectorElement((SiSensor) de);
+                        break;
+                    }
+                }
+            }
+            // No sensor was found.
+            if (hit.getDetectorElement() == null) {
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            }
         }
     }
     

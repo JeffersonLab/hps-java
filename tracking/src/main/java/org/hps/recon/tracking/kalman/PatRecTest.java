@@ -344,7 +344,7 @@ class PatRecTest {
                         double occ = 0.0002 + 0.005 * Math.exp(-(thisSi.yExtent[1] - ys) / a);
                         if (rnd.nextDouble() < occ) {
                             Vec pntGlobal = thisSi.toGlobal(new Vec(0., ys, 0.));
-                            Measurement ms = new Measurement(ys, resolution, 0., pntGlobal, 999.);
+                            Measurement ms = new Measurement(ys, resolution, 0., 10., pntGlobal, 999.);
                             thisSi.addMeasurement(ms);
                         }
                     }
@@ -439,7 +439,7 @@ class PatRecTest {
                             md.addMC(ih);
                             if (verbose) { System.out.format("Overlapping with hit at v=%8.4f\n", md.v); }
                         } else {
-                            Measurement thisM1 = new Measurement(m1, resolution, 0., rscat, rDet.v[1]);
+                            Measurement thisM1 = new Measurement(m1, resolution, 0., 10., rscat, rDet.v[1]);
                             thisM1.addMC(ih);
                             thisSi.addMeasurement(thisM1);
                             if (verbose) System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size());
