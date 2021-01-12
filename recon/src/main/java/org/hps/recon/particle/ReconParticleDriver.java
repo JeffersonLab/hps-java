@@ -156,7 +156,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for calorimeter clusters.
      */
-    private String ecalClustersCollectionName = "EcalClusters";
+    private String ecalClustersCollectionName = "EcalClustersCorr";
     /**
      * LCIO collection name for tracks.
      */
@@ -164,7 +164,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Track Cluster Algorithm set to Kalman or GBL Tracks
      */
-    private String trackClusterMatching = "newMatcher";
+    private String trackClusterMatching = "default";
     /**
      * LCIO collection name for reconstructed particles.
      */
@@ -321,6 +321,7 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setEcalClusterCollectionName(String ecalClustersCollectionName) {
         this.ecalClustersCollectionName = ecalClustersCollectionName;
+        System.out.println("Setting ecalClusterCollectionName");
     }
 
     /**
@@ -743,29 +744,48 @@ public abstract class ReconParticleDriver extends Driver {
     protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters,
             List<List<Track>> trackCollections, EventHeader event) {
 
+
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
 
         // Create a list of unmatched clusters. A cluster should be
         // removed from the list if a matching track is found.
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
-        List<Cluster> clustersCopy = new ArrayList<Cluster>(clusters);
+        //Set<Cluster> clustersCopy = new HashSet<Cluster>(clusters);
 
         // Create a mapping of matched clusters to corresponding tracks.
         HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster, Track>();
-
 
         // Loop through all of the track collections and try to match every
         // track to a cluster. Cluster matching algorithm here does not allow
         // for clusters being matched to multiple tracks. Should add more
         // constraints to track-cluster matching driver 
 
+        // Apply the corrections to the Ecal clusters using track information, if available
+        if (applyClusterCorrections) {
+            //System.out.println("Applying Cluster Corrections");
+            for (Cluster cluster : clusters) {
+                //System.out.println("Event " + event.getEventNumber() + " Cluster Energy Before Correction: " + cluster.getEnergy());
+                if (cluster.getParticleId() != 0) {
+                    if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
+                        Track matchedT = clusterToTrack.get(cluster);
+                        double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                    } else {
+                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                    }
+                }
+                //System.out.println("Event " + event.getEventNumber() + " Cluster Energy After Correction: " + cluster.getEnergy());
+            }
+        }
+
         for (List<Track> tracks : trackCollections) {
             Map<Track, Cluster> matchedTrackClusterMap = new HashMap<Track, Cluster>();
-            //uses the trackClustermatcher driver to create a map of
+            //uses the trackClustermatcher class to create a map of
             //track collection with corresponding matched clusters. If track
             //has no matched cluster, pair is null
-            matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clustersCopy, cuts.getTrackClusterTimeOffset());
+            matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clusters, cuts.getTrackClusterTimeOffset());
+
 
             for (Track track : tracks) {
 
@@ -799,9 +819,6 @@ public abstract class ReconParticleDriver extends Driver {
                 }
 
                 Cluster matchedCluster = matchedTrackClusterMap.get(track);
-                if(matchedCluster == null)
-                    System.out.println("[ReconParticleDriver] Warning: Empty Cluster!");
-
 
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
@@ -860,20 +877,6 @@ public abstract class ReconParticleDriver extends Driver {
             particles.add(particle);
         }
 
-        // Apply the corrections to the Ecal clusters using track information, if available
-        if (applyClusterCorrections) {
-            for (Cluster cluster : clusters) {
-                if (cluster.getParticleId() != 0) {
-                    if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
-                        Track matchedT = clusterToTrack.get(cluster);
-                        double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
-                    } else {
-                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
-                    }
-                }
-            }
-        }
 
         for (ReconstructedParticle particle : particles) {
             double clusterEnergy = 0;
@@ -931,12 +934,14 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
 
+        //ADDED 01/08 TO CHECK CLUSTER COLLECTION ENERGIES
+
         // All events are required to contain Ecal clusters. If
         // the event lacks these, then it should be skipped.
         if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) {
             return;
         }
-
+        
         // VERBOSE :: Note that a new event is being read.
         printDebug("\n" + trackCollectionName+"Processing Event..." + event.getEventNumber());
 
@@ -997,15 +1002,17 @@ public abstract class ReconParticleDriver extends Driver {
 
         // New track cluster matching added by Alic is used
         // Old method is commented out below
-        if(this.trackClusterMatching.contains("default"))
+
+        if(this.trackClusterMatching.contains("default")){
             finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
-        else
+        }
+        else{
             finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections, event));
+        }
 
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.
         for (ReconstructedParticle finalStateParticle : finalStateParticles) {
-            //System.out.println("[ReconParticleDriver] Particle Tracks:" + finalStateParticle.getTracks());
             // If the charge is positive, assume an electron.
             if (finalStateParticle.getCharge() > 0) {
                 positrons.add(finalStateParticle);
@@ -1064,6 +1071,7 @@ public abstract class ReconParticleDriver extends Driver {
             printDebug("Target-Constrained V0 Vertices: " + targetConV0Vertices.size());
             event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
         }
+
     }
 
     /**
