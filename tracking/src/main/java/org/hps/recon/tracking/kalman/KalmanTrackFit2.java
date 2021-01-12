@@ -280,6 +280,8 @@ class KalmanTrackFit2 {
         int [] lyrPtr = new int[nLyrs+1];
         for (int i=0; i<sites.size(); ++i) {
             MeasurementSite site = sites.get(i);
+            //System.out.println("PF::KalmanTrackFit2 == check");
+            //site.print("PF::CHECK");
             int lyr = site.m.Layer;
             lyrPtr[lyr] = i;
         }
