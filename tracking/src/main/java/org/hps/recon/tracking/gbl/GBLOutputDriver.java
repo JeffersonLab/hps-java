@@ -65,7 +65,7 @@ public class GBLOutputDriver extends Driver {
     String resFolder="/res/";
     String hitFolder="/hit/";
     private boolean b_doGBLkinks = true;
-    private boolean b_doDetailPlots = true;
+    private boolean b_doDetailPlots = false;
 
     //This should be moved to the GBL Refitter!!!
     //The field map for extrapolation
@@ -265,7 +265,7 @@ public class GBLOutputDriver extends Driver {
         if (trk.getTrackerHits().size()==5)
             FillGBLTrackPlot(trkpFolder+"p5h",isTop,charge,trackp);
         
-        if (isHoleTrack(trk)) 
+        if (TrackUtils.isHoleTrack(trk)) 
             FillGBLTrackPlot(trkpFolder+"p_hole",isTop,charge,trackp);
         else 
             FillGBLTrackPlot(trkpFolder+"p_slot",isTop,charge,trackp);
@@ -291,7 +291,10 @@ public class GBLOutputDriver extends Driver {
         
         
         FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
-                
+        FillGBLTrackPlot(trkpFolder+"Chi2_vs_p",isTop,charge,trackp,trk.getChi2());
+        
+        
+
         aidaGBL.histogram1D(trkpFolder+"nHits" + isTop).fill(trk.getTrackerHits().size());
         aidaGBL.histogram1D(trkpFolder+"nHits" + isTop+charge).fill(trk.getTrackerHits().size());
 
@@ -575,51 +578,6 @@ public class GBLOutputDriver extends Driver {
     }
 
 
-    //This methods checks if a track has only hole hits in the back of the detector
-    //return true if all back layers have hole hits, false if all back layers have slot hits
-    
-    private boolean isHoleTrack(Track trk) {
-        
-        boolean holeTrack = true;
-        
-        TrackState trackState = trk.getTrackStates().get(0);
-        boolean isTop = true;
-        if (trackState.getTanLambda()<0)
-            isTop=false;                        
-        
-        System.out.println("--------------");
-        for (TrackerHit hit : trk.getTrackerHits()) {
-
-            int stripLayer   = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
-            int hpslayer     = (stripLayer + 1 ) / 2;
-            String side      = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getSide();
-            
-            if (isTop) {
-                if (hpslayer == 5 || hpslayer ==6 || hpslayer==7) 
-                    if (side=="ELECTRON")
-                        holeTrack=false;
-            }
-            else {
-                if (hpslayer == 5 || hpslayer ==6 || hpslayer==7)
-                    if (side=="POSITRON")
-                        holeTrack=false;
-            } //bottom check - not supported for the moment
-            
-            String moduleName = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getName();
-            int hpsmodule    = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getModuleNumber();
-            int MPID         = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getMillepedeId();
-                        
-            System.out.println("Hit on track :: " + moduleName);
-            System.out.println("Layer="+hpslayer+" Module=" + hpsmodule +" MPID=" + MPID+" side="+side +" top=" +isTop);
-            
-        }
-        System.out.println("Track is hole=" + holeTrack);
-        System.out.println("==========");
-        
-        return holeTrack;
-    }
-
-    
     private void setupPlots() {
         
 
@@ -749,8 +707,9 @@ public class GBLOutputDriver extends Driver {
                 
                 
                 //TH2Ds
-               
+                
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_phi"+vol+charge,nbins_t,-0.3,0.3,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D(trkpFolder+"Chi2_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t*2,0,200);
                 //aidaGBL.histogram2D("d0_vs_phi_bs"+vol+charge,nbins_t,-5.0,5.0,nbins_t,-0.3,0.3);
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
