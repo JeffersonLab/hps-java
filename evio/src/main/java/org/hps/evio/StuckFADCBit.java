@@ -38,6 +38,9 @@ public class StuckFADCBit {
         public boolean isStuck(int value) {
             return ((value >> index) & 1) == state;
         }
+        public boolean isStuck(EcalChannel c) {
+            return isStuck(c.getChannel());
+        }
         public boolean arePartners(int x, int y) {
             // the stuck bit:
             int bx = x & (1<<index);
@@ -117,7 +120,7 @@ public class StuckFADCBit {
      * @return
      */
     public static String toString(EcalChannel c) {
-        return String.format("%d/%d/%d(%4s)", c.getCrate(), c.getSlot(), c.getChannel(),
+        return String.format("%02d/%02d/%02d(%4s)", c.getCrate(), c.getSlot(), c.getChannel(),
                 Integer.toBinaryString(c.getChannel())).replace(' ','0');
     }
 
@@ -160,7 +163,7 @@ public class StuckFADCBit {
      * @param stuck
      * @return 
      */
-    public static EcalChannel unstick(EcalConditions condi, EcalChannel channel, Stuck stuck) {
+    public static EcalChannel unStick(EcalConditions condi, EcalChannel channel, Stuck stuck) {
         final int unstuckChannel = stuck.unStick(channel.getChannel());
         return getChannel(condi, channel.getCrate(), channel.getSlot(), unstuckChannel);
     }
@@ -188,7 +191,7 @@ public class StuckFADCBit {
     public static EcalChannel fix(EcalConditions condi, EcalChannel channel, CompositeData cdata, Stuck stuck) {
         EcalChannel ret = channel;
         if (stuck.isStuck(ret.getChannel())) {
-            final EcalChannel newChan = unstick(condi, ret, stuck);
+            final EcalChannel newChan = unStick(condi, ret, stuck);
             final double oldPed = getPedestal(condi, ret);
             final double newPed = getPedestal(condi, newChan);
             final double measPed = getPedestal(cdata);
@@ -209,7 +212,7 @@ public class StuckFADCBit {
     public static EcalChannel fix(EcalConditions condi, RawTrackerHit hit, Stuck stuck) {
         EcalChannel ret = condi.getChannelCollection().findGeometric(hit.getCellID());
         if (stuck.isStuck(ret.getChannel())) {
-            final EcalChannel newChan = unstick(condi, ret, stuck);
+            final EcalChannel newChan = unStick(condi, ret, stuck);
             final double oldPed = getPedestal(condi, ret);
             final double newPed = getPedestal(condi, newChan);
             final double measPed = getPedestal(hit);

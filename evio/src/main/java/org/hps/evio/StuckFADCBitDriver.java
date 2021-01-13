@@ -27,12 +27,18 @@ import org.lcsim.util.Driver;
 /**
  * Modify FADC waveform collection to fix stuck channel bits during 2019 run.
  * 
- * Configuration is left hard-coded; hopefully we'll never need this again.
+ * Configuration is left hard-coded at the top; hopefully we'll never need this again.
  *
+ * WARNING: While this is generic to which crate/slot/channel and the channel's
+ * bit/state is stuck, this will need modification if more than one combination
+ * is affected.
+ * 
  * @author baltzell
  */
 public class StuckFADCBitDriver extends Driver {
-    
+   
+    // if true, switches the fixer to pedestal-only and prints metrics that
+    // may give additional info on efficiency, based on order-based denominator:
     private final boolean VALIDATE = false;
     
     private static final int RUN_MIN = 10651;
@@ -50,11 +56,17 @@ public class StuckFADCBitDriver extends Driver {
     private IIdentifierHelper helper = null;
     private EcalConditions ecalConditions = null;
 
+    private boolean printedFirst = false;
+    private long nFixOrderIdentical = 0;
+    private long nFixOrderAdjacent = 0;
+    private long nFixOrderUnique = 0;
+    private long nFixPedestal=0;
+    private long nAvertPedestal=0;
     private int nOldBad = 0;
     private int nNewBad = 0;
 
-    private final Map<EcalChannel,EcalChannel> swaps = new HashMap<>();
- 
+    private final Map<EcalChannel,EcalChannel> swapRegister = new HashMap<>();
+
     public static class CrateSlot {
         public int crate,slot;
         public CrateSlot(int crate, int slot) {
@@ -83,13 +95,19 @@ public class StuckFADCBitDriver extends Driver {
         helper = subDetector.getDetectorElement().getIdentifierHelper();
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
     }
-  
+
     @Override
     public void endOfData() {
-        Logger.getLogger(this.getClass().getCanonicalName()).log(Level.INFO, "Old Bad:  {0}", nOldBad);
-        Logger.getLogger(this.getClass().getCanonicalName()).log(Level.INFO, "New Bad:  {0}", nNewBad);
+        final String s = this.getClass().getCanonicalName();
+        Logger.getLogger(s).log(Level.INFO, "Old Bad:  {0}", nOldBad);
+        Logger.getLogger(s).log(Level.INFO, "New Bad:  {0}", nNewBad);
+        Logger.getLogger(s).log(Level.INFO, "Fixed Identical:  {0}",nFixOrderIdentical);
+        Logger.getLogger(s).log(Level.INFO, "Fixed Adjacent:   {0}",nFixOrderAdjacent);
+        Logger.getLogger(s).log(Level.INFO, "Fixed Unique:     {0}",nFixOrderUnique);
+        Logger.getLogger(s).log(Level.INFO, "Fixed Pedestal:   {0}",nFixPedestal);
+        Logger.getLogger(s).log(Level.INFO, "Avert Pedestal:   {0}",nAvertPedestal);
     }
-    
+
     /**
      * Replace all affected hits with fixed ones.
      * @param event 
@@ -103,9 +121,7 @@ public class StuckFADCBitDriver extends Driver {
 
         List<RawTrackerHit> oldHits = event.get(HIT_CLASS, HIT_COLLECTION_NAME);
 
-        if (!analyze(oldHits)) {
-            nOldBad++;
-        }
+        nOldBad += analyze(event, oldHits, true);
 
         List<RawTrackerHit> newHits;
 
@@ -120,9 +136,7 @@ public class StuckFADCBitDriver extends Driver {
         event.remove(HIT_COLLECTION_NAME);
         event.put(HIT_COLLECTION_NAME, newHits, HIT_CLASS, 0, READOUT_NAME);
 
-        if (!analyze(event.get(HIT_CLASS, HIT_COLLECTION_NAME))) {
-            nNewBad++;
-        }
+        nNewBad += analyze(event, event.get(HIT_CLASS, HIT_COLLECTION_NAME), false);
     }
 
     /**
@@ -166,11 +180,14 @@ public class StuckFADCBitDriver extends Driver {
      * @param unstuck 
      */
     private void register(EcalChannel stuck, EcalChannel unstuck) {
-        if (!StuckFADCBit.equals(stuck,unstuck) && !swaps.containsKey(stuck)) {
-            swaps.put(stuck,unstuck);
+        if (!StuckFADCBit.equals(stuck,unstuck) && !swapRegister.containsKey(stuck)) {
+            swapRegister.put(stuck,unstuck);
             String msg = String.format("Unsticking FADC Bit:  %s -> %s",
                     StuckFADCBit.toString(stuck),StuckFADCBit.toString(unstuck));
-            Logger.getLogger(this.getClass().getCanonicalName()).warning(msg);
+            Logger.getLogger(this.getClass().getCanonicalName()).info(msg);
+        }
+        if (!STUCK_BIT.isStuck(stuck.getChannel())) {
+            throw new RuntimeException();
         }
     }
 
@@ -180,7 +197,7 @@ public class StuckFADCBitDriver extends Driver {
      * @return 
      */
     private EcalChannel unStick(EcalChannel channel) {
-        EcalChannel newChan = StuckFADCBit.unstick(ecalConditions, channel, STUCK_BIT); 
+        EcalChannel newChan = StuckFADCBit.unStick(ecalConditions, channel, STUCK_BIT); 
         register(channel, newChan);
         return newChan;
     }
@@ -191,9 +208,7 @@ public class StuckFADCBitDriver extends Driver {
      * @return 
      */
     private EcalChannel toggle(EcalChannel channel) {
-        EcalChannel newChan = StuckFADCBit.toggle(ecalConditions, channel, STUCK_BIT); 
-        register(channel, newChan);
-        return newChan;
+        return StuckFADCBit.toggle(ecalConditions, channel, STUCK_BIT); 
     }
     
     /**
@@ -202,8 +217,7 @@ public class StuckFADCBitDriver extends Driver {
      * @return 
      */
     private RawTrackerHit unStick(RawTrackerHit hit) {
-        EcalChannel newChan = unStick(getChannel(hit));
-        return makeECalRawHit(0, newChan, hit.getADCValues());
+        return makeECalRawHit(0, unStick(getChannel(hit)), hit.getADCValues());
     }
     
     /**
@@ -223,65 +237,69 @@ public class StuckFADCBitDriver extends Driver {
     }
 
     /**
-     * Get hits with the stuck bit unstuck, if appropriate based on pedestal.
+     * Get hits with the stuck bit unstuck, based only on pedestal.
      * @param hits
      * @return 
      */
     private List<RawTrackerHit> fix(List<RawTrackerHit> hits) {
         List<RawTrackerHit> ret = new ArrayList<>();
-        for (RawTrackerHit hit : hits) {
-            ret.add(fix(hit));
-        }
+        for (RawTrackerHit hit : hits) ret.add(fix(hit));
         return ret;
     }
     
     /**
      * Unstick any FADC bits if appropriate.  Use channel ordering if possible,
-     * otherwise pedestals, to determine their stuckness.
+     * otherwise pedestals, to determine their stuckness.  This appears complicated
+     * because it's written to be generic to what bit and state is the stuck one.
+     * Should be pulled apart into smaller routines, which would probably require
+     * moving stuckCandidate up in scope, or extending the hit class to attach
+     * a stuckness to it.
      * @param hits
      * @return 
      */
     private List<RawTrackerHit> fixSafe(List<RawTrackerHit> hits) {
 
         List<RawTrackerHit> ret = new ArrayList<>(hits.size());
+
+        // This array designates hits that are still candidates for having a
+        // stuck bit.  We'll progressively mark them as non-candidates and 
+        // (sometimes) unstick their bits below.
         boolean[] stuckCandidate = new boolean[hits.size()];
         for (int ii=0; ii<stuckCandidate.length; ii++) stuckCandidate[ii] = true;
 
-        // first address "easy" cases:
+        // First address "easy" cases:
         for (int i1=0; i1<hits.size(); i1++){
 
-            RawTrackerHit h1 = hits.get(i1);
-            EcalChannel c1 = getChannel(h1);
-
+            EcalChannel c1 = getChannel(hits.get(i1));
             ret.add(hits.get(i1));
 
-            // unaffected crate/slot or already marked as unstuck: 
-            if (!isAffected(c1) || !stuckCandidate[i1]) {
+            // Unaffected crate/slot or bit is not in stuck state: 
+            if (!isAffected(c1) || !stuckCandidate[i1] || !STUCK_BIT.isStuck(c1)) {
                 stuckCandidate[i1] = false;
                 continue;
             }
-                
+
             for (int i2=i1+1; i2<hits.size(); i2++) {
 
-                RawTrackerHit h2 = hits.get(i2);
                 EcalChannel c2 = getChannel(hits.get(i2));
 
-                // two identical channels in the same event, unstick one of them
-                // based on ordering of the hits in the event:
+                // Two identical channels, unstick one based on ordering:
                 if (StuckFADCBit.equals(c1,c2)) {
                     if (STUCK_BIT.state == 0) {
-                        hits.set(i2, unStick(h2));
+                        hits.set(i2, unStick(hits.get(i2)));
                     }
                     else {
-                        ret.set(i1, unStick(h1));
+                        ret.set(i1, unStick(hits.get(i1)));
                     }
                     stuckCandidate[i1] = false;
                     stuckCandidate[i2] = false;
+                    nFixOrderIdentical++;
                     break;
                 }
 
-                // two non-identical partner channels in the same event,
-                // mark both as unstuck (this should never happen):
+                // Two non-identical stuck-bit-partner channels in the same
+                // event, mark both as unstuck just in case (although this
+                // should never happen if the bit was really stuck):
                 else if (arePartners(c1,c2)) {
                     stuckCandidate[i1] = false;
                     stuckCandidate[i2] = false;
@@ -290,32 +308,215 @@ public class StuckFADCBitDriver extends Driver {
             }
         }
 
-        // then use pedestal to determine stuckness:
-        for (int ii=0; ii<ret.size(); ii++) {
-            if (stuckCandidate[ii]) {
-                ret.set(ii, fix(ret.get(ii)));
+        // Check for two consecutive, non-identical channels that are out of
+        // order but can be unambiguously resolved by unsticking only one of
+        // their bits:
+        for (int i1=0; i1<ret.size()-1; i1++) {
+            final int i2 = i1+1;
+            EcalChannel c1 = getChannel(ret.get(i1));
+            EcalChannel c2 = getChannel(ret.get(i2));
+            if (!isAffected(c1) || !isAffected(c2)) continue;
+            if (c1.getChannel() < c2.getChannel()) continue;
+            EcalChannel c1new = StuckFADCBit.unStick(ecalConditions, c1, STUCK_BIT); 
+            EcalChannel c2new = StuckFADCBit.unStick(ecalConditions, c2, STUCK_BIT);
+            if (stuckCandidate[i1] && stuckCandidate[i2]) {
+                if (STUCK_BIT.state==0) {
+                    if (c1.getChannel() < c2new.getChannel()) {
+                        stuckCandidate[i2] = false;
+                        ret.set(i2, unStick(ret.get(i2)));
+                        nFixOrderAdjacent++;
+                    }
+                }
+                else if (c1new.getChannel() < c2.getChannel()) {
+                    stuckCandidate[i1] = false;
+                    ret.set(i1, unStick(ret.get(i1)));
+                    nFixOrderAdjacent++;
+                }
+            }
+            else if (stuckCandidate[i1]) {
+                if (c1new.getChannel() < c2.getChannel()) {
+                    stuckCandidate[i1] = false;
+                    ret.set(i1, unStick(ret.get(i1)));
+                    nFixOrderAdjacent++;
+                }
+            }
+            else if (stuckCandidate[i2]) {
+                if (c1.getChannel() < c2new.getChannel()) {
+                    stuckCandidate[i2] = false;
+                    ret.set(i2, unStick(ret.get(i2)));
+                    nFixOrderAdjacent++;
+                }
             }
         }
 
+        // Then address non-identical, non-consecutive channels that are out of
+        // order, if one has stuck bit in the stuck state and the other is not
+        // a stuck candidate.  In hindsight, this may have been all that was
+        // necessary before using pedestals, given the particular bit that we
+        // know to be stuck, and is ineffective after the above "simpler" fixes.
+        boolean fixed = true;
+        while (fixed) {
+            fixed = false;
+            for (int i1=0; i1<ret.size(); i1++) {
+                EcalChannel c1 = getChannel(ret.get(i1));
+                if (!isAffected(c1)) continue;
+                for (int i2=i1+1; i2<ret.size(); i2++) {
+                    EcalChannel c2 = getChannel(ret.get(i2));
+                    if (!isAffected(c2)) continue;
+                    if (!STUCK_BIT.isStuck(c1.getChannel())) continue;
+                    if (stuckCandidate[i1] && !stuckCandidate[i2]) {
+                        if (c1.getChannel() >= c2.getChannel()) {
+                            if (STUCK_BIT.unStick(c1.getChannel()) < c2.getChannel()) {
+                                ret.set(i1, unStick(ret.get(i1)));
+                                stuckCandidate[i1] = false;
+                                i1--;
+                                fixed = true;
+                                nFixOrderUnique++;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i1=0; i1<ret.size(); i1++) {
+                EcalChannel c1 = getChannel(ret.get(i1));
+                if (!isAffected(c1)) continue;
+                for (int i2=i1+1; i2<ret.size(); i2++) {
+                    EcalChannel c2 = getChannel(ret.get(i2));
+                    if (!isAffected(c2)) continue;
+                    if (!STUCK_BIT.isStuck(c2.getChannel())) continue;
+                    if (stuckCandidate[i2] && !stuckCandidate[i1]) {
+                        if (c1.getChannel() >= c2.getChannel()) {
+                            if (STUCK_BIT.unStick(c2.getChannel()) > c1.getChannel()) {
+                                ret.set(i2, unStick(ret.get(i2)));
+                                stuckCandidate[i2] = false;
+                                fixed = true;
+                                nFixOrderUnique++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // All ordering-only logic has been done.  Here we register which of the
+        // remaining stuck candidates the pedestal algorithm would want to swap:
+        boolean[] pedSwap = new boolean[ret.size()];
+        for (int ii=0; ii<ret.size(); ii++) {
+            pedSwap[ii] = false;
+            if (!stuckCandidate[ii]) continue;
+            if (!StuckFADCBit.equals(getChannel(fix(ret.get(ii))), getChannel(ret.get(ii)))) {
+                pedSwap[ii] = true;
+            }
+        }
+
+        // Veto any pedestal-based swaps if inconsistent with channel ordering:
+        for (int i1=0; i1<ret.size(); i1++) {
+            if (!isAffected(getChannel(ret.get(i1)))) continue;
+            final int c1old = getChannel(ret.get(i1)).getChannel();
+            final int c1new = STUCK_BIT.unStick(getChannel(ret.get(i1)).getChannel());
+            for (int i2=i1+1; i2<ret.size(); i2++) {
+                if (!isAffected(getChannel(ret.get(i2)))) continue;
+                final int c2old = getChannel(ret.get(i2)).getChannel();
+                final int c2new = STUCK_BIT.unStick(getChannel(ret.get(i2)).getChannel());
+                if (pedSwap[i1] && pedSwap[i2]) {
+                    if (c1new < c2new) {
+                       // swapping both is valid, which cannot be prioritized
+                       // over only swapping one of them, so let them both be
+                    }
+                    else if (c1new>c2old && c1old<c2new) {
+                        // swapping only the 1st is invalid, veto the 1st:
+                        pedSwap[i1] = false;
+                        nAvertPedestal++;
+                        i1--;
+                        break;
+                    }
+                    else if (c1new<c2old && c1old>c2new) {
+                        // swapping only the 2nd is invalid, veto the 2nd:
+                        pedSwap[i2] = false;
+                        nAvertPedestal++;
+                    }
+                }
+                else if (pedSwap[i1]) {
+                    if (c1new > c2old) {
+                        pedSwap[i1] = false;
+                        nAvertPedestal++;
+                        i1--;
+                        break;
+                    }
+                }
+                else if (pedSwap[i2]) {
+                    if (c1old > c2new) {
+                        pedSwap[i2] = false;
+                        nAvertPedestal++;
+                    }
+                }
+            }
+        }
+
+        // finally, fix remaining stuck bit candidates based only on pedestal:
+        for (int ii=0; ii<ret.size(); ii++) {
+            if (pedSwap[ii]) {
+                ret.set(ii, fix(ret.get(ii)));
+                nFixPedestal++;
+            }
+        }
+        
         return ret;
+    }
+
+    /**
+     * Just a convenience method for uniformly logging the first instance of a
+     * known stuck bit.
+     * @param event 
+     */
+    private void printRunEvent(EventHeader event) {
+        String msg = String.format("FIRST DEFINITELY-STUCK BIT @ RUN/EVENT:  %d/%d",
+                event.getRunNumber(),event.getEventNumber());
+        Logger.getLogger(this.getClass().getCanonicalName()).log(Level.WARNING,msg);
     }
  
     /**
-     * Check for identical hits.
+     * Check for identical or out-of-order hits.
      * @param hits
      * @return 
      */
-    private boolean analyze(List<RawTrackerHit> hits) {
+    private int analyze(EventHeader event, List<RawTrackerHit> hits, boolean print) {
+        int ret = 0;
         for (int i1=0; i1<hits.size(); i1++){
             EcalChannel c1 = getChannel(hits.get(i1));
             for (int i2=i1+1; i2<hits.size(); i2++) {
                 EcalChannel c2 = getChannel(hits.get(i2));
                 if (StuckFADCBit.equals(c1,c2)) {
-                    return false;
+                    ret++;
+                    if (print && !printedFirst) {
+                        printedFirst = true;
+                        printRunEvent(event);
+                    }
+                }
+                else if (isAffected(c1) && isAffected(c2)) {
+                    if (c1.getChannel() > c2.getChannel()) {
+                        ret++;
+                        if (print) {
+                            if (!printedFirst) {
+                                printedFirst = true;
+                                printRunEvent(event);
+                            }
+                        }
+                        //else {
+                        //    for (int ii=0; ii<hits.size(); ii++) {
+                        //        if (!isAffected(getChannel(hits.get(ii)))) continue;
+                        //        final String msg = String.format("%d %d/%d %s",
+                        //                ii,event.getRunNumber(),event.getEventNumber(),
+                        //                StuckFADCBit.toString(getChannel(hits.get(ii))));
+                        //        Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,msg);
+                        //    }
+                        //}
+                    }
                 }
             }
         }
-        return true;
+        return ret;
     }
  
     /**
