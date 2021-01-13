@@ -32,14 +32,14 @@ public class TrackClusterMatcher2019 {
     private ITree tree;
     private IHistogramFactory histogramFactory;
     private Map<String, IHistogram1D> plots1D;
-    private String trackType;
+    private String trackCollectionName;
 
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
 
     public TrackClusterMatcher2019(String trackCollectionName) {
-        trackType = trackCollectionName;
-        System.out.println("Matching " + trackType + "to Ecal Clusters");
+        this.trackCollectionName = trackCollectionName;
+        System.out.println("Matching " + trackCollectionName + "to Ecal Clusters");
     }
 
     public void enablePlots(boolean enablePlots) {
@@ -50,8 +50,8 @@ public class TrackClusterMatcher2019 {
     }
 
     public void saveHistograms() {
-        System.out.println("Saving Histogram for " + this.trackType);
-        String rootFile = String.format("%s_TrackClusterMatching.root",this.trackType);
+        System.out.println("Saving Histogram for " + this.trackCollectionName);
+        String rootFile = String.format("%s_TrackClusterMatching.root",this.trackCollectionName);
         RootFileStore store = new RootFileStore(rootFile);
         try {
             store.open();
@@ -64,35 +64,53 @@ public class TrackClusterMatcher2019 {
 
     private void bookHistograms() {
 
-        System.out.println("BOOKING HISTOGRAMS FOR " +  this.trackType);
-        String trackType = this.trackType;
+        System.out.println("BOOKING HISTOGRAMS FOR " +  this.trackCollectionName);
         plots1D = new HashMap<String, IHistogram1D>();
         tree = IAnalysisFactory.create().createTreeFactory().create();
         histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
 
         //Timing Plots
-        plots1D.put(String.format("%s_ElectronTrack-Cluster_dt",trackType), histogramFactory.createHistogram1D(String.format("%s_ElectronTrack-Cluster_dt",trackType),  200, -200, 200));
-        plots1D.put(String.format("%s_PositronTrack-Cluster_dt",trackType), histogramFactory.createHistogram1D(String.format("%s_PositronTrack-Cluster_dt",trackType),  200, -200, 200));
-        plots1D.put(String.format("%s_PositronTrackTime",trackType), histogramFactory.createHistogram1D(String.format("%s_PositronTrackTime",trackType),  200, -200, 200));
-        plots1D.put(String.format("%s_ElectronTrackTime",trackType), histogramFactory.createHistogram1D(String.format("%s_ElectronTrackTime",trackType),  200, -200, 200));
-        plots1D.put(String.format("%s_Cluster_Timing_(woffset)",trackType), histogramFactory.createHistogram1D(String.format("%s_Cluster_Timing_(woffset)",trackType),  200, -200, 200));
+        plots1D.put(String.format("%s_ElectronTrack-Cluster_dt",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ElectronTrack-Cluster_dt",trackCollectionName),  200, -200, 200));
+        plots1D.put(String.format("%s_PositronTrack-Cluster_dt",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_PositronTrack-Cluster_dt",trackCollectionName),  200, -200, 200));
+        plots1D.put(String.format("%s_pos_track_time",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_time",trackCollectionName),  200, -200, 200));
+        plots1D.put(String.format("%s_ele_track_time",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_time",trackCollectionName),  200, -200, 200));
+        plots1D.put(String.format("%s_cluster_time_wOffset",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_cluster_time_wOffset",trackCollectionName),  200, -200, 200));
+
+        //Track position at ecal
+        plots1D.put(String.format("%s_pos_track_x",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_x",trackCollectionName),  1000, -500, 500));
+        plots1D.put(String.format("%s_pos_track_y",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_y",trackCollectionName),  1000, -500, 500));
+        plots1D.put(String.format("%s_pos_track_z",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_z",trackCollectionName),  1600, -100, 1500));
+
+        plots1D.put(String.format("%s_ele_track_x",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_x",trackCollectionName),  1000, -500, 500));
+        plots1D.put(String.format("%s_ele_track_y",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_y",trackCollectionName),  1000, -500, 500));
+        plots1D.put(String.format("%s_ele_track_z",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_z",trackCollectionName),  1600, -100, 1500));
 
         //Track to Ecal Extrapolation
-        plots1D.put(String.format("%s_PositronTrack@ECal_ECalCluster_dx",trackType),histogramFactory.createHistogram1D(String.format("%s_PositronTrack@ECal_ECalCluster_dx",trackType),400, -200, 200));
-        plots1D.put(String.format("%s_PositronTrack@ECal_ECalCluster_dy",trackType),histogramFactory.createHistogram1D(String.format( "%s_PositronTrack@ECal_ECalCluster_dy",trackType),400, -200, 200));
-        plots1D.put(String.format("%s_PositronTrack@ECal_ECalCluster_dz",trackType),histogramFactory.createHistogram1D(String.format( "%s_PositronTrack@ECal_ECalCluster_dz",trackType),100, -50,50));
-        plots1D.put(String.format("%s_PositronTrack@ECal_ECalCluster_dr",trackType),histogramFactory.createHistogram1D(String.format( "%s_PositronTrack@ECal_ECalCluster_dr",trackType),100, -50, 150));
-        plots1D.put(String.format("%s_ElectronTrack@ECal_ECalCluster_dx",trackType),histogramFactory.createHistogram1D(String.format("%s_ElectronTrack@ECal_ECalCluster_dx",trackType),400, -200, 200));
-        plots1D.put(String.format("%s_ElectronTrack@ECal_ECalCluster_dy",trackType),histogramFactory.createHistogram1D(String.format( "%s_ElectronTrack@ECal_ECalCluster_dy",trackType),400, -200, 200));
-        plots1D.put(String.format("%s_ElectronTrack@ECal_ECalCluster_dz",trackType),histogramFactory.createHistogram1D(String.format( "%s_ElectronTrack@ECal_ECalCluster_dz",trackType),100, -50,50));
-        plots1D.put(String.format("%s_ElectronTrack@ECal_ECalCluster_dr",trackType),histogramFactory.createHistogram1D(String.format( "%s_ElectronTrack@ECal_ECalCluster_dr",trackType),100, -50,150));
+        plots1D.put(String.format("%s_pos_track_at_ecal_cluster_dx",trackCollectionName),histogramFactory.createHistogram1D(String.format("%s_pos_track_at_ecal_cluster_dx",trackCollectionName),400, -200, 200));
+        plots1D.put(String.format("%s_pos_track_at_ecal_cluster_dy",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_pos_track_at_ecal_cluster_dy",trackCollectionName),400, -200, 200));
+        plots1D.put(String.format("%s_pos_track_at_ecal_cluster_dz",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_pos_track_at_ecal_cluster_dz",trackCollectionName),100, -50,50));
+        plots1D.put(String.format("%s_pos_track_at_ecal_cluster_dr",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_pos_track_at_ecal_cluster_dr",trackCollectionName),100, -50, 150));
+        plots1D.put(String.format("%s_ele_track_at_ecal_cluster_dx",trackCollectionName),histogramFactory.createHistogram1D(String.format("%s_ele_track_at_ecal_cluster_dx",trackCollectionName),400, -200, 200));
+        plots1D.put(String.format("%s_ele_track_at_ecal_cluster_dy",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_ele_track_at_ecal_cluster_dy",trackCollectionName),400, -200, 200));
+        plots1D.put(String.format("%s_ele_track_at_ecal_cluster_dz",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_ele_track_at_ecal_cluster_dz",trackCollectionName),100, -50,50));
+        plots1D.put(String.format("%s_ele_track_at_ecal_cluster_dr",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_ele_track_at_ecal_cluster_dr",trackCollectionName),100, -50,150));
 
         // Energy/Momentum plots
-        plots1D.put(String.format("%s_ele_Track_Cluster_EdivP",trackType), histogramFactory.createHistogram1D(String.format("%s_ele_Track_Cluster_EdivP",trackType),  200, -10, 10));
-        plots1D.put(String.format("%s_pos_Track_Cluster_EdivP",trackType), histogramFactory.createHistogram1D(String.format("%s_pos_Track_Cluster_EdivP",trackType),  200, -10, 10));
-
+        plots1D.put(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName),  200, -10, 10));
+        plots1D.put(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName),  200, -10, 10));
+        plots1D.put(String.format("%s_ele_track_momentum",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_momentum",trackCollectionName),  100, 0, 5));
+        plots1D.put(String.format("%s_pos_track_momentum",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_momentum",trackCollectionName),  100, 0, 5));
+        plots1D.put(String.format("%s_cluster_energy",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_cluster_energy",trackCollectionName),  100, 0, 5));
     }
 
+    public void plotClusterValues(List<Cluster> clusters, double trackClusterTimeOffset){
+        for(Cluster cluster : clusters) {
+            double clusterEnergy = cluster.getEnergy();
+            double cluster_time = ClusterUtilities.getSeedHitTime(cluster);
+            plots1D.get(String.format("%s_cluster_energy",trackCollectionName)).fill(clusterEnergy);
+            plots1D.get(String.format("%s_cluster_time_wOffset",trackCollectionName)).fill(cluster_time - trackClusterTimeOffset);
+        }
+    }
 
     public Map<Track,Cluster> trackClusterMatcher(List<Track> tracks, EventHeader event,  String trackCollectionName, List<Cluster> clusters, double trackClusterTimeOffset)  {
 
@@ -103,17 +121,14 @@ public class TrackClusterMatcher2019 {
         //Output is a map between Tracks and matched Cluster
         //If no cluster is matched to a Track, Map contains Track + Null
         //cluster
-        
+
         //Map of position residuals between all track+cluster combinations
         if(tracks == null || tracks.isEmpty()){
             System.out.println("Track list given to KFTrackEcalClusterMatcher is Empty!");
             return null;
         }
 
-        Map<Track, Map<Cluster, Double>> trackClusterResMap = new HashMap<Track, Map<Cluster, Double>>(); 
-
-        //First, gather all necessary Track information
-        String trackType = trackCollectionName;
+        Map<Track, Map<Cluster, Double>> trackClusterResidualsMap = new HashMap<Track, Map<Cluster, Double>>(); 
 
         //Relation Table required to retrieve kalman track time through
         //TrackData class
@@ -133,35 +148,38 @@ public class TrackClusterMatcher2019 {
             }
         }
 
+        //Cluster Plots
+        if(enablePlots)
+            plotClusterValues(clusters, trackClusterTimeOffset);
+
         for(Track track : tracks) {
 
             //charge sign must be flipped by factor of -1 (WHY!?)
             int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
             double trackt;
-            //The mean of track time distribution, for GBL and KF, is at -4ns.
-            //Offset is hardcoded below
-            double tracktOffset = 4; 
-            double tanlambda = track.getTrackParameter(4);
-            double[] trackP;
-            double trackPmag;
+            double tracktOffset = 3.5; //Track time distribution is centered on -4ns, added offset to center ~0
+
             double trackx;
             double tracky;
             double trackz;
-            double dxoffset;
+            double dxoffset; //Track x-position at Ecal distriution not centered on 0. Offset varies depending on charge
 
-            if (trackType.contains("GBLTracks")){
+            //Track parameters that are useful for implementing cuts on
+            //potential cluster matches
+            double tanlambda = track.getTrackParameter(4);
+
+            if (trackCollectionName.contains("GBLTracks")){
                 trackt = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
                 trackx = TrackUtils.getTrackStateAtECal(track).getReferencePoint()[1]; 
                 tracky = TrackUtils.getTrackStateAtECal(track).getReferencePoint()[2];
                 trackz = TrackUtils.getTrackStateAtECal(track).getReferencePoint()[0];
-                trackP = track.getTrackStates().get(0).getMomentum(); 
 
                 //electron GBLTracks show x position bias at +5.5 mm. Offset
                 //accounted for below (IS THIS OKAY TO HARDCODE?)
                 if(charge < 0)
-                    dxoffset = -5.5;
+                    dxoffset = -6.6;
                 else
-                    dxoffset = 0.0;
+                    dxoffset = 1.75;
             }
 
             //KFTracks
@@ -170,52 +188,63 @@ public class TrackClusterMatcher2019 {
                 trackt = trackdata.getTrackTime();
                 //KF TrackState at ecal stored as the last TrackState in
                 //KalmanInterface.java
-                TrackState ts_ecal = track.getTrackStates().get(track.getTrackStates().size()-1);
-                trackP = track.getTrackStates().get(0).getMomentum(); 
+                TrackState ts_ecal = track.getTrackStates().get(track.getTrackStates().size()-1); //Be careful about the coordinate frame used for this track state. It is different between current master and pass1-dev-fix branches.
+                //trackP = track.getTrackStates().get(0).getMomentum(); 
                 double[] ts_ecalPos = ts_ecal.getReferencePoint();
-                trackx = ts_ecalPos[0];
-                tracky = ts_ecalPos[1];
-                trackz = ts_ecalPos[2];
+                trackx = ts_ecalPos[1];
+                tracky = ts_ecalPos[2];
+                trackz = ts_ecalPos[0];
                 if(charge < 0)
-                    dxoffset = 3.3;
+                    dxoffset = -4.8; //KF ele tracks have x-position bias of -3.3 mm, hardcode offset + 3.3
                 else
-                    dxoffset = - 3.6;
+                    dxoffset = 1.85; //Similar case as above 
             }
 
-            //Plot ele and pos track times
+            //Track momentum magnitude
+            double[] trackP = track.getMomentum();
+            double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+            
+            /*
+            //FEE's Only Cut
+            if(trackPmag < 2.0 || trackPmag > 2.5)
+                continue;
+             */
+
+            //Plots
             if(enablePlots){
                 if (charge > 0) {
-                    plots1D.get(String.format("%s_PositronTrackTime",trackType)).fill(trackt);
+                    plots1D.get(String.format("%s_pos_track_time",trackCollectionName)).fill(trackt);
+                    plots1D.get(String.format("%s_pos_track_momentum",trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_pos_track_x",trackCollectionName)).fill(trackx);
+                    plots1D.get(String.format("%s_pos_track_y",trackCollectionName)).fill(tracky);
+                    plots1D.get(String.format("%s_pos_track_z",trackCollectionName)).fill(trackz);
                 }
                 else {
-                    plots1D.get(String.format("%s_ElectronTrackTime",trackType)).fill(trackt);
+                    plots1D.get(String.format("%s_ele_track_time",trackCollectionName)).fill(trackt);
+                    plots1D.get(String.format("%s_ele_track_momentum",trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_ele_track_x",trackCollectionName)).fill(trackx);
+                    plots1D.get(String.format("%s_ele_track_y",trackCollectionName)).fill(tracky);
+                    plots1D.get(String.format("%s_ele_track_z",trackCollectionName)).fill(trackz);
                 }
             }
 
-            trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
-
-            /*
-            //Track state at ecal via RK extrap
-            TrackState ts_ecalRK = track.getTrackStates().get(track.getTrackStates().size()-2);
-            Hep3Vector ts_ecalPos_RK = new BasicHep3Vector(ts_ecalRK.getReferencePoint());
-            ts_ecalPos_RK = CoordinateTransformations.transformVectorToDetector(ts_ecalPos_RK);
-            */
-
             //Begin Cluster Matching Algorithm
-            Map<Cluster, Double> clusterResMap = new HashMap<Cluster, Double>();
+            Map<Cluster, Double> cluster_dr_Map = new HashMap<Cluster, Double>();
             Cluster matchedCluster = null;
 
+            //define time and position cuts for Track-Cluster matching,
+            //determined by distributions
             double smallestdt = Double.MAX_VALUE;
             double smallestdr = Double.MAX_VALUE;
-            //define time and position cuts for Track-Cluster matching
             double tcut = 4.0;
             double xcut = 10.0;
             double ycut = 10.0;
 
+            //Loop over all clusters, looking for best match to current track
             for(Cluster cluster : clusters) {
                 double clusterEnergy = cluster.getEnergy();
-                double clusTime = ClusterUtilities.getSeedHitTime(cluster);
-                double dt = clusTime - trackClusterTimeOffset - trackt + tracktOffset;
+                double cluster_time = ClusterUtilities.getSeedHitTime(cluster);
+                double dt = cluster_time - trackClusterTimeOffset - trackt + tracktOffset;
 
                 double clusterx = cluster.getPosition()[0];
                 double clustery = cluster.getPosition()[1];
@@ -238,71 +267,48 @@ public class TrackClusterMatcher2019 {
                 //Plot of cluster energy / track momentum
                 if(enablePlots){
                     if(charge < 0)
-                        plots1D.get(String.format("%s_ele_Track_Cluster_EdivP",trackType)).fill(clusterEnergy/trackPmag);
+                        plots1D.get(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
                     else
-                        plots1D.get(String.format("%s_pos_Track_Cluster_EdivP",trackType)).fill(clusterEnergy/trackPmag);
+                        plots1D.get(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
                 }
 
                 //If position and time residual cuts are passed, build map of
                 //all cluster position residuals with this track
                 if((Math.abs(dt) < tcut) && (Math.abs(dx) < xcut) && (Math.abs(dy) < ycut) ) {
-                    clusterResMap.put(cluster, dr);
+                    cluster_dr_Map.put(cluster, dr);
                 }
 
                 if(enablePlots) {
-                    plots1D.get(String.format("%s_Cluster_Timing_(woffset)",trackType)).fill(clusTime - trackClusterTimeOffset);
                     if((Math.abs(dt) < tcut) && (Math.abs(dx) < xcut) && (Math.abs(dy) < ycut) ) {
                         if(charge > 0) {
                             //Time residual plot
-                            plots1D.get(String.format("%s_PositronTrack-Cluster_dt",trackType)).fill(dt);
-                            //Energy/Momentum plot
+                            plots1D.get(String.format("%s_PositronTrack-Cluster_dt",trackCollectionName)).fill(dt);
 
                             //Kalman Extrapolated Residuals
-                            plots1D.get(String.format("%s_PositronTrack@ECal_ECalCluster_dx",trackType)).fill(dx);
-                            plots1D.get(String.format("%s_PositronTrack@ECal_ECalCluster_dy",trackType)).fill(dy);
-                            plots1D.get(String.format("%s_PositronTrack@ECal_ECalCluster_dz",trackType)).fill(dz);
-                            plots1D.get(String.format("%s_PositronTrack@ECal_ECalCluster_dr",trackType)).fill(dr);
-
-                            /*
-                            //RK Extrapolated Residuals
-                            plots1D.get(String.format("RK_PositronTrack@ECal_ECalCluster_dx").fill(dxRK);
-                            plots1D.get(String.format("RK_PositronTrack@ECal_ECalCluster_dy").fill(dyRK);
-                            plots1D.get(String.format("RK_PositronTrack@ECal_ECalCluster_dz").fill(dzRK);
-                            */
+                            plots1D.get(String.format("%s_pos_track_at_ecal_cluster_dx",trackCollectionName)).fill(dx);
+                            plots1D.get(String.format("%s_pos_track_at_ecal_cluster_dy",trackCollectionName)).fill(dy);
+                            plots1D.get(String.format("%s_pos_track_at_ecal_cluster_dz",trackCollectionName)).fill(dz);
+                            plots1D.get(String.format("%s_pos_track_at_ecal_cluster_dr",trackCollectionName)).fill(dr);
                         }
                         else {
 
                             //Time residual plot
-                            plots1D.get(String.format("%s_ElectronTrack-Cluster_dt",trackType)).fill(dt);
-                            //Energy/Momentum plot
+                            plots1D.get(String.format("%s_ElectronTrack-Cluster_dt",trackCollectionName)).fill(dt);
 
                             //Kalman Extrapolated Residuals
-                            plots1D.get(String.format("%s_ElectronTrack@ECal_ECalCluster_dx",trackType)).fill(dx);
-                            plots1D.get(String.format("%s_ElectronTrack@ECal_ECalCluster_dy",trackType)).fill(dy);
-                            plots1D.get(String.format("%s_ElectronTrack@ECal_ECalCluster_dz",trackType)).fill(dz);
-                            plots1D.get(String.format("%s_ElectronTrack@ECal_ECalCluster_dr",trackType)).fill(dr);
-                            /*
-                            //RK Extrapolated Residuals
-                            plots1D.get(String.format("RK_ElectronTrack@ECal_ECalCluster_dx").fill(dxRK);
-                            plots1D.get(String.format("RK_ElectronTrack@ECal_ECalCluster_dy").fill(dyRK);
-                            plots1D.get(String.format("RK_ElectronTrack@ECal_ECalCluster_dz").fill(dzRK);
-                            */
+                            plots1D.get(String.format("%s_ele_track_at_ecal_cluster_dx",trackCollectionName)).fill(dx);
+                            plots1D.get(String.format("%s_ele_track_at_ecal_cluster_dy",trackCollectionName)).fill(dy);
+                            plots1D.get(String.format("%s_ele_track_at_ecal_cluster_dz",trackCollectionName)).fill(dz);
+                            plots1D.get(String.format("%s_ele_track_at_ecal_cluster_dr",trackCollectionName)).fill(dr);
                         }
                     }
                 }
 
-                /*
-                //via RK Extrap
-                double dxRK = clusPos[0]-ts_ecalPos_RK.x();
-                double dyRK = clusPos[1]-ts_ecalPos_RK.y();
-                double dzRK = clusPos[2]-ts_ecalPos_RK.z();
-                */
             }
 
-            //Every Track is mapped to the map of cluster position residuals
-            //for that track. i.e (Track; clusterA_dr, clusterB_dr,
-            //clusterG_dr, clusterZ_dr)
-            trackClusterResMap.put(track, clusterResMap);
+            //trackClusterResidualsMap is a map of Tracks to the position residual of
+            //each potential cluster match
+            trackClusterResidualsMap.put(track, cluster_dr_Map);
         }
 
         //Given the mapping between all Tracks, and all potential cluster
@@ -310,42 +316,40 @@ public class TrackClusterMatcher2019 {
         //Algorithm checks for clusters matched to multiple Tracks, and sorts
         //them until only unique matches exist
 
-        //trackMinResClusterMap maps tracks with minimum position residual
-        //cluster
-        Map<Track,Cluster> trackMinResClusterMap = new HashMap<Track, Cluster>();
+        //minTrackClusterResidualMap maps Track to the Cluster with the smallest dr
+        Map<Track,Cluster> minTrackClusterResidualMap = new HashMap<Track, Cluster>();
 
-        //build a map of track -> closest cluster
-        //check this map for repeat cluster matches
-        //if repeat matches are found for any tracks, keep best (closest)
-        //match, and loop over matching again, for size of clusters
+        //check map for the same Cluster being matched to multiple Tracks
+        //If found, keep Track-Cluster match with smallest dr
+        //Repeat matching process
         for(int i=0; i < clusters.size(); i++){
-            trackMinResClusterMap = getTrackMinResClusterMap(trackClusterResMap);
-            trackClusterResMap = checkDuplicateClusterMatching(trackClusterResMap,trackMinResClusterMap);
+            minTrackClusterResidualMap = getMinTrackClusterResidualMap(trackClusterResidualsMap);
+            trackClusterResidualsMap = checkDuplicateClusterMatching(trackClusterResidualsMap,minTrackClusterResidualMap);
         }
-        trackMinResClusterMap = getTrackMinResClusterMap(trackClusterResMap);
-        return trackMinResClusterMap;
+        minTrackClusterResidualMap = getMinTrackClusterResidualMap(trackClusterResidualsMap);
+        return minTrackClusterResidualMap;
     }
 
 
-    public Map<Track, Map<Cluster,Double>> checkDuplicateClusterMatching(Map<Track, Map<Cluster,Double>> trackClusterResMap, Map<Track, Cluster> trackMinResClusterMap){
+    public Map<Track, Map<Cluster,Double>> checkDuplicateClusterMatching(Map<Track, Map<Cluster,Double>> trackClusterResidualsMap, Map<Track, Cluster> minTrackClusterResidualMap){
         
         boolean duplicateCluster = false;
         List<Track> sharedClusterTracks = new ArrayList<Track>();
         List<Track> skipTracks = new ArrayList<Track>();
         
-        for(Track track : trackMinResClusterMap.keySet()){
+        for(Track track : minTrackClusterResidualMap.keySet()){
             Map<Track, Cluster> trackswDuplicateClusters = new HashMap<Track, Cluster>();
             if(skipTracks.contains(track))
                 continue;
-            Cluster smallestdrCluster = trackMinResClusterMap.get(track);
+            Cluster smallestdrCluster = minTrackClusterResidualMap.get(track);
             if(smallestdrCluster == null)
                 continue;
-            for(Track otherTrack : trackMinResClusterMap.keySet()){
+            for(Track otherTrack : minTrackClusterResidualMap.keySet()){
                 if(skipTracks.contains(track))
                     continue;
                 if(otherTrack == track)
                     continue;
-                Cluster othersmallestdrCluster = trackMinResClusterMap.get(otherTrack);
+                Cluster othersmallestdrCluster = minTrackClusterResidualMap.get(otherTrack);
                 if(othersmallestdrCluster == smallestdrCluster)
                 {
                     duplicateCluster = true;
@@ -357,9 +361,9 @@ public class TrackClusterMatcher2019 {
             double smallestdr = 99999.0;
             Track smallestdrTrack = null;
             if(trackswDuplicateClusters == null)
-                return trackClusterResMap;
+                return trackClusterResidualsMap;
             for(Track duptrack : trackswDuplicateClusters.keySet()){
-                double dr = trackClusterResMap.get(duptrack).get(trackswDuplicateClusters.get(duptrack));
+                double dr = trackClusterResidualsMap.get(duptrack).get(trackswDuplicateClusters.get(duptrack));
                 if(dr < smallestdr){
                     smallestdr = dr;
                     smallestdrTrack = duptrack;
@@ -368,26 +372,26 @@ public class TrackClusterMatcher2019 {
             for(Track duptrack : trackswDuplicateClusters.keySet()){
                 skipTracks.add(duptrack);
                 if(duptrack != smallestdrTrack){
-                    trackClusterResMap.get(duptrack).remove(trackswDuplicateClusters.get(duptrack));
+                    trackClusterResidualsMap.get(duptrack).remove(trackswDuplicateClusters.get(duptrack));
                 }
             }
         }
-        return trackClusterResMap;
+        return trackClusterResidualsMap;
     }
 
-    public Map<Track,Cluster>  getTrackMinResClusterMap(Map<Track, Map<Cluster, Double>> trackClusterResMap){
+    public Map<Track,Cluster>  getMinTrackClusterResidualMap(Map<Track, Map<Cluster, Double>> trackClusterResidualsMap){
 
         //inputs a mapping of tracks with residuals for each possible cluster
         //from all clusters in the map, for each track, match the cluster with
         //the smallest position residual to that track
         //build output map of track -> closest cluster
         Map<Track,Cluster> Map = new HashMap<Track, Cluster>();
-        for(Track track : trackClusterResMap.keySet()){
+        for(Track track : trackClusterResidualsMap.keySet()){
             double smallestdr = 99999.0;
             Cluster smallestdrCluster = null;
-            Map<Cluster, Double> clusterResMap = trackClusterResMap.get(track);
-            for(Cluster c : clusterResMap.keySet()){
-                double dr = clusterResMap.get(c);
+            Map<Cluster, Double> cluster_dr_Map = trackClusterResidualsMap.get(track);
+            for(Cluster c : cluster_dr_Map.keySet()){
+                double dr = cluster_dr_Map.get(c);
                 if(dr < smallestdr){
                     smallestdr = dr;
                     smallestdrCluster = c;
