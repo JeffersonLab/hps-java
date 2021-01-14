@@ -751,7 +751,7 @@ public abstract class ReconParticleDriver extends Driver {
         // Create a list of unmatched clusters. A cluster should be
         // removed from the list if a matching track is found.
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
-        //Set<Cluster> clustersCopy = new HashSet<Cluster>(clusters);
+        List<Cluster> clustersCopy = new ArrayList<Cluster>(clusters);
 
         // Create a mapping of matched clusters to corresponding tracks.
         HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster, Track>();
@@ -761,30 +761,13 @@ public abstract class ReconParticleDriver extends Driver {
         // for clusters being matched to multiple tracks. Should add more
         // constraints to track-cluster matching driver 
 
-        // Apply the corrections to the Ecal clusters using track information, if available
-        if (applyClusterCorrections) {
-            //System.out.println("Applying Cluster Corrections");
-            for (Cluster cluster : clusters) {
-                //System.out.println("Event " + event.getEventNumber() + " Cluster Energy Before Correction: " + cluster.getEnergy());
-                if (cluster.getParticleId() != 0) {
-                    if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
-                        Track matchedT = clusterToTrack.get(cluster);
-                        double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
-                    } else {
-                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
-                    }
-                }
-                //System.out.println("Event " + event.getEventNumber() + " Cluster Energy After Correction: " + cluster.getEnergy());
-            }
-        }
 
         for (List<Track> tracks : trackCollections) {
             Map<Track, Cluster> matchedTrackClusterMap = new HashMap<Track, Cluster>();
             //uses the trackClustermatcher class to create a map of
             //track collection with corresponding matched clusters. If track
             //has no matched cluster, pair is null
-            matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clusters, cuts.getTrackClusterTimeOffset());
+            matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clustersCopy, cuts.getTrackClusterTimeOffset());
 
 
             for (Track track : tracks) {
@@ -877,6 +860,28 @@ public abstract class ReconParticleDriver extends Driver {
             particles.add(particle);
         }
 
+        // Apply the corrections to the Ecal clusters using track information, if available
+        if (applyClusterCorrections) {
+            //System.out.println("Applying Cluster Corrections");
+            for (Cluster cluster : clusters) {
+                System.out.println("Event " + event.getEventNumber() + "_" + trackCollectionName + " Cluster Energy Before Correction: " + cluster.getEnergy());
+                System.out.println("Cluster id: "+ cluster.getParticleId()) ;
+                //if (cluster.getParticleId() != 0) {
+                if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
+                    System.out.println("applying corrections with track position");
+                    Track matchedT = clusterToTrack.get(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                    ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                } else {
+                    System.out.println("applying corrections without track position");
+                    ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                }
+                //}
+                System.out.println("Event " + event.getEventNumber() + " Cluster Energy After Correction: " + cluster.getEnergy());
+            }
+        }
+
+        //matcher2019.plotCorrectedClusterValues(clusters,cuts.getTrackClusterTimeOffset());
 
         for (ReconstructedParticle particle : particles) {
             double clusterEnergy = 0;

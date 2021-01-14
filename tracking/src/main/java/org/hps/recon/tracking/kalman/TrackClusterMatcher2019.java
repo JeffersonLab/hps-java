@@ -96,11 +96,12 @@ public class TrackClusterMatcher2019 {
         plots1D.put(String.format("%s_ele_track_at_ecal_cluster_dr",trackCollectionName),histogramFactory.createHistogram1D(String.format( "%s_ele_track_at_ecal_cluster_dr",trackCollectionName),100, -50,150));
 
         // Energy/Momentum plots
-        plots1D.put(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName),  200, -10, 10));
-        plots1D.put(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName),  200, -10, 10));
+        plots1D.put(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName),  1000, 0, 10));
+        plots1D.put(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName),  1000, 0, 10));
         plots1D.put(String.format("%s_ele_track_momentum",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_momentum",trackCollectionName),  100, 0, 5));
         plots1D.put(String.format("%s_pos_track_momentum",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_momentum",trackCollectionName),  100, 0, 5));
         plots1D.put(String.format("%s_cluster_energy",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_cluster_energy",trackCollectionName),  100, 0, 5));
+        plots1D.put(String.format("%s_corrected_cluster_energy",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_corrected_cluster_energy",trackCollectionName),  100, 0, 5));
     }
 
     public void plotClusterValues(List<Cluster> clusters, double trackClusterTimeOffset){
@@ -112,6 +113,13 @@ public class TrackClusterMatcher2019 {
         }
     }
 
+    public void plotCorrectedClusterValues(List<Cluster> clusters, double trackClusterTimeOffset){
+        for(Cluster cluster : clusters) {
+            double clusterEnergy = cluster.getEnergy();
+            double cluster_time = ClusterUtilities.getSeedHitTime(cluster);
+            plots1D.get(String.format("%s_corrected_cluster_energy",trackCollectionName)).fill(clusterEnergy);
+        }
+    }
     public Map<Track,Cluster> trackClusterMatcher(List<Track> tracks, EventHeader event,  String trackCollectionName, List<Cluster> clusters, double trackClusterTimeOffset)  {
 
         //Input collection of Tracks, with trackCollectionName, and collection
@@ -264,13 +272,6 @@ public class TrackClusterMatcher2019 {
                 if(clustery < 0 && tanlambda > 0)
                     continue;
 
-                //Plot of cluster energy / track momentum
-                if(enablePlots){
-                    if(charge < 0)
-                        plots1D.get(String.format("%s_ele_Track_Cluster_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                    else
-                        plots1D.get(String.format("%s_pos_Track_Cluster_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                }
 
                 //If position and time residual cuts are passed, build map of
                 //all cluster position residuals with this track
@@ -309,6 +310,41 @@ public class TrackClusterMatcher2019 {
             //trackClusterResidualsMap is a map of Tracks to the position residual of
             //each potential cluster match
             trackClusterResidualsMap.put(track, cluster_dr_Map);
+
+
+            /*
+            //In order to apply cluster corrections, clusters need to be assigned particle IDs. 
+            //For all clusters possibly matched with this track, assign particle ID based on track, and check that E/P ~1
+            ReconstructedParticle particle = new BaseReconstructedParticle();
+            particle.addTrack(track);
+            // Set the type of the particle. This is used to identify
+            // the tracking strategy used in finding the track associated with
+            // this particle.
+            ((BaseReconstructedParticle) particle).setType(track.getType());
+
+            // Derive the charge of the particle from the track.
+            ((BaseReconstructedParticle) particle).setCharge(charge);
+
+            // Extrapolate the particle ID from the track. Positively
+            // charged particles are assumed to be positrons and those
+            // with negative charges are assumed to be electrons.
+            if (particle.getCharge() > 0) {
+                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+            } else if (particle.getCharge() < 0) {
+                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
+            }
+
+            final int pid = particle.getParticleIDUsed().getPDG();
+            // propogate pid to the cluster:
+            if (Math.abs(pid) == 11) {
+                for(Map.Entry<Track,Map<Cluster,Double>> entry : trackClusterResidualsMap.entrySet()){ 
+                    Cluster clust = entry.getKey();
+                    ((BaseCluster) clust).setParticleId(pid);
+                }
+            }
+            */
+
+
         }
 
         //Given the mapping between all Tracks, and all potential cluster
@@ -397,6 +433,9 @@ public class TrackClusterMatcher2019 {
                     smallestdrCluster = c;
                 }
             }
+
+            
+
             Map.put(track, smallestdrCluster);
         }
         return Map;

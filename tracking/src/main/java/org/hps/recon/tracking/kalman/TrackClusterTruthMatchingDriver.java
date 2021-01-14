@@ -203,16 +203,33 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             //track and truthtrack momentum
             plots1D.put(String.format("%s_ele_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_momentum",this.trackCollectionName), 160, 0, 4));
             plots1D.put(String.format("%s_pos_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_momentum",this.trackCollectionName), 160, 0, 4));
+
+
+            plots1D.put(String.format("%s_ele_last-first_trackstate_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_last-first_trackstate_momentum",this.trackCollectionName), 400, 0, 4));
+            plots1D.put(String.format("%s_pos_last-first_trackstate_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_last-first_trackstate_momentum",this.trackCollectionName), 400, 0, 4));
+
             plots1D.put(String.format("%s_ele_truth_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_momentum",this.trackCollectionName), 160, 0, 4));
             plots1D.put(String.format("%s_pos_truth_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_momentum",this.trackCollectionName), 160, 0, 4));
+            plots1D.put(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName), 160, 0, 4));
+            plots1D.put(String.format("%s_ele_truth_track_MCP_momentum_ratio",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_MCP_momentum_ratio",this.trackCollectionName), 160, 0, 4));
+
 
             //duplicate track momentum
             plots1D.put(String.format("%s_ele_duplicate_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_duplicate_track_momentum",this.trackCollectionName), 160, 0, 4));
             plots1D.put(String.format("%s_pos_duplicate_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_duplicate_track_momentum",this.trackCollectionName), 160, 0, 4));
             //Checking E/P for track+cluster pair
             
-            plots1D.put(String.format("%s_ele_truth_track_cluster_E_div_P",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_E_div_P",trackCollectionName),  200, -10, 10));
-            plots1D.put(String.format("%s_pos_truth_track_cluster_E_div_P",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_E_div_P",trackCollectionName),  200, -10, 10));
+            plots1D.put(String.format("%s_ele_truth_track_cluster_E_div_P",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_E_div_P",trackCollectionName),  1000, 0, 10));
+            plots1D.put(String.format("%s_pos_truth_track_cluster_E_div_P",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_E_div_P",trackCollectionName),  1000, 0, 10));
+            plots1D.put(String.format("%s_cluster_energy",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_cluster_energy",trackCollectionName),  100, 0, 5));
+
+            //Matched track clusters
+            plots1D.put(String.format("%s_ele_track_cluster_E_div_P",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_cluster_E_div_P",trackCollectionName),  1000, 0, 10));
+            plots1D.put(String.format("%s_pos_track_cluster_E_div_P",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_cluster_E_div_P",trackCollectionName),  1000, 0, 10));
+
+
+            plots1D.put(String.format("%s_pos_truth_track_cluster_truthE_div_truthP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_truthE_div_truthP",trackCollectionName),  1000, 0, 10));
+            plots1D.put(String.format("%s_ele_truth_track_cluster_truthE_div_truthP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_truthE_div_truthP",trackCollectionName),  1000, 0, 10));
 
             //Plots for tracks in ecal fiducial region
 
@@ -362,8 +379,10 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 double clustx = cluster.getPosition()[0];
                 double clusty = cluster.getPosition()[1];
                 double clustz = cluster.getPosition()[2];
+                double clusterEnergy = cluster.getEnergy();
                 MCParticle clusterMCP = getClusterMCP(cluster, event);
                 plots2D.get(String.format("ecalCluster_positions_xyplane")).fill(clustx,clusty);
+                plots1D.get(String.format("%s_cluster_energy",trackCollectionName)).fill(clusterEnergy);
                 plots1D.get(String.format("cluster_x")).fill(clustx);
                 plots1D.get(String.format("cluster_y")).fill(clusty);
             }
@@ -390,10 +409,8 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 }
             }
 
+            //Looping Over all Tracks
             for(Track track : tracks){
-                //For GBL Tracks, there is a |10|ns track time cut applied in
-                //reconstruciton, that is not applied for Kalman Tracks. I am enforcing
-                //this cut here, for a fair comparison of GBL v KF
 
                 double trackT;
                 if (this.trackCollectionName.contains("GBLTracks")){
@@ -405,37 +422,58 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 }
                 if(Math.abs(trackT) > 10.0)
                     continue;
+                //For GBL Tracks, there is a |10|ns track time cut applied in
+                //reconstruciton, that is not applied for Kalman Tracks. I am enforcing
+                //this cut here, for a fair comparison of GBL v KF
 
                 //check track quality
                 double chi2 = track.getChi2();
                 int ndf = track.getNDF();
 
 
+                //be careful about this -1...Is it always going to be correct?
+                //Check "flipsign" in ReconParticleDriver.java
                 int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
                 double[] trackP = track.getMomentum();
                 double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
-                if(trackPmag > 2.5 || trackPmag < 2.0)
-                    continue;
+
+                double[] trackPfinal = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+                double[] trackPinitial = track.getTrackStates().get(0).getMomentum();
+                double deltaPmag = Math.sqrt(Math.pow(trackPfinal[0]-trackPinitial[0],2) + Math.pow(trackPfinal[1]-trackPinitial[1],2) + Math.pow(trackPfinal[2]-trackPinitial[2],2));
+
+                //If want to select only FEEs for analysis
+                boolean selectFEEs = false;
+                if(selectFEEs){
+                    if(trackPmag > 2.5 || trackPmag < 2.0)
+                        continue;
+                }
 
                 if(charge < 0){
                     plots1D.get(String.format("%s_ele_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_ele_last-first_trackstate_momentum",this.trackCollectionName)).fill(deltaPmag);
                     plots1D.get(String.format("%s_ele_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
                 }
                 else{
                     plots1D.get(String.format("%s_pos_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_pos_last-first_trackstate_momentum",this.trackCollectionName)).fill(deltaPmag);
                     plots1D.get(String.format("%s_pos_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
                 }
 
                 //truth match track to mcparticle
                 MCParticle trackMCP =  newgetTrackMCP(event,track,this.trackCollectionName, true);
                 if(trackMCP != null){
+                    double mcpPmag = trackMCP.getMomentum().magnitude(); 
+                    double trackMCPratio = trackPmag/mcpPmag;
+                    System.out.println("track mcparticle momentum ratio: " + trackMCPratio); 
                     truthTracks.add(track);
                     truthTracksMap.put(track, trackMCP);
                     if(charge < 0){
                         plots1D.get(String.format("%s_ele_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                        plots1D.get(String.format("%s_ele_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
                     }
                     else{
                         plots1D.get(String.format("%s_pos_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                        plots1D.get(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
                     }
                 }
 
@@ -508,14 +546,20 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                     double clusterEnergy = truthmatchedCluster.getEnergy();
                     truthClusterTracks.add(track);
                     truthTrackClusterMap.put(track, truthmatchedCluster);
+
+                    double truthTrackPmag = trackMCP.getMomentum().magnitude(); 
+                    double truthClusterE = truthmatchedCluster.getEnergy();
+
                     //Plot E/P for truth-matched tracks+clusters
                     if(charge < 0){
                         plots1D.get(String.format("%s_ele_track_truth_matched_w_cluster_momentum",this.trackCollectionName)).fill(trackPmag);
                         plots1D.get(String.format("%s_ele_truth_track_cluster_E_div_P",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                        plots1D.get(String.format("%s_ele_truth_track_cluster_truthE_div_truthP",trackCollectionName)).fill(clusterEnergy/trackPmag);
                     }
                     else{
                         plots1D.get(String.format("%s_pos_track_truth_matched_w_cluster_momentum",this.trackCollectionName)).fill(trackPmag);
                         plots1D.get(String.format("%s_pos_truth_track_cluster_E_div_P",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                        plots1D.get(String.format("%s_pos_truth_track_cluster_truthE_div_truthP",trackCollectionName)).fill(clusterEnergy/trackPmag);
                     }
                 }
             }
@@ -525,7 +569,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             //info)
             Map<Track, Cluster> matchedTrackClusterMap = new HashMap<Track,Cluster>();
             matchedTrackClusterMap = matcher.trackClusterMatcher(truthClusterTracks,event, this.trackCollectionName, clusters, this.trackClusterTimeOffset);
-
+            
             if(truthClusterTracks != null){
                 for(Track track : truthClusterTracks) {
                     int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
@@ -540,7 +584,15 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                         NtruthPosClustPairs = NtruthPosClustPairs + 1;
                     }
 
+                    if(matchedTrackClusterMap.get(track) != null){
+                        if(charge < 0)
+                            plots1D.get(String.format("%s_ele_track_cluster_E_div_P",trackCollectionName)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
+                        else
+                            plots1D.get(String.format("%s_pos_track_cluster_E_div_P",trackCollectionName)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
+                    }
+
                     checkTrackClusterMatch(track, matchedTrackClusterMap.get(track), truthTrackClusterMap.get(track));
+
                     trackClusterAnalysis(track,truthTrackClusterMap.get(track),"truth_matched");
                 }
             }
