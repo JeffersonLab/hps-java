@@ -767,7 +767,7 @@ public abstract class ReconParticleDriver extends Driver {
             //uses the trackClustermatcher class to create a map of
             //track collection with corresponding matched clusters. If track
             //has no matched cluster, pair is null
-            matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clustersCopy, cuts.getTrackClusterTimeOffset());
+            matchedTrackClusterMap = matcher2019.trackClusterMatcher(tracks, event,trackCollectionName, clusters, cuts.getTrackClusterTimeOffset());
 
 
             for (Track track : tracks) {
@@ -862,22 +862,16 @@ public abstract class ReconParticleDriver extends Driver {
 
         // Apply the corrections to the Ecal clusters using track information, if available
         if (applyClusterCorrections) {
-            //System.out.println("Applying Cluster Corrections");
             for (Cluster cluster : clusters) {
-                System.out.println("Event " + event.getEventNumber() + "_" + trackCollectionName + " Cluster Energy Before Correction: " + cluster.getEnergy());
-                System.out.println("Cluster id: "+ cluster.getParticleId()) ;
-                //if (cluster.getParticleId() != 0) {
-                if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
-                    System.out.println("applying corrections with track position");
-                    Track matchedT = clusterToTrack.get(cluster);
-                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
-                } else {
-                    System.out.println("applying corrections without track position");
-                    ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                if (cluster.getParticleId() != 0) {
+                    if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
+                        Track matchedT = clusterToTrack.get(cluster);
+                        double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                    } else {
+                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                    }
                 }
-                //}
-                System.out.println("Event " + event.getEventNumber() + " Cluster Energy After Correction: " + cluster.getEnergy());
             }
         }
 

@@ -591,7 +591,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             //matchedTrackClusterMap = matcher.trackClusterMatcher(truthTracks_w_truthClusters,event, this.trackCollectionName, truthClusters, this.trackClusterTimeOffset);
             matchedTrackClusterMap = matcher.trackClusterMatcher(truthTracks_w_truthClusters,event, this.trackCollectionName, truthClusters, this.trackClusterTimeOffset);
             
-            System.out.println("Checking length of truth tracks and matched tracks");
+            System.out.println("Matching set of Truth Tracks to Clusters using algorithm");
             if(matchedTrackClusterMap != null){
                 System.out.println("matchedTrackClusterMap size: " + matchedTrackClusterMap.size());
                 for (Map.Entry<Track,Cluster> entry : matchedTrackClusterMap.entrySet()){

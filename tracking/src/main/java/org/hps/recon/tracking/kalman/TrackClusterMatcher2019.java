@@ -186,9 +186,9 @@ public class TrackClusterMatcher2019 {
                 //electron GBLTracks show x position bias at +5.5 mm. Offset
                 //accounted for below (IS THIS OKAY TO HARDCODE?)
                 if(charge < 0)
-                    dxoffset = -6.6;
+                    dxoffset = 0.0; //-6.6;
                 else
-                    dxoffset = 1.75;
+                    dxoffset = 0.0; //1.75;
             }
 
             //KFTracks
@@ -204,9 +204,9 @@ public class TrackClusterMatcher2019 {
                 tracky = ts_ecalPos[2];
                 trackz = ts_ecalPos[0];
                 if(charge < 0)
-                    dxoffset = -4.8; //KF ele tracks have x-position bias of -3.3 mm, hardcode offset + 3.3
+                    dxoffset = 0.0; // -4.8; //KF ele tracks have x-position bias of -3.3 mm, hardcode offset + 3.3
                 else
-                    dxoffset = 1.85; //Similar case as above 
+                    dxoffset = 0.0; //1.85; //Similar case as above 
             }
 
             //Track momentum magnitude
