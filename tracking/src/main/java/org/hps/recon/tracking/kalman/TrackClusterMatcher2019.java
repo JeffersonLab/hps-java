@@ -131,8 +131,9 @@ public class TrackClusterMatcher2019 {
         //cluster
 
         //Map of position residuals between all track+cluster combinations
-        if(tracks == null || tracks.isEmpty()){
-            System.out.println("Track list given to KFTrackEcalClusterMatcher is Empty!");
+        System.out.println("Tracks passed to matcher: " + tracks.size());
+        System.out.println("Clusters passed to matcher: " + clusters.size());
+        if(tracks == null || tracks.isEmpty() || clusters == null || clusters.isEmpty()){
             return null;
         }
 
