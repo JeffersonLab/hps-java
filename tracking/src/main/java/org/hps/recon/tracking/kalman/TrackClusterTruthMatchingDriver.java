@@ -92,6 +92,13 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     double postotalCount=0;
 
 
+    //NEW TRACK PERFORMANCE VARS
+    double NmatcherPosTrackClusterPairs = 0.0;
+    double NmatcherEleTrackClusterPairs = 0.0;
+    double NgoodmatcherPosTrackClusterPairs = 0.0;
+    double NgoodmatcherEleTrackClusterPairs = 0.0;
+
+
     //Check track efficiency 
     double NpossibleTracks = 0;
     double NrecoTruthTracks = 0;
@@ -303,6 +310,11 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots1D.get(String.format("%s_ele_Efficiency",this.trackCollectionName)).fill(1.0);
         }
         saveHistograms();
+
+        System.out.println("NmatcherPosTrackClusterPairs" + NmatcherPosTrackClusterPairs);
+        System.out.println("NmatcherEleTrackClusterPairs" + NmatcherEleTrackClusterPairs);
+        System.out.println("NgoodmatcherPosTrackClusterPairs"+ NgoodmatcherPosTrackClusterPairs);
+        System.out.println("NgoodmatcherEleTrackClusterPairs"+ NgoodmatcherEleTrackClusterPairs);
     }
 
     public List<MCParticle> getPossibleTrackMCPs(EventHeader event, int minHitsOnTrack){
@@ -571,11 +583,13 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                         plots1D.get(String.format("%s_ele_track_truth_matched_w_cluster_momentum",this.trackCollectionName)).fill(trackPmag);
                         plots1D.get(String.format("%s_ele_truth_track_matched_w_cluster_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
                         NtruthEleClustPairs = NtruthEleClustPairs + 1;
+                        System.out.println("Number of electron tracks truth matched to a cluster: " + NtruthEleClustPairs);
                     }
                     else{
                         plots1D.get(String.format("%s_pos_track_truth_matched_w_cluster_momentum",this.trackCollectionName)).fill(trackPmag);
                         plots1D.get(String.format("%s_pos_truth_track_matched_w_cluster_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
                         NtruthPosClustPairs = NtruthPosClustPairs + 1;
+                        System.out.println("Number of positron tracks truth matched to a cluster: " + NtruthPosClustPairs);
                     }
                 }
             }
@@ -593,7 +607,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             
             System.out.println("Matching set of Truth Tracks to Clusters using algorithm");
             if(matchedTrackClusterMap != null){
-                System.out.println("matchedTrackClusterMap size: " + matchedTrackClusterMap.size());
+                System.out.println("Number of Tracks matched using algorithm " + matchedTrackClusterMap.size());
                 for (Map.Entry<Track,Cluster> entry : matchedTrackClusterMap.entrySet()){
                     Track track = entry.getKey();
                     int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
@@ -608,6 +622,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                     //Skip further analysis if no cluster is matched
                     if(entry.getValue() == null)
                         continue;
+
 
                     //Check the truth cluster id for each truth track to see if cluster
                     //id belongs to correct particle
@@ -625,13 +640,24 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                         clusterParticle = "photon";
 
 
-                    if(clusterParticle == null){
-                        continue;
-                    }
+                    //if(clusterParticle == null){
+                      //  continue;
+                   // }
                     if(charge < 0)
                         plots1D.get(String.format("%s_ele_truthTrack_%s_cluster_E_div_P",trackCollectionName, clusterParticle)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
+                        NmatcherEleTrackClusterPairs = NmatcherEleTrackClusterPairs + 1.0; 
+                        System.out.println("Number of ele tracks matched to a track by algorithm: " + NmatcherEleTrackClusterPairs);
+                        if(matchedClusterMCP == matchedTrackMCP){
+                            NgoodmatcherEleTrackClusterPairs = NgoodmatcherEleTrackClusterPairs + 1; 
+                        }
+
                     else{
                         plots1D.get(String.format("%s_pos_truthTrack_%s_cluster_E_div_P",trackCollectionName, clusterParticle)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
+                        NmatcherPosTrackClusterPairs = NmatcherPosTrackClusterPairs + 1.0; 
+                        System.out.println("Number of ele tracks matched to a track by algorithm: " + NmatcherPosTrackClusterPairs);
+                        if(matchedClusterMCP == matchedTrackMCP){
+                            NgoodmatcherPosTrackClusterPairs = NgoodmatcherPosTrackClusterPairs + 1; 
+                        }
                     }
                     
                 }
