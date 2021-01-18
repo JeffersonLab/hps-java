@@ -126,7 +126,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         FEETrigger.setIsEnabled(parser.FEEEn);
         FEETrigger.getEnergyMinCutConfig().setLowerBound(parser.FEEEnergyMin / 1000.0);
         FEETrigger.getEnergyMaxCutConfig().setUpperBound(parser.FEEEnergyMax / 1000.0);
-        FEETrigger.getHitCountCutConfig().setLowerBound(parser.FEENhitsMin / 1000.0);
+        FEETrigger.getHitCountCutConfig().setLowerBound(parser.FEENhitsMin);
         FEETrigger.getPrescaleRegion0Config().setRegionMin(parser.FEERegionXMin[0]);
         FEETrigger.getPrescaleRegion0Config().setRegionMax(parser.FEERegionXMax[0]);
         FEETrigger.getPrescaleRegion0Config().setRegionPrescale(parser.FEERegionPrescale[0]);
@@ -204,7 +204,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
     
     /**
      * Gets the configuration parameters for the third singles trigger.
-     * @return Returns the second singles trigger configuration.
+     * @return Returns the third singles trigger configuration.
      */
     public SinglesTriggerConfig2019 getSingles2Config() {
         return singlesTrigger[2];
@@ -212,7 +212,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
     
     /**
      * Gets the configuration parameters for the forth singles trigger.
-     * @return Returns the second singles trigger configuration.
+     * @return Returns the forth singles trigger configuration.
      */
     public SinglesTriggerConfig2019 getSingles3Config() {
         return singlesTrigger[3];
@@ -236,7 +236,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
     
     /**
      * Gets the configuration parameters for the third pair trigger.
-     * @return Returns the second trigger trigger configuration.
+     * @return Returns the third trigger trigger configuration.
      */
     public PairTriggerConfig2019 getPair2Config() {
         return pairTrigger[2];
@@ -244,10 +244,18 @@ public class VTPConfig2019 extends IDAQConfig2019 {
     
     /**
      * Gets the configuration parameters for the forth pair trigger.
-     * @return Returns the second trigger trigger configuration.
+     * @return Returns the forth trigger trigger configuration.
      */
     public PairTriggerConfig2019 getPair3Config() {
         return pairTrigger[3];
+    }
+    
+    /**
+     * Gets the configuration parameters for the FEE trigger.
+     * @return Returns the second trigger trigger configuration.
+     */
+    public FEETriggerConfig2019 getFEEConfig() {
+        return FEETrigger;
     }
     
     @Override

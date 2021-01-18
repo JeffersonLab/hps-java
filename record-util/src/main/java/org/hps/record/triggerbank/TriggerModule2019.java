@@ -12,6 +12,7 @@ import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.hps.record.daqconfig2019.SinglesTriggerConfig2019;
 import org.hps.record.daqconfig2019.PairTriggerConfig2019;
+import org.hps.record.daqconfig2019.FEETriggerConfig2019;
 
 /**
  * Class <code>TriggerModule2019</code> handles trigger cuts for 2019 MC.
@@ -247,6 +248,18 @@ public class TriggerModule2019 {
         setCutValue(PAIR_ENERGY_SLOPE_F, config.getEnergySlopeCutConfig().getParameterF());
         setCutValue(PAIR_ENERGY_SUM_HIGH, config.getEnergySumCutConfig().getUpperBound());
         setCutValue(PAIR_TIME_COINCIDENCE, config.getTimeDifferenceCutConfig().getUpperBound());
+    }
+    
+    /**
+     * Loads triggers settings from the DAQ configuration for FEE trigger.
+     * 
+     * @param config - The DAQ configuration settings.
+     */
+    public void loadDAQConfiguration(FEETriggerConfig2019 config) {
+        // Set the trigger values.
+        setCutValue(CLUSTER_TOTAL_ENERGY_LOW, config.getEnergyMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_TOTAL_ENERGY_HIGH, config.getEnergyMaxCutConfig().getUpperBound());
+        setCutValue(CLUSTER_HIT_COUNT_LOW, config.getHitCountCutConfig().getLowerBound());
     }
 
     /**
