@@ -13,7 +13,9 @@
            <inputCollection>${EcalClustersCollectionName}</inputCollection> <!--name of EcalClusters collection name-->
            <outputPlots>yes</outputPlots>
            <beamEnergy>${beamE}</beamEnergy>
+
            <pid>${pid}</pid>
+
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
            <ignoreCollections>EcalCalHits EcalClusters</ignoreCollections>
@@ -29,3 +31,4 @@
         </driver>
      </drivers>
 </lcsim>
+

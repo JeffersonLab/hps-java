@@ -76,7 +76,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     /**
      * Defines the size of an energy bin for trigger output plots.
      */
-    private static final double BIN_SIZE = 0.025;
+    private static final double BIN_SIZE = 0.025;   
     
     /**
      * If require geometry matching
@@ -94,7 +94,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     private IHistogram1D[] clusterHitCount = new IHistogram1D[2];
     private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
     private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
-    
+  
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -104,7 +104,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             ecal = (HPSEcal3) ecalSub;
         } else {
             throw new IllegalStateException("Error: Unexpected calorimeter sub-detector of type \"" + ecalSub.getClass().getSimpleName() + "; expected HPSEcal3.");
-        }
+        }        
     }
     
     @Override

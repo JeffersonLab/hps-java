@@ -24,6 +24,8 @@
         <configuration>
           <excludes>
             <exclude>**/TupleDriverTest.java</exclude>
+            <exclude>**/MollerTupleDriverTest.java</exclude>
+            <exclude>**/TridentTupleDriverTest.java</exclude>
             <exclude>**/MC/TrackExtrapTest.java</exclude>
           </excludes>
         </configuration>

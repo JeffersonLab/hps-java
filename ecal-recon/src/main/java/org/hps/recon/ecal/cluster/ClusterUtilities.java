@@ -65,6 +65,7 @@ public final class ClusterUtilities {
      */
     public static Cluster createBasicCluster(List<CalorimeterHit> clusterHits) {
         BaseCluster cluster = new BaseCluster();
+        cluster.setNeedsPropertyCalculation(false);
         for (CalorimeterHit clusterHit : clusterHits) {
             cluster.addHit(clusterHit);
         }

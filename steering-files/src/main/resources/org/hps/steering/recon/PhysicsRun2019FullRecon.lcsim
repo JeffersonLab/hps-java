@@ -13,6 +13,10 @@
         <!-- Skip events with known bad conditions -->
         <!-- Not yet defined for 2019 data -->
         <!--        <driver name="EventFlagFilter"/>  -->
+
+        <!-- FADC stuck bits driver -->
+        <driver name="StuckFADCBit"/>
+
         <!--RF driver-->
         <driver name="RfFitter"/>
         <!-- Hodoscope drivers -->
@@ -25,6 +29,7 @@
         <driver name="EcalTimeCorrection"/> 
         <driver name="ReconClusterer" /> 
         <driver name="CopyCluster" />
+
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
@@ -96,7 +101,9 @@
             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
         </driver> 
         -->
-        
+
+        <driver name="StuckFADCBit" type="org.hps.evio.StuckFADCBitDriver"/>
+
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
