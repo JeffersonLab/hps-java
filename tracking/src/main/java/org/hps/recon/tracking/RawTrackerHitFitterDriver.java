@@ -3,6 +3,7 @@ package org.hps.recon.tracking;
 import java.util.ArrayList;
 import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtSyncStatus.SvtSyncStatusCollection;
 import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.readout.ecal.ReadoutTimestamp;
 import org.hps.readout.svt.HPSSVTConstants;
@@ -29,6 +30,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
     private SvtTimingConstants timingConstants;
+    private SvtSyncStatusCollection syncStatusColl;
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
     private int relationFlags = 0;
     private double jitter;
@@ -40,6 +42,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean subtractTriggerTime = false;
     private boolean correctChanT0 = true;
     private boolean subtractRFTime = false;
+    private boolean syncGood = true;
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
@@ -137,6 +140,15 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     protected void detectorChanged(Detector detector) {
         timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
+        try {
+            syncStatusColl = DatabaseConditionsManager.getInstance().getCachedConditions(SvtSyncStatusCollection.class, "svt_sync_statuses").getCachedData();
+            syncGood = syncStatusColl.get(0).isGood();
+        } 
+        catch (Exception e) {
+            syncGood = true;
+            System.out.println("svt_sync_statuses was not found");
+        }
+
     }
 
     @Override
@@ -174,7 +186,6 @@ public class RawTrackerHitFitterDriver extends Driver {
             int strip = hit.getIdentifierFieldValue("strip");
             HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
-            //for (ShapeFitParameters fit : _shaper.fitShape(hit, constants)) {
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
 
                 if (correctTimeOffset) {
@@ -183,9 +194,17 @@ public class RawTrackerHitFitterDriver extends Driver {
                     fit.setT0(fit.getT0() - timingConstants.getOffsetTime());
                 }
                 if (subtractTriggerTime) {
-                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
-                    if (debug)
+                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 14);
+                    if (!syncGood) tt = tt - 8;
+                    if (!syncGood && (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24)/8 < 1)) {
+                        tt = tt + 24;
+                    }
+                    if (debug) {
+                        System.out.println("event time stamp " + event.getTimeStamp());
+                        System.out.println("trigger offset time " + timingConstants.getOffsetPhase());
                         System.out.println("subtracting trigger time from event " + tt);
+                        System.out.println("T0 " + fit.getT0());
+                    }
                     fit.setT0(fit.getT0() - tt);
                 }
                 if (subtractRFTime && jitter != -666) {
