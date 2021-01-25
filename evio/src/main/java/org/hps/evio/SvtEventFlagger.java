@@ -18,6 +18,7 @@ import org.hps.conditions.svt.SvtAlignmentConstant;
 import org.hps.conditions.svt.SvtBiasConstant;
 import org.hps.conditions.svt.SvtMotorPosition;
 import org.hps.conditions.svt.SvtTimingConstants;
+import org.hps.conditions.svt.SvtReadoutSyncPhase;
 import org.hps.record.svt.SvtHeaderDataInfo;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.HeadBankData;
@@ -37,6 +38,7 @@ public class SvtEventFlagger {
     private static final double angleTolerance = 0.0001;
     SvtBiasConstant.SvtBiasConstantCollection svtBiasConstants = null;
     SvtMotorPosition.SvtMotorPositionCollection svtPositionConstants = null;
+    SvtReadoutSyncPhase.SvtReadoutSyncPhaseCollection svtSyncPhaseColl = null;
     private SvtTimingConstants svtTimingConstants = null;
     private boolean biasGood = false;
     private boolean positionGood = false;
@@ -45,56 +47,60 @@ public class SvtEventFlagger {
     private boolean readoutOverlapGood = false;
     private double nominalAngleTop = 0;
     private double nominalAngleBottom = 0;
-    private Vector<Long> readTimes = new Vector<>();
-    private Vector<Long> readEvTimes = new Vector<>();
-    private Long trigPhase = new Long(8);
-    private Long syncPhase = new Long(320);
+    private Vector<Long> readTimes0 = new Vector<>();
+    private Vector<Long> readEvTimes0 = new Vector<>();
+    private Vector<Long> readTimes1 = new Vector<>();
+    private Vector<Long> readEvTimes1 = new Vector<>();
+    private Long trigPhase0 = new Long(8);
+    private Long trigPhase1 = new Long(8);
+    private Long syncPhase0 = new Long(320);
+    private Long syncPhase1 = new Long(320);
     private Long trigDel = new Long(6696);
+    private Long cut0L = new Long(0);
+    private Long cut0H = new Long(0);
+    private Long cut1L = new Long(0);
+    private Long cut1H = new Long(0);
 
     public void writeFlags(EventHeader event) {
         Date eventDate = getEventTimeStamp(event);
         Long evTime = event.getTimeStamp();
-        Long trigArrT = evTime + trigDel + (24 - (evTime + trigPhase)%24 );
-        Long trigSyncTime = trigArrT + (840 - (trigArrT + syncPhase)%840);
+        Long trigArrT0 = evTime + trigDel + (24 - (evTime + trigPhase0)%24 );
+        Long trigSyncTime0 = trigArrT0 + (840 - (trigArrT0 + syncPhase0)%840);
+        Long trigArrT1 = evTime + trigDel + (24 - (evTime + trigPhase1)%24 );
+        Long trigSyncTime1 = trigArrT1 + (840 - (trigArrT1 + syncPhase1)%840);
 
         // Remove reads that have already happened
-        for(int ri = readTimes.size()-1; ri >= 0; ri--) {
-            if (readTimes.size() == 0) break;
-            if (readTimes.get(ri) < evTime - 840) {
-                readTimes.remove(ri);
-                readEvTimes.remove(ri);
+        for(int ri = readTimes0.size()-1; ri >= 0; ri--) {
+            if (readTimes0.size() == 0) break;
+            if (readTimes0.get(ri) < evTime - 840) {
+                readTimes0.remove(ri);
+                readEvTimes0.remove(ri);
+            }
+        }
+        for(int ri = readTimes1.size()-1; ri >= 0; ri--) {
+            if (readTimes1.size() == 0) break;
+            if (readTimes1.get(ri) < evTime - 840) {
+                readTimes1.remove(ri);
+                readEvTimes1.remove(ri);
             }
         }
         //System.out.format("evTime: %d\n", evTime);
         //System.out.format("trigArrT: %d\n", trigArrT);
         //System.out.format("trigSyncTime: %d\n", trigSyncTime);
-        //System.out.format("buffSize: %d\n", readTimes.size());
+        //System.out.format("buffSize: %d\n", readTimes0.size());
         //System.out.print("\n");
 
         // Add new reads to buffer from this trigger
-        int readLen = readTimes.size();
-        for (int ss = 0; ss < 6; ss++) {
-            if (ss > 0) {
-                readTimes.add(readTimes.get(readTimes.size()-1) + 3360);
-                readEvTimes.add(evTime);
-            } else {
-                if (readLen == 0) {
-                    readTimes.add(trigSyncTime);
-                    readEvTimes.add(evTime);
-                } else if (readTimes.get(readTimes.size()-1) + 3360 > trigSyncTime) {
-                    readTimes.add(readTimes.get(readTimes.size()-1) + 3360);
-                    readEvTimes.add(evTime);
-                } else {
-                    readTimes.add(trigSyncTime);
-                    readEvTimes.add(evTime);
-                }
-            }
-        }
+        fillAPVbuffer(readTimes0, readEvTimes0, evTime, trigSyncTime0);
+        fillAPVbuffer(readTimes1, readEvTimes1, evTime, trigSyncTime1);
 
         // Check if this event overlaps a read in the buffer
-        readoutOverlapGood = false;
-        if (!(evTime - readTimes.get(0) > -500 && evTime - readTimes.get(0) < 0)) {
-            readoutOverlapGood = true;
+        readoutOverlapGood = true;
+        if (readTimes0.get(0) - evTime < cut0H && readTimes0.get(0) - evTime > cut0L) {
+            readoutOverlapGood = false;
+        }
+        if (readTimes1.get(0) - evTime < cut1H && readTimes1.get(0) - evTime > cut1L) {
+            readoutOverlapGood = false;
         }
 
         //Check date against the HV position state for that time
@@ -182,6 +188,23 @@ public class SvtEventFlagger {
             svtTimingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
         } catch (Exception e) {
             svtTimingConstants = null;
+        }
+
+        try {
+            svtSyncPhaseColl = DatabaseConditionsManager.getInstance().getCachedConditions(SvtReadoutSyncPhase.SvtReadoutSyncPhaseCollection.class, "svt_readout_sync_phases").getCachedData();
+            trigDel = Long.valueOf(svtSyncPhaseColl.get(0).getTrigDel().intValue());
+            syncPhase0 = Long.valueOf(svtSyncPhaseColl.get(0).getPhase0().intValue());
+            syncPhase1 = Long.valueOf(svtSyncPhaseColl.get(0).getPhase1().intValue());
+            cut0L = Long.valueOf(svtSyncPhaseColl.get(0).getCut0L().intValue());
+            cut0H = Long.valueOf(svtSyncPhaseColl.get(0).getCut0H().intValue());
+            cut1L = Long.valueOf(svtSyncPhaseColl.get(0).getCut1L().intValue());
+            cut1H = Long.valueOf(svtSyncPhaseColl.get(0).getCut1H().intValue());
+            trigPhase0 = syncPhase0%24;
+            trigPhase1 = syncPhase1%24;
+            System.out.println("[SvtEventFlagger] svt_readout_sync_phases found phase0: " + syncPhase0);
+        } catch (Exception e) {
+            svtSyncPhaseColl = null;
+            System.out.println("[SvtEventFlagger] svt_readout_sync_phases not found " + e);
         }
 
     }
@@ -321,6 +344,27 @@ public class SvtEventFlagger {
 
         return headerDataInfo;
 
+    }
+
+    public static int fillAPVbuffer(Vector<Long> readTimes, Vector<Long> readEvTimes, Long evT, Long trigSyncT) {
+        for (int ss = 0; ss < 6; ss++) {
+            if (ss > 0) {
+                readTimes.add(readTimes.get(readTimes.size()-1) + 3360);
+                readEvTimes.add(evT);
+            } else {
+                if (readTimes.size() == 0) {
+                    readTimes.add(trigSyncT);
+                    readEvTimes.add(evT);
+                } else if (readTimes.get(readTimes.size()-1) + 3360 > trigSyncT) {
+                    readTimes.add(readTimes.get(readTimes.size()-1) + 3360);
+                    readEvTimes.add(evT);
+                } else {
+                    readTimes.add(trigSyncT);
+                    readEvTimes.add(evT);
+                }
+            }
+        }
+        return readTimes.size();
     }
 
 }

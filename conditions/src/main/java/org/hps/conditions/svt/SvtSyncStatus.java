@@ -13,7 +13,7 @@ public final class SvtSyncStatus extends BaseConditionsObject {
 
     @Field(names = {"good"})
     public Boolean isGood() {
-        return this.getFieldValue(Boolean.class, "good");
+        return (this.getFieldValue(Integer.class, "good") > 0);
     }
 }
 
