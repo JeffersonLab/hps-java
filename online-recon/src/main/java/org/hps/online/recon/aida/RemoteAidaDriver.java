@@ -8,6 +8,7 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import hep.aida.IAnalysisFactory;
+import hep.aida.IDataPointSetFactory;
 import hep.aida.IHistogramFactory;
 import hep.aida.dev.IDevTree;
 import hep.aida.ref.BatchAnalysisFactory;
@@ -38,6 +39,7 @@ public abstract class RemoteAidaDriver extends Driver {
     protected IAnalysisFactory af = aida.analysisFactory();
     protected IDevTree tree = (IDevTree) aida.tree();
     protected IHistogramFactory hf = aida.analysisFactory().createHistogramFactory(tree);
+    protected IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(tree);
 
     private String remoteTreeBind = null;
 
