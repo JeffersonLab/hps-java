@@ -186,9 +186,9 @@ public class TrackClusterMatcher2019 {
                 //electron GBLTracks show x position bias at +5.5 mm. Offset
                 //accounted for below (IS THIS OKAY TO HARDCODE?)
                 if(charge < 0)
-                    dxoffset = 0.0; //-6.6;
+                    dxoffset = -6.6;
                 else
-                    dxoffset = 0.0; //1.75;
+                    dxoffset = 1.75;
             }
 
             //KFTracks
@@ -204,9 +204,9 @@ public class TrackClusterMatcher2019 {
                 tracky = ts_ecalPos[2];
                 trackz = ts_ecalPos[0];
                 if(charge < 0)
-                    dxoffset = 0.0; // -4.8; //KF ele tracks have x-position bias of -3.3 mm, hardcode offset + 3.3
+                    dxoffset = -4.8; //KF ele tracks have x-position bias of -3.3 mm, hardcode offset + 3.3
                 else
-                    dxoffset = 0.0; //1.85; //Similar case as above 
+                    dxoffset = 1.85; //Similar case as above 
             }
 
             //Track momentum magnitude
@@ -311,40 +311,6 @@ public class TrackClusterMatcher2019 {
             //trackClusterResidualsMap is a map of Tracks to the position residual of
             //each potential cluster match
             trackClusterResidualsMap.put(track, cluster_dr_Map);
-
-
-            /*
-            //In order to apply cluster corrections, clusters need to be assigned particle IDs. 
-            //For all clusters possibly matched with this track, assign particle ID based on track, and check that E/P ~1
-            ReconstructedParticle particle = new BaseReconstructedParticle();
-            particle.addTrack(track);
-            // Set the type of the particle. This is used to identify
-            // the tracking strategy used in finding the track associated with
-            // this particle.
-            ((BaseReconstructedParticle) particle).setType(track.getType());
-
-            // Derive the charge of the particle from the track.
-            ((BaseReconstructedParticle) particle).setCharge(charge);
-
-            // Extrapolate the particle ID from the track. Positively
-            // charged particles are assumed to be positrons and those
-            // with negative charges are assumed to be electrons.
-            if (particle.getCharge() > 0) {
-                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
-            } else if (particle.getCharge() < 0) {
-                ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
-            }
-
-            final int pid = particle.getParticleIDUsed().getPDG();
-            // propogate pid to the cluster:
-            if (Math.abs(pid) == 11) {
-                for(Map.Entry<Track,Map<Cluster,Double>> entry : trackClusterResidualsMap.entrySet()){ 
-                    Cluster clust = entry.getKey();
-                    ((BaseCluster) clust).setParticleId(pid);
-                }
-            }
-            */
-
 
         }
 
