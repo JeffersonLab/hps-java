@@ -59,7 +59,7 @@
         <driver name="ReconParticleDriver" />
 
         <!-- Create example histograms in remote AIDA tree -->
-        <driver name="RemoteHistExampleDriver"/>
+        <driver name="ExampleDriver"/>
 
         <!--<driver name="LCIOWriter"/>-->
 
@@ -68,7 +68,7 @@
     </execute>
     <drivers>
 
-        <driver name="RemoteHistExampleDriver" type="org.hps.online.recon.aida.HistExampleDriver">
+        <driver name="ExampleDriver" type="org.hps.online.recon.aida.ExampleDriver">
             <!-- AIDA tree bind provided using external variable -->
             <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>
         </driver>
