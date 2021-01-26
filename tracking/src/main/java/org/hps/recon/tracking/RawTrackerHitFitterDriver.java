@@ -42,7 +42,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean subtractTriggerTime = false;
     private boolean correctChanT0 = true;
     private boolean subtractRFTime = false;
-    private boolean syncGood = true;
+    private Boolean syncGood = true;
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
@@ -147,6 +147,7 @@ public class RawTrackerHitFitterDriver extends Driver {
         catch (Exception e) {
             syncGood = true;
             System.out.println("[RawTrackerHitFitterDriver] svt_sync_statuses was not found: " + e);
+            e.printStackTrace();
         }
 
     }
