@@ -46,6 +46,8 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
+    private double trigTimeOffset = 14.0;
+
     private double tsCorrectionScale = 240;
 
     /**
@@ -94,7 +96,11 @@ public class RawTrackerHitFitterDriver extends Driver {
     }
 
     public void setTrigTimeScale(double time) {
-        trigTimeScale = time;
+        this.trigTimeScale = time;
+    }
+
+    public void setTrigTimeOffset(double offset) {
+        this.trigTimeOffset = offset;
     }
 
     public void setFitAlgorithm(String fitAlgorithm) {
@@ -194,7 +200,7 @@ public class RawTrackerHitFitterDriver extends Driver {
                     fit.setT0(fit.getT0() - timingConstants.getOffsetTime());
                 }
                 if (subtractTriggerTime) {
-                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 14);
+                    double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - trigTimeOffset);
                     if (!syncGood) tt = tt - 8;
                     if (!syncGood && (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24)/8 < 1)) {
                         tt = tt + 24;
