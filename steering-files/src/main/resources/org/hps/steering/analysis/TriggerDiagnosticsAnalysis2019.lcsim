@@ -44,7 +44,6 @@
     
 
     <driver name="DAQConfig2019" type="org.hps.record.daqconfig2019.DAQConfig2019Driver">
-      <runNumber>${run}</runNumber>
     </driver>
 
 

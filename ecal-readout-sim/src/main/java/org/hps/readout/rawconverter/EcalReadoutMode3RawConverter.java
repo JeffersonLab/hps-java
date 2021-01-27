@@ -14,28 +14,31 @@ import org.lcsim.geometry.Detector;
  * supported.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Tongtong Cao <caot@jlab.org>
  * @see org.hps.readout.rawconverter.AbstractMode3RawConverter
  */
-public class EcalReadoutMode3RawConverter extends AbstractMode3RawConverter {
+public class EcalReadoutMode3RawConverter extends AbstractMode3RawConverter {        
     /**
      * Stores the calibrations and conditions for the calorimeter
      * subdetector.
      */
-    private EcalConditions ecalConditions = null;
-    
+    private EcalConditions ecalConditions = null;   
+        
     @Override
     public void updateDetector(Detector detector) {
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
+    }    
+    
+    @Override
+    protected double getGain(long cellID) {        
+        if(configEcal != null) return configEcal.getGain(cellID);
+        else return findChannel(cellID).getGain().getGain();
     }
     
     @Override
-    protected double getGain(long cellID) {
-        return findChannel(cellID).getGain().getGain();
-    }
-    
-    @Override
-    protected double getPedestal(long cellID) {
-        return findChannel(cellID).getCalibration().getPedestal();
+    protected double getPedestal(long cellID) {        
+        if(configEcal != null) return configEcal.getPedestal(cellID);
+        else return findChannel(cellID).getCalibration().getPedestal();
     }
     
     @Override
