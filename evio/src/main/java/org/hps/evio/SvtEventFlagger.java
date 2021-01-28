@@ -84,11 +84,6 @@ public class SvtEventFlagger {
                 readEvTimes1.remove(ri);
             }
         }
-        //System.out.format("evTime: %d\n", evTime);
-        //System.out.format("trigArrT: %d\n", trigArrT);
-        //System.out.format("trigSyncTime: %d\n", trigSyncTime);
-        //System.out.format("buffSize: %d\n", readTimes0.size());
-        //System.out.print("\n");
 
         // Add new reads to buffer from this trigger
         fillAPVbuffer(readTimes0, readEvTimes0, evTime, trigSyncTime0);
