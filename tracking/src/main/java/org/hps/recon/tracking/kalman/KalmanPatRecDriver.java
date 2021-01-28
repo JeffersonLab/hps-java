@@ -52,6 +52,7 @@ public class KalmanPatRecDriver extends Driver {
     private int nTracks;
     private int nEvents;
     private double executionTime;
+    private double maxTime;
     private double interfaceTime;
     private double plottingTime;
     private KalmanParams kPar;
@@ -144,6 +145,7 @@ public class KalmanPatRecDriver extends Driver {
         executionTime = 0.;
         interfaceTime = 0.;
         plottingTime = 0.;
+        maxTime = 0.;
         
         _materialManager = new MaterialSupervisor();
         _materialManager.buildModel(det);
@@ -350,6 +352,7 @@ public class KalmanPatRecDriver extends Driver {
         long endTime = System.nanoTime();
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
+        if (runTime > maxTime) maxTime = runTime;
         nEvents++;
         logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
@@ -469,14 +472,16 @@ public class KalmanPatRecDriver extends Driver {
                 executionTime, nEvents, nTracks);
         double evtTime = executionTime/(double)nEvents;
         double tkrTime = executionTime/(double)nTracks;
-        System.out.format("                              Kalman Patrec Time per event = %9.4f; Time per track = %9.4f\n", evtTime, tkrTime);
+        System.out.format("                              Kalman Patrec Time per event = %9.4f ms; Time per track = %9.4f ms\n", evtTime, tkrTime);
+        System.out.format("                              Kalman Patrec maximum time for one event = %10.4f ms\n", maxTime);
         evtTime = interfaceTime/(double)nEvents;
-        System.out.format("                              Kalman Interface Time per event = %9.4f\n", evtTime);
+        System.out.format("                              Kalman Interface Time per event = %9.4f ms\n", evtTime);
         if (kPlot != null) {
             kPlot.output();
             evtTime = plottingTime/(double)nEvents;
-            System.out.format("                              Kalman Plotting Time per event = %9.4f\n", evtTime);
+            System.out.format("                              Kalman Plotting Time per event = %9.4f ms\n", evtTime);
         }
+        KI.summary();
     }
     
     // Methods to set Kalman parameters from within the steering file

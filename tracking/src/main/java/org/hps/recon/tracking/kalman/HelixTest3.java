@@ -781,7 +781,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                             eCalPos.print("ECAL cluster position");
                             lastSite.aS.helix.print("helix at last layer");
                         }
-                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fM);
+                        double [] arcLength = new double[1];
+                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fM, arcLength);
                         if (MatrixFeatures_DDRM.hasNaN(helixAtEcal.C)) continue;
                         Vec intPnt = helixAtEcal.getRKintersection();
                         if (debug) {

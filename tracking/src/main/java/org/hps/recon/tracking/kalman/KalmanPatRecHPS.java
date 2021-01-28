@@ -1066,7 +1066,7 @@ class KalmanPatRecHPS {
             
             if (debug) System.out.format("KalmanPatRecHPS: Call the Kalman fit for track %d\n", tkr.ID);
             
-            boolean goodFit = tkr.fit(kPar.nIterations, debug);
+            boolean goodFit = tkr.fit(kPar.nIterations);
             if (goodFit) {
                 StateVector aS = tkr.SiteList.get(0).aS;
                 if (aS != null) {

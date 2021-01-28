@@ -57,7 +57,7 @@ class MeasurementSite {
         } else if (predicted) { 
             str=str+"    This site has been predicted\n"; 
         }
-        str=str+String.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, kPar.mxResid);
+        str=str+String.format("    Hit ID=%d, maximum residual=%10.5f\n", hitID, kPar.mxResid);
         str = str + m.toString("for this site");
         double B = KalmanInterface.getField(m.p.X(), m.Bfield).mag();
         Vec tB = KalmanInterface.getField(m.p.X(), m.Bfield).unitVec();
@@ -534,11 +534,11 @@ class MeasurementSite {
                 if (filter()) {
                     if (debug) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
                     if (chi2inc < cut) {
-                        //if (debug) {
-                        System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
-                        hit.print("short");
-                        System.out.format("\n");
-                        //}
+                        if (debug) {
+                            System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
+                            hit.print("short");
+                            System.out.format("\n");
+                        }
                         return m.hits.get(hitID);
                     } else {
                         hitID = -1;

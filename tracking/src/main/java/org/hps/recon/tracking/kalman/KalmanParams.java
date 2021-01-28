@@ -52,11 +52,12 @@ public class KalmanParams {
         System.out.format("\nKalmanParams: dump of the Kalman pattern recognition cuts and parameters\n");
         System.out.println("  (In the case of two values, they refer to the two iterations.)");
         System.out.format("  There are %d layers in the tracker.\n", numLayers);
-        System.out.format("  Cluster energy cuts by layer: ");
+        System.out.format("  Cluster energy cuts for seeds, by layer: ");
         for (int lyr=0; lyr<numLayers; ++lyr) {
             System.out.format(" %6.2f", minSeedE[lyr]);
         }
         System.out.format("\n");
+        System.out.format("  Residual improvement ratio necessary to use a low-ph hit instead of high-ph = %8.2f\n", lowPhThresh);
         System.out.format("  First layer in the tracking system: %d\n", firstLayer);
         System.out.format("  Number of global iterations: %d\n", nTrials);
         System.out.format("  Number of Kalman filter iterations per track in the final fits: %d\n", nIterations);

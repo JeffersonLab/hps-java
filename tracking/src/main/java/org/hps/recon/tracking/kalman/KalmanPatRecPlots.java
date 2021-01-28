@@ -139,6 +139,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman number of wrong hits on track",12,0.,12.);
         aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits", 12, 0., 12.);
         aida.histogram1D("GBL track number MC particles",10,0.,10.);
+        aida.histogram1D("Kalman arc length to first measurement",100,0.,200.);
         aida.histogram1D("GBL number of wrong hits on track",12,0.,12.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
         aida.histogram1D("Kalman track number of shared hits", 10, 0., 10.);
@@ -349,7 +350,8 @@ class KalmanPatRecPlots {
                         ArrayList<Double> XLscat = new ArrayList<Double>();
                         //eCalPos.print("ECAL cluster position");
                         //lastSite.aS.helix.print("helix at last layer");
-                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm);
+                        double [] arcLength = new double[1];
+                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm, arcLength);
                         if (MatrixFeatures_DDRM.hasNaN(helixAtEcal.C)) continue;
                         Vec intPnt = helixAtEcal.getRKintersection();
                         //helixAtEcal.print("helix at ECAL cluster");
@@ -383,6 +385,7 @@ class KalmanPatRecPlots {
                     aida.histogram1D("Kalman Track simple Chi2, >=12 hits").fill(kTk.chi2prime());
                 }
                 aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
+                aida.histogram1D("Kalman arc length to first measurement").fill(kTk.originArcLength());
                 double[] momentum = kTk.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
                 switch (kTk.nHits) {
@@ -462,16 +465,17 @@ class KalmanPatRecPlots {
                                 aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
                             }      
                             Pair<Double, Double> residPr = kTk.unbiasedResidual(site.m.Layer);
-                            if (residPr.getSecondElement() > -999.) {
+                            if (residPr.getSecondElement() > -999. && kTk.nHits >= 10) {
                                 double variance = residPr.getSecondElement();
-                                double sigma = Math.sqrt(variance);
-                                double unbResid = residPr.getFirstElement();
-                                aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
-                                aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
-                                if (variance < 0.) {
+                                if (variance <= 0.) {
                                     numBadCov++;
                                 //    System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", 
                                 //                        event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);
+                                } else {
+                                    double sigma = Math.sqrt(variance);
+                                    double unbResid = residPr.getFirstElement();
+                                    aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
+                                    aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
                                 }
                             }
                             TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));

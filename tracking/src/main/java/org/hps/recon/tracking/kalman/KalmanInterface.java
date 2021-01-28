@@ -74,6 +74,8 @@ public class KalmanInterface {
     private static boolean uniformB;
     private static DMatrixRMaj tempM;
     private static DMatrixRMaj Ft;
+    private int maxHits;
+    private int nBigEvents;
     
     private static final boolean debug = false;    
     private static final double SVTcenter = 505.57;
@@ -153,6 +155,8 @@ public class KalmanInterface {
         this.kPar = kPar;
         logger = Logger.getLogger(KalmanInterface.class.getName());
         logger.info("Entering the KalmanInterface constructor");
+        maxHits = 0;
+        nBigEvents = 0;
         
         tempM = new DMatrixRMaj(5,5);
         Ft = new DMatrixRMaj(5,5);
@@ -203,6 +207,12 @@ public class KalmanInterface {
         Vec centerB = KalmanInterface.getField(new Vec(0., SVTcenter, 0.), fM);
         double conFac = 1.0e12 / c;
         alphaCenter = conFac/ centerB.mag();
+    }
+    
+    public void summary() {
+        System.out.format("KalmanInterface::summary: number of events with > 200 hits=%d.\n", nBigEvents);
+        System.out.format("                          Maximum event size = %d strip hits.\n", maxHits);
+        System.out.format("                          Events with > %d hits were not processed.\n", _siHitsLimit);
     }
 
     // Return the reference to the parameter setting code for the driver to use
@@ -441,7 +451,7 @@ public class KalmanInterface {
             
             // rms projected scattering angle
             double ctSensor = pDir.dot(site.m.p.T());
-            double XL = Math.abs(site.radLen/ctSensor);
+            double XL = Math.abs(site.m.thickness/site.radLen/ctSensor);
             clstr.setScatterAngle(HelixState.projMSangle(momentum.mag(), XL));
             
             rtnList.add(clstr);
@@ -822,10 +832,14 @@ public class KalmanInterface {
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
         
+        if (striphits.size() > maxHits) maxHits = striphits.size(); 
+        if (striphits.size() > 200) nBigEvents++;
         if (_siHitsLimit > 0 && striphits.size() > _siHitsLimit) {
             System.out.format("KalmanInterface::Skip event %d with %s %d hits > %d\n", event.getEventNumber(), 
                     stripHitInputCollectionName, striphits.size(), _siHitsLimit);
             return false;
+        } else if (striphits.size() > 500) {
+            System.out.format("KalmanInterface::fillAllMeasurements: event %d has > 500 hits!\n", event.getEventNumber());
         }
 
         // Make a mapping from sensor to hits
@@ -912,7 +926,12 @@ public class KalmanInterface {
                 
                 double umeas = localHit.getPosition()[0];
                 double du = FastMath.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
-                double time = localHit.getTime();
+                double time = localHit.getTime(); 
+                if (debug) {
+                    int nstrp = localHit.getRawHits().size();
+                    System.out.format("%d %d u = %9.4f +- %9.4f    cov=%10.4e, %10.4e, %10.4e\n", module.Layer, nstrp, umeas, du, localHit.getCovarianceAsMatrix().e(0,0), 
+                            localHit.getCovarianceAsMatrix().e(1,0), localHit.getCovarianceAsMatrix().e(1,1));
+                }
 
                 // If HPS measured coordinate axis is opposite to Kalman measured coordinate axis
                 // This really should not happen, as the Kalman axis is copied directly from the hps geometry.
