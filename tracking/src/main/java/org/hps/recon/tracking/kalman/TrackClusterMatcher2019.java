@@ -113,34 +113,29 @@ public class TrackClusterMatcher2019 {
         }
     }
 
-    public void plotCorrectedClusterValues(List<Cluster> clusters, double trackClusterTimeOffset){
-        for(Cluster cluster : clusters) {
-            double clusterEnergy = cluster.getEnergy();
-            double cluster_time = ClusterUtilities.getSeedHitTime(cluster);
-            plots1D.get(String.format("%s_corrected_cluster_energy",trackCollectionName)).fill(clusterEnergy);
-        }
-    }
     public Map<Track,Cluster> trackClusterMatcher(List<Track> tracks, EventHeader event,  String trackCollectionName, List<Cluster> clusters, double trackClusterTimeOffset)  {
 
-        //Input collection of Tracks, with trackCollectionName, and collection
-        //of Ecal Clusters
-        //Method matches unique Ecal clusters to Tracks based on closest
-        //distance, within a specific time window
-        //Output is a map between Tracks and matched Cluster
-        //If no cluster is matched to a Track, Map contains Track + Null
-        //cluster
+        //This method take as input a collection of Tracks, with track type
+        //(GBL or KF) specified, EcalClusters, and the track-cluster time
+        //offset
+        //Tracks will be uniquely matched to the closest Ecal Cluster, if that
+        //Track+Cluster pair is in time, and within hard-coded position
+        //residual cuts
+        //
+        //If no cluster is matched to a Track, returns a null match to Track
+        //
+        //Method returns a Map of Tracks and matched Ecal Clusters
 
         //Map of position residuals between all track+cluster combinations
-        System.out.println("Tracks passed to matcher: " + tracks.size());
-        System.out.println("Clusters passed to matcher: " + clusters.size());
         if(tracks == null || tracks.isEmpty() || clusters == null || clusters.isEmpty()){
             return null;
         }
 
         Map<Track, Map<Cluster, Double>> trackClusterResidualsMap = new HashMap<Track, Map<Cluster, Double>>(); 
 
-        //Relation Table required to retrieve kalman track time through
-        //TrackData class
+        //If Kalman Tracks
+        //Relational Table is used to get KF track time from
+        //KFTrackDataRelations
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         List<TrackData> TrackData;
@@ -157,26 +152,30 @@ public class TrackClusterMatcher2019 {
             }
         }
 
-        //Cluster Plots
+        //Plot Cluster Energy
         if(enablePlots)
             plotClusterValues(clusters, trackClusterTimeOffset);
 
+        //Loop over Tracks
         for(Track track : tracks) {
 
-            //charge sign must be flipped by factor of -1 (WHY!?)
+            //I've found that I need to multiply the charge by -1, but I don't
+            //know why --alic
             int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
+
+            //Track time includes a hard-coded offset
             double trackt;
             double tracktOffset = 3.5; //Track time distribution is centered on -4ns, added offset to center ~0
 
+            //Track positions
             double trackx;
             double tracky;
             double trackz;
             double dxoffset; //Track x-position at Ecal distriution not centered on 0. Offset varies depending on charge
 
-            //Track parameters that are useful for implementing cuts on
-            //potential cluster matches
             double tanlambda = track.getTrackParameter(4);
 
+            //Get Track position for GBL Tracks
             if (trackCollectionName.contains("GBLTracks")){
                 trackt = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
                 trackx = TrackUtils.getTrackStateAtECal(track).getReferencePoint()[1]; 
@@ -191,14 +190,13 @@ public class TrackClusterMatcher2019 {
                     dxoffset = 1.75;
             }
 
-            //KFTracks
+            //Get Track position for KF Tracks
             else {
                 trackdata = (TrackData) trackToData.from(track);
                 trackt = trackdata.getTrackTime();
                 //KF TrackState at ecal stored as the last TrackState in
                 //KalmanInterface.java
-                TrackState ts_ecal = track.getTrackStates().get(track.getTrackStates().size()-1); //Be careful about the coordinate frame used for this track state. It is different between current master and pass1-dev-fix branches.
-                //trackP = track.getTrackStates().get(0).getMomentum(); 
+                TrackState ts_ecal = track.getTrackStates().get(track.getTrackStates().size()-1); 
                 double[] ts_ecalPos = ts_ecal.getReferencePoint();
                 trackx = ts_ecalPos[1];
                 tracky = ts_ecalPos[2];
@@ -242,14 +240,13 @@ public class TrackClusterMatcher2019 {
             Cluster matchedCluster = null;
 
             //define time and position cuts for Track-Cluster matching,
-            //determined by distributions
-            double smallestdt = Double.MAX_VALUE;
-            double smallestdr = Double.MAX_VALUE;
             double tcut = 4.0;
             double xcut = 10.0;
             double ycut = 10.0;
 
             //Loop over all clusters, looking for best match to current track
+            double smallestdt = Double.MAX_VALUE;
+            double smallestdr = Double.MAX_VALUE;
             for(Cluster cluster : clusters) {
                 double clusterEnergy = cluster.getEnergy();
                 double cluster_time = ClusterUtilities.getSeedHitTime(cluster);
@@ -263,7 +260,7 @@ public class TrackClusterMatcher2019 {
                 double dz = clusterz - trackz;
                 double dr = Math.sqrt(Math.pow(clusterx-trackx,2) + Math.pow(clustery-tracky,2));
 
-                //Ecal fiducial cuts
+                //Ecal fiduciary cuts
                 if(clusterx < 0 && charge > 0)
                     continue;
                 if(clusterx > 0 && charge < 0)
@@ -308,23 +305,18 @@ public class TrackClusterMatcher2019 {
 
             }
 
-            //trackClusterResidualsMap is a map of Tracks to the position residual of
-            //each potential cluster match
+            //Position residual between Track and each potential Cluster is
+            //stored in a map so that best match can be chosen
             trackClusterResidualsMap.put(track, cluster_dr_Map);
-
         }
 
-        //Given the mapping between all Tracks, and all potential cluster
-        //matches, match Tracks to the Clusters that are closest in position
-        //Algorithm checks for clusters matched to multiple Tracks, and sorts
-        //them until only unique matches exist
+        //Match Track to the closest Ecal Cluster
+        //Check for Clusters that are matched to multiple Tracks, and sort
+        //until only unique matches remain
 
         //minTrackClusterResidualMap maps Track to the Cluster with the smallest dr
         Map<Track,Cluster> minTrackClusterResidualMap = new HashMap<Track, Cluster>();
 
-        //check map for the same Cluster being matched to multiple Tracks
-        //If found, keep Track-Cluster match with smallest dr
-        //Repeat matching process
         for(int i=0; i < clusters.size(); i++){
             minTrackClusterResidualMap = getMinTrackClusterResidualMap(trackClusterResidualsMap);
             trackClusterResidualsMap = checkDuplicateClusterMatching(trackClusterResidualsMap,minTrackClusterResidualMap);
