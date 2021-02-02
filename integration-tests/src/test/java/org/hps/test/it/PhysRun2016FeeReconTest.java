@@ -25,7 +25,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
     static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_007796_feeskim.evio";
     static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
-    static final String steeringFileName = "/org/hps/steering/recon/PhysicsRun2016FullRecon.lcsim";
+    static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
     private final int nEvents = 5000;
     private String aidaOutputFile = "target/test-output/PhysRun2016FeeReconTest/PhysRun2016FeeReconTest";
 
@@ -79,7 +79,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
         String[] histoNames = ref.listObjectNames();
         String[] histoTypes = ref.listObjectTypes();
         System.out.println("comparing " + histoNames.length + " managed objects");
-        double tolerance = 1E-4;
+        double tolerance = 5E-3;
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
             if (histoTypes[i].equals("IHistogram1D")) {
