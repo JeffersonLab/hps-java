@@ -500,7 +500,9 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
                 //before calculating nsigma.  Default is don't use corrections.  
                 Cluster originalCluster = cluster;
                 if(useCorrectedClusterPositionsForMatching){
-                    cluster = new BaseCluster(cluster);
+                    BaseCluster clusterBase = new BaseCluster(cluster);
+                    clusterBase.setNeedsPropertyCalculation(false);
+                    cluster = clusterBase;
                     double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
                     ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
                 }

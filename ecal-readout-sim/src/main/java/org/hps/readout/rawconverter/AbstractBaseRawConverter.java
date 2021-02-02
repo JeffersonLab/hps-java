@@ -1,6 +1,8 @@
 package org.hps.readout.rawconverter;
 
 import org.hps.recon.ecal.EcalUtils;
+import org.hps.record.daqconfig2019.FADCConfigEcal2019;
+import org.hps.record.daqconfig2019.FADCConfigHodo2019;
 import org.lcsim.geometry.Detector;
 
 /**
@@ -36,6 +38,16 @@ public abstract class AbstractBaseRawConverter {
     private int nsa = Integer.MIN_VALUE;
     
     /**
+     * The 2019 DAQ Ecal FADC parameters.
+     */
+    protected FADCConfigEcal2019 configEcal = null;
+    
+    /**
+     * The 2019 DAQ Hodo FADC parameters.
+     */
+    protected FADCConfigHodo2019 configHodo = null;
+    
+    /**
      * Factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
      * For Ecal, unit of hit energy is GeV, so the factor = <code>EcalUtils.MeV</code>.
      * For hodo, unit of hit energy is self-defined for hodo FADC hits. 
@@ -69,7 +81,7 @@ public abstract class AbstractBaseRawConverter {
         }
         return nsb;
     }
-    
+        
     /**
      * Gets factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
      * @return Returns factor of unit conversion for returned value of the method <code>adcToEnergy()</code>.
@@ -106,6 +118,22 @@ public abstract class AbstractBaseRawConverter {
             throw new IllegalArgumentException("NSB must be a multiple of " + NS_PER_SAMPLE + "ns and non-negative.");
         }
         this.nsb = nsb;
+    }
+    
+    /**
+     * Sets 2019 DAQ Ecal FADC config
+     * @param config
+     */
+    public final void setFADCConfigEcal2019(FADCConfigEcal2019 config) {
+        configEcal = config;
+    }
+    
+    /**
+     * Sets 2019 DAQ Hodo FADC config
+     * @param config
+     */
+    public final void setFADCConfigHodo2019(FADCConfigHodo2019 config) {
+        configHodo = config;
     }
     
     /**
