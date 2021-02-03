@@ -12,18 +12,12 @@ import java.util.Set;
 import org.apache.commons.math3.special.Gamma;
 
 import org.hps.readout.svt.HPSSVTConstants;
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-//===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author Matt Graham
- */
-// TODO: Add class documentation.
 public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
     private static String _NAME = "NearestNeighborRMS";
@@ -102,27 +96,26 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
     }
 
     /**
-     * Find clusters using the nearest neighbor algorithm.
+     * Use a nearest neighbor algorithm to create clusters. 
      *
-     * @param base_hits List of RawTrackerHits to be clustered
-     * @return list of clusters, with a cluster being a list of RawTrackerHits
+     * @param fittedHits Collection of fitted raw tracker hits to cluster.
+     * @return Collection of fitted hits
      */
     @Override
-    public List<List<FittedRawTrackerHit>> findClusters(List<FittedRawTrackerHit> base_hits) {
+    public List<List<LCRelation>> findClusters(List<LCRelation> fittedHits) {
 
-        // Check that the seed threshold is at least as large as the neighbor threshold
+        // Check that the seed threshold is at least as large as the neighbor 
+        // threshold
         if (_seed_threshold < _neighbor_threshold) {
             throw new RuntimeException("Tracker hit clustering error: seed threshold below neighbor threshold");
         }
 
-        // Create maps that show the channel status and relate the channel number to the raw hit
-        // and vice versa
-        int mapsize = 2 * base_hits.size();
-//        Map<Integer, Boolean> clusterable = new HashMap<Integer, Boolean>(mapsize);
+        // Create maps that show the channel status and relate the channel 
+        // number to the raw hit and vice versa
+        int mapsize = 2 * fittedHits.size();
         Set<Integer> clusterableSet = new HashSet<Integer>(mapsize);
 
-//        Map<FittedRawTrackerHit, Integer> hit_to_channel = new HashMap<FittedRawTrackerHit, Integer>(mapsize);
-        Map<Integer, FittedRawTrackerHit> channel_to_hit = new HashMap<Integer, FittedRawTrackerHit>(mapsize);
+        Map<Integer, LCRelation> channel_to_hit = new HashMap<Integer, LCRelation>(mapsize);
 
         // Create list of channel numbers to be used as cluster seeds
         List<Integer> cluster_seeds = new ArrayList<Integer>();
@@ -130,79 +123,59 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
         // Loop over the raw hits and construct the maps used to relate cells and hits, initialize
         // the
         // clustering status map, and create a list of possible cluster seeds
-        for (FittedRawTrackerHit base_hit : base_hits) {
+        for (LCRelation fittedHit : fittedHits) {
 
-            RawTrackerHit rth = base_hit.getRawTrackerHit();
+            RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(fittedHit); 
+            
             // get the channel number for this hit
-            SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rth.getIdentifierHelper();
-            IIdentifier id = rth.getIdentifier();
+            SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
+            IIdentifier id = rawHit.getIdentifier();
             int channel_number = sid_helper.getElectrodeValue(id);
 
-//            // Check for duplicate RawTrackerHit
-//            if (hit_to_channel.containsKey(base_hit)) {
-//                throw new RuntimeException("Duplicate hit: " + id.toString());
-//            }
             // Check for duplicate RawTrackerHits or channel numbers
             if (channel_to_hit.containsKey(channel_number)) {
-                // throw new RuntimeException("Duplicate channel number: "+channel_number);
-//                System.out.println("Duplicate channel number: " + channel_number);
-                //if the hit currently in the map has smaller time, use it and discard the new hit
                 //TODO: be smarter about this
-                if (Math.abs(((FittedRawTrackerHit) channel_to_hit.get(channel_number)).getT0()) < Math.abs(base_hit.getT0())) {
+                if (Math.abs(FittedRawTrackerHit.getT0(channel_to_hit.get(channel_number))) 
+                        < Math.abs(FittedRawTrackerHit.getT0(fittedHit))) {
                     continue;
                 }
             }
 
             // Add this hit to the maps that relate channels and hits
-//            hit_to_channel.put(base_hit, channel_number);
-            channel_to_hit.put(channel_number, base_hit);
+            channel_to_hit.put(channel_number, fittedHit);
 
             // Get the signal from the readout chip
-            double signal = base_hit.getAmp();
+            double signal = FittedRawTrackerHit.getAmp(fittedHit); 
             double noiseRMS = 0; 
             for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
-                noiseRMS += ((HpsSiSensor) rth.getDetectorElement()).getNoise(channel_number, sampleN);
+                noiseRMS += ((HpsSiSensor) rawHit.getDetectorElement()).getNoise(channel_number, sampleN);
             }
             noiseRMS = noiseRMS/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
             
-            //===> double noiseRMS = HPSSVTCalibrationConstants.getNoise((SiSensor) rth.getDetectorElement(), channel_number);
-            
-            
             // Mark this hit as available for clustering if it is above the neighbor threshold
-            if (signal / noiseRMS >= _neighbor_threshold && passChisqCut(base_hit)) {
+            if (signal / noiseRMS >= _neighbor_threshold && passChisqCut(fittedHit)) {
                 clusterableSet.add(channel_number);
             }
 
             // Add this hit to the list of seeds if it is above the seed threshold
-            if (signal / noiseRMS >= _seed_threshold && passTimingCut(base_hit) && passChisqCut(base_hit)) {
+            if (signal / noiseRMS >= _seed_threshold && passTimingCut(fittedHit) && passChisqCut(fittedHit)) {
                 cluster_seeds.add(channel_number);
             }
         }
 
-//        System.out.println("Hits to be clustered:");
-//        for (int i = 0; i < 639; i++) {
-//            FittedRawTrackerHit base_hit = channel_to_hit.get(i);
-//            if (base_hit != null) {
-//                System.out.format("channel %d\tt0 %f\t amp %f\n", i, base_hit.getT0(), base_hit.getAmp());
-//            }
-//        }
-
         // Create a list of clusters
-        List<List<FittedRawTrackerHit>> cluster_list = new ArrayList<List<FittedRawTrackerHit>>();
+        // TODO: Create a cluster class instead 
+        List<List<LCRelation>> cluster_list = new ArrayList<List<LCRelation>>();
 
         // Now loop over the cluster seeds to form clusters
         for (int seed_channel : cluster_seeds) {
 
-            // First check if this hit is still available for clustering
-//            if (!clusterable.get(seed_channel)) {
-//                continue;
-//            }
             if (!clusterableSet.contains(seed_channel)) {
                 continue;
             }
 
             // Create a new cluster
-            List<FittedRawTrackerHit> cluster = new ArrayList<FittedRawTrackerHit>();
+            List<LCRelation> cluster = new ArrayList<LCRelation>();
             double cluster_signal = 0.;
             double cluster_noise_squared = 0.;
             double cluster_weighted_time = 0.;
@@ -212,7 +185,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
             // Add the seed channel to the unchecked list and mark it as unavailable for clustering
             unchecked.addLast(seed_channel);
-//            clusterable.put(seed_channel, false);
             clusterableSet.remove(seed_channel);
 
             // Check the neighbors of channels added to the cluster
@@ -221,20 +193,15 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
                 // Pull the next channel off the queue and add it's hit to the cluster
                 int clustered_cell = unchecked.removeFirst();
                 cluster.add(channel_to_hit.get(clustered_cell));
-                FittedRawTrackerHit hit = channel_to_hit.get(clustered_cell);
-                cluster_signal += hit.getAmp();
+                LCRelation hit = channel_to_hit.get(clustered_cell);
+                cluster_signal += FittedRawTrackerHit.getAmp(hit);
                 double strip_noise = 0; 
                 for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
-                    strip_noise += ((HpsSiSensor) hit.getRawTrackerHit().getDetectorElement()).getNoise(clustered_cell, sampleN);
+                    strip_noise += ((HpsSiSensor) FittedRawTrackerHit.getRawTrackerHit(hit).getDetectorElement()).getNoise(clustered_cell, sampleN);
                 }
                 strip_noise = strip_noise/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
                 cluster_noise_squared += Math.pow(strip_noise, 2); 
-                //===> cluster_noise_squared += Math.pow(HPSSVTCalibrationConstants.getNoise((SiSensor) hit.getRawTrackerHit().getDetectorElement(), clustered_cell), 2);
-                cluster_weighted_time += hit.getT0() * hit.getAmp();
-                // cluster_noise_squared +=0; //need to get the noise from the calib. const. class
-                // Get the neigbor channels
-                // Set<Integer> neighbor_channels =
-                // electrodes.getNearestNeighborCells(clustered_cell);
+                cluster_weighted_time += FittedRawTrackerHit.getT0(hit) * FittedRawTrackerHit.getAmp(hit);
                 Collection<Integer> neighbor_channels = getNearestNeighborCells(clustered_cell);
 
                 // Now loop over the neighbors and see if we can add them to the cluster
@@ -245,9 +212,8 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
                         continue;
                     }
 
-                    FittedRawTrackerHit neighbor_hit = channel_to_hit.get(channel);
-                    if (Math.abs(neighbor_hit.getT0() - cluster_weighted_time / cluster_signal) > _neighborDeltaT) {
-//                        System.out.format("new hit t0 %f, cluster t0 %f\n", neighbor_hit.getT0(), cluster_weighted_time / cluster_signal);
+                    LCRelation neighbor_hit = channel_to_hit.get(channel);
+                    if (Math.abs(FittedRawTrackerHit.getT0(neighbor_hit) - cluster_weighted_time / cluster_signal) > _neighborDeltaT) {
                         continue;
                     }
 
@@ -267,33 +233,19 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
         } // End of loop over seeds
 
-//        for (List<FittedRawTrackerHit> cluster : cluster_list) {
-//            System.out.format("cluster with %d hits\n",cluster.size());
-//            for (FittedRawTrackerHit base_hit : cluster) {
-//                System.out.format("channel %d\tt0 %f\t amp %f\n", base_hit.getRawTrackerHit().getIdentifierFieldValue("strip"), base_hit.getT0(), base_hit.getAmp());
-//            }
-//        }
         // Finished finding clusters
         return cluster_list;
     }
 
-    private boolean passTimingCut(FittedRawTrackerHit hit) {
-        double time = hit.getT0();
+    private boolean passTimingCut(LCRelation fittedHit) {
+        double time = FittedRawTrackerHit.getT0(fittedHit);
         return (Math.abs(time - _meanTime) < _timeWindow);
     }
 
-    private boolean passChisqCut(FittedRawTrackerHit hit) {
-        return hit.getShapeFitParameters().getChiProb() > _minChiProb;
+    private boolean passChisqCut(LCRelation fittedHit) {
+        return FittedRawTrackerHit.getChi2Prob(fittedHit) > _minChiProb; 
     }
 
-//    public int getNeighborCell(int cell, int ncells_0, int ncells_1) {
-//        int neighbor_cell = cell + ncells_0;
-//        if (isValidCell(neighbor_cell)) {
-//            return neighbor_cell;
-//        } else {
-//            return -1;
-//        }
-//    }
     public Collection<Integer> getNearestNeighborCells(int cell) {
         Collection<Integer> neighbors = new ArrayList<Integer>(2);
         for (int ineigh = -1; ineigh <= 1; ineigh = ineigh + 2) {

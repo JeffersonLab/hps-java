@@ -55,6 +55,10 @@ public class ReconClusterDriver extends ClusterDriver {
         getClusterer().getCuts().setValue("minTime", minTime);
     }
     
+    public void setMaxTime(double maxTime) {
+        getClusterer().getCuts().setValue("maxTime", maxTime);
+    }
+    
     public void setTimeWindow(double timeWindow) {
         getClusterer().getCuts().setValue("timeWindow", timeWindow);
     }
