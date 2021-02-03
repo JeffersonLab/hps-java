@@ -801,7 +801,9 @@ public abstract class ReconParticleDriver extends Driver {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
 
-                Cluster matchedCluster = matchedTrackClusterMap.get(track);
+                Cluster matchedCluster = null;
+                if(matchedTrackClusterMap != null)
+                    matchedCluster = matchedTrackClusterMap.get(track);
 
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
