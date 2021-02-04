@@ -163,19 +163,33 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         //plots2D.put(String.format("ecal_crystal_acceptance_xy"), histogramFactory.createHistogram2D(String.format("ecal_crystal_acceptance_xy"),50, -280, 370, 18, -110, 124));
 
         if(truthComparisons == true){
+//SCORING PLANE PLOTS
             //Plots showing residuals between track at Ecal and truth-matched
             //scoring plane hit that has been extrapolated to the Ecal
-            plots1D.put(String.format("%s_ele_track_v_truth_atEcal_dx",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_v_truth_atEcal_dx",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_ele_track_v_truth_atEcal_dy",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_v_truth_atEcal_dy",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_ele_track_v_truth_atEcal_dz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_v_truth_atEcal_dz",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_ele_track_v_truth_atEcal_dr",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_v_truth_atEcal_dr",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_ele_track_v_truth_atEcal_dt",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_v_truth_atEcal_dt",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_ele_track_scoringplane_dx",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_dx",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_ele_track_scoringplane_dy",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_dy",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_ele_track_scoringplane_dz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_dz",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_ele_track_scoringplane_dr",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_dr",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_ele_track_scoringplane_dt",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_dt",this.trackCollectionName), 200, -200, 200));
 
-            plots1D.put(String.format("%s_pos_track_v_truth_atEcal_dx",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_v_truth_atEcal_dx",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_pos_track_v_truth_atEcal_dy",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_v_truth_atEcal_dy",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_pos_track_v_truth_atEcal_dz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_v_truth_atEcal_dz",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_pos_track_v_truth_atEcal_dr",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_v_truth_atEcal_dr",this.trackCollectionName), 200, -200, 200));
-            plots1D.put(String.format("%s_pos_track_v_truth_atEcal_dt",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_v_truth_atEcal_dt",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_pos_track_scoringplane_dx",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_dx",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_pos_track_scoringplane_dy",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_dy",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_pos_track_scoringplane_dz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_dz",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_pos_track_scoringplane_dr",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_dr",this.trackCollectionName), 200, -200, 200));
+            plots1D.put(String.format("%s_pos_track_scoringplane_dt",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_dt",this.trackCollectionName), 200, -200, 200));
+
+                //scoringplane momentum components
+            plots1D.put(String.format("%s_ele_track_scoringplane_px",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_px",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_ele_track_scoringplane_py",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_py",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_ele_track_scoringplane_pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_scoringplane_pz",this.trackCollectionName), 320, -4, 4));
+
+            plots1D.put(String.format("%s_pos_track_scoringplane_px",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_px",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_pos_track_scoringplane_py",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_py",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_pos_track_scoringplane_pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_scoringplane_pz",this.trackCollectionName), 320, -4, 4));
+                //track v scoringplane momentum
+            plots2D.put(String.format("%s_ele_truth_track_v_scoringplane_p",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_v_scoringplane_p",this.trackCollectionName),320, -4, 4, 320, -4, 4));
+            plots2D.put(String.format("%s_pos_truth_track_v_scoringplane_p",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_v_scoringplane_p",this.trackCollectionName),320, -4, 4, 320, -4, 4));
+
 
 
 
@@ -211,13 +225,26 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots1D.put(String.format("%s_ele_Efficiency",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_Efficiency",this.trackCollectionName), 10, 0, 10));
             plots1D.put(String.format("%s_pos_Efficiency",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_Efficiency",this.trackCollectionName), 10, 0, 10));
 
+
+//TRUTH MATCHED TRACKS WITH MCPARTICLES
+
+            plots2D.put(String.format("%s_ele_truth_track_v_mcp_momentum",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_v_mcp_momentum",this.trackCollectionName),320, -4, 4, 320, -4, 4));
+            plots2D.put(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName),320, -4, 4, 320, -4, 4));
+
 //PLOTS FOR TRUTH TRACK CLUSTER PAIRS WITH DIFFERENT ACCEPTANCES
 
             //TRUTH TRACK CLUSTER PAIRS
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_momentum",this.trackCollectionName), 160, 0, 4));
+                //momentum
             plots1D.put(String.format("%s_pos_truth_track_cluster_pair_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_momentum",this.trackCollectionName), 160, 0, 4));
-            plots1D.put(String.format("%s_pos_truth_track_cluster_pair_Pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_Pz",this.trackCollectionName), 320, -4, 4));
-            plots1D.put(String.format("%s_ele_truth_track_cluster_pair_Pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_Pz",this.trackCollectionName), 320, -4, 4));
+
+            plots1D.put(String.format("%s_pos_truth_track_cluster_pair_px",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_px",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_pos_truth_track_cluster_pair_py",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_py",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_pos_truth_track_cluster_pair_pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_pz",this.trackCollectionName), 320, -4, 4));
+
+            plots1D.put(String.format("%s_ele_truth_track_cluster_pair_px",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_px",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_ele_truth_track_cluster_pair_py",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_py",this.trackCollectionName), 320, -4, 4));
+            plots1D.put(String.format("%s_ele_truth_track_cluster_pair_pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_pz",this.trackCollectionName), 320, -4, 4));
 
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_dx",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_dx",trackCollectionName),  800, -200, 200));
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_dy",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_dy",trackCollectionName),  800, -200, 200));
@@ -597,7 +624,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
                 //be careful about this -1...Is it always going to be correct?
                 //Check "flipsign" in ReconParticleDriver.java
-                double[] trackP = track.getMomentum();
+                //double[] trackP = track.getMomentum();
+                
+                double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
                 double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
                 double[] trackPfinal = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
                 double[] trackPinitial = track.getTrackStates().get(0).getMomentum();
@@ -627,6 +656,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 MCParticle trackMCP =  newgetTrackMCP(event,track,this.trackCollectionName, true);
                 if(trackMCP == null)
                     continue;
+                SimTrackerHit scoringplanehit = getTrackScoringPlaneHit(event, track, trackMCP, ecalScoringPlaneHitsCollectionName);
+                if(scoringplanehit != null)
+                    trackScoringPlanePlots(event, track, scoringplaneHit);
 
 
                 //ONLY TRACKS THAT ARE TRUTH MATCHED TO MCPARTICLE PERSIST
@@ -641,11 +673,14 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                     plots1D.get(String.format("%s_ele_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
                     plots1D.get(String.format("%s_ele_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
                     plots2D.get(String.format("%s_ele_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+
+                    plots2D.get(String.format("%s_ele_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
                 }
                 else{
                     plots1D.get(String.format("%s_pos_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
                     plots1D.get(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
                     plots2D.get(String.format("%s_pos_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+                    plots2D.get(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
 
                 }
 
@@ -680,7 +715,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 if(charge < 0){
                     NtruthEleClustPairs = NtruthEleClustPairs + 1;
                     plots1D.get(String.format("%s_ele_truth_track_cluster_pair_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_Pz",this.trackCollectionName)).fill(trackP[2]);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_px",this.trackCollectionName)).fill(trackP[2]);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_py",this.trackCollectionName)).fill(trackP[0]);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_pz",this.trackCollectionName)).fill(trackP[1]);
                     plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dx",trackCollectionName)).fill(clusterx - trackx);
                     plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dy",trackCollectionName)).fill(clustery - tracky);
                     plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dz",trackCollectionName)).fill(clusterz - trackz);
@@ -694,7 +731,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 if(charge > 0){
                     NtruthPosClustPairs = NtruthPosClustPairs + 1;
                     plots1D.get(String.format("%s_pos_truth_track_cluster_pair_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_Pz",this.trackCollectionName)).fill(trackP[2]);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_px",this.trackCollectionName)).fill(trackP[2]);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_py",this.trackCollectionName)).fill(trackP[0]);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_pz",this.trackCollectionName)).fill(trackP[1]);
                     plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dx",trackCollectionName)).fill(clusterx - trackx);
                     plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dy",trackCollectionName)).fill(clustery - tracky);
                     plots1D.get(String.format("%s_pos_truth_track_cluster_pair_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
@@ -1284,7 +1323,8 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         //multiply charge by factor of -1 (WHY!?)
         int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
 
-        double[] trackP = track.getMomentum();
+        //double[] trackP = track.getMomentum();
+        double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
         double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
         double[] truthP = scoringplaneHit.getMomentum();
         double truthPmag = Math.sqrt(Math.pow(truthP[0],2) + Math.pow(truthP[1],2) + Math.pow(truthP[2],2));
@@ -1325,11 +1365,17 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots2D.get(String.format("%s_ele_truthMCP_RK4ScoringPlaneToEcal_ZvP",this.trackCollectionName)).fill(truthzpos, trackPmag);
             //Residuals between track extrapolated to Ecal Face, and truth hit
             //extrapolated to Ecal Face
-            plots1D.get(String.format("%s_ele_track_v_truth_atEcal_dx",this.trackCollectionName)).fill(dx);
-            plots1D.get(String.format("%s_ele_track_v_truth_atEcal_dy",this.trackCollectionName)).fill(dy);
-            plots1D.get(String.format("%s_ele_track_v_truth_atEcal_dz",this.trackCollectionName)).fill(dz);
-            plots1D.get(String.format("%s_ele_track_v_truth_atEcal_dr",this.trackCollectionName)).fill(dr);
-            plots1D.get(String.format("%s_ele_track_v_truth_atEcal_dt",this.trackCollectionName)).fill(dt);
+            plots1D.get(String.format("%s_ele_track_scoringplane_dx",this.trackCollectionName)).fill(dx);
+            plots1D.get(String.format("%s_ele_track_scoringplane_dy",this.trackCollectionName)).fill(dy);
+            plots1D.get(String.format("%s_ele_track_scoringplane_dz",this.trackCollectionName)).fill(dz);
+            plots1D.get(String.format("%s_ele_track_scoringplane_dr",this.trackCollectionName)).fill(dr);
+            plots1D.get(String.format("%s_ele_track_scoringplane_dt",this.trackCollectionName)).fill(dt);
+
+            plots1D.get(String.format("%s_ele_track_scoringplane_px",this.trackCollectionName)).fill(trackP[0]);
+            plots1D.get(String.format("%s_ele_track_scoringplane_py",this.trackCollectionName)).fill(trackP[1]);
+            plots1D.get(String.format("%s_ele_track_scoringplane_pz",this.trackCollectionName)).fill(trackP[2]);
+
+            plots2D.get(String.format("%s_ele_truth_track_v_scoringplane_p",this.trackCollectionName)).fill(truthPmag,trackPmag);
         }
         else {
             //track momentum. Truth and reco
@@ -1338,11 +1384,17 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             //Extrapolated Track P vs truth position residuals
             plots2D.get(String.format("%s_pos_truthMCP_RK4ScoringPlaneToEcal_ZvP",this.trackCollectionName)).fill(truthzpos, trackPmag);
             //Track vs Cluster residuals at Ecal
-            plots1D.get(String.format("%s_pos_track_v_truth_atEcal_dx",this.trackCollectionName)).fill(dx);
-            plots1D.get(String.format("%s_pos_track_v_truth_atEcal_dy",this.trackCollectionName)).fill(dy);
-            plots1D.get(String.format("%s_pos_track_v_truth_atEcal_dz",this.trackCollectionName)).fill(dz);
-            plots1D.get(String.format("%s_pos_track_v_truth_atEcal_dr",this.trackCollectionName)).fill(dr);
-            plots1D.get(String.format("%s_pos_track_v_truth_atEcal_dt",this.trackCollectionName)).fill(dt);
+            plots1D.get(String.format("%s_pos_track_scoringplane_dx",this.trackCollectionName)).fill(dx);
+            plots1D.get(String.format("%s_pos_track_scoringplane_dy",this.trackCollectionName)).fill(dy);
+            plots1D.get(String.format("%s_pos_track_scoringplane_dz",this.trackCollectionName)).fill(dz);
+            plots1D.get(String.format("%s_pos_track_scoringplane_dr",this.trackCollectionName)).fill(dr);
+            plots1D.get(String.format("%s_pos_track_scoringplane_dt",this.trackCollectionName)).fill(dt);
+
+            plots1D.get(String.format("%s_pos_track_scoringplane_px",this.trackCollectionName)).fill(trackP[0]);
+            plots1D.get(String.format("%s_pos_track_scoringplane_py",this.trackCollectionName)).fill(trackP[1]);
+            plots1D.get(String.format("%s_pos_track_scoringplane_pz",this.trackCollectionName)).fill(trackP[2]);
+
+            plots2D.get(String.format("%s_pos_truth_track_v_scoringplane_p",this.trackCollectionName)).fill(truthPmag,trackPmag);
         }
 
     }
