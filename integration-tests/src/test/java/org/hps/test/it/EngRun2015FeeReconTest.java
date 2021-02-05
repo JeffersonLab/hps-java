@@ -31,7 +31,7 @@ public class EngRun2015FeeReconTest extends TestCase {
     static final String testFileName = "hps_005772_feeskim_10k.evio";
     private final int nEvents = 5000;
     static final String fieldmapName = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
-    static final String steeringFileName = "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim";
+    static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
     private String aidaOutputFile = "target/test-output/EngRun2015FeeReconTest/EngRun2015FeeReconTest";
 
     public void testIt() throws Exception {
@@ -84,7 +84,7 @@ public class EngRun2015FeeReconTest extends TestCase {
         String[] histoNames = ref.listObjectNames();
         String[] histoTypes = ref.listObjectTypes();
         System.out.println("comparing " + histoNames.length + " managed objects");
-        double tolerance = 1E-4;
+        double tolerance = 5E-3;
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
             if (histoTypes[i].equals("IHistogram1D")) {
