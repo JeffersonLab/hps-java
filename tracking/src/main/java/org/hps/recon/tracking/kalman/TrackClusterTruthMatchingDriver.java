@@ -79,16 +79,18 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     int ntruthClusters = 0;
     int nClusters = 0;
 
-    int x_ele;
-    int x_pos;
-    int y_ele;
-    int y_pos;
-    int z_ele;
-    int z_pos;
-    int b_ele;
-    int b_pos;
-    int c_ele;
-    int c_pos;
+    double x_ele;
+    double x_pos;
+    double y_ele;
+    double y_pos;
+    double z_ele;
+    double z_pos;
+    double b_ele;
+    double b_pos;
+    double c_ele;
+    double c_pos;
+    double d_ele;
+    double d_pos;
 
     double efficiency_ele;
     double efficiency_pos;
@@ -334,6 +336,8 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             //track and truthtrack momentum
             plots1D.put(String.format("%s_ele_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_momentum",this.trackCollectionName), 160, 0, 4));
             plots1D.put(String.format("%s_pos_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_momentum",this.trackCollectionName), 160, 0, 4));
+            plots1D.put(String.format("%s_ele_track_momentum_dummy",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_momentum_dummy",this.trackCollectionName), 160, 0, 4));
+            plots1D.put(String.format("%s_pos_track_momentum_dummy",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_track_momentum_dummy",this.trackCollectionName), 160, 0, 4));
 
 
             plots1D.put(String.format("%s_ele_delta_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_delta_momentum",this.trackCollectionName), 400, 0, 4));
@@ -425,18 +429,42 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         posRecoRate = NrecoPos/NgeneratedPos;
 
         //Define Matching Efficiency
-        double efficiency_ele = (x_ele + y_ele + z_ele)/(x_ele + y_ele + z_ele + c_ele + b_ele); 
-        double efficiency_pos = (x_pos + y_pos + z_pos)/(x_pos + y_pos + z_pos + c_pos + b_pos); 
-        System.out.println("ending");
-        System.out.println(x_ele + "," + y_ele + "," + z_ele + "," + b_ele + "," + c_ele);
+        double efficiency_ele = (x_ele + y_ele + z_ele)/(x_ele + y_ele + z_ele + b_ele + c_ele - d_ele); 
+        double efficiency_pos = (x_pos + y_pos + z_pos)/(x_pos + y_pos + z_pos + b_pos + c_pos - d_pos); 
+        System.out.println("end of data");
+
+        System.out.println("Number of ele reco tracks: " + nrecoTracks_ele);
+        System.out.println("Number of ele truth tracks: " + ntruthTracks_ele);
+        System.out.println("Number of ele truth pairs: " + ntruthpairs_ele);
+
+        System.out.println("Number of pos reco tracks: " + nrecoTracks_pos);
+        System.out.println("Number of pos truth tracks: " + ntruthTracks_pos);
+        System.out.println("Number of pos truth pairs: " + ntruthpairs_pos);
+
+        System.out.println("Number of clusters: " + nClusters);
+        System.out.println("Number of truth clusters: " + ntruthClusters);
+
+        System.out.println("Real ele tracks matched to correct cluster: " + x_ele);
+        System.out.println("Real ele tracks matched to wrong cluster: " + y_ele);
+        System.out.println("Unconfirmed ele tracks matched to any cluster: " + z_ele);
+        System.out.println("Real ele tracks not matched to cluster: " + b_ele);
+        System.out.println("Unconfirmed ele tracks not matched to cluster: " + c_ele);
+        System.out.println("ele tracks outside ecal: " + b_ele);
+
+        System.out.println("Real pos tracks matched to correct cluster: " + x_pos);
+        System.out.println("Real pos tracks matched to wrong cluster: " + y_pos);
+        System.out.println("Unconfirmed pos tracks matched to any cluster: " + z_pos);
+        System.out.println("Real pos tracks not matched to cluster: " + c_pos);
+        System.out.println("Unconfirmed pos tracks not matched to cluster: " + b_pos);
+        System.out.println("pos tracks outside ecal: " + b_pos);
 
         //Define Fake Rate
         double fakerate_ele = y_ele/(y_ele + x_ele);
         double fakerate_pos = y_pos/(y_pos + x_pos);
-        System.out.println("Fakerate: " + fakerate_ele);
-        System.out.println("Eficiency: " + fakerate_ele);
-        System.out.println("Fakerate: " + fakerate_pos);
-        System.out.println("Eficiency: " + fakerate_pos);
+        System.out.println("Fakerate ele: " + fakerate_ele);
+        System.out.println("Eficiency ele: " + fakerate_ele);
+        System.out.println("Fakerate pos: " + fakerate_pos);
+        System.out.println("Eficiency pos: " + fakerate_pos);
 
 
 
@@ -659,13 +687,19 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             //Check if track at Ecal is within Ecal acceptance
             boolean inEcalAccept = isTrackInEcal(trackx,tracky);
             boolean inHole = isTrackInHole(trackx,tracky);
+            if(inEcalAccept == false)
+                continue;
 
             //be careful about this -1...Is it always going to be correct?
             //Check "flipsign" in ReconParticleDriver.java
             //double[] trackP = track.getMomentum();
-            
-            double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            double[] trackP_dummy = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            double trackPmag_dummy = Math.sqrt(Math.pow(trackP_dummy[0],2) + Math.pow(trackP_dummy[1],2) + Math.pow(trackP_dummy[2],2));
+            double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtLastHit).getMomentum();
             double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+            
+            //double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            //double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
             double[] trackPfinal = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
             double[] trackPinitial = track.getTrackStates().get(0).getMomentum();
             double deltaPmag = Math.sqrt(Math.pow(trackPfinal[0]-trackPinitial[0],2) + Math.pow(trackPfinal[1]-trackPinitial[1],2) + Math.pow(trackPfinal[2]-trackPinitial[2],2));
@@ -679,12 +713,14 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
             if(charge < 0){
                 plots1D.get(String.format("%s_ele_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_ele_track_momentum_dummy",this.trackCollectionName)).fill(trackPmag_dummy);
                 plots1D.get(String.format("%s_ele_delta_momentum",this.trackCollectionName)).fill(deltaPmag);
                 plots1D.get(String.format("%s_ele_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
                 plots2D.get(String.format("%s_ele_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
             }
             else{
                 plots1D.get(String.format("%s_pos_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_pos_track_momentum_dummy",this.trackCollectionName)).fill(trackPmag_dummy);
                 plots1D.get(String.format("%s_pos_delta_momentum",this.trackCollectionName)).fill(deltaPmag);
                 plots1D.get(String.format("%s_pos_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
                 plots2D.get(String.format("%s_pos_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
@@ -718,7 +754,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 plots1D.get(String.format("%s_pos_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
                 plots1D.get(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
                 plots2D.get(String.format("%s_pos_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                plots2D.get(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
+                plots2D.get(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(trackPmag,mcpPmag);
 
             }
 
@@ -854,6 +890,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 }
             }
 
+            //Build collection of tracks that will be fed into the algorithm
+            //matcher. We only want to try and match tracks that are within the
+            //ecal acceptance. Matching 
         }
 
 
@@ -896,10 +935,13 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 Track track = entry.getKey();
                 Cluster cluster = entry.getValue();
                 int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
-                double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+                double[] trackP_dummy = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+                double trackPmag_dummy = Math.sqrt(Math.pow(trackP_dummy[0],2) + Math.pow(trackP_dummy[1],2) + Math.pow(trackP_dummy[2],2));
+                double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtLastHit).getMomentum();
                 double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
                 
                 //checkTrackClusterMatch(track, matchedTrackClusterMap.get(track), truthTracktruthClusterMap.get(track));
+
 
                 boolean realtrack = false;
                 boolean unconfirmedtrack = false;
@@ -929,6 +971,8 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                         anycluster = true;
                 }
 
+                
+
                 //"real" means that Track has a truth cluster
                 //Real track matched to correct cluster
                 boolean x = realtrack & correctcluster;
@@ -936,41 +980,48 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 boolean z = unconfirmedtrack & anycluster;
                 boolean b = realtrack & nocluster;
                 boolean c = unconfirmedtrack & nocluster;
+                List<Double> trackpos = getTrackPositionAtEcal(track);
+                boolean d = isTrackInEcal(trackpos.get(0),trackpos.get(1)); //if track is outside of ecal, returns false
+
 
                 if(x){
-                    System.out.println("HEY! x");
                     if(charge < 0)
                         x_ele = x_ele + 1;
                     else
                         x_pos = x_pos + 1;
                 }
                 if(y){
-                    System.out.println("HEY! y");
                     if(charge < 0)
                         y_ele = y_ele + 1;
                     else
                         y_pos = y_pos + 1;
                 }
                 if(z){
-                    System.out.println("HEY! z");
                     if(charge < 0)
                         z_ele = z_ele + 1;
                     else
                         z_pos = z_pos + 1;
                 }
                 if(b){
-                    System.out.println("HEY! b");
                     if(charge < 0)
                         b_ele = b_ele + 1;
                     else
                         b_pos = b_pos + 1;
                 }
                 if(c){
-                    System.out.println("HEY! c");
                     if(charge < 0)
                         c_ele = c_ele + 1;
                     else
                         c_pos = c_pos + 1;
+                }
+                //if track is outside of ecal, increment. This is used in
+                //calculating efficiency
+                if(d == false){
+                    if(charge < 0)
+                        d_ele = d_ele + 1; 
+                    if(charge > 0)
+                        d_pos = d_pos + 1; 
+
                 }
         
 
@@ -1058,15 +1109,15 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         double bgapdown = -22;
 
         double eholex11 = -93.0;
-        double eholex12 = -85.0;
+        double eholex12 = -70.0;
 
-        double eholex22 = 16.0;
+        double eholex22 = 15.0;
         double eholex21 = 29;
 
-        double eholey12 = 37.0;
+        double eholey12 = 36.0;
         double eholey11 = 22.4;
 
-        double eholey22 = -37.0;
+        double eholey22 = -36.0;
         double eholey21 = -22.3;
 
         boolean inEcalAccept = true;

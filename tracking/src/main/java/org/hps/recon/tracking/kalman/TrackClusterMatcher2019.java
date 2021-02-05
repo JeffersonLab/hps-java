@@ -208,7 +208,8 @@ public class TrackClusterMatcher2019 {
             }
 
             //Track momentum magnitude
-            double[] trackP = track.getMomentum();
+            //double[] trackP =  track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtLastHit).getMomentum();
             double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
             
             /*
@@ -261,13 +262,13 @@ public class TrackClusterMatcher2019 {
                 double dr = Math.sqrt(Math.pow(clusterx-trackx,2) + Math.pow(clustery-tracky,2));
 
                 //Ecal fiduciary cuts
-                if(clusterx < 0 && charge > 0)
+                //if(clusterx < 10 && charge > 0)
+                //    continue;
+                //if(clusterx > -10 && charge < 0)
+                //    continue;
+                if(clustery > 10 && tanlambda < 0)
                     continue;
-                if(clusterx > 0 && charge < 0)
-                    continue;
-                if(clustery > 0 && tanlambda < 0)
-                    continue;
-                if(clustery < 0 && tanlambda > 0)
+                if(clustery < -10 && tanlambda > 0)
                     continue;
 
 
