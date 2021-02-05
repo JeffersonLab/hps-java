@@ -153,7 +153,7 @@ public class RawTrackerHitFitterDriver extends Driver {
         catch (Exception e) {
             syncGood = true;
             System.out.println("[RawTrackerHitFitterDriver] svt_sync_statuses was not found: " + e);
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }
