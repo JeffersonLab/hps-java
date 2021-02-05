@@ -69,6 +69,33 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
     TrackClusterMatcher2019 matcher;
 
+    //INITIALIZE TERMS TO EVALUATE MATCHING PERFORMANCE
+    int ntruthpairs_ele = 0;
+    int ntruthpairs_pos = 0;
+    int ntruthTracks_ele = 0;
+    int ntruthTracks_pos = 0;
+    int nrecoTracks_ele = 0;
+    int nrecoTracks_pos = 0;
+    int ntruthClusters = 0;
+    int nClusters = 0;
+
+    int x_ele;
+    int x_pos;
+    int y_ele;
+    int y_pos;
+    int z_ele;
+    int z_pos;
+    int b_ele;
+    int b_pos;
+    int c_ele;
+    int c_pos;
+
+    double efficiency_ele;
+    double efficiency_pos;
+    double fakerate_ele;
+    double fakerate_pos;
+
+
     //Counting fake rate
     boolean verbose = true;
     double eleRecoRate;
@@ -259,12 +286,10 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots2D.put(String.format("%s_ele_truth_track_cluster_pair_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_cluster_pair_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
             plots2D.put(String.format("%s_pos_truth_track_cluster_pair_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_cluster_pair_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
 
-            //Truth Track Cluster Pairs inside Ecal
+            //TRUTH TRACK CLUSTER PAIRS INSIDE ECAL
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName), 160, 0, 4));
             plots1D.put(String.format("%s_pos_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName), 160, 0, 4));
 
-            plots1D.put(String.format("%s_pos_truth_track_cluster_pair_insideEcal_Pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_insideEcal_Pz",this.trackCollectionName), 320, -4, 4));
-            plots1D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_Pz",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_Pz",this.trackCollectionName), 320, -4, 4));
 
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dx",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dx",trackCollectionName),  800, -200, 200));
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dy",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dy",trackCollectionName),  800, -200, 200));
@@ -276,8 +301,13 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots1D.put(String.format("%s_pos_truth_track_cluster_pair_insideEcal_EdivP",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_insideEcal_EdivP",trackCollectionName),  1000, 0, 10));
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName), 1000, 0, 10));
             plots1D.put(String.format("%s_pos_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName), 1000, 0, 10));
+
+                //cluster and track xy plots
+                
             plots2D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
             plots2D.put(String.format("%s_pos_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
+            plots2D.put(String.format("%s_ele_truth_track_cluster_pair_insideEcal_cluster_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_cluster_pair_insideEcal_cluster_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
+            plots2D.put(String.format("%s_pos_truth_track_cluster_pair_insideEcal_cluster_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_cluster_pair_insideEcal_cluster_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
 
             //TRUTH TRACK CLUSTER PAIRS OUTSIDE ECAL
             plots1D.put(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_momentum",this.trackCollectionName), 160, 0, 4));
@@ -300,11 +330,6 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots2D.put(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
             plots2D.put(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
 
-                //for scoring plane hits
-            plots2D.put(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_scoringplane_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_scoringplane_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
-            plots2D.put(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_scoringplane_xypos",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_scoringplane_xypos",this.trackCollectionName),1000, -500, 500,1000, -500, 500));
-            plots1D.put(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_scoringplane_dz",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_scoringplane_dz",trackCollectionName),  800, -200, 200));
-            plots1D.put(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_scoringplane_dz",trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_scoringplane_dz",trackCollectionName),  800, -200, 200));
 
             //track and truthtrack momentum
             plots1D.put(String.format("%s_ele_track_momentum",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_momentum",this.trackCollectionName), 160, 0, 4));
@@ -392,13 +417,27 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
     public void endOfData() {
        
-        matcher.saveHistograms();
         eleFakeRate = eleNegMatch/(eleNegMatch+eleTrueMatch);
         posFakeRate = posNegMatch/(posNegMatch + posTrueMatch);
         eleEfficiency = (eleNegMatch+eleTrueMatch)/NtruthEleClustPairs;
         posEfficiency = (posNegMatch+posTrueMatch)/NtruthPosClustPairs;
         eleRecoRate = NrecoEle/NgeneratedEle;
         posRecoRate = NrecoPos/NgeneratedPos;
+
+        //Define Matching Efficiency
+        double efficiency_ele = (x_ele + y_ele + z_ele)/(x_ele + y_ele + z_ele + c_ele + b_ele); 
+        double efficiency_pos = (x_pos + y_pos + z_pos)/(x_pos + y_pos + z_pos + c_pos + b_pos); 
+        System.out.println("ending");
+        System.out.println(x_ele + "," + y_ele + "," + z_ele + "," + b_ele + "," + c_ele);
+
+        //Define Fake Rate
+        double fakerate_ele = y_ele/(y_ele + x_ele);
+        double fakerate_pos = y_pos/(y_pos + x_pos);
+        System.out.println("Fakerate: " + fakerate_ele);
+        System.out.println("Eficiency: " + fakerate_ele);
+        System.out.println("Fakerate: " + fakerate_pos);
+        System.out.println("Eficiency: " + fakerate_pos);
+
 
 
         //track reco efficiency
@@ -409,16 +448,16 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         for(int i = 0; i < Math.round(nDuplicates); i++)
             plots1D.get(String.format("%s_n_duplicate_TrackMCP_matches",this.trackCollectionName)).fill(1.0);
 
-        if(truthComparisons == true){
-            for(int i=0; i < Math.round(eleFakeRate*100); i++)
-                plots1D.get(String.format("%s_ele_fakeRate",this.trackCollectionName)).fill(1.0);
-            for(int i=0; i < Math.round(posFakeRate*100); i++)
-                plots1D.get(String.format("%s_pos_fakeRate",this.trackCollectionName)).fill(1.0);
-            for(int i=0; i < Math.round(posEfficiency*100); i++)
-                plots1D.get(String.format("%s_pos_Efficiency",this.trackCollectionName)).fill(1.0);
-            for(int i=0; i < Math.round(eleEfficiency*100); i++)
-            plots1D.get(String.format("%s_ele_Efficiency",this.trackCollectionName)).fill(1.0);
+        for(int i=0; i < Math.round(fakerate_ele*100); i++){
+            System.out.println("Filling Histogram fakerate");
+            plots1D.get(String.format("%s_ele_fakeRate",this.trackCollectionName)).fill(1.0);
         }
+        for(int i=0; i < Math.round(fakerate_pos*100); i++)
+            plots1D.get(String.format("%s_pos_fakeRate",this.trackCollectionName)).fill(1.0);
+        for(int i=0; i < Math.round(efficiency_ele*100); i++)
+            plots1D.get(String.format("%s_pos_Efficiency",this.trackCollectionName)).fill(1.0);
+        for(int i=0; i < Math.round(efficiency_pos*100); i++)
+            plots1D.get(String.format("%s_ele_Efficiency",this.trackCollectionName)).fill(1.0);
         saveHistograms();
 
         System.out.println("NmatcherPosTrackClusterPairs" + NmatcherPosTrackClusterPairs);
@@ -533,428 +572,479 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         System.out.println("Printing MCParticle Tree");
         //printMCPtree(event);
         System.out.println("End Printing MCParticle Tree");
-        if(truthComparisons == true){
-            //Get collection of Ecal clusters
-            //If event has no collection of tracks, skip
-            if(!event.hasCollection(Track.class, trackCollectionName)) return;
-            //If even doesnt have collection of Ecal scoring plane hits, skip
-            if(!event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) return;
+        //Get collection of Ecal clusters
+        //If event has no collection of tracks, skip
+        if(!event.hasCollection(Track.class, trackCollectionName)) return;
+        //If even doesnt have collection of Ecal scoring plane hits, skip
+        if(!event.hasCollection(SimTrackerHit.class, ecalScoringPlaneHitsCollectionName)) return;
 
-            //Get EcalClusters from event
-            List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
+        //Get EcalClusters from event
+        List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
 
-            //Truth Match Clusters in LCIO to MCParticles    
-            Map<Cluster,MCParticle> truthClustersMap = getUniqueTruthClusters(event,clusters);
-            List<Cluster> truthClusters = new ArrayList<Cluster>();
+        //Truth Match Clusters in LCIO to MCParticles    
+        Map<Cluster,MCParticle> truthClustersMap = getUniqueTruthClusters(event,clusters);
+        List<Cluster> truthClusters = new ArrayList<Cluster>();
+        for(Map.Entry<Cluster,MCParticle> entry : truthClustersMap.entrySet()){
+            truthClusters.add(entry.getKey());
+        }
+        drawEcalFace(truthClusters);
+
+        for(Cluster cluster : truthClusters){
+            double clustx = cluster.getPosition()[0];
+            double clusty = cluster.getPosition()[1];
+            double clustz = cluster.getPosition()[2];
+            double clusterEnergy = cluster.getEnergy();
+            double energyRatio = clusterEnergy/truthClustersMap.get(cluster).getEnergy();
+
+            plots1D.get(String.format("%s_truth_cluster_energy",trackCollectionName)).fill(clusterEnergy);
+            plots2D.get(String.format("truth_ecal_cluster_positions_xy_plane")).fill(clustx,clusty);
+            plots1D.get(String.format("%s_cluster_truthMCP_energy_ratio_sorted",this.trackCollectionName)).fill(energyRatio);
+        }
+
+
+        // Get collection of tracks from event
+        List<Track> tracks = event.get(Track.class, trackCollectionName);
+        List<Track> truthTracks = new ArrayList<Track>();
+        Map<Track,MCParticle> truthTracksMap = new HashMap<Track,MCParticle>();
+        List<Track> truthTracks_w_truthClusters = new ArrayList<Track>();
+        Map<Track, Cluster> truthTracktruthClusterMap = new HashMap<Track, Cluster>();
+
+        //Get Kalman Track Data
+        hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        hitToStrips = TrackUtils.getHitToStripsTable(event);
+        List<TrackData> TrackData;
+        List<LCRelation> trackRelations;
+        if (this.trackCollectionName.contains("KalmanFullTracks")) {
+            TrackData = event.get(TrackData.class, "KFTrackData");
+            trackRelations = event.get(LCRelation.class, "KFTrackDataRelations");
+            for (LCRelation relation : trackRelations) {
+                if (relation != null && relation.getTo() != null){
+                    TrktoData.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        }
+
+        System.out.println("[TruthMatcher] Looping over tracks: " + tracks.size());
+
+
+        //Looping Over all Tracks
+        int eventNumber = event.getEventNumber();
+        int iterTrack = 0;
+        for(Track track : tracks){
+
+            double trackT;
+            if (this.trackCollectionName.contains("GBLTracks")){
+                trackT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+            }
+            else {
+                TrackData trackdata = (TrackData) TrktoData.from(track);
+                trackT = trackdata.getTrackTime();
+            }
+            if(Math.abs(trackT) > 10.0)
+                continue;
+            //For GBL Tracks, there is a |10|ns track time cut applied in
+            //reconstruciton, that is not applied for Kalman Tracks. I am enforcing
+            //this cut here, for a fair comparison of GBL v KF
+
+            //check track quality
+            int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
+            double chi2 = track.getChi2();
+            int ndf = track.getNDF();
+
+            List<Double> trackpos = getTrackPositionAtEcal(track);
+            double trackx = trackpos.get(0);
+            double tracky = trackpos.get(1);
+            double trackz = trackpos.get(2);
+
+            //Check if track at Ecal is within Ecal acceptance
+            boolean inEcalAccept = isTrackInEcal(trackx,tracky);
+            boolean inHole = isTrackInHole(trackx,tracky);
+
+            //be careful about this -1...Is it always going to be correct?
+            //Check "flipsign" in ReconParticleDriver.java
+            //double[] trackP = track.getMomentum();
+            
+            double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+            double[] trackPfinal = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            double[] trackPinitial = track.getTrackStates().get(0).getMomentum();
+            double deltaPmag = Math.sqrt(Math.pow(trackPfinal[0]-trackPinitial[0],2) + Math.pow(trackPfinal[1]-trackPinitial[1],2) + Math.pow(trackPfinal[2]-trackPinitial[2],2));
+
+            //If want to select only FEEs for analysis
+            boolean selectFEEs = false;
+            if(selectFEEs){
+                if(trackPmag > 2.5 || trackPmag < 2.0)
+                    continue;
+            }
+
+            if(charge < 0){
+                plots1D.get(String.format("%s_ele_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_ele_delta_momentum",this.trackCollectionName)).fill(deltaPmag);
+                plots1D.get(String.format("%s_ele_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
+                plots2D.get(String.format("%s_ele_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+            }
+            else{
+                plots1D.get(String.format("%s_pos_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_pos_delta_momentum",this.trackCollectionName)).fill(deltaPmag);
+                plots1D.get(String.format("%s_pos_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
+                plots2D.get(String.format("%s_pos_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+            }
+
+            //TRUTH MATCH TRACKS TO MCPARTICLE
+            MCParticle trackMCP =  newgetTrackMCP(event,track,this.trackCollectionName, true);
+            if(trackMCP == null)
+                continue;
+            SimTrackerHit scoringplanehit = getTrackScoringPlaneHit(event, track, trackMCP, ecalScoringPlaneHitsCollectionName);
+            if(scoringplanehit != null)
+                trackScoringPlanePlots(event, track, scoringplanehit);
+
+
+            //ONLY TRACKS THAT ARE TRUTH MATCHED TO MCPARTICLE PERSIST
+            //BEYOND THIS POINT
+            //
+            truthTracks.add(track);
+            truthTracksMap.put(track, trackMCP);
+            double mcpPmag = trackMCP.getMomentum().magnitude(); 
+            double trackMCPratio = trackPmag/mcpPmag;
+
+            if(charge < 0){
+                plots1D.get(String.format("%s_ele_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_ele_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
+                plots2D.get(String.format("%s_ele_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+
+                plots2D.get(String.format("%s_ele_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
+            }
+            else{
+                plots1D.get(String.format("%s_pos_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
+                plots2D.get(String.format("%s_pos_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+                plots2D.get(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
+
+            }
+
+
+
+
+
+            //TRUTH MATCH TRACK TO CLUSTER BY MATCHING MCPARTICLES
+            Cluster truthTrackCluster = null;
             for(Map.Entry<Cluster,MCParticle> entry : truthClustersMap.entrySet()){
-                truthClusters.add(entry.getKey());
-            }
-            drawEcalFace(truthClusters);
-
-            for(Cluster cluster : truthClusters){
-                double clustx = cluster.getPosition()[0];
-                double clusty = cluster.getPosition()[1];
-                double clustz = cluster.getPosition()[2];
-                double clusterEnergy = cluster.getEnergy();
-                double energyRatio = clusterEnergy/truthClustersMap.get(cluster).getEnergy();
-
-                plots1D.get(String.format("%s_truth_cluster_energy",trackCollectionName)).fill(clusterEnergy);
-                plots2D.get(String.format("truth_ecal_cluster_positions_xy_plane")).fill(clustx,clusty);
-                plots1D.get(String.format("%s_cluster_truthMCP_energy_ratio_sorted",this.trackCollectionName)).fill(energyRatio);
-            }
-
-
-            // Get collection of tracks from event
-            List<Track> tracks = event.get(Track.class, trackCollectionName);
-            List<Track> truthTracks = new ArrayList<Track>();
-            Map<Track,MCParticle> truthTracksMap = new HashMap<Track,MCParticle>();
-            List<Track> truthTracks_w_truthClusters = new ArrayList<Track>();
-            Map<Track, Cluster> truthTracktruthClusterMap = new HashMap<Track, Cluster>();
-
-            //Get Kalman Track Data
-            hitToRotated = TrackUtils.getHitToRotatedTable(event);
-            hitToStrips = TrackUtils.getHitToStripsTable(event);
-            List<TrackData> TrackData;
-            List<LCRelation> trackRelations;
-            if (this.trackCollectionName.contains("KalmanFullTracks")) {
-                TrackData = event.get(TrackData.class, "KFTrackData");
-                trackRelations = event.get(LCRelation.class, "KFTrackDataRelations");
-                for (LCRelation relation : trackRelations) {
-                    if (relation != null && relation.getTo() != null){
-                        TrktoData.add(relation.getFrom(), relation.getTo());
-                    }
+                MCParticle clusterMCP = entry.getValue();
+                if(clusterMCP == trackMCP) {
+                    truthTrackCluster = entry.getKey();                    
+                    break;
                 }
             }
 
-            System.out.println("[TruthMatcher] Looping over tracks: " + tracks.size());
+            if(truthTrackCluster == null)
+                continue;
+            truthTracks_w_truthClusters.add(track);
+            truthTracktruthClusterMap.put(track, truthTrackCluster);
 
+            //ONLY TRACKS THAT HAVE BEEN TRUTH MATCHED TO A CLUSTER PERSIST
+            //BEYOND THIS POINT
+            double clusterEnergy = truthTrackCluster.getEnergy();
+            double clusterx = truthTrackCluster.getPosition()[0];
+            double clustery = truthTrackCluster.getPosition()[1];
+            double clusterz = truthTrackCluster.getPosition()[2];
+            double truthTrackPmag = trackMCP.getMomentum().magnitude(); 
 
-            //Looping Over all Tracks
-            int eventNumber = event.getEventNumber();
-            int iterTrack = 0;
-            for(Track track : tracks){
+            //LOOKING AT ALL TRUTH TRACK CLUSTER PAIRS
+            if(charge < 0){
+                NtruthEleClustPairs = NtruthEleClustPairs + 1;
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_px",this.trackCollectionName)).fill(trackP[1]);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_py",this.trackCollectionName)).fill(trackP[2]);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_pz",this.trackCollectionName)).fill(trackP[0]);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dx",trackCollectionName)).fill(clusterx - trackx);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dy",trackCollectionName)).fill(clustery - tracky);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dz",trackCollectionName)).fill(clusterz - trackz);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                plots1D.get(String.format("%s_ele_truth_track_cluster_pair_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
 
-                double trackT;
-                if (this.trackCollectionName.contains("GBLTracks")){
-                    trackT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
-                }
-                else {
-                    TrackData trackdata = (TrackData) TrktoData.from(track);
-                    trackT = trackdata.getTrackTime();
-                }
-                if(Math.abs(trackT) > 10.0)
-                    continue;
-                //For GBL Tracks, there is a |10|ns track time cut applied in
-                //reconstruciton, that is not applied for Kalman Tracks. I am enforcing
-                //this cut here, for a fair comparison of GBL v KF
-
-                //check track quality
-                int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
-                double chi2 = track.getChi2();
-                int ndf = track.getNDF();
-
-                List<Double> trackpos = getTrackPositionAtEcal(track);
-                double trackx = trackpos.get(0);
-                double tracky = trackpos.get(1);
-                double trackz = trackpos.get(2);
-
-                //Check if track at Ecal is within Ecal acceptance
-                boolean inEcalAccept = isTrackInEcal(trackx,tracky);
-                boolean inHole = isTrackInHole(trackx,tracky);
-
-                //be careful about this -1...Is it always going to be correct?
-                //Check "flipsign" in ReconParticleDriver.java
-                //double[] trackP = track.getMomentum();
+                plots2D.get(String.format("%s_ele_truth_track_cluster_pair_xypos",this.trackCollectionName)).fill(trackx,tracky);
                 
-                double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
-                double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
-                double[] trackPfinal = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
-                double[] trackPinitial = track.getTrackStates().get(0).getMomentum();
-                double deltaPmag = Math.sqrt(Math.pow(trackPfinal[0]-trackPinitial[0],2) + Math.pow(trackPfinal[1]-trackPinitial[1],2) + Math.pow(trackPfinal[2]-trackPinitial[2],2));
+            }
 
-                //If want to select only FEEs for analysis
-                boolean selectFEEs = false;
-                if(selectFEEs){
-                    if(trackPmag > 2.5 || trackPmag < 2.0)
-                        continue;
-                }
+            if(charge > 0){
+                NtruthPosClustPairs = NtruthPosClustPairs + 1;
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_momentum",this.trackCollectionName)).fill(trackPmag);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_px",this.trackCollectionName)).fill(trackP[1]);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_py",this.trackCollectionName)).fill(trackP[2]);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_pz",this.trackCollectionName)).fill(trackP[0]);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dx",trackCollectionName)).fill(clusterx - trackx);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dy",trackCollectionName)).fill(clustery - tracky);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dz",trackCollectionName)).fill(clusterz - trackz);
+                plots1D.get(String.format("%s_pos_truth_track_cluster_pair_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
 
+                plots2D.get(String.format("%s_pos_truth_track_cluster_pair_xypos",this.trackCollectionName)).fill(trackx,tracky);
+            }
+
+            //LOOKING AT TRUTH TRACK CLUSTER PAIRS IN ECAL ACCEPTANCE
+            if(inEcalAccept == true){
                 if(charge < 0){
-                    plots1D.get(String.format("%s_ele_track_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_ele_delta_momentum",this.trackCollectionName)).fill(deltaPmag);
-                    plots1D.get(String.format("%s_ele_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
-                    plots2D.get(String.format("%s_ele_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                }
-                else{
-                    plots1D.get(String.format("%s_pos_track_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_pos_delta_momentum",this.trackCollectionName)).fill(deltaPmag);
-                    plots1D.get(String.format("%s_pos_track_chi2divndf",this.trackCollectionName)).fill(chi2/((double) ndf));
-                    plots2D.get(String.format("%s_pos_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                }
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dy",trackCollectionName)).fill(clustery - tracky);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
 
-                //TRUTH MATCH TRACKS TO MCPARTICLE
-                MCParticle trackMCP =  newgetTrackMCP(event,track,this.trackCollectionName, true);
-                if(trackMCP == null)
-                    continue;
-                SimTrackerHit scoringplanehit = getTrackScoringPlaneHit(event, track, trackMCP, ecalScoringPlaneHitsCollectionName);
-                if(scoringplanehit != null)
-                    trackScoringPlanePlots(event, track, scoringplaneHit);
-
-
-                //ONLY TRACKS THAT ARE TRUTH MATCHED TO MCPARTICLE PERSIST
-                //BEYOND THIS POINT
-                //
-                truthTracks.add(track);
-                truthTracksMap.put(track, trackMCP);
-                double mcpPmag = trackMCP.getMomentum().magnitude(); 
-                double trackMCPratio = trackPmag/mcpPmag;
-
-                if(charge < 0){
-                    plots1D.get(String.format("%s_ele_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_ele_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
-                    plots2D.get(String.format("%s_ele_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-
-                    plots2D.get(String.format("%s_ele_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
-                }
-                else{
-                    plots1D.get(String.format("%s_pos_truth_track_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_pos_truth_track_MCP_momentum_ratio",this.trackCollectionName)).fill(trackMCPratio);
-                    plots2D.get(String.format("%s_pos_truth_track_atEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                    plots2D.get(String.format("%s_pos_truth_track_v_mcp_momentum",this.trackCollectionName)).fill(mcpPmag,trackPmag);
-
-                }
-
-
-
-
-
-                //TRUTH MATCH TRACK TO CLUSTER BY MATCHING MCPARTICLES
-                Cluster truthTrackCluster = null;
-                for(Map.Entry<Cluster,MCParticle> entry : truthClustersMap.entrySet()){
-                    MCParticle clusterMCP = entry.getValue();
-                    if(clusterMCP == trackMCP) {
-                        truthTrackCluster = entry.getKey();                    
-                        break;
+                    for(int i =0; i < eventNumber; i++){
+                        plots2D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+                        plots2D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_cluster_xypos",this.trackCollectionName)).fill(clusterx,clustery);
                     }
-                }
-
-                if(truthTrackCluster == null)
-                    continue;
-
-                //ONLY TRACKS THAT HAVE BEEN TRUTH MATCHED TO A CLUSTER PERSIST
-                //BEYOND THIS POINT
-                double clusterEnergy = truthTrackCluster.getEnergy();
-                double clusterx = truthTrackCluster.getPosition()[0];
-                double clustery = truthTrackCluster.getPosition()[1];
-                double clusterz = truthTrackCluster.getPosition()[2];
-                truthTracks_w_truthClusters.add(track);
-                truthTracktruthClusterMap.put(track, truthTrackCluster);
-                double truthTrackPmag = trackMCP.getMomentum().magnitude(); 
-
-                //LOOKING AT ALL TRUTH TRACK CLUSTER PAIRS
-                if(charge < 0){
-                    NtruthEleClustPairs = NtruthEleClustPairs + 1;
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_px",this.trackCollectionName)).fill(trackP[2]);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_py",this.trackCollectionName)).fill(trackP[0]);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_pz",this.trackCollectionName)).fill(trackP[1]);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dx",trackCollectionName)).fill(clusterx - trackx);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dy",trackCollectionName)).fill(clustery - tracky);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_dz",trackCollectionName)).fill(clusterz - trackz);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
-
-                    plots2D.get(String.format("%s_ele_truth_track_cluster_pair_xypos",this.trackCollectionName)).fill(trackx,tracky);
                     
                 }
 
                 if(charge > 0){
-                    NtruthPosClustPairs = NtruthPosClustPairs + 1;
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_momentum",this.trackCollectionName)).fill(trackPmag);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_px",this.trackCollectionName)).fill(trackP[2]);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_py",this.trackCollectionName)).fill(trackP[0]);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_pz",this.trackCollectionName)).fill(trackP[1]);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dx",trackCollectionName)).fill(clusterx - trackx);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dy",trackCollectionName)).fill(clustery - tracky);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_dz",trackCollectionName)).fill(clusterz - trackz);
-                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_dy",trackCollectionName)).fill(clustery - tracky);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
 
-                    plots2D.get(String.format("%s_pos_truth_track_cluster_pair_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                }
-
-                //LOOKING AT TRUTH TRACK CLUSTER PAIRS IN ECAL ACCEPTANCE
-                if(inEcalAccept == true){
-                    if(charge < 0){
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_Pz",this.trackCollectionName)).fill(trackP[2]);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dy",trackCollectionName)).fill(clustery - tracky);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
-
-                        plots2D.get(String.format("%s_ele_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                        
-                    }
-
-                    if(charge > 0){
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_Pz",this.trackCollectionName)).fill(trackP[2]);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_dy",trackCollectionName)).fill(clustery - tracky);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
-
+                    for(int i =0; i < eventNumber; i++){
                         plots2D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                    
+                        plots2D.get(String.format("%s_pos_truth_track_cluster_pair_insideEcal_cluster_xypos",this.trackCollectionName)).fill(clusterx,clustery);
                     }
-                }
-
-
-
-                //LOOKING AT TRACKS THAT ARE MATCHED TO CLUSTERS, BUT
-                //WHERE TRACK IS NOT IN ECAL ACCEPTANCE
-                if(inEcalAccept == false){
-                    int trackClusterTag = eventNumber;
-
-                    if(charge < 0){
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_Pz",this.trackCollectionName)).fill(trackP[2]);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_dy",trackCollectionName)).fill(clustery - tracky);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
-
-                        for(int i =0; i < trackClusterTag; i++){
-                            plots2D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                            plots2D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName)).fill(clusterx,clustery);
-                        }
-                        
-                    }
-
-                    if(charge > 0){
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_Pz",this.trackCollectionName)).fill(trackP[2]);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_dy",trackCollectionName)).fill(clustery - tracky);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
-
-                        for(int i =0; i < trackClusterTag; i++){
-                            plots2D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
-                            plots2D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName)).fill(clusterx,clustery);
-                        }
-                    
-                    }
-
-                    //Make scoring plane hit corrections to these Tracks. See
-                    //if they end up in Ecal
-                    SimTrackerHit sphit = getTrackScoringPlaneHit(event, track, trackMCP, ecalScoringPlaneHitsCollectionName);
-                    if(sphit == null)
-                        continue;
-                    double[] truthpos = getExtrapolatedTrackScoringPlaneHit(event, track,sphit);
-                    double[] sphitP = sphit.getMomentum();
-                    System.out.println("[LOOK HERE] scoringplanehit momentum: " + sphitP[0] + " " + sphitP[1] + " " + sphitP[2]);
-                    System.out.println("[LOOK HERE] track momentum: " + trackP[0] + " " + trackP[1] + " " + trackP[2]);
-                    if(charge < 0){
-                        plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_scoringplane_dz",this.trackCollectionName)).fill(clusterz - truthpos[2]);
-                        for(int i =0; i < trackClusterTag; i++){
-                            plots2D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_scoringplane_xypos",this.trackCollectionName)).fill(truthpos[0],truthpos[1]);
-                        }
-                    }
-                    if(charge > 0){
-                        plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_scoringplane_dz",this.trackCollectionName)).fill(clusterz - truthpos[2]);
-                        for(int i =0; i < trackClusterTag; i++){
-                            plots2D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_scoringplane_xypos",this.trackCollectionName)).fill(truthpos[0],truthpos[1]);
-                        }
-                    }
+                
                 }
             }
-            
-            //Use matching algorithm to match tracks to clusters (without truth
-            //info)
-            Map<Track, Cluster> matchedTrackClusterMap = new HashMap<Track,Cluster>();
-            //To check the performance of the Track+Cluster matching algorithm,
-            //feed the algorithm the set of truth matched Tracks and truth
-            //matched Clusters, so that comparison can be done.
-            //matchedTrackClusterMap = matcher.trackClusterMatcher(truthTracks_w_truthClusters,event, this.trackCollectionName, truthClusters, this.trackClusterTimeOffset);
-            matchedTrackClusterMap = matcher.trackClusterMatcher(truthTracks_w_truthClusters,event, this.trackCollectionName, truthClusters, this.trackClusterTimeOffset);
-            
-            System.out.println("Matching set of Truth Tracks to Clusters using algorithm");
-            if(matchedTrackClusterMap != null){
-                System.out.println("Number of Tracks matched using algorithm " + matchedTrackClusterMap.size());
-                for (Map.Entry<Track,Cluster> entry : matchedTrackClusterMap.entrySet()){
-                    Track track = entry.getKey();
-                    int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
-                    double[] trackP = track.getMomentum();
-                    double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
-                    
-                    checkTrackClusterMatch(track, matchedTrackClusterMap.get(track), truthTracktruthClusterMap.get(track));
-
-                    //Skip further analysis if no cluster is matched
-                    if(entry.getValue() == null)
-                        continue;
 
 
-                    //Check the truth cluster id for each truth track to see if cluster
-                    //id belongs to correct particle
-                    MCParticle matchedClusterMCP = truthClustersMap.get(entry.getValue());
-                    if(matchedClusterMCP == null)
-                        continue;
-                    MCParticle matchedTrackMCP = truthTracksMap.get(track);
 
-                    int clusterid = matchedClusterMCP.getPDGID();
+            //LOOKING AT TRACKS THAT ARE MATCHED TO CLUSTERS, BUT
+            //WHERE TRACK IS NOT IN ECAL ACCEPTANCE
+            if(inEcalAccept == false){
+                int trackClusterTag = eventNumber;
 
-                    //Trying to print MCP Tree
-                    if(matchedClusterMCP == matchedTrackMCP && entry.getValue() != truthTracktruthClusterMap.get(track)){
-                        System.out.println("ERROR! Does not make sense");
-                        for(Map.Entry<Cluster, MCParticle> c : truthClustersMap.entrySet()){
-                            MCParticle mcp1 = c.getValue();
-                            for(Map.Entry<Cluster, MCParticle> cc : truthClustersMap.entrySet()){
-                                if(cc.getKey() == c.getKey())
-                                    continue;
-                                MCParticle mcp2 = cc.getValue();
-                                if(mcp1 == mcp2){
-                                    System.out.println("Cluster1 energy = " + c.getKey().getEnergy());
-                                    System.out.println("Cluster1 PDGID = " + c.getKey().getParticleId());
-                                    System.out.println("Cluster2 energy = " + cc.getKey().getEnergy());
-                                    System.out.println("Cluster2 PDGID = " + cc.getKey().getParticleId());
-                                    System.out.println("mcp energy = " + mcp1.getEnergy());
-                                    System.out.println("mcp PDGID = " + mcp1.getPDGID());
-                                }
-                            }
-                        }
-                    }
+                if(charge < 0){
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_Pz",this.trackCollectionName)).fill(trackP[2]);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_dy",trackCollectionName)).fill(clustery - tracky);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                    plots1D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
 
-                    String clusterParticle = null;
-                    if(clusterid == -11)
-                        clusterParticle = "positron";
-                    if(clusterid == 11)
-                        clusterParticle = "electron";
-                    if(clusterid == 22)
-                        clusterParticle = "photon";
-
-
-                    if(charge < 0){
-                        plots1D.get(String.format("%s_ele_truthTrack_%s_cluster_E_div_P",trackCollectionName, clusterParticle)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
-                        NmatcherEleTrackClusterPairs = NmatcherEleTrackClusterPairs + 1.0; 
-                        System.out.println("Number of ele tracks matched to a track by algorithm: " + NmatcherEleTrackClusterPairs);
-                        if(matchedClusterMCP == matchedTrackMCP){
-                            NgoodmatcherEleTrackClusterPairs = NgoodmatcherEleTrackClusterPairs + 1; 
-                        }
-                    }
-
-                    else{
-                        plots1D.get(String.format("%s_pos_truthTrack_%s_cluster_E_div_P",trackCollectionName, clusterParticle)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
-                        NmatcherPosTrackClusterPairs = NmatcherPosTrackClusterPairs + 1.0; 
-                        System.out.println("Number of ele tracks matched to a track by algorithm: " + NmatcherPosTrackClusterPairs);
-                        if(matchedClusterMCP == matchedTrackMCP){
-                            NgoodmatcherPosTrackClusterPairs = NgoodmatcherPosTrackClusterPairs + 1; 
-                        }
+                    for(int i =0; i < trackClusterTag; i++){
+                        plots2D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+                        plots2D.get(String.format("%s_ele_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName)).fill(clusterx,clustery);
                     }
                     
                 }
-            }
-            List<MCParticle> possibleTrackMCPs = getPossibleTrackMCPs(event, 9);
-            NpossibleTracks = NpossibleTracks + possibleTrackMCPs.size();
-            NrecoTruthTracks = NrecoTruthTracks + truthTracksMap.size();
-            Map<MCParticle,int[]> nDuplicateMCPs = new HashMap<MCParticle, int[]>();
 
-            for(Map.Entry<Track, MCParticle> entry : truthTracksMap.entrySet()){
-                MCParticle particle = entry.getValue(); 
-                if(!nDuplicateMCPs.containsKey(particle)){
-                    nDuplicateMCPs.put(particle, new int[1]);
-                    nDuplicateMCPs.get(particle)[0] = 0;
-                }
+                if(charge > 0){
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_momentum",this.trackCollectionName)).fill(trackPmag);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_Pz",this.trackCollectionName)).fill(trackP[2]);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_dx",trackCollectionName)).fill(clusterx - trackx);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_dy",trackCollectionName)).fill(clustery - tracky);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_EdivP",trackCollectionName)).fill(clusterEnergy/trackPmag);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_dz",trackCollectionName)).fill(clusterz - trackz);
+                    plots1D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_clusterMCP_Eratio",this.trackCollectionName)).fill(clusterEnergy/trackMCP.getEnergy());
 
-                nDuplicateMCPs.get(particle)[0]++;
-            }
-            for(Map.Entry<MCParticle,int[]> entry : nDuplicateMCPs.entrySet()){
-                int nentries = entry.getValue()[0];
-                List<Track> dupTracks = new ArrayList<Track>();
-                if(nentries > 1){
-                    for(Map.Entry<Track, MCParticle> entry2 : truthTracksMap.entrySet())
-                        if(entry2.getValue() == entry.getKey())
-                            dupTracks.add(entry2.getKey());
-                    for(Track track : dupTracks){
-                        int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
-                        double[] trackP = track.getMomentum();
-                        double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
-                        if(charge < 0)
-                            plots1D.get(String.format("%s_ele_duplicate_track_momentum",this.trackCollectionName)).fill(trackPmag);
-                        else
-                            plots1D.get(String.format("%s_pos_duplicate_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                    for(int i =0; i < trackClusterTag; i++){
+                        plots2D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_xypos",this.trackCollectionName)).fill(trackx,tracky);
+                        plots2D.get(String.format("%s_pos_truth_track_cluster_pair_outsideEcal_cluster_xypos",this.trackCollectionName)).fill(clusterx,clustery);
                     }
-                    nDuplicates = nDuplicates + 1.0;
+                
                 }
             }
 
         }
+
+
+        //DEFINE VARIOUS METRICS TO EVALUATE PERFORMANCE
+        for(int i = 0; i < truthTracks_w_truthClusters.size(); i++){
+            int charge = -1* (int)Math.signum(truthTracks_w_truthClusters.get(i).getTrackStates().get(0).getOmega());
+            if(charge < 0)
+                ntruthpairs_ele = ntruthpairs_ele + 1;
+            if(charge > 0)
+                ntruthpairs_pos = ntruthpairs_pos + 1;
+        }
+        for(int i = 0; i < truthTracks.size(); i++){
+            int charge = -1* (int)Math.signum(truthTracks.get(i).getTrackStates().get(0).getOmega());
+            if(charge < 0)
+                ntruthTracks_ele = ntruthTracks_ele + 1;
+            if(charge > 0)
+                ntruthTracks_pos = ntruthTracks_pos + 1;
+        }
+        for(int i = 0; i < tracks.size(); i++){
+            int charge = -1* (int)Math.signum(tracks.get(i).getTrackStates().get(0).getOmega());
+            if(charge < 0)
+                nrecoTracks_ele = nrecoTracks_ele + 1;
+            if(charge > 0)
+                nrecoTracks_pos = nrecoTracks_pos + 1;
+        }
+        ntruthClusters = ntruthClusters + truthClusters.size();
+        nClusters = nClusters + clusters.size();
+        
+        //Use matching algorithm to match tracks to clusters (without truth
+        //info)
+        Map<Track, Cluster> matchedTrackClusterMap = new HashMap<Track,Cluster>();
+        //To check the performance of the Track+Cluster matching algorithm,
+        //feed the algorithm the set of truth matched Tracks and truth
+        //matched Clusters, so that comparison can be done.
+        //matchedTrackClusterMap = matcher.trackClusterMatcher(truthTracks_w_truthClusters,event, this.trackCollectionName, truthClusters, this.trackClusterTimeOffset);
+        matchedTrackClusterMap = matcher.trackClusterMatcher(tracks,event, this.trackCollectionName, clusters, this.trackClusterTimeOffset);
+        if(matchedTrackClusterMap != null){
+
+            for (Map.Entry<Track,Cluster> entry : matchedTrackClusterMap.entrySet()){
+                Track track = entry.getKey();
+                Cluster cluster = entry.getValue();
+                int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
+                double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+                double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+                
+                //checkTrackClusterMatch(track, matchedTrackClusterMap.get(track), truthTracktruthClusterMap.get(track));
+
+                boolean realtrack = false;
+                boolean unconfirmedtrack = false;
+                boolean nocluster = false;
+                boolean correctcluster = false;
+                boolean wrongcluster = false;
+                boolean anycluster = false;
+                boolean notfound = true;
+                for(Map.Entry<Track,Cluster> truth : truthTracktruthClusterMap.entrySet()){
+                    if(track == truth.getKey()){
+                        notfound = false;
+                        realtrack = true;
+                        if(cluster == null)
+                            nocluster = true;
+                        else if(cluster == truth.getValue())
+                            correctcluster = true;
+                        else
+                            wrongcluster = true;
+                        break;
+                    }
+                }
+                if(notfound == true){
+                    unconfirmedtrack = true;
+                    if(cluster == null)
+                        nocluster = true;
+                    else
+                        anycluster = true;
+                }
+
+                //"real" means that Track has a truth cluster
+                //Real track matched to correct cluster
+                boolean x = realtrack & correctcluster;
+                boolean y = realtrack & wrongcluster;
+                boolean z = unconfirmedtrack & anycluster;
+                boolean b = realtrack & nocluster;
+                boolean c = unconfirmedtrack & nocluster;
+
+                if(x){
+                    System.out.println("HEY! x");
+                    if(charge < 0)
+                        x_ele = x_ele + 1;
+                    else
+                        x_pos = x_pos + 1;
+                }
+                if(y){
+                    System.out.println("HEY! y");
+                    if(charge < 0)
+                        y_ele = y_ele + 1;
+                    else
+                        y_pos = y_pos + 1;
+                }
+                if(z){
+                    System.out.println("HEY! z");
+                    if(charge < 0)
+                        z_ele = z_ele + 1;
+                    else
+                        z_pos = z_pos + 1;
+                }
+                if(b){
+                    System.out.println("HEY! b");
+                    if(charge < 0)
+                        b_ele = b_ele + 1;
+                    else
+                        b_pos = b_pos + 1;
+                }
+                if(c){
+                    System.out.println("HEY! c");
+                    if(charge < 0)
+                        c_ele = c_ele + 1;
+                    else
+                        c_pos = c_pos + 1;
+                }
+        
+
+
+                //Skip further analysis if no cluster is matched
+                if(entry.getValue() == null)
+                    continue;
+
+                //CHECK IF TRACK+CLUSTER MATCH IS CORRECT ACCORDING TO
+                //TRUTH MATCHING
+                MCParticle matchedClusterMCP = truthClustersMap.get(entry.getValue());
+                if(matchedClusterMCP == null)
+                    continue;
+                MCParticle matchedTrackMCP = truthTracksMap.get(track);
+
+                int clusterid = matchedClusterMCP.getPDGID();
+
+                if(charge < 0){
+                   // plots1D.get(String.format("%s_ele_truthTrack_%s_cluster_E_div_P",trackCollectionName, clusterParticle)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
+
+                    NmatcherEleTrackClusterPairs = NmatcherEleTrackClusterPairs + 1.0; 
+                    if(matchedClusterMCP == matchedTrackMCP){
+                        NgoodmatcherEleTrackClusterPairs = NgoodmatcherEleTrackClusterPairs + 1; 
+                    }
+                }
+
+                else{
+                    //plots1D.get(String.format("%s_pos_truthTrack_%s_cluster_E_div_P",trackCollectionName, clusterParticle)).fill(matchedTrackClusterMap.get(track).getEnergy()/trackPmag);
+
+                    NmatcherPosTrackClusterPairs = NmatcherPosTrackClusterPairs + 1.0; 
+
+                    if(matchedClusterMCP == matchedTrackMCP){
+                        NgoodmatcherPosTrackClusterPairs = NgoodmatcherPosTrackClusterPairs + 1; 
+                    }
+                }
+                
+            }
+        }
+        List<MCParticle> possibleTrackMCPs = getPossibleTrackMCPs(event, 9);
+        NpossibleTracks = NpossibleTracks + possibleTrackMCPs.size();
+        NrecoTruthTracks = NrecoTruthTracks + truthTracksMap.size();
+        Map<MCParticle,int[]> nDuplicateMCPs = new HashMap<MCParticle, int[]>();
+
+        for(Map.Entry<Track, MCParticle> entry : truthTracksMap.entrySet()){
+            MCParticle particle = entry.getValue(); 
+            if(!nDuplicateMCPs.containsKey(particle)){
+                nDuplicateMCPs.put(particle, new int[1]);
+                nDuplicateMCPs.get(particle)[0] = 0;
+            }
+
+            nDuplicateMCPs.get(particle)[0]++;
+        }
+        for(Map.Entry<MCParticle,int[]> entry : nDuplicateMCPs.entrySet()){
+            int nentries = entry.getValue()[0];
+            List<Track> dupTracks = new ArrayList<Track>();
+            if(nentries > 1){
+                for(Map.Entry<Track, MCParticle> entry2 : truthTracksMap.entrySet())
+                    if(entry2.getValue() == entry.getKey())
+                        dupTracks.add(entry2.getKey());
+                for(Track track : dupTracks){
+                    int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
+                    double[] trackP = track.getMomentum();
+                    double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+                    if(charge < 0)
+                        plots1D.get(String.format("%s_ele_duplicate_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                    else
+                        plots1D.get(String.format("%s_pos_duplicate_track_momentum",this.trackCollectionName)).fill(trackPmag);
+                }
+                nDuplicates = nDuplicates + 1.0;
+            }
+        }
+
     }
+
 
     public boolean isTrackInEcal(double trackx, double tracky){
 
@@ -1324,6 +1414,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
 
         //double[] trackP = track.getMomentum();
+        //momentum is rotated coords (x->z, z->y, y->x)
         double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
         double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
         double[] truthP = scoringplaneHit.getMomentum();
@@ -1371,9 +1462,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots1D.get(String.format("%s_ele_track_scoringplane_dr",this.trackCollectionName)).fill(dr);
             plots1D.get(String.format("%s_ele_track_scoringplane_dt",this.trackCollectionName)).fill(dt);
 
-            plots1D.get(String.format("%s_ele_track_scoringplane_px",this.trackCollectionName)).fill(trackP[0]);
-            plots1D.get(String.format("%s_ele_track_scoringplane_py",this.trackCollectionName)).fill(trackP[1]);
-            plots1D.get(String.format("%s_ele_track_scoringplane_pz",this.trackCollectionName)).fill(trackP[2]);
+            plots1D.get(String.format("%s_ele_track_scoringplane_px",this.trackCollectionName)).fill(truthP[0]);
+            plots1D.get(String.format("%s_ele_track_scoringplane_py",this.trackCollectionName)).fill(truthP[1]);
+            plots1D.get(String.format("%s_ele_track_scoringplane_pz",this.trackCollectionName)).fill(truthP[2]);
 
             plots2D.get(String.format("%s_ele_truth_track_v_scoringplane_p",this.trackCollectionName)).fill(truthPmag,trackPmag);
         }
@@ -1390,9 +1481,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             plots1D.get(String.format("%s_pos_track_scoringplane_dr",this.trackCollectionName)).fill(dr);
             plots1D.get(String.format("%s_pos_track_scoringplane_dt",this.trackCollectionName)).fill(dt);
 
-            plots1D.get(String.format("%s_pos_track_scoringplane_px",this.trackCollectionName)).fill(trackP[0]);
-            plots1D.get(String.format("%s_pos_track_scoringplane_py",this.trackCollectionName)).fill(trackP[1]);
-            plots1D.get(String.format("%s_pos_track_scoringplane_pz",this.trackCollectionName)).fill(trackP[2]);
+            plots1D.get(String.format("%s_pos_track_scoringplane_px",this.trackCollectionName)).fill(truthP[0]);
+            plots1D.get(String.format("%s_pos_track_scoringplane_py",this.trackCollectionName)).fill(truthP[1]);
+            plots1D.get(String.format("%s_pos_track_scoringplane_pz",this.trackCollectionName)).fill(truthP[2]);
 
             plots2D.get(String.format("%s_pos_truth_track_v_scoringplane_p",this.trackCollectionName)).fill(truthPmag,trackPmag);
         }
