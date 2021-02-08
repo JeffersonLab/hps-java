@@ -44,12 +44,12 @@ public class ConditionsListener {
             }
         }
 
-        if (currentRun != null && currentRun != mgr.getRun()) {
+        if (currentRun != null && !currentRun.equals(mgr.getRun())) {
             try {
                 eventbus.getLogger().info("Setting conditions from EVIO: " + detectorProp.value() + ":" + currentRun);
                 ConditionsManager.defaultInstance().setDetector(detectorProp.value(), currentRun);
             } catch (ConditionsNotFoundException e) {
-                // Post fatal error because conditions are not found
+                // Post fatal error because conditions for the run are not found or detector name is bad
                 eventbus.post(new EventProcessingError(e, true));
             }
         }

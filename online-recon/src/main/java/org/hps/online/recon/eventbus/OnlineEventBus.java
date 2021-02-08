@@ -102,7 +102,7 @@ public class OnlineEventBus extends EventBus {
                 post(new Stop("Fatal error"));
             } else {
                 logger.log(Level.WARNING, "A non-fatal error occurred - event processing will continue", e.getException());
-        }
+            }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Problem processing error", ex);
         }

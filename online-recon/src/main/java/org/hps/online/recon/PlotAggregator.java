@@ -108,6 +108,11 @@ public class PlotAggregator implements Runnable {
     private RmiServer rmiTreeServer;
 
     /**
+     * Dummy object used for synchronization
+     */
+    private final String updating = "updating";
+
+    /**
      * Create an instance of the plot aggregator
      */
     public PlotAggregator() {
@@ -548,7 +553,7 @@ public class PlotAggregator implements Runnable {
         remoteTree = tf.create(remoteTreeBind, RmiStoreFactory.storeType, true, false, options);
         String mountName = toMountName(remoteTreeBind);
 
-        synchronized (serverTree) {
+        synchronized (updating) {
             LOG.fine("Mounting remote tree to: " + mountName);
             serverTree.mount(mountName, remoteTree, "/");
 
@@ -579,7 +584,7 @@ public class PlotAggregator implements Runnable {
             LOG.warning("No remote with name: " + remoteTreeBind);
             return;
         }
-        synchronized(this.serverTree) {
+        synchronized(updating) {
             try {
                 String path = toMountName(remoteTreeBind);
                 LOG.fine("Unmounting: " + path);
@@ -602,16 +607,16 @@ public class PlotAggregator implements Runnable {
         if (remotes.size() == 0) {
             return;
         }
-        synchronized (this) {
-            try {
-                double start = (double) System.currentTimeMillis();
+        try {
+            double start = (double) System.currentTimeMillis();
+            synchronized (updating) {
                 clearTree();
                 update();
-                double elapsed = ((double) System.currentTimeMillis()) - start;
-                LOG.info("Plot update took: " + elapsed/1000. + " sec");
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error updating plots", e);
             }
+            double elapsed = ((double) System.currentTimeMillis()) - start;
+            LOG.info("Plot update took: " + elapsed/1000. + " sec");
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Error updating plots", e);
         }
     }
 
@@ -628,51 +633,53 @@ public class PlotAggregator implements Runnable {
 
         String path = file.getCanonicalPath();
 
-        /*
-         * Copy server objects to a new AIDA tree containing
-         * only the combined outputs.
-         */
-        IDevTree outputTree = (IDevTree) tf.create();
-        synchronized (this.serverTree) {
-            copy(serverTree, outputTree, PlotAggregator.COMBINED_DIR);
-        }
-
-        // Modified code from AIDA class in lcsim
-        if (path.endsWith(".root")) {
-
+        synchronized (updating) {
             /*
-             * The combined clouds must be converted to histograms
-             * before writing to a ROOT file or an error will occur.
+             * Copy server objects to a new AIDA tree containing
+             * only the combined outputs.
              */
-            convertClouds(outputTree);
+            IDevTree outputTree = (IDevTree) tf.create();
+            synchronized (this.serverTree) {
+                copy(serverTree, outputTree, PlotAggregator.COMBINED_DIR);
+            }
 
-            if (file.exists()) {
-                LOG.info("Deleting old ROOT file: " + path);
-                file.delete();
+            // Modified code from AIDA class in lcsim
+            if (path.endsWith(".root")) {
+
+                /*
+                 * The combined clouds must be converted to histograms
+                 * before writing to a ROOT file or an error will occur.
+                 */
+                convertClouds(outputTree);
+
+                if (file.exists()) {
+                    LOG.info("Deleting old ROOT file: " + path);
+                    file.delete();
+                }
+                RootFileStore store = new RootFileStore(path);
+                store.open();
+                store.add(outputTree);
+                store.close();
+                LOG.info("Saved ROOT file: " + path);
+            } else {
+                if (!path.endsWith(".aida")) {
+                    path = path + ".aida";
+                    file = new File(path);
+                }
+                if (file.exists()) {
+                    LOG.info("Deleting old AIDA file: " + path);
+                    file.delete();
+                }
+                AidaXMLStore store = new AidaXMLStore();
+                de.schlichtherle.io.File newFile = new de.schlichtherle.io.File(path);
+                store.commit(outputTree, newFile, null, false, false, false);
+                // store.commit(serverTree, newFile, null, true /*gzip*/, false, false);
+                LOG.info("Saved AIDA file: " + file.getPath());
             }
-            RootFileStore store = new RootFileStore(path);
-            store.open();
-            store.add(outputTree);
-            store.close();
-            LOG.info("Saved ROOT file: " + path);
-        } else {
-            if (!path.endsWith(".aida")) {
-                path = path + ".aida";
-                file = new File(path);
-            }
-            if (file.exists()) {
-                LOG.info("Deleting old AIDA file: " + path);
-                file.delete();
-            }
-            AidaXMLStore store = new AidaXMLStore();
-            de.schlichtherle.io.File newFile = new de.schlichtherle.io.File(path);
-            store.commit(outputTree, newFile, null, false, false, false);
-            // store.commit(serverTree, newFile, null, true /*gzip*/, false, false);
-            LOG.info("Saved AIDA file: " + file.getPath());
+
+            outputTree.close();
+            outputTree = null;
         }
-
-        outputTree.close();
-        outputTree = null;
     }
 
     /**
@@ -705,9 +712,7 @@ public class PlotAggregator implements Runnable {
         }
 
         /**
-         * Attempts to connect to a remote AIDA tree up to a maximum number of attempts,
-         * after which the station will be automatically deactivated if the connection
-         * was unsuccessful (uses back off up to 25 seconds for last attempt)
+         * Attempts to connect to a remote AIDA tree up to a maximum number of attempts
          */
         public void run() {
             try {

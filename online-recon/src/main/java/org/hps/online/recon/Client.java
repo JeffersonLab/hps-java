@@ -213,7 +213,7 @@ public final class Client {
                 this.hostName = InetAddress.getLocalHost().getHostName();
                 LOG.config("Default host name: " + this.hostName);
             } catch (UnknownHostException e) {
-               throw new RuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 
