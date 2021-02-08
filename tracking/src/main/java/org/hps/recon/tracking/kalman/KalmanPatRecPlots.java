@@ -379,6 +379,7 @@ class KalmanPatRecPlots {
                 double [] vtx = {0.1735, -3.168, 0.1687};
                 double [][] vtxCov = {{0.686, 0., 0.}, {0., 10.09, 0.}, {0., 0., 0.017}};
                 HelixState constrained = kTk.originConstraint(vtx, vtxCov);
+                if (constrained == null) continue;
                 double pConstrained = constrained.getMom(0.).mag(); 
                 if (kTk.nHits >= 12) {
                     aida.histogram1D("Kalman Track Chi2, >=12 hits").fill(kTk.chi2);
@@ -806,7 +807,7 @@ class KalmanPatRecPlots {
             } //loop on GBL Tracks
         } //check if event has GBLTracks
         
-        if (nPlotted < numEvtPlots && sharedHitTrack) {
+        if (nPlotted < numEvtPlots) { // && sharedHitTrack) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
             //KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;

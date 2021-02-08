@@ -358,13 +358,13 @@ class TrackCandidate {
     // Comparator function for sorting track candidates by quality
     static Comparator<TrackCandidate> CandidateComparator = new Comparator<TrackCandidate>() {
         public int compare(TrackCandidate t1, TrackCandidate t2) {
-            double p1 = 0.;
-            if (!t1.good) p1 = 9.9e6;
-            double p2 = 0.;
-            if (!t2.good) p2 = 9.9e6; 
+            double p1 = 1.;
+            if (!t1.good) p1 = 9.9e3;
+            double p2 = 1.;
+            if (!t2.good) p2 = 9.9e3; 
             
-            Double chi1 = new Double(t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/12.) + p1);
-            Double chi2 = new Double(t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/12.) + p2);
+            Double chi1 = new Double(p1*t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/14.));
+            Double chi2 = new Double(p2*t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/14.));
             
             return chi1.compareTo(chi2);
         }

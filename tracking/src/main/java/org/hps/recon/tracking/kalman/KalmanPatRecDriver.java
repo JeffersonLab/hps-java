@@ -352,6 +352,11 @@ public class KalmanPatRecDriver extends Driver {
         long endTime = System.nanoTime();
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
+        if (runTime > 200.) {
+            System.out.format("KalmanPatRecDriver.process: run time for pattern recognition at event %d is %9.1f ms\n", evtNumb, runTime);
+            List<TrackerHit> striphits = event.get(TrackerHit.class, "StripClusterer_SiTrackerHitStrip1D");
+            System.out.format("                            Number of strip hits = %d\n", striphits.size());
+        }
         if (runTime > maxTime) maxTime = runTime;
         nEvents++;
         logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");

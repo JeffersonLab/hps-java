@@ -723,10 +723,13 @@ public class KalmanInterface {
             Plane p =new Plane(pointOnPlaneTransformed, tK, uK, vK);
                         
             int kalLayer;                         
+            boolean split;
             if (nPlanes == 40) { //Indexing valid for 2019 detector -> Include new layer-0, layers go from 0 to 13!!
                 kalLayer = temp.getLayerNumber()-1;
+                split = (kalLayer < 4);
             } else {            //Indexing valid for 2016 detector
                 kalLayer = temp.getLayerNumber()+1;
+                split = false;
             }
             
             int detector = temp.getModuleNumber();
@@ -735,7 +738,7 @@ public class KalmanInterface {
             }           
             int millipedeID = temp.getMillepedeId();
             SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), inputPlane.getWidth(), inputPlane.getLength(),
-                    inputPlane.getThickness(), fM, detector, millipedeID);           
+                    split, inputPlane.getThickness(), fM, detector, millipedeID);           
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);
         }
@@ -809,7 +812,7 @@ public class KalmanInterface {
                     globalY.print("globalY");
                     System.out.format("     Adding measurement %10.5f to layer %d, module %d\n", umeas, module.Layer, module.detector);
                 }
-                Measurement m = new Measurement(umeas, du, 0., hit.getdEdx()*1000000., rGlobal, rLocal.v[1]);
+                Measurement m = new Measurement(umeas, 0., du, 0., hit.getdEdx()*1000000., rGlobal, rLocal.v[1]);
                 //rGlobal.print("new global hit location");
 
                 module.addMeasurement(m);
@@ -923,10 +926,15 @@ public class KalmanInterface {
                     newHitLocal.print("transformed global hit");
                     */
                 }
-                
-                double umeas = localHit.getPosition()[0];
+                double [] lpos = localHit.getPosition();
+                double umeas = lpos[0];
                 double du = FastMath.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
                 double time = localHit.getTime(); 
+                double xStrip = -lpos[1];    // Center of strip, i.e. ~0 except in layers 0 and 1
+                if (xStrip > module.xExtent[1] || xStrip < module.xExtent[0]) {
+                    logger.log(Level.FINE, String.format("Event %d Layer %d, local hit at %9.4f %9.4f, %9.4f is outside detector extents %8.3f->%8.3f %8.3f->%8.3f", 
+                            event.getEventNumber(), module.Layer, lpos[0], lpos[1], lpos[2], module.yExtent[0], module.yExtent[1], module.xExtent[0], module.xExtent[1]));
+                }
                 if (debug) {
                     int nstrp = localHit.getRawHits().size();
                     System.out.format("%d %d u = %9.4f +- %9.4f    cov=%10.4e, %10.4e, %10.4e\n", module.Layer, nstrp, umeas, du, localHit.getCovarianceAsMatrix().e(0,0), 
@@ -956,7 +964,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du, time, localHit.getdEdx()*1000000.);
+                Measurement m = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
@@ -1032,6 +1040,7 @@ public class KalmanInterface {
                 // SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
 
                 double umeas = local.getPosition()[0];
+                double xStrip = -local.getPosition()[1];
                 double du = FastMath.sqrt(local.getCovarianceAsMatrix().diagonal(0));
 
                 // if hps measured coord axis is opposite to kalman measured coord axis
@@ -1056,7 +1065,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du, 0., hit.getdEdx()*1000000.);
+                Measurement m = new Measurement(umeas, xStrip, du, 0., hit.getdEdx()*1000000.);
 
                 KalHit hitPair = new KalHit(mod,m);
                 trackHitsKalman.add(hitPair);
@@ -1148,6 +1157,7 @@ public class KalmanInterface {
 
     // Method to drive the Kalman-Filter based pattern recognition
     public ArrayList<KalTrack>[] KalmanPatRec(EventHeader event, IDDecoder decoder) {
+        if (debug) System.out.format("KalmanInterface: entering KalmanPatRec for event %d\n", event.getEventNumber());
         ArrayList<KalTrack>[] outList = new ArrayList[2];
         if (!fillAllMeasurements(event)) {
             if (debug) System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d\n",event.getEventNumber());
@@ -1304,6 +1314,7 @@ public class KalmanInterface {
         for (int topBottom=0; topBottom<2; ++topBottom) {
             for (KalTrack tkr : patRecList[topBottom]) {
                 double [] a = tkr.originHelixParms();
+                if (a == null) a = tkr.SiteList.get(0).aS.helix.a.v;
                 String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f t=%6.1f", 
                         topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4], tkr.getTime());
                 printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);

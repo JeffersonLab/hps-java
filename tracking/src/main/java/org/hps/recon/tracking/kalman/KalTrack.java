@@ -484,7 +484,6 @@ public class KalTrack {
     // Runge Kutta propagation of the helix to the origin
     public boolean originHelix() {
         if (propagated) return true;
-        propagated = true;
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -555,11 +554,13 @@ public class KalTrack {
         Cx = temp.inverseRotate(Rot).M;
         temp = new SquareMatrix(3, Cp);
         Cp = temp.inverseRotate(Rot).M;
+        propagated = true;
         return true;
     }
 
     public double[] originX() {
-        if (!propagated) { originHelix(); }
+        if (!propagated) originHelix();
+        if (!propagated) return new double [] {0.,0.,0.};
         return originPoint.v.clone();
     }
 
@@ -577,7 +578,8 @@ public class KalTrack {
     }
     
     public double[] originP() {
-        if (!propagated) { originHelix(); }
+        if (!propagated) originHelix();
+        if (!propagated) return new double [] {0.,0.,0.};
         return originMomentum.v.clone();
     }
 
@@ -586,14 +588,15 @@ public class KalTrack {
         double [][] M = new double[5][5];
         for (int i=0; i<5; ++i) {
             for (int j=0; j<5; ++j) {
-                M[i][j] = helixAtOrigin.C.unsafe_get(i, j);
+                if (propagated) M[i][j] = helixAtOrigin.C.unsafe_get(i, j);
+                else M[i][j] = SiteList.get(0).aS.helix.C.unsafe_get(i, j);
             }
         }
         return M;
     }
 
     public boolean covNaN() { 
-        if (!propagated) originHelix();
+        if (helixAtOrigin.C == null) return true;
         return MatrixFeatures_DDRM.hasNaN(helixAtOrigin.C);
     }
     
@@ -605,6 +608,7 @@ public class KalTrack {
     //Update the helix parameters at the "origin" by using the target position or vertex as a constraint
     public HelixState originConstraint(double [] vtx, double [][] vtxCov) {
         if (!propagated) originHelix();
+        if (!propagated) return null;
         
         // Transform the inputs in the the helix field-oriented coordinate system
         Vec v = helixAtOrigin.toLocal(new Vec(3,vtx));
@@ -1187,15 +1191,13 @@ public class KalTrack {
     // Comparator function for sorting tracks by quality
     static Comparator<KalTrack> TkrComparator = new Comparator<KalTrack>() {
         public int compare(KalTrack t1, KalTrack t2) {
-            Double chi1 = new Double(t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.));
-            Double chi2 = new Double(t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.));
-            if (t1.originHelix() && t2.originHelix()) {
-                if (!t1.helixAtOrigin.goodCov()) chi1 = chi1 + 1000.;
-                if (!t2.helixAtOrigin.goodCov()) chi2 = chi2 + 1000.;
-            } else {
-                if (!t1.SiteList.get(0).aS.helix.goodCov()) chi1 = chi1 + 1000.;
-                if (!t2.SiteList.get(0).aS.helix.goodCov()) chi2 = chi2 + 1000.;
-            }
+            double penalty1 = 1.0;
+            double penalty2 = 1.0;
+            if (!t1.SiteList.get(0).aS.helix.goodCov()) penalty1 = 10.;
+            if (!t2.SiteList.get(0).aS.helix.goodCov()) penalty2 = 10.;
+
+            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 10.0*(1.0 - (double)t1.nHits/14.));
+            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 10.0*(1.0 - (double)t2.nHits/14.));
             return chi1.compareTo(chi2);
         }
     };
