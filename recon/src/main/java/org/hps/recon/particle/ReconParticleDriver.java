@@ -113,11 +113,11 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Stores reconstructed electron particles.
      */
-    private List<ReconstructedParticle> electrons;
+    protected List<ReconstructedParticle> electrons;
     /**
      * Stores reconstructed positron particles.
      */
-    private List<ReconstructedParticle> positrons;
+    protected List<ReconstructedParticle> positrons;
     /**
      * Stores particles reconstructed from an event.
      */
@@ -156,11 +156,11 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for calorimeter clusters.
      */
-    private String ecalClustersCollectionName = "EcalClustersCorr";
+    protected String ecalClustersCollectionName = "EcalClustersCorr";
     /**
      * LCIO collection name for tracks.
      */
-    private String trackCollectionName = "GBLTracks";
+    protected String trackCollectionName = "GBLTracks";
     /**
      * Track Cluster Algorithm set to Kalman or GBL Tracks
      */
@@ -168,8 +168,8 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for reconstructed particles.
      */
-    private String finalStateParticlesColName = "FinalStateParticles";
-    private String OtherElectronsColName = "OtherElectrons";
+    protected String finalStateParticlesColName = "FinalStateParticles";
+    protected String OtherElectronsColName = "OtherElectrons";
     /**
      * LCIO collection name for V0 candidate particles generated without
      * constraints.

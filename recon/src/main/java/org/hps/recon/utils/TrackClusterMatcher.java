@@ -35,11 +35,11 @@ public class TrackClusterMatcher {
     FieldMap bFieldMap = null;
 
     // Plotting
-    private ITree tree;
-    private IHistogramFactory histogramFactory;
-    private Map<String, IHistogram1D> plots1D;
-    private Map<String, IHistogram2D> plots2D;
-    private String rootFile = "track_cluster_matching_plots.root";
+    protected ITree tree;
+    protected IHistogramFactory histogramFactory;
+    protected Map<String, IHistogram1D> plots1D;
+    protected Map<String, IHistogram2D> plots2D;
+    protected String rootFile = "track_cluster_matching_plots.root";
 
     // parameterization
     private Map<String, double[]> paramMap;
@@ -47,7 +47,7 @@ public class TrackClusterMatcher {
     /**
      * Flag used to determine if plots are enabled/disabled
      */
-    boolean enablePlots = false;
+    protected boolean enablePlots = false;
 
     /**
      * Flag used to determine whether the analytic or field map extrapolator
