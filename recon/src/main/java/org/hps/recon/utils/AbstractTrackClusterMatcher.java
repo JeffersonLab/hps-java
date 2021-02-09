@@ -6,16 +6,31 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
 
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
+
+import org.hps.recon.tracking.TrackData;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+
+
 import org.lcsim.event.Cluster;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.LCRelation;
+
 
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
-
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.tracking.CoordinateTransformations;
 
 
 
@@ -30,6 +45,20 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     protected Map<String, IHistogram2D> plots2D;
     protected String rootFile = "track_cluster_matching_plots.root";
     protected String trackCollectionName;
+    protected Map<String,Double> cutsMap = new HashMap<String,Double>();
+
+    public void setCutX(double dx){
+        this.cutsMap.put("X",dx);    
+    }
+    public void setCutY(double dy){
+        this.cutsMap.put("Y",dy);    
+    }
+    public void setCutZ(double dz){
+        this.cutsMap.put("Z",dz);    
+    }
+    public void setCutT(double dt){
+        this.cutsMap.put("T",dt);    
+    }
 
     public void setTrackCollectionName(String trackCollectionName){
         this.trackCollectionName = trackCollectionName;
@@ -44,12 +73,42 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     AbstractTrackClusterMatcher() {
     }
 
+    public boolean isInTime(EventHeader event, double trackClusterTimeOffset, Cluster cluster, Track track){
+
+        double dt = getdt(event, trackClusterTimeOffset, cluster, track);
+        if(cutsMap.isEmpty())
+            return true;
+        if(dt > cutsMap.get("T"))
+            return false;
+        else
+            return true;
+
+    }
+
     public boolean isMatch(Cluster cluster, Track track){
+    
+        // Check that the track and cluster are in the same detector volume.
+        // If not, there is no way they can be a match.
+        if ((track.getTrackStates().get(0).getTanLambda() > 0 && cluster.getPosition()[1] < 0)
+                || (track.getTrackStates().get(0).getTanLambda() < 0 && cluster.getPosition()[1] > 0)) {
+            return false;
+        }
+
+        double [] delta = getDistanceXYZ(cluster, track);
+        double deltaX = delta[0];
+        double deltaY = delta[1];
+
+        if(cutsMap.isEmpty())
+            return true;
+        if(deltaX > cutsMap.get("X"))
+            return false;
+        if(deltaY > cutsMap.get("Y"))
+            return false;
 
         return true;
     }
 
-    public double getDistance(Cluster cluster, Track track){
+    public double getDistanceR(Cluster cluster, Track track){
 
         // Get the cluster position
         Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
@@ -57,25 +116,99 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         // Extrapolate the track to the Ecal cluster position
         Hep3Vector tPos = null;
         TrackState trackStateAtEcal = null;
-        if (this.useAnalyticExtrapolator) {
-            tPos = TrackUtils.extrapolateTrack(track, cPos.z());
-        } else {
-            if(trackCollectionName.contains("GBLTracks")){
-                trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
-                tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
-                tPos = CoordinateTransformations.transformVectorToDetector(tPos);
-            }       
+        //if (this.useAnalyticExtrapolator) {
+            //tPos = TrackUtils.extrapolateTrack(track, cPos.z());
+        //} 
+        if(trackCollectionName.contains("GBLTracks")){
+            trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+        }       
 
-            if(trackCollectionName.contains("KalmanFullTracks")){
-                trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
-                tpos = new BasicHep3Vector(ts_ecal.getReferencePoint());
-                tpos = CoordinateTransformations.transformVectorToDetector(tpos);
+        if(trackCollectionName.contains("KalmanFullTracks")){
+            trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
 
-            }
         }
 
         return Math.sqrt(Math.pow(cPos.x()-tPos.x(),2)+Math.pow(cPos.y()-tPos.y(),2));
+    }
 
+    public double[] getDistanceXYZ(Cluster cluster, Track track){
+
+        //init distance array
+        double[] distance = null;
+
+        // Get the cluster position
+        Hep3Vector cPos = new BasicHep3Vector(cluster.getPosition());
+
+        // Extrapolate the track to the Ecal cluster position
+        Hep3Vector tPos = null;
+        TrackState trackStateAtEcal = null;
+        if(trackCollectionName.contains("GBLTracks")){
+            trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+        }       
+
+        if(trackCollectionName.contains("KalmanFullTracks")){
+            trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+
+        }
+
+        distance[0] = cPos.x() - tPos.x();
+        distance[1] = cPos.y() - tPos.y();
+        distance[2] = cPos.z() - tPos.z();
+        
+        return distance;
+        
+        
+
+    }
+
+    public double getdt(EventHeader event, double trackClusterTimeOffset, Cluster cluster, Track track){
+        
+        double trackt;    
+        if(this.trackCollectionName.contains("GBLTracks")){
+            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+            trackt = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+        }
+        else{ //(this.trackCollectionName.contains("KalmanFullTracks")){
+            RelationalTable trackToData = getKFTrackDataRelations(event);
+            TrackData trackdata = (TrackData) trackToData.from(track);
+            trackt = trackdata.getTrackTime();
+        }
+
+        double clustert = ClusterUtilities.getSeedHitTime(cluster);
+        double dt = clustert - trackClusterTimeOffset - trackt;
+
+        return dt;
+
+
+
+    }
+
+    public RelationalTable getKFTrackDataRelations(EventHeader event){
+        
+        List<TrackData> TrackData;
+        RelationalTable trackToData = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+        List<LCRelation> trackRelations;
+        TrackData trackdata;
+        if (trackCollectionName.contains("KalmanFullTracks")) {
+            TrackData = event.get(TrackData.class, "KFTrackData");
+            trackRelations = event.get(LCRelation.class, "KFTrackDataRelations");
+            for (LCRelation relation : trackRelations) {
+                if (relation != null && relation.getTo() != null){
+                    trackToData.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        }
+
+        return trackToData;
 
     }
 
