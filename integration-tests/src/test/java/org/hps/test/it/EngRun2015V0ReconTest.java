@@ -1,25 +1,22 @@
 package org.hps.test.it;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.ITree;
+import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-
-import static java.lang.Math.abs;
-
 import java.net.URL;
 
-import junit.framework.TestCase;
-import static junit.framework.TestCase.assertEquals;
-
 import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
+import org.hps.util.test.TestOutputFile;
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil;
+
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
+import junit.framework.TestCase;
 
 /**
  *
@@ -35,24 +32,20 @@ public class EngRun2015V0ReconTest extends TestCase {
     private String aidaOutputFile = "target/test-output/EngRun2015V0ReconTest/EngRun2015V0ReconTest";
 
     public void testIt() throws Exception {
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        File evioInputFile = cache.getCachedFile(testURL);
+        File evioInputFile = TestUtil.downloadTestFile(testFileName);
         File outputFile = new TestOutputFile(EngRun2015V0ReconTest.class, "EngRun2015V0ReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "100"};
-        System.out.println("Running EngRun2015V0ReconTest.main ...");
-        System.out.println("writing to: " + outputFile.getPath());
+        System.out.println("Writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
         System.out.println("That took " + (endTime - startTime) + " milliseconds");
         // Read in the LCIO event file and print out summary information.
-        System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         EngRun2015V0Recon reconDriver = new EngRun2015V0Recon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
+        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -66,7 +59,7 @@ public class EngRun2015V0ReconTest extends TestCase {
         comparePlots();
         System.out.println("Done!");
     }
-    
+
        public void comparePlots() throws Exception {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();

@@ -1,20 +1,20 @@
 package org.hps.test.it;
 
+import static java.lang.Math.abs;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.hps.evio.EvioToLcio;
+import org.hps.util.test.TestOutputFile;
+import org.hps.util.test.TestUtil;
+import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.loop.LCSimLoop;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
-import java.io.File;
-import java.io.IOException;
-import static java.lang.Math.abs;
-import java.net.URL;
 import junit.framework.TestCase;
-import static junit.framework.TestCase.assertEquals;
-import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil;
 
 /**
  *
@@ -22,23 +22,22 @@ import org.lcsim.util.test.TestUtil;
  */
 public class PhysRun2016FeeReconTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
-    static final String testFileName = "hps_007796_feeskim.evio";
+    //static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
+    static final String testFileName = "evio/hps_007796_feeskim.evio";
     static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
     static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
     private final int nEvents = 5000;
     private String aidaOutputFile = "target/test-output/PhysRun2016FeeReconTest/PhysRun2016FeeReconTest";
 
     public void testIt() throws Exception {
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        File evioInputFile = cache.getCachedFile(testURL);
+        //URL testURL = new URL(testURLBase + "/" + testFileName);
+        //FileCache cache = new FileCache();
+        File evioInputFile = TestUtil.downloadTestFile(testFileName);
         File outputFile = new TestOutputFile(PhysRun2016FeeReconTest.class, "PhysRun2016FeeReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "1000"};
-        System.out.println("Running PhysRun2016FeeReconTest.main ...");
-        System.out.println("writing to: " + outputFile.getPath());
+        System.out.println("Writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
@@ -47,7 +46,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
         System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016FeeRecon reconDriver = new PhysRun2016FeeRecon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
+        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -67,9 +66,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/PhysRun2016FeeReconTest/PhysRun2016FeeReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlot("PhysRun2016FeeReconTest/PhysRun2016FeeReconTest-ref.aida");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 

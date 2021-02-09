@@ -1,25 +1,22 @@
 package org.hps.test.it;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.ITree;
+import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-
-import static java.lang.Math.abs;
-
 import java.net.URL;
 
-import junit.framework.TestCase;
-import static junit.framework.TestCase.assertEquals;
-
 import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
+import org.hps.util.test.TestOutputFile;
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil;
+
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
+import junit.framework.TestCase;
 
 /**
  *
@@ -37,12 +34,12 @@ public class PhysRun2016MollerReconTest extends TestCase {
     public void testIt() throws Exception {
         URL testURL = new URL(testURLBase + "/" + testFileName);
         FileCache cache = new FileCache();
-        File evioInputFile = cache.getCachedFile(testURL);
+        File evioInputFile = TestUtil.downloadTestFile("hps_007796_mollerskim.evio");
+
         File outputFile = new TestOutputFile(PhysRun2016MollerReconTest.class, "PhysRun2016MollerReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapFileName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "1000"};
-        System.out.println("Running PhysRun2016MollerReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
@@ -52,7 +49,7 @@ public class PhysRun2016MollerReconTest extends TestCase {
         System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016MollerRecon reconDriver = new PhysRun2016MollerRecon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
+        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {

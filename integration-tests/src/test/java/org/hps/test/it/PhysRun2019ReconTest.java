@@ -1,22 +1,19 @@
 package org.hps.test.it;
 
+import static java.lang.Math.abs;
+
+import java.io.File;
+import java.net.URL;
+
+import org.hps.evio.EvioToLcio;
+import org.hps.util.test.TestOutputFile;
+import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.cache.FileCache;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
-
-import java.io.File;
-
-import static java.lang.Math.abs;
-
-import java.net.URL;
-
 import junit.framework.TestCase;
-import static junit.framework.TestCase.assertEquals;
-
-import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 
 /**
  *

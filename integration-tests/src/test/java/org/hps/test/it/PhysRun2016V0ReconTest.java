@@ -1,25 +1,22 @@
 package org.hps.test.it;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.ITree;
+import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-
-import static java.lang.Math.abs;
-
 import java.net.URL;
 
-import junit.framework.TestCase;
-import static junit.framework.TestCase.assertEquals;
-
 import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
+import org.hps.util.test.TestOutputFile;
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil;
+
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
+import junit.framework.TestCase;
 
 /**
  *
@@ -27,7 +24,6 @@ import org.lcsim.util.test.TestUtil;
  */
 public class PhysRun2016V0ReconTest  extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_007796_v0skim.evio";
     static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
     static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
@@ -35,9 +31,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
     private String aidaOutputFile = "target/test-output/PhysRun2016V0ReconTest/PhysRun2016V0ReconTest";
 
     public void testIt() throws Exception {
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        File evioInputFile = cache.getCachedFile(testURL);
+        File evioInputFile = TestUtil.downloadTestFile(testFileName);
         File outputFile = new TestOutputFile(PhysRun2016V0ReconTest.class, "PhysRun2016V0ReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
@@ -52,7 +46,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016V0Recon reconDriver = new PhysRun2016V0Recon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
+        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -66,7 +60,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         comparePlots();
         System.out.println("Done!");
     }
-    
+
        public void comparePlots() throws Exception {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
