@@ -38,6 +38,7 @@ public final class TestUtil {
         try {
             URL url = new URL(JLAB_DATA + "/" + fileName);
             FileCache cache = new FileCache();
+            cache.setPrintStream(null);
             File file = cache.getCachedFile(url);
             System.out.println("Cached test file: " + file.getPath());
             return file;
@@ -56,6 +57,7 @@ public final class TestUtil {
         try {
             URL url = new URL(JLAB_REF + "/" + name + "/" + name + "-ref.aida");
             FileCache cache = new FileCache();
+            cache.setPrintStream(null);
             File file = cache.getCachedFile(url);
             System.out.println("Cached ref plot: " + file.getPath());
             return file;
