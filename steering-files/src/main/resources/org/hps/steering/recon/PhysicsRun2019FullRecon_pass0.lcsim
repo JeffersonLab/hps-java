@@ -4,25 +4,17 @@
       Steering file for running 2019 Reconstruction on readout data (LCIO or EVIO)
       created:  9/24/19
       @author Norman Graf <Norman.Graf@slac.stanford.edu>
+      @author PF <pbutti@slac.stanford.edu>
     -->
     <execute>
-        <driver name="EventMarkerDriver"/>
         <!-- Enable the following if re-processing lcio files -->
         <!--        <driver name="PreCleanupDriver"/>       -->
         <!--  Event Reconstruction  -->
         <!-- Skip events with known bad conditions -->
         <!-- Not yet defined for 2019 data -->
         <!--        <driver name="EventFlagFilter"/>  -->
-
-        <!-- FADC stuck bits driver -->
-        <driver name="StuckFADCBit"/>
-
         <!--RF driver-->
         <driver name="RfFitter"/>
-        <!-- Hodoscope drivers -->
-        <driver name="HodoRunningPedestal"/>
-        <driver name="HodoRawConverter"/>
- 
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/> 
         <driver name="EcalRawConverter" />
@@ -30,26 +22,47 @@
         <driver name="ReconClusterer" /> 
         <driver name="CopyCluster" />
 
+        <!-- Hodoscope drivers -->
+        <driver name="HodoRunningPedestal"/>
+        <driver name="HodoRawConverter"/>
+ 
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
-     
+        
+        <driver name="HelicalTrackHitDriver"/> 
+        
+        <!-- Track finding and fitting using seed tracker. -->
+        <!-- 20201030 Don't yet trust layers 1&2 ngraf -->        
+<!--
+        <driver name="TrackReconSeed123Conf4Extd56"/>    
+        <driver name="TrackReconSeed123Conf5Extd46"/>
+-->        
         <driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
-        <driver name="TrackReconSeed235Conf6Extd147"/>
-        <driver name="TrackReconSeed234Conf6Extd157"/>
+        <driver name="TrackReconSeed235Conf6Extd147"/> 
+        <driver name="TrackReconSeed234Conf6Extd157"/> 
 
+        <!-- 20201030 Add extra drivers to make up for -->
+        <!--  missing layer 5 on the bottom -->
+        <driver name="TrackReconSeed346Conf7Extd5"/>        
+        <!-- missing layer 7 on the top -->
+        <driver name="TrackReconSeed346Conf5Extd7"/>
+        
         <!-- 
            TrackDataDriver needs to be run before ReconParticleDriver so the
            ReconstructedParticle types are properly set.
         -->
+        
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
-        <driver name="ReconParticleDriver" />   
+        <driver name="KalmanPatRecDriver"/>
+        <driver name="ReconParticleDriver" /> 
+        <driver name="ReconParticleDriver_Kalman" /> 
+        
         <!--  DQM   -->
               
         <!-- Following are optional Analysis Drivers  -->
@@ -68,42 +81,26 @@
              
         <driver name="LCIOWriter"/>
         <!-- Toggle between saving in aida or root format -->
-<!--        <driver name="AidaToRootSaveDriver"/> -->
-        <driver name="AidaSaveDriver"/>
+        <!-- <driver name="AidaToRootSaveDriver"/> -->
+        <!-- <driver name="AidaSaveDriver"/> -->
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>    
-        
-        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>1000</eventInterval>
-        </driver> 
-        
+	    
         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
             <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
         </driver>
         
-        <!-- Hodo reconstruction drivers -->
-
-        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
-            <logLevel>CONFIG</logLevel>
-        </driver>
-
-        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
-           <useRunningPedestal>true</useRunningPedestal>
-           <tETAllChannels>12</tETAllChannels>
-           <logLevel>CONFIG</logLevel>
-        </driver>
-
-	
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
+  
         <!-- Driver to reject "bad" events -->
         <!-- Not yet implemented for 2019
-        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+             <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
         </driver> 
         -->
-
-        <driver name="StuckFADCBit" type="org.hps.evio.StuckFADCBitDriver"/>
-
+        
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
@@ -144,6 +141,9 @@
        
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
+            <saveMonsterEvents>false</saveMonsterEvents>
+            <thresholdMonsterEvents>200</thresholdMonsterEvents>
+            <debug>false</debug>
         </driver>
       
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
@@ -159,6 +159,26 @@
         <!--   Seed the track with a fit to the triplet of hits in layers ABC -->
         <!--   Confirm that track with a hit in layer D -->
         <!--   Extend that track to hits in layers EFG -->
+
+
+
+        <driver name="TrackReconSeed123Conf4Extd56" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
+            <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
+            <debug>false</debug>
+	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <maxTrackerHits>250</maxTrackerHits>
+        </driver>
+        
+        <driver name="TrackReconSeed123Conf5Extd46" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
+            <strategyResource>HPS_s123_c5_e46_4hit.xml</strategyResource>
+            <debug>false</debug>
+	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <maxTrackerHits>250</maxTrackerHits>
+        </driver>
+
+
         <driver name="TrackReconSeed567Conf4Extd123" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s567_c4_e123</trackCollectionName>
             <strategyResource>HPS_s567_c4_e123.xml</strategyResource>
@@ -282,37 +302,87 @@
 
         <!-- Refit tracks using the GBL algorithm -->
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-            <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-            <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
-            <maxTrackChisq5hits> 100. </maxTrackChisq5hits>
-            <maxTrackChisq6hits> 100. </maxTrackChisq6hits>
+          <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+               <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
+          <includeNoHitScatters>true</includeNoHitScatters>
+          <gblRefitIterations>5</gblRefitIterations>
+          <storeTrackStates>false</storeTrackStates>
+          <writeMilleBinary>false</writeMilleBinary>
+          <milleBinaryFileName>${outputFile}_millepede.bin</milleBinaryFileName>
+          <!--<maxTrackChisq5hits> 100. </maxTrackChisq5hits> -->
+          <!--<maxTrackChisq6hits> 100. </maxTrackChisq6hits> -->
         </driver> 
         
+        
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <!--<doDebugPlots>false</doDebugPlots>-->
+            <!-- <siHitsLimit>50</siHitsLimit> -->
+            <seedCompThr>0.05</seedCompThr>
+            <verbose>false</verbose>
+          </driver>
+          
+
+        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+          <outputPlotsFilename>${outputFile}_gblplots.root</outputPlotsFilename>
+          <trackCollectionName>GBLTracks</trackCollectionName>
+        </driver>
                 
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
         
-        <!-- Create Reconstructed Particles by pairing up tracks and clusters when possible -->
+        <!-- Create Reconstructed Particles by pairing up tracks and clusters when possible - Beamspot location and size valid for 10031 -->
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>          
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
-            <beamPositionX> 0.0 </beamPositionX>
-            <beamSigmaX> 0.125 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
-            <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -7.8 </beamPositionZ>
-            <maxElectronP> 7.0 </maxElectronP>
-            <maxVertexP> 7.0 </maxVertexP>
+            <beamPositionX>0.180</beamPositionX>
+            <beamSigmaX>0.05</beamSigmaX>
+            <beamPositionY>0.04</beamPositionY>
+            <beamSigmaY>0.020</beamSigmaY>
+            <beamPositionZ>-7.5</beamPositionZ>
+            <maxElectronP>7.0</maxElectronP>
+            <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>true</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
+            <applyClusterCorrections>false</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <debug>false</debug>
+            <makeMollerCols>false</makeMollerCols>
+        </driver>  
+
+        <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>          
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <requireClustersForV0>false</requireClustersForV0>
+            <beamPositionX>0.180</beamPositionX>
+            <beamSigmaX>0.05</beamSigmaX>
+            <beamPositionY>0.04</beamPositionY>
+            <beamSigmaY>0.020</beamSigmaY>
+            <beamPositionZ>-7.5</beamPositionZ>
+            <maxElectronP>7.0</maxElectronP>
+            <maxVertexP>7.0</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
+            <maxVertexClusterDt>40.0</maxVertexClusterDt>           
+            <maxMatchDt>40</maxMatchDt>
+            <trackClusterTimeOffset>40</trackClusterTimeOffset>
+            <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
+            <applyClusterCorrections>false</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <debug>false</debug>
+	    <makeMollerCols>false</makeMollerCols>
         </driver>  
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
@@ -321,7 +391,7 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>       
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}.aida</outputFileName>
+            <outputFileName>${outputFile}.root</outputFileName>
         </driver>
         <driver name="AidaToRootSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
