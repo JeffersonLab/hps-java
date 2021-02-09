@@ -4,13 +4,11 @@ import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.IAnalysisFactory;
@@ -32,7 +30,7 @@ public class EngRun2015MollerReconTest extends TestCase {
 
     public void testIt() throws Exception {
         File evioInputFile = TestUtil.downloadTestFile(testFileName);
-        File outputFile = new TestOutputFile(EngRun2015MollerReconTest.class, "EngRun2015MollerReconTest");
+        File outputFile = new TestOutputFile(EngRun2015MollerReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "100"};
@@ -63,9 +61,7 @@ public class EngRun2015MollerReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/EngRun2015MollerReconTest/EngRun2015MollerReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlots("EngRun2015MollerReconTest");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 

@@ -3,36 +3,38 @@ package org.hps.util.test;
 import java.io.File;
 
 /**
- * Convenience class for test file output (basically copied from lcsim.org).
+ * Convenience class for test file output
  *
  * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
 public class TestOutputFile extends File {
 
-    /**
-     * Root output area in target dir.
-     */
-    private static String TEST_OUTPUT_DIR = "target/test-output/";
+    private static final String TEST_OUTPUT_DIR = "target/test-output";
 
     /**
-     * Create output file in target dir for a specific test case.
+     * Create an output file in a test-specific directory
      *
      * @param testClass the TestCase class
-     * @param filename the file name (should not use a directory)
+     * @param filename The name of the file
      */
     public TestOutputFile(Class<?> testClass, String filename) {
         super(TEST_OUTPUT_DIR + File.separator + testClass.getSimpleName() + File.separator + filename);
-        File dir = this.getParentFile();
+        File dir = getParentFile();
         if (!dir.exists()) {
             dir.mkdirs();
         }
     }
 
+    /**
+     * Create an output file in the generic output directory
+     * @param filename The name of the file
+     */
     public TestOutputFile(String filename) {
-        super(TestUtil.getTestOutputDir() + File.separator + filename);
-        File dir = new File(TestUtil.getTestOutputDir());
-        if (!dir.exists())
-            dir.mkdir();
+        super(TEST_OUTPUT_DIR + File.separator + filename);
+        File dir = getParentFile();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
     }
 }

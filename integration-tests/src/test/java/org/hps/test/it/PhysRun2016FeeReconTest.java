@@ -6,8 +6,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.loop.LCSimLoop;
 
@@ -22,7 +22,6 @@ import junit.framework.TestCase;
  */
 public class PhysRun2016FeeReconTest extends TestCase {
 
-    //static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "evio/hps_007796_feeskim.evio";
     static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
     static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
@@ -33,7 +32,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
         //URL testURL = new URL(testURLBase + "/" + testFileName);
         //FileCache cache = new FileCache();
         File evioInputFile = TestUtil.downloadTestFile(testFileName);
-        File outputFile = new TestOutputFile(PhysRun2016FeeReconTest.class, "PhysRun2016FeeReconTest");
+        File outputFile = new TestOutputFile(PhysRun2016FeeReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "1000"};
@@ -66,7 +65,7 @@ public class PhysRun2016FeeReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        File aidaRefFile = TestUtil.downloadRefPlot("PhysRun2016FeeReconTest/PhysRun2016FeeReconTest-ref.aida");
+        File aidaRefFile = TestUtil.downloadRefPlots("PhysRun2016FeeReconTest");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 

@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.hps.job.JobManager;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;

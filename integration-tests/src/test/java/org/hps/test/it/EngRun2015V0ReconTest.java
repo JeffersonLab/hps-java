@@ -4,13 +4,11 @@ import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.IAnalysisFactory;
@@ -24,7 +22,6 @@ import junit.framework.TestCase;
  */
 public class EngRun2015V0ReconTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_v0skim_10k.evio";
     static final String fieldmapName = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
     static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
@@ -33,7 +30,7 @@ public class EngRun2015V0ReconTest extends TestCase {
 
     public void testIt() throws Exception {
         File evioInputFile = TestUtil.downloadTestFile(testFileName);
-        File outputFile = new TestOutputFile(EngRun2015V0ReconTest.class, "EngRun2015V0ReconTest");
+        File outputFile = new TestOutputFile(EngRun2015V0ReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "100"};
@@ -64,9 +61,7 @@ public class EngRun2015V0ReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/EngRun2015V0ReconTest/EngRun2015V0ReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlots("EngRun2015V0ReconTest");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 

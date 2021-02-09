@@ -1,22 +1,13 @@
 package org.hps.test.it;
 
-import hep.aida.ICloud1D;
-import hep.aida.ICloud2D;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.data.test.TestDataUtility;
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
 import org.hps.recon.ecal.cluster.ClusterDriver;
@@ -24,7 +15,6 @@ import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.ecal.cluster.Clusterer;
 import org.hps.util.test.TestUtil;
-import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -33,10 +23,15 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCIODriver;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
+
+import hep.aida.ICloud1D;
+import hep.aida.ICloud2D;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import junit.framework.TestCase;
 
 /**
  * This test performs basic sanity checks on the output from the various clustering algorithms,
@@ -52,7 +47,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class ClustererTest extends TestCase {
 
     static int nEvents = 100;
-    static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
 

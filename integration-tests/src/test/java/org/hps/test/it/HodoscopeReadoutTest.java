@@ -2,7 +2,6 @@ package org.hps.test.it;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,8 +12,8 @@ import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
 import org.hps.util.FilterMCBunches;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
@@ -29,7 +28,6 @@ import org.lcsim.geometry.Subdetector;
 import org.lcsim.job.AidaSaveDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.ICloud1D;
@@ -77,7 +75,7 @@ public class HodoscopeReadoutTest extends TestCase {
         File testFile = TestUtil.downloadTestFile("slicHodoTestEvents.slcio");
 
         // Event spacing
-        File filteredFile = new TestOutputFile(HodoscopeReadoutTest.class, "slicHodoTestEvents_filt.slcio");
+        File filteredFile = new TestOutputFile(HodoscopeReadoutTest.class, "filt.slcio");
         if (RUN_FILTERING) {
             String[] args = {testFile.getPath(), filteredFile.getPath(), "-e", EVENT_SPACING.toString()};
             FilterMCBunches.main(args);

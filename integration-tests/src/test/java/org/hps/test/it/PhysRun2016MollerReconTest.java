@@ -4,13 +4,11 @@ import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import org.hps.evio.EvioToLcio;
 import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.IAnalysisFactory;
@@ -24,7 +22,6 @@ import junit.framework.TestCase;
  */
 public class PhysRun2016MollerReconTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_007796_mollerskim.evio";
     static final String fieldmapFileName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
     static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
@@ -32,11 +29,8 @@ public class PhysRun2016MollerReconTest extends TestCase {
     private String aidaOutputFile = "target/test-output/PhysRun2016MollerReconTest/PhysRun2016MollerReconTest";
 
     public void testIt() throws Exception {
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
         File evioInputFile = TestUtil.downloadTestFile("hps_007796_mollerskim.evio");
-
-        File outputFile = new TestOutputFile(PhysRun2016MollerReconTest.class, "PhysRun2016MollerReconTest");
+        File outputFile = new TestOutputFile(PhysRun2016MollerReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapFileName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "1000"};
@@ -46,10 +40,9 @@ public class PhysRun2016MollerReconTest extends TestCase {
         long endTime = System.currentTimeMillis();
         System.out.println("That took " + (endTime - startTime) + " milliseconds");
         // Read in the LCIO event file and print out summary information.
-        System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016MollerRecon reconDriver = new PhysRun2016MollerRecon();
-        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
+        aidaOutputFile = new TestOutputFile(getClass(), this.getClass().getSimpleName()).getPath();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -68,9 +61,7 @@ public class PhysRun2016MollerReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/PhysRun2016MollerReconTest/PhysRun2016MollerReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlots("PhysRun2016MollerReconTest");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 

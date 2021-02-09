@@ -6,8 +6,8 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.evio.EvioToLcio;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 
 import junit.framework.TestCase;
 

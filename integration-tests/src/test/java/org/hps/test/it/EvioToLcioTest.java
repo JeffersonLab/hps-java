@@ -3,14 +3,11 @@ package org.hps.test.it;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import org.hps.data.test.TestDataUtility;
 import org.hps.evio.EvioToLcio;
 import org.hps.record.scalers.ScalerData;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
@@ -143,7 +140,7 @@ public final class EvioToLcioTest extends TestCase {
         final File inputFile = TestUtil.downloadTestFile("run5772_integrationTest.evio");
 
         // LCIO output file.
-        final TestOutputFile outputFile = new TestOutputFile(EvioToLcioTest.class, "hps_005772.slcio");
+        final TestOutputFile outputFile = new TestOutputFile(EvioToLcioTest.class, "events.slcio");
 
         // Run the command line utility.
         final String[] args = new String[] {"-l", outputFile.getPath(), "-d", "HPS-EngRun2015-Nominal-v1", "-r", inputFile.getAbsolutePath()};

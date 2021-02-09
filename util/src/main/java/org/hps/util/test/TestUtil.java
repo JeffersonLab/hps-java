@@ -6,32 +6,37 @@ import java.net.URL;
 import org.lcsim.util.cache.FileCache;
 
 /**
- * Simple utilities for unit and integration tests
+ * Static utilities for accessing test files at JLAB, such as EVIO and LCIO input data
+ * and reference AIDA plots
+ *
+ * Additional test utility methods may be added here, as needed.
  */
 public final class TestUtil {
 
     /**
      * Base URL for all test files
      */
-    static final String JLAB_BASE = "https://hpsweb.jlab.org/test/hps-java";
+    private static final String JLAB_BASE = "https://hpsweb.jlab.org/test/hps-java";
 
     /**
-     * Base URL for test data files
+     * Base URL for test data files such as EVIO or LCIO input data
      */
-    static final String JLAB_DATA = JLAB_BASE + "/data";
+    private static final String JLAB_DATA = JLAB_BASE + "/data";
 
     /**
      * Base URL for reference plots
      */
-    static final String JLAB_REF = JLAB_BASE + "/referencePlots";
+    private static final String JLAB_REF = JLAB_BASE + "/referencePlots";
 
-    public static File downloadTestFile(String relPath) {
-        return downloadTestFile(relPath, JLAB_DATA);
-    }
-
-    private static File downloadTestFile(String relPath, String baseUrl) {
+    /**
+     * Download a test data file by name
+     * @param fileName The name of the file, relative to the test data directory
+     * @return The test data file
+     * @throws RuntimeException If there is an error downloading the file or it does not exist
+     */
+    public static File downloadTestFile(String fileName) {
         try {
-            URL url = new URL(baseUrl + "/" + relPath);
+            URL url = new URL(JLAB_DATA + "/" + fileName);
             FileCache cache = new FileCache();
             File file = cache.getCachedFile(url);
             System.out.println("Cached test file: " + file.getPath());
@@ -41,9 +46,15 @@ public final class TestUtil {
         }
     }
 
-    public static File downloadRefPlot(String path) {
+    /**
+     * Download reference AIDA plots by name
+     * @param name The name of the IT
+     * @return The AIDA reference file
+     * @throws RuntimeException If there is an error downloading the plots or the file does not exist
+     */
+    public static File downloadRefPlots(String name) {
         try {
-            URL url = new URL(JLAB_REF + "/" + path);
+            URL url = new URL(JLAB_REF + "/" + name + "/" + name + "-ref.aida");
             FileCache cache = new FileCache();
             File file = cache.getCachedFile(url);
             System.out.println("Cached ref plot: " + file.getPath());
@@ -53,10 +64,9 @@ public final class TestUtil {
         }
     }
 
-    public static String getTestOutputDir() {
-        return "target/test-output";
-    }
-
+    /**
+     * Private constructor to disallow class instantiation
+     */
     private TestUtil() {
     }
 }

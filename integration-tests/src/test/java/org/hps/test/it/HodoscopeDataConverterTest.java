@@ -7,8 +7,8 @@ import java.util.List;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -27,12 +27,11 @@ public class HodoscopeDataConverterTest extends TestCase {
 
     private static final String DETECTOR = "HPS-HodoscopeTest-v1";
     private static final Integer RUN_NUMBER = 1000000;
-    private static final String OUTPUT_FILE_NAME = "hodo_cnv_test.slcio";
     private static final boolean DEBUG = true;
 
     public void testHodoscopeDataConverter() throws IOException {
         File testFile = TestUtil.downloadTestFile("hpsecal_000084_200events.evio");
-        File testOutput = new TestOutputFile(HodoscopeDataConverterTest.class, OUTPUT_FILE_NAME);
+        File testOutput = new TestOutputFile(HodoscopeDataConverterTest.class, "cnv_test");
         String args[] = {
                 "-d",
                 DETECTOR,

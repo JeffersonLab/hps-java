@@ -2,12 +2,11 @@ package org.hps.test.it;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
-import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
 import org.hps.util.test.TestUtil;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
+
+import junit.framework.TestCase;
 
 /**
  * <p>

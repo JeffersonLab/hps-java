@@ -6,8 +6,8 @@ import java.util.List;
 import org.hps.analysis.hodoscope.SimpleHodoscopeAnalysisDriver;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.event.EventHeader;
@@ -36,12 +36,12 @@ public class HodoscopeSimDataTest extends TestCase {
         hodoTestDriver.setDebug(false);
         loop.add(hodoTestDriver);
 
-        File aidaPlotFile = new TestOutputFile(HodoscopeSimDataTest.class, "HodoscopeSimDataTest.aida");
+        File aidaPlotFile = new TestOutputFile(HodoscopeSimDataTest.class, "plots.aida");
         AidaSaveDriver aidaSaveDriver = new AidaSaveDriver();
         aidaSaveDriver.setOutputFileName(aidaPlotFile.getPath());
         loop.add(aidaSaveDriver);
 
-        File rootPlotFile  = new TestOutputFile(HodoscopeSimDataTest.class, "HodoscopeSimDataTest.root");
+        File rootPlotFile  = new TestOutputFile(HodoscopeSimDataTest.class, "plots.root");
         AidaSaveDriver rootSaveDriver = new AidaSaveDriver();
         rootSaveDriver.setOutputFileName(rootPlotFile.getPath());
         loop.add(rootSaveDriver);

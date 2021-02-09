@@ -4,13 +4,11 @@ import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.IAnalysisFactory;
@@ -36,14 +34,12 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "100"};
-        System.out.println("Running PhysRun2016V0ReconTest.main ...");
-        System.out.println("writing to: " + outputFile.getPath());
+        System.out.println("Writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
         System.out.println("That took " + (endTime - startTime) + " milliseconds");
         // Read in the LCIO event file and print out summary information.
-        System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016V0Recon reconDriver = new PhysRun2016V0Recon();
         aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
@@ -65,9 +61,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/PhysRun2016V0ReconTest/PhysRun2016V0ReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlots("PhysRun2016V0ReconTest");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 

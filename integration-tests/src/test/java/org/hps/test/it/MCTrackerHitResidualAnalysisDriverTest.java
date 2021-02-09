@@ -3,8 +3,8 @@ package org.hps.test.it;
 import java.io.File;
 
 import org.hps.analysis.MC.MCTrackerHitResidualAnalysisDriver;
-import org.hps.util.test.TestOutputFile;
 import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
@@ -22,7 +22,7 @@ public class MCTrackerHitResidualAnalysisDriverTest extends TestCase {
         File inputFile = TestUtil.downloadTestFile(fileName);
 
         TestOutputFile outputFile = new TestOutputFile(MCTrackerHitResidualAnalysisDriverTest.class,
-                "MCTrackerHitResidualAnalysisDriverTest.aida");
+                "plots.aida");
 
         LCSimLoop loop = new LCSimLoop();
 

@@ -2,11 +2,10 @@ package org.hps.test.it;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
-import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
 import org.hps.util.test.TestUtil;
+
+import junit.framework.TestCase;
 
 /**
  * Test package for data quality monitoring of reconstructed data
