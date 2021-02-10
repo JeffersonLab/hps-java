@@ -14,6 +14,8 @@ import org.lcsim.event.TrackState;
 
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.particle.SimpleParticleID;
+
 
 
 import org.lcsim.event.Cluster;
@@ -21,6 +23,9 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.base.BaseReconstructedParticle;
+import org.lcsim.geometry.subdetector.HPSEcal3;
 
 
 
@@ -31,6 +36,11 @@ import java.util.List;
 
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
+
+import org.hps.record.StandardCuts;
+
+
+
 
 
 
@@ -46,6 +56,47 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     protected String rootFile = "track_cluster_matching_plots.root";
     protected String trackCollectionName;
     protected Map<String,Double> cutsMap = new HashMap<String,Double>();
+
+    protected boolean useCorrectedClusterPositionsForMatching = false;
+    protected boolean isMC = false;
+    HPSEcal3 ecal;
+
+    AbstractTrackClusterMatcher() {
+    }
+
+    public abstract List<ReconstructedParticle> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
+
+    public ReconstructedParticle addTrackToParticle(Track track, int flipSign){
+        // Create a reconstructed particle to represent the track.
+        ReconstructedParticle particle = new BaseReconstructedParticle();
+
+        // Store the track in the particle.
+        particle.addTrack(track);
+
+        // Set the type of the particle. This is used to identify
+        // the tracking strategy used in finding the track associated with
+        // this particle.
+        ((BaseReconstructedParticle) particle).setType(track.getType());
+
+        // Derive the charge of the particle from the track.
+        int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega());
+        ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
+
+        // initialize PID quality to a junk value:
+        ((BaseReconstructedParticle) particle).setGoodnessOfPid(9999);
+
+        // Extrapolate the particle ID from the track. Positively
+        // charged particles are assumed to be positrons and those
+        // with negative charges are assumed to be electrons.
+        if (particle.getCharge() > 0) {
+            ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+        } else if (particle.getCharge() < 0) {
+            ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
+        }
+        return particle;
+ 
+    }
+
 
     public void setCutX(double dx){
         this.cutsMap.put("X",dx);    
@@ -70,8 +121,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     protected boolean enablePlots = false;
 
 
-    AbstractTrackClusterMatcher() {
-    }
 
     public boolean isInTime(EventHeader event, double trackClusterTimeOffset, Cluster cluster, Track track){
 
@@ -211,6 +260,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         return trackToData;
 
     }
+
 
 
     public void bookHistograms(){

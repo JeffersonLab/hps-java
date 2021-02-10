@@ -663,6 +663,24 @@ public abstract class ReconParticleDriver extends Driver {
                 // Add the particle to the list of reconstructed particles.
                 particles.add(particle);
             }
+
+            //
+            //ADDED BY ALIC
+            //Remove unmatched clusters, and build clusterToTrack map, AFTER particles have been created and returned from the matcher
+            for(ReconstructedParticle particle : particles){
+                Cluster matchedCluster = particle.getClusters().get(0);   
+                Track track = particle.getTracks().get(0);
+                unmatchedClusters.remove(matchedCluster);
+
+                // prefer using GBL tracks to correct (later) the clusters, for some consistency:
+                if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
+                    clusterToTrack.put(matchedCluster, track);
+                }
+
+            }
+            
+
+
         }
 
         // Iterate over the remaining unmatched clusters.
