@@ -6,9 +6,9 @@ import org.hps.conditions.database.Field;
 import org.hps.conditions.database.Table;
 
 /**
- * This class represents the signal gain measurement for a single SVT channel.
+ * This class represents the svt readout phases and crostalk time windows
  *
- * @author Jeremy McCormick, SLAC
+ * @author Cameron Bravo, SLAC
  */
 @Table(names = {"svt_readout_sync_phases"})
 public final class SvtReadoutSyncPhase extends BaseConditionsObject {
