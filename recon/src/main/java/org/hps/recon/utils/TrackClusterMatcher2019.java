@@ -21,7 +21,7 @@ import org.lcsim.event.LCRelation;
 
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.hps.record.StandardCuts;
-import org.lcsim.event.ReconstructedParticle;
+//import org.lcsim.event.ReconstructedParticle;
 
 public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
 
@@ -36,7 +36,7 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
         System.out.println("Matching " + trackCollectionName + "to Ecal Clusters");
     }
 
-    public List<ReconstructedParticle> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
+    public HashMap<Track,HashMap<Cluster,Double>> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
 
         System.out.println("Under construction");
         return null;

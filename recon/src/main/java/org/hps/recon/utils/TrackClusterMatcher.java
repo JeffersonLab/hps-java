@@ -14,13 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+//import java.util.HashSet;
+//import java.util.Set;
 
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.particle.SimpleParticleID;
 import org.lcsim.event.base.BaseCluster;
 
 
@@ -537,7 +538,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
     }
 
     //ADDED BY ALIC
-    public List<ReconstructedParticle> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
+    public HashMap<Track,HashMap<Cluster,Double>> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
 
         //ecal and isMC are only used if useCorrectedClusterPositions is true
 
@@ -547,12 +548,8 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
 
-        // Create a list of unmatched clusters. A cluster should be
-        // removed from the list if a matching track is found.
-        Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
-
-        // Create a mapping of matched clusters to corresponding tracks.
-        HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster, Track>();
+        // Create a mapping of Tracks and their corresponding Clusters.
+        HashMap<Track, HashMap<Cluster,Double>> trackClusterPairs = new HashMap<Track, HashMap<Cluster,Double>>();
 
         // Loop through all of the track collections and try to match every
         // track to a cluster. Allow a cluster to be matched to multiple
@@ -563,10 +560,12 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
             for (Track track : tracks){
 
-                /*
-                // Create a reconstructed particle to represent the track.
+                //create a mapping of smallestNSigma Clusters and their sigma values
+                HashMap<Cluster,Double> clusterNSigma = new HashMap<Cluster,Double>();
+            
+                //Create a reconstructed particle to represent the track.
+                //ReconstructedParticle particle = super.addTrackToParticle(track, flipSign);
                 ReconstructedParticle particle = new BaseReconstructedParticle();
-
                 // Store the track in the particle.
                 particle.addTrack(track);
 
@@ -590,11 +589,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 } else if (particle.getCharge() < 0) {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
-                */
-
-            
-                //Create a reconstructed particle to represent the track.
-                ReconstructedParticle particle = super.addTrackToParticle(track, flipSign);
+                
 
                 double smallestNSigma = Double.MAX_VALUE;
                 // try to find a matching cluster:
@@ -654,31 +649,18 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 // If a cluster was found that matches the track...
                 if (matchedCluster != null) {
 
-                    // add cluster to the particle:
-                    particle.addCluster(matchedCluster);
-
                     // use pid quality to store track-cluster matching quality:
-                    ((BaseReconstructedParticle) particle).setGoodnessOfPid(smallestNSigma);
-
-                    // propogate pid to the cluster:
-                    final int pid = particle.getParticleIDUsed().getPDG();
-                    if (Math.abs(pid) == 11) {
-                        if (!disablePID) {
-                            ((BaseCluster) matchedCluster).setParticleId(pid);
-                        }
-                    }
+                    clusterNSigma.put(matchedCluster,smallestNSigma);
+                    trackClusterPairs.put(track,clusterNSigma);
 
                 }
-
-                // Add the particle to the list of reconstructed particles.
-                particles.add(particle);
 
             }
         }
 
         
         
-        return particles;
+        return trackClusterPairs;
     }
 
     /**

@@ -64,7 +64,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     AbstractTrackClusterMatcher() {
     }
 
-    public abstract List<ReconstructedParticle> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
+    public abstract HashMap<Track,HashMap<Cluster,Double>> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
 
     public ReconstructedParticle addTrackToParticle(Track track, int flipSign){
         // Create a reconstructed particle to represent the track.

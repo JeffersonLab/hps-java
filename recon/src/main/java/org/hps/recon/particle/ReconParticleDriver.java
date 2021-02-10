@@ -8,7 +8,7 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+//import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -758,7 +758,147 @@ public abstract class ReconParticleDriver extends Driver {
         return particles;
     }
 
+    //
+    //NEW MAKERECONSTRUCTEDPARTICLES FOR THE NEW MATCHERS
+    //
+    
+    protected List<ReconstructedParticle> makeReconstructedParticles(EventHeader event, List<Cluster> clusters, List<List<Track>> trackCollections) {
 
+        // Create a list in which to store reconstructed particles.
+        List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
+
+        // Create a list of unmatched clusters. A cluster should be
+        // removed from the list if a matching track is found.
+        Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
+
+        // Create a mapping of matched clusters to corresponding tracks.
+        HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster, Track>();
+
+        // Create a mapping of matched Tracks to corresonding Clusters.
+        HashMap<Track,HashMap<Cluster, Double>> TrackClusterPairs = new HashMap<Track, HashMap<Cluster,Double>>();
+
+        TrackClusterPairs = matcher.matchTracksToClusters(event, trackCollections, clusters, cuts, flipSign, useCorrectedClusterPositionsForMatching, ecal, isMC);
+
+        for(HashMap.Entry<Track, HashMap<Cluster,Double>> entry : TrackClusterPairs.entrySet()){
+
+            Track track = entry.getKey();
+            HashMap<Cluster,Double> clusterMap = entry.getValue();
+            ArrayList<Cluster> cluster = new ArrayList<Cluster>(clusterMap.keySet());
+            Cluster matchedCluster = cluster.get(0);
+            double matchquality = clusterMap.get(matchedCluster);
+            
+            // Create a reconstructed particle to represent the track.
+            ReconstructedParticle particle = new BaseReconstructedParticle();
+
+            // Store the track in the particle.
+            particle.addTrack(track);
+
+            // prefer using GBL tracks to correct (later) the clusters, for some consistency:
+            if (track.getType() >= 32 || !clusterToTrack.containsKey(matchedCluster)) {
+                clusterToTrack.put(matchedCluster, track);
+            }
+
+            // add cluster to the particle:
+            particle.addCluster(matchedCluster);
+            printDebug("particle with cluster added: " + particle);
+
+            // use pid quality to store track-cluster matching quality:
+            ((BaseReconstructedParticle) particle).setGoodnessOfPid(matchquality);
+
+            // propogate pid to the cluster:
+            final int pid = particle.getParticleIDUsed().getPDG();
+            if (Math.abs(pid) == 11) {
+                if (!disablePID) {
+                    ((BaseCluster) matchedCluster).setParticleId(pid);
+                }
+            }
+
+            // unmatched clusters will (later) be used to create photon particles:
+            unmatchedClusters.remove(matchedCluster);
+
+            // Add the particle to the list of reconstructed particles.
+            particles.add(particle);
+
+
+        }
+
+        // Iterate over the remaining unmatched clusters.
+        for (Cluster unmatchedCluster : unmatchedClusters) {
+
+            printDebug("[ReconParticleDriver] unmatched clusters");
+            // Create a reconstructed particle to represent the unmatched cluster.
+            ReconstructedParticle particle = new BaseReconstructedParticle();
+
+            // The particle is assumed to be a photon, since it did not leave a track.
+            ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(22, 0, 0, 0));
+
+            int pid = particle.getParticleIDUsed().getPDG();
+            if (Math.abs(pid) != 11) {
+                if (!disablePID) {
+                    ((BaseCluster) unmatchedCluster).setParticleId(pid);
+                }
+            }
+
+            // Add the cluster to the particle.
+            particle.addCluster(unmatchedCluster);
+
+            // Set the reconstructed particle properties based on the cluster properties.
+            ((BaseReconstructedParticle) particle).setCharge(0);
+            printDebug("[ReconParticleDriver] photon: " + particle);
+
+            // Add the particle to the reconstructed particle list.
+            particles.add(particle);
+        }
+
+        // Apply the corrections to the Ecal clusters using track information, if available
+        if (applyClusterCorrections) {
+            for (Cluster cluster : clusters) {
+                if (cluster.getParticleId() != 0) {
+                    if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
+                        Track matchedT = clusterToTrack.get(cluster);
+                        double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                    } else {
+                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                    }
+                }
+            }
+        }
+
+        for (ReconstructedParticle particle : particles) {
+            double clusterEnergy = 0;
+            Hep3Vector momentum = null;
+
+            if (!particle.getClusters().isEmpty()) {
+                clusterEnergy = particle.getClusters().get(0).getEnergy();
+            }
+
+            if (!particle.getTracks().isEmpty()) {
+                momentum = new BasicHep3Vector(particle.getTracks().get(0).getTrackStates().get(0).getMomentum());
+                momentum = CoordinateTransformations.transformVectorToDetector(momentum);
+            } else if (!particle.getClusters().isEmpty()) {
+                momentum = new BasicHep3Vector(particle.getClusters().get(0).getPosition());
+                momentum = VecOp.mult(clusterEnergy, VecOp.unit(momentum));
+            }
+            HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
+            ((BaseReconstructedParticle) particle).set4Vector(fourVector);
+
+            // recalculate track-cluster matching n_sigma using corrected cluster positions
+            // if that option is selected
+            if (!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching) {
+                double goodnessPID_corrected = matcher.getNSigmaPosition(particle.getClusters().get(0), particle);
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
+            }
+
+        }
+
+        // Return the list of reconstructed particles.
+        printDebug("[ReconParticleDriver] recon particles: " + particles);
+        return particles;
+    }
+
+
+    /*
     protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters,
             List<List<Track>> trackCollections, EventHeader event) {
 
@@ -928,6 +1068,7 @@ public abstract class ReconParticleDriver extends Driver {
         printDebug("[ReconParticleDriver] recon particles: " + particles);
         return particles;
     }
+    */
 
 
     /**
@@ -1026,7 +1167,7 @@ public abstract class ReconParticleDriver extends Driver {
             finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
         }
         else{
-            finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections, event));
+            finalStateParticles.addAll(makeReconstructedParticles(event, clusters, trackCollections));
         }
 
         // Separate the reconstructed particles into electrons and
