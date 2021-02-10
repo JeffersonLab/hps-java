@@ -107,14 +107,11 @@
         <driver name="CleanupDriver"/>
     </execute>
     <drivers>    
-       
         <!-- Driver to reject "bad" events -->
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
         </driver> 
-        
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
-
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
@@ -130,7 +127,6 @@
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>
-        
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
@@ -201,7 +197,6 @@
             <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
             <maxTrackChisq6hits> 84. </maxTrackChisq6hits>
         </driver>
-
         <!-- all triggers  -->
         <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
@@ -236,12 +231,11 @@
             <triggerType>all</triggerType>
             <isGBL>true</isGBL>
         </driver>
-
         <!-- singles0 triggers  -->
-        <driver name="EcalMonitoringSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        <driver name="EcalMonitoringSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">   
             <triggerType>singles0</triggerType>
         </driver>
-        <driver name="EcalMonitoringCorrSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        <driver name="EcalMonitoringCorrSingles0" type="org.hps.analysis.dataquality.EcalMonitoring">  
             <triggerType>singles0</triggerType>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
@@ -267,12 +261,11 @@
             <triggerType>singles0</triggerType>
             <isGBL>true</isGBL>
         </driver>
-       
         <!-- singles1 triggers  -->
-        <driver name="EcalMonitoringSingles1" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        <driver name="EcalMonitoringSingles1" type="org.hps.analysis.dataquality.EcalMonitoring"> 
             <triggerType>singles1</triggerType>
         </driver>
-        <driver name="EcalMonitoringCorrSingles1" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        <driver name="EcalMonitoringCorrSingles1" type="org.hps.analysis.dataquality.EcalMonitoring">
             <triggerType>singles1</triggerType>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
@@ -280,7 +273,7 @@
         <driver name="SVTMonitoringSingles1" type="org.hps.analysis.dataquality.SvtMonitoring">         
             <triggerType>singles1</triggerType>
         </driver>   
-        <driver name="TrackingMonitoringSingles1" type="org.hps.analysis.dataquality.TrackingMonitoring">           
+        <driver name="TrackingMonitoringSingles1" type="org.hps.analysis.dataquality.TrackingMonitoring"> 
             <triggerType>singles1</triggerType>
         </driver>   
         <driver name="TrackingResidualsSingles1" type="org.hps.analysis.dataquality.TrackingResiduals">
@@ -298,12 +291,11 @@
             <triggerType>singles1</triggerType>
             <isGBL>true</isGBL>
         </driver>
- 
         <!-- pairs0 triggers  -->
         <driver name="EcalMonitoringPairs0" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs0</triggerType>
         </driver>
-        <driver name="EcalMonitoringCorrPairs0" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        <driver name="EcalMonitoringCorrPairs0" type="org.hps.analysis.dataquality.EcalMonitoring"> 
             <triggerType>pairs0</triggerType>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
@@ -311,10 +303,9 @@
         <driver name="SVTMonitoringPairs0" type="org.hps.analysis.dataquality.SvtMonitoring">         
             <triggerType>pairs0</triggerType>
         </driver>      
-        <driver name="TrackingMonitoringPairs0" type="org.hps.analysis.dataquality.TrackingMonitoring">         
+        <driver name="TrackingMonitoringPairs0" type="org.hps.analysis.dataquality.TrackingMonitoring"> 
             <triggerType>pairs0</triggerType>
         </driver>
-      
         <driver name="TrackingResidualsPairs0" type="org.hps.analysis.dataquality.TrackingResiduals">
             <triggerType>pairs0</triggerType>
         </driver>
@@ -330,13 +321,11 @@
             <triggerType>pairs0</triggerType>
             <isGBL>true</isGBL>
         </driver>
-
-
         <!-- pairs1 triggers  -->
         <driver name="EcalMonitoringPairs1" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>pairs1</triggerType>
         </driver>
-        <driver name="EcalMonitoringCorrPairs1" type="org.hps.analysis.dataquality.EcalMonitoring">         
+        <driver name="EcalMonitoringCorrPairs1" type="org.hps.analysis.dataquality.EcalMonitoring"> 
             <triggerType>pairs1</triggerType>
             <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
             <fillHitPlots>false</fillHitPlots>
@@ -344,7 +333,7 @@
         <driver name="SVTMonitoringPairs1" type="org.hps.analysis.dataquality.SvtMonitoring">         
             <triggerType>pairs1</triggerType>
         </driver>      
-        <driver name="TrackingMonitoringPairs1" type="org.hps.analysis.dataquality.TrackingMonitoring">          
+        <driver name="TrackingMonitoringPairs1" type="org.hps.analysis.dataquality.TrackingMonitoring"> 
             <triggerType>pairs1</triggerType>
         </driver>
         <driver name="TrackingResidualsPairs1" type="org.hps.analysis.dataquality.TrackingResiduals">
@@ -362,12 +351,9 @@
             <triggerType>pairs1</triggerType>
             <isGBL>true</isGBL>
         </driver>
-
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
-
     </drivers>
 </lcsim>

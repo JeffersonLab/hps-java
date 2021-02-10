@@ -1,15 +1,11 @@
 package org.hps.analysis.vertex;
 
 import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import junit.framework.TestCase;
-import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.loop.FileList;
-import org.lcsim.util.loop.LCIOEventSource;
+
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil;
+
+import junit.framework.TestCase;
 
 /**
  *
@@ -17,21 +13,11 @@ import org.lcsim.util.test.TestUtil;
  */
 public class APrimeMCVertexAnalysisDriverTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/";
     static final String testFileName = "apsignalv2_displaced_100mm_epsilon-6_HPS-EngRun2015-Nominal-v5-0-fieldmap_3.11-SNAPSHOT_pairs1_V0Skim.slcio";
     private final int nEvents = -1;
-    private boolean isMC = true;
 
     public void testIt() throws Exception {
-        File outputDir = new TestUtil.TestOutputFile(this.getClass().getSimpleName());
-        outputDir.mkdir();
-        if (isMC) {
-            System.setProperty("disableSvtAlignmentConstants", "true");
-        }
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        File lcioInputFile = cache.getCachedFile(testURL);
-
+        File lcioInputFile = TestUtil.downloadTestFile(testFileName);
         LCSimLoop loop = new LCSimLoop();
 //        List<File> files = new ArrayList<File>();
 //        for(int i=1; i<10; ++i)

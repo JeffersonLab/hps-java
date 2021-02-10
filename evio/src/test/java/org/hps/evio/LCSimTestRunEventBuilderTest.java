@@ -13,20 +13,21 @@ import org.lcsim.util.cache.FileCache;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.util.test.TestUtil;
 
 /**
- *  Integration test to check the conversion of test run EVIO to LCIO 
- * 
+ *  Integration test to check the conversion of test run EVIO to LCIO
+ *
  *  @author Omar Moreno <omoreno1@ucsc.edu>
  *  @date November 20, 2014
  */
 public class LCSimTestRunEventBuilderTest extends TestCase {
 
-    public void testLCSimTestRunEventBuilder() throws Exception { 
-    
+    public void testLCSimTestRunEventBuilder() throws Exception {
+
         // Configure the conditions system to retrieve test run conditions for run 1351.
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        
+
         // Create the test run event builder
         LCSimTestRunEventBuilder builder = new LCSimTestRunEventBuilder();
         conditionsManager.addConditionsListener(builder);
@@ -35,9 +36,8 @@ public class LCSimTestRunEventBuilderTest extends TestCase {
 
         // Retrieve the remote test file.  The file currently being contains a
         // subset of events from run 1351
-        FileCache cache = new FileCache();
-        File evioFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/hps1351_test.evio"));
-    
+        File evioFile = TestUtil.downloadTestFile("hps1351_test.evio");
+
         // Instantiate the EVIO reader and open the test file.  If the file
         // can't be found, throw a runtime exception
         EvioReader reader = null;
@@ -47,7 +47,7 @@ public class LCSimTestRunEventBuilderTest extends TestCase {
             throw new RuntimeException(
                     "[ " + this.getClass().getSimpleName() + " ]: EVIO file couldn't be opened.");
         }
-        
+
         // Loop through all EVIO events in the file and process them using the
         // event builder.  If the event is a physics event, process the event
         // using the subdetector readers.
@@ -60,7 +60,7 @@ public class LCSimTestRunEventBuilderTest extends TestCase {
                 System.out.println("[ " + this.getClass().getSimpleName() + " ]: Created event number " + lcsimEvent.getEventNumber());
             }
         }
-        
+
         // Close the EVIO reader
         reader.close();
     }
