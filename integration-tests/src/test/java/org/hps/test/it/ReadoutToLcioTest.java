@@ -2,11 +2,11 @@ package org.hps.test.it;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
-import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
+
+import junit.framework.TestCase;
 
 /**
  * <p>
@@ -17,18 +17,18 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
  * ap2.2gev100mev_SLIC-v04-00-00_Geant4-v10-00-02_QGSP_BERT_HPS-Proposal2014-v8-2pt2.slcio
  * <p>
  * The <code>FilterMCBunches</code> utility was run using 500 empty events per input event.
- * 
+ *
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ReadoutToLcioTest extends TestCase {
-    
+
     static final int nEvents = 10000;
-    
+
     public void testReadoutToLcio() throws Exception {
-        
-        new TestOutputFile(this.getClass().getSimpleName()).mkdir();        
-        File inputFile = new TestDataUtility().getTestData("ReadoutToLcioTest.slcio");
-                
+
+        new TestOutputFile(this.getClass().getSimpleName()).mkdir();
+        File inputFile = TestUtil.downloadTestFile("ReadoutToLcioTest.slcio");
+
         JobManager job = new JobManager();
         job.addVariableDefinition("detector", "HPS-Proposal2014-v8-2pt2");
         job.addVariableDefinition("run", "0");
