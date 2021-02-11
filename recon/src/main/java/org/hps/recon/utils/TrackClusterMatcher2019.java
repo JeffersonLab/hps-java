@@ -5,6 +5,16 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackData;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.aida.IHistogramFactory;
+import hep.aida.ITree;
+import hep.aida.ref.rootwriter.RootFileStore;
+import java.io.IOException;
+
+
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -25,20 +35,22 @@ import org.lcsim.event.ReconstructedParticle;
 
 public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
 
+    public void initializeParameterization(String fname){
+        
+    }
+
     public double getMatchQC(Cluster cluster, ReconstructedParticle particle){
         //match quality not yet defined for this matcher
         return -9999.9;
     }
 
 
-    boolean enablePlots = false;
     private String trackCollectionName;
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
 
-    public TrackClusterMatcher2019(String trackCollectionName) {
-        this.trackCollectionName = trackCollectionName;
-        System.out.println("Matching " + trackCollectionName + "to Ecal Clusters");
+    public TrackClusterMatcher2019() {
+
     }
 
     public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
@@ -48,16 +60,44 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
     }
 
 
+    boolean enablePlots = false;
+    String rootFile = String.format("%s_TrackClusterMatching.root",this.trackCollectionName);
     public void enablePlots(boolean enablePlots) {
         this.enablePlots = enablePlots;
         if (enablePlots ==true) {
-            super.bookHistograms();
-            super.setRootFileName(String.format("%s_TrackClusterMatching.root",this.trackCollectionName));
             this.bookHistograms();
         }
     }
 
+     /**
+     * Save the histograms to a ROO file
+     */
+    public void saveHistograms() {
+
+        RootFileStore store = new RootFileStore(rootFile);
+        try {
+            store.open();
+            store.add(tree);
+            store.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // Plotting
+    protected ITree tree;
+    protected IHistogramFactory histogramFactory;
+    protected Map<String, IHistogram1D> plots1D;
+    protected Map<String, IHistogram2D> plots2D;
+
     public void bookHistograms() {
+
+        plots1D = new HashMap<String, IHistogram1D>();
+        plots2D = new HashMap<String, IHistogram2D>();
+
+        tree = IAnalysisFactory.create().createTreeFactory().create();
+        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
 
         System.out.println("BOOKING HISTOGRAMS FOR " +  this.trackCollectionName);
 

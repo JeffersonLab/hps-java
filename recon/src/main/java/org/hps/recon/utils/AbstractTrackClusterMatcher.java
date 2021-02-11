@@ -5,7 +5,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.ITree;
-import hep.aida.ref.rootwriter.RootFileStore;
+//import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -32,7 +32,7 @@ import org.lcsim.geometry.FieldMap;
 
 
 
-import java.io.IOException;
+//import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -42,13 +42,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 
 import org.hps.record.StandardCuts;
 
-
-
-
-
-
-
-
 public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcherInter {
 
     protected Map<String,Double> cutsMap = new HashMap<String,Double>();
@@ -56,7 +49,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     /**
      * Flag used to determine if plots are enabled/disabled
      */
-    protected boolean enablePlots = false;
 
     protected boolean useCorrectedClusterPositionsForMatching = false;
     protected boolean isMC = false;
@@ -72,9 +64,21 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     AbstractTrackClusterMatcher() {
     }
 
+    public abstract void bookHistograms();
+
+    // Plotting
+    protected ITree tree = IAnalysisFactory.create().createTreeFactory().create();
+    protected IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
+    protected Map<String, IHistogram1D> plots1D = new HashMap<String, IHistogram1D>();
+    protected Map<String, IHistogram2D> plots2D = new HashMap<String, IHistogram2D>();
+
+    public abstract void saveHistograms();
+
     public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
 
     public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
+
+    public abstract void initializeParameterization(String fname);
 
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
@@ -84,6 +88,8 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
+
+    public abstract void enablePlots(boolean enablePlots);
 
     public boolean isInTime(EventHeader event, double trackClusterTimeOffset, Cluster cluster, Track track){
 
@@ -102,40 +108,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         this.trackCollectionName = trackCollectionName;
     }
 
-    // Plotting
-    protected ITree tree;
-    protected IHistogramFactory histogramFactory;
-    protected Map<String, IHistogram1D> plots1D;
-    protected Map<String, IHistogram2D> plots2D;
 
-    public void bookHistograms(){
-        plots1D = new HashMap<String, IHistogram1D>();
-        plots2D = new HashMap<String, IHistogram2D>();
-
-        tree = IAnalysisFactory.create().createTreeFactory().create();
-        histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
-
-    }
-
-    public void saveHistograms(){
-
-        RootFileStore store = new RootFileStore(rootFile);
-        try {
-            store.open();
-            store.add(tree);
-            store.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
-    protected String rootFile = "track_cluster_matching_plots.root";
-    public void setRootFileName(String filename){
-        this.rootFile = filename;
-
-    }
 
     public boolean isMatch(Cluster cluster, Track track){
     

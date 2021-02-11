@@ -20,6 +20,10 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.tracking.kalman.TrackClusterMatcher2019;
 import org.hps.record.StandardCuts;
+
+import org.hps.recon.utils.TrackClusterMatcherInter;
+import org.hps.recon.utils.TrackClusterMatcherFactory;
+
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -452,20 +456,11 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         //By default, use the original track-cluster matching class
-        if(this.trackClusterMatching.contains("default")){
-            //use old version of track cluster matcher
-            matcher = new TrackClusterMatcher(clusterParamFileName);
-            matcher.enablePlots(enableTrackClusterMatchPlots);
-            matcher.setBeamEnergy(beamEnergy);
-            matcher.setBFieldMap(detector.getFieldMap());
-        }
-        //else if setTrackClusterMatching has non default value, use new
-        //track-cluster matching class
-        else{
-            //create instance of new track-cluster matching driver
-            matcher2019 = new TrackClusterMatcher2019(trackCollectionName);
-            matcher2019.enablePlots(enableTrackClusterMatchPlots);
-        }
+        TrackClusterMatcherInter matcher = TrackClusterMatcherFactory.create("TrackClusterMatcher");
+        matcher.initializeParameterization(clusterParamFileName);
+        matcher.setBFieldMap(detector.getFieldMap());
+        matcher.setTrackCollectionName(trackCollectionName);
+        matcher.enablePlots(enableTrackClusterMatchPlots);
 
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
@@ -524,6 +519,7 @@ public abstract class ReconParticleDriver extends Driver {
      * <code>ReconstructedParticle</code> objects generated from the argument
      * data.
      */
+/*
     protected List<ReconstructedParticle> makeReconstructedParticles(List<Cluster> clusters,
             List<List<Track>> trackCollections) {
 
@@ -758,10 +754,8 @@ public abstract class ReconParticleDriver extends Driver {
         return particles;
     }
 
-    //
-    //NEW MAKERECONSTRUCTEDPARTICLES FOR THE NEW MATCHERS
-    //
-    
+*/
+
     protected List<ReconstructedParticle> makeReconstructedParticles(EventHeader event, List<Cluster> clusters, List<List<Track>> trackCollections) {
 
         // Create a list in which to store reconstructed particles.
@@ -1159,15 +1153,7 @@ public abstract class ReconParticleDriver extends Driver {
         // Loop through all of the track collections present in the event and
         // create final state particles.
 
-        // New track cluster matching added by Alic is used
-        // Old method is commented out below
-
-        if(this.trackClusterMatching.contains("default")){
-            finalStateParticles.addAll(makeReconstructedParticles(clusters, trackCollections));
-        }
-        else{
-            finalStateParticles.addAll(makeReconstructedParticles(event, clusters, trackCollections));
-        }
+        finalStateParticles.addAll(makeReconstructedParticles(event, clusters, trackCollections));
 
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.

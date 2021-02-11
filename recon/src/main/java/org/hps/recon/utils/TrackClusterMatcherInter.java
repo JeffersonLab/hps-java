@@ -26,13 +26,14 @@ public interface TrackClusterMatcherInter {
 
     public void setSnapToEdge(boolean val);
 
+    public void initializeParameterization(String fname);
+
     public void setTrackCollectionName(String trackCollectionName);
 
-    public void bookHistograms();
+    public void enablePlots(boolean enablePlots);
 
     public void saveHistograms();
 
-    public void setRootFileName(String filename);
 
 }
 

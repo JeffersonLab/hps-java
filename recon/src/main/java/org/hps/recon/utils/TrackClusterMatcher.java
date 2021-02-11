@@ -56,6 +56,11 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
         return matchqc;
     }
 
+    public void initializeParameterizationFile(String fname){
+        
+        this.initializeParameterization(fname);
+    }
+
     /**
      * The B field map
      */
@@ -67,7 +72,6 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
     protected Map<String, IHistogram1D> plots1D;
     protected Map<String, IHistogram2D> plots2D;
     protected String rootFile = "track_cluster_matching_plots.root";
-    protected boolean enablePlots = super.enablePlots;
 
     // parameterization
     private Map<String, double[]> paramMap;
@@ -86,7 +90,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
     /**
      * Flag used to determine if plots are enabled/disabled
      */
-    //protected boolean enablePlots = false;
+    protected boolean enablePlots = false;
 
     /**
      * Flag used to determine whether the analytic or field map extrapolator
