@@ -49,6 +49,13 @@ import org.hps.record.StandardCuts;
  */
 public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
+
+    public double getMatchQC(Cluster cluster, ReconstructedParticle particle){
+
+        double matchqc = this.getNSigmaPosition(cluster, particle);
+        return matchqc;
+    }
+
     /**
      * The B field map
      */
@@ -538,7 +545,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
     }
 
     //ADDED BY ALIC
-    public HashMap<Track,HashMap<Cluster,Double>> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
+    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
 
         //ecal and isMC are only used if useCorrectedClusterPositions is true
 
@@ -549,7 +556,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
 
         // Create a mapping of Tracks and their corresponding Clusters.
-        HashMap<Track, HashMap<Cluster,Double>> trackClusterPairs = new HashMap<Track, HashMap<Cluster,Double>>();
+        HashMap<Track, Cluster> trackClusterPairs = new HashMap<Track, Cluster>();
 
         // Loop through all of the track collections and try to match every
         // track to a cluster. Allow a cluster to be matched to multiple
@@ -650,8 +657,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 if (matchedCluster != null) {
 
                     // use pid quality to store track-cluster matching quality:
-                    clusterNSigma.put(matchedCluster,smallestNSigma);
-                    trackClusterPairs.put(track,clusterNSigma);
+                    trackClusterPairs.put(track, matchedCluster);
 
                 }
 

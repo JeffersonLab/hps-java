@@ -5,7 +5,10 @@ import org.lcsim.event.Track;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
+
 import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.lcsim.geometry.FieldMap;
+
 import org.hps.record.StandardCuts;
 
 import java.util.List;
@@ -15,13 +18,21 @@ import java.util.HashMap;
 
 public interface TrackClusterMatcherInter {
 
-    public HashMap<Track,HashMap<Cluster,Double>> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
+    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
 
-    //public boolean isPossibleMatch(Cluster cluster, Track track, EventHeader event);
-    
-    //public double getMatchingCriteria(Cluster cluster, ReconstructedParticle particle, EventHeader event);
+    public double getMatchQC(Cluster cluster, ReconstructedParticle particle);
 
-    public ReconstructedParticle addTrackToParticle(Track track, int flipSign);
+    public void setBFieldMap(FieldMap bFieldMap);
+
+    public void setSnapToEdge(boolean val);
+
+    public void setTrackCollectionName(String trackCollectionName);
+
+    public void bookHistograms();
+
+    public void saveHistograms();
+
+    public void setRootFileName(String filename);
 
 }
 

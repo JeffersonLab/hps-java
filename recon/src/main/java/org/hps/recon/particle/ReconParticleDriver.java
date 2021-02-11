@@ -775,17 +775,15 @@ public abstract class ReconParticleDriver extends Driver {
         HashMap<Cluster, Track> clusterToTrack = new HashMap<Cluster, Track>();
 
         // Create a mapping of matched Tracks to corresonding Clusters.
-        HashMap<Track,HashMap<Cluster, Double>> TrackClusterPairs = new HashMap<Track, HashMap<Cluster,Double>>();
+        HashMap<Track,Cluster> TrackClusterPairs = new HashMap<Track, Cluster>();
 
         TrackClusterPairs = matcher.matchTracksToClusters(event, trackCollections, clusters, cuts, flipSign, useCorrectedClusterPositionsForMatching, ecal, isMC);
 
-        for(HashMap.Entry<Track, HashMap<Cluster,Double>> entry : TrackClusterPairs.entrySet()){
+
+        for(HashMap.Entry<Track, Cluster> entry : TrackClusterPairs.entrySet()){
 
             Track track = entry.getKey();
-            HashMap<Cluster,Double> clusterMap = entry.getValue();
-            ArrayList<Cluster> cluster = new ArrayList<Cluster>(clusterMap.keySet());
-            Cluster matchedCluster = cluster.get(0);
-            double matchquality = clusterMap.get(matchedCluster);
+            Cluster matchedCluster = entry.getValue();
             
             // Create a reconstructed particle to represent the track.
             ReconstructedParticle particle = new BaseReconstructedParticle();
@@ -803,7 +801,7 @@ public abstract class ReconParticleDriver extends Driver {
             printDebug("particle with cluster added: " + particle);
 
             // use pid quality to store track-cluster matching quality:
-            ((BaseReconstructedParticle) particle).setGoodnessOfPid(matchquality);
+            ((BaseReconstructedParticle) particle).setGoodnessOfPid(matcher.getMatchQC(matchedCluster, particle));
 
             // propogate pid to the cluster:
             final int pid = particle.getParticleIDUsed().getPDG();
@@ -883,6 +881,7 @@ public abstract class ReconParticleDriver extends Driver {
             HepLorentzVector fourVector = new BasicHepLorentzVector(clusterEnergy, momentum);
             ((BaseReconstructedParticle) particle).set4Vector(fourVector);
 
+            //NEED TO ADDRESS
             // recalculate track-cluster matching n_sigma using corrected cluster positions
             // if that option is selected
             if (!particle.getClusters().isEmpty() && useCorrectedClusterPositionsForMatching) {
