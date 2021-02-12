@@ -540,77 +540,8 @@ public class WTrack {
                 // Hep3Vector dpoint = VecOp.sub(xp, trk.getX0());
 
             } else {
-                // if(_debug)
-//                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
-                return null;
-            }
-
-        }
-
-        if (_debug)
-            System.out.printf("%s: final total_s=%f with final step %f after %d iterations gave track params: %s\n", this.getClass().getSimpleName(), s_total, step, iteration, trk.paramsToString());
-
-        return trk.getX0();
-
-    }
-
-    
-
-    
-    /**   Find the interception point between the helix and a plane  
-     * @param xp point on the plane
-     * @param eta unit vector of the plane 
-     * @param h unit vector of magnetic field
-     * @return the intersection point of the helix with the plane
-     */
-    public Hep3Vector getHelixAndPlaneIntercept_ejml(DMatrix3 xp, DMatrix3 eta, DMatrix3 h) {
-        
-        int iteration = 1;
-        double s_total = 0.;
-        double step = 9999999.9;
-        
-        // List<WTrack> tracks = new ArrayList<WTrack>();
-        WTrack trk = this;
-
-        while (iteration <= max_iterations_intercept && Math.abs(step) > epsilon_intercept) {
-
-            if (_debug) {
-                System.out.printf("%s: Iteration %d\n", this.getClass().getSimpleName(), iteration);
-                System.out.printf("%s: s_total %f prev_step %.3f current trk params: %s \n", this.getClass().getSimpleName(), s_total, step, trk.paramsToString());
-            }
-
-            // check that the track is not looping
-
-            if (trk.goingForward()) {
-
-                step = getPathLengthToPlaneApprox_ejml(xp, eta, h);
-                
-                if (step == Double.NaN)
-                    return null;
-
-                if (_debug)
-                    System.out.printf("%s: path length step s=%.3f\n", this.getClass().getSimpleName(), step);
-
-                // Find the track parameters at this point
-                
-                double[] params = getHelixParametersAtPathLength_ejml(step, h);
-                
-                // update the track parameters
-                trk.setTrackParameters(params);
-
-                if (_debug)
-                    System.out.printf("%s: updated track params: [%s]\n", this.getClass().getSimpleName(), trk.paramsToString());
-
-                // tracks.add(trk);
-                iteration++;
-                s_total += step;
-
-                // Save distance between point and estimate
-                // Hep3Vector dpoint = VecOp.sub(xp, trk.getX0());
-
-            } else {
-                // if(_debug)
-//                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
+                if(_debug)
+                    System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
                 return null;
             }
 

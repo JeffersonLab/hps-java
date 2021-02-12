@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 //import org.hps.recon.utils.TrackClusterMatcher;
@@ -591,9 +592,11 @@ public abstract class ReconParticleDriver extends Driver {
                     //before calculating nsigma.  Default is don't use corrections.  
                     Cluster originalCluster = cluster;
                     if (useCorrectedClusterPositionsForMatching) {
-                        cluster = new BaseCluster(cluster);
+                        BaseCluster clusterBase = new BaseCluster(cluster);
+                        clusterBase.setNeedsPropertyCalculation(false);
+                        cluster = clusterBase;
                         double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                        ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
                     }
 
                     // normalized distance between this cluster and track:
@@ -1051,9 +1054,9 @@ public abstract class ReconParticleDriver extends Driver {
                     if (useTrackPositionForClusterCorrection && clusterToTrack.containsKey(cluster)) {
                         Track matchedT = clusterToTrack.get(cluster);
                         double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                        ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
                     } else {
-                        ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                        ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, isMC);
                     }
                 }
             }
