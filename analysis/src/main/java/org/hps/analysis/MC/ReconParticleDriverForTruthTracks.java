@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.SimpleParticleID;
 import org.hps.recon.tracking.CoordinateTransformations;
@@ -504,7 +505,7 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
                     clusterBase.setNeedsPropertyCalculation(false);
                     cluster = clusterBase;
                     double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos,isMC);
                 }
                     
                 // normalized distance between this cluster and track:
@@ -587,9 +588,9 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
                 if (clusterToTrack.containsKey(cluster)) {
                     Track matchedT = clusterToTrack.get(cluster);
                     double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
                 } else {
-                    ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, isMC);
                 }
             }
         }

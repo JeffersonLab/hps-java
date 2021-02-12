@@ -2,10 +2,10 @@ package org.hps.test.it;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
-import org.hps.data.test.TestDataUtility;
 import org.hps.job.JobManager;
+import org.hps.util.test.TestUtil;
+
+import junit.framework.TestCase;
 
 /**
  * Test package for data quality monitoring of reconstructed data
@@ -21,8 +21,8 @@ public class DataQualityMonitorTest extends TestCase {
     private static final String STEERING_RESOURCE = "/org/hps/steering/test/DataQualityTest.lcsim";
 
     public void setUp() {
-        
-        // Delete files if they already exist.     
+
+        // Delete files if they already exist.
         if (OUTPUT_FILE.exists())
             OUTPUT_FILE.delete();
 
@@ -33,7 +33,7 @@ public class DataQualityMonitorTest extends TestCase {
     }
 
     public void testQualityMonitor() {
-        File dataFile = new TestDataUtility().getTestData("DataQualityMonitorTest.slcio");
+        File dataFile = TestUtil.downloadTestFile("DataQualityMonitorTest.slcio");
         System.out.println("running data quality job with steering resource " + STEERING_RESOURCE + " ...");
         JobManager jobManager = new JobManager();
         jobManager.addVariableDefinition("outputFile", OUTPUT_FILE.getPath());
