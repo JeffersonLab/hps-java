@@ -76,7 +76,9 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
 
     public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
 
-    public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC);
+    public abstract void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC);
+
+    public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, boolean isMC, HPSEcal3 ecal, double beamEnergy);
 
     public abstract void initializeParameterization(String fname);
 

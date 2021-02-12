@@ -2,6 +2,8 @@ package org.hps.recon.utils;
 
 
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
+
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackData;
 
@@ -35,6 +37,13 @@ import org.lcsim.event.ReconstructedParticle;
 
 public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
 
+    public TrackClusterMatcher2019() {
+    }
+
+    private String trackCollectionName;
+    RelationalTable hitToRotated = null;
+    RelationalTable hitToStrips = null;
+
     public void initializeParameterization(String fname){
         
     }
@@ -44,16 +53,26 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
         return -9999.9;
     }
 
+    //clusterToTrack map must be filled inside of matcher, or cluster corrections will not be applied!
+    protected HashMap<Cluster, Track> clusterToTrack;
+    public void applyClusterCorrections(boolean useTrackPositionForClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC){
 
-    private String trackCollectionName;
-    RelationalTable hitToRotated = null;
-    RelationalTable hitToStrips = null;
-
-    public TrackClusterMatcher2019() {
+        // Apply the corrections to the Ecal clusters using track information, if available
+        for (Cluster cluster : clusters) {
+            if (cluster.getParticleId() != 0) {
+                if (useTrackPositionForClusterCorrection && this.clusterToTrack.containsKey(cluster)) {
+                    Track matchedT = clusterToTrack.get(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
+                } else {
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, isMC);
+                }
+            }
+        }
 
     }
 
-    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
+    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositionsForMatching, boolean isMC, HPSEcal3 ecal, double beamEnergy){
 
         System.out.println("Under construction");
         return null;

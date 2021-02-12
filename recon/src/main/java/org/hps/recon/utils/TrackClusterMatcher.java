@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 import org.hps.recon.particle.SimpleParticleID;
 import org.lcsim.event.base.BaseCluster;
 
@@ -57,7 +58,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
     }
 
     public void initializeParameterizationFile(String fname){
-        
+
         this.initializeParameterization(fname);
     }
 
@@ -148,7 +149,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 //                Scanner s = new Scanner(line);
                 //                String paramName = s.next();
                 //                
-                //                while (s.hasNext()) {
+                //                while (s.hasNext()) 
                 //                float f = s.nextFloat();
 
 
@@ -441,14 +442,14 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
         // positions is reasonable.  Different requirements are imposed on 
         // top and bottom tracks in order to account for offsets.
         if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaX > paramMap.get("topClusterTrackMatchDeltaXHigh")[0]
-                || deltaX < paramMap.get("topClusterTrackMatchDeltaXLow")[0]))
+                        || deltaX < paramMap.get("topClusterTrackMatchDeltaXLow")[0]))
                 || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaX > paramMap.get("bottomClusterTrackMatchDeltaXHigh")[0]
                         || deltaX < paramMap.get("bottomClusterTrackMatchDeltaXLow")[0]))) {
             return false;
         }
 
         if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaY > paramMap.get("topClusterTrackMatchDeltaYHigh")[0]
-                || deltaY < paramMap.get("topClusterTrackMatchDeltaYLow")[0]))
+                        || deltaY < paramMap.get("topClusterTrackMatchDeltaYLow")[0]))
                 || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaY > paramMap.get("bottomClusterTrackMatchDeltaYHigh")[0]
                         || deltaY < paramMap.get("bottomClusterTrackMatchDeltaYLow")[0]))) {
             return false;
@@ -548,8 +549,24 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
     }
 
-    //ADDED BY ALIC
-    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositions, HPSEcal3 ecal, boolean isMC){
+    protected HashMap<Cluster, Track> clusterToTrack;
+    public void applyClusterCorrections(boolean useTrackPositionForClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC){
+        // Apply the corrections to the Ecal clusters using track information, if available
+        for (Cluster cluster : clusters) {
+            if (cluster.getParticleId() != 0) {
+                if (useTrackPositionForClusterCorrection && this.clusterToTrack.containsKey(cluster)) {
+                    Track matchedT = clusterToTrack.get(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
+                } else {
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, isMC);
+                }
+            }
+        }
+
+    }
+
+    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositionsForMatching, boolean isMC, HPSEcal3 ecal, double beamEnergy){
 
         //ecal and isMC are only used if useCorrectedClusterPositions is true
 
@@ -558,6 +575,9 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
+
+        // Create a mapping of matched clusters to corresponding tracks.
+        this.clusterToTrack = new HashMap<Cluster, Track>();
 
         // Create a mapping of Tracks and their corresponding Clusters.
         HashMap<Track, Cluster> trackClusterPairs = new HashMap<Track, Cluster>();
@@ -573,7 +593,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
                 //create a mapping of smallestNSigma Clusters and their sigma values
                 HashMap<Cluster,Double> clusterNSigma = new HashMap<Cluster,Double>();
-            
+
                 //Create a reconstructed particle to represent the track.
                 //ReconstructedParticle particle = super.addTrackToParticle(track, flipSign);
                 ReconstructedParticle particle = new BaseReconstructedParticle();
@@ -600,7 +620,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 } else if (particle.getCharge() < 0) {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
-                
+
 
                 double smallestNSigma = Double.MAX_VALUE;
                 // try to find a matching cluster:
@@ -622,10 +642,12 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                     //before calculating nsigma.  Default is don't use corrections.  
                     Cluster originalCluster = cluster;
                     if (useCorrectedClusterPositionsForMatching) {
-                        cluster = new BaseCluster(cluster);
+                        BaseCluster clusterBase = new BaseCluster(cluster);
+                        clusterBase.setNeedsPropertyCalculation(false);
+                        cluster = clusterBase;
                         double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                        ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
-                    }
+                        ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
+                    }                    
 
                     // normalized distance between this cluster and track:
                     final double thisNSigma = this.getNSigmaPosition(cluster, particle);
@@ -655,6 +677,11 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                     // we found a new best cluster candidate for this track:
                     smallestNSigma = thisNSigma;
                     matchedCluster = originalCluster;
+
+                    // prefer using GBL tracks to correct (later) the clusters, for some consistency:
+                    if (track.getType() >= 32 || !this.clusterToTrack.containsKey(matchedCluster)) {
+                        this.clusterToTrack.put(matchedCluster, track);
+                    }
                 }
 
                 // If a cluster was found that matches the track...
@@ -668,9 +695,9 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
             }
         }
 
-        
-        
+
         return trackClusterPairs;
+
     }
 
     /**
@@ -687,10 +714,10 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
             e.printStackTrace();
         }
     }
-   
+
     @Deprecated
     public void setBeamEnergy(double beamEnergy) {
-    //          this.beamEnergy = beamEnergy;
+        //          this.beamEnergy = beamEnergy;
     }
 
 }
