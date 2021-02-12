@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.lcsim.geometry.compact.converter;
 
@@ -21,7 +21,7 @@ import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.Trackin
 
 /**
  * Class used by java converter to build java run time objects for the detector It encapsulates and adds the LCDD specific information to the generic
- * 
+ *
  * @HPSTestRunTracker2014Builder.
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
@@ -29,7 +29,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
 
     /**
      * Default constructor
-     * 
+     *
      * @param node
      */
     public HPSTracker2014JavaBuilder(boolean debugFlag, Element node) {
@@ -38,7 +38,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
 
     /**
      * Build the JAVA geometry objects from the geometry definition.
-     * 
+     *
      * @param trackingVolume - the reference volume.
      */
     public void build(ILogicalVolume trackingVolume) {
@@ -116,8 +116,9 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
 
         }
 
-        // if(isDebug())
-        System.out.printf("%s: DONE build JAVA modules\n", getClass().getSimpleName());
+        if(isDebug()) {
+            System.out.printf("%s: DONE build JAVA modules\n", getClass().getSimpleName());
+        }
 
         // System.out.printf("%s: Built %d JAVA geometry objects\n",
         // getClass().getSimpleName(),javaSurveyVolumes.size());
@@ -137,7 +138,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
 
     /**
      * Rules for adding the JAVA module geometry.
-     * 
+     *
      * @param bundle - module to be added
      * @param mother - mother JAVA geometry object
      */
@@ -153,7 +154,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
 
     /**
      * Rules for adding the LCDD module geometry.
-     * 
+     *
      * @param bundle - module to be added
      * @param mother - mother LCDD geometry object
      */

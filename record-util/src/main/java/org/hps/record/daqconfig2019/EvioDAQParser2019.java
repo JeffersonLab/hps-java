@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
@@ -37,6 +42,7 @@ public class EvioDAQParser2019 {
     // Class parameters.
     private int nBanks = 0;
     private boolean debug = false;
+    private boolean saveConfigBank = false;
 
     //////////// Cluster cut configuration ////////////
     /**
@@ -214,6 +220,11 @@ public class EvioDAQParser2019 {
      * <code>{ Pair0_Cut_Enabled, Pair1_Cut_Enabled, Pair2_Cut_Enabled, Pair3_Cut_Enabled }</code>.
      */
     boolean[] pairsEnergyDistEn = { false, false, false, false };
+    
+    boolean pairs3L1MatchingEn = false;
+    boolean pairs3L2MatchingEn = false;
+    boolean pairs3L1L2MatchingEn = false;
+    boolean pairs3L1L2EcalMatchingEn = false;
 
     // Cut Values:
     /**
@@ -517,6 +528,27 @@ public class EvioDAQParser2019 {
         if (nBanks > 4 && debug) {
             printVars();
         }
+        
+        // If saveConfigBank is enabled, save configuration into a text file for each crate separately.
+        if(saveConfigBank) {
+            try{
+                String fileName = Integer.toString(runNumber) + '_' + Integer.toString(crate) + ".txt";
+                File file = new File(fileName);
+                //if file doesnt exists, then create it
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+                FileWriter fileWritter = new FileWriter(file.getName(),true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                for (String configTable : configurationTables) {
+                    bufferWritter.write(configTable);
+                }
+                bufferWritter.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -572,7 +604,7 @@ public class EvioDAQParser2019 {
                 // Add the parameter key and its values to the map.
                 configMap.put(key, vals);
             }
-        }
+        }        
     }
 
     /**
@@ -637,6 +669,11 @@ public class EvioDAQParser2019 {
             pairsEnergyDistSlope[ii] = getFloatConfigVTP(ii, "PAIR_ENERGYDIST", 0);
             pairsEnergyDistMin[ii] = getIntConfigVTP(ii, "PAIR_ENERGYDIST", 1);
         }
+        
+        pairs3L1MatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 0);
+        pairs3L2MatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 1);
+        pairs3L1L2MatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 2);
+        pairs3L1L2EcalMatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 3);
 
         // Parse cluster multiplicity trigger data
         for (int ii = 0; ii < 2; ii++) {
@@ -1123,6 +1160,12 @@ public class EvioDAQParser2019 {
             System.out.println(String.format("PAIRS_EDISTSLOP %d %f", ii, pairsEnergyDistSlope[ii]));
         }
 
+        System.out.println(String.format("Pair_L1Matching_EN 3 %b", pairs3L1MatchingEn));
+        System.out.println(String.format("Pair_L2Matching_EN 3 %b", pairs3L2MatchingEn));
+        System.out.println(String.format("Pair_L1L2Matching_EN 3 %b", pairs3L1L2MatchingEn));
+        System.out.println(String.format("Pair_L1L2EcalMatching_EN 3 %b", pairs3L1L2EcalMatchingEn));
+        
+        
         for (int ii = 0; ii < 2; ii++) {
             System.out.println(String.format("MULT_EN %d %b", ii, multEn[ii]));
             System.out.println(String.format("MULT_NHITS %d %d", ii, multNhitsMin[ii]));

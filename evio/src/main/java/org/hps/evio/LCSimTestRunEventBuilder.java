@@ -28,7 +28,7 @@ import org.lcsim.event.base.BaseLCSimEvent;
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
-    
+
     protected VTPEvioReader vtpReader = null;
     protected EcalEvioReader ecalReader = null;
     protected HodoEvioReader hodoReader = null;
@@ -42,9 +42,9 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
 
     public LCSimTestRunEventBuilder() {
         ecalReader = new EcalEvioReader(0x1, 0x2);
-        
+
         vtpReader = new VTPEvioReader();
-        
+
         svtReader = new TestRunSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();
         intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
@@ -105,7 +105,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making ECal hits", e);
         }
 
-        
+
 //        // Make RawHodoscopeHit collection, combining top and bottom section of Hodo into one list.
         if (hodoReader != null) {
             try {
@@ -116,7 +116,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
                 //Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error making Hodo hits", e);
             }
         }
-                
+
         // Make SVT RawTrackerHits
         try {
             svtReader.makeHits(evioEvent, lcsimEvent);
@@ -154,11 +154,11 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
         }
 
         time = getTime(triggerList);
-        
+
         if (eventID[0] != evioEvent.getEventNumber()) {
             LOGGER.finest("EVIO event number " + evioEvent.getEventNumber() + " does not match " + eventID[0] + " from event ID bank");
         }
-        
+
         // Create a new LCSimEvent.
         EventHeader lcsimEvent = new BaseLCSimEvent(
                 ConditionsManager.defaultInstance().getRun(),
@@ -169,7 +169,7 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
                 time);
 
         lcsimEvent.put("TriggerBank", triggerList, AbstractIntData.class, 0);
-        
+
         return lcsimEvent;
     }
 
@@ -214,13 +214,15 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
             if(hodoReader == null) {
                 hodoReader = new HodoEvioReader(0x1, 0x2);   // Rafo: Have to understand what are 0x1 and 0x2 = Topbank and Bottombank (MWH).
                 hodoReader.setTopBankTag(0x25);
-                hodoReader.setBotBankTag(0x27); 
+                hodoReader.setBotBankTag(0x27);
 //                hodoReader.setTopBankTag(0x41);  // Temporary for the EEL test setup
 //                hodoReader.setBotBankTag(0x41);  // Temporary for the EEL test setup
             }
             hodoReader.initialize();
-        } else {
-            LOGGER.warning("No hodo_channels condition in this run so Hodoscope EVIO reader was not enabled.");
         }
+        // This prints for all data before 2019 so it is pretty redundant. Turning off. --JM
+        /*else {
+            LOGGER.warning("No hodo_channels condition in this run so Hodoscope EVIO reader was not enabled.");
+        }*/
     }
 }

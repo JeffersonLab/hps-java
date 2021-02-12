@@ -101,6 +101,8 @@
             <tsCorrectionScale>239</tsCorrectionScale>    
             <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
             <correctTimeOffset>true</correctTimeOffset>   
+            <!--trigger time offset due to finite trigger window widths from trigger and SVT systems--> 
+            <trigTimeOffset>12.0</trigTimeOffset>   
             <!--per sensor shift...set false becasue it's not in readout sim-->       
             <correctT0Shift>false</correctT0Shift>      
             <!--use truth time for MC???  typically not used-->             

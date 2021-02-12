@@ -48,7 +48,7 @@ public class CopyClusterCollectionDriver extends Driver {
         for (final Cluster cluster : clusters) {
             // Use the base class's copy constructor to make a new cluster from the input.
             final BaseCluster newCluster = new BaseCluster(cluster);
-
+            
             // Turn off automatic property calculation.
             newCluster.setNeedsPropertyCalculation(false);
 

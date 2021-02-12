@@ -62,7 +62,7 @@
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
-            <persistent>true</persistent>
+            <persistent>false</persistent>
         </driver>
         
         <driver name="MCParticleOutputDriver" type="org.hps.readout.MCParticleReadoutDriver">
@@ -71,21 +71,21 @@
             <!-- Units of ns. -->
             <readoutWindowBefore>32.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
-            <persistent>true</persistent>
+            <persistent>false</persistent>
         </driver>
         
         <driver name="TrackerHitsSVTOutputDriver" type="org.hps.readout.svt.SVTTrackerHitReadoutDriver">
             <collectionName>TrackerHits</collectionName>
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
-            <persistent>true</persistent>
+            <persistent>false</persistent>
         </driver>
         
         <driver name="TrackerHitsEcalOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
             <collectionName>TrackerHitsECal</collectionName>
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
-            <persistent>true</persistent>
+            <persistent>false</persistent>
         </driver>
         
         <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
@@ -94,7 +94,7 @@
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
-            <persistent>true</persistent>
+            <persistent>false</persistent>
         </driver>
         
         
@@ -238,7 +238,7 @@
                 included in readout automatically - the truth hit driver above
                 does not need to be persistent.
             -->
-            <writeTruth>true</writeTruth>
+            <writeTruth>false</writeTruth>
             
             <!--
                 As above, except that truth relations are persisted for the

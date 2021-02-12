@@ -1,22 +1,20 @@
 package org.hps.test.it;
 
+import static java.lang.Math.abs;
+
+import java.io.File;
+import java.net.URL;
+
+import org.hps.evio.EvioToLcio;
+import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
+import org.lcsim.util.aida.AIDA;
+import org.lcsim.util.cache.FileCache;
+
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.ITree;
-
-import java.io.File;
-
-import static java.lang.Math.abs;
-
-import java.net.URL;
-
 import junit.framework.TestCase;
-import static junit.framework.TestCase.assertEquals;
-
-import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 
 /**
  *
@@ -24,7 +22,6 @@ import org.lcsim.util.cache.FileCache;
  */
 public class PhysRun2019ReconTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/2019/";
     static final String testFileName = "hps_010104.00000_1000events.evio";
     static final String detectorName = "HPS-PhysicsRun2019-v1-4pt5";
     static final String steeringFileName = "/org/hps/steering/recon/PhysicsRun2019FullRecon.lcsim";
@@ -32,9 +29,9 @@ public class PhysRun2019ReconTest extends TestCase {
     private String aidaOutputFile = "target/test-output/PhysRun2019ReconTest/PhysRun2019ReconTest";
 
     public void testIt() throws Exception {
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        File evioInputFile = cache.getCachedFile(testURL);
+
+        File evioInputFile = TestUtil.downloadTestFile(testFileName);
+
         File outputFile = new TestOutputFile(PhysRun2019ReconTest.class, "PhysRun2019ReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             detectorName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
@@ -68,9 +65,7 @@ public class PhysRun2019ReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/PhysRun2016V0ReconTest/PhysRun2016V0ReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlots("PhysRun2016V0ReconTest");
 
         File aidaTstFile = new File(aidaOutputFile + ".aida");
 

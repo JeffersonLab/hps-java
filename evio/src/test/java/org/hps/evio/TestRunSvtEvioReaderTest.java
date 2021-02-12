@@ -12,6 +12,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.cache.FileCache;
 
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.util.test.TestUtil;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.conditions.database.DatabaseConditionsManager;
 
@@ -20,8 +21,7 @@ public class TestRunSvtEvioReaderTest extends TestCase {
     public void testTestRunSvtEvioReaderTest() throws Exception {
 
         // Get the EVIO file that will be used to test the reader
-        FileCache fileCache = new FileCache();
-        File evioFile = fileCache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/hps1351_test.evio"));
+        File evioFile = TestUtil.downloadTestFile("hps1351_test.evio");
 
         System.out.println("[ " + this.getClass().getSimpleName() + " ]: Opening file " + evioFile);
 

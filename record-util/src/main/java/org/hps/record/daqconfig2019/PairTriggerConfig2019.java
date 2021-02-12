@@ -15,13 +15,17 @@ public class PairTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019
     private static final int CUT_ENERGY_SLOPE = 5;
     private static final int CUT_COPLANARITY  = 6;
     private static final int CUT_TIME_DIFF    = 7;
+    private static final int L1_MATCHING = 8;
+    private static final int L2_MATCHING = 9;
+    private static final int L1L2_GEO_MATCHING = 10;
+    private static final int HODOECAL_GEO_MATCHING = 11;
     
     /**
      * Creates a new <code>PairTriggerConfig</code> object.
      */
     public PairTriggerConfig2019() {
         // Instantiate the superclass.
-        super(8);
+        super(12);
         
         // Define the pair cuts.
         setValue(CUT_ENERGY_MIN, new LBOCutConfig2019());
@@ -32,6 +36,11 @@ public class PairTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019
         setValue(CUT_ENERGY_SLOPE, new ESBCutConfig2019());
         setValue(CUT_COPLANARITY,  new UBOCutConfig2019());
         setValue(CUT_TIME_DIFF,    new UBOCutConfig2019());
+        // Only pair3 trigger requires geometry matching for hodoscope and Ecal
+        setValue(L1_MATCHING,  new HodoEcalCoincidence2019());
+        setValue(L2_MATCHING,  new HodoEcalCoincidence2019());
+        setValue(L1L2_GEO_MATCHING,  new HodoEcalCoincidence2019());
+        setValue(HODOECAL_GEO_MATCHING,  new HodoEcalCoincidence2019());
     }
     
     /**
@@ -104,5 +113,37 @@ public class PairTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019
      */
     public UBOCutConfig2019 getTimeDifferenceCutConfig() {
         return (UBOCutConfig2019) getValue(CUT_TIME_DIFF);
+    }
+    
+    /**
+     * Gets the configuration object for L1 matching.
+     * @return Returns the configuration object.
+     */
+    public HodoEcalCoincidence2019 getL1MatchingConfig() {
+        return (HodoEcalCoincidence2019) getValue(L1_MATCHING);
+    }
+    
+    /**
+     * Gets the configuration object for L2 matching.
+     * @return Returns the configuration object.
+     */
+    public HodoEcalCoincidence2019 getL2MatchingConfig() {
+        return (HodoEcalCoincidence2019) getValue(L2_MATCHING);
+    }
+    
+    /**
+     * Gets the configuration object for L1L2 geometry matching.
+     * @return Returns the configuration object.
+     */
+    public HodoEcalCoincidence2019 getL1L2GeoMatchingConfig() {
+        return (HodoEcalCoincidence2019) getValue(L1L2_GEO_MATCHING);
+    }
+    
+    /**
+     * Gets the configuration object for hodoscope and Ecal geometry matching.
+     * @return Returns the configuration object.
+     */
+    public HodoEcalCoincidence2019 getHodoEcalGeoMatchingConfig() {
+        return (HodoEcalCoincidence2019) getValue(HODOECAL_GEO_MATCHING);
     }
 }

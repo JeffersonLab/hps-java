@@ -1,21 +1,20 @@
 package org.hps.test.it;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.ITree;
+import static java.lang.Math.abs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-
-import junit.framework.TestCase;
 
 import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
+import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
-import org.lcsim.util.test.TestUtil;
+
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.ITree;
+import junit.framework.TestCase;
 
 /**
  *
@@ -23,32 +22,27 @@ import org.lcsim.util.test.TestUtil;
  */
 public class EngRun2015MollerReconTest extends TestCase {
 
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java/calibration";
     static final String testFileName = "hps_005772_mollerskim_10k.evio";
     static final String fieldmapName = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
-    static final String steeringFileName = "/org/hps/steering/recon/EngineeringRun2015FullRecon.lcsim";
+    static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
     private final int nEvents = 1000;
     private String aidaOutputFile = "target/test-output/EngRun2015MollerReconTest/EngRun2015MollerReconTest";
 
     public void testIt() throws Exception {
-        URL testURL = new URL(testURLBase + "/" + testFileName);
-        FileCache cache = new FileCache();
-        File evioInputFile = cache.getCachedFile(testURL);
-        File outputFile = new TestOutputFile(EngRun2015MollerReconTest.class, "EngRun2015MollerReconTest");
+        File evioInputFile = TestUtil.downloadTestFile(testFileName);
+        File outputFile = new TestOutputFile(EngRun2015MollerReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath(), "-e", "100"};
-        System.out.println("Running EngRun2015MollerReconTest.main ...");
-        System.out.println("writing to: " + outputFile.getPath());
+        System.out.println("Writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
         System.out.println("That took " + (endTime - startTime) + " milliseconds");
         // Read in the LCIO event file and print out summary information.
-        System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         EngRun2015MollerRecon reconDriver = new EngRun2015MollerRecon();
-        aidaOutputFile = new TestUtil.TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
+        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
         reconDriver.setAidaFileName(aidaOutputFile);
         loop.add(reconDriver);
         try {
@@ -67,9 +61,7 @@ public class EngRun2015MollerReconTest extends TestCase {
         AIDA aida = AIDA.defaultInstance();
         final IAnalysisFactory af = aida.analysisFactory();
 
-        URL refFileURL = new URL("http://www.lcsim.org/test/hps-java/referencePlots/EngRun2015MollerReconTest/EngRun2015MollerReconTest-ref.aida");
-        FileCache cache = new FileCache();
-        File aidaRefFile = cache.getCachedFile(refFileURL);
+        File aidaRefFile = TestUtil.downloadRefPlots("EngRun2015MollerReconTest");
 
         File aidaTstFile = new File(aidaOutputFile+".aida");
 
@@ -79,7 +71,7 @@ public class EngRun2015MollerReconTest extends TestCase {
         String[] histoNames = ref.listObjectNames(".", true);
         String[] histoTypes = ref.listObjectTypes(".", true);
         System.out.println("comparing " + histoNames.length + " managed objects");
-        double tolerance = 1E-3;
+        double tolerance = 5E-3;
         for (int i = 0; i < histoNames.length; ++i) {
             String histoName = histoNames[i];
             if (histoTypes[i].equals("IHistogram1D")) {
@@ -99,8 +91,8 @@ public class EngRun2015MollerReconTest extends TestCase {
                 IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
                 IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
                 assertEquals(h1_r.entries(), h1_t.entries());
-                assertEquals(h1_r.mean(), h1_t.mean(), tolerance);// * abs(h1_r.mean()));
-                assertEquals(h1_r.rms(), h1_t.rms(), tolerance);// * abs(h1_r.rms()));
+                assertEquals(h1_r.mean(), h1_t.mean(), tolerance * abs(h1_r.mean()));
+                assertEquals(h1_r.rms(), h1_t.rms(), tolerance * abs(h1_r.rms()));
             }
         }
     }

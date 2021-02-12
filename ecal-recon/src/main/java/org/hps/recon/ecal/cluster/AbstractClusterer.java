@@ -135,6 +135,7 @@ public abstract class AbstractClusterer implements Clusterer {
      */
     public BaseCluster createBasicCluster() {
         BaseCluster cluster = new BaseCluster();
+        cluster.setNeedsPropertyCalculation(false);
         cluster.setType(getClusterType().getType());
         return cluster;
     }

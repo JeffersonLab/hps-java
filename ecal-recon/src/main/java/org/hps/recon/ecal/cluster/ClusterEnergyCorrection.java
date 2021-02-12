@@ -1,39 +1,16 @@
 package org.hps.recon.ecal.cluster;
 
-import hep.physics.vec.Hep3Vector;
-
-import java.util.Random;
-
-import org.hps.detector.ecal.EcalCrystal;
-import org.hps.detector.ecal.HPSEcalDetectorElement;
-// import org.jdom.DataConversionException;
-// import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
- * This is the cluster energy correction requiring the particle id uncorrected cluster energy. This is now updated to
  * include edge corrections and sampling fractions derived from data.
- * 
+ *
  * @author Holly Vance <hvanc001@odu.edu>
  * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ClusterEnergyCorrection {
-
-    // Variables derived as the difference between data and mc noise in
-    // ecal cluster energy resolution.
-    static final double A = -0.00000981;
-    static final double B = 0.00013725;
-    static final double C = 0.000301;
-
-    // Calculate the noise factor to smear the Ecal energy by
-    private static double calcNoise(double energy) {
-        Random r = new Random();
-        double noise = r.nextGaussian() * Math.sqrt(A + B * energy + C * Math.pow(energy, 2));
-        // System.out.println("energy:\t"+energy+"\tnoise:\t"+noise);
-        return noise;
-    }
 
     // Variables for electron energy corrections.
     static final double par0_em = -0.017;
@@ -66,123 +43,24 @@ public final class ClusterEnergyCorrection {
     static final double par2MC_p[] = {35, 0.965, 0.004, 18.05, 0.24, 3.027, 74.93, -0.3221};
 
     /**
-     * Calculate the corrected energy for the cluster.
-     * 
-     * @param cluster The input cluster.
-     * @return The corrected energy.
-     */
-    public static double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
-        double rawE = cluster.getEnergy();
-        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0],
-                cluster.getPosition()[1], isMC);
-    }
-
-    /**
-     * Calculate the corrected energy for the cluster using track position at ecal.
-     * 
-     * @param cluster The input cluster.
-     * @return The corrected energy.
-     */
-    public static double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
-        double rawE = cluster.getEnergy();
-        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0], ypos, isMC);
-    }
-
-    /**
-     * Calculate the corrected energy and set on the cluster.
-     * 
-     * @param cluster The input cluster.
-     */
-    public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
-        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
-        if (isMC) {
-            correctedEnergy += calcNoise(correctedEnergy);
-        }
-        cluster.setEnergy(correctedEnergy);
-    }
-
-    /**
-     * Calculate the corrected energy and set on the cluster.
-     * 
-     * @param cluster The input cluster.
-     */
-
-    public static void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, double ypos, boolean isMC) {
-        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos, isMC);
-        if (isMC) {
-            correctedEnergy += calcNoise(correctedEnergy);
-        }
-        cluster.setEnergy(correctedEnergy);
-    }
-
-    /**
-     * Calculates energy correction based on cluster raw energy and particle type as per <a href=
-     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014" >HPS Note 2014-001</a>
-     * 
+     * Calculates energy correction based on cluster raw energy and particle
+     * type as per <a href=
+     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
+     * >HPS Note 2014-001</a>
+     *
+     * @param ecal
      * @param pdg Particle id as per PDG
-     * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit distribution)
+     * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit
+     * distribution)
+     * @param xpos
+     * @param ypos
+     * @param isMC
      * @return Corrected Energy
      */
-
-    private static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
+    public static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
             boolean isMC) {
         // distance to beam gap edge
-        double r;
-        // Get these values from the Ecal geometry:
-        HPSEcalDetectorElement detElement = (HPSEcalDetectorElement) ecal.getDetectorElement();
-        // double BEAMGAPTOP =
-        // 22.3;//ecal.getNode().getChild("layout").getAttribute("beamgapTop").getDoubleValue();//mm
-        double BEAMGAPTOP = 20.0;
-        try {
-            BEAMGAPTOP = ecal.getNode().getChild("layout").getAttribute("beamgapTop").getDoubleValue();
-        } catch (Exception e) {
-            try {
-                BEAMGAPTOP = ecal.getNode().getChild("layout").getAttribute("beamgap").getDoubleValue();
-            } catch (Exception ee) {
-                ee.printStackTrace();
-            }
-        }
-        double BEAMGAPBOT = -20.0;
-        try {
-            BEAMGAPBOT = -ecal.getNode().getChild("layout").getAttribute("beamgapBottom").getDoubleValue();
-        } catch (Exception e) {
-            try {
-                BEAMGAPBOT = -ecal.getNode().getChild("layout").getAttribute("beamgap").getDoubleValue();
-            } catch (Exception ee) {
-                ee.printStackTrace();
-            }
-        }
-        double BEAMGAPTOPC = BEAMGAPTOP + 13.0;// mm
-        double BEAMGAPBOTC = BEAMGAPBOT - 13.0;// mm
-        // x-coordinates of crystals on either side of row 1 cut out
-        EcalCrystal crystalM = detElement.getCrystal(-11, 1);
-        Hep3Vector posM = crystalM.getPositionFront();
-        EcalCrystal crystalP = detElement.getCrystal(-1, 1);
-        Hep3Vector posP = crystalP.getPositionFront();
-
-        if ((xpos < posM.x()) || (xpos > posP.x())) {
-            if (ypos > 0) {
-                r = Math.abs(ypos - BEAMGAPTOP);
-            } else {
-                r = Math.abs(ypos - BEAMGAPBOT);
-            }
-        }
-        // crystals above row 1 cut out
-        else {
-            if (ypos > 0) {
-                if (ypos > (par1_em[0] + BEAMGAPTOP)) {
-                    r = Math.abs(ypos - BEAMGAPTOP);
-                } else {
-                    r = Math.abs(ypos - BEAMGAPTOPC);
-                }
-            } else {
-                if (ypos > (-par1_em[0] + BEAMGAPBOT)) {
-                    r = Math.abs(ypos - BEAMGAPBOTC);
-                } else {
-                    r = Math.abs(ypos - BEAMGAPBOT);
-                }
-            }
-        }
+        double r = ClusterCorrectionUtilities.computeYDistanceFromEdge(ecal, xpos, ypos);
 
         // Eliminates corrections at outermost edges to negative cluster energies
         // 66 for positrons, 69 is safe for electrons and photons
@@ -224,19 +102,72 @@ public final class ClusterEnergyCorrection {
     }
 
     /**
-     * Calculates the energy correction to a cluster given the variables from the fit as per <a href=
-     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014" >HPS Note 2014-001</a> Note that this
-     * is correct as there is a typo in the formula print in the note.
-     * 
+     * Calculates the energy correction to a cluster given the variables from
+     * the fit as per <a href=
+     * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
+     * >HPS Note 2014-001</a> Note that this is correct as there is a typo in
+     * the formula print in the note.
+     *
      * @param rawEnergy Raw energy of the cluster
      * @param A,B,C from fitting in note
      * @return Corrected Energy
      */
-    private static double computeCorrectedEnergy(double y, double rawEnergy, double varA, double varB[], double varC[]) {
+    private static double computeCorrectedEnergy(double y, double rawEnergy, double varA, double varB[],
+            double varC[]) {
         int ii = y < varB[0] ? 2 : 5;
-        double corrEnergy = rawEnergy
-                / (varA / rawEnergy + (varB[1] - varB[ii] * Math.exp(-(y - varB[ii + 1]) * varB[ii + 2]))
-                        / (Math.sqrt(rawEnergy)) + (varC[1] - varC[ii] * Math.exp(-(y - varC[ii + 1]) * varC[ii + 2])));
+        double corrEnergy = rawEnergy / (varA / rawEnergy
+                + (varB[1] - varB[ii] * Math.exp(-(y - varB[ii + 1]) * varB[ii + 2])) / (Math.sqrt(rawEnergy))
+                + (varC[1] - varC[ii] * Math.exp(-(y - varC[ii + 1]) * varC[ii + 2])));
         return corrEnergy;
+    }
+
+    /**
+     * Calculate the corrected energy for the cluster.
+     *
+     * @param cluster The input cluster.
+     * @return The corrected energy.
+     */
+    public static final double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, boolean isMC) {
+        double rawE = cluster.getEnergy();
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0],
+                cluster.getPosition()[1], isMC);
+    }
+
+    /**
+     * Calculate the corrected energy for the cluster using track position at
+     * ecal.
+     *
+     * @param cluster The input cluster.
+     * @return The corrected energy.
+     */
+    public static final double calculateCorrectedEnergy(HPSEcal3 ecal, Cluster cluster, double ypos, boolean isMC) {
+        double rawE = cluster.getEnergy();
+        return computeCorrectedEnergy(ecal, cluster.getParticleId(), rawE, cluster.getPosition()[0], ypos, isMC);
+    }
+
+    /**
+     * Calculate the corrected energy and set on the cluster.
+     *
+     * @param cluster The input cluster.
+     */
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
+        if (isMC) {
+            correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
+    }
+
+    /**
+     * Calculate the corrected energy and set on the cluster.
+     *
+     * @param cluster The input cluster.
+     */
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, double ypos, boolean isMC) {
+        double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, ypos, isMC);
+        if (isMC) {
+            correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
+        }
+        cluster.setEnergy(correctedEnergy);
     }
 }
