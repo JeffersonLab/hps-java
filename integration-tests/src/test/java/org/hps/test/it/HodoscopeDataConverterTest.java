@@ -2,13 +2,13 @@ package org.hps.test.it;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.evio.EvioToLcio;
-import org.hps.test.util.TestOutputFile;
+import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.ExpandedIdentifier;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -19,25 +19,19 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.util.Driver;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
 public class HodoscopeDataConverterTest extends TestCase {
-    
+
     private static final String DETECTOR = "HPS-HodoscopeTest-v1";
     private static final Integer RUN_NUMBER = 1000000;
-    //private static String LOCAL_FILE_PATH = "/work/slac/hps-projects/projects/hodoscope-dev/hpshodo_000322_100evts.evio";
-    private static final String OUTPUT_FILE_NAME = "hodo_cnv_test.slcio";
-    //    private static final String TEST_FILE_URL = "http://lcsim.org/test/hps-java/hpshodo_000322_100evts.evio";
-    private static final String TEST_FILE_URL = "http://lcsim.org/test/hps-java/hpsecal_000084_200events.evio";
     private static final boolean DEBUG = true;
-    
+
     public void testHodoscopeDataConverter() throws IOException {
-        FileCache cache = new FileCache();
-        File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
-        File testOutput = new TestOutputFile(HodoscopeDataConverterTest.class, OUTPUT_FILE_NAME);
+        File testFile = TestUtil.downloadTestFile("hpsecal_000084_200events.evio");
+        File testOutput = new TestOutputFile(HodoscopeDataConverterTest.class, "cnv_test");
         String args[] = {
                 "-d",
                 DETECTOR,
@@ -48,19 +42,19 @@ public class HodoscopeDataConverterTest extends TestCase {
                 testOutput.getPath()
         };
         EvioToLcio.main(args);
-                   
+
         LCSimLoop loop = new LCSimLoop();
         DatabaseConditionsManager.getInstance();
         loop.setLCIORecordSource(testOutput);
         loop.add(new HodoscopeDataDriver());
         loop.loop(100);
-    }    
-    
+    }
+
     private class HodoscopeDataDriver extends Driver {
-        
+
         private HodoscopeDetectorElement hodo = null;
         private IIdentifierHelper helper = null;
-        
+
         public void detectorChanged(Detector detector) {
             Subdetector subdet = detector.getSubdetector("Hodoscope");
             this.hodo = (HodoscopeDetectorElement) subdet.getDetectorElement();
@@ -71,7 +65,7 @@ public class HodoscopeDataConverterTest extends TestCase {
             }
             System.out.println();
         }
-        
+
         public void process(EventHeader event) {
             if (DEBUG)
                 System.out.println(">>>> Processing hodo event " + event.getEventNumber());
@@ -101,5 +95,5 @@ public class HodoscopeDataConverterTest extends TestCase {
                 }
             }
         }
-    }    
+    }
 }

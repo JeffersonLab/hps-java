@@ -13,6 +13,9 @@ import java.io.PrintStream;
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class DAQConfig2019 extends IDAQConfig2019 {
+    //If print out configuration in terminal
+    private boolean printConfiguration = false;
+    
     // Store the configuration objects.
     private VTPConfig2019 vtpConfig = new VTPConfig2019();
     private FADCConfigEcal2019 fadcConfigEcal = new FADCConfigEcal2019();
@@ -52,7 +55,7 @@ public class DAQConfig2019 extends IDAQConfig2019 {
         tsConfig.loadConfig(parser);
         
         // Print the loaded configuration to the terminal.
-        printConfig(System.out);
+        if(printConfiguration) printConfig(System.out);
     }
 
     @Override
