@@ -22,6 +22,7 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
     protected IIdentifierDictionary identifierDictionary;
     protected Subdetector subdet;
     protected List<IDetectorElement> layerDetectorElements = new ArrayList<IDetectorElement>();
+    protected List<IDetectorElement> supportDetectorElements = new ArrayList<IDetectorElement>();
     protected List<IDetectorElement> moduleDetectorElements = new ArrayList<IDetectorElement>();
     protected IDetectorElement baseDetectorElement = null;
     public HPSTrackerBuilder _builder = null;
@@ -107,7 +108,30 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
         }
         return element;
     }
-
+    
+    //Find support detector elements. 
+    //TODO PF Clean this up - matching is done by name...
+    
+    public IDetectorElement getSupportDetectorMother(String daughterName, String volume, int layer) {
+        IDetectorElement element = null;
+                
+        //Loop on the layerDetectorElements
+        for (IDetectorElement e : layerDetectorElements) {
+            System.out.printf("%s::getSupportDetecDetector: Checking element %s \n", this.getClass().getSimpleName(), e.getName());
+        
+            //Check for volume 
+            if (e.getName().contains(volume)) {
+                if (e.getName().contains("supportRing") && (layer < 5) ) 
+                    return e;
+                if (e.getName().contains("UChannel") && (layer >=5) )
+                    return e;
+            }
+            
+        }    
+                    
+        return null;
+    }
+    
     // Find detector elements
     // TODO This should be using some global geometry code like DetectorElementStore?
     public IDetectorElement getLayerDetectorElement(IExpandedIdentifier expId) {
@@ -130,6 +154,11 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
 
         }
         return element;
+    }
+
+    public void addSupportDetectorElement(IDetectorElement e) {
+        //Do not check on the ID. It's bs anyway.
+        supportDetectorElements.add(e);
     }
 
     public void addLayerDetectorElement(IDetectorElement e) {
