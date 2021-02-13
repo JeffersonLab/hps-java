@@ -45,7 +45,7 @@ public class FADCConfigHodo2019 extends IDAQConfig2019 {
     
     // Store the hodoscope condition table for converting between
     // geometric IDs and channel objects.
-    private HodoscopeChannelCollection geoMap = null;
+    private HodoscopeChannelCollection geoMap = new HodoscopeChannelCollection();
     
     @Override
     void loadConfig(EvioDAQParser2019 parser) {
