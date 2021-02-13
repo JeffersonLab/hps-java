@@ -685,11 +685,9 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 }
 
                 // If a cluster was found that matches the track...
+                // add track cluster pair to Map
                 if (matchedCluster != null) {
-
-                    // use pid quality to store track-cluster matching quality:
                     trackClusterPairs.put(track, matchedCluster);
-
                 }
 
             }

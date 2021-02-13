@@ -1,10 +1,5 @@
 package org.hps.recon.utils;
 
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import hep.aida.IHistogramFactory;
-import hep.aida.ITree;
 //import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -34,7 +29,6 @@ import org.lcsim.geometry.FieldMap;
 
 //import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 
 import org.hps.recon.tracking.TrackUtils;
@@ -44,44 +38,56 @@ import org.hps.record.StandardCuts;
 
 public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcherInter {
 
-    protected Map<String,Double> cutsMap = new HashMap<String,Double>();
+
+    //Set track collection name. Used to discriminate between KF and GBL tracks
+    //in matcer algorithms that extend this class.
+    //Default to GBLTracks.
+    protected String trackCollectionName = "GBLTracks";
+    public void setTrackCollectionName(String trackCollectionName){
+        this.trackCollectionName = trackCollectionName;
+    }
+
+
+    //Empty constructor
+    AbstractTrackClusterMatcher() {
+    }
 
     /**
-     * Flag used to determine if plots are enabled/disabled
+     * abstract methods for producing plots
      */
+    public abstract void enablePlots(boolean enablePlots);
 
-    protected boolean useCorrectedClusterPositionsForMatching = false;
-    protected boolean isMC = false;
-    HPSEcal3 ecal;
+    public abstract void bookHistograms();
+
+    public abstract void saveHistograms();
+
+    /**
+     * abstract method for defining a Track Cluster match quality value. Used
+     * to give particle id goodness of fit
+     */
+    public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
+
+    /**
+     * abstract method to apply Cluster corrections after Track to Cluster matching, if true.
+     */
+    public abstract void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC);
+
+    /**
+     * abstract method that runs the Track Cluster matching algorithm. Returns
+     * Map of Tracks matched to Clusters.
+     */
+    public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, boolean isMC, HPSEcal3 ecal, double beamEnergy);
+
+    /**
+     * abstract method that initializes misc parameterization file used for
+     * Cluster parameters. Not always required by matcher extensions/
+     */
+    public abstract void initializeParameterization(String fname);
 
     /**
      * The B field map
      */
     FieldMap bFieldMap = null;
-
-
-
-    AbstractTrackClusterMatcher() {
-    }
-
-    public abstract void bookHistograms();
-
-    // Plotting
-    protected ITree tree = IAnalysisFactory.create().createTreeFactory().create();
-    protected IHistogramFactory histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
-    protected Map<String, IHistogram1D> plots1D = new HashMap<String, IHistogram1D>();
-    protected Map<String, IHistogram2D> plots2D = new HashMap<String, IHistogram2D>();
-
-    public abstract void saveHistograms();
-
-    public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
-
-    public abstract void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC);
-
-    public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, boolean isMC, HPSEcal3 ecal, double beamEnergy);
-
-    public abstract void initializeParameterization(String fname);
-
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
     }
@@ -91,24 +97,34 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         this.snapToEdge = val;
     }
 
-    public abstract void enablePlots(boolean enablePlots);
 
-    public boolean isInTime(EventHeader event, double trackClusterTimeOffset, Cluster cluster, Track track){
+    /**
+     * Below are defined various general purpose functions for performing any
+     * generic Track to Cluster matching.
+     */
 
-        double dt = getdt(event, trackClusterTimeOffset, cluster, track);
-        if(cutsMap.isEmpty())
-            return true;
-        if(dt > cutsMap.get("T"))
+    public boolean isInTime(EventHeader event, StandardCuts cuts, Cluster cluster, Track track){
+
+        double trackt;    
+        if(this.trackCollectionName.contains("GBLTracks")){
+            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+            trackt = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+        }
+        else{ //(this.trackCollectionName.contains("KalmanFullTracks")){
+            RelationalTable trackToData = getKFTrackDataRelations(event);
+            TrackData trackdata = (TrackData) trackToData.from(track);
+            trackt = trackdata.getTrackTime();
+        }
+
+        double clustert = ClusterUtilities.getSeedHitTime(cluster);
+        if (Math.abs(clustert - trackt - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
             return false;
         else
             return true;
 
     }
 
-    protected String trackCollectionName = "GBLTracks";
-    public void setTrackCollectionName(String trackCollectionName){
-        this.trackCollectionName = trackCollectionName;
-    }
 
 
 
@@ -125,13 +141,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         double deltaX = delta[0];
         double deltaY = delta[1];
 
-        if(cutsMap.isEmpty())
-            return true;
-        if(deltaX > cutsMap.get("X"))
-            return false;
-        if(deltaY > cutsMap.get("Y"))
-            return false;
-
         return true;
     }
 
@@ -146,13 +155,13 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         //if (this.useAnalyticExtrapolator) {
             //tPos = TrackUtils.extrapolateTrack(track, cPos.z());
         //} 
-        if(trackCollectionName.contains("GBLTracks")){
+        if(this.trackCollectionName.contains("GBLTracks")){
             trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
             tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
             tPos = CoordinateTransformations.transformVectorToDetector(tPos);
         }       
 
-        if(trackCollectionName.contains("KalmanFullTracks")){
+        if(this.trackCollectionName.contains("KalmanFullTracks")){
             trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
             tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
             tPos = CoordinateTransformations.transformVectorToDetector(tPos);
@@ -173,13 +182,13 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         // Extrapolate the track to the Ecal cluster position
         Hep3Vector tPos = null;
         TrackState trackStateAtEcal = null;
-        if(trackCollectionName.contains("GBLTracks")){
+        if(this.trackCollectionName.contains("GBLTracks")){
             trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
             tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
             tPos = CoordinateTransformations.transformVectorToDetector(tPos);
         }       
 
-        if(trackCollectionName.contains("KalmanFullTracks")){
+        if(this.trackCollectionName.contains("KalmanFullTracks")){
             trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
             tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
             tPos = CoordinateTransformations.transformVectorToDetector(tPos);
@@ -196,7 +205,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
 
     }
 
-    public double getdt(EventHeader event, double trackClusterTimeOffset, Cluster cluster, Track track){
+    public double getdt(EventHeader event, StandardCuts cuts, Cluster cluster, Track track){
         
         double trackt;    
         if(this.trackCollectionName.contains("GBLTracks")){
@@ -211,12 +220,52 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         }
 
         double clustert = ClusterUtilities.getSeedHitTime(cluster);
-        double dt = clustert - trackClusterTimeOffset - trackt;
+        double dt = clustert - cuts.getTrackClusterTimeOffset() - trackt;
 
         return dt;
 
 
 
+    }
+
+
+    public double getTrackTime(Track track, EventHeader event){
+
+        double trackt;    
+        if(this.trackCollectionName.contains("GBLTracks")){
+            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+            trackt = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+        }
+        else{ //(this.trackCollectionName.contains("KalmanFullTracks")){
+            RelationalTable trackToData = getKFTrackDataRelations(event);
+            TrackData trackdata = (TrackData) trackToData.from(track);
+            trackt = trackdata.getTrackTime();
+        }
+
+        return trackt;
+    }
+
+    public double[] getTrackPositionAtEcal(Track track){
+
+        // Extrapolate the track to the Ecal cluster position
+        Hep3Vector tPos = null;
+        TrackState trackStateAtEcal = null;
+        if(this.trackCollectionName.contains("GBLTracks")){
+            trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+        }       
+
+        if(this.trackCollectionName.contains("KalmanFullTracks")){
+            trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
+            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
+            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
+
+        }
+
+        double[] trackPosition = {tPos.x(),tPos.y(),tPos.z()};
+        return trackPosition;
     }
 
     public RelationalTable getKFTrackDataRelations(EventHeader event){
@@ -225,7 +274,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         RelationalTable trackToData = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         List<LCRelation> trackRelations;
         TrackData trackdata;
-        if (trackCollectionName.contains("KalmanFullTracks")) {
+        if (this.trackCollectionName.contains("KalmanFullTracks")) {
             TrackData = event.get(TrackData.class, "KFTrackData");
             trackRelations = event.get(LCRelation.class, "KFTrackDataRelations");
             for (LCRelation relation : trackRelations) {
