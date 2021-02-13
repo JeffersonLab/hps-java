@@ -7,6 +7,7 @@ import java.util.Set;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.readout.DigitizationReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
 import org.hps.record.daqconfig2019.ConfigurationManager2019;
@@ -27,13 +28,16 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  */
 public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPSEcal3> {    
     // The DAQ configuration manager for FADC parameters.
-    private FADCConfigEcal2019 config = null;
+    private FADCConfigEcal2019 config = new FADCConfigEcal2019();
     
     // The number of nanoseconds in a clock-cycle (sample).
     private static final int nsPerSample = 4;
     
     /** Stores the conditions for this subdetector. */
     private EcalConditions ecalConditions = null;
+    
+    /** Stores the channel collection for this subdetector. */
+    private EcalChannelCollection geoMap = new EcalChannelCollection();
     
     public EcalDigitizationReadoutDriver() {
         // Set the default values for each subdetector-dependent
@@ -86,6 +90,10 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
         // Get a copy of the calorimeter conditions for the detector.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         
+        // Store the calorimeter conditions table for converting between
+        // geometric IDs and channel objects.
+        geoMap = DatabaseConditionsManager.getInstance().getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
+        
         // Run the superclass method.
         super.detectorChanged(detector);
     }    
@@ -112,7 +120,7 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
     
     @Override
     protected double getDAQPedestalConditions(long cellID) {        
-        return config.getPedestal(cellID);
+        return config.getPedestal(geoMap.findGeometric(cellID));
     }
     
     @Override
