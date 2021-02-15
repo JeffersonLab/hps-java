@@ -202,7 +202,8 @@ public class PropagatedTrackState {
         // Propagate the HelixState to the destination plane       
         destinationPlane = new Plane(pntEnd, dirEnd);
         if (debug) destinationPlane.print("destination");
-        newHelixState = helixState.propagateRungeKutta(destinationPlane, yScat, XL, fM);
+        double [] arcLength = new double[1];
+        newHelixState = helixState.propagateRungeKutta(destinationPlane, yScat, XL, fM, arcLength);
         if (debug) { 
             newHelixState.print("new, at destination");
             newHelixState.getRKintersection().print("Runge-Kutta intersection with plane");

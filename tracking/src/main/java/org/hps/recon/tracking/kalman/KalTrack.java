@@ -57,6 +57,7 @@ public class KalTrack {
     private static DMatrixRMaj Cinv;
     private static Logger logger;
     private static boolean initialized;
+    private double [] arcLength;
     private static LinearSolverDense<DMatrixRMaj> solver;
 
     KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
@@ -66,6 +67,7 @@ public class KalTrack {
         this.XLscat = XLscat;        
         this.kPar = kPar;
         ID = tkID;
+        arcLength = null;
         
         if (!initialized) {
             logger = Logger.getLogger(KalTrack.class.getName());
@@ -138,14 +140,14 @@ public class KalTrack {
         interceptMomVects = null;
         if (nHits < 5) {  // This should never happen
             logger.log(Level.WARNING, "KalTrack error: not enough hits ("+nHits+") on the candidate track (ID::"+ID+") for event "+eventNumber);
-            for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
-            logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
-            String str="";
-            for (MeasurementSite site : SiteList) {
-                str = str + String.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
-            }
-            str = str + "\n";
-            logger.log(Level.FINER,str);
+            //for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
+            //logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
+            //String str="";
+            //for (MeasurementSite site : SiteList) {
+            //    str = str + String.format("(%d, %d, %d) ",site.m.Layer,site.m.detector,site.hitID);
+            //}
+            //str = str + "\n";
+            //logger.log(Level.FINER,str);
         }
     }
 
@@ -369,6 +371,7 @@ public class KalTrack {
             str=str+String.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             str=str+helixAtOrigin.toString("helix state for a pivot at the origin")+"\n";
             str=str+originPoint.toString("point on the helix closest to the origin")+"\n";
+            str=str+String.format("   arc length from the origin to the first measurement=%9.4f\n", arcLength[0]);
             SquareMatrix C1 = new SquareMatrix(3, Cx);
             str=str+C1.toString("covariance matrix for the point");
             str=str+originMomentum.toString("momentum of the particle at closest approach to the origin");
@@ -471,10 +474,16 @@ public class KalTrack {
         pW.close();
     }
 
+    // Arc length along track from the origin to the first measurement
+    public double originArcLength() {
+        if (!propagated || arcLength == null) originHelix();
+        if (arcLength == null) return 0.;
+        return arcLength[0];
+    }
+    
     // Runge Kutta propagation of the helix to the origin
     public boolean originHelix() {
         if (propagated) return true;
-        propagated = true;
 
         // Find the measurement site closest to the origin (target)
         MeasurementSite innerSite = null;
@@ -499,7 +508,9 @@ public class KalTrack {
         // This propagated helix will have its pivot at the origin but is in the origin B-field frame
         // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
-        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield);
+        arcLength = new double[1];
+        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield, arcLength);
+        if (debug) System.out.format("KalTrack::originHelix: arc length to the first measurement = %9.4f\n", arcLength[0]);
         if (covNaN()) return false;
         if (!solver.setA(helixAtOrigin.C.copy())) {
             logger.fine("KalTrack:originHelix, cannot invert the covariance matrix");
@@ -543,11 +554,13 @@ public class KalTrack {
         Cx = temp.inverseRotate(Rot).M;
         temp = new SquareMatrix(3, Cp);
         Cp = temp.inverseRotate(Rot).M;
+        propagated = true;
         return true;
     }
 
     public double[] originX() {
-        if (!propagated) { originHelix(); }
+        if (!propagated) originHelix();
+        if (!propagated) return new double [] {0.,0.,0.};
         return originPoint.v.clone();
     }
 
@@ -565,7 +578,8 @@ public class KalTrack {
     }
     
     public double[] originP() {
-        if (!propagated) { originHelix(); }
+        if (!propagated) originHelix();
+        if (!propagated) return new double [] {0.,0.,0.};
         return originMomentum.v.clone();
     }
 
@@ -574,14 +588,15 @@ public class KalTrack {
         double [][] M = new double[5][5];
         for (int i=0; i<5; ++i) {
             for (int j=0; j<5; ++j) {
-                M[i][j] = helixAtOrigin.C.unsafe_get(i, j);
+                if (propagated) M[i][j] = helixAtOrigin.C.unsafe_get(i, j);
+                else M[i][j] = SiteList.get(0).aS.helix.C.unsafe_get(i, j);
             }
         }
         return M;
     }
 
     public boolean covNaN() { 
-        if (!propagated) originHelix();
+        if (helixAtOrigin.C == null) return true;
         return MatrixFeatures_DDRM.hasNaN(helixAtOrigin.C);
     }
     
@@ -592,15 +607,15 @@ public class KalTrack {
     
     //Update the helix parameters at the "origin" by using the target position or vertex as a constraint
     public HelixState originConstraint(double [] vtx, double [][] vtxCov) {
-        final boolean verbose = false;
         if (!propagated) originHelix();
+        if (!propagated) return null;
         
         // Transform the inputs in the the helix field-oriented coordinate system
         Vec v = helixAtOrigin.toLocal(new Vec(3,vtx));
         SquareMatrix Cov = helixAtOrigin.Rot.rotate(new SquareMatrix(3,vtxCov));
         Vec X0 = helixAtOrigin.X0;
         double phi = phiDOCA(helixAtOrigin.a, v, X0, alpha);
-        if (verbose) {  // Test the DOCA algorithm
+        if (debug) {  // Test the DOCA algorithm
             Vec rDoca = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
             System.out.format("originConstraint: phi of DOCA=%10.5e\n", phi);
             rDoca.print("  DOCA point");
@@ -621,7 +636,7 @@ public class KalTrack {
         }
         double [][] H = buildH(helixAtOrigin.a, v, X0, phi, alpha);
         Vec pntDOCA = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
-        if (verbose) {
+        if (debug) {
             matrixPrint("H", H, 3, 5);
             
             // Derivative test
@@ -672,7 +687,7 @@ public class KalTrack {
                 }
             }
         }
-        if (verbose) {
+        if (debug) {
             G.print("G");
             matrixPrint("K", K, 5, 3);
         }
@@ -699,7 +714,7 @@ public class KalTrack {
         pntDOCA = HelixState.atPhi(X0, newHelix, phi, alpha);
         Vec err = pntDOCA.dif(v);
         chi2incVtx = err.dot(err.leftMultiply(CovInv));
-        if (verbose) {
+        if (debug) {
             // Test alternative formulation
             SquareMatrix Vinv = Cov.invert();
             solver.setA(helixAtOrigin.C);
@@ -1088,7 +1103,7 @@ public class KalTrack {
     }
         
     // re-fit the track 
-    public boolean fit(int nIterations, boolean verbose) {
+    public boolean fit(int nIterations) {
         double chi2s = 0.;
         for (int iteration = 0; iteration < nIterations; iteration++) {
             if (debug) System.out.format("KalTrack.fit: starting filtering for iteration %d\n", iteration);
@@ -1176,15 +1191,13 @@ public class KalTrack {
     // Comparator function for sorting tracks by quality
     static Comparator<KalTrack> TkrComparator = new Comparator<KalTrack>() {
         public int compare(KalTrack t1, KalTrack t2) {
-            Double chi1 = new Double(t1.chi2 / t1.nHits + 10.0*(1.0 - (double)t1.nHits/12.));
-            Double chi2 = new Double(t2.chi2 / t2.nHits + 10.0*(1.0 - (double)t2.nHits/12.));
-            if (t1.originHelix() && t2.originHelix()) {
-                if (!t1.helixAtOrigin.goodCov()) chi1 = chi1 + 1000.;
-                if (!t2.helixAtOrigin.goodCov()) chi2 = chi2 + 1000.;
-            } else {
-                if (!t1.SiteList.get(0).aS.helix.goodCov()) chi1 = chi1 + 1000.;
-                if (!t2.SiteList.get(0).aS.helix.goodCov()) chi2 = chi2 + 1000.;
-            }
+            double penalty1 = 1.0;
+            double penalty2 = 1.0;
+            if (!t1.SiteList.get(0).aS.helix.goodCov()) penalty1 = 10.;
+            if (!t2.SiteList.get(0).aS.helix.goodCov()) penalty2 = 10.;
+
+            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 10.0*(1.0 - (double)t1.nHits/14.));
+            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 10.0*(1.0 - (double)t2.nHits/14.));
             return chi1.compareTo(chi2);
         }
     };

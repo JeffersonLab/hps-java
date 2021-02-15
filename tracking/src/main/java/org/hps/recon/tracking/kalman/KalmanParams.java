@@ -41,6 +41,7 @@ public class KalmanParams {
     double [] beamSpot;
     double [] vtxSize;
     double [] minSeedE;
+    double edgeTolerance;
     static final int numLayers = 14;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
@@ -52,14 +53,16 @@ public class KalmanParams {
         System.out.format("\nKalmanParams: dump of the Kalman pattern recognition cuts and parameters\n");
         System.out.println("  (In the case of two values, they refer to the two iterations.)");
         System.out.format("  There are %d layers in the tracker.\n", numLayers);
-        System.out.format("  Cluster energy cuts by layer: ");
+        System.out.format("  Cluster energy cuts for seeds, by layer: ");
         for (int lyr=0; lyr<numLayers; ++lyr) {
             System.out.format(" %6.2f", minSeedE[lyr]);
         }
         System.out.format("\n");
+        System.out.format("  Residual improvement ratio necessary to use a low-ph hit instead of high-ph = %8.2f\n", lowPhThresh);
         System.out.format("  First layer in the tracking system: %d\n", firstLayer);
         System.out.format("  Number of global iterations: %d\n", nTrials);
         System.out.format("  Number of Kalman filter iterations per track in the final fits: %d\n", nIterations);
+        System.out.format("  Detector edge tolerance = %8.3f\n", edgeTolerance);
         System.out.format("  Maximum seed curvature=%8.2f, %8.2f (1/GeV)\n", kMax[0], kMax[1]);
         System.out.format("  Minimum seed curvature=%8.2f (1/GeV)\n", kMin);
         System.out.format("  Maximum tan(lambda): %8.2f, %8.2f\n", tanlMax[0], tanlMax[1]);
@@ -125,6 +128,7 @@ public class KalmanParams {
         // The second iteration generally will have looser cuts.
         nTrials = 2;        // Number of global iterations of the pattern recognition
         nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
+        edgeTolerance = 1.; // Tolerance on checking if a track is within the detector bounds
         kMax[0] = 4.0;      // Maximum curvature for seed
         kMax[1] = 8.0;      
         kMin = 0.;          // Minimum curvature for seed

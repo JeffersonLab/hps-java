@@ -540,8 +540,8 @@ public class WTrack {
                 // Hep3Vector dpoint = VecOp.sub(xp, trk.getX0());
 
             } else {
-                // if(_debug)
-//                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
+                if(_debug)
+                    System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
                 return null;
             }
 
@@ -609,8 +609,8 @@ public class WTrack {
                 // Hep3Vector dpoint = VecOp.sub(xp, trk.getX0());
 
             } else {
-                // if(_debug)
-//                System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
+                if(_debug)
+                    System.out.printf("%s: this track started to go backwards?! params [%s]\n", this.getClass().getSimpleName(), trk.toString());
                 return null;
             }
 

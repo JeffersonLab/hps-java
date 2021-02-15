@@ -38,7 +38,7 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
  */
 public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDriver<Hodoscope_v1> {    
     // The DAQ configuration manager for FADC parameters.
-    private FADCConfigHodo2019 config = null;
+    private FADCConfigHodo2019 config = new FADCConfigHodo2019();
     
     // The number of nanoseconds in a clock-cycle (sample).
     private static final int nsPerSample = 4;   

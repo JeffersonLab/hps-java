@@ -326,7 +326,7 @@ class HelixState implements Cloneable {
     }
     
     // Propagate a helix by Runge-Kutta integration to an arbitrary plane
-    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM) {
+    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength) {
         // pln   = plane to where the extrapolation is taking place in global coordinates.  
         //         The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.
         // yScat = input array of y values where scattering in silicon will take place. Only those between the start and finish points
@@ -378,11 +378,13 @@ class HelixState implements Cloneable {
         
         Vec pInt = new Vec(3);
         Vec xPlane = hpi.rkIntersect(pln, x0Global, p0Global, Q, fM, pInt); // RK propagation to the target plane
+        arcLength[0] = hpi.arcLength();
         Vec XplaneLocal = targetRot.rotate(xPlane.dif(pln.X()));
         Vec helixAtIntersect = pTOa(targetRot.rotate(pInt), 0., 0., Q); // Helix with pivot at Xplane (in field coordinates)
         Vec helixAtTarget = pivotTransform(targetPlane.X(), helixAtIntersect, XplaneLocal, alphatarget, 0.);
         if (debug) {
             xPlane.print("RK helix intersection with final plane");
+            System.out.format("    Arc length for the RK propatation=%9.4f\n", arcLength[0]);
             XplaneLocal.print("RK helix intersection with final plane in local system");
             pInt.print("RK momentum at helix intersection");
             double pTanL = pInt.v[2]/FastMath.sqrt(pInt.v[0]*pInt.v[0]+pInt.v[1]*pInt.v[1]);
@@ -419,9 +421,9 @@ class HelixState implements Cloneable {
     }
 
     // Optional interface for the case in which there are no scattering planes
-    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM) {
+    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength) {
         ArrayList<Double> yScat = new ArrayList<Double>();
-        return propagateRungeKutta(pln, yScat, XL, fM);
+        return propagateRungeKutta(pln, yScat, XL, fM, arcLength);
     }
     
     Vec getRKintersection() {

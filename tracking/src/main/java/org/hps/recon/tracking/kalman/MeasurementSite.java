@@ -57,7 +57,7 @@ class MeasurementSite {
         } else if (predicted) { 
             str=str+"    This site has been predicted\n"; 
         }
-        str=str+String.format("    Hit ID=%d, maximum residual=%12.5e\n", hitID, kPar.mxResid);
+        str=str+String.format("    Hit ID=%d, maximum residual=%10.5f\n", hitID, kPar.mxResid);
         str = str + m.toString("for this site");
         double B = KalmanInterface.getField(m.p.X(), m.Bfield).mag();
         Vec tB = KalmanInterface.getField(m.p.X(), m.Bfield).unitVec();
@@ -172,8 +172,11 @@ class MeasurementSite {
 
         // Check whether the intersection is within the bounds of the detector, with some margin
         // If not, then the pattern recognition may look in another detector in the layer
-        // Don't do the check if the hit number is already specified
-        double tol = 1.0; // Tolerance on the check, in mm
+        // Don't do the check if the hit number is already specified. Also, the check will not
+        // be called for in the last sensor of the layer, because we need to run the Kalman prediction
+        // to this layer before moving to the next, even if there is no hit.
+        
+        double tol = kPar.edgeTolerance; // Tolerance on the check, in mm
         Vec rLocal = null;
         if (checkBounds && hitNumber < 0) {
             Vec rGlobal = pS.helix.toGlobal(X0); // Transform from field coordinates to global coordinates
@@ -288,12 +291,18 @@ class MeasurementSite {
                     double minResid = 999.;
                     double minResidAll = 999.;
                     for (int i = 0; i < nHits; i++) {
-                        if (m.hits.get(i).tracks.size() > 0) continue; // Skip used hits
+                        Measurement mHit = m.hits.get(i);
+                        if (mHit.tracks.size() > 0) continue; // Skip used hits
                         //if (m.hits.get(i).tksMC.size()==0) {  // For cheating, using MC truth to avoid noise hits.
                         //    continue;
                         //}
-                        double residual = Math.abs(m.hits.get(i).v - aP.mPred);
-                        double ctv = (m.hits.get(i).v - aP.mPred)/m.hits.get(i).sigma;
+                        if (m.split) { // Innermost 2019 layers have strips split in the middle into separate channels
+                            if (rLocal.v[0] * mHit.x < 0.) { // The track is on the wrong side
+                                if (Math.abs(rLocal.v[0]) > tol) continue;
+                            }
+                        }
+                        double residual = Math.abs(mHit.v - aP.mPred);
+                        double ctv = (mHit.v - aP.mPred)/mHit.sigma;
                         if (debug) {
                             System.out.format("  MeasurementSite.makePrediction: Found unused hit, residual=%10.5f, sigmas=%10.5f, cut=%10.5f\n", residual, ctv, kPar.mxResid[trial]); 
                             System.out.format("        Hit energy=%10.4f, cut = %10.4f\n",m.hits.get(i).energy, kPar.minSeedE[m.Layer]);
@@ -534,11 +543,11 @@ class MeasurementSite {
                 if (filter()) {
                     if (debug) System.out.format("MeasurementSite.addHit: chi2inc from filter = %10.5f\n", chi2inc);
                     if (chi2inc < cut) {
-                        //if (debug) {
-                        System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
-                        hit.print("short");
-                        System.out.format("\n");
-                        //}
+                        if (debug) {
+                            System.out.format("MeasurementSite.addHit: success! Adding hit %d on layer %d detector %d  hit=", hitID, m.Layer, m.detector);
+                            hit.print("short");
+                            System.out.format("\n");
+                        }
                         return m.hits.get(hitID);
                     } else {
                         hitID = -1;
