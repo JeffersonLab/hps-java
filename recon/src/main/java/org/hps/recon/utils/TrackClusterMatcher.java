@@ -370,7 +370,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
         //return Math.sqrt( 1 / ( 1/nSigmaX/nSigmaX + 1/nSigmaY/nSigmaY ) );
     }
 
-    boolean debug = false;
+    boolean debug = true;
 
     SnapToEdge snapper = new SnapToEdge();
 
@@ -625,7 +625,12 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 double smallestNSigma = Double.MAX_VALUE;
                 // try to find a matching cluster:
                 Cluster matchedCluster = null;
+                System.out.println("[mine] Track type: " + track.getType());
+                System.out.println("[mine] Track momentum: " + track.getMomentum()[2]);
+                System.out.println("[mine] Track time: " + TrackUtils.getTrackTime(track, hitToStrips, hitToRotated));
+
                 for(Cluster cluster : clusters) {
+                    System.out.println("[mine] Looking at cluster with energy: " + cluster.getEnergy());
                     double clusTime = ClusterUtilities.getSeedHitTime(cluster);
                     double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
 
@@ -636,6 +641,8 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                         }
                         continue;
                     }
+                    System.out.println("[mine] Cluster with energy: " + cluster.getEnergy() + " has passed time cut");
+
 
                     //if the option to use corrected cluster positions is selected, then
                     //create a copy of the current cluster, and apply corrections to it
@@ -651,6 +658,8 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
                     // normalized distance between this cluster and track:
                     final double thisNSigma = this.getNSigmaPosition(cluster, particle);
+                    System.out.println("[mine] NSigma: " + thisNSigma);
+
                     if (enablePlots) {
                         if (TrackUtils.getTrackStateAtECal(track) != null) {
                             this.isMatch(cluster, track);
@@ -664,7 +673,9 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                             System.out.println("match NSigma = " + thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH);
                         }
                         continue;
+                    
                     }
+                    System.out.println("[mine] Cluster with energy: " + cluster.getEnergy() + " has passed NSigma cut");
 
                     // ignore if we already found a cluster that's a better match:
                     if (thisNSigma > smallestNSigma) {
@@ -684,11 +695,13 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                     }
                 }
 
+                trackClusterPairs.put(track, matchedCluster);
+
                 // If a cluster was found that matches the track...
                 // add track cluster pair to Map
-                if (matchedCluster != null) {
-                    trackClusterPairs.put(track, matchedCluster);
-                }
+                //if (matchedCluster != null) {
+                  //  trackClusterPairs.put(track, matchedCluster);
+               // }
 
             }
         }

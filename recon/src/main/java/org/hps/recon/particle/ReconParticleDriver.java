@@ -528,6 +528,13 @@ public abstract class ReconParticleDriver extends Driver {
         // Loop through all of the track collections and try to match every
         // track to a cluster. Details of the matching algorithm used are
         // defined in the specfic matcher implementation
+
+        System.out.println("[My branch] Event Number: " + event.getEventNumber());
+        System.out.println("[HEY] trackCollections size: " + trackCollections.size());
+        for(List<Track> tracks : trackCollections)
+            System.out.println("[HEY] tracks size: " + tracks.size());
+        System.out.println("[HEY] Clusters size: " + clusters.size());
+
         
         //Matcher returns a mapping of Tracks with matched Clusters.
         TrackClusterPairs = matcher.matchTracksToClusters(event, trackCollections, clusters, cuts, flipSign, useTrackPositionForClusterCorrection,isMC,ecal, beamEnergy);
@@ -567,30 +574,32 @@ public abstract class ReconParticleDriver extends Driver {
 
 
 
-            // add cluster to the particle:
-            particle.addCluster(matchedCluster);
-            printDebug("particle with cluster added: " + particle);
+            // If a cluster was found that matches the track...
+            if(matchedCluster != null){
 
-            // use pid quality to store track-cluster matching quality:
-            ((BaseReconstructedParticle) particle).setGoodnessOfPid(matcher.getMatchQC(matchedCluster, particle));
+                // add cluster to the particle:
+                particle.addCluster(matchedCluster);
+                printDebug("particle with cluster added: " + particle);
 
-            // propogate pid to the cluster:
-            final int pid = particle.getParticleIDUsed().getPDG();
-            if (Math.abs(pid) == 11) {
-                if (!disablePID) {
-                    ((BaseCluster) matchedCluster).setParticleId(pid);
+                // use pid quality to store track-cluster matching quality:
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(matcher.getMatchQC(matchedCluster, particle));
+
+                // propogate pid to the cluster:
+                final int pid = particle.getParticleIDUsed().getPDG();
+                if (Math.abs(pid) == 11) {
+                    if (!disablePID) {
+                        ((BaseCluster) matchedCluster).setParticleId(pid);
+                    }
                 }
-            }
 
-            // unmatched clusters will (later) be used to create photon particles:
-            unmatchedClusters.remove(matchedCluster);
+                // unmatched clusters will (later) be used to create photon particles:
+                unmatchedClusters.remove(matchedCluster);
+            }
 
             // Add the particle to the list of reconstructed particles.
             particles.add(particle);
 
         }
-
-        System.out.println("[ERROR] size of particles: " + particles.size());
 
         // Iterate over the remaining unmatched clusters.
         for (Cluster unmatchedCluster : unmatchedClusters) {
@@ -752,7 +761,6 @@ public abstract class ReconParticleDriver extends Driver {
         // positrons so that V0 candidates can be generated from them.
         printDebug("Size of finalStateParticles: " + finalStateParticles.size());
         for (ReconstructedParticle finalStateParticle : finalStateParticles) {
-            printDebug("[ERROR] final state particle charge: "+ finalStateParticle.getCharge());
             // If the charge is positive, assume an electron.
             if (finalStateParticle.getCharge() > 0) {
                 positrons.add(finalStateParticle);
