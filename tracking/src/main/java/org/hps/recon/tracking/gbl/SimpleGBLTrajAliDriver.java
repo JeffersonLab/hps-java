@@ -8,6 +8,10 @@ import static java.lang.Math.sqrt;
 
 //import hep.physics.vec.VecOp;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
+
 //Rounding
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,6 +44,7 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.constants.Constants;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
@@ -94,7 +99,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private String trackResidualsColName = "TrackResidualsGBL";
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
-    
+    private String gblStripClusterDataRelations = "KFGBLStripClusterDataRelations";
+        
     private double bfield;
     private FieldMap bFieldMap;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
@@ -223,6 +229,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
         this.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
     }
+    
+    public void setGblStripClusterDataRelations (String input) {
+        this.gblStripClusterDataRelations = input;
+    }
 
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
@@ -269,7 +279,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //Save the plots?
         
         try {
-            aidaGBL.saveAs("plots.root");
+            aidaGBL.saveAs("SimpleGBLTrajAliDriverplots.root");
         }
         catch (IOException ex) {
         }
@@ -300,12 +310,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //_gblTrajMaker.setIncludeMS(includeNoHitScatters);
         _gblTrajMaker.setIncludeMS(false);
         
-
-        //GBLexample1 example1 = new GBLexample1();  
-        //example1.runExample(1,10,false); 
-        
-        //GBLexampleJna1 examplejna1 = new GBLexampleJna1();
-        //examplejna1.runExample();
 
         //Alignment Manager  - Get the composite structures.
         IDetectorElement detectorElement = detector.getDetectorElement();
@@ -340,17 +344,19 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
-        if (!event.hasCollection(Track.class, inputCollectionName))
+        if (!event.hasCollection(Track.class, inputCollectionName)) {
+            System.out.println("Missing Tracks " + inputCollectionName+ " in the event");
             return;
+        }
         
         setupSensors(event);
         List<Track> tracks = event.get(Track.class, inputCollectionName);
-        // System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());
-        //RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        //RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
-
+        
+        
+        RelationalTable hitToStrips  = null;  
+        RelationalTable hitToRotated = null;
+        
+        
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
@@ -360,17 +366,41 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //Hit on Track Residuals
         List<TrackResidualsData> trackResidualsCollection =  new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations          = new ArrayList<LCRelation>();
+
+
+        int TrackType = 0;
         
+        if (inputCollectionName.contains("Kalman") || inputCollectionName.contains("KF")) {
+            TrackType = 1;
+            //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
+        }
+
+        //If using Seed Tracker, get the hits from the event
+        if (TrackType == 0) {
+
+            hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
+            hitToRotated =  TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
+        }
+
         //Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
         for (Track track : tracks) {
-            List<TrackerHit> temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
-            if (temp.size() == 0)
-                //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
-                continue;
-
-
             
-           
+            List<TrackerHit> temp = null;
+            
+            if (TrackType == 0) {
+                if (hitToStrips == null || hitToRotated == null) {
+                    System.out.println("no hits found");
+                    continue;
+                }
+                
+                temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+                
+                if (temp.size() == 0)
+                    //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
+                    continue;
+            }
+            
+
             if (enableAlignmentCuts) {
                 
                 //Get the track parameters
@@ -384,7 +414,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     continue;
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < 6) || (tanLambda < 0 && track.getTrackerHits().size() < 6)) 
+                if ((tanLambda > 0 && track.getTrackerHits().size() < 5) || (tanLambda < 0 && track.getTrackerHits().size() < 5)) 
                     continue;
                 
                 // ask tracks only on a side
@@ -401,19 +431,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                     else if (trackSide == 1 && !TrackUtils.isHoleTrack(track)) 
                         continue;
-                    
-                    
                 }
                 
             }
-            
-            
-                
-            
-            
+
             //Track biasing example 
             //Re-fit the track?
-            if (constrainedFit) {
+            //Only active for ST tracks
+            if (constrainedFit && TrackType == 0) {
                 double momentum_param = 2.99792458e-04;
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
@@ -434,7 +459,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
             }
 
-            if (constrainedD0Fit) {
+            if (constrainedD0Fit && TrackType == 0) {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double d0 = trk_prms[BaseTrack.D0];
@@ -456,7 +481,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
             }
 
-            if (constrainedZ0Fit) {
+            if (constrainedZ0Fit && TrackType == 0) {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double z0 = trk_prms[BaseTrack.Z0];
@@ -469,40 +494,29 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
             //if (enableStandardCuts && gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
             //    continue;
-            
-            List<GBLStripClusterData> trackGblStripClusterData = _gblTrajMaker.makeStripData(TrackUtils.getHTF(track),temp);
 
+            //This should GBL Trajectories for both the ST+GBL and KF+GBL depending on the setup.
+            
+            List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
+                                                                                             temp,gblStripClusterDataRelations,event);
+            
+            //Printout the Cluster Data: 
+            
+            
+            if (debugAlignmentDs) {
+                for (GBLStripClusterData strip : trackGblStripClusterData)   {
+                    System.out.format("SimpleGBLTrajAliDriver: TrackType="+TrackType);
+                    printGBLStripClusterData(strip);
+                }
+            }
+            
             //Add the beamspot constraint
 
-            
             HelicalTrackFit htf = TrackUtils.getHTF(track);
-            
             double bfac = Constants.fieldConversion * bfield;
             
+            GBLBeamSpotPoint bsPoint = FormBSPoint(htf, bsZ);
 
-            //Form the BeamsSpotPoint
-            double [] center = new double[3];
-            double [] udir   = new double[3];
-            double [] vdir   = new double[3];
-            
-            center[0] = bsZ; //Z
-            center[1] = 0.;  //X
-            center[2] = 0.;  //Y
-            
-            udir[0] = 0;    
-            udir[1] = 0;
-            udir[2] = 1;  //sensitive direction is along Y global, so along Z in tracking frame
-            
-            vdir[0] = -0.030429;  //insensitive direction should be along X in global, so along Y in tracking frame.
-            vdir[1] = 0.999537; 
-            vdir[2] = 0.;
-
-            
-            double[] bserror = new double[2];
-            bserror[0]=0.01;
-            bserror[1]=0.1;
-            GBLBeamSpotPoint bsPoint = GblUtils.gblMakeBsPoint(htf, center, udir, vdir, bserror);
-            
             //aidaGBL.histogram1D("d0_vs_bs").fill(position[1]);
             //aidaGBL.histogram1D("z0_vs_bs").fill(position[2]);
             
@@ -525,8 +539,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
               gblStrip.print();
               }
             */
-            
-            
+                        
             DoubleByReference Chi2 = new DoubleByReference(0.);
             DoubleByReference lostWeight = new DoubleByReference(0.);
             IntByReference Ndf = new IntByReference(0);
@@ -636,7 +649,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     }
                 }
 
-            
+                
                 
                 
                 //for (int i_der =0; i_der<derLocal.size();i_der++) {
@@ -825,7 +838,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                 }//usePoints
                 
-            }//alitest
+            }// composite Alignment
         }//loop on tracks
         
         /*
@@ -1268,7 +1281,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }
-
+    
 
     private void setupPlots() {
                 
@@ -1300,7 +1313,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
         //Local derivatives 
         //wrt q/p 
-        aidaGBL.histogram1D(derFolder+"df_d(q/p)",nbins, -5,5);
+        aidaGBL.histogram1D(derFolder+"df_dqop",nbins, -5,5);
         
         
         //d0 and z0 wrt beamspot
@@ -1320,8 +1333,107 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
         aidaGBL.histogram1D("d0_vs_bs_BSC_lcsim",nbins,-2.,2.);
         aidaGBL.histogram1D("z0_vs_bs_BSC_lcsim",nbins,-0.200,0.200);
-
+        
         
     }//setupPlots
+    
+    public void printGBLStripClusterData(GBLStripClusterData clstr) {
+        
+        System.out.format("\nprintGBLStripClusterData: cluster ID=%d, scatterOnly=%d\n", clstr.getId(), clstr.getScatterOnly());
+        System.out.format("  HPS tracking system U=%s\n", clstr.getU().toString());
+        System.out.format("  HPS tracking system V=%s\n", clstr.getV().toString());
+        System.out.format("  HPS tracking system W=%s\n", clstr.getW().toString());
+        System.out.format("  HPS tracking system Track direction=%s\n", clstr.getTrackDirection().toString());
+        System.out.format("  phi=%10.6f, lambda=%10.6f\n", clstr.getTrackPhi(), clstr.getTrackLambda());
+        System.out.format("  Arc length 2D=%10.5f mm,  Arc length 3D=%10.5f mm\n", clstr.getPath(), clstr.getPath3D());
+        System.out.format("  Measurement = %10.5f +- %8.5f mm\n", clstr.getMeas(), clstr.getMeasErr());
+        System.out.format("  Track intercept in sensor frame = %s\n", clstr.getTrackPos().toString());
+        System.out.format("  RMS projected scattering angle=%10.6f\n", clstr.getScatterAngle());
+    }
+
+    
+    /* Returns the GBLStripClusterData for a particular track
+       Params:
+       - Track Type: [0] - SeedTracker; [1] - Kalman
+       - gblSCDR: The name of the relations from track ot the GBLStripClusterData in the event (Only needed 
+       for KalmanTracks)
+       - seedTrackerStripHits -> list of strip hits for refitting the seedTracker tracks
+       
+    */
+    List<GBLStripClusterData> computeGBLStripClusterData(Track track, int TrackType, 
+                                                         List<TrackerHit> seedTrackerStripHits, 
+                                                         String gblSCDR, EventHeader event) {
+        
+        if (TrackType == 0) {
+            return _gblTrajMaker.makeStripData(TrackUtils.getHTF(track),seedTrackerStripHits);
+        }
+        
+        else if (TrackType == 1) {
+            
+            //Get the GBLStripClusterData
+            RelationalTable kfSCDsRT = null;
+            List<LCRelation> kfSCDRelation = new ArrayList<LCRelation>();
+            if (event.hasCollection(LCRelation.class,gblSCDR)) { 
+                kfSCDsRT = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+                kfSCDRelation = event.get(LCRelation.class,gblSCDR);
+                for (LCRelation relation : kfSCDRelation) {
+                    if (relation != null && relation.getFrom() != null && relation.getTo() != null) { 
+                        kfSCDsRT.add(relation.getFrom(), relation.getTo());
+                    }
+                }
+            } else {
+                System.out.println("null KFGBLStripCluster Data Relations.");
+                return null; 
+            }
+
+            //Get the strip cluster data
+            Set<GBLStripClusterData> kfSCDs = kfSCDsRT.allFrom(track);
+            
+            //Convert the set to a list for sorting it
+            List<GBLStripClusterData> list_kfSCDs = new ArrayList<GBLStripClusterData>(kfSCDs);
+            
+            //Sort the list by cluster ID (that's the millepede index, which should correspond to a monotonous increase in arcLength of the points)
+            Collections.sort(list_kfSCDs, arcLComparator);
+            
+            return list_kfSCDs;
+        }//Track Type
+        
+        else  // Track Type unknown
+            return null;
+    }
+    
+    GBLBeamSpotPoint FormBSPoint(HelicalTrackFit htf, double bsZ) {
+        //Form the BeamsSpotPoint
+        double [] center = new double[3];
+        double [] udir   = new double[3];
+        double [] vdir   = new double[3];
+        
+        center[0] = bsZ; //Z
+        center[1] = 0.;  //X
+        center[2] = 0.;  //Y
+        
+        udir[0] = 0;    
+        udir[1] = 0;
+        udir[2] = 1;  //sensitive direction is along Y global, so along Z in tracking frame
+        
+        vdir[0] = -0.030429;  //insensitive direction should be along X in global, so along Y in tracking frame.
+        vdir[1] = 0.999537; 
+        vdir[2] = 0.;
+        
+        
+        //Hard coded uncertainties
+        double[] bserror = new double[2];
+        bserror[0]=0.01;
+        bserror[1]=0.1;
+        return GblUtils.gblMakeBsPoint(htf, center, udir, vdir, bserror);
+    }
+    
+    static Comparator<GBLStripClusterData>  arcLComparator = new Comparator<GBLStripClusterData>() {
+        
+        public int compare(GBLStripClusterData strip1, GBLStripClusterData strip2) {
+            return strip1.getId() - strip2.getId();
+        }
+    };
+    
 }
 

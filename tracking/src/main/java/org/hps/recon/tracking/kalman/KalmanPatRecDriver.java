@@ -278,7 +278,7 @@ public class KalmanPatRecDriver extends Driver {
                 "KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
         if (kPatList == null) {
-            logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
+            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
             return;
         }
         
